@@ -224,6 +224,12 @@ a{color:#2563EB;text-decoration:none}
 .chat-step-who{font-size:12px;color:var(--accent);font-weight:600;margin-top:2px}
 .chat-step-timeline{font-size:12px;color:var(--warn);font-weight:600;margin-top:1px}
 .chat-step-script{font-size:12px;color:var(--text-sec);margin-top:4px;padding:8px;background:var(--muted-light);border-radius:6px;font-style:italic;line-height:1.5}
+.chat-step-actions{margin-top:6px}
+.chat-save-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;background:var(--success-light);color:var(--success);border:1px solid var(--success-border);cursor:pointer;transition:all .15s}
+.chat-save-btn:hover{background:var(--success);color:#FFF;transform:translateY(-1px)}
+.chat-save-btn.saved{background:var(--muted-light);color:var(--muted);border-color:var(--border);cursor:default;pointer-events:none}
+.action-card.from-chat{border-left-color:var(--teal)}
+.from-chat-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--teal-light);color:var(--teal);font-weight:600}
 .chat-rights{background:var(--purple-light);border:1px solid #DDD6FE;border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px}
 .chat-rights-label{font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
 .chat-rights-text{font-size:13px;color:var(--text);line-height:1.5}
@@ -480,6 +486,7 @@ var state = {
   showDismissed: false,
   dismissedActions: {},
   startedActions: {},
+  savedActions: [],
 };
 
 // ═══ RC DATABASE ═══
@@ -812,7 +819,7 @@ function finishOnboarding() {
       .withSuccessHandler(function(result) {
         if (result && result.userId) state.userId = result.userId;
         // Persist to localStorage
-        try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, userId:state.userId})); } catch(e){}
+        try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, userId:state.userId})); } catch(e){}
       })
       .withFailureHandler(function(err) { console.log('Save failed:', err); })
       .saveUser(userData);
@@ -834,6 +841,7 @@ function restoreSession() {
       state.completedActions = data.completedActions || {};
       state.dismissedActions = data.dismissedActions || {};
       state.startedActions = data.startedActions || {};
+      state.savedActions = data.savedActions || [];
       state.userId = data.userId || null;
       // Re-lookup RC
       if (state.userInfo.zipCode) {
@@ -853,7 +861,7 @@ function restoreSession() {
 }
 
 function saveState() {
-  try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, userId:state.userId})); } catch(e){}
+  try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, userId:state.userId})); } catch(e){}
 }
 
 // ═══ PLAN GENERATOR (V5.1) ═══
@@ -1264,9 +1272,12 @@ function renderDashboard() {
   document.getElementById('dash-title').textContent = name+"'s Action Plan";
   document.getElementById('dash-avatar').textContent = (parent||'W').charAt(0).toUpperCase();
 
+  // Merge auto-generated and saved actions
+  var allActions = [].concat(state.actions).concat(state.savedActions || []);
+
   // Summary chips
   var urgent=0, high=0, standard=0, completed=Object.keys(state.completedActions).length;
-  state.actions.forEach(function(a){
+  allActions.forEach(function(a){
     if(state.completedActions[a.id])return;
     if(a.priority==='urgent')urgent++;else if(a.priority==='high')high++;else standard++;
   });
@@ -1277,16 +1288,16 @@ function renderDashboard() {
   if(completed) sb+='<div class="summary-chip" style="background:var(--success-light);color:var(--success)">✅ '+completed+' done</div>';
   document.getElementById('summary-bar').innerHTML = sb;
 
-  // Split actions into active and completed
-  var activeActions = state.actions.filter(function(a){ return !state.completedActions[a.id] && !state.dismissedActions[a.id]; });
-  var completedActionsList = state.actions.filter(function(a){ return state.completedActions[a.id]; });
-  var dismissedActionsList = state.actions.filter(function(a){ return state.dismissedActions[a.id]; });
+  // Split actions into active, completed, and dismissed
+  var activeActions = allActions.filter(function(a){ return !state.completedActions[a.id] && !state.dismissedActions[a.id]; });
+  var completedActionsList = allActions.filter(function(a){ return state.completedActions[a.id]; });
+  var dismissedActionsList = allActions.filter(function(a){ return state.dismissedActions[a.id]; });
 
   // Render active action cards
   var cardsHtml = '';
   activeActions.forEach(function(a) {
     var isLocked = a.dependsOn && !state.completedActions[a.dependsOn];
-    var cls = 'action-card '+a.priority+(isLocked?' locked':'');
+    var cls = 'action-card '+a.priority+(isLocked?' locked':'')+(a.source==='chat'?' from-chat':'');
     var isExpanded = state.expandedCard === a.id;
 
     cardsHtml += '<div class="'+cls+'" id="card-'+a.id+'">';
@@ -1305,6 +1316,7 @@ function renderDashboard() {
     // Meta tags
     cardsHtml += '<div class="action-meta">';
     if (a.agency) cardsHtml += '<span class="action-tag" style="background:var(--muted-light);color:var(--muted)">'+a.agency+'</span>';
+    if (a.source === 'chat') cardsHtml += '<span class="from-chat-tag">💬 From Chat</span>';
     if (a.category && a.category !== 'standard') cardsHtml += '<span class="action-tag" style="background:var(--rose-light);color:var(--rose)">'+a.category+'</span>';
     cardsHtml += '</div>';
 
@@ -2557,7 +2569,7 @@ function chatHandleResponse(result, question) {
   // Action steps
   if (result.action_steps && result.action_steps.length) {
     html += '<div class="chat-steps">';
-    result.action_steps.forEach(function(step) {
+    result.action_steps.forEach(function(step, idx) {
       html += '<div class="chat-step">';
       html += '<div class="chat-step-num">' + (step.step || '') + '</div>';
       html += '<div class="chat-step-body">';
@@ -2565,6 +2577,9 @@ function chatHandleResponse(result, question) {
       if (step.who) html += '<div class="chat-step-who">' + escapeHtml(step.who) + '</div>';
       if (step.timeline) html += '<div class="chat-step-timeline">' + escapeHtml(step.timeline) + '</div>';
       if (step.script) html += '<div class="chat-step-script">"' + escapeHtml(step.script) + '"</div>';
+      html += '<div class="chat-step-actions">';
+      html += '<button class="chat-save-btn" data-step-idx="' + idx + '" onclick="saveActionFromChat(this,' + idx + ')">📋 Save as Action Item</button>';
+      html += '</div>';
       html += '</div></div>';
     });
     html += '</div>';
@@ -2629,6 +2644,46 @@ function chatHandleError(err, question) {
   var msgArea = document.getElementById('chat-messages');
   msgArea.innerHTML += '<div class="chat-msg ai"><div class="chat-bubble"><div class="ai-inner"><div class="chat-error">' + escapeHtml(errMsg) + '</div></div></div></div>';
   scrollChatToBottom();
+}
+
+function saveActionFromChat(btn, stepIdx) {
+  if (btn.classList.contains('saved')) return;
+  var result = chatState.lastResponse;
+  if (!result || !result.action_steps || !result.action_steps[stepIdx]) { toast('Error: step not found'); return; }
+  var step = result.action_steps[stepIdx];
+  var actionId = 'chat_' + Date.now() + '_' + stepIdx;
+  var priority = result.urgency === 'high' ? 'urgent' : 'standard';
+  var savedAction = {
+    id: actionId,
+    priority: priority,
+    category: result.category || 'navigation',
+    title: step.action || '[Untitled Action]',
+    subtitle: 'Saved from AI suggestion',
+    whyMatters: result.empathy || '',
+    agency: step.who || '',
+    deadline: step.timeline || null,
+    agencyKey: null,
+    talkingPoints: step.script ? [step.script] : [],
+    steps: [],
+    documents: [],
+    smsReminder: null,
+    insiderTip: result.watch_out || '',
+    followUpKey: null,
+    draftMessage: null,
+    eligibilityCheck: null,
+    dependsOn: null,
+    learnMoreKey: null,
+    source: 'chat',
+    createdAt: new Date().toISOString(),
+    chatQuestion: chatState.lastQuestion || '',
+    responseCategory: result.category
+  };
+  state.savedActions.push(savedAction);
+  saveState();
+  try { google.script.run.logAction(state.userId, actionId, step.action || '', 'saved', '', 'source:chat;category:' + (result.category || '')); } catch(e){}
+  btn.classList.add('saved');
+  btn.innerHTML = '✅ Added to Actions';
+  toast('Action added to your Action Plan! 📋');
 }
 
 function chatFeedbackFromBtn(btn) {
