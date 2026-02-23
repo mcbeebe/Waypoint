@@ -2466,20 +2466,21 @@ function chatHandleResponse(result, question) {
     html += '</div>';
   }
 
-  // Draft offer
+  // Draft offer — use data attributes to avoid apostrophe/quote issues in onclick
   if (result.offer_to_draft && result.draft_type) {
-    var draftQ = escapeHtml(question).replace(/'/g, "\\'");
-    html += '<div class="chat-draft-btn" onclick="chatRequestDraft(\'' + escapeHtml(result.draft_type) + '\', \'' + draftQ + '\')">';
+    html += '<div class="chat-draft-btn" data-draft-type="' + escapeAttr(result.draft_type) + '" onclick="chatRequestDraftFromState(this)">';
     html += '<span style="font-size:16px">📝</span>';
-    html += '<span>' + escapeHtml(result.offer_to_draft) + '</span>';
+    html += '<span>Generate Draft: ' + escapeHtml(result.offer_to_draft) + '</span>';
+    html += '<span style="margin-left:auto;font-size:12px">→</span>';
     html += '</div>';
   }
 
-  // Feedback buttons
-  html += '<div class="chat-feedback" id="fb-' + Date.now() + '">';
-  html += '<button onclick="chatFeedback(this,\'helpful\',\'' + escapeHtml(question).replace(/'/g, "\\'") + '\')">👍 Helpful</button>';
-  html += '<button onclick="chatFeedback(this,\'not_helpful\',\'' + escapeHtml(question).replace(/'/g, "\\'") + '\')">👎 Not quite</button>';
-  html += '<button onclick="chatFeedback(this,\'wrong\',\'' + escapeHtml(question).replace(/'/g, "\\'") + '\')">⚠️ Incorrect</button>';
+  // Feedback buttons — use data attributes instead of inline question strings
+  var fbId = 'fb-' + Date.now();
+  html += '<div class="chat-feedback" id="' + fbId + '">';
+  html += '<button data-fb="helpful" onclick="chatFeedbackFromBtn(this)">👍 Helpful</button>';
+  html += '<button data-fb="not_helpful" onclick="chatFeedbackFromBtn(this)">👎 Not quite</button>';
+  html += '<button data-fb="wrong" onclick="chatFeedbackFromBtn(this)">⚠️ Incorrect</button>';
   html += '</div>';
 
   html += '</div></div></div>';
@@ -2501,7 +2502,10 @@ function chatHandleError(err, question) {
   scrollChatToBottom();
 }
 
-function chatFeedback(btn, feedback, question) {
+function chatFeedbackFromBtn(btn) {
+  var feedback = btn.getAttribute('data-fb');
+  var question = chatState.lastQuestion || '';
+
   // Highlight selected button
   var parent = btn.parentElement;
   parent.querySelectorAll('button').forEach(function(b) { b.classList.remove('selected'); });
@@ -2516,6 +2520,12 @@ function chatFeedback(btn, feedback, question) {
   } catch (e) {}
 
   toast(feedback === 'helpful' ? 'Thanks for the feedback!' : 'Got it — we\'ll improve. Thanks!');
+}
+
+function chatRequestDraftFromState(el) {
+  var draftType = el.getAttribute('data-draft-type');
+  var question = chatState.lastQuestion || '';
+  chatRequestDraft(draftType, question);
 }
 
 function chatRequestDraft(draftType, question) {
@@ -2598,6 +2608,11 @@ function copyDraft() {
 function escapeHtml(str) {
   if (!str) return '';
   return str.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+function escapeAttr(str) {
+  if (!str) return '';
+  return str.toString().replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#039;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // ═══ UTILITIES ═══
