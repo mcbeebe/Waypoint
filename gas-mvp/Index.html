@@ -84,12 +84,15 @@ a{color:#2563EB;text-decoration:none}
 .action-subtitle{font-size:13px;color:var(--text-sec);margin-bottom:10px;line-height:1.5}
 .action-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .action-tag{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600}
-.action-buttons{display:flex;gap:6px;flex-wrap:wrap}
-.action-btn{padding:8px 12px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;transition:all .15s}
-.action-btn.info{background:var(--accent-light);color:var(--accent)}
-.action-btn.learn{background:var(--purple-light);color:var(--purple)}
-.action-btn.expand{background:var(--muted-light);color:var(--text-sec)}
+.action-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.action-btn{padding:10px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;transition:all .15s;cursor:pointer;border:1px solid transparent}
+.action-btn.info{background:var(--accent-light);color:var(--accent);border-color:#BFDBFE}
+.action-btn.learn{background:var(--purple-light);color:var(--purple);border-color:#DDD6FE}
+.action-btn.expand{background:var(--muted-light);color:var(--text-sec);border-color:var(--border)}
 .action-btn.complete{background:var(--success-light);color:var(--success);border:1px solid var(--success-border)}
+.action-btn.started{background:#FEF3C7;color:#92400E;border:1px solid #FDE68A}
+.action-btn.dismiss{background:#F9FAFB;color:#9CA3AF;border:1px solid #E5E7EB;font-size:12px}
+.action-btn.eligibility{background:#EDE9FE;color:#7C3AED;border:1px solid #DDD6FE}
 .action-btn.copy{background:var(--teal-light);color:var(--teal)}
 .action-btn:hover{transform:translateY(-1px);filter:brightness(0.95)}
 
@@ -474,6 +477,9 @@ var state = {
   frustrationFlow: null,
   frustrationDetail: {},
   showCompleted: false,
+  showDismissed: false,
+  dismissedActions: {},
+  startedActions: {},
 };
 
 // ═══ RC DATABASE ═══
@@ -806,7 +812,7 @@ function finishOnboarding() {
       .withSuccessHandler(function(result) {
         if (result && result.userId) state.userId = result.userId;
         // Persist to localStorage
-        try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, userId:state.userId})); } catch(e){}
+        try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, userId:state.userId})); } catch(e){}
       })
       .withFailureHandler(function(err) { console.log('Save failed:', err); })
       .saveUser(userData);
@@ -826,6 +832,8 @@ function restoreSession() {
       state.userInfo = data.userInfo || {};
       state.intake = data.intake || {};
       state.completedActions = data.completedActions || {};
+      state.dismissedActions = data.dismissedActions || {};
+      state.startedActions = data.startedActions || {};
       state.userId = data.userId || null;
       // Re-lookup RC
       if (state.userInfo.zipCode) {
@@ -845,7 +853,7 @@ function restoreSession() {
 }
 
 function saveState() {
-  try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, userId:state.userId})); } catch(e){}
+  try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, userId:state.userId})); } catch(e){}
 }
 
 // ═══ PLAN GENERATOR (V5.1) ═══
@@ -1028,7 +1036,8 @@ function generateRichPlan(intake) {
       steps:["Choose your application method: online at CoveredCA.com/Medi-Cal, by phone at 1-800-300-1506, in person at your county social services office, or by mail.","Online is fastest: go to BenefitsCal.com (CA's benefit portal) and create an account.","Fill out the application. For 'household,' you may list only the child if institutional deeming applies (RC client).","Submit proof of income, residency, and identity for your child.","County has 45 days to process. For kids with disabilities, request expedited processing.","Once approved, you'll receive a Benefits Identification Card (BIC) — this is the Medi-Cal card.","Medi-Cal can be retroactive up to 3 months before your application date — keep receipts for medical expenses."],
       documents:["Child's birth certificate or passport","Child's Social Security Number","Proof of CA residency (utility bill, lease, school enrollment)","Proof of household income (pay stubs, tax return, SSI award letter)","Immigration documents if applicable (many immigration statuses qualify)","RC referral or eligibility letter (for institutional deeming)"],
       smsReminder:"Next week: Apply for Medi-Cal at BenefitsCal.com or call 1-800-300-1506.",
-      insiderTip:"Apply even if you think you earn too much. 'Institutional deeming' for RC clients means only your child's income and resources are counted, not the family's. Most children with developmental disabilities qualify. If denied, appeal — and ask RC to provide a letter confirming your child is their client. Also: Medi-Cal is retroactive up to 3 months, so keep all medical receipts from the past 90 days."},h()));
+      insiderTip:"Apply even if you think you earn too much. 'Institutional deeming' for RC clients means only your child's income and resources are counted, not the family's. Most children with developmental disabilities qualify. If denied, appeal — and ask RC to provide a letter confirming your child is their client. Also: Medi-Cal is retroactive up to 3 months, so keep all medical receipts from the past 90 days.",
+      eligibilityCheck:{label:"Check Medi-Cal Eligibility",info:"<strong>Do I qualify?</strong><br><br>For children with developmental disabilities who are Regional Center clients, <strong>institutional deeming</strong> applies — only your CHILD's income and resources are counted, not the family's. Most children qualify.<br><br><strong>Without institutional deeming:</strong> Income limits vary by household size. A family of 4 typically qualifies if income is under ~$3,200/month (138% FPL). Children may qualify at higher income levels through special programs.<br><br><strong>Bottom line:</strong> If your child is an RC client or has a developmental disability, apply regardless of family income. The eligibility rules are more generous than most families expect.<br><br>Check at: <strong>BenefitsCal.com</strong> or call <strong>1-800-300-1506</strong>"}},h()));
   }
 
   // SSI
@@ -1049,7 +1058,8 @@ function generateRichPlan(intake) {
       steps:["Call SSA at 1-800-772-1213 (TTY: 1-800-325-0778) or visit ssa.gov to start. You CANNOT complete the child SSI application fully online — you'll need to schedule a phone or in-person appointment.","Gather all medical evidence: diagnosis reports, therapy records, school evaluations, IEP, hospital records.","The most important document is the Function Report (SSA-3375-BK for children). This is where you describe your child's daily functioning.","CRITICAL: On the Function Report, describe your child's WORST days, not their best. Be specific: 'He cannot dress himself without full physical assistance. He puts clothes on backwards, cannot button, cannot zip. This takes 30+ minutes with constant help.'","Get letters from every provider: pediatrician, therapist, teacher, RC Service Coordinator. Each should describe limitations they observe.","Submit everything. SSA reviews with Disability Determination Services (DDS). This takes 3-6 months.","If denied (many are initially), APPEAL within 60 days. The approval rate on appeal is significantly higher. Consider contacting a disability attorney — they work on contingency (no upfront cost)."],
       documents:["Child's Social Security card and birth certificate","Parent/guardian Social Security numbers","Diagnosis reports with ICD-10 codes","ALL medical records (pediatrician, specialists, hospital)","Therapy records (OT, speech, ABA, PT)","School records, IEP, report cards, teacher observations","Regional Center intake or eligibility documents","Function Report (SSA-3375-BK) — THE most important document","Proof of household income and resources"],
       smsReminder:"Week 2: Start SSI app. Call 1-800-772-1213 to schedule appointment.",
-      insiderTip:"The #1 reason SSI applications are denied is insufficient evidence of functional limitations. The diagnosis alone isn't enough — SSA wants to know HOW the disability affects daily life. On the Function Report, never write 'sometimes' or 'can do with help.' Write: 'Cannot do independently. Requires full physical assistance every time.' Describe meltdowns, safety risks, sleep disruption, inability to self-care. If denied, appeal immediately — don't re-apply (you lose time). A disability attorney takes cases on contingency and can dramatically improve your odds."},h()));
+      insiderTip:"The #1 reason SSI applications are denied is insufficient evidence of functional limitations. The diagnosis alone isn't enough — SSA wants to know HOW the disability affects daily life. On the Function Report, never write 'sometimes' or 'can do with help.' Write: 'Cannot do independently. Requires full physical assistance every time.' Describe meltdowns, safety risks, sleep disruption, inability to self-care. If denied, appeal immediately — don't re-apply (you lose time). A disability attorney takes cases on contingency and can dramatically improve your odds.",
+      eligibilityCheck:{label:"Check SSI Eligibility",info:"<strong>Do I qualify?</strong><br><br><strong>For children under 18:</strong> SSI looks at BOTH the child's disability AND the family's income/resources.<br><br><strong>Income limit:</strong> Varies by household size and other factors, but roughly: a family of 4 with one disabled child may qualify with income under ~$4,000-5,000/month (SSA applies complex deductions). Many families earning more still qualify after deductions.<br><br><strong>Resource limit:</strong> $2,000 in countable resources (bank accounts, cash). Does NOT count: your home, one vehicle, household goods, burial plots, CalABLE account up to $100K.<br><br><strong>Disability standard (children):</strong> 'Marked and severe functional limitations' — must substantially limit the child's ability to function compared to same-age peers.<br><br><strong>Bottom line:</strong> If your child has a significant developmental disability, apply. SSA's income deductions are generous and many families who think they earn too much actually qualify. The worst that happens is you're denied and you appeal.<br><br>Apply: <strong>1-800-772-1213</strong> or <strong>ssa.gov</strong>"}},h()));
     actions.push(Object.assign({id:"ihss_apply",agencyKey:"ihss",category:"standard",
       title:"Apply for IHSS (In-Home Supportive Services)",
       subtitle:"IHSS pays for in-home caregiving so your child can live at home safely. Parents CAN be paid providers — this is one of the only programs that compensates the caregiving you're already doing. Covers personal care, domestic tasks, protective supervision, and more.",
@@ -1067,6 +1077,7 @@ function generateRichPlan(intake) {
       documents:["Child's Medi-Cal Benefits Identification Card (BIC)","SOC 295 — Health Care Certification form (physician fills out, documenting care needs)","Daily care log (1-2 weeks of detailed notes)","Diagnosis reports and medical records","Any safety incident documentation (wandering, injuries, 911 calls)","Your own ID and Social Security number (for provider enrollment)"],
       smsReminder:"After Medi-Cal approved: Apply for IHSS at county office or BenefitsCal.com.",
       insiderTip:"The in-home assessment is EVERYTHING. The social worker observes for about an hour and assigns hours based on what they see. Prepare by keeping a detailed care log showing exactly what you do each day and how long it takes. During the visit, do NOT compensate for your child's needs — let the assessor see the true level of support required. If you disagree with the hours assigned, appeal immediately. For protective supervision: document every safety incident, elopement attempt, or dangerous behavior. The county must give you a written notice of the hours — if you disagree, you have 90 days to request a state hearing.",
+      eligibilityCheck:{label:"Check IHSS Eligibility",info:"<strong>Do I qualify?</strong><br><br><strong>Requirement #1:</strong> Your child MUST have Medi-Cal. No exceptions. If you don't have Medi-Cal yet, complete that application first.<br><br><strong>Requirement #2:</strong> Must live at home (not in an institution, hospital, or residential care facility).<br><br><strong>Requirement #3:</strong> Must need assistance with daily activities due to the disability. There is NO income limit for IHSS itself — if your child has Medi-Cal, income is not re-tested.<br><br><strong>What qualifies:</strong> Needing help with bathing, dressing, feeding, toileting, mobility, cooking, cleaning, laundry, shopping, or supervision for safety.<br><br><strong>Bottom line:</strong> If your child has Medi-Cal and needs ANY help with daily living because of their disability, you likely qualify. Apply and let the assessment determine your hours.<br><br>Apply: Your county IHSS office or <strong>BenefitsCal.com</strong>"},
       dependsOn:needsMC?"medicaid_apply":undefined},h()));
   }
 
@@ -1128,10 +1139,12 @@ function generateRichPlan(intake) {
 function renderHome() {
   var childName = state.userInfo.childName || 'Your Child';
   var parentName = state.userInfo.parentName || '';
-  var total = state.actions.length;
-  var completedCount = Object.keys(state.completedActions).length;
-  var remaining = state.actions.filter(function(a){ return !state.completedActions[a.id]; });
+  var relevantActions = state.actions.filter(function(a){ return !state.dismissedActions[a.id]; });
+  var total = relevantActions.length;
+  var completedCount = relevantActions.filter(function(a){ return state.completedActions[a.id]; }).length;
+  var remaining = relevantActions.filter(function(a){ return !state.completedActions[a.id]; });
   var urgentActions = remaining.filter(function(a){ return a.priority === 'urgent'; });
+  var startedCount = remaining.filter(function(a){ return state.startedActions[a.id]; }).length;
   var highActions = remaining.filter(function(a){ return a.priority === 'high'; });
   var standardActions = remaining.filter(function(a){ return a.priority === 'standard'; });
   var pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
@@ -1155,8 +1168,9 @@ function renderHome() {
   progressHtml += '<div class="progress-ring-stats">';
   progressHtml += '<div class="progress-ring-label">Your Progress</div>';
   progressHtml += '<div class="progress-stat"><span class="dot" style="background:var(--success)"></span>'+completedCount+' completed</div>';
+  if (startedCount) progressHtml += '<div class="progress-stat"><span class="dot" style="background:var(--warn)"></span>'+startedCount+' in progress</div>';
   if (urgentActions.length) progressHtml += '<div class="progress-stat"><span class="dot" style="background:var(--urgent)"></span>'+urgentActions.length+' urgent</div>';
-  if (highActions.length) progressHtml += '<div class="progress-stat"><span class="dot" style="background:var(--warn)"></span>'+highActions.length+' high priority</div>';
+  if (highActions.length && !startedCount) progressHtml += '<div class="progress-stat"><span class="dot" style="background:var(--warn)"></span>'+highActions.length+' high priority</div>';
   if (standardActions.length) progressHtml += '<div class="progress-stat"><span class="dot" style="background:var(--accent)"></span>'+standardActions.length+' upcoming</div>';
   progressHtml += '</div></div>';
   document.getElementById('home-progress').innerHTML = progressHtml;
@@ -1264,8 +1278,9 @@ function renderDashboard() {
   document.getElementById('summary-bar').innerHTML = sb;
 
   // Split actions into active and completed
-  var activeActions = state.actions.filter(function(a){ return !state.completedActions[a.id]; });
+  var activeActions = state.actions.filter(function(a){ return !state.completedActions[a.id] && !state.dismissedActions[a.id]; });
   var completedActionsList = state.actions.filter(function(a){ return state.completedActions[a.id]; });
+  var dismissedActionsList = state.actions.filter(function(a){ return state.dismissedActions[a.id]; });
 
   // Render active action cards
   var cardsHtml = '';
@@ -1306,12 +1321,22 @@ function renderDashboard() {
       cardsHtml += '</div></div>';
     }
 
-    // Buttons
+    // Buttons — row 1: primary actions
+    var isStarted = state.startedActions[a.id];
     cardsHtml += '<div class="action-buttons">';
-    cardsHtml += '<button class="action-btn expand" onclick="toggleExpand(\''+a.id+'\')">'+(!isExpanded?'▼ Details':'▲ Close')+'</button>';
-    if (a.agencyKey) cardsHtml += '<button class="action-btn info" onclick="showAgency(\''+a.agencyKey+'\')">ℹ️ Agency</button>';
-    if (a.learnMoreKey) cardsHtml += '<button class="action-btn learn" onclick="showLearnMore(\''+a.learnMoreKey+'\')">📖 '+a.learnMoreKey+'</button>';
-    cardsHtml += '<button class="action-btn complete" onclick="completeAction(\''+a.id+'\')">✓ Done</button>';
+    cardsHtml += '<button class="action-btn expand" onclick="toggleExpand(\''+a.id+'\')">'+(!isExpanded?'📖 Learn More':'▲ Close')+'</button>';
+    if (a.agencyKey) cardsHtml += '<button class="action-btn info" onclick="showAgency(\''+a.agencyKey+'\')">🏛️ Agency</button>';
+    if (a.eligibilityCheck) cardsHtml += '<button class="action-btn eligibility" onclick="showEligibility(\''+a.id+'\')">🔍 '+a.eligibilityCheck.label+'</button>';
+    cardsHtml += '</div>';
+    // Buttons — row 2: status actions
+    cardsHtml += '<div class="action-buttons" style="margin-top:6px">';
+    if (!isStarted) {
+      cardsHtml += '<button class="action-btn started" onclick="startAction(\''+a.id+'\')">🚀 I Started This</button>';
+    } else {
+      cardsHtml += '<button class="action-btn complete" onclick="completeAction(\''+a.id+'\')">✅ Mark Complete</button>';
+      cardsHtml += '<span style="font-size:12px;color:var(--warn);font-weight:600;display:flex;align-items:center;gap:4px">⏳ In Progress</span>';
+    }
+    cardsHtml += '<button class="action-btn dismiss" onclick="dismissAction(\''+a.id+'\')">✕ Not for Me</button>';
     cardsHtml += '</div>';
 
     // Expanded content
@@ -1359,6 +1384,22 @@ function renderDashboard() {
       cardsHtml += '<span style="font-size:16px;color:var(--success);flex-shrink:0">✅</span>';
       cardsHtml += '<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text);text-decoration:line-through">'+a.title+'</div>';
       cardsHtml += '<div style="font-size:12px;color:var(--muted);text-decoration:line-through">'+a.subtitle.slice(0,60)+(a.subtitle.length>60?'...':'')+'</div></div>';
+      cardsHtml += '</div></div>';
+    });
+    cardsHtml += '</div></div>';
+  }
+
+  // Dismissed actions — collapsed section
+  if (dismissedActionsList.length) {
+    cardsHtml += '<div style="margin-top:16px;border-top:2px solid var(--border);padding-top:16px">';
+    cardsHtml += '<button onclick="toggleDismissedSection()" style="display:flex;align-items:center;gap:8px;background:none;color:var(--muted);font-size:13px;font-weight:700;padding:0;margin-bottom:12px;width:100%;text-align:left;cursor:pointer;border:none">';
+    cardsHtml += '<span id="dismissed-chevron">'+(state.showDismissed?'▲':'▼')+'</span> 🚫 Not Applicable ('+dismissedActionsList.length+')</button>';
+    cardsHtml += '<div id="dismissed-section" style="display:'+(state.showDismissed?'block':'none')+'">';
+    dismissedActionsList.forEach(function(a) {
+      cardsHtml += '<div class="action-card" style="opacity:.5;padding:12px;margin-bottom:8px">';
+      cardsHtml += '<div style="display:flex;align-items:center;gap:10px;justify-content:space-between">';
+      cardsHtml += '<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--muted);text-decoration:line-through">'+a.title+'</div></div>';
+      cardsHtml += '<button onclick="restoreAction(\''+a.id+'\')" style="font-size:11px;padding:6px 10px;border-radius:6px;background:var(--accent-light);color:var(--accent);border:1px solid #BFDBFE;cursor:pointer;font-weight:600;white-space:nowrap">↩ Restore</button>';
       cardsHtml += '</div></div>';
     });
     cardsHtml += '</div></div>';
@@ -1697,6 +1738,91 @@ function toggleCompletedSection() {
   if (chevron) chevron.textContent = state.showCompleted ? '▲' : '▼';
 }
 
+function toggleDismissedSection() {
+  state.showDismissed = !state.showDismissed;
+  var section = document.getElementById('dismissed-section');
+  var chevron = document.getElementById('dismissed-chevron');
+  if (section) section.style.display = state.showDismissed ? 'block' : 'none';
+  if (chevron) chevron.textContent = state.showDismissed ? '▲' : '▼';
+}
+
+function startAction(id) {
+  var action = state.actions.filter(function(a){return a.id===id})[0];
+  if (!action) return;
+  // Show the follow-up flow if it has one (captures what happened: LVM, email sent, etc.)
+  if (action.followUpKey) {
+    showFollowUp(action);
+    return;
+  }
+  // Mark as started (in progress)
+  state.startedActions[id] = {startedAt: new Date().toISOString()};
+  saveState();
+  try { google.script.run.logAction(state.userId, id, '', 'started', '', ''); } catch(e){}
+  toast('Nice! Action is now in progress 🚀');
+  renderDashboard();
+  // Scroll to the card
+  setTimeout(function(){ var el=document.getElementById('card-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'}); },100);
+}
+
+function dismissAction(id) {
+  var action = state.actions.filter(function(a){return a.id===id})[0];
+  if (!action) return;
+  // Show confirmation
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay active';
+  overlay.id = 'modal-dismiss';
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML = '<div class="modal" style="text-align:center;max-width:360px">' +
+    '<div style="font-size:32px;margin-bottom:10px">🚫</div>' +
+    '<h3 style="margin:0 0 8px;color:var(--navy)">Not Applicable?</h3>' +
+    '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">Remove <strong>' + action.title + '</strong> from your active list?</p>' +
+    '<p style="color:var(--muted);font-size:12px;margin:0 0 20px">You can restore it anytime from the "Not Applicable" section at the bottom of your Actions list.</p>' +
+    '<div style="display:flex;gap:10px;justify-content:center">' +
+      '<button onclick="document.getElementById(\'modal-dismiss\').remove()" style="flex:1;padding:12px;border-radius:var(--radius);border:1px solid var(--border);background:#FFF;font-size:14px;font-weight:600;cursor:pointer">Keep It</button>' +
+      '<button onclick="confirmDismiss(\''+id+'\')" style="flex:1;padding:12px;border-radius:var(--radius);border:none;background:#6B7280;color:#FFF;font-size:14px;font-weight:700;cursor:pointer">Remove</button>' +
+    '</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+}
+
+function confirmDismiss(id) {
+  state.dismissedActions[id] = true;
+  delete state.startedActions[id];
+  saveState();
+  var rm = document.getElementById('modal-dismiss');
+  if (rm) rm.remove();
+  try { google.script.run.logAction(state.userId, id, '', 'dismissed', '', ''); } catch(e){}
+  toast('Removed from your list');
+  renderDashboard();
+  if (state.screen === 'screen-home') renderHome();
+}
+
+function restoreAction(id) {
+  delete state.dismissedActions[id];
+  saveState();
+  toast('Action restored! ↩');
+  renderDashboard();
+  if (state.screen === 'screen-home') renderHome();
+}
+
+function showEligibility(actionId) {
+  var action = state.actions.filter(function(a){return a.id===actionId})[0];
+  if (!action || !action.eligibilityCheck) return;
+  var ec = action.eligibilityCheck;
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay active';
+  overlay.id = 'modal-eligibility';
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML = '<div class="modal" style="max-width:400px">' +
+    '<button class="modal-close" onclick="document.getElementById(\'modal-eligibility\').remove()">✕</button>' +
+    '<div style="font-size:28px;margin-bottom:8px">🔍</div>' +
+    '<h3 style="margin:0 0 12px;color:var(--navy)">' + ec.label + '</h3>' +
+    '<div style="font-size:14px;color:var(--text-sec);line-height:1.6">' + ec.info + '</div>' +
+    '<button onclick="document.getElementById(\'modal-eligibility\').remove()" class="btn-primary" style="margin-top:16px;width:100%">Got It</button>' +
+  '</div>';
+  document.body.appendChild(overlay);
+}
+
 // ═══ RESET / START OVER ═══
 function confirmReset() {
   var overlay = document.createElement('div');
@@ -1726,10 +1852,13 @@ function resetApp() {
   state.userId = null;
   state.actions = [];
   state.completedActions = {};
+  state.dismissedActions = {};
+  state.startedActions = {};
   state.expandedCard = null;
   state.frustrationFlow = null;
   state.frustrationDetail = {};
   state.showCompleted = false;
+  state.showDismissed = false;
   // Remove reset modal
   var rm = document.getElementById('modal-reset');
   if (rm) rm.remove();
