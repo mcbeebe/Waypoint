@@ -1442,7 +1442,7 @@ function toggleExpand(id) {
 
 function completeAction(id) {
   // Find the action to check for follow-up
-  var action = state.actions.filter(function(a){return a.id===id})[0];
+  var action = findAction(id);
   if (action && action.followUpKey) {
     showFollowUp(action);
     return;
@@ -1758,8 +1758,13 @@ function toggleDismissedSection() {
   if (chevron) chevron.textContent = state.showDismissed ? '▲' : '▼';
 }
 
+function findAction(id) {
+  return state.actions.filter(function(a){return a.id===id})[0]
+    || (state.savedActions||[]).filter(function(a){return a.id===id})[0];
+}
+
 function startAction(id) {
-  var action = state.actions.filter(function(a){return a.id===id})[0];
+  var action = findAction(id);
   if (!action) return;
   // Show the follow-up flow if it has one (captures what happened: LVM, email sent, etc.)
   if (action.followUpKey) {
@@ -1777,7 +1782,7 @@ function startAction(id) {
 }
 
 function dismissAction(id) {
-  var action = state.actions.filter(function(a){return a.id===id})[0];
+  var action = findAction(id);
   if (!action) return;
   // Show confirmation
   var overlay = document.createElement('div');
@@ -1818,7 +1823,7 @@ function restoreAction(id) {
 }
 
 function showEligibility(actionId) {
-  var action = state.actions.filter(function(a){return a.id===actionId})[0];
+  var action = findAction(actionId);
   if (!action || !action.eligibilityCheck) return;
   var ec = action.eligibilityCheck;
   var overlay = document.createElement('div');
@@ -2666,7 +2671,7 @@ function saveActionFromChat(btn, stepIdx) {
     talkingPoints: step.script ? [step.script] : [],
     steps: [],
     documents: [],
-    smsReminder: null,
+    smsReminder: 'Waypoint reminder: ' + (step.action || '') + (step.timeline ? ' — ' + step.timeline : ''),
     insiderTip: result.watch_out || '',
     followUpKey: null,
     draftMessage: null,
