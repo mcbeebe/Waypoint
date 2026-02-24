@@ -2938,16 +2938,16 @@ function chatHandleResponse(result, question) {
     html += '<div class="chat-empathy">' + escapeHtml(result.empathy) + '</div>';
   }
 
-  // Clarifying question (if the AI needs more context)
-  if (result.clarifying_question) {
-    html += '<div style="background:var(--warn-light);border:1px solid var(--warn-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;font-size:14px;color:#92400E">';
-    html += '<strong>Before I give my best advice:</strong> ' + escapeHtml(result.clarifying_question);
-    html += '</div>';
-  }
-
   // Answer
   if (result.answer) {
     html += '<div class="chat-answer">' + escapeHtml(result.answer) + '</div>';
+  }
+
+  // Clarifying follow-up question — rendered as natural conversational text
+  if (result.clarifying_question) {
+    html += '<div style="background:var(--accent-light);border-radius:var(--radius-sm);padding:12px;margin-top:10px;margin-bottom:10px;font-size:14px;color:var(--accent-dark);font-style:italic;line-height:1.5">';
+    html += escapeHtml(result.clarifying_question);
+    html += '</div>';
   }
 
   // Action steps
