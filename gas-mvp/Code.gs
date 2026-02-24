@@ -1321,3 +1321,110 @@ function seedQATests() {
 
   return { success: true, message: 'Seeded ' + count + ' QA test cases' };
 }
+
+/**
+ * Round 2: Creative stress-test QA questions — edge cases, multi-system,
+ * emotional, ambiguous tone, unusual family structures, and tricky scenarios
+ */
+function seedQATestsRound2() {
+  var tests = [
+    // ─── MULTI-SYSTEM COLLISIONS (which system owns this?) ───
+    ['My son gets speech therapy through his IEP but RC also has speech in his IPP — who is supposed to be paying and are we getting double-billed?',
+      'navigation', 'collaborative',
+      'Should explain payer-of-last-resort, school vs RC responsibilities for speech. No legal escalation. Should ask clarifying questions about the IPP and IEP details.'],
+
+    ['Insurance denied OT, the school says OT isn\'t educationally necessary, and RC says insurance should cover it. My kid has no OT now. Nobody will pay.',
+      'rights', 'assertive',
+      'Classic finger-pointing scenario. Should identify that RC is payer of last resort. Should ask what denials they have in writing. Firm but not adversarial yet.'],
+
+    // ─── EMOTIONAL CRISIS / EMPATHY TESTS ───
+    ['I found out yesterday my 18-month-old has cerebral palsy and I haven\'t stopped crying. I don\'t even know what questions to ask. Please help.',
+      'navigation', 'collaborative',
+      'MUST lead with deep emotional support — this is a raw, fresh diagnosis moment. One simple next step (call RC). Mention parent support groups. DO NOT overwhelm with legal rights or five systems.'],
+
+    ['I feel like the worst parent in the world because I missed the 10-day window to file Aid Paid Pending and now my daughter is losing her respite hours next week',
+      'rights', 'assertive',
+      'Must NOT make the parent feel worse. Acknowledge the stress. Explain what options remain (can still file fair hearing within 60 days, just without APR). Offer to help draft. Empathetic, not clinical.'],
+
+    // ─── AMBIGUOUS TONE (could go either way) ───
+    ['My service coordinator told me over the phone that RC doesn\'t cover parent training but I\'ve heard other families get it',
+      'regional-center', 'assertive',
+      'Tricky: verbal denial only. Should ask if they got anything in writing. Explain that RC does fund parent training for many families. Should NOT jump to "file a complaint" — should first suggest asking for the denial in writing and requesting an IPP meeting.'],
+
+    ['The school keeps canceling my IEP meeting — this is the third time in two months',
+      'iep', 'assertive',
+      'Should ask clarifying question: how are they canceling? By phone? Email? Are they offering new dates? Then provide firm guidance about right to timely meeting. Should suggest putting the request in writing.'],
+
+    // ─── UNUSUAL FAMILY STRUCTURES ───
+    ['I\'m the grandmother raising my grandchild with Down syndrome. I don\'t have legal guardianship yet — can I still get RC services and attend IEP meetings?',
+      'navigation', 'collaborative',
+      'Must address the guardianship nuance — educational rights holder vs legal guardian. Explain that caregivers CAN access services. Warm and practical. Should mention how to become educational rights holder.'],
+
+    ['We\'re a foster family and our foster child has autism. DCFS is involved. Can we request RC services or does the bio parent have to?',
+      'regional-center', 'collaborative',
+      'Must navigate foster care + RC eligibility carefully. Foster parents CAN request services. Should mention surrogate parent rights for IEP. Sensitive to the complexity.'],
+
+    // ─── TRICKY CLASSIFICATION (keywords that mislead) ───
+    ['My child\'s doctor says we need a neuropsych eval but I don\'t know if insurance, the school, or RC should do it',
+      'navigation', 'collaborative',
+      'Tests whether "neuropsych eval" triggers insurance or IEP. Correct answer: all three are options with different pros/cons. Should lay out the options clearly without legal jargon.'],
+
+    ['Is Self-Determination worth it? Our RC coordinator says it\'s a lot of paperwork',
+      'regional-center', 'collaborative',
+      'Should explain SDP pros and cons honestly — more control but more admin work. Should NOT dismiss the coordinator\'s concern. Balanced, practical guidance.'],
+
+    // ─── REIMBURSEMENT EDGE CASES (the #1 feedback theme) ───
+    ['I paid out of pocket for ABA for 3 months while waiting for RC to find a vendor. Can I get reimbursed even though it wasn\'t pre-authorized?',
+      'regional-center', 'assertive',
+      'Non-pre-authorized retroactive reimbursement — this is the hard case. Should explain that it IS possible but difficult. Must ask if they have documentation, medical necessity letters. Should NOT promise reimbursement. Should offer to draft a request letter.'],
+
+    ['My RC approved respite but the vendor is charging more than RC will reimburse. Am I stuck paying the difference?',
+      'regional-center', 'collaborative',
+      'Common vendor rate gap issue. Should explain POS rates, suggest asking RC for a rate exception or different vendor. Stay collaborative. Clarify if this is a vendored vs non-vendored provider.'],
+
+    // ─── MULTI-PART / COMPLEX QUESTIONS ───
+    ['My 17-year-old has an IEP and gets RC services. She turns 18 in 6 months. What do I need to do about conservatorship, SSI, and making sure her services continue?',
+      'transitions', 'collaborative',
+      'Three-part transition question. Should address: (1) conservatorship alternatives (supported decision-making first), (2) SSI application at 18 when deeming stops, (3) RC continues lifelong. Well-organized, not overwhelming.'],
+
+    ['We just moved to California from Texas. My child had an IEP and was receiving ABA through Medicaid there. How do we transfer everything?',
+      'navigation', 'collaborative',
+      'Interstate transfer scenario. Should explain: (1) 30-day IEP transfer rule, (2) new RC intake needed, (3) Medi-Cal application, (4) insurance re-enrollment. Practical first steps.'],
+
+    // ─── TESTING THE CLARIFYING QUESTION FEATURE ───
+    ['RC isn\'t giving us what we need',
+      'regional-center', 'assertive',
+      'Intentionally vague — engine MUST ask clarifying questions. What service? What happened? What have they tried? Should NOT give specific legal advice without knowing the situation.'],
+
+    ['Something is wrong with my child\'s school placement',
+      'iep', 'assertive',
+      'Very vague. Engine must ask: What type of placement? What\'s wrong? Has parent discussed with the IEP team? Should not jump to due process or legal options without understanding the problem.'],
+
+    // ─── SENSITIVE / NUANCED SITUATIONS ───
+    ['My ex-husband and I disagree about our child\'s IEP — he doesn\'t think she needs special education. Can he block the IEP?',
+      'iep', 'collaborative',
+      'Custody and IEP intersection. Both parents have rights. Should explain that either parent can request eval/services. Sensitive handling — should not take sides. Practical guidance.'],
+
+    ['I think my child\'s therapist through RC isn\'t very good but I\'m afraid if I complain they\'ll take away the service entirely',
+      'regional-center', 'collaborative',
+      'Fear-based question. Must reassure that requesting a different provider does NOT risk losing the service. Explain how to request a vendor change through the IPP. Warm and encouraging.'],
+
+    // ─── TESTING SPECIFICITY WITH PROFILE DATA ───
+    ['What respite agencies are vendored with my Regional Center?',
+      'regional-center', 'collaborative',
+      'Should use the family\'s RC from their profile to give specific guidance. If RC is known, name it. Suggest calling that specific RC or checking their vendor list. Test whether profile data is used.'],
+
+    // ─── RAPID-FIRE DEADLINE SCENARIO ───
+    ['I just got a Notice of Action from RC reducing my son\'s ABA from 20 to 10 hours. The letter is dated 6 days ago. What do I do RIGHT NOW?',
+      'rights', 'adversarial',
+      'URGENT: 4 days left for Aid Paid Pending. Must immediately flag the 10-day window. Step 1: file fair hearing TODAY. Provide exact language. This IS the time for full legal citations. Should offer to draft the fair hearing request.'],
+  ];
+
+  var count = 0;
+  tests.forEach(function(t) {
+    addQATest(t[0], t[1], t[2], t[3]);
+    count++;
+  });
+
+  return { success: true, message: 'Seeded ' + count + ' Round 2 QA test cases' };
+}

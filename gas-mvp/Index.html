@@ -535,7 +535,8 @@ a{color:#2563EB;text-decoration:none}
     <div class="qa-actions">
       <button class="qa-btn-run" onclick="qaRunAll()">▶ Run All Pending</button>
       <button class="qa-btn-add" onclick="qaToggleAddForm()">+ Add Test</button>
-      <button class="qa-btn-seed" onclick="qaSeedTests()">Seed Starter Tests</button>
+      <button class="qa-btn-seed" onclick="qaSeedTests()">Seed Basics</button>
+      <button class="qa-btn-seed" style="background:var(--purple-light);color:var(--purple);border-color:#DDD6FE !important" onclick="qaSeedRound2()">Seed Round 2</button>
     </div>
     <div id="qa-add-form" class="qa-add-form">
       <label>Test Question</label>
@@ -3341,6 +3342,17 @@ function qaSeedTests() {
       alert('Error: ' + (res.error || 'Unknown'));
     }
   }).seedQATests();
+}
+
+function qaSeedRound2() {
+  if (!confirm('This will add 20 advanced stress-test questions. Continue?')) return;
+  google.script.run.withSuccessHandler(function(res) {
+    if (res.success) {
+      renderQAScreen();
+    } else {
+      alert('Error: ' + (res.error || 'Unknown'));
+    }
+  }).seedQATestsRound2();
 }
 
 function qaRunSingle(testId) {
