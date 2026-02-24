@@ -267,6 +267,48 @@ a{color:#2563EB;text-decoration:none}
 .chat-draft-actions{display:flex;gap:8px;margin-top:12px}
 .chat-error{background:var(--urgent-light);border:1px solid var(--urgent-border);border-radius:var(--radius-sm);padding:12px;color:var(--urgent);font-size:13px;margin-bottom:12px}
 
+/* ═══ VIEW TOGGLE (List/Cards) ═══ */
+.view-toggle{display:flex;gap:4px;background:var(--muted-light);border-radius:var(--radius-sm);padding:3px;margin-bottom:14px}
+.view-toggle button{flex:1;padding:8px 12px;border-radius:6px;font-size:13px;font-weight:600;background:none;color:var(--muted);transition:all .15s;border:none}
+.view-toggle button.active{background:var(--card);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* ═══ LIST VIEW TABLE ═══ */
+.list-view-table{width:100%}
+.list-row{display:flex;align-items:center;gap:10px;padding:12px 10px;background:var(--card);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;border:1px solid var(--border);transition:all .15s}
+.list-row:hover{border-color:var(--accent);transform:translateY(-1px)}
+.list-row.from-chat{border-left:3px solid var(--teal)}
+.list-row-dot{width:10px;height:10px;border-radius:5px;flex-shrink:0}
+.list-row-order{font-size:11px;font-weight:700;color:var(--muted);width:22px;text-align:center;flex-shrink:0}
+.list-row-title{flex:1;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-row-agency{font-size:11px;color:var(--muted);white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.list-row-deadline{font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.list-row-status{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+
+/* ═══ PROFILE SCREEN ═══ */
+.profile-header{padding:16px 0 12px;display:flex;justify-content:space-between;align-items:center}
+.profile-title{font-size:22px;font-weight:800;color:var(--navy)}
+.profile-subtitle{font-size:14px;color:var(--muted);margin-bottom:20px}
+.profile-section{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.profile-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:12px}
+.profile-field{margin-bottom:14px}
+.profile-field:last-child{margin-bottom:0}
+.profile-label{font-size:13px;font-weight:600;color:var(--text-sec);margin-bottom:6px;display:block}
+.profile-input{width:100%;padding:12px 14px;border-radius:var(--radius-sm);border:2px solid var(--border);font-size:14px;background:var(--bg);transition:border .2s}
+.profile-input:focus{outline:none;border-color:var(--accent)}
+.multi-select-grid{display:flex;flex-wrap:wrap;gap:8px}
+.multi-select-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--card);border:2px solid var(--border);font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s}
+.multi-select-btn:hover{border-color:var(--accent);background:var(--accent-light)}
+.multi-select-btn.selected{border-color:var(--accent);background:var(--accent-light);font-weight:600;color:var(--accent-dark)}
+.single-select-grid{display:flex;flex-wrap:wrap;gap:8px}
+.single-select-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--card);border:2px solid var(--border);font-size:13px;font-weight:500;color:var(--text);cursor:pointer;transition:all .15s}
+.single-select-btn:hover{border-color:var(--accent);background:var(--accent-light)}
+.single-select-btn.selected{border-color:var(--accent);background:var(--accent-light);font-weight:600;color:var(--accent-dark)}
+.profile-actions{display:flex;gap:10px;margin-top:20px;margin-bottom:20px}
+.profile-save-btn{flex:1;padding:14px;border-radius:var(--radius);background:var(--accent);color:#FFF;font-size:15px;font-weight:700;border:none;cursor:pointer;transition:all .2s}
+.profile-save-btn:hover{background:var(--accent-dark);transform:translateY(-1px)}
+.profile-cancel-btn{flex:1;padding:14px;border-radius:var(--radius);background:var(--card);color:var(--muted);font-size:15px;font-weight:600;border:2px solid var(--border);cursor:pointer;transition:all .2s}
+.profile-cancel-btn:hover{border-color:var(--muted)}
+
 /* ═══ UTILITY ═══ */
 .mt-12{margin-top:12px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
 .text-center{text-align:center}
@@ -322,7 +364,7 @@ a{color:#2563EB;text-decoration:none}
           <div class="home-title" id="home-title">Dashboard</div>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
-          <div class="dash-avatar" id="home-avatar">W</div>
+          <div class="dash-avatar" id="home-avatar" onclick="navTo('screen-profile')" style="cursor:pointer" title="Edit Profile">W</div>
           <button onclick="confirmReset()" title="Start Over" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;opacity:0.5">⟲</button>
         </div>
       </div>
@@ -345,11 +387,18 @@ a{color:#2563EB;text-decoration:none}
         <div class="dash-greeting" id="dash-greeting">Welcome 👋</div>
         <div class="dash-title" id="dash-title">Your Action Plan</div>
       </div>
-      <div class="dash-avatar" id="dash-avatar">W</div>
+      <div class="dash-avatar" id="dash-avatar" onclick="navTo('screen-profile')" style="cursor:pointer" title="Edit Profile">W</div>
     </div>
     <div class="summary-bar" id="summary-bar"></div>
     <div id="action-list"></div>
     <div id="checkin-area" style="margin-top:20px"></div>
+  </div>
+</div>
+
+<!-- ═══════════ SCREEN: PROFILE ═══════════ -->
+<div id="screen-profile" class="screen">
+  <div class="pb-100">
+    <div id="profile-content"></div>
   </div>
 </div>
 
@@ -487,6 +536,7 @@ var state = {
   dismissedActions: {},
   startedActions: {},
   savedActions: [],
+  dashView: 'cards',
 };
 
 // ═══ RC DATABASE ═══
@@ -730,6 +780,7 @@ function showScreen(id) {
   if (id === 'screen-chat') { document.getElementById('nav-tabs').style.display = 'flex'; scrollChatToBottom(); }
   if (id === 'screen-agencies') renderAgencyList();
   if (id === 'screen-reimburse') renderReimburseList();
+  if (id === 'screen-profile') { document.getElementById('nav-tabs').style.display = 'flex'; renderProfile(); }
   // Update nav tabs
   document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});
   var tab = document.querySelector('.nav-tab[onclick*="'+id+'"]');
@@ -765,22 +816,42 @@ function renderOnboardStep() {
     });
     html += '<button class="btn-primary mt-12" onclick="onboardNext()">Continue</button>';
   } else if (step.type === 'select') {
+    var isMulti = step.key === 'diagnosis';
     html += '<div class="onboard-q">'+step.question+'</div>';
-    html += '<div class="onboard-sub">'+step.sub+'</div>';
+    html += '<div class="onboard-sub">'+step.sub+(isMulti?' <strong>(Select all that apply)</strong>':'')+'</div>';
     html += '<div class="onboard-options">';
     step.options.forEach(function(o) {
-      var sel = state.intake[step.key] === o.value ? ' selected' : '';
+      var sel = '';
+      if (isMulti) {
+        var arr = state.intake[step.key] || [];
+        sel = arr.indexOf(o.value) > -1 ? ' selected' : '';
+      } else {
+        sel = state.intake[step.key] === o.value ? ' selected' : '';
+      }
       html += '<button class="opt-btn'+sel+'" onclick="selectOption(\''+step.key+'\',\''+o.value+'\')"><span class="emoji">'+o.emoji+'</span>'+o.label+'</button>';
     });
     html += '</div>';
+    if (isMulti) {
+      var hasSelection = (state.intake[step.key] || []).length > 0;
+      html += '<button class="btn-primary mt-12" onclick="onboardNext()"'+(hasSelection?'':' disabled style="opacity:.5;cursor:not-allowed"')+'>Continue</button>';
+    }
     if (state.onboardStep > 0) html += '<button class="btn-back" onclick="onboardBack()">← Back</button>';
   }
   document.getElementById('onboard-content').innerHTML = html;
 }
 
 function selectOption(key, value) {
-  state.intake[key] = value;
-  setTimeout(onboardNext, 200);
+  if (key === 'diagnosis') {
+    // Multi-select: toggle value in array
+    var arr = state.intake[key] || [];
+    var idx = arr.indexOf(value);
+    if (idx > -1) { arr.splice(idx, 1); } else { arr.push(value); }
+    state.intake[key] = arr;
+    renderOnboardStep(); // re-render to update selection + button state
+  } else {
+    state.intake[key] = value;
+    setTimeout(onboardNext, 200);
+  }
 }
 
 function onboardNext() {
@@ -797,6 +868,10 @@ function onboardNext() {
       var rc = lookupRC(state.userInfo.zipCode);
       if (rc) state.userInfo.regionalCenter = rc;
     }
+  }
+  // Validate multi-select diagnosis
+  if (step.type === 'select' && step.key === 'diagnosis') {
+    if (!state.intake.diagnosis || !state.intake.diagnosis.length) { toast('Please select at least one diagnosis'); return; }
   }
   if (state.onboardStep < ONBOARD_STEPS.length - 1) {
     state.onboardStep++;
@@ -819,7 +894,7 @@ function finishOnboarding() {
       .withSuccessHandler(function(result) {
         if (result && result.userId) state.userId = result.userId;
         // Persist to localStorage
-        try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, userId:state.userId})); } catch(e){}
+        try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, dashView:state.dashView, userId:state.userId})); } catch(e){}
       })
       .withFailureHandler(function(err) { console.log('Save failed:', err); })
       .saveUser(userData);
@@ -842,14 +917,19 @@ function restoreSession() {
       state.dismissedActions = data.dismissedActions || {};
       state.startedActions = data.startedActions || {};
       state.savedActions = data.savedActions || [];
+      state.dashView = data.dashView || 'cards';
       state.userId = data.userId || null;
+      // Backwards compat: convert single diagnosis string to array
+      if (state.intake.diagnosis && typeof state.intake.diagnosis === 'string') {
+        state.intake.diagnosis = [state.intake.diagnosis];
+      }
       // Re-lookup RC
       if (state.userInfo.zipCode) {
         var rc = lookupRC(state.userInfo.zipCode);
         if (rc) state.userInfo.regionalCenter = rc;
       }
       // If we have intake data, go straight to Home
-      if (state.intake.diagnosis) {
+      if (state.intake.diagnosis && state.intake.diagnosis.length) {
         state.actions = generateRichPlan(state.intake);
         showScreen('screen-home');
         document.getElementById('nav-tabs').style.display = 'flex';
@@ -861,22 +941,25 @@ function restoreSession() {
 }
 
 function saveState() {
-  try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, userId:state.userId})); } catch(e){}
+  try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, dashView:state.dashView, userId:state.userId})); } catch(e){}
 }
 
 // ═══ PLAN GENERATOR (V5.1) ═══
 function generateRichPlan(intake) {
-  var diagnosis=intake.diagnosis, age=intake.age, rc_status=intake.rc_status, iep_status=intake.iep_status, insurance=intake.insurance;
+  var diagnosisArr=Array.isArray(intake.diagnosis)?intake.diagnosis:(intake.diagnosis?[intake.diagnosis]:[]);
+  var diagnosis=diagnosisArr[0]||''; // primary diagnosis for legacy compat
+  var age=intake.age, rc_status=intake.rc_status, iep_status=intake.iep_status, insurance=intake.insurance;
   var actions=[], p=0;
   function u(){return{priority:"urgent",order:p++}} function h(){return{priority:"high",order:p++}} function s(){return{priority:"standard",order:p++}}
-  var rcE=["autism","delay","id","cp","suspected"].indexOf(diagnosis)>-1;
+  function hasDx(v){return diagnosisArr.indexOf(v)>-1}
+  var rcE=hasDx("autism")||hasDx("delay")||hasDx("id")||hasDx("cp")||hasDx("suspected");
   var needsRC=rcE&&["active","applied"].indexOf(rc_status)<0;
   var needsIEP=["active","eval_done"].indexOf(iep_status)<0&&age!=="0-2";
   var isES=age==="0-2", isTr=age==="13-17";
   var needsMC=["private","none"].indexOf(insurance)>-1;
-  var needsDx=diagnosis==="suspected";
+  var needsDx=hasDx("suspected")&&diagnosisArr.length===1;
   var dxMap={autism:"autism (ASD)",delay:"developmental delays",id:"intellectual disability",cp:"cerebral palsy",sld:"learning disability",adhd:"ADHD",suspected:"suspected developmental delays"};
-  var dxName=dxMap[diagnosis]||diagnosis;
+  var dxName=diagnosisArr.map(function(d){return dxMap[d]||d}).join(', ');
 
   // RC / Early Start
   if (isES && rcE && rc_status!=="active") {
@@ -989,32 +1072,32 @@ function generateRichPlan(intake) {
   if (["autism","delay","cp"].indexOf(diagnosis)>-1 && ["private","both"].indexOf(insurance)>-1) {
     actions.push(Object.assign({id:"ot_referral",agencyKey:null,category:"standard",
       title:"Get pediatrician referral for therapy",
-      subtitle:"Most insurance plans require a physician referral before covering therapy. You need referrals for OT"+(diagnosis==="autism"?", speech, and ABA":"")+", plus a Letter of Medical Necessity — the single most important document for insurance approval.",
+      subtitle:"Most insurance plans require a physician referral before covering therapy. You need referrals for OT"+(hasDx("autism")?", speech, and ABA":"")+", plus a Letter of Medical Necessity — the single most important document for insurance approval.",
       whyMatters:"The physician referral and Letter of Medical Necessity (LMN) are your tickets to insurance-covered therapy. Without them, insurance will deny claims. A strong LMN from your pediatrician — one that uses words like 'medically necessary' and cites specific functional limitations — can make the difference between approval and denial. Get this done first because everything else depends on it.",
       agency:"Pediatrician",deadline:"Call this week",
       talkingPoints:[
-        "My child was diagnosed with "+dxName+". I need referrals for occupational therapy"+(diagnosis==="autism"?", speech therapy, and ABA (Applied Behavior Analysis)":"")+". ",
+        "My child was diagnosed with "+dxName+". I need referrals for occupational therapy"+(hasDx("autism")?", speech therapy, and ABA (Applied Behavior Analysis)":"")+". ",
         "Can you write a Letter of Medical Necessity? Insurance requires this for prior authorization.",
         "In the letter, can you include: the diagnosis with ICD-10 code, specific functional limitations, recommended frequency and duration of therapy, and that treatment is medically necessary?",
         "Can you also include: 'Without treatment, the patient's condition is expected to deteriorate' — this language helps with appeals.",
         "I may need updated letters for ongoing authorization. Can we plan for that?"
       ],
-      steps:["Call your pediatrician's office and request a 'referral appointment' or ask if referrals can be done without a visit.","Specifically ask for: (1) referral orders for each therapy type, (2) Letter of Medical Necessity on office letterhead.","Make sure the LMN includes: diagnosis + ICD-10 code"+(diagnosis==="autism"?" (F84.0 for ASD)":"")+", functional limitations, recommended therapy type/frequency, and the words 'medically necessary.'","Get multiple copies of the LMN — you'll need one for insurance, one for RC, one for your records.","Ask for the referral to be faxed directly to your insurance and to specific providers if you've identified them.","Request that the pediatrician note 'ongoing/chronic condition' so referrals don't expire after a few sessions."],
+      steps:["Call your pediatrician's office and request a 'referral appointment' or ask if referrals can be done without a visit.","Specifically ask for: (1) referral orders for each therapy type, (2) Letter of Medical Necessity on office letterhead.","Make sure the LMN includes: diagnosis + ICD-10 code"+(hasDx("autism")?" (F84.0 for ASD)":"")+", functional limitations, recommended therapy type/frequency, and the words 'medically necessary.'","Get multiple copies of the LMN — you'll need one for insurance, one for RC, one for your records.","Ask for the referral to be faxed directly to your insurance and to specific providers if you've identified them.","Request that the pediatrician note 'ongoing/chronic condition' so referrals don't expire after a few sessions."],
       documents:["Diagnosis report with ICD-10 code","List of specific functional concerns (eating, dressing, communication, safety)","Any existing therapy evaluations","Insurance card (front and back)"],
       smsReminder:"Tomorrow: Call pediatrician for referrals + medical necessity letter.",
       insiderTip:"Ask the pediatrician to write the LMN using insurance-friendly language: 'medically necessary to prevent regression,' 'functional limitations in daily living,' 'without intervention, prognosis is poor.' Generic letters get denied. Specific, clinical letters get approved. Keep the original — you'll reuse it for every authorization cycle.",
       followUpKey:"ped_done"},u()));
     actions.push(Object.assign({id:"ins_check",agencyKey:"insurance",category:"standard",
       title:"Call insurance to verify therapy coverage",
-      subtitle:"Confirm your plan's coverage for "+(diagnosis==="autism"?"ABA, OT, and speech":"therapy")+". Start the prior authorization process."+(diagnosis==="autism"?" Under CA law SB 946, insurance MUST cover behavioral health treatment (ABA) for autism with no dollar caps.":""),
-      whyMatters:"Insurance is the 'first payer' — they pay before RC or Medi-Cal. Getting prior authorization locked in means services can start. If you skip this step, you may end up paying out of pocket or waiting months for retroactive approval. Know your rights: "+(diagnosis==="autism"?"SB 946 (CA Health & Safety Code §1374.73) requires insurance to cover ABA therapy for autism, with no annual or lifetime dollar limits.":"many therapy types are covered under your plan's rehabilitation benefits.")+". ",
-      learnMoreKey:diagnosis==="autism"?"SB 946":undefined,
+      subtitle:"Confirm your plan's coverage for "+(hasDx("autism")?"ABA, OT, and speech":"therapy")+". Start the prior authorization process."+(hasDx("autism")?" Under CA law SB 946, insurance MUST cover behavioral health treatment (ABA) for autism with no dollar caps.":""),
+      whyMatters:"Insurance is the 'first payer' — they pay before RC or Medi-Cal. Getting prior authorization locked in means services can start. If you skip this step, you may end up paying out of pocket or waiting months for retroactive approval. Know your rights: "+(hasDx("autism")?"SB 946 (CA Health & Safety Code §1374.73) requires insurance to cover ABA therapy for autism, with no annual or lifetime dollar limits.":"many therapy types are covered under your plan's rehabilitation benefits.")+". ",
+      learnMoreKey:hasDx("autism")?"SB 946":undefined,
       agency:"Insurance",deadline:"After getting referral",
       talkingPoints:[
-        "I'm calling about "+(diagnosis==="autism"?"ABA therapy and occupational therapy":"therapy")+" coverage for my child. Diagnosis: "+dxName+(diagnosis==="autism"?", ICD-10 code F84.0":"")+".",
+        "I'm calling about "+(hasDx("autism")?"ABA therapy and occupational therapy":"therapy")+" coverage for my child. Diagnosis: "+dxName+(hasDx("autism")?", ICD-10 code F84.0":"")+".",
         "What is the prior authorization process? What forms do I need to submit?",
         "How many sessions are authorized per year? Is there an annual cap?",
-        (diagnosis==="autism"?"I understand SB 946 requires coverage of behavioral health treatment for autism with no dollar caps. Can you confirm this applies to my plan?":"What are my plan's rehabilitation therapy benefits?"),
+        (hasDx("autism")?"I understand SB 946 requires coverage of behavioral health treatment for autism with no dollar caps. Can you confirm this applies to my plan?":"What are my plan's rehabilitation therapy benefits?"),
         "Can you send me a list of in-network providers near "+((state.userInfo.zipCode)||"my ZIP code")+"?",
         "What is the appeals process if a prior authorization is denied?",
         "Is there an out-of-network exception process if no in-network providers are available?"
@@ -1022,7 +1105,7 @@ function generateRichPlan(intake) {
       steps:["Call the Member Services number on the back of your insurance card.","Write down the reference number for the call, the representative's name, and the date.","Ask specifically: (1) Is prior auth required? (2) How many sessions authorized? (3) What's the copay? (4) Any annual limits?","Request a list of in-network providers by specialty in your ZIP code.","Submit the prior authorization with your doctor's referral and Letter of Medical Necessity.","If denied: request the denial IN WRITING with the specific reason and your appeal rights.","Track authorization expiration dates — set calendar reminders to re-authorize before they lapse."],
       documents:["Insurance card (front and back, member ID and group number)","Physician referral orders","Letter of Medical Necessity","Diagnosis report with ICD-10 code","Your ZIP code for provider search"],
       smsReminder:"Day 3: Call insurance about coverage, prior auth, in-network providers.",
-      insiderTip:"Always get the representative's name, call reference number, and ask them to note the call on your account. If they deny something verbally, say: 'Please send me that denial in writing with the specific contractual provision.' This forces them to be accurate. "+(diagnosis==="autism"?"If they deny ABA, cite SB 946 — many reps don't know about it. Ask for the 'Behavioral Health' or 'Autism Services' department specifically.":"")+" If no in-network providers are available within a reasonable distance, you can request a 'network adequacy exception' to see out-of-network providers at in-network rates.",
+      insiderTip:"Always get the representative's name, call reference number, and ask them to note the call on your account. If they deny something verbally, say: 'Please send me that denial in writing with the specific contractual provision.' This forces them to be accurate. "+(hasDx("autism")?"If they deny ABA, cite SB 946 — many reps don't know about it. Ask for the 'Behavioral Health' or 'Autism Services' department specifically.":"")+" If no in-network providers are available within a reasonable distance, you can request a 'network adequacy exception' to see out-of-network providers at in-network rates.",
       followUpKey:"ins_done",dependsOn:"ot_referral"},u()));
   }
 
@@ -1052,7 +1135,7 @@ function generateRichPlan(intake) {
   if (rcE && diagnosis!=="sld") {
     actions.push(Object.assign({id:"ssi_apply",agencyKey:"ssa",category:"standard",
       title:"Start SSI application",
-      subtitle:"SSI provides ~$943/month in cash benefits plus automatic Medi-Cal enrollment. "+(diagnosis==="autism"?"Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.":"Your child's diagnosis may qualify based on functional limitations.")+". This is real income for your family.",
+      subtitle:"SSI provides ~$943/month in cash benefits plus automatic Medi-Cal enrollment. "+(hasDx("autism")?"Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.":"Your child's diagnosis may qualify based on functional limitations.")+". This is real income for your family.",
       whyMatters:"SSI puts nearly $1,000/month directly into your family's hands — that's over $11,000/year. It also automatically enrolls your child in Medi-Cal (which unlocks IHSS, EPSDT, and more). The application is lengthy and many families give up, but the approval rate for children with well-documented developmental disabilities is significant. The key is the Function Report: describe your child's WORST days, not their best.",
       learnMoreKey:"SSI",agency:"SSA",deadline:"Within 30 days",
       talkingPoints:[
@@ -1090,7 +1173,7 @@ function generateRichPlan(intake) {
   }
 
   // ADHD-specific
-  if (diagnosis==="adhd") {
+  if (hasDx("adhd")) {
     actions.push(Object.assign({id:"adhd_504",agencyKey:"school",category:"standard",
       title:"Request 504 Plan or IEP evaluation",
       subtitle:"ADHD qualifies for an IEP under the 'Other Health Impairment' (OHI) category, OR for a Section 504 plan. An IEP is stronger (legally binding services), while a 504 provides accommodations. Request the IEP evaluation first — if denied, the 504 is your fallback.",
@@ -1293,8 +1376,37 @@ function renderDashboard() {
   var completedActionsList = allActions.filter(function(a){ return state.completedActions[a.id]; });
   var dismissedActionsList = allActions.filter(function(a){ return state.dismissedActions[a.id]; });
 
-  // Render active action cards
-  var cardsHtml = '';
+  // View toggle (Cards / List)
+  var cardsHtml = '<div class="view-toggle">';
+  cardsHtml += '<button class="'+(state.dashView==='cards'?'active':'')+'" onclick="setDashView(\'cards\')">📇 Cards</button>';
+  cardsHtml += '<button class="'+(state.dashView==='list'?'active':'')+'" onclick="setDashView(\'list\')">📋 List</button>';
+  cardsHtml += '</div>';
+
+  // ── LIST VIEW ──
+  if (state.dashView === 'list') {
+    // Sort by order ascending (chronological)
+    var sorted = activeActions.slice().sort(function(a,b){ return (a.order||999)-(b.order||999); });
+    cardsHtml += '<div class="list-view-table">';
+    sorted.forEach(function(a, idx) {
+      var pColors = {urgent:'var(--urgent)',high:'var(--warn)',standard:'var(--accent)'};
+      var isStarted = state.startedActions[a.id];
+      var statusLabel = isStarted ? '⏳ Started' : '○ Pending';
+      var statusBg = isStarted ? 'var(--warn-light)' : 'var(--muted-light)';
+      var statusColor = isStarted ? '#92400E' : 'var(--muted)';
+      var deadlineColor = a.priority==='urgent' ? 'var(--urgent)' : a.priority==='high' ? 'var(--warn)' : 'var(--muted)';
+      var chatCls = a.source === 'chat' ? ' from-chat' : '';
+      cardsHtml += '<div class="list-row'+chatCls+'" onclick="listRowClick(\''+a.id+'\')">';
+      cardsHtml += '<div class="list-row-dot" style="background:'+pColors[a.priority]+'"></div>';
+      cardsHtml += '<div class="list-row-order">'+(idx+1)+'</div>';
+      cardsHtml += '<div class="list-row-title">'+a.title+'</div>';
+      if (a.agency) cardsHtml += '<div class="list-row-agency">'+a.agency+'</div>';
+      if (a.deadline) cardsHtml += '<div class="list-row-deadline" style="color:'+deadlineColor+'">'+a.deadline+'</div>';
+      cardsHtml += '<div class="list-row-status" style="background:'+statusBg+';color:'+statusColor+'">'+statusLabel+'</div>';
+      cardsHtml += '</div>';
+    });
+    cardsHtml += '</div>';
+  } else {
+  // ── CARD VIEW (existing) ──
   activeActions.forEach(function(a) {
     var isLocked = a.dependsOn && !state.completedActions[a.dependsOn];
     var cls = 'action-card '+a.priority+(isLocked?' locked':'')+(a.source==='chat'?' from-chat':'');
@@ -1383,6 +1495,7 @@ function renderDashboard() {
     }
     cardsHtml += '</div>';
   });
+  } // end card view else
 
   // Completed actions — collapsed section at bottom
   if (completedActionsList.length) {
@@ -1429,6 +1542,20 @@ function renderDashboard() {
 
   document.getElementById('action-list').innerHTML = cardsHtml;
   renderCheckIn();
+}
+
+function setDashView(view) {
+  state.dashView = view;
+  saveState();
+  renderDashboard();
+}
+
+function listRowClick(id) {
+  state.dashView = 'cards';
+  state.expandedCard = id;
+  saveState();
+  renderDashboard();
+  setTimeout(function(){ var el=document.getElementById('card-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'}); },100);
 }
 
 // ═══ CARD INTERACTIONS ═══
@@ -1517,7 +1644,9 @@ function handleFollowUp(actionId, key, answer) {
 function getFollowUpActions(key, answer) {
   var a = [];
   var intake = state.intake;
-  var dxName = {autism:"autism (ASD)",delay:"developmental delays",id:"intellectual disability",cp:"cerebral palsy",sld:"learning disability",adhd:"ADHD",suspected:"suspected developmental delays"}[intake.diagnosis]||intake.diagnosis;
+  var dxMapFU = {autism:"autism (ASD)",delay:"developmental delays",id:"intellectual disability",cp:"cerebral palsy",sld:"learning disability",adhd:"ADHD",suspected:"suspected developmental delays"};
+  var dxArr = Array.isArray(intake.diagnosis) ? intake.diagnosis : (intake.diagnosis ? [intake.diagnosis] : []);
+  var dxName = dxArr.map(function(d){return dxMapFU[d]||d}).join(', ');
 
   if (key==="rc_done" && answer==="voicemail") {
     a.push({id:"rc_retry",priority:"urgent",agencyKey:"rceb",category:"standard",
@@ -1533,7 +1662,7 @@ function getFollowUpActions(key, answer) {
       title:"Email RC intake directly",
       subtitle:"Phone lines overloaded. Email creates a paper trail and triggers the 15-day deadline.",
       agency:"RC",deadline:"Send today",
-      draftMessage:"Subject: Referral Request — ["+state.userInfo.childName+"], DOB [date]\n\nDear Intake Team,\n\nI am requesting an intake evaluation for my child, "+state.userInfo.childName+", who has "+(intake.diagnosis==="suspected"?"developmental concerns":"been diagnosed with "+dxName)+".\n\nI have been unable to reach intake by phone. Per the Lanterman Act, intake should be scheduled within 15 days of referral.\n\nPhone: [your number]\nEmail: "+(state.userInfo.email||"[your email]")+"\n\nThank you,\n"+(state.userInfo.parentName||"[Your Name]"),
+      draftMessage:"Subject: Referral Request — ["+state.userInfo.childName+"], DOB [date]\n\nDear Intake Team,\n\nI am requesting an intake evaluation for my child, "+state.userInfo.childName+", who has "+((Array.isArray(intake.diagnosis)?intake.diagnosis:[intake.diagnosis]).indexOf("suspected")>-1?"developmental concerns":"been diagnosed with "+dxName)+".\n\nI have been unable to reach intake by phone. Per the Lanterman Act, intake should be scheduled within 15 days of referral.\n\nPhone: [your number]\nEmail: "+(state.userInfo.email||"[your email]")+"\n\nThank you,\n"+(state.userInfo.parentName||"[Your Name]"),
       smsReminder:"Today: Email RC intake. Attach eval report. Reference 15-day Lanterman deadline."});
   }
   if (key==="ins_done" && answer==="denied") {
@@ -1542,7 +1671,7 @@ function getFollowUpActions(key, answer) {
       subtitle:"Denials are common and often overturned. DMHC overturns ~60% on IMR.",
       whyMatters:"Insurance companies frequently deny first requests. Appeals are often successful — don't give up.",
       learnMoreKey:"IMR",agency:"Insurance / DMHC",deadline:"Within 30 days of denial",
-      draftMessage:"Dear [Insurance] Appeals Department,\n\nI formally appeal the denial of [therapy] for "+state.userInfo.childName+", Member ID [number].\n\nDiagnosis: "+(intake.diagnosis==="autism"?"F84.0 (ASD)":"[ICD code]")+"\n\n"+(intake.diagnosis==="autism"?"CA SB 946 mandates behavioral health coverage for autism.\n\n":"")+"If denied, I will request Independent Medical Review through DMHC.\n\nAttached: evaluation, referral, denial letter\n\nSincerely,\n"+(state.userInfo.parentName||"[Your Name]"),
+      draftMessage:"Dear [Insurance] Appeals Department,\n\nI formally appeal the denial of [therapy] for "+state.userInfo.childName+", Member ID [number].\n\nDiagnosis: "+(dxArr.indexOf("autism")>-1?"F84.0 (ASD)":"[ICD code]")+"\n\n"+(dxArr.indexOf("autism")>-1?"CA SB 946 mandates behavioral health coverage for autism.\n\n":"")+"If denied, I will request Independent Medical Review through DMHC.\n\nAttached: evaluation, referral, denial letter\n\nSincerely,\n"+(state.userInfo.parentName||"[Your Name]"),
       smsReminder:"Today: File appeal. Attach eval + doctor letter. 30-day deadline."});
   }
   if (key==="school_eval_done" && answer==="refused") {
@@ -2421,7 +2550,7 @@ function generateDeepInsuranceActions(issueType) {
       subtitle:'Step 1: Internal appeal within 30 days. Step 2: If denied again, Independent Medical Review through DMHC (HMO) or CDI (PPO). ~60% overturned.',
       agency:'Insurance → DMHC/CDI', deadline:'Within 30 days of denial', learnMoreKey:'IMR',
       talkingPoints:['I\'m formally appealing under my plan\'s appeal process.','DMHC: 1-888-466-2219 (HMO) | CDI: 1-800-927-4357 (PPO)','Is my plan HMO or PPO? This determines which regulator handles IMR.'],
-      draftMessage:'Dear [Insurance] Appeals Dept,\n\nI appeal the denial of [service] for '+childName+', Member ID [number].\n\nDiagnosis: [code]. Medical necessity documented by [provider].\n\n'+(intake.diagnosis==='autism'?'CA SB 946 mandates behavioral health treatment coverage for autism.\n\n':'')+'If this internal appeal is denied, I will request Independent Medical Review.\n\nAttached: evaluation, referral, denial letter.\n\n'+parentName,
+      draftMessage:'Dear [Insurance] Appeals Dept,\n\nI appeal the denial of [service] for '+childName+', Member ID [number].\n\nDiagnosis: [code]. Medical necessity documented by [provider].\n\n'+((Array.isArray(intake.diagnosis)?intake.diagnosis:[intake.diagnosis]).indexOf('autism')>-1?'CA SB 946 mandates behavioral health treatment coverage for autism.\n\n':'')+'If this internal appeal is denied, I will request Independent Medical Review.\n\nAttached: evaluation, referral, denial letter.\n\n'+parentName,
     });
   }
   if (issueType === 'low_hours') {
@@ -2472,6 +2601,149 @@ function chatSuggest(text) {
   chatSend();
 }
 
+// ═══ PROFILE SCREEN ═══
+function renderProfile() {
+  var dxMap = {autism:'Autism (ASD)',delay:'Developmental delays',id:'Intellectual disability',cp:'Cerebral palsy',sld:'Learning disability',adhd:'ADHD',suspected:'Suspected — not yet diagnosed'};
+  var dxOptions = [{value:'autism',emoji:'🧩'},{value:'delay',emoji:'📊'},{value:'id',emoji:'🧠'},{value:'sld',emoji:'📖'},{value:'adhd',emoji:'⚡'},{value:'cp',emoji:'♿'},{value:'suspected',emoji:'❓'}];
+  var ageOptions = [{value:'0-2',label:'Under 3',emoji:'👶'},{value:'3-5',label:'3–5 (preschool)',emoji:'🎨'},{value:'6-12',label:'6–12 (school age)',emoji:'🏫'},{value:'13-17',label:'13–17 (transition age)',emoji:'🎓'}];
+  var rcOptions = [{value:'unknown',label:"Don't know what it is",emoji:'❓'},{value:'known',label:'Know about it, haven\'t applied',emoji:'💡'},{value:'applied',label:'Applied, waiting',emoji:'⏳'},{value:'active',label:'Active — have Service Coordinator',emoji:'✅'}];
+  var iepOptions = [{value:'no',label:'No',emoji:'❌'},{value:'unknown',label:"Don't know what that is",emoji:'❓'},{value:'eval_done',label:'Evaluation done, no IEP yet',emoji:'📋'},{value:'active',label:'Yes, active IEP',emoji:'✅'},{value:'na',label:'Not school-age yet',emoji:'👶'}];
+  var insOptions = [{value:'private',label:'Private (employer)',emoji:'🏢'},{value:'medicaid',label:'Medi-Cal',emoji:'🏥'},{value:'both',label:'Both private + Medi-Cal',emoji:'✅'},{value:'none',label:'None / unsure',emoji:'❓'}];
+
+  var diagArr = Array.isArray(state.intake.diagnosis) ? state.intake.diagnosis : (state.intake.diagnosis ? [state.intake.diagnosis] : []);
+
+  var html = '';
+  html += '<div class="profile-header"><div><div class="profile-title">Edit Profile</div></div>';
+  html += '<button onclick="navTo(\'screen-home\')" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted)">✕</button></div>';
+  html += '<div class="profile-subtitle">Update your family information. Changes will regenerate your action plan.</div>';
+
+  // Personal Info
+  html += '<div class="profile-section"><div class="profile-section-title">Family Information</div>';
+  html += '<div class="profile-field"><label class="profile-label">Your first name</label><input class="profile-input" id="prof-parentName" value="'+(state.userInfo.parentName||'').replace(/"/g,'&quot;')+'" /></div>';
+  html += '<div class="profile-field"><label class="profile-label">Email</label><input class="profile-input" id="prof-email" type="email" value="'+(state.userInfo.email||'').replace(/"/g,'&quot;')+'" /></div>';
+  html += '<div class="profile-field"><label class="profile-label">Child\'s first name</label><input class="profile-input" id="prof-childName" value="'+(state.userInfo.childName||'').replace(/"/g,'&quot;')+'" /></div>';
+  html += '<div class="profile-field"><label class="profile-label">ZIP code</label><input class="profile-input" id="prof-zipCode" value="'+(state.userInfo.zipCode||'').replace(/"/g,'&quot;')+'" /></div>';
+  html += '</div>';
+
+  // Diagnosis (multi-select)
+  html += '<div class="profile-section"><div class="profile-section-title">Diagnosis <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--text-sec)">(select all that apply)</span></div>';
+  html += '<div class="multi-select-grid">';
+  dxOptions.forEach(function(o) {
+    var sel = diagArr.indexOf(o.value) > -1 ? ' selected' : '';
+    html += '<button class="multi-select-btn'+sel+'" data-key="diagnosis" data-value="'+o.value+'" onclick="profileToggleDx(this,\''+o.value+'\')"><span>'+o.emoji+'</span> '+(dxMap[o.value]||o.value)+'</button>';
+  });
+  html += '</div></div>';
+
+  // Age
+  html += '<div class="profile-section"><div class="profile-section-title">Child\'s Age</div><div class="single-select-grid">';
+  ageOptions.forEach(function(o) {
+    var sel = state.intake.age === o.value ? ' selected' : '';
+    html += '<button class="single-select-btn'+sel+'" onclick="profileSelectOne(this,\'age\',\''+o.value+'\')"><span>'+o.emoji+'</span> '+o.label+'</button>';
+  });
+  html += '</div></div>';
+
+  // RC Status
+  html += '<div class="profile-section"><div class="profile-section-title">Regional Center Status</div><div class="single-select-grid">';
+  rcOptions.forEach(function(o) {
+    var sel = state.intake.rc_status === o.value ? ' selected' : '';
+    html += '<button class="single-select-btn'+sel+'" onclick="profileSelectOne(this,\'rc_status\',\''+o.value+'\')"><span>'+o.emoji+'</span> '+o.label+'</button>';
+  });
+  html += '</div></div>';
+
+  // IEP Status
+  html += '<div class="profile-section"><div class="profile-section-title">IEP Status</div><div class="single-select-grid">';
+  iepOptions.forEach(function(o) {
+    var sel = state.intake.iep_status === o.value ? ' selected' : '';
+    html += '<button class="single-select-btn'+sel+'" onclick="profileSelectOne(this,\'iep_status\',\''+o.value+'\')"><span>'+o.emoji+'</span> '+o.label+'</button>';
+  });
+  html += '</div></div>';
+
+  // Insurance
+  html += '<div class="profile-section"><div class="profile-section-title">Health Coverage</div><div class="single-select-grid">';
+  insOptions.forEach(function(o) {
+    var sel = state.intake.insurance === o.value ? ' selected' : '';
+    html += '<button class="single-select-btn'+sel+'" onclick="profileSelectOne(this,\'insurance\',\''+o.value+'\')"><span>'+o.emoji+'</span> '+o.label+'</button>';
+  });
+  html += '</div></div>';
+
+  // Action buttons
+  html += '<div class="profile-actions">';
+  html += '<button class="profile-cancel-btn" onclick="navTo(\'screen-home\')">Cancel</button>';
+  html += '<button class="profile-save-btn" onclick="saveProfile()">Save Changes</button>';
+  html += '</div>';
+
+  document.getElementById('profile-content').innerHTML = html;
+}
+
+// Profile interaction helpers
+var _profileDx = null; // temp array for profile edits
+function profileToggleDx(btn, value) {
+  if (!_profileDx) {
+    _profileDx = Array.isArray(state.intake.diagnosis) ? state.intake.diagnosis.slice() : (state.intake.diagnosis ? [state.intake.diagnosis] : []);
+  }
+  var idx = _profileDx.indexOf(value);
+  if (idx > -1) { _profileDx.splice(idx, 1); btn.classList.remove('selected'); }
+  else { _profileDx.push(value); btn.classList.add('selected'); }
+}
+
+function profileSelectOne(btn, key, value) {
+  // Toggle selection in UI
+  var parent = btn.parentElement;
+  parent.querySelectorAll('.single-select-btn').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  btn.dataset.selectedKey = key;
+  btn.dataset.selectedValue = value;
+}
+
+function saveProfile() {
+  // Gather text fields
+  var pn = document.getElementById('prof-parentName').value.trim();
+  var em = document.getElementById('prof-email').value.trim();
+  var cn = document.getElementById('prof-childName').value.trim();
+  var zc = document.getElementById('prof-zipCode').value.trim();
+
+  if (!cn) { toast('Please enter your child\'s name'); return; }
+
+  state.userInfo.parentName = pn;
+  state.userInfo.email = em;
+  state.userInfo.childName = cn;
+  state.userInfo.zipCode = zc;
+
+  // Re-lookup RC
+  if (zc) {
+    var rc = lookupRC(zc);
+    if (rc) state.userInfo.regionalCenter = rc;
+  }
+
+  // Diagnosis (multi-select)
+  if (_profileDx && _profileDx.length) {
+    state.intake.diagnosis = _profileDx;
+  }
+  _profileDx = null;
+
+  // Single-select fields: read from selected buttons
+  document.querySelectorAll('#profile-content .single-select-btn.selected').forEach(function(btn) {
+    var key = btn.dataset.selectedKey;
+    var val = btn.dataset.selectedValue;
+    if (key && val) state.intake[key] = val;
+  });
+
+  // Regenerate action plan
+  state.actions = generateRichPlan(state.intake);
+  saveState();
+
+  // Save to backend
+  try {
+    var userData = Object.assign({}, state.userInfo, state.intake);
+    if (state.userInfo.regionalCenter) userData.regionalCenter = state.userInfo.regionalCenter.name;
+    userData.diagnosis = Array.isArray(state.intake.diagnosis) ? state.intake.diagnosis.join(',') : state.intake.diagnosis;
+    google.script.run.saveUser(userData);
+  } catch(e) {}
+
+  toast('Profile updated! Action plan refreshed.');
+  navTo('screen-home');
+}
+
 function getUserProfile() {
   var dxMap = {autism:'Autism (ASD)',delay:'Developmental delays',id:'Intellectual disability',cp:'Cerebral palsy',sld:'Learning disability',adhd:'ADHD',suspected:'Suspected developmental delays'};
   var ageMap = {'0-2':'0-2 (Early Start)','3-5':'3-5 (Preschool)','6-12':'6-12 (School age)','13-17':'13-17 (Transition age)'};
@@ -2481,7 +2753,7 @@ function getUserProfile() {
     childName: state.userInfo.childName || null,
     parentName: state.userInfo.parentName || null,
     age: ageMap[state.intake.age] || state.intake.age || null,
-    diagnosis: dxMap[state.intake.diagnosis] || state.intake.diagnosis || null,
+    diagnosis: (function(){ var arr=Array.isArray(state.intake.diagnosis)?state.intake.diagnosis:(state.intake.diagnosis?[state.intake.diagnosis]:[]); return arr.map(function(d){return dxMap[d]||d}).join(', ')||null; })(),
     rcStatus: state.intake.rc_status || null,
     iepStatus: state.intake.iep_status || null,
     insurance: insMap[state.intake.insurance] || state.intake.insurance || null,
