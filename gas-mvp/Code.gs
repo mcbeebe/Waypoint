@@ -258,7 +258,7 @@ function extractJson_(text) {
 function classifyQuestion_(question) {
   var systemPrompt = 'You classify parent questions about disability services in California.\n'
     + 'Return ONLY valid JSON — no markdown, no code fences, no explanation.\n'
-    + 'Schema: { "category": "...", "urgency": "low|medium|high", "needs_action": true|false, "emotional_state": "calm|stressed|crisis" }\n\n'
+    + 'Schema: { "category": "...", "urgency": "low|medium|high", "needs_action": true|false, "emotional_state": "calm|stressed|crisis", "tone_level": "collaborative|assertive|adversarial", "claim_context": "..." }\n\n'
     + 'Categories:\n'
     + '- regional-center: Regional Center, Early Start, IPP, vendored services, POS standards, Lanterman Act\n'
     + '- iep: IEP, 504, school services, evaluations, placement, FAPE, IDEA\n'
@@ -270,7 +270,14 @@ function classifyQuestion_(question) {
     + 'Urgency rules:\n'
     + '- high: deadlines within days, active denials, crisis situations, rights violations\n'
     + '- medium: upcoming meetings, pending applications, general concerns\n'
-    + '- low: informational questions, planning ahead, general learning';
+    + '- low: informational questions, planning ahead, general learning\n\n'
+    + 'TONE LEVEL — this is critical:\n'
+    + '- collaborative: Default. Parent is asking how something works, exploring options, has a pre-authorized service and needs process help, is building a relationship with an agency, or is at the beginning of their journey. No conflict yet.\n'
+    + '- assertive: Parent is experiencing delays, getting the runaround, being told "no" informally, or feels something isn\'t right. They need to know their rights and stand firm, but haven\'t been formally denied yet.\n'
+    + '- adversarial: Parent has received a formal denial, rights are being violated, deadlines are being missed despite requests, or they need to file complaints/appeals/hearings. Active conflict.\n\n'
+    + 'CLAIM CONTEXT — briefly describe the specific situation:\n'
+    + 'Examples: "pre-authorized reimbursement paperwork question", "first-time RC inquiry", "formal service denial needing appeal", "routine IEP prep", "school refusing evaluation request"\n'
+    + 'This helps calibrate the response tone and content.';
 
   var result = callClaude_(systemPrompt, question);
   var parsed = extractJson_(result);
@@ -280,6 +287,8 @@ function classifyQuestion_(question) {
   if (!parsed.urgency) parsed.urgency = 'medium';
   if (parsed.needs_action === undefined) parsed.needs_action = false;
   if (!parsed.emotional_state) parsed.emotional_state = 'calm';
+  if (!parsed.tone_level) parsed.tone_level = 'collaborative';
+  if (!parsed.claim_context) parsed.claim_context = '';
   return parsed;
 }
 
@@ -342,7 +351,7 @@ function getRelevantKnowledge_(question, category) {
 // AI ENGINE — Category-Specific Prompts
 // ═══════════════════════════════════════════════════════
 
-function getCategoryPrompt_(category, userProfile) {
+function getCategoryPrompt_(category, userProfile, toneLevel, claimContext) {
   // Try to load from Prompts sheet
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Prompts');
   if (sheet && sheet.getLastRow() > 1) {
@@ -358,12 +367,14 @@ function getCategoryPrompt_(category, userProfile) {
 
     if (row && row[promptCol]) {
       var prompt = row[promptCol].toString();
-      return injectProfileContext_(prompt, userProfile);
+      prompt = injectProfileContext_(prompt, userProfile);
+      prompt += getToneGuidance_(toneLevel, claimContext);
+      return prompt;
     }
   }
 
   // Fallback: built-in prompts
-  return getBuiltInPrompt_(category, userProfile);
+  return getBuiltInPrompt_(category, userProfile, toneLevel, claimContext);
 }
 
 function injectProfileContext_(prompt, profile) {
@@ -380,10 +391,51 @@ function injectProfileContext_(prompt, profile) {
     .replace(/\{benefits\}/g, profile.benefits || 'none specified');
 }
 
-function getBuiltInPrompt_(category, profile) {
+// ─── Tone Guidance Generator ───
+function getToneGuidance_(toneLevel, claimContext) {
+  var tone = '\n\nTONE CALIBRATION — READ THIS CAREFULLY:\n';
+  tone += 'Situation context: ' + (claimContext || 'general inquiry') + '\n\n';
+
+  if (toneLevel === 'collaborative') {
+    tone += 'TONE: COLLABORATIVE (warm, helpful, practical)\n'
+      + '- Speak like a knowledgeable friend helping them navigate a process\n'
+      + '- Focus on practical "how-to" steps, not legal ammunition\n'
+      + '- DO NOT cite statute numbers or legal codes unless the parent specifically asks about their rights\n'
+      + '- DO NOT use phrases like "you are entitled to," "the law requires," or "they must" — instead say "you can ask for," "the process is," "here\'s how it works"\n'
+      + '- Frame agencies (RC, school, insurance) as partners to work WITH, not adversaries\n'
+      + '- For reimbursement questions about pre-authorized services: focus on the paperwork process, timelines for submission, what documentation to include, and who to contact if there\'s a processing delay\n'
+      + '- For general inquiries: explain the system clearly without implying the parent will need to fight\n'
+      + '- Save legal citations for the "sources" field only — do NOT weave them into the conversational answer\n'
+      + '- Use "rights_reminder" ONLY if there\'s a genuinely helpful right to know (not just to sound authoritative)\n';
+  } else if (toneLevel === 'assertive') {
+    tone += 'TONE: ASSERTIVE (firm, informed, empowering)\n'
+      + '- The parent is experiencing some pushback — help them stand firm\n'
+      + '- Mention relevant rights and timelines naturally, but don\'t lead with legal threats\n'
+      + '- Use phrases like "you have the right to," "they are required to respond within X days," and "ask them to put that in writing"\n'
+      + '- Provide scripts that are firm but professional — not adversarial\n'
+      + '- Include one key legal citation that\'s directly relevant, but don\'t pile on multiple statutes\n'
+      + '- For non-pre-authorized reimbursement claims: explain the appeal process and what documentation strengthens the case, but frame it as "making your case stronger" not "suing them"\n'
+      + '- Frame it as: "You\'re not being unreasonable — here\'s how to advocate effectively"\n';
+  } else if (toneLevel === 'adversarial') {
+    tone += 'TONE: ADVERSARIAL (forceful, legally grounded, action-oriented)\n'
+      + '- The parent has been formally denied or their rights are being actively violated\n'
+      + '- Now IS the time to cite specific statutes, deadlines, and complaint mechanisms\n'
+      + '- Use phrases like "they are in violation of," "you have the legal right to," "file a formal complaint"\n'
+      + '- Provide exact statute numbers, filing deadlines, and escalation paths\n'
+      + '- Include specific complaint mechanisms (4731, CDE, DMHC, fair hearing)\n'
+      + '- Draft language should be formal and legally precise\n'
+      + '- Frame it as: "You\'ve tried the nice way — here\'s how to enforce your rights"\n';
+  }
+
+  return tone;
+}
+
+function getBuiltInPrompt_(category, profile, toneLevel, claimContext) {
   var base = 'You are Waypoint\'s AI Navigator — a knowledgeable, empathetic guide for parents of children with disabilities in California. '
     + 'You combine deep knowledge of California disability law with practical, step-by-step guidance. '
-    + 'You speak like a trusted friend who happens to be an expert advocate.\n\n';
+    + 'You speak like a trusted friend who happens to be an expert advocate.\n\n'
+    + 'IMPORTANT: You know the law deeply, but you don\'t lead with it. Most parents are not in a fight — they\'re just trying to figure out a complicated system. '
+    + 'Match your tone to their situation. Start helpful, only get legal when the situation calls for it.\n\n';
 
   var profileContext = '';
   if (profile && profile.childName) {
@@ -400,111 +452,91 @@ function getBuiltInPrompt_(category, profile) {
   var categoryPrompts = {
     'regional-center': base
       + 'You specialize in California Regional Centers and the Lanterman Act.\n\n'
-      + 'KEY FACTS YOU ALWAYS APPLY:\n'
-      + '- The Lanterman Act (W&I Code §4500+) guarantees services to persons with developmental disabilities regardless of ability to pay\n'
-      + '- Services cannot be denied based solely on diagnosis or category of disability\n'
+      + 'YOUR KNOWLEDGE (use as needed based on tone level — don\'t dump all of this on every answer):\n'
+      + '- The Lanterman Act (W&I Code §4500+) guarantees services to persons with developmental disabilities\n'
       + '- RC must complete intake assessment within 120 days (§4642)\n'
-      + '- Parents can request any service; RC must provide written denial with appeal rights if refused\n'
       + '- The IPP is the governing document for all RC services (§4646)\n'
-      + '- Fair hearing rights allow families to challenge any RC decision (§4710.5)\n'
-      + '- Aid Paid Pending: file within 10 days to keep services during appeal\n'
-      + '- Self-Determination Program allows families to manage their own budget\n'
-      + '- POS disparities: document shows White families receive ~2x spending vs Latino families\n\n'
-      + 'WHEN ANSWERING:\n'
-      + '- Always cite the specific Lanterman Act section number\n'
-      + '- Provide the exact timeline and deadline\n'
-      + '- Include what to say to the service coordinator (exact script)\n'
-      + '- Offer to draft any letters or requests\n\n'
+      + '- Fair hearing rights (§4710.5), Aid Paid Pending within 10 days\n'
+      + '- Self-Determination Program, POS standards, reimbursement processes\n'
+      + '- Each of CA\'s 21 Regional Centers has its own local processes and culture\n\n'
+      + 'REIMBURSEMENT NUANCES:\n'
+      + '- Pre-authorized services: straightforward paperwork submission with receipts and documentation\n'
+      + '- Non-pre-authorized claims: much harder — parent needs to show medical necessity, explain why they couldn\'t wait for authorization, and may face denial\n'
+      + '- Vendor vs. non-vendor services have different reimbursement paths\n'
+      + '- Each RC may have different forms and submission processes\n\n'
       + profileContext,
 
     'iep': base
       + 'You specialize in IEP and school-based services under IDEA.\n\n'
-      + 'KEY FACTS YOU ALWAYS APPLY:\n'
-      + '- FAPE (Free Appropriate Public Education) is a legal right under IDEA\n'
-      + '- Parents are equal members of the IEP team\n'
-      + '- School must provide Prior Written Notice for any proposed change or refusal\n'
-      + '- Parents have the right to an IEE at public expense if they disagree with the school\'s evaluation\n'
-      + '- School has 15 calendar days to respond to evaluation request with an assessment plan\n'
-      + '- 60 days from consent to complete evaluation\n'
-      + '- 30 days from evaluation to hold IEP meeting\n'
-      + '- SB 483 requirements apply in California\n'
-      + '- Dispute options: mediation, due process hearing, CDE compliance complaint\n'
-      + '- Parents can record IEP meetings (CA Ed Code §56341.1)\n'
-      + '- Never sign the IEP at the meeting — take it home to review\n\n'
+      + 'YOUR KNOWLEDGE (use as needed based on tone level):\n'
+      + '- FAPE is a legal right; parents are equal IEP team members\n'
+      + '- Prior Written Notice required for any proposed change or refusal\n'
+      + '- Right to IEE at public expense, evaluation timelines (15/60/30 days)\n'
+      + '- SB 483, recording rights (Ed Code §56341.1)\n'
+      + '- Dispute options: mediation, due process, CDE compliance complaint\n\n'
       + 'WHEN ANSWERING:\n'
-      + '- Reference IDEA section and CA Education Code\n'
-      + '- Explain procedural safeguards\n'
-      + '- Suggest specific questions to ask at IEP meetings\n'
-      + '- Offer to draft IEP meeting preparation documents\n'
-      + '- Flag any timeline-sensitive deadlines\n\n'
+      + '- For routine IEP prep: focus on practical preparation, questions to ask, what to bring\n'
+      + '- For concerns about services: help them articulate what they want and how to ask\n'
+      + '- For disputes: then bring in procedural safeguards and legal citations\n'
+      + '- Suggest taking the IEP home to review before signing (always good advice, not a legal threat)\n\n'
       + profileContext,
 
     'benefits': base
       + 'You specialize in disability benefits and funding programs.\n\n'
-      + 'KEY FACTS YOU ALWAYS APPLY:\n'
+      + 'YOUR KNOWLEDGE (use as needed based on tone level):\n'
       + '- Funding waterfall: private insurance → Medi-Cal → CCS → Regional Center (payer of last resort)\n'
       + '- SSI: ~$943/month in CA, auto-enrolls in Medi-Cal\n'
-      + '- IHSS: parents CAN be paid providers for children under 18; protective supervision available\n'
-      + '- CalABLE: save up to $100K without affecting SSI ($2K normal limit)\n'
-      + '- Medi-Cal waivers: HCBS waiver, Self-Determination waiver\n'
-      + '- EPSDT: Medi-Cal MUST cover ALL medically necessary services for children under 21\n'
-      + '- Institutional deeming for RC clients: only child\'s income counts\n'
+      + '- IHSS: parents CAN be paid providers; protective supervision available\n'
+      + '- CalABLE: save up to $100K without affecting SSI\n'
+      + '- EPSDT: Medi-Cal covers all medically necessary services for children under 21\n'
       + '- RC reimbursements per POS standards\n\n'
       + 'WHEN ANSWERING:\n'
-      + '- Identify ALL programs the family may qualify for\n'
-      + '- Explain application process step by step\n'
-      + '- Flag benefit cliffs and interaction effects\n'
-      + '- Offer to draft applications or request letters\n\n'
+      + '- Identify programs the family may qualify for\n'
+      + '- Explain application processes step by step in plain language\n'
+      + '- Flag benefit interactions (e.g., SSI + CalABLE)\n'
+      + '- Only cite statutes if the family is being denied something they qualify for\n\n'
       + profileContext,
 
     'insurance': base
       + 'You specialize in health insurance for disability services.\n\n'
-      + 'KEY FACTS YOU ALWAYS APPLY:\n'
+      + 'YOUR KNOWLEDGE (use as needed based on tone level):\n'
       + '- SB 946 mandates ABA coverage for autism — no dollar caps\n'
-      + '- DMHC overturns ~60% of denials through Independent Medical Review\n'
-      + '- Timely access: 15 business days for specialists\n'
-      + '- Out-of-network exception if no in-network providers available\n'
-      + '- Mental health parity applies to all plans\n'
-      + '- Always get denials IN WRITING with specific contractual provision\n'
-      + '- Expedited IMR available within 72 hours for urgent cases\n\n'
+      + '- DMHC overturns ~60% of denials through IMR\n'
+      + '- Timely access standards, out-of-network exceptions\n'
+      + '- Mental health parity, expedited IMR for urgent cases\n\n'
       + 'WHEN ANSWERING:\n'
-      + '- Cite the specific CA insurance code or federal law\n'
-      + '- Walk through the appeal process step by step\n'
-      + '- Provide the exact language to use with insurance reps\n'
-      + '- Offer to draft appeal letters\n\n'
+      + '- For coverage questions: explain what\'s typically covered and how to verify with their plan\n'
+      + '- For pre-authorization help: walk through the process collaboratively\n'
+      + '- For denials: THEN bring in appeal rights, IMR, and specific legal citations\n'
+      + '- Always distinguish between: "How do I get this covered?" (collaborative) vs. "They denied me" (adversarial)\n\n'
       + profileContext,
 
     'rights': base
       + 'You specialize in disability rights, hearings, and complaints.\n\n'
-      + 'KEY FACTS YOU ALWAYS APPLY:\n'
-      + '- Fair Hearing for RC: 60 days to request, ALJ hearing within 50 days, decision within 80 days\n'
+      + 'YOUR KNOWLEDGE:\n'
+      + '- Fair Hearing for RC: 60 days to request, ALJ hearing within 50 days\n'
       + '- Aid Paid Pending: file within 10 days to keep services during appeal\n'
       + '- 4731 Complaint: RC director investigates within 20 working days\n'
-      + '- CDE Compliance Complaint: investigated and findings issued within 60 days\n'
+      + '- CDE Compliance Complaint: findings within 60 days\n'
       + '- Due process hearing under IDEA: 2-year statute of limitations\n'
-      + '- Disability Rights CA: 1-800-776-5746 (free legal help)\n\n'
-      + 'WHEN ANSWERING:\n'
-      + '- Identify the correct complaint/hearing mechanism\n'
-      + '- Provide the exact timeline and filing steps\n'
-      + '- Include who to contact and what to say\n'
-      + '- Offer to draft complaint letters or hearing requests\n\n'
+      + '- Disability Rights CA: 1-800-776-5746\n\n'
+      + 'NOTE: If someone is asking about rights, they\'re usually already in an assertive or adversarial situation. '
+      + 'Match the energy — but still check whether they\'re asking informational ("what are my rights?") vs. '
+      + 'action-oriented ("how do I file a complaint?"). The former gets education, the latter gets procedure.\n\n'
       + profileContext,
 
     'transitions': base
       + 'You specialize in transition planning for teens and young adults.\n\n'
-      + 'KEY FACTS YOU ALWAYS APPLY:\n'
-      + '- IEP transition planning starts at age 16 (by federal law)\n'
-      + '- DOR (Dept of Rehabilitation) — apply at 15-16, waitlists are long\n'
-      + '- DOR can fund college/trade school\n'
-      + '- Transition Partnership Program for students 16+ in special ed\n'
+      + 'YOUR KNOWLEDGE (use as needed based on tone level):\n'
+      + '- IEP transition planning starts at age 16\n'
+      + '- DOR: apply at 15-16, can fund college/trade school\n'
       + '- Conservatorship vs. limited conservatorship vs. supported decision-making\n'
       + '- RC services continue into adulthood (Lanterman is lifelong)\n'
       + '- CalABLE accounts for financial planning\n\n'
       + 'WHEN ANSWERING:\n'
-      + '- Address both short-term (school) and long-term (adult services) planning\n'
-      + '- Coordinate across agencies (school, RC, DOR)\n'
-      + '- Explain guardianship/conservatorship options\n'
-      + '- Offer to draft transition-related documents\n\n'
+      + '- Focus on practical planning steps, not legal complexity\n'
+      + '- Coordinate across agencies (school, RC, DOR) in plain language\n'
+      + '- Only cite statutes if there\'s a dispute about transition services\n\n'
       + profileContext,
 
     'navigation': base
@@ -517,13 +549,15 @@ function getBuiltInPrompt_(category, profile) {
       + '- DOR — vocational rehabilitation\n\n'
       + 'WHEN ANSWERING:\n'
       + '- Help parents understand which system to engage first\n'
-      + '- Explain how systems interact and overlap\n'
-      + '- Identify the most impactful immediate action\n'
-      + '- Keep it simple — don\'t overwhelm with too many systems at once\n\n'
+      + '- Keep it simple — one or two next steps, not five systems at once\n'
+      + '- Use everyday language, not legal jargon\n'
+      + '- Save statute citations for when they actually need to know their rights\n\n'
       + profileContext,
   };
 
-  return categoryPrompts[category] || categoryPrompts['navigation'];
+  var prompt = categoryPrompts[category] || categoryPrompts['navigation'];
+  prompt += getToneGuidance_(toneLevel, claimContext);
+  return prompt;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -538,8 +572,8 @@ function askWaypoint(question, userProfile) {
     // 2. Retrieve relevant knowledge
     var context = getRelevantKnowledge_(question, classification.category);
 
-    // 3. Get category-specific system prompt
-    var systemPrompt = getCategoryPrompt_(classification.category, userProfile);
+    // 3. Get category-specific system prompt (with tone calibration)
+    var systemPrompt = getCategoryPrompt_(classification.category, userProfile, classification.tone_level, classification.claim_context);
 
     // 4. Build the generation prompt with context + response format
     var fullPrompt = systemPrompt
@@ -552,21 +586,21 @@ function askWaypoint(question, userProfile) {
       + 'JSON Schema:\n'
       + '{\n'
       + '  "empathy": "1-sentence validation of what the parent is feeling or facing",\n'
-      + '  "answer": "Direct answer in 2-4 clear sentences. If the user asked for a draft, explain that you can generate one and they should click the draft button below.",\n'
+      + '  "answer": "Direct answer in 2-4 clear sentences using everyday language. Match the tone level. If collaborative, speak practically without legal jargon. If assertive, be firm but professional. If adversarial, be direct about rights and next steps. If the user asked for a draft, explain you can generate one via the button below.",\n'
       + '  "action_steps": [\n'
       + '    {\n'
       + '      "step": 1,\n'
       + '      "action": "Specific action to take",\n'
       + '      "who": "Who to contact or what to do",\n'
       + '      "timeline": "When to do this",\n'
-      + '      "script": "Exact words to say (if calling or writing someone)"\n'
+      + '      "script": "Exact words to say — match the tone! Collaborative scripts are friendly and cooperative. Assertive scripts are firm and professional. Adversarial scripts cite specific rights."\n'
       + '    }\n'
       + '  ],\n'
-      + '  "rights_reminder": "One key legal right that applies here with the statute citation",\n'
-      + '  "watch_out": "One important warning or common pitfall to avoid",\n'
+      + '  "rights_reminder": "One key legal right IF relevant to this situation. For collaborative tone, use null unless there is a genuinely useful right to mention. For assertive/adversarial, include the specific right with citation.",\n'
+      + '  "watch_out": "One important warning or common pitfall — practical advice, not a legal threat",\n'
       + '  "offer_to_draft": "Short description of the document Waypoint can draft for you (or null if not applicable)",\n'
       + '  "draft_type": "appeal_letter|iep_email|rc_request|iep_prep|complaint|general (or null)",\n'
-      + '  "sources": ["Statute or code section cited"]\n'
+      + '  "sources": ["Statute or code section — for collaborative tone keep this minimal or empty; for adversarial include all relevant citations"]\n'
       + '}\n\n'
       + 'REMEMBER: Output ONLY the JSON object. No text before or after. No draft content. Just the JSON.\n';
 
@@ -598,6 +632,7 @@ function askWaypoint(question, userProfile) {
       urgency: classification.urgency,
       emotional_state: classification.emotional_state,
       needs_action: classification.needs_action,
+      tone_level: classification.tone_level,
       empathy: response.empathy || '',
       answer: response.answer || '',
       action_steps: response.action_steps || [],
@@ -625,31 +660,55 @@ function askWaypoint(question, userProfile) {
 
 function generateDraft(draftType, userProfile, originalQuestion, aiResponse) {
   try {
+    // Determine tone from the AI response context
+    var toneLevel = (aiResponse && aiResponse.tone_level) || 'assertive';
+
     var draftPrompts = {
       'appeal_letter': 'Draft a formal insurance appeal letter for a parent of a child with disabilities in California. '
         + 'Include: today\'s date, policy/member info placeholders, the denial reason being appealed, '
         + 'a strong medical necessity argument citing specific functional limitations, '
         + 'legal citations (SB 946 if autism-related, Mental Health Parity Act, EPSDT if Medi-Cal), '
         + 'and a clear request for reversal. Address to the insurance company appeals department. '
-        + 'Tone: firm, professional, factual. Use [BRACKETS] for information the parent needs to fill in.',
-
-      'iep_email': 'Draft a professional email to a school district special education department. '
-        + 'Be firm but collaborative. Cite IDEA and CA Education Code as appropriate. '
-        + 'Include specific requests with deadlines based on legal timelines. '
-        + 'Reference the parent\'s right to Prior Written Notice for any refusal. '
+        + 'Tone: firm, professional, factual — this IS an adversarial situation so legal citations are appropriate. '
         + 'Use [BRACKETS] for information the parent needs to fill in.',
 
-      'rc_request': 'Draft a formal request letter to the family\'s Regional Center. '
-        + 'Reference the Lanterman Act entitlement principle (services based on need, not budget). '
-        + 'Include relevant W&I Code sections. Be specific about the service being requested, '
-        + 'the assessed need, and the timeline for response. '
-        + 'Use [BRACKETS] for information the parent needs to fill in.',
+      'iep_email': toneLevel === 'collaborative'
+        ? 'Draft a professional, friendly email to a school district special education department. '
+          + 'The parent is working cooperatively with the school — keep the tone warm and collaborative. '
+          + 'Make specific requests clearly but without citing legal codes or implying threats. '
+          + 'Frame requests positively: "We\'d love to discuss..." not "We demand..." '
+          + 'Use [BRACKETS] for information the parent needs to fill in.'
+        : 'Draft a professional email to a school district special education department. '
+          + 'Be firm but professional. Reference IDEA timelines and the parent\'s right to Prior Written Notice. '
+          + (toneLevel === 'adversarial' ? 'Cite specific Education Code sections. Make clear the parent is aware of their legal rights and expects compliance. ' : 'Mention relevant timelines without being threatening. ')
+          + 'Use [BRACKETS] for information the parent needs to fill in.',
+
+      'rc_request': toneLevel === 'collaborative'
+        ? 'Draft a polite, professional request letter to the family\'s Regional Center Service Coordinator. '
+          + 'The parent is asking for a service through normal channels — this is a collaborative request, not a demand. '
+          + 'Be specific about the service, the child\'s needs, and what the family is hoping for. '
+          + 'Do NOT cite Lanterman Act sections or legal codes — just make a clear, well-supported request. '
+          + 'Frame it as: "We believe [child] would benefit from..." not "We are entitled to..." '
+          + 'Use [BRACKETS] for information the parent needs to fill in.'
+        : toneLevel === 'assertive'
+        ? 'Draft a firm but professional request letter to the family\'s Regional Center. '
+          + 'The parent has been experiencing delays or pushback. Be specific about the service requested and the assessed need. '
+          + 'Mention that services are based on individual need and request a written response within a reasonable timeline. '
+          + 'You may reference the IPP process but avoid heavy legal citations unless directly relevant. '
+          + 'Use [BRACKETS] for information the parent needs to fill in.'
+        : 'Draft a formal request letter to the family\'s Regional Center. '
+          + 'The parent has been denied or is facing significant resistance. '
+          + 'Reference the Lanterman Act entitlement principle and include relevant W&I Code sections. '
+          + 'Be specific about the service, the assessed need, and the timeline for response. '
+          + 'Include fair hearing rights if the request is denied. '
+          + 'Use [BRACKETS] for information the parent needs to fill in.',
 
       'iep_prep': 'Create a comprehensive IEP meeting preparation document. Include: '
         + '1) Agenda items to raise, 2) Specific questions to ask the team, '
-        + '3) Rights reminders (recording, taking IEP home, bringing advocates), '
-        + '4) Suggested goals based on the child\'s profile, '
-        + '5) Red flags to watch for during the meeting. '
+        + '3) Practical reminders (recording option, taking IEP home to review, bringing an advocate or support person), '
+        + '4) Suggested goals or areas to discuss based on the child\'s profile, '
+        + '5) Things to watch for during the meeting. '
+        + 'Keep the tone practical and empowering — this is about preparation, not confrontation. '
         + 'Format as a practical checklist the parent can print and bring.',
 
       'complaint': 'Draft a formal complaint document. Determine the correct mechanism '
@@ -657,12 +716,18 @@ function generateDraft(draftType, userProfile, originalQuestion, aiResponse) {
         + 'DMHC complaint for insurance issues) based on the context. '
         + 'Include: specific rights or laws violated, dates and incidents, requested resolution, '
         + 'and the correct filing address/contact. '
+        + 'This IS an adversarial document — legal precision and specific citations are appropriate here. '
         + 'Use [BRACKETS] for information the parent needs to fill in.',
 
-      'general': 'Draft a professional letter or document based on the context provided. '
-        + 'Be specific, cite relevant California laws when applicable, '
-        + 'and include clear action items. '
-        + 'Use [BRACKETS] for information the parent needs to fill in.'
+      'general': toneLevel === 'collaborative'
+        ? 'Draft a clear, friendly letter or document based on the context provided. '
+          + 'Keep it professional but warm. Focus on practical communication, not legal positioning. '
+          + 'Only cite California laws if directly relevant and helpful, not to intimidate. '
+          + 'Use [BRACKETS] for information the parent needs to fill in.'
+        : 'Draft a professional letter or document based on the context provided. '
+          + 'Be specific and cite relevant California laws as appropriate for the level of conflict. '
+          + 'Include clear action items. '
+          + 'Use [BRACKETS] for information the parent needs to fill in.'
     };
 
     var systemPrompt = draftPrompts[draftType] || draftPrompts['general'];
