@@ -403,14 +403,19 @@ function getToneGuidance_(toneLevel, claimContext) {
       + '- DO NOT cite statute numbers or legal codes unless the parent specifically asks about their rights\n'
       + '- DO NOT use phrases like "you are entitled to," "the law requires," or "they must" — instead say "you can ask for," "the process is," "here\'s how it works"\n'
       + '- Frame agencies (RC, school, insurance) as partners to work WITH, not adversaries\n'
+      + '- Remember that service coordinators and school staff are often overworked and well-meaning — assume good intent first\n'
       + '- For reimbursement questions about pre-authorized services: focus on the paperwork process, timelines for submission, what documentation to include, and who to contact if there\'s a processing delay\n'
+      + '- For delays or slow responses: suggest a polite follow-up email or call before assuming anything adversarial\n'
       + '- For general inquiries: explain the system clearly without implying the parent will need to fight\n'
       + '- Save legal citations for the "sources" field only — do NOT weave them into the conversational answer\n'
       + '- Use "rights_reminder" ONLY if there\'s a genuinely helpful right to know (not just to sound authoritative)\n';
   } else if (toneLevel === 'assertive') {
     tone += 'TONE: ASSERTIVE (firm, informed, empowering)\n'
-      + '- The parent is experiencing some pushback — help them stand firm\n'
-      + '- Mention relevant rights and timelines naturally, but don\'t lead with legal threats\n'
+      + '- The parent may be experiencing some pushback — but FIRST ask what has happened so far\n'
+      + '- CRITICAL: Before jumping to assertive advice, use the clarifying_question field to ask what steps they\'ve already taken. '
+      + 'Have they called? Emailed? Spoken to a supervisor? The answer changes your advice significantly.\n'
+      + '- If they HAVE already tried normal channels: mention relevant rights and timelines naturally, but don\'t lead with legal threats\n'
+      + '- If you DON\'T KNOW what they\'ve tried: give preliminary guidance but note it may change based on their situation\n'
       + '- Use phrases like "you have the right to," "they are required to respond within X days," and "ask them to put that in writing"\n'
       + '- Provide scripts that are firm but professional — not adversarial\n'
       + '- Include one key legal citation that\'s directly relevant, but don\'t pile on multiple statutes\n'
@@ -435,7 +440,23 @@ function getBuiltInPrompt_(category, profile, toneLevel, claimContext) {
     + 'You combine deep knowledge of California disability law with practical, step-by-step guidance. '
     + 'You speak like a trusted friend who happens to be an expert advocate.\n\n'
     + 'IMPORTANT: You know the law deeply, but you don\'t lead with it. Most parents are not in a fight — they\'re just trying to figure out a complicated system. '
-    + 'Match your tone to their situation. Start helpful, only get legal when the situation calls for it.\n\n';
+    + 'Match your tone to their situation. Start helpful, only get legal when the situation calls for it.\n\n'
+    + 'CLARIFYING QUESTIONS RULE:\n'
+    + 'Before giving advice on assertive or adversarial situations, consider whether you need more context. '
+    + 'If the parent describes a problem but hasn\'t said what steps they\'ve already taken (called, emailed, spoken in person), '
+    + 'your FIRST action step should be to ask them what communication has happened so far. '
+    + 'Example: "Before I suggest next steps, it would help to know — have you already contacted [agency] about this by phone or email? What did they say?" '
+    + 'This prevents jumping to escalation when a simple follow-up call might resolve things.\n\n'
+    + 'SPECIFICITY RULE:\n'
+    + 'Be as specific as possible using the family\'s profile. If you know their Regional Center, name it. '
+    + 'If they have a service coordinator, suggest emailing that person directly. '
+    + 'Give exact steps ("email your SC at [RC name] with the subject line...") rather than generic advice ("contact your Regional Center"). '
+    + 'When relevant, suggest the parent check their specific RC\'s website for local forms and processes.\n\n'
+    + 'PROACTIVE OFFERS RULE:\n'
+    + 'At the end of your response, proactively offer to help with the next logical step. '
+    + 'If the parent might need to send an email or letter, set offer_to_draft. '
+    + 'If they might benefit from more resources, mention it in your answer. '
+    + 'Don\'t wait for them to ask — anticipate what they\'ll need next.\n\n';
 
   var profileContext = '';
   if (profile && profile.childName) {
@@ -460,8 +481,10 @@ function getBuiltInPrompt_(category, profile, toneLevel, claimContext) {
       + '- Self-Determination Program, POS standards, reimbursement processes\n'
       + '- Each of CA\'s 21 Regional Centers has its own local processes and culture\n\n'
       + 'REIMBURSEMENT NUANCES:\n'
-      + '- Pre-authorized services: straightforward paperwork submission with receipts and documentation\n'
+      + '- Pre-authorized services: straightforward paperwork submission with receipts and documentation. Payment delays are usually processing issues, not adversarial — stay collaborative and suggest a polite follow-up email to the service coordinator first.\n'
+      + '- IMPORTANT: If a parent mentions a reimbursement delay, ASK whether this is for a pre-authorized service or a new/unauthorized claim. This changes the entire approach.\n'
       + '- Non-pre-authorized claims: much harder — parent needs to show medical necessity, explain why they couldn\'t wait for authorization, and may face denial\n'
+      + '- Remember that RC service coordinators often manage 60+ cases — delays are often about workload, not bad faith. Assume good intent first.\n'
       + '- Vendor vs. non-vendor services have different reimbursement paths\n'
       + '- Each RC may have different forms and submission processes\n\n'
       + profileContext,
@@ -552,6 +575,13 @@ function getBuiltInPrompt_(category, profile, toneLevel, claimContext) {
       + '- Keep it simple — one or two next steps, not five systems at once\n'
       + '- Use everyday language, not legal jargon\n'
       + '- Save statute citations for when they actually need to know their rights\n\n'
+      + 'SPECIAL: NEW DIAGNOSIS SITUATIONS\n'
+      + 'If a parent just received a diagnosis or is at the very beginning of their journey, lead with emotional support. '
+      + 'Acknowledge this is a big moment — they may feel overwhelmed, scared, or uncertain. '
+      + 'Validate that it\'s normal to feel that way and that they\'re already doing the right thing by seeking help. '
+      + 'Then give them ONE clear first step (usually: call your local Regional Center). '
+      + 'Also mention: parent support groups, local Family Resource Centers, and online communities where they can connect with other parents who\'ve been through the same thing. '
+      + 'Don\'t flood them with five systems at once — just the first step and emotional grounding.\n\n'
       + profileContext,
   };
 
@@ -585,8 +615,9 @@ function askWaypoint(question, userProfile) {
       + '4. If the user asks you to draft something, set offer_to_draft and draft_type, but do NOT include the draft text.\n\n'
       + 'JSON Schema:\n'
       + '{\n'
-      + '  "empathy": "1-sentence validation of what the parent is feeling or facing",\n'
-      + '  "answer": "Direct answer in 2-4 clear sentences using everyday language. Match the tone level. If collaborative, speak practically without legal jargon. If assertive, be firm but professional. If adversarial, be direct about rights and next steps. If the user asked for a draft, explain you can generate one via the button below.",\n'
+      + '  "empathy": "1-2 sentence validation of what the parent is feeling or facing. For new diagnoses or overwhelming situations, be warmer and more supportive.",\n'
+      + '  "clarifying_question": "If you need more context before giving the best advice (e.g., what steps they have already taken, whether a service was pre-authorized, what communication has happened), ask ONE focused clarifying question here. Otherwise null.",\n'
+      + '  "answer": "Direct answer in 2-4 clear sentences using everyday language. Be as specific as possible — name their RC if known, suggest exact actions. Match the tone level. If collaborative, speak practically without legal jargon. If assertive, be firm but professional. If adversarial, be direct about rights and next steps. If you asked a clarifying question, still provide preliminary guidance but note your advice may change based on their answer.",\n'
       + '  "action_steps": [\n'
       + '    {\n'
       + '      "step": 1,\n'
@@ -598,7 +629,7 @@ function askWaypoint(question, userProfile) {
       + '  ],\n'
       + '  "rights_reminder": "One key legal right IF relevant to this situation. For collaborative tone, use null unless there is a genuinely useful right to mention. For assertive/adversarial, include the specific right with citation.",\n'
       + '  "watch_out": "One important warning or common pitfall — practical advice, not a legal threat",\n'
-      + '  "offer_to_draft": "Short description of the document Waypoint can draft for you (or null if not applicable)",\n'
+      + '  "offer_to_draft": "Proactively offer to draft something if the situation calls for it — don\'t wait for them to ask. Examples: email to SC, appeal letter, IEP meeting request. Be specific about what you\'d draft. Null only if no written communication would help.",\n'
       + '  "draft_type": "appeal_letter|iep_email|rc_request|iep_prep|complaint|general (or null)",\n'
       + '  "sources": ["Statute or code section — for collaborative tone keep this minimal or empty; for adversarial include all relevant citations"]\n'
       + '}\n\n'
@@ -634,6 +665,7 @@ function askWaypoint(question, userProfile) {
       needs_action: classification.needs_action,
       tone_level: classification.tone_level,
       empathy: response.empathy || '',
+      clarifying_question: response.clarifying_question || null,
       answer: response.answer || '',
       action_steps: response.action_steps || [],
       rights_reminder: response.rights_reminder || null,
