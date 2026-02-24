@@ -309,6 +309,56 @@ a{color:#2563EB;text-decoration:none}
 .profile-cancel-btn{flex:1;padding:14px;border-radius:var(--radius);background:var(--card);color:var(--muted);font-size:15px;font-weight:600;border:2px solid var(--border);cursor:pointer;transition:all .2s}
 .profile-cancel-btn:hover{border-color:var(--muted)}
 
+/* ═══ QA TESTING SCREEN ═══ */
+.qa-header{padding:16px 0 12px}
+.qa-title{font-size:22px;font-weight:800;color:var(--navy)}
+.qa-subtitle{font-size:14px;color:var(--muted);margin-bottom:16px}
+.qa-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.qa-metric{background:var(--card);border-radius:var(--radius-sm);padding:12px;text-align:center;border:1px solid var(--border)}
+.qa-metric-val{font-size:22px;font-weight:800;color:var(--navy)}
+.qa-metric-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.qa-actions{display:flex;gap:8px;margin-bottom:16px}
+.qa-actions button{flex:1;padding:10px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .15s}
+.qa-btn-run{background:var(--accent);color:#FFF}
+.qa-btn-run:hover{background:var(--accent-dark)}
+.qa-btn-seed{background:var(--success-light);color:var(--success);border:1px solid var(--success-border) !important}
+.qa-btn-add{background:var(--card);color:var(--accent);border:2px solid var(--accent) !important}
+.qa-add-form{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border);display:none}
+.qa-add-form.active{display:block}
+.qa-add-form label{display:block;font-size:12px;font-weight:600;color:var(--text-sec);margin-bottom:4px;margin-top:10px}
+.qa-add-form label:first-child{margin-top:0}
+.qa-add-form textarea,.qa-add-form input,.qa-add-form select{width:100%;padding:10px;border-radius:var(--radius-sm);border:2px solid var(--border);font-size:13px;background:var(--bg)}
+.qa-add-form textarea:focus,.qa-add-form input:focus,.qa-add-form select:focus{outline:none;border-color:var(--accent)}
+.qa-test-card{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid var(--border);transition:all .15s}
+.qa-test-card.running{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}
+.qa-test-card.pass{border-left:4px solid var(--success)}
+.qa-test-card.fail{border-left:4px solid var(--urgent)}
+.qa-test-card.reviewed{border-left:4px solid var(--accent)}
+.qa-test-q{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px}
+.qa-test-expect{font-size:12px;color:var(--muted);margin-bottom:8px}
+.qa-test-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.qa-test-tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px}
+.qa-test-tag.cat{background:var(--accent-light);color:var(--accent-dark)}
+.qa-test-tag.tone{background:var(--purple-light);color:var(--purple)}
+.qa-test-tag.pass{background:var(--success-light);color:var(--success)}
+.qa-test-tag.fail{background:var(--urgent-light);color:var(--urgent)}
+.qa-test-tag.pending{background:var(--muted-light);color:var(--muted)}
+.qa-result{background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-top:8px;font-size:13px;line-height:1.6;border:1px solid var(--border)}
+.qa-result-section{margin-bottom:8px}
+.qa-result-section:last-child{margin-bottom:0}
+.qa-result-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px}
+.qa-rating{display:flex;gap:4px;margin-top:10px;align-items:center}
+.qa-rating-btn{width:36px;height:36px;border-radius:8px;border:2px solid var(--border);background:var(--card);font-size:16px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.qa-rating-btn:hover{border-color:var(--accent);background:var(--accent-light)}
+.qa-rating-btn.active{border-color:var(--accent);background:var(--accent);color:#FFF}
+.qa-feedback-input{width:100%;padding:8px 10px;border-radius:var(--radius-sm);border:2px solid var(--border);font-size:12px;margin-top:6px;background:var(--bg)}
+.qa-feedback-input:focus{outline:none;border-color:var(--accent)}
+.qa-save-btn{margin-top:8px;padding:8px 16px;border-radius:var(--radius-sm);background:var(--accent);color:#FFF;font-size:12px;font-weight:600;border:none;cursor:pointer}
+.qa-running-indicator{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px}
+.qa-spinner{width:14px;height:14px;border:2px solid var(--accent-light);border-top:2px solid var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.qa-back-btn{padding:8px 16px;border-radius:var(--radius-sm);background:var(--muted-light);color:var(--muted);font-size:13px;font-weight:600;border:none;cursor:pointer;margin-bottom:12px}
+
 /* ═══ UTILITY ═══ */
 .mt-12{margin-top:12px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
 .text-center{text-align:center}
@@ -470,6 +520,52 @@ a{color:#2563EB;text-decoration:none}
       <button class="btn-primary" style="flex:1;font-size:13px;padding:10px" onclick="copyDraft()">Copy to Clipboard</button>
       <button class="action-btn info" style="flex:1;font-size:13px;padding:10px" onclick="closeDraftModal()">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════ QA TESTING SCREEN ═══════════ -->
+<div id="screen-qa" class="screen">
+  <div class="pb-100">
+    <button class="qa-back-btn" onclick="navTo('screen-home')">← Back</button>
+    <div class="qa-header">
+      <div class="qa-title">QA Testing Lab</div>
+      <div class="qa-subtitle">Test AI engine responses, rate quality, and track improvements</div>
+    </div>
+    <div id="qa-metrics-area"></div>
+    <div class="qa-actions">
+      <button class="qa-btn-run" onclick="qaRunAll()">▶ Run All Pending</button>
+      <button class="qa-btn-add" onclick="qaToggleAddForm()">+ Add Test</button>
+      <button class="qa-btn-seed" onclick="qaSeedTests()">Seed Starter Tests</button>
+    </div>
+    <div id="qa-add-form" class="qa-add-form">
+      <label>Test Question</label>
+      <textarea id="qa-new-question" rows="2" placeholder="Type a test question..."></textarea>
+      <label>Expected Category</label>
+      <select id="qa-new-category">
+        <option value="">-- Any --</option>
+        <option value="regional-center">Regional Center</option>
+        <option value="iep">IEP</option>
+        <option value="benefits">Benefits</option>
+        <option value="insurance">Insurance</option>
+        <option value="rights">Rights</option>
+        <option value="navigation">Navigation</option>
+        <option value="transitions">Transitions</option>
+      </select>
+      <label>Expected Tone</label>
+      <select id="qa-new-tone">
+        <option value="">-- Any --</option>
+        <option value="collaborative">Collaborative</option>
+        <option value="assertive">Assertive</option>
+        <option value="adversarial">Adversarial</option>
+      </select>
+      <label>Expected Behavior (what should the response do/avoid?)</label>
+      <textarea id="qa-new-behavior" rows="2" placeholder="e.g., Should NOT cite Lanterman Act, should focus on practical steps..."></textarea>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="qa-save-btn" onclick="qaAddTest()">Add Test Case</button>
+        <button class="qa-back-btn" onclick="qaToggleAddForm()" style="margin-bottom:0">Cancel</button>
+      </div>
+    </div>
+    <div id="qa-test-list"></div>
   </div>
 </div>
 
@@ -781,6 +877,7 @@ function showScreen(id) {
   if (id === 'screen-agencies') renderAgencyList();
   if (id === 'screen-reimburse') renderReimburseList();
   if (id === 'screen-profile') { document.getElementById('nav-tabs').style.display = 'flex'; renderProfile(); }
+  if (id === 'screen-qa') { document.getElementById('nav-tabs').style.display = 'none'; renderQAScreen(); }
   // Update nav tabs
   document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});
   var tab = document.querySelector('.nav-tab[onclick*="'+id+'"]');
@@ -1309,6 +1406,8 @@ function renderHome() {
   quickHtml += '<button class="quick-btn" style="background:var(--success-light);border-color:var(--success-border);color:#065F46" onclick="navTo(\'screen-reimburse\')"><span class="qicon">💰</span><span class="qlabel">RC Reimbursables</span></button>';
   quickHtml += '<button class="quick-btn" style="background:var(--purple-light);border-color:#DDD6FE;color:var(--purple)" onclick="navTo(\'screen-agencies\')"><span class="qicon">🏛️</span><span class="qlabel">Agency Directory</span></button>';
   quickHtml += '</div>';
+  // Admin row
+  quickHtml += '<div style="margin-top:8px"><button class="quick-btn" style="width:100%;background:var(--muted-light);border-color:var(--border);color:var(--muted)" onclick="navTo(\'screen-qa\')"><span class="qicon">🧪</span><span class="qlabel">QA Testing Lab</span></button></div>';
   document.getElementById('home-quick-actions').innerHTML = quickHtml;
 
   // ─── Check-In / Frustration Entry ───
@@ -3080,6 +3179,255 @@ function escapeAttr(str) {
 function toast(msg) {
   var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   setTimeout(function(){t.classList.remove('show')},2500);
+}
+
+// ═══════════════════════════════════════════════════════
+// QA TESTING LAB
+// ═══════════════════════════════════════════════════════
+
+var qaTests = [];
+var qaRunning = false;
+
+function renderQAScreen() {
+  // Load tests and metrics
+  google.script.run.withSuccessHandler(function(res) {
+    if (res.success) {
+      qaTests = res.tests || [];
+      renderQATests();
+    }
+  }).getQATests();
+
+  google.script.run.withSuccessHandler(function(res) {
+    if (res.success) renderQAMetrics(res.metrics);
+  }).getQAMetrics();
+}
+
+function renderQAMetrics(m) {
+  var area = document.getElementById('qa-metrics-area');
+  if (!m || m.total === 0) {
+    area.innerHTML = '<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px">No tests yet — add test cases or seed starter tests to begin</div>';
+    return;
+  }
+  var html = '<div class="qa-metrics">';
+  html += '<div class="qa-metric"><div class="qa-metric-val">' + m.total + '</div><div class="qa-metric-label">Total Tests</div></div>';
+  html += '<div class="qa-metric"><div class="qa-metric-val">' + (m.categoryAccuracy !== null ? m.categoryAccuracy + '%' : '—') + '</div><div class="qa-metric-label">Cat. Accuracy</div></div>';
+  html += '<div class="qa-metric"><div class="qa-metric-val">' + (m.toneAccuracy !== null ? m.toneAccuracy + '%' : '—') + '</div><div class="qa-metric-label">Tone Accuracy</div></div>';
+  html += '</div>';
+  html += '<div class="qa-metrics" style="margin-bottom:16px">';
+  html += '<div class="qa-metric"><div class="qa-metric-val">' + (m.avgRating || '—') + '</div><div class="qa-metric-label">Avg Rating</div></div>';
+  html += '<div class="qa-metric"><div class="qa-metric-val">' + m.reviewed + '</div><div class="qa-metric-label">Reviewed</div></div>';
+  html += '<div class="qa-metric"><div class="qa-metric-val">' + m.pending + '</div><div class="qa-metric-label">Pending</div></div>';
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+function renderQATests() {
+  var el = document.getElementById('qa-test-list');
+  if (qaTests.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">No test cases yet. Add questions or click "Seed Starter Tests".</div>';
+    return;
+  }
+
+  var html = '';
+  qaTests.forEach(function(t) {
+    var status = t.status || 'pending';
+    var cardClass = 'qa-test-card';
+    if (status === 'reviewed') cardClass += ' reviewed';
+    else if (status === 'tested') {
+      cardClass += (t.categoryCorrect === 'NO' || t.toneCorrect === 'NO') ? ' fail' : ' pass';
+    }
+
+    html += '<div class="' + cardClass + '" id="qa-card-' + t.id + '">';
+    html += '<div class="qa-test-q">' + escapeHtml(t.question) + '</div>';
+
+    // Tags row
+    html += '<div class="qa-test-tags">';
+    if (t.expectedCategory) html += '<span class="qa-test-tag cat">' + t.expectedCategory + '</span>';
+    if (t.expectedTone) html += '<span class="qa-test-tag tone">' + t.expectedTone + '</span>';
+    if (status === 'pending') html += '<span class="qa-test-tag pending">Pending</span>';
+    if (status === 'tested' || status === 'reviewed') {
+      html += t.categoryCorrect === 'YES' ? '<span class="qa-test-tag pass">Cat ✓</span>' : t.categoryCorrect === 'NO' ? '<span class="qa-test-tag fail">Cat ✗ → ' + escapeHtml(t.actualCategory) + '</span>' : '';
+      html += t.toneCorrect === 'YES' ? '<span class="qa-test-tag pass">Tone ✓</span>' : t.toneCorrect === 'NO' ? '<span class="qa-test-tag fail">Tone ✗ → ' + escapeHtml(t.actualTone) + '</span>' : '';
+    }
+    html += '</div>';
+
+    if (t.expectedBehavior) {
+      html += '<div class="qa-test-expect">Expected: ' + escapeHtml(t.expectedBehavior) + '</div>';
+    }
+
+    // If tested, show response
+    if ((status === 'tested' || status === 'reviewed') && t.response) {
+      var resp;
+      try { resp = typeof t.response === 'string' ? JSON.parse(t.response) : t.response; } catch(e) { resp = null; }
+      if (resp) {
+        html += '<div class="qa-result">';
+        if (resp.empathy) html += '<div class="qa-result-section"><div class="qa-result-label">Empathy</div>' + escapeHtml(resp.empathy) + '</div>';
+        if (resp.answer) html += '<div class="qa-result-section"><div class="qa-result-label">Answer</div>' + escapeHtml(resp.answer) + '</div>';
+        if (resp.rights_reminder) html += '<div class="qa-result-section"><div class="qa-result-label">Rights Reminder</div>' + escapeHtml(resp.rights_reminder) + '</div>';
+        if (resp.sources && resp.sources.length > 0) html += '<div class="qa-result-section"><div class="qa-result-label">Sources</div>' + escapeHtml(resp.sources.join(', ')) + '</div>';
+        html += '</div>';
+      }
+    }
+
+    // Rating UI
+    if (status === 'tested' || status === 'reviewed') {
+      var curRating = Number(t.rating) || 0;
+      html += '<div style="margin-top:10px">';
+      html += '<div class="qa-result-label">Rate this response</div>';
+      html += '<div class="qa-rating">';
+      for (var r = 1; r <= 5; r++) {
+        html += '<button class="qa-rating-btn' + (r <= curRating ? ' active' : '') + '" onclick="qaSetRating(\'' + t.id + '\',' + r + ')">' + r + '</button>';
+      }
+      html += '<span style="font-size:11px;color:var(--muted);margin-left:6px">1=Poor 5=Excellent</span>';
+      html += '</div>';
+      html += '<input class="qa-feedback-input" id="qa-fb-' + t.id + '" placeholder="Notes: what was wrong or good about this response..." value="' + escapeHtml(t.feedback || '') + '">';
+      html += '<button class="qa-save-btn" onclick="qaSaveRating(\'' + t.id + '\')">Save Feedback</button>';
+      html += '</div>';
+    }
+
+    // Run single test button for pending
+    if (status === 'pending') {
+      html += '<button class="qa-save-btn" style="margin-top:8px" onclick="qaRunSingle(\'' + t.id + '\')">▶ Run This Test</button>';
+    }
+
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function qaToggleAddForm() {
+  var form = document.getElementById('qa-add-form');
+  form.classList.toggle('active');
+}
+
+function qaAddTest() {
+  var q = document.getElementById('qa-new-question').value.trim();
+  if (!q) { alert('Please enter a test question'); return; }
+  var cat = document.getElementById('qa-new-category').value;
+  var tone = document.getElementById('qa-new-tone').value;
+  var behavior = document.getElementById('qa-new-behavior').value.trim();
+
+  google.script.run.withSuccessHandler(function(res) {
+    if (res.success) {
+      document.getElementById('qa-new-question').value = '';
+      document.getElementById('qa-new-behavior').value = '';
+      document.getElementById('qa-add-form').classList.remove('active');
+      renderQAScreen();
+    } else {
+      alert('Error adding test: ' + (res.error || 'Unknown'));
+    }
+  }).addQATest(q, cat, tone, behavior);
+}
+
+function qaSeedTests() {
+  if (qaTests.length > 0 && !confirm('This will add starter test questions. Continue?')) return;
+  google.script.run.withSuccessHandler(function(res) {
+    if (res.success) {
+      renderQAScreen();
+    } else {
+      alert('Error: ' + (res.error || 'Unknown'));
+    }
+  }).seedQATests();
+}
+
+function qaRunSingle(testId) {
+  var card = document.getElementById('qa-card-' + testId);
+  if (card) {
+    card.classList.add('running');
+    card.insertAdjacentHTML('afterbegin', '<div class="qa-running-indicator" id="qa-run-' + testId + '"><div class="qa-spinner"></div>Running test...</div>');
+  }
+
+  var profile = getUserProfile();
+  google.script.run.withSuccessHandler(function(res) {
+    var indicator = document.getElementById('qa-run-' + testId);
+    if (indicator) indicator.remove();
+    if (card) card.classList.remove('running');
+    if (res.success) {
+      renderQAScreen();
+    } else {
+      alert('Test error: ' + (res.error || 'Unknown'));
+    }
+  }).withFailureHandler(function(err) {
+    var indicator = document.getElementById('qa-run-' + testId);
+    if (indicator) indicator.remove();
+    if (card) card.classList.remove('running');
+    alert('Test failed: ' + err.message);
+  }).runQATest(testId, profile);
+}
+
+function qaRunAll() {
+  if (qaRunning) return;
+  var pending = qaTests.filter(function(t) { return t.status === 'pending'; });
+  if (pending.length === 0) {
+    alert('No pending tests to run. Add new tests or re-seed.');
+    return;
+  }
+  if (!confirm('Run ' + pending.length + ' pending tests? This will make ' + pending.length + ' AI API calls.')) return;
+
+  qaRunning = true;
+  var queue = pending.map(function(t) { return t.id; });
+  var idx = 0;
+
+  function runNext() {
+    if (idx >= queue.length) {
+      qaRunning = false;
+      renderQAScreen();
+      return;
+    }
+    var testId = queue[idx];
+    var card = document.getElementById('qa-card-' + testId);
+    if (card) {
+      card.classList.add('running');
+      card.insertAdjacentHTML('afterbegin', '<div class="qa-running-indicator" id="qa-run-' + testId + '"><div class="qa-spinner"></div>Running (' + (idx+1) + '/' + queue.length + ')...</div>');
+    }
+
+    var profile = getUserProfile();
+    google.script.run.withSuccessHandler(function(res) {
+      idx++;
+      // Refresh the test list in place
+      google.script.run.withSuccessHandler(function(r) {
+        if (r.success) { qaTests = r.tests || []; renderQATests(); }
+        runNext();
+      }).getQATests();
+    }).withFailureHandler(function(err) {
+      idx++;
+      runNext();
+    }).runQATest(testId, profile);
+  }
+
+  runNext();
+}
+
+var qaRatings = {};
+
+function qaSetRating(testId, rating) {
+  qaRatings[testId] = rating;
+  // Update UI immediately
+  var btns = document.querySelectorAll('#qa-card-' + testId + ' .qa-rating-btn');
+  btns.forEach(function(btn, i) {
+    btn.classList.toggle('active', (i + 1) <= rating);
+  });
+}
+
+function qaSaveRating(testId) {
+  var rating = qaRatings[testId] || 0;
+  var fbEl = document.getElementById('qa-fb-' + testId);
+  var feedback = fbEl ? fbEl.value.trim() : '';
+  if (!rating) { alert('Please select a rating (1-5)'); return; }
+
+  google.script.run.withSuccessHandler(function(res) {
+    if (res.success) {
+      renderQAScreen();
+    } else {
+      alert('Error saving: ' + (res.error || 'Unknown'));
+    }
+  }).rateQATest(testId, rating, feedback);
 }
 
 // ═══ PAGE LOAD — restore session or show landing ═══

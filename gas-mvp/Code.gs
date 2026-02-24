@@ -1015,5 +1015,277 @@ function setupWaypoint() {
   initSheets();
   seedKnowledgeBase();
   seedPrompts();
+  initQASheet_();
   return { success: true, message: 'Waypoint AI Engine initialized. Add your ANTHROPIC_API_KEY in Project Settings → Script Properties.' };
+}
+
+// ═══════════════════════════════════════════════════════
+// QA TESTING SYSTEM — Systematic test & feedback loop
+// ═══════════════════════════════════════════════════════
+
+function initQASheet_() {
+  getOrCreateSheet_('QATests', [
+    'id', 'question', 'expectedCategory', 'expectedTone', 'expectedBehavior',
+    'actualCategory', 'actualTone', 'toneCorrect', 'categoryCorrect',
+    'response', 'rating', 'feedback', 'runAt', 'status'
+  ]);
+}
+
+/**
+ * Load all QA test cases from the QATests sheet
+ */
+function getQATests() {
+  try {
+    initQASheet_();
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('QATests');
+    if (!sheet || sheet.getLastRow() <= 1) return { success: true, tests: [] };
+
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var tests = [];
+    for (var i = 1; i < data.length; i++) {
+      var row = {};
+      for (var j = 0; j < headers.length; j++) {
+        row[headers[j]] = data[i][j];
+      }
+      tests.push(row);
+    }
+    return { success: true, tests: tests };
+  } catch (e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * Add a new QA test case
+ */
+function addQATest(question, expectedCategory, expectedTone, expectedBehavior) {
+  try {
+    initQASheet_();
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('QATests');
+    var id = 'qa-' + Date.now();
+    sheet.appendRow([
+      id, question, expectedCategory || '', expectedTone || '', expectedBehavior || '',
+      '', '', '', '', '', '', '', '', 'pending'
+    ]);
+    return { success: true, id: id };
+  } catch (e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * Run a single QA test — sends the question through the full pipeline and records results
+ */
+function runQATest(testId, userProfile) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('QATests');
+    if (!sheet || sheet.getLastRow() <= 1) return { success: false, error: 'No tests found' };
+
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var idCol = headers.indexOf('id');
+    var qCol = headers.indexOf('question');
+    var expCatCol = headers.indexOf('expectedCategory');
+    var expToneCol = headers.indexOf('expectedTone');
+    var actCatCol = headers.indexOf('actualCategory');
+    var actToneCol = headers.indexOf('actualTone');
+    var toneCorrCol = headers.indexOf('toneCorrect');
+    var catCorrCol = headers.indexOf('categoryCorrect');
+    var respCol = headers.indexOf('response');
+    var runAtCol = headers.indexOf('runAt');
+    var statusCol = headers.indexOf('status');
+
+    // Find the test row
+    var rowIdx = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idCol] === testId) { rowIdx = i + 1; break; }
+    }
+    if (rowIdx < 0) return { success: false, error: 'Test not found: ' + testId };
+
+    var question = data[rowIdx - 1][qCol];
+    var expectedCat = data[rowIdx - 1][expCatCol];
+    var expectedTone = data[rowIdx - 1][expToneCol];
+
+    // Run through the full AI pipeline
+    var result = askWaypoint(question, userProfile || {});
+
+    // Score classification accuracy
+    var catCorrect = expectedCat ? (result.category === expectedCat ? 'YES' : 'NO') : 'N/A';
+    var toneCorrect = expectedTone ? (result.tone_level === expectedTone ? 'YES' : 'NO') : 'N/A';
+
+    // Write results back to sheet
+    sheet.getRange(rowIdx, actCatCol + 1).setValue(result.category || '');
+    sheet.getRange(rowIdx, actToneCol + 1).setValue(result.tone_level || '');
+    sheet.getRange(rowIdx, toneCorrCol + 1).setValue(toneCorrect);
+    sheet.getRange(rowIdx, catCorrCol + 1).setValue(catCorrect);
+    sheet.getRange(rowIdx, respCol + 1).setValue(JSON.stringify(result).substring(0, 5000));
+    sheet.getRange(rowIdx, runAtCol + 1).setValue(new Date().toISOString());
+    sheet.getRange(rowIdx, statusCol + 1).setValue('tested');
+
+    return {
+      success: true,
+      testId: testId,
+      question: question,
+      category: result.category,
+      tone_level: result.tone_level,
+      categoryCorrect: catCorrect,
+      toneCorrect: toneCorrect,
+      empathy: result.empathy,
+      answer: result.answer,
+      action_steps: result.action_steps,
+      rights_reminder: result.rights_reminder,
+      watch_out: result.watch_out,
+      offer_to_draft: result.offer_to_draft,
+      sources: result.sources
+    };
+  } catch (e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * Save rating and feedback for a QA test
+ */
+function rateQATest(testId, rating, feedback) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('QATests');
+    if (!sheet || sheet.getLastRow() <= 1) return { success: false };
+
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var idCol = headers.indexOf('id');
+    var ratingCol = headers.indexOf('rating');
+    var fbCol = headers.indexOf('feedback');
+    var statusCol = headers.indexOf('status');
+
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][idCol] === testId) {
+        sheet.getRange(i + 1, ratingCol + 1).setValue(rating);
+        sheet.getRange(i + 1, fbCol + 1).setValue(feedback || '');
+        sheet.getRange(i + 1, statusCol + 1).setValue('reviewed');
+        return { success: true };
+      }
+    }
+    return { success: false, error: 'Test not found' };
+  } catch (e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * Get QA summary metrics
+ */
+function getQAMetrics() {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('QATests');
+    if (!sheet || sheet.getLastRow() <= 1) return { success: true, metrics: { total: 0 } };
+
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var catCorrCol = headers.indexOf('categoryCorrect');
+    var toneCorrCol = headers.indexOf('toneCorrect');
+    var ratingCol = headers.indexOf('rating');
+    var statusCol = headers.indexOf('status');
+    var catCol = headers.indexOf('actualCategory');
+
+    var total = data.length - 1;
+    var tested = 0, reviewed = 0;
+    var catCorrect = 0, catTotal = 0;
+    var toneCorrect = 0, toneTotal = 0;
+    var ratingSum = 0, ratingCount = 0;
+    var catBreakdown = {};
+
+    for (var i = 1; i < data.length; i++) {
+      var status = data[i][statusCol];
+      if (status === 'tested' || status === 'reviewed') tested++;
+      if (status === 'reviewed') reviewed++;
+
+      if (data[i][catCorrCol] === 'YES') { catCorrect++; catTotal++; }
+      else if (data[i][catCorrCol] === 'NO') { catTotal++; }
+
+      if (data[i][toneCorrCol] === 'YES') { toneCorrect++; toneTotal++; }
+      else if (data[i][toneCorrCol] === 'NO') { toneTotal++; }
+
+      var r = Number(data[i][ratingCol]);
+      if (r > 0) { ratingSum += r; ratingCount++; }
+
+      var cat = data[i][catCol];
+      if (cat) {
+        if (!catBreakdown[cat]) catBreakdown[cat] = { count: 0, ratingSum: 0, ratingCount: 0 };
+        catBreakdown[cat].count++;
+        if (r > 0) { catBreakdown[cat].ratingSum += r; catBreakdown[cat].ratingCount++; }
+      }
+    }
+
+    return {
+      success: true,
+      metrics: {
+        total: total,
+        tested: tested,
+        reviewed: reviewed,
+        pending: total - tested,
+        categoryAccuracy: catTotal > 0 ? Math.round(catCorrect / catTotal * 100) : null,
+        toneAccuracy: toneTotal > 0 ? Math.round(toneCorrect / toneTotal * 100) : null,
+        avgRating: ratingCount > 0 ? (ratingSum / ratingCount).toFixed(1) : null,
+        categoryBreakdown: catBreakdown
+      }
+    };
+  } catch (e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+/**
+ * Seed starter QA test questions covering all categories and tone levels
+ */
+function seedQATests() {
+  var tests = [
+    // Regional Center — collaborative
+    ['How do I apply to Regional Center for my 2-year-old?', 'regional-center', 'collaborative', 'Should explain intake process, 120-day timeline, Early Start. No legal jargon.'],
+    ['What paperwork do I need for RC reimbursement of pre-authorized respite?', 'regional-center', 'collaborative', 'Focus on forms, receipts, submission process. No Lanterman Act citations.'],
+    // Regional Center — assertive
+    ['My service coordinator hasn\'t returned my calls in 3 weeks about adding ABA to the IPP', 'regional-center', 'assertive', 'Firm advice on escalation, mention right to IPP meeting within 30 days. Not heavy legal.'],
+    // Regional Center — adversarial
+    ['RC denied our request for respite hours and I want to file a fair hearing', 'regional-center', 'adversarial', 'Should cite §4710.5, Aid Paid Pending 10-day rule, OAH process. Full legal support.'],
+
+    // IEP — collaborative
+    ['How should I prepare for my first IEP meeting?', 'iep', 'collaborative', 'Practical prep advice, what to bring, questions to ask. No legal threats.'],
+    ['Can I record the IEP meeting?', 'iep', 'collaborative', 'Yes with 24hr notice, cite Ed Code §56341.1 if helpful, but keep it friendly.'],
+    // IEP — assertive
+    ['The school is 2 months late on completing my child\'s evaluation', 'iep', 'assertive', 'Mention 60-day timeline, suggest written follow-up, firm but not threatening.'],
+    // IEP — adversarial
+    ['School refuses to evaluate my child and won\'t give me prior written notice', 'iep', 'adversarial', 'Cite IDEA PWN requirements, mention CDE complaint and due process rights.'],
+
+    // Benefits — collaborative
+    ['What is IHSS and how do I apply as a parent provider?', 'benefits', 'collaborative', 'Explain IHSS, application steps, parent provider option. Practical and encouraging.'],
+    ['How does CalABLE work with SSI?', 'benefits', 'collaborative', 'Explain $100K threshold, SSI interaction, tax benefits. Informational.'],
+
+    // Insurance — collaborative
+    ['Does my insurance cover ABA therapy for autism?', 'insurance', 'collaborative', 'Explain SB 946, how to verify with plan. Don\'t assume a fight.'],
+    // Insurance — adversarial
+    ['Insurance denied ABA therapy saying it\'s not medically necessary', 'insurance', 'adversarial', 'Cite SB 946, explain appeal + IMR process, DMHC 60% overturn rate.'],
+
+    // Rights — assertive
+    ['What are my rights if RC reduces my child\'s services?', 'rights', 'assertive', 'Explain Notice of Action, fair hearing, Aid Paid Pending. Educational but empowering.'],
+
+    // Navigation — collaborative
+    ['I just got my child\'s autism diagnosis, where do I start?', 'navigation', 'collaborative', 'Warm overview of RC, school, insurance paths. One or two next steps.'],
+    ['What\'s the difference between RC and the school district?', 'navigation', 'collaborative', 'Clear comparison, no legal jargon, practical guidance.'],
+
+    // Transitions — collaborative
+    ['My child is turning 3, what happens with Early Start?', 'transitions', 'collaborative', 'Explain transition to IEP, keep RC services. Practical timeline.'],
+
+    // Edge cases / nuance
+    ['I submitted my reimbursement claim to RC but it\'s been 60 days with no payment', 'regional-center', 'assertive', 'For pre-authorized: focus on follow-up process. Mention escalation if needed but not full legal.'],
+    ['RC says they don\'t fund swim lessons but my doctor recommended aquatic therapy', 'regional-center', 'assertive', 'Distinguish recreational vs therapeutic, suggest IPP amendment with medical documentation.'],
+  ];
+
+  var count = 0;
+  tests.forEach(function(t) {
+    addQATest(t[0], t[1], t[2], t[3]);
+    count++;
+  });
+
+  return { success: true, message: 'Seeded ' + count + ' QA test cases' };
 }
