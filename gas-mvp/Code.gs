@@ -1059,6 +1059,177 @@ function seedPrompts() {
 }
 
 // ═══════════════════════════════════════════════════════
+// ENTITY NAVIGATION MATRIX KB — Deep entity guides
+// ═══════════════════════════════════════════════════════
+
+function seedEntityKB() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('KnowledgeBase');
+  if (!sheet) return { success: false, error: 'KnowledgeBase sheet not found. Run setupWaypoint() first.' };
+
+  var now = new Date().toISOString();
+  var entries = [
+    // ── IHSS (not already in KB) ──
+    ['ent-ihss', 'benefits', 'ihss-guide', 'IHSS Complete Guide — In-Home Supportive Services',
+      'IHSS provides personal care, domestic services, and protective supervision for people with disabilities. It allows family members (including parents) to be paid providers — a critical benefit many families don\'t know about.\n\n'
+      + 'Who Qualifies: Any disability (physical, developmental, cognitive, mental health) that limits ability to perform daily activities safely at home. Not diagnosis-specific — it is need-based. Must be on Medi-Cal.\n\n'
+      + 'How to Apply: 1) Apply at your county social services office. 2) County worker conducts in-home assessment. 3) Worker determines hours by task category. 4) Hours authorized. 5) Enroll provider — can be parent or family member. Timeline: 30-60 days from application to assessment.\n\n'
+      + 'Key Paperwork: Medi-Cal enrollment (prerequisite), IHSS application (SOC 295), Medical certification (SOC 873), Physician statement of functional limitations.\n\n'
+      + 'Parent as Provider: Parents CAN be paid IHSS providers for their own children. IHSS payments to parent providers are exempt income for both Medi-Cal and SSI purposes. Many families are never told about this option.\n\n'
+      + 'Hours and Services: IHSS covers personal care (bathing, dressing, feeding), domestic services (cleaning, laundry, shopping), protective supervision (for those at risk of injury), paramedical services, and transportation to medical appointments. Hours are assessed by task — if you disagree with the assessment, request a reassessment.\n\n'
+      + 'Appeals: State Fair Hearing through CDSS. Can request reassessment at any time. Aid Paid Pending if you appeal within 10 days of a reduction notice.\n\n'
+      + 'Interaction with Other Services: RC clients are expected to use IHSS before RC-funded services. IHSS income does NOT affect SSI. IHSS income does NOT affect Medi-Cal. Coordinates with RC respite hours.\n\n'
+      + 'Equity Note: County workers may undercount hours based on bias. Protective supervision denials disproportionately affect families of color. You have the right to an interpreter at your assessment.',
+      'W&I Code, CDSS IHSS Program', 'TRUE', now],
+
+    // ── Medi-Cal ──
+    ['ent-medcal', 'benefits', 'medi-cal-guide', 'Medi-Cal Guide for Disability Families',
+      'Medi-Cal is California\'s Medicaid program. It covers medical, dental, vision, mental health, therapy, durable medical equipment, and more. For children with disabilities, the EPSDT (Early and Periodic Screening, Diagnostic and Treatment) benefit is especially powerful.\n\n'
+      + 'Who Qualifies: 138% FPL for most categories. RC clients can qualify via institutional deeming waiver (child\'s income/assets only, not parents\'). SSI recipients auto-enrolled. Asset limit: $130K (restored 2025).\n\n'
+      + 'EPSDT — The Hidden Superpower: Under EPSDT, Medi-Cal MUST cover ALL medically necessary services for children under 21. This is broader than regular Medi-Cal. If a licensed provider documents medical necessity, Medi-Cal should cover it — including services not listed in the standard benefit (speech, OT, PT, ABA, specialized therapies, DME, behavioral health). If denied, appeal citing EPSDT requirements.\n\n'
+      + 'How to Apply: Apply through Covered California, county office, or Medi-Cal.ca.gov. 45 days to process. Retroactive coverage up to 3 months.\n\n'
+      + 'HCBS-DD Waiver: Available to RC clients. Home and Community-Based Services waiver provides additional supports. Bypasses parental income for RC clients.\n\n'
+      + 'Important: Annual renewal (redetermination) is required. Missing renewals causes coverage loss — set reminders. Prior authorization required for therapies and DME. Report income changes within 10 days.\n\n'
+      + 'Appeals: State Fair Hearing. Managed care plan grievance/appeal. Independent Medical Review via DMHC for HMO plans.',
+      'DHCS, EPSDT, W&I Code', 'TRUE', now],
+
+    // ── CCS ──
+    ['ent-ccs', 'benefits', 'ccs-guide', 'California Children\'s Services (CCS)',
+      'CCS is a state program funding diagnosis and treatment for children under 21 with qualifying medical conditions. Many families never hear about CCS even though their child qualifies.\n\n'
+      + 'Qualifying Conditions: Cerebral palsy, muscular dystrophy, cystic fibrosis, hemophilia, heart conditions, orthopedic conditions, chronic illness requiring ongoing treatment. NOT autism alone (unless with qualifying medical condition).\n\n'
+      + 'Services Covered: PT, OT, medical equipment, specialized clinics, surgical services, case management.\n\n'
+      + 'Income Rules: Under $40K/yr: full coverage. Over $40K: may still qualify for Medical Therapy Program (MTP) in schools. MTP has NO income limit — school-based services accessible regardless of income.\n\n'
+      + 'How to Apply: Referral from physician, hospital, or school. County CCS office reviews application. 30-60 days for eligibility.\n\n'
+      + 'Key Tip: Ask your pediatrician if your child\'s conditions are CCS-eligible. CCS is referral-dependent — many qualifying families miss it because nobody refers them.',
+      'CCS Program, DHCS', 'TRUE', now],
+
+    // ── SSI ──
+    ['ent-ssi', 'benefits', 'ssi-guide', 'SSI for Children with Disabilities — Complete Guide',
+      'SSI provides monthly cash benefits for children with disabilities in families with limited income. In California, SSI recipients are auto-enrolled in Medi-Cal. The 2025 max benefit is approximately $967/month.\n\n'
+      + 'Who Qualifies — Children: Must have a medically determinable physical or mental impairment causing marked and severe functional limitations, expected to last 12+ months. Parent income and resources are counted ("deeming") until age 18.\n\n'
+      + 'At Age 18 — Critical Change: SSI re-evaluates under adult criteria using ONLY the individual\'s income/assets (not parents\'). Many children who were denied as minors due to parental income become eligible at 18. Apply as soon as your child turns 18.\n\n'
+      + 'How to Apply: Apply at ssa.gov or local SSA office. DDS reviews medical evidence. Timeline: 3-6 months initial. Important: the initial denial rate is 60-70%. Do NOT give up after a denial — most approvals come on appeal.\n\n'
+      + 'Appeal Path: Reconsideration (2-4 months) → ALJ Hearing (12-18 months) → Appeals Council → Federal Court. Must file within 60 days of denial.\n\n'
+      + 'Resource Limits: $2,000 individual / $3,000 couple. CalABLE account: first $100K excluded from SSI resource limit. IHSS income is exempt.\n\n'
+      + 'Function Report Tips: The function report is the most important document. Describe your child\'s WORST days, not average days. Be specific about what they cannot do independently. Include safety concerns, behavioral challenges, and daily care needs. Get help from your child\'s therapists and doctors.',
+      'SSA, 42 USC §1381', 'TRUE', now],
+
+    // ── DOR ──
+    ['ent-dor', 'transitions', 'dor-guide', 'Dept. of Rehabilitation (DOR) — Vocational Services',
+      'DOR provides vocational rehabilitation, job training, college support, and paid internships for people with disabilities. It is a key transition resource for youth 16+.\n\n'
+      + 'Who Qualifies: Any disability that constitutes a barrier to employment. Broad eligibility: physical, cognitive, developmental, psychiatric, sensory. No income requirement.\n\n'
+      + 'Current Status (2025): DOR is under Order of Selection — there is a waitlist. Highest-need individuals are prioritized. While waiting, RC can fund Job Development services (available since Jan 2025).\n\n'
+      + 'How to Connect: School should invite DOR to transition IEP meetings (age 16+). Apply online or at local DOR office. 60 days for eligibility. Create an Individualized Plan for Employment (IPE).\n\n'
+      + 'Services Include: Vocational assessments, job training, Transition Partnership Program (TPP), college support, paid internships, assistive technology for work, job coaching.\n\n'
+      + 'Key Tip: Don\'t wait for DOR if there\'s a waitlist. Ask your RC service coordinator about RC-funded employment support as a bridge.',
+      'DOR, Rehab Act', 'TRUE', now],
+
+    // ── Local School District / IEP ──
+    ['ent-iep', 'iep', 'iep-complete-guide', 'IEP Complete Guide — School District Services',
+      'Your local school district is responsible for Free Appropriate Public Education (FAPE) under IDEA. This includes assessments, IEPs, and all related services.\n\n'
+      + 'Who Qualifies (13 IDEA Categories): Autism, Intellectual Disability, Speech/Language Impairment, Other Health Impairment (ADHD, epilepsy), Specific Learning Disability, Emotional Disturbance, Orthopedic Impairment, Visual/Hearing Impairment, Traumatic Brain Injury, Multiple Disabilities, Deaf-Blindness. Also 504 plans for less severe impacts.\n\n'
+      + 'Timeline from Start to Services: 1) Parent requests assessment in writing. 2) District has 15 calendar days to respond with assessment plan. 3) Parent signs consent. 4) District completes assessment within 60 calendar days. 5) IEP meeting within 30 days of assessment. 6) Annual IEP review. 7) Triennial reassessment every 3 years.\n\n'
+      + 'What to Bring to IEP Meetings: All private evaluations, prior IEPs, progress reports, parent concerns letter, list of requested services/goals, and someone for support (advocate, friend, family member). You can record the meeting with 24-hour notice.\n\n'
+      + 'Your Rights: Right to meaningful participation, right to request an IEP meeting at any time, right to disagree and request Independent Educational Evaluation (IEE) at public expense, right to Prior Written Notice (PWN) for any proposed change, right to interpreter at all meetings.\n\n'
+      + 'Appeal Options: Informal resolution → Free mediation via CDE → Compliance complaint (CDE, 60 days) → Due process hearing (OAH, 45 days) → Federal court.\n\n'
+      + 'NPS/NPA: If district cannot meet your child\'s needs, the IEP team may place them at a Nonpublic School or Agency at district expense. This is free to the family.\n\n'
+      + 'Equity: FAPE is free regardless of income or immigration status. You have the right to an interpreter. Hispanic/Latino students are 40% less likely to be identified with autism — if you suspect your child needs services, request an assessment in writing.\n\n'
+      + 'RC Coordination: If your family is an RC client, RC should be invited to IEP meetings. School obligations are independent of RC services — the school cannot refuse services because RC provides similar ones.',
+      'IDEA, Ed Code §56000-56865', 'TRUE', now],
+
+    // ── Early Start ──
+    ['ent-earlystart', 'transitions', 'early-start-guide', 'Early Start Program (Ages 0-3) — Complete Guide',
+      'Early Start is California\'s early intervention program for infants and toddlers. It uses an IFSP (Individualized Family Service Plan) instead of an IEP and has a lower qualification threshold.\n\n'
+      + 'Who Qualifies: Children 0-3 with: 25%+ delay in 1+ developmental areas, established risk condition (Down syndrome, etc.), or high biomedical risk. The threshold is lower than Lanterman Act eligibility.\n\n'
+      + 'How It Works: 1) Referral to Regional Center (anyone can refer, including parents). 2) RC evaluates within 45 days. 3) IFSP developed with family. 4) Services begin. No income requirement — services are free.\n\n'
+      + 'IFSP vs IEP: The IFSP is family-centered, reviewed every 6 months, and focuses on functional outcomes in natural environments. It includes family training and support services.\n\n'
+      + 'The Age 3 Transition: This is critical. At approximately 2 years 9 months, a transition conference is held to plan the move from Early Start to school district services (IEP). Some children continue RC services under the Lanterman Act. Make sure your RC starts the transition process on time — the school district needs to have an IEP in place by your child\'s 3rd birthday.\n\n'
+      + 'Key Tip: Do NOT wait for a diagnosis to refer to Early Start. A developmental concern is enough. Self-refer by calling your local Regional Center directly.',
+      'IDEA Part C, W&I Code §95000', 'TRUE', now],
+
+    // ── Private Insurance ──
+    ['ent-insurance', 'insurance', 'insurance-complete-guide', 'Private Insurance for Disability Services — Complete Guide',
+      'Private health insurance is the primary payer for medical, therapy, behavioral health, and DME. Understanding how to navigate insurance is critical because it is the first funding source before Medi-Cal or RC.\n\n'
+      + 'Key CA Laws: SB 946 requires coverage of ABA for autism. SB 805 (2023) expands the mandate to include other evidence-based treatments like DIR Floortime by 2026. CA Mental Health Parity requires behavioral health coverage equal to medical.\n\n'
+      + 'Prior Authorization: Most therapy services require prior auth. Allow 5-15 business days (72 hours for urgent). Re-authorization typically every 6 months for ABA. Keep copies of all authorizations.\n\n'
+      + 'When Denied — Your Appeal Path: 1) Internal appeal (2 levels). 2) External review: DMHC for HMOs, CDI for PPOs. 3) Independent Medical Review (IMR) — this is binding on the insurer and free to you. DMHC overturns approximately 60% of denials on IMR.\n\n'
+      + 'HMO vs PPO Matters: If you have an HMO (managed care), complaints go to DMHC. If you have a PPO (indemnity), complaints go to CDI (Department of Insurance). Check your plan type before filing.\n\n'
+      + 'Out-of-Network: If your provider is out-of-network, you may need to pay upfront and submit a superbill for reimbursement. Ask your provider about superbill submission.\n\n'
+      + 'Coordination of Benefits: Insurance is primary payer. Medi-Cal is secondary. RC is payer of last resort. If insurance denies, get the denial in writing — you need it for RC to step in.\n\n'
+      + 'Therapy Waitlists: ABA waitlists can be 1-6 months. Speech/OT waitlists are typically 2-8 weeks. If your insurance network has long waitlists, you may have a right to out-of-network coverage at in-network rates — file a complaint with DMHC about network adequacy.',
+      'SB 946, SB 805, CA Health & Safety Code', 'TRUE', now],
+
+    // ── CalABLE ──
+    ['ent-calable', 'benefits', 'calable-guide', 'CalABLE Account — Tax-Advantaged Savings',
+      'CalABLE is a tax-advantaged savings account for disability-related expenses. The most important feature: the first $100K in a CalABLE account is excluded from SSI resource limits.\n\n'
+      + 'Who Qualifies: Disability with onset before age 26. Must be SSI/SSDI recipient OR have written diagnosis from licensed physician. Any age can open an account.\n\n'
+      + 'How It Works: Enroll online at CalABLE.ca.gov. Choose investment options. Contribute up to $19K/year ($529K max). Use for qualified disability expenses: housing, education, health, transportation, assistive technology, employment support, and more.\n\n'
+      + 'SSI Interaction: Balance under $100K: no impact on SSI. Balance over $100K: SSI suspended (NOT Medi-Cal — Medi-Cal is protected regardless of balance). IHSS retroactive payments can be deposited.\n\n'
+      + 'vs. Special Needs Trust: CalABLE is simpler and cheaper to set up (free, online). SNT requires an attorney ($2,500-$7,000+). CalABLE has a contribution limit; SNT does not. Both protect assets from SSI/Medi-Cal resource limits. Many families use both.\n\n'
+      + 'Key Tip: Open a CalABLE account even if you can only contribute a small amount. It creates a protected savings vehicle that grows over time.',
+      'CalABLE Act, ABLE Act', 'TRUE', now],
+
+    // ── Special Needs Trust ──
+    ['ent-snt', 'benefits', 'snt-guide', 'Special Needs Trust (SNT) — Protecting Assets',
+      'A Special Needs Trust protects assets without losing public benefits like SSI and Medi-Cal. There are two types:\n\n'
+      + 'First-Party SNT: Funded with the beneficiary\'s own assets (inheritance, settlement, back-pay). Required Medicaid payback provision on death. Must be established by parent, grandparent, guardian, or court.\n\n'
+      + 'Third-Party SNT: Funded with other people\'s assets (parents, grandparents, family). No Medicaid payback. Can be established by anyone. Often set up in a parent\'s estate plan.\n\n'
+      + 'Cost: Attorney fees $2,500-$7,000+ for individual trust. Alternative: Pooled SNTs through nonprofits (e.g., PLAN of CA) are lower cost and don\'t require individual trust documents.\n\n'
+      + 'Trustee Responsibilities: Manage disbursements carefully — some payments (rent, food directly to beneficiary) can reduce SSI. Pay for disability-related expenses: medical costs not covered by insurance, therapy copays, technology, recreation, travel, personal care items.\n\n'
+      + 'When You Need One: If your child may receive an inheritance, personal injury settlement, or back-pay from SSI/SSDI. If you want to leave money to your disabled child without affecting their benefits. If your child is turning 18 and may receive assets.\n\n'
+      + 'Free Help: Some legal aid organizations provide free trust services. RC can sometimes fund SNT through IPP. Disability Rights CA can advise.',
+      '42 USC §1396p, OBRA 1993', 'TRUE', now],
+
+    // ── Conservatorship / SDM ──
+    ['ent-conserv', 'transitions', 'conservatorship-guide', 'Conservatorship vs. Supported Decision-Making',
+      'When your child turns 18, they become a legal adult. If they cannot manage their own affairs, you may need to establish legal authority. But conservatorship is NOT the only option — and it should be the last resort.\n\n'
+      + 'Supported Decision-Making (SDM): The least restrictive option. A formal agreement where your adult child chooses trusted people to help them make decisions. No court required. Free or low-cost. Your child retains all legal rights. Recognized in California since 2023.\n\n'
+      + 'Power of Attorney: Your child voluntarily grants you authority over specific areas (medical, financial). Requires that your child has capacity to understand what they are signing. Simpler than conservatorship.\n\n'
+      + 'Limited Conservatorship: For adults with developmental disabilities. Court grants authority over specific areas (7 possible powers). RC provides assessment. Filing fees ~$500-800, attorney $3,000-$10,000+. Process takes 3-6 months. Fee waivers available for low-income families.\n\n'
+      + 'Full Conservatorship: Most restrictive. For adults who cannot manage any of their affairs. Through Probate Court. Generally NOT appropriate for people with developmental disabilities.\n\n'
+      + 'Timeline: Start planning 6-12 months before your child\'s 18th birthday. Have the conversation with your RC service coordinator early.\n\n'
+      + 'Key Tip: Always start with the LEAST restrictive option. SDM first, then Power of Attorney, then Limited Conservatorship only if needed. Many families are told they "need" conservatorship when SDM would work fine.',
+      'Probate Code, AB 1663, W&I Code', 'TRUE', now],
+
+    // ── DRC ──
+    ['ent-drc', 'rights', 'drc-guide', 'Disability Rights California (DRC) — Free Legal Help',
+      'DRC is California\'s Protection & Advocacy organization. They provide FREE legal services for people with disabilities whose rights have been violated.\n\n'
+      + 'What DRC Does: Free legal representation for rights violations. Systemic advocacy and policy work. Publishes the SERR manual (Special Education Rights and Responsibilities). Investigates abuse/neglect in facilities.\n\n'
+      + 'When to Call DRC (1-800-776-5746): RC denies or reduces services and you need legal help for a fair hearing. School violates your child\'s IEP rights and you need help with due process. You face discrimination based on disability. Your child is being abused or neglected in a program. You need help understanding your rights under Lanterman Act, IDEA, or ADA.\n\n'
+      + 'DRC Prioritizes: Cases with systemic impact (affecting many families, not just yours). But they also provide direct representation in individual cases.\n\n'
+      + 'Other Free Legal Resources: Legal aid organizations in your county. Special education attorneys who work on contingency. Parent Training and Information Centers (PTIs). Community Parent Resource Centers.',
+      'Protection & Advocacy Act', 'TRUE', now],
+
+    // ── Autism Journey Map (condensed) ──
+    ['ent-autism-journey', 'navigation', 'autism-journey', 'Autism Journey Map — From Diagnosis to Services',
+      'If your child has been diagnosed with autism (or you suspect autism), here is the typical journey through California\'s service systems:\n\n'
+      + 'Phase 1 — Concern & Screening (0-6 months): Notice developmental concerns. Ask pediatrician for developmental screening (ASQ, M-CHAT). If concerns confirmed, request referrals.\n\n'
+      + 'Phase 2 — Diagnosis & Intake (1-6 months): Get formal diagnosis from developmental pediatrician or neuropsychologist. Contact your local Regional Center for intake (120-day timeline). If under 3, ask about Early Start (45-day IFSP). Contact school district for assessment if age 3+.\n\n'
+      + 'Phase 3 — Service Setup (2-4 months): Develop IPP with Regional Center. Get insurance authorization for ABA (SB 946 mandate). Develop IEP with school district. Apply for Medi-Cal if not already enrolled. Apply for IHSS.\n\n'
+      + 'Phase 4 — Ongoing Management: Annual IPP review (RC). Annual IEP review (school). Insurance re-authorization (every 6 months for ABA). Monitor progress and adjust services. Apply for SSI when eligible.\n\n'
+      + 'Phase 5 — Transitions: Age 3: Early Start to IEP transition. Age 14-16: Transition IEP planning begins. Age 18: SSI adult re-evaluation, conservatorship/SDM decision, adult RC services. Age 22: School services end.\n\n'
+      + 'Common Pitfalls: Waiting for diagnosis before contacting RC (don\'t wait — suspected delay is enough). Accepting verbal denials. Not knowing about IHSS parent-as-provider. Missing the 10-day Aid Paid Pending window. Not applying for SSI at 18 when deeming stops.',
+      'Lanterman Act, IDEA, SB 946', 'TRUE', now],
+
+    // ── Equity & Disparities ──
+    ['ent-equity', 'rights', 'equity-disparities', 'Equity Disparities in California Disability Services',
+      'Research consistently shows significant disparities in California\'s disability service systems. Knowing about these disparities helps you advocate more effectively.\n\n'
+      + 'Regional Center Disparities: White children receive approximately 2x more in Purchase of Service (POS) spending than Latino children at 17 of 21 RCs (Public Counsel 2022). South Central LA RC spent $1,991/child with ASD vs. $18,356 at Orange County RC. Families of color are less likely to be told about available services.\n\n'
+      + 'School Disparities: Hispanic/Latino students are 40% less likely to be identified with autism than White students. Black autistic students are less likely to be placed in general education settings. Low-income districts have fewer special ed staff and larger caseloads. Rural districts face 10K+ teacher vacancies concentrated in low-income areas.\n\n'
+      + 'What You Can Do: Request all available services in your IPP — don\'t accept only what\'s offered. Ask specifically about services you\'ve heard other families receive. Request all documents and communications in your preferred language (this is your right). File a 4731 complaint if RC is not providing equitable services.\n\n'
+      + 'Systemic Supports: DDS Service Access & Equity (SAE) grants fund disparity reduction. DDS publishes annual disparity data by RC. AB 1208 (2025) requires standardized quality measures across RCs. You have the right to appeal in your preferred language and request a bilingual service coordinator.',
+      'DDS SAE Data, Public Counsel 2022, AB 1208', 'TRUE', now],
+  ];
+
+  var count = 0;
+  entries.forEach(function(e) {
+    sheet.appendRow(e);
+    count++;
+  });
+
+  return { success: true, message: 'Added ' + count + ' Entity Navigation Matrix KB articles' };
+}
+
+// ═══════════════════════════════════════════════════════
 // SETUP — Run once to initialize everything
 // ═══════════════════════════════════════════════════════
 
