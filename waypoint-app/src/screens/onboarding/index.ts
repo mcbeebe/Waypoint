@@ -1,3 +1,2 @@
-// Onboarding screens — built in Issue #6
-// Welcome → AddChild → Diagnosis → StateAndRC → Insurance → Complete
-export {};
+// Onboarding flow — 6-step intake ported from GAS MVP
+export { default as OnboardingFlow } from './OnboardingFlow';

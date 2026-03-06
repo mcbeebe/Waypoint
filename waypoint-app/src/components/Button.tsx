@@ -17,7 +17,7 @@ interface ButtonProps {
   style?: ViewStyle;
 }
 
-export function Button({
+export default function Button({
   title,
   onPress,
   variant = 'primary',

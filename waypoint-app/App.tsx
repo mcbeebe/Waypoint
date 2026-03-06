@@ -1,17 +1,25 @@
-import React from 'react';
+/**
+ * Waypoint App — Root navigation
+ *
+ * Flow:
+ *   No session → WelcomeScreen (auth)
+ *   Session + !onboarding_completed → OnboardingFlow
+ *   Session + onboarding_completed → MainTabs
+ */
+
+import React, { useEffect, useState, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+
 import { useAuth } from './src/hooks/useAuth';
-import { WelcomeScreen } from './src/screens/auth/WelcomeScreen';
+import { supabase } from './src/lib/supabase';
+import WelcomeScreen from './src/screens/auth/WelcomeScreen';
+import OnboardingFlow from './src/screens/onboarding/OnboardingFlow';
+import MainTabs from './src/navigation/MainTabs';
 import { colors } from './src/lib/theme';
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-} from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,31 +31,73 @@ function LoadingScreen() {
   );
 }
 
-// Placeholder home — replaced once main tabs are built
-function HomeScreen() {
-  return (
-    <View style={styles.home}>
-      <Text style={styles.homeTitle}>Waypoint</Text>
-      <Text style={styles.homeSubtitle}>
-        Your child's unexpected journey.{'\n'}Every step, mapped.
-      </Text>
-    </View>
-  );
-}
-
 export default function App() {
-  const { session, loading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(false);
 
-  if (loading) return <LoadingScreen />;
+  // Check if user has completed onboarding
+  const checkOnboarding = useCallback(async () => {
+    if (!session?.user?.id) {
+      setOnboardingComplete(null);
+      return;
+    }
+
+    setCheckingOnboarding(true);
+    try {
+      const { data, error } = await supabase
+        .from('families')
+        .select('onboarding_completed')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Onboarding check error:', error.message);
+        setOnboardingComplete(false);
+        return;
+      }
+
+      setOnboardingComplete(data?.onboarding_completed ?? false);
+    } catch (err) {
+      console.error('Onboarding check failed:', err);
+      setOnboardingComplete(false);
+    } finally {
+      setCheckingOnboarding(false);
+    }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    checkOnboarding();
+  }, [checkOnboarding]);
+
+  const handleOnboardingComplete = useCallback(() => {
+    setOnboardingComplete(true);
+  }, []);
+
+  // Show loading while auth or onboarding status is being determined
+  if (authLoading || checkingOnboarding) {
+    return (
+      <SafeAreaProvider>
+        <LoadingScreen />
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <SafeAreaProvider>
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {session ? (
-            <Stack.Screen name="Home" component={HomeScreen} />
-          ) : (
+          {!session ? (
+            // Not authenticated → Welcome / Sign-In
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          ) : !onboardingComplete ? (
+            // Authenticated but hasn't completed onboarding
+            <Stack.Screen name="Onboarding">
+              {() => <OnboardingFlow onComplete={handleOnboardingComplete} />}
+            </Stack.Screen>
+          ) : (
+            // Authenticated + onboarded → Main app
+            <Stack.Screen name="Main" component={MainTabs} />
           )}
         </Stack.Navigator>
       </NavigationContainer>
@@ -62,24 +112,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.white,
-  },
-  home: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.white,
-    padding: 32,
-  },
-  homeTitle: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: colors.navy,
-    marginBottom: 8,
-  },
-  homeSubtitle: {
-    fontSize: 15,
-    color: colors.mid,
-    textAlign: 'center',
-    lineHeight: 22,
   },
 });
