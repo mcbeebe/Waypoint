@@ -7,7 +7,8 @@
 // ─── Configuration ───
 var AI_CONFIG = {
   MODEL: 'claude-opus-4-6',
-  MAX_TOKENS: 2000,
+  MODEL_CLASSIFY: 'claude-haiku-4-5-20251001',  // WP-033: Use Haiku for classification (60x cheaper)
+  MAX_TOKENS: 3000,  // WP-033: Increased from 2000 to prevent truncated JSON responses
   API_URL: 'https://api.anthropic.com/v1/messages',
   API_VERSION: '2023-06-01',
 };
@@ -357,7 +358,7 @@ function getActionStats() {
 // AI ENGINE — Claude API Integration
 // ═══════════════════════════════════════════════════════
 
-function callClaude_(systemPrompt, userMessage, chatHistory) {
+function callClaude_(systemPrompt, userMessage, chatHistory, modelOverride) {
   var apiKey = getApiKey_();
   if (!apiKey) {
     throw new Error('ANTHROPIC_API_KEY not set. Go to Project Settings → Script Properties and add it.');
@@ -380,7 +381,7 @@ function callClaude_(systemPrompt, userMessage, chatHistory) {
   messages.push({ role: 'user', content: userMessage });
 
   var payload = {
-    model: AI_CONFIG.MODEL,
+    model: modelOverride || AI_CONFIG.MODEL,
     max_tokens: AI_CONFIG.MAX_TOKENS,
     system: [
       { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }
@@ -393,14 +394,23 @@ function callClaude_(systemPrompt, userMessage, chatHistory) {
     contentType: 'application/json',
     headers: {
       'x-api-key': apiKey,
-      'anthropic-version': AI_CONFIG.API_VERSION
+      'anthropic-version': AI_CONFIG.API_VERSION,
+      'anthropic-beta': 'prompt-caching-2024-07-31'  // WP-033: Enable prompt caching for cost savings
     },
     payload: JSON.stringify(payload),
     muteHttpExceptions: true
   };
 
+  // WP-033: Retry once on 429 (rate limit) or 529 (overloaded) with backoff
   var resp = UrlFetchApp.fetch(AI_CONFIG.API_URL, options);
   var code = resp.getResponseCode();
+
+  if (code === 429 || code === 529) {
+    Logger.log('Claude API ' + code + ' — retrying after 3s backoff');
+    Utilities.sleep(3000);
+    resp = UrlFetchApp.fetch(AI_CONFIG.API_URL, options);
+    code = resp.getResponseCode();
+  }
 
   if (code !== 200) {
     var errBody = resp.getContentText();
@@ -482,7 +492,8 @@ function classifyQuestion_(question) {
     + 'Examples: "pre-authorized reimbursement paperwork question", "first-time RC inquiry", "formal service denial needing appeal", "routine IEP prep", "school refusing evaluation request"\n'
     + 'This helps calibrate the response tone and content.';
 
-  var result = callClaude_(systemPrompt, question);
+  // WP-033: Use Haiku for classification — same quality at ~1/60th cost
+  var result = callClaude_(systemPrompt, question, null, AI_CONFIG.MODEL_CLASSIFY);
   var parsed = extractJson_(result);
 
   // Validate classification has required fields, fallback if not
@@ -538,8 +549,12 @@ function getRelevantKnowledge_(question, category, userDiagnosis) {
 
   if (activeRows.length === 0) return '';
 
-  // Keyword relevance scoring
-  var words = question.toLowerCase().split(/\s+/).filter(function(w) { return w.length > 3; });
+  // WP-033: Keyword relevance scoring — include critical short domain terms
+  var DOMAIN_TERMS = ['iep','ipp','ssi','aba','aac','rc','504','dor','oah','iee','sdp','ihss','fape',
+    'idea','ada','ccs','snt','pti','bip','fba','pwn','nps','sdc','lre','esy','esw','med','cal','sdm'];
+  var words = question.toLowerCase().split(/\s+/).filter(function(w) {
+    return w.length > 3 || DOMAIN_TERMS.indexOf(w) >= 0;
+  });
 
   var scored = activeRows.map(function(row) {
     var content = (row[contentCol] || '').toString().toLowerCase();

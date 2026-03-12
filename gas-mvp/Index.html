@@ -33,7 +33,7 @@ a{color:#2563EB;text-decoration:none}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ═══ LANDING PAGE ═══ */
-.landing{text-align:center;padding:60px 20px 40px;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.landing{text-align:center;padding:60px 20px 40px;min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative}
 .landing-logo{font-size:48px;font-weight:800;color:var(--navy);margin-bottom:8px;letter-spacing:-1px}
 .landing-tagline{font-size:16px;color:var(--muted);margin-bottom:40px;line-height:1.6}
 .landing-features{text-align:left;margin:0 auto 40px;max-width:340px}
@@ -363,14 +363,17 @@ a{color:#2563EB;text-decoration:none}
 .mt-12{margin-top:12px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
 .text-center{text-align:center}
 .pb-100{padding-bottom:100px}
+@keyframes pulseHere{0%,100%{box-shadow:0 2px 8px rgba(8,145,178,0.25)}50%{box-shadow:0 2px 16px rgba(8,145,178,0.5)}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="container" role="application" aria-label="Waypoint — Disability Services Navigator">
 
 <!-- ═══════════ SCREEN: LANDING ═══════════ -->
-<div id="screen-landing" class="screen active">
+<div id="screen-landing" class="screen active" role="main" aria-label="Welcome to Waypoint">
   <div class="landing">
+    <button id="lang-toggle" onclick="toggleLang()" aria-label="Switch to Spanish" style="position:absolute;top:16px;right:16px;background:var(--accent-light);color:var(--accent);border:none;padding:6px 12px;border-radius:16px;font-size:13px;font-weight:700;cursor:pointer;z-index:10">ES 🇲🇽</button>
     <div class="landing-logo">Waypoint</div>
     <div class="landing-tagline">Your child's unexpected journey.<br>Every step, mapped.</div>
     <div class="landing-features">
@@ -391,21 +394,31 @@ a{color:#2563EB;text-decoration:none}
         <div><h3>Know Your Rights</h3><p>Every recommendation cites the specific law — Lanterman Act, IDEA, SB 946, and more</p></div>
       </div>
     </div>
-    <button class="btn-primary" onclick="showScreen('screen-onboard')">Get Started — It's Free</button>
-    <div class="landing-note">No account required. Your information stays on your device.<br>Built by a special needs parent in Oakland, CA.</div>
+    <button class="btn-primary" onclick="showScreen('screen-onboard')" aria-label="Get started with Waypoint for free">Get Started — It's Free</button>
+    <div class="landing-note">No account required. Your data is stored securely in Google's infrastructure — never sold or shared.<br>Built by a special needs parent in Oakland, CA.</div>
   </div>
 </div>
 
 <!-- ═══════════ SCREEN: ONBOARDING ═══════════ -->
-<div id="screen-onboard" class="screen">
+<div id="screen-onboard" class="screen" role="form" aria-label="Onboarding questionnaire">
   <div style="padding:20px 0">
     <div class="onboard-progress" id="onboard-progress"></div>
     <div id="onboard-content"></div>
   </div>
 </div>
 
+<!-- ═══════════ SCREEN: JOURNEY MAP ═══════════ -->
+<div id="screen-journey" class="screen" role="region" aria-label="Journey Map">
+  <div style="padding:0 0 100px">
+    <div id="journey-header" style="background:linear-gradient(165deg,#1B2A4A 0%,#0C3654 100%);padding:28px 20px 24px;border-radius:0 0 20px 20px;margin-bottom:20px"></div>
+    <div id="journey-intro" style="padding:0 16px;margin-bottom:16px"></div>
+    <div id="journey-timeline" style="padding:0 16px"></div>
+    <div id="journey-cta" style="padding:20px 16px 0"></div>
+  </div>
+</div>
+
 <!-- ═══════════ SCREEN: HOME ═══════════ -->
-<div id="screen-home" class="screen">
+<div id="screen-home" class="screen" role="main" aria-label="Dashboard">
   <div class="pb-100">
     <div class="home-header">
       <div class="home-header-row">
@@ -419,6 +432,7 @@ a{color:#2563EB;text-decoration:none}
         </div>
       </div>
     </div>
+    <div id="home-empathy"></div>
     <div id="home-progress"></div>
     <div id="home-deadlines"></div>
     <div id="home-next-up"></div>
@@ -426,11 +440,12 @@ a{color:#2563EB;text-decoration:none}
     <div id="home-quick-actions"></div>
     <div id="home-completed"></div>
     <div id="home-rc-card"></div>
+    <div id="home-journey-link"></div>
   </div>
 </div>
 
 <!-- ═══════════ SCREEN: DASHBOARD (Full Action Plan) ═══════════ -->
-<div id="screen-dashboard" class="screen">
+<div id="screen-dashboard" class="screen" role="main" aria-label="Action Plan">
   <div class="pb-100">
     <div class="dash-header">
       <div>
@@ -446,14 +461,14 @@ a{color:#2563EB;text-decoration:none}
 </div>
 
 <!-- ═══════════ SCREEN: PROFILE ═══════════ -->
-<div id="screen-profile" class="screen">
+<div id="screen-profile" class="screen" role="main" aria-label="User Profile">
   <div class="pb-100">
     <div id="profile-content"></div>
   </div>
 </div>
 
 <!-- ═══════════ SCREEN: AGENCIES ═══════════ -->
-<div id="screen-agencies" class="screen">
+<div id="screen-agencies" class="screen" role="main" aria-label="Agency Directory">
   <div class="pb-100">
     <div style="padding:20px 0 12px"><h2 style="font-size:22px;font-weight:800;color:var(--navy)">Agency Directory</h2><p style="font-size:14px;color:var(--muted)">Every agency your family may interact with</p></div>
     <div id="agency-list"></div>
@@ -461,7 +476,7 @@ a{color:#2563EB;text-decoration:none}
 </div>
 
 <!-- ═══════════ SCREEN: EMAIL ANALYZER ═══════════ -->
-<div id="screen-email" class="screen">
+<div id="screen-email" class="screen" role="main" aria-label="Email Analyzer">
   <div class="pb-100">
     <div style="padding:20px 0 12px"><h2 style="font-size:22px;font-weight:800;color:var(--navy)">Email Analyzer</h2><p style="font-size:14px;color:var(--muted)">Paste an email from RC, school, or insurance. We'll find red flags, broken promises, and applicable laws.</p></div>
     <textarea id="email-input" class="email-input" placeholder="Paste your email thread here..."></textarea>
@@ -471,7 +486,7 @@ a{color:#2563EB;text-decoration:none}
 </div>
 
 <!-- ═══════════ SCREEN: RC REIMBURSABLES ═══════════ -->
-<div id="screen-reimburse" class="screen">
+<div id="screen-reimburse" class="screen" role="main" aria-label="RC Reimbursable Services">
   <div class="pb-100">
     <div style="padding:20px 0 12px"><h2 style="font-size:22px;font-weight:800;color:var(--navy)">What RC Reimburses</h2><p style="font-size:14px;color:var(--muted)">Services your Regional Center can fund or reimburse</p></div>
     <div id="reimburse-list" class="reimburse-grid"></div>
@@ -479,7 +494,7 @@ a{color:#2563EB;text-decoration:none}
 </div>
 
 <!-- ═══════════ AI NAVIGATOR CHAT ═══════════ -->
-<div id="screen-chat" class="screen">
+<div id="screen-chat" class="screen" role="main" aria-label="AI Navigator Chat">
   <div class="chat-container">
     <div class="chat-header">
       <h2>AI Navigator</h2>
@@ -503,8 +518,8 @@ a{color:#2563EB;text-decoration:none}
       </div>
     </div>
     <div class="chat-input-area">
-      <textarea class="chat-input" id="chat-input" placeholder="Ask about RC, IEP, insurance, benefits..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
-      <button class="chat-send" id="chat-send-btn" onclick="chatSend()">➤</button>
+      <textarea class="chat-input" id="chat-input" placeholder="Ask about RC, IEP, insurance, benefits..." rows="1" aria-label="Type your question about disability services" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+      <button class="chat-send" id="chat-send-btn" onclick="chatSend()" aria-label="Send message">➤</button>
     </div>
   </div>
 </div>
@@ -598,12 +613,12 @@ a{color:#2563EB;text-decoration:none}
 <div id="toast" class="toast"></div>
 
 <!-- ═══════════ BOTTOM NAV ═══════════ -->
-<div class="nav-tabs" id="nav-tabs" style="display:none">
-  <button class="nav-tab active" onclick="navTo('screen-home')"><span class="icon">🏠</span>Home</button>
-  <button class="nav-tab" onclick="navTo('screen-chat')"><span class="icon">🧭</span>Ask AI</button>
-  <button class="nav-tab" onclick="navTo('screen-dashboard')"><span class="icon">📋</span>Actions</button>
-  <button class="nav-tab" onclick="navTo('screen-agencies')"><span class="icon">🏛️</span>Agencies</button>
-  <button class="nav-tab" onclick="navTo('screen-reimburse')"><span class="icon">💰</span>RC $</button>
+<div class="nav-tabs" id="nav-tabs" style="display:none" role="navigation" aria-label="Main navigation">
+  <button class="nav-tab active" onclick="navTo('screen-home')" aria-label="Home" aria-current="page"><span class="icon" aria-hidden="true">🏠</span>Home</button>
+  <button class="nav-tab" onclick="navTo('screen-chat')" aria-label="Ask AI Navigator"><span class="icon" aria-hidden="true">🧭</span>Ask AI</button>
+  <button class="nav-tab" onclick="navTo('screen-dashboard')" aria-label="Action Plan"><span class="icon" aria-hidden="true">📋</span>Actions</button>
+  <button class="nav-tab" onclick="navTo('screen-agencies')" aria-label="Agency Directory"><span class="icon" aria-hidden="true">🏛️</span>Agencies</button>
+  <button class="nav-tab" onclick="navTo('screen-reimburse')" aria-label="RC Reimbursable Services"><span class="icon" aria-hidden="true">💰</span>RC $</button>
 </div>
 
 </div><!-- /container -->
@@ -634,7 +649,78 @@ var state = {
   startedActions: {},
   savedActions: [],
   dashView: 'cards',
+  lang: 'en',
 };
+
+// ═══ INTERNATIONALIZATION (i18n) ═══
+var STRINGS = {
+  en: {
+    'brand': 'Waypoint',
+    'tagline': 'Your child\'s unexpected journey.<br>Every step, mapped.',
+    'ai_navigator': 'AI-Powered Navigator',
+    'ai_nav_desc': 'Answers your questions with specific, actionable guidance backed by California disability law',
+    'personalized_plan': 'Personalized Action Plan',
+    'plan_desc': 'Tells you exactly what to do, who to call, what to say, and what to bring — step by step',
+    'draft_letters': 'Draft Letters & Emails',
+    'letters_desc': 'Pre-written appeal letters, IEP requests, and RC emails — just review and send',
+    'know_rights': 'Know Your Rights',
+    'rights_desc': 'Every recommendation cites the specific law — Lanterman Act, IDEA, SB 946, and more',
+    'get_started': 'Get Started — It\'s Free',
+    'no_account': 'No account required. Your data is stored securely in Google\'s infrastructure — never sold or shared.',
+    'lets_get_started': 'Let\'s get started',
+    'your_name': 'Your first name',
+    'your_name_placeholder': 'e.g. Sarah',
+    'your_email': 'Email (optional)',
+    'email_placeholder': 'your@email.com',
+    'child_name': 'Your child\'s first name',
+    'child_name_placeholder': 'e.g. Maya',
+    'zip_code': 'ZIP code (for your Regional Center)',
+    'zip_placeholder': 'e.g. 94610',
+    'what_diagnosis': 'What diagnosis has your child received?',
+    'continue': 'Continue',
+    'home': 'Home',
+    'actions': 'Actions',
+    'chat': 'Chat',
+    'agencies': 'Agencies',
+    'rc_dollar': 'RC $',
+    'pos_tip': 'POS Tip: You have the right to request your child\'s Purchase of Service (POS) data from your Regional Center. Research shows significant spending disparities by race/ethnicity. Know what services are available and specifically request them in your IPP.',
+  },
+  es: {
+    'brand': 'Waypoint',
+    'tagline': 'El viaje inesperado de tu hijo.<br>Cada paso, mapeado.',
+    'ai_navigator': 'Navegador con IA',
+    'ai_nav_desc': 'Responde tus preguntas con orientación específica y práctica respaldada por la ley de discapacidades de California',
+    'personalized_plan': 'Plan de acción personalizado',
+    'plan_desc': 'Te dice exactamente qué hacer, a quién llamar, qué decir y qué traer — paso a paso',
+    'draft_letters': 'Borradores de cartas y correos',
+    'letters_desc': 'Cartas de apelación preescritas, solicitudes de IEP y correos del Centro Regional — solo revisa y envía',
+    'know_rights': 'Conoce tus derechos',
+    'rights_desc': 'Cada recomendación cita la ley específica — Ley Lanterman, IDEA, SB 946 y más',
+    'get_started': 'Comienza — Es gratis',
+    'no_account': 'No se necesita cuenta. Tus datos se almacenan de forma segura en la infraestructura de Google — nunca se venden ni comparten.',
+    'lets_get_started': 'Empecemos',
+    'your_name': 'Tu nombre',
+    'your_name_placeholder': 'ej. Sarah',
+    'your_email': 'Correo electrónico (opcional)',
+    'email_placeholder': 'tu@email.com',
+    'child_name': 'Nombre de tu hijo/a',
+    'child_name_placeholder': 'ej. Maya',
+    'zip_code': 'Código postal (para tu Centro Regional)',
+    'zip_placeholder': 'ej. 94610',
+    'what_diagnosis': '¿Qué diagnóstico ha recibido tu hijo/a?',
+    'continue': 'Continuar',
+    'home': 'Inicio',
+    'actions': 'Acciones',
+    'chat': 'Chat',
+    'agencies': 'Agencias',
+    'rc_dollar': 'RC $',
+    'pos_tip': 'Consejo POS: Tienes derecho a solicitar los datos de Compra de Servicio (POS) de tu hijo/a del Centro Regional. Las investigaciones muestran disparidades significativas en gastos por raza/origen étnico. Conoce qué servicios están disponibles y solicítalos específicamente en tu IPP.',
+  }
+};
+
+function t(key) {
+  return STRINGS[state.lang][key] || STRINGS['en'][key] || key;
+}
 
 // ═══ RC DATABASE ═══
 var RC_DATABASE = {
@@ -682,9 +768,50 @@ var ZIP_TO_RC = {
 
 function lookupRC(zip) {
   if (!zip || zip.length < 3) return null;
+  // Try full 5-digit match first for boundary ZIP codes
+  var ZIP_5_OVERRIDES = {
+    "93252":"KRC","93225":"KRC","93240":"KRC","93205":"KRC", // Kern ZIPs that fall in 932/933
+    "95361":"VMRC","95363":"VMRC", // San Joaquin/Stanislaus border
+    "95020":"SARC","95023":"SARC","95024":"SARC", // San Benito county
+    "93901":"SARC","93905":"SARC","93906":"SARC","93907":"SARC","93908":"SARC", // Monterey county
+  };
+  if (zip.length >= 5 && ZIP_5_OVERRIDES[zip.slice(0,5)]) {
+    var code = ZIP_5_OVERRIDES[zip.slice(0,5)];
+    if (RC_DATABASE[code]) return Object.assign({code:code}, RC_DATABASE[code]);
+  }
   var code = ZIP_TO_RC[zip.slice(0,3)];
   if (code && RC_DATABASE[code]) return Object.assign({code:code}, RC_DATABASE[code]);
   return null;
+}
+
+function showCountyPicker() {
+  // Build county→RC mapping from RC_DATABASE
+  var counties = [];
+  Object.keys(RC_DATABASE).forEach(function(code) {
+    RC_DATABASE[code].counties.forEach(function(county) {
+      counties.push({county: county, code: code, rcName: RC_DATABASE[code].name});
+    });
+  });
+  counties.sort(function(a,b){ return a.county.localeCompare(b.county); });
+
+  var html = '<div class="onboard-q">Select your county</div>';
+  html += '<div class="onboard-sub">We\'ll match you to the right Regional Center.</div>';
+  html += '<div class="onboard-options" style="max-height:400px;overflow-y:auto">';
+  counties.forEach(function(c) {
+    html += '<button class="opt-btn" onclick="selectCountyRC(\''+c.code+'\')"><span class="emoji">📍</span>'+c.county+' County<span style="font-size:11px;color:var(--muted);margin-left:auto">'+c.rcName+'</span></button>';
+  });
+  html += '</div>';
+  html += '<button class="btn-back" onclick="renderOnboardStep()">← Back</button>';
+  document.getElementById('onboard-content').innerHTML = html;
+}
+
+function selectCountyRC(rcCode) {
+  var rc = RC_DATABASE[rcCode];
+  if (rc) {
+    state.userInfo.regionalCenter = Object.assign({code: rcCode}, rc);
+    state.userInfo.zipCode = 'county-' + rcCode;
+  }
+  renderOnboardStep();
 }
 
 // ═══ AGENCIES ═══
@@ -822,29 +949,110 @@ var FRUSTRATION_DEEP = {
   ]},
 };
 
+// ═══ AGE CALCULATION FROM BIRTHDAY ═══
+function calcChildAge(birthdayStr) {
+  if (!birthdayStr) return {years:0,months:0,display:'',band:'',emoji:'',ageBand:''};
+  var bd = new Date(birthdayStr + 'T00:00:00');
+  var now = new Date();
+  var years = now.getFullYear() - bd.getFullYear();
+  var months = now.getMonth() - bd.getMonth();
+  if (now.getDate() < bd.getDate()) months--;
+  if (months < 0) { years--; months += 12; }
+  var totalMonths = years * 12 + months;
+
+  // Display
+  var display = '';
+  if (years === 0) { display = months + (months === 1 ? ' month old' : ' months old'); }
+  else if (years < 3) { display = years + (years === 1 ? ' year' : ' years') + (months > 0 ? ', ' + months + ' mo' : '') + ' old'; }
+  else { display = years + ' years old'; }
+
+  // Age band for programs/timelines
+  var band = '';
+  var ageBand = '';
+  var emoji = '';
+  if (totalMonths < 36) { band = 'Early Intervention (0–3)'; ageBand = '0-2'; emoji = '👶'; }
+  else if (years < 6) { band = 'Preschool / Early Childhood (3–5)'; ageBand = '3-5'; emoji = '🎨'; }
+  else if (years < 12) { band = 'Elementary School (6–11)'; ageBand = '6-12'; emoji = '🏫'; }
+  else if (years < 14) { band = 'Middle School (12–13)'; ageBand = '6-12'; emoji = '🏫'; }
+  else if (years < 18) { band = 'High School / Transition Planning (14–17)'; ageBand = '13-17'; emoji = '🎓'; }
+  else if (years < 22) { band = 'Transition Age / Young Adult (18–22)'; ageBand = '18-22'; emoji = '🧑'; }
+  else { band = 'Adult Services (22+)'; ageBand = '22+'; emoji = '🧑'; }
+
+  return { years: years, months: months, totalMonths: totalMonths, display: display, band: band, ageBand: ageBand, emoji: emoji };
+}
+
+function onBirthdayChange(val) {
+  state.intake.birthday = val;
+  // Also compute and store the age band for backward compatibility
+  if (val) {
+    var ageInfo = calcChildAge(val);
+    state.intake.age = ageInfo.ageBand;
+    state.intake.childAgeYears = ageInfo.years;
+    state.intake.childAgeMonths = ageInfo.months;
+    state.intake.childAgeBand = ageInfo.band;
+    state.intake.childAgeDisplay = ageInfo.display;
+  }
+  renderOnboardStep();
+}
+
+// Returns the journey phase index that matches the child's age
+function getJourneyPhaseForAge(journey) {
+  if (!state.intake.birthday) return 0;
+  var ageInfo = calcChildAge(state.intake.birthday);
+  var years = ageInfo.years;
+  var months = ageInfo.totalMonths;
+
+  // Parse the phase age ranges and find best match
+  for (var i = 0; i < journey.phases.length; i++) {
+    var phaseAge = journey.phases[i].age; // e.g. "0–3", "3–5", "14+", "18+"
+    var match = phaseAge.match(/(\d+)[\s]*[–\-][\s]*(\d+)/);
+    if (match) {
+      var lo = parseInt(match[1]);
+      var hi = parseInt(match[2]);
+      if (years >= lo && years < hi) return i;
+      // Handle edge: if child is exactly hi years, check next phase
+      if (years === hi && i < journey.phases.length - 1) continue;
+    }
+    // Handle "14+" or "18+" format
+    var plusMatch = phaseAge.match(/(\d+)\+/);
+    if (plusMatch) {
+      var threshold = parseInt(plusMatch[1]);
+      if (years >= threshold) return i;
+    }
+  }
+  // Default: last phase if older than all ranges, first if younger
+  return 0;
+}
+
 // ═══ INTAKE QUESTIONS ═══
 var ONBOARD_STEPS = [
   {type:'info', fields:[
     {key:'parentName',label:'Your first name',placeholder:'e.g. Sarah'},
-    {key:'email',label:'Email (optional)',placeholder:'your@email.com'},
     {key:'childName',label:"Your child's first name",placeholder:'e.g. Maya'},
     {key:'zipCode',label:'ZIP code (for your Regional Center)',placeholder:'e.g. 94610'},
+    {key:'email',label:'Email (optional)',placeholder:'your@email.com'},
   ]},
   {type:'select',key:'diagnosis',question:"What diagnosis has your child received?",sub:"This helps us find the right programs and services.",options:[
     {label:"Autism (ASD)",value:"autism",emoji:"🧩"},
     {label:"Developmental delay",value:"delay",emoji:"📊"},
     {label:"Intellectual disability",value:"id",emoji:"🧠"},
-    {label:"Learning disability (dyslexia, etc.)",value:"sld",emoji:"📖"},
-    {label:"ADHD",value:"adhd",emoji:"⚡"},
+    {label:"Down syndrome",value:"down",emoji:"💛"},
     {label:"Cerebral palsy",value:"cp",emoji:"♿"},
+    {label:"Epilepsy",value:"epilepsy",emoji:"⚡"},
+    {label:"ADHD",value:"adhd",emoji:"🔵"},
+    {label:"Speech / language impairment",value:"sli",emoji:"🗣️"},
+    {label:"Specific learning disability (dyslexia, etc.)",value:"sld",emoji:"📖"},
+    {label:"Dyslexia / dyscalculia",value:"dyslexia",emoji:"🔤"},
+    {label:"Muscular dystrophy",value:"md",emoji:"💪"},
+    {label:"Traumatic brain injury",value:"tbi",emoji:"🧠"},
+    {label:"Deaf / hard of hearing",value:"deaf",emoji:"🦻"},
+    {label:"Blind / visually impaired",value:"blind",emoji:"👁️"},
+    {label:"Multiple disabilities",value:"multiple",emoji:"🔗"},
+    {label:"Emotional disturbance",value:"ed",emoji:"💙"},
+    {label:"Other health impairment",value:"ohi",emoji:"🏥"},
     {label:"Suspected — not yet diagnosed",value:"suspected",emoji:"❓"},
   ]},
-  {type:'select',key:'age',question:"How old is your child?",sub:"Age determines which programs and timelines apply.",options:[
-    {label:"Under 3",value:"0-2",emoji:"👶"},
-    {label:"3–5 (preschool)",value:"3-5",emoji:"🎨"},
-    {label:"6–12 (school age)",value:"6-12",emoji:"🏫"},
-    {label:"13–17 (transition age)",value:"13-17",emoji:"🎓"},
-  ]},
+  {type:'birthday',key:'birthday',question:"When is your child's birthday?",sub:"We use this to calculate exactly which programs, timelines, and deadlines apply right now."},
   {type:'select',key:'rc_status',question:"Are you connected with a Regional Center?",sub:"Regional Center is the main gateway to disability services in CA.",options:[
     {label:"Don't know what it is",value:"unknown",emoji:"❓"},
     {label:"Know about it, haven't applied",value:"known",emoji:"💡"},
@@ -872,6 +1080,7 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
   state.screen = id;
   if (id === 'screen-onboard') renderOnboardStep();
+  if (id === 'screen-journey') { document.getElementById('nav-tabs').style.display = 'none'; renderJourneyScreen(); }
   if (id === 'screen-home') { document.getElementById('nav-tabs').style.display = 'flex'; renderHome(); }
   if (id === 'screen-dashboard') { document.getElementById('nav-tabs').style.display = 'flex'; renderDashboard(); }
   if (id === 'screen-chat') { document.getElementById('nav-tabs').style.display = 'flex'; scrollChatToBottom(); }
@@ -883,6 +1092,10 @@ function showScreen(id) {
   document.querySelectorAll('.nav-tab').forEach(function(t){t.classList.remove('active')});
   var tab = document.querySelector('.nav-tab[onclick*="'+id+'"]');
   if (tab) tab.classList.add('active');
+  // Update aria-current on nav tabs
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.removeAttribute('aria-current'); });
+  var activeTab = document.querySelector('.nav-tab[onclick*="'+id+'"]');
+  if (activeTab) activeTab.setAttribute('aria-current', 'page');
   window.scrollTo(0,0);
 }
 
@@ -912,6 +1125,7 @@ function renderOnboardStep() {
       html += '<label class="input-label">'+f.label+'</label>';
       html += '<input class="input-field" type="'+(f.key==='email'?'email':'text')+'" placeholder="'+f.placeholder+'" value="'+val+'" onchange="state.userInfo[\''+f.key+'\']=this.value" />';
     });
+    html += '<div style="text-align:right;margin-top:-8px;margin-bottom:8px"><a href="javascript:void(0)" onclick="showCountyPicker()" style="font-size:12px;color:var(--accent)">Don\'t know your ZIP? Find by county →</a></div>';
     html += '<button class="btn-primary mt-12" onclick="onboardNext()">Continue</button>';
   } else if (step.type === 'select') {
     var isMulti = step.key === 'diagnosis';
@@ -933,6 +1147,25 @@ function renderOnboardStep() {
       var hasSelection = (state.intake[step.key] || []).length > 0;
       html += '<button class="btn-primary mt-12" onclick="onboardNext()"'+(hasSelection?'':' disabled style="opacity:.5;cursor:not-allowed"')+'>Continue</button>';
     }
+    if (state.onboardStep > 0) html += '<button class="btn-back" onclick="onboardBack()">← Back</button>';
+  } else if (step.type === 'birthday') {
+    var bdVal = state.intake.birthday || '';
+    html += '<div class="onboard-q">'+step.question+'</div>';
+    html += '<div class="onboard-sub">'+step.sub+'</div>';
+    html += '<div style="max-width:340px;margin:20px auto 0">';
+    html += '<label class="input-label" style="color:#64748B;font-size:13px;margin-bottom:6px;display:block">Date of birth</label>';
+    html += '<input id="birthday-input" class="input-field" type="date" value="'+bdVal+'" max="'+new Date().toISOString().split("T")[0]+'" style="font-size:17px;padding:14px 16px;border-radius:12px;text-align:center;letter-spacing:1px" onchange="onBirthdayChange(this.value)" />';
+    // Show computed age if birthday is set
+    if (bdVal) {
+      var ageInfo = calcChildAge(bdVal);
+      html += '<div style="text-align:center;margin-top:16px;padding:16px;background:linear-gradient(135deg,#F0FDFA,#ECFDF5);border-radius:14px;border:1px solid #10B98130">';
+      html += '<div style="font-size:32px;margin-bottom:4px">'+ageInfo.emoji+'</div>';
+      html += '<div style="font-size:20px;font-weight:800;color:#1B2A4A">'+ageInfo.display+'</div>';
+      html += '<div style="font-size:12px;color:#64748B;margin-top:4px">'+ageInfo.band+'</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    html += '<button class="btn-primary mt-12" onclick="onboardNext()"'+(bdVal?'':' disabled style="opacity:.5;cursor:not-allowed"')+'>Continue</button>';
     if (state.onboardStep > 0) html += '<button class="btn-back" onclick="onboardBack()">← Back</button>';
   }
   document.getElementById('onboard-content').innerHTML = html;
@@ -992,15 +1225,15 @@ function finishOnboarding() {
       .withSuccessHandler(function(result) {
         if (result && result.userId) state.userId = result.userId;
         // Persist to localStorage
-        try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, dashView:state.dashView, userId:state.userId})); } catch(e){}
+        try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, dashView:state.dashView, userId:state.userId, lang:state.lang})); } catch(e){}
       })
-      .withFailureHandler(function(err) { console.log('Save failed:', err); })
+      .withFailureHandler(function(err) { console.error('Onboarding save failed:', err); toast('⚠️ Could not save to server — your data is saved locally.'); })
       .saveUser(userData);
   } catch(e) {}
   // Generate plan
   state.actions = generateRichPlan(state.intake);
-  showScreen('screen-home');
-  document.getElementById('nav-tabs').style.display = 'flex';
+  // Show journey map before going to home
+  showScreen('screen-journey');
 }
 
 // Restore session from localStorage on load
@@ -1017,6 +1250,7 @@ function restoreSession() {
       state.savedActions = data.savedActions || [];
       state.dashView = data.dashView || 'cards';
       state.userId = data.userId || null;
+      state.lang = data.lang || 'en';  // WP-033: Restore language preference
       // Backwards compat: convert single diagnosis string to array
       if (state.intake.diagnosis && typeof state.intake.diagnosis === 'string') {
         state.intake.diagnosis = [state.intake.diagnosis];
@@ -1025,6 +1259,15 @@ function restoreSession() {
       if (state.userInfo.zipCode) {
         var rc = lookupRC(state.userInfo.zipCode);
         if (rc) state.userInfo.regionalCenter = rc;
+      }
+      // Recalculate age from birthday (child may have had a birthday since last session)
+      if (state.intake.birthday) {
+        var freshAge = calcChildAge(state.intake.birthday);
+        state.intake.age = freshAge.ageBand;
+        state.intake.childAgeYears = freshAge.years;
+        state.intake.childAgeMonths = freshAge.months;
+        state.intake.childAgeBand = freshAge.band;
+        state.intake.childAgeDisplay = freshAge.display;
       }
       // If we have intake data, go straight to Home
       if (state.intake.diagnosis && state.intake.diagnosis.length) {
@@ -1039,24 +1282,32 @@ function restoreSession() {
 }
 
 function saveState() {
-  try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, dashView:state.dashView, userId:state.userId})); } catch(e){}
+  // WP-033: Added lang to persisted state so language preference survives page reload
+  try { localStorage.setItem('waypoint_state', JSON.stringify({userInfo:state.userInfo, intake:state.intake, completedActions:state.completedActions, dismissedActions:state.dismissedActions, startedActions:state.startedActions, savedActions:state.savedActions, dashView:state.dashView, userId:state.userId, lang:state.lang})); } catch(e){}
 }
 
 // ═══ PLAN GENERATOR (V5.1) ═══
 function generateRichPlan(intake) {
   var diagnosisArr=Array.isArray(intake.diagnosis)?intake.diagnosis:(intake.diagnosis?[intake.diagnosis]:[]);
   var diagnosis=diagnosisArr[0]||''; // primary diagnosis for legacy compat
+  // Use precise age from birthday if available, otherwise fall back to age band
   var age=intake.age, rc_status=intake.rc_status, iep_status=intake.iep_status, insurance=intake.insurance;
+  var preciseAge = intake.birthday ? calcChildAge(intake.birthday) : null;
+  // Refine age band from birthday for more accurate recommendations
+  if (preciseAge && !age) { age = preciseAge.ageBand; intake.age = age; }
   var actions=[], p=0;
   function u(){return{priority:"urgent",order:p++}} function h(){return{priority:"high",order:p++}} function s(){return{priority:"standard",order:p++}}
   function hasDx(v){return diagnosisArr.indexOf(v)>-1}
-  var rcE=hasDx("autism")||hasDx("delay")||hasDx("id")||hasDx("cp")||hasDx("suspected");
+  // RC eligibility: YES for 5 Lanterman qualifying conditions + related dx; CONDITIONAL for others
+  var rcYes=hasDx("autism")||hasDx("delay")||hasDx("id")||hasDx("cp")||hasDx("epilepsy")||hasDx("down")||hasDx("md")||hasDx("tbi")||hasDx("multiple")||hasDx("suspected");
+  var rcConditional=hasDx("deaf")||hasDx("blind")||hasDx("ed")||hasDx("ohi")||hasDx("sli");
+  var rcE=rcYes||rcConditional;
   var needsRC=rcE&&["active","applied"].indexOf(rc_status)<0;
   var needsIEP=["active","eval_done"].indexOf(iep_status)<0&&age!=="0-2";
   var isES=age==="0-2", isTr=age==="13-17";
   var needsMC=["private","none"].indexOf(insurance)>-1;
   var needsDx=hasDx("suspected")&&diagnosisArr.length===1;
-  var dxMap={autism:"autism (ASD)",delay:"developmental delays",id:"intellectual disability",cp:"cerebral palsy",sld:"learning disability",adhd:"ADHD",suspected:"suspected developmental delays"};
+  var dxMap={autism:"autism (ASD)",delay:"developmental delays",id:"intellectual disability",cp:"cerebral palsy",sld:"specific learning disability",adhd:"ADHD",suspected:"suspected developmental delays",down:"Down syndrome",epilepsy:"epilepsy",sli:"speech/language impairment",dyslexia:"dyslexia/dyscalculia",md:"muscular dystrophy",tbi:"traumatic brain injury",deaf:"deaf/hard of hearing",blind:"blind/visually impaired",multiple:"multiple disabilities",ed:"emotional disturbance",ohi:"other health impairment"};
   var dxName=diagnosisArr.map(function(d){return dxMap[d]||d}).join(', ');
 
   // RC / Early Start
@@ -1167,7 +1418,8 @@ function generateRichPlan(intake) {
   }
 
   // Therapy / Insurance
-  if (["autism","delay","cp"].indexOf(diagnosis)>-1 && ["private","both"].indexOf(insurance)>-1) {
+  var therapyDx=hasDx("autism")||hasDx("delay")||hasDx("cp")||hasDx("id")||hasDx("down")||hasDx("epilepsy")||hasDx("md")||hasDx("tbi")||hasDx("deaf")||hasDx("blind")||hasDx("multiple")||hasDx("sli")||hasDx("ohi");
+  if (therapyDx && ["private","both"].indexOf(insurance)>-1) {
     actions.push(Object.assign({id:"ot_referral",agencyKey:null,category:"standard",
       title:"Get pediatrician referral for therapy",
       subtitle:"Most insurance plans require a physician referral before covering therapy. You need referrals for OT"+(hasDx("autism")?", speech, and ABA":"")+", plus a Letter of Medical Necessity — the single most important document for insurance approval.",
@@ -1230,7 +1482,8 @@ function generateRichPlan(intake) {
   }
 
   // SSI
-  if (rcE && diagnosis!=="sld") {
+  var ssiExcluded=hasDx("sld")&&diagnosisArr.length===1||hasDx("dyslexia")&&diagnosisArr.length===1;
+  if (rcE && !ssiExcluded) {
     actions.push(Object.assign({id:"ssi_apply",agencyKey:"ssa",category:"standard",
       title:"Start SSI application",
       subtitle:"SSI provides ~$943/month in cash benefits plus automatic Medi-Cal enrollment. "+(hasDx("autism")?"Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.":"Your child's diagnosis may qualify based on functional limitations.")+". This is real income for your family.",
@@ -1288,7 +1541,91 @@ function generateRichPlan(intake) {
       draftMessage:"Dear [Principal/Special Ed Director],\n\nI am writing to formally request a comprehensive special education evaluation for "+((state.userInfo.childName)||"[Child's Name]")+" under IDEA, specifically under the 'Other Health Impairment' category for ADHD.\n\nMy child's ADHD is significantly affecting their ability to [focus, complete work, follow directions, manage behavior, organize materials — be specific].\n\nIf my child is found not eligible for an IEP, I also request evaluation for a Section 504 plan.\n\nPer CA Ed Code §56321, please provide an assessment plan within 15 calendar days.\n\nSincerely,\n"+(state.userInfo.parentName||"[Your Name]"),
       documents:["ADHD diagnosis report from physician or psychologist","Teacher observations or behavior reports","Report cards showing pattern of difficulty","Any previous testing or screening results","Your written list of specific school-related concerns"],
       smsReminder:"This week: Send written IEP/504 request to school. Email + certified mail.",
-      insiderTip:"Schools sometimes try to skip the IEP evaluation and go straight to 504 because 504 is cheaper and less enforceable. Don't accept this. Insist on a full special education evaluation first. If ADHD is significantly impacting academics OR behavior, your child likely qualifies for an IEP under OHI. The magic words: 'My child's ADHD adversely affects their educational performance.' If the school still says no, ask for their denial in writing — called 'Prior Written Notice' — and consider filing a CDE complaint."},u()));
+      insiderTip:"Important: ADHD alone does not qualify for Regional Center. If your child also has autism, intellectual disability, or another Lanterman-qualifying condition, pursue RC separately. Schools sometimes try to skip the IEP evaluation and go straight to 504 because 504 is cheaper and less enforceable. Don't accept this. Insist on a full special education evaluation first. If ADHD is significantly impacting academics OR behavior, your child likely qualifies for an IEP under OHI. The magic words: 'My child's ADHD adversely affects their educational performance.' If the school still says no, ask for their denial in writing — called 'Prior Written Notice' — and consider filing a CDE complaint."},u()));
+  }
+
+  // Epilepsy-specific: CCS eligible
+  if (hasDx("epilepsy")) {
+    actions.push(Object.assign({id:"ccs_epilepsy",agencyKey:null,category:"standard",
+      title:"Apply for California Children's Services (CCS)",
+      subtitle:"Epilepsy is a CCS-eligible condition. CCS covers specialized medical care, therapy, and medical equipment for children under 21 — regardless of immigration status.",
+      whyMatters:"CCS is one of California's most underused programs. It covers specialized medical care that insurance often limits — neurology visits, medication management, EEGs, specialized therapies, and medical equipment. There's no cost for families under the income threshold, and even higher-income families only pay a share. CCS works alongside your other coverage.",
+      agency:"CCS / County",deadline:"Apply within 30 days",
+      steps:["Ask your pediatrician or neurologist for a CCS referral, or apply directly through your county health department.","CCS will verify the diagnosis is on their eligible conditions list (epilepsy qualifies).","Provide medical records and proof of diagnosis.","CCS assigns a Medical Therapy Unit if physical therapy is needed.","Coverage includes specialist visits, medications, monitoring equipment, and medically necessary therapies."],
+      documents:["Diagnosis report from neurologist","Medical records documenting seizure history","Insurance information","Proof of CA residency"],
+      insiderTip:"CCS can be combined with Medi-Cal and private insurance. It's a 'payer of last resort,' meaning it fills gaps other coverage misses. If your child's neurologist isn't CCS-paneled, CCS can authorize out-of-network care."},h()));
+  }
+
+  // Down syndrome-specific
+  if (hasDx("down")) {
+    actions.push(Object.assign({id:"down_ccs",agencyKey:null,category:"standard",
+      title:"Apply for CCS and connect with Down syndrome resources",
+      subtitle:"Down syndrome qualifies for CCS (conditional) and full RC services. Many children with Down syndrome benefit from early speech therapy, OT, and PT — start as early as possible.",
+      whyMatters:"Children with Down syndrome qualify for a wide range of services across RC, school, insurance, and CCS. Early intervention — especially speech therapy and physical therapy — has strong evidence for improving long-term outcomes. Connecting with a Down syndrome-specific support organization can also help you navigate medical appointments, therapy schedules, and school advocacy.",
+      agency:"CCS / RC / Support Orgs",deadline:"Start this month",
+      steps:["Contact your Regional Center if you haven't already — Down syndrome is a qualifying condition.","Ask your pediatrician for CCS referral for any associated medical conditions (cardiac, thyroid, etc.).","Connect with the National Down Syndrome Society (ndss.org) or local parent groups for peer support.","Request comprehensive early intervention services: speech, OT, PT, and feeding therapy if needed.","Ensure your child's IEP addresses all areas of need — academic, speech, motor, social, and adaptive skills."],
+      documents:["Genetic testing/diagnosis report","Medical records (cardiac, thyroid, hearing screenings)","Any existing therapy evaluations"],
+      insiderTip:"Children with Down syndrome often qualify for services across almost every program in the system. Don't let anyone tell you 'they're too high-functioning' — eligibility is based on the diagnosis, not the severity. Request evaluations in ALL developmental areas."},h()));
+  }
+
+  // Deaf/Hard of Hearing-specific
+  if (hasDx("deaf")) {
+    actions.push(Object.assign({id:"deaf_services",agencyKey:null,category:"standard",
+      title:"Connect with Deaf/HoH specialized services",
+      subtitle:"Your child qualifies for specialized services including DHH itinerant teachers, audiological services, and communication supports (ASL, oral, or total communication). Schools must provide a communication plan.",
+      whyMatters:"Under IDEA, Deaf/Hard of Hearing is its own disability category with specialized requirements. Schools must consider communication needs, language and communication mode, opportunities for direct communication with peers, and academic level. California also has Schools for the Deaf (CSD in Fremont and Riverside) as placement options.",
+      agency:"School / RC / CCS",deadline:"Start this week",
+      steps:["Request an IEP evaluation if not already in progress — DHH is its own IDEA category.","Ask for a DHH specialist teacher to be part of the IEP team.","Discuss communication modality: ASL, oral/auditory, total communication, or cued speech.","Request audiological services through the school and CCS.","Explore assistive technology: hearing aids, FM systems, captioning, visual alerts.","Contact California School for the Deaf for resources even if not enrolling."],
+      documents:["Audiological evaluation","ENT medical records","Any speech/language evaluations","Communication assessment"],
+      insiderTip:"The IEP must include a 'communication plan' for DHH students. Schools often overlook this. Insist on it. Also: if your child uses ASL, they're entitled to a qualified ASL interpreter — not just someone who 'knows some signs.' CCS covers hearing aids and audiological services."},h()));
+  }
+
+  // Blind/Visually Impaired-specific
+  if (hasDx("blind")) {
+    actions.push(Object.assign({id:"blind_services",agencyKey:null,category:"standard",
+      title:"Connect with vision impairment services",
+      subtitle:"Your child qualifies for specialized services including a Teacher of the Visually Impaired (TVI), orientation and mobility training, and assistive technology. CCS covers eye care and specialized equipment.",
+      whyMatters:"Children who are blind or visually impaired have specific legal protections and specialized services available. A Teacher of the Visually Impaired should be on the IEP team. Orientation and mobility instruction is critical for independence. Braille instruction is required unless the IEP team explicitly determines it's not appropriate.",
+      agency:"School / RC / CCS",deadline:"Start this week",
+      steps:["Request an IEP evaluation under the Visual Impairment category.","Ensure a certified Teacher of the Visually Impaired (TVI) is on the IEP team.","Request Orientation and Mobility (O&M) assessment and services.","Discuss assistive technology: screen readers, magnification, Braille displays.","Contact your RC for additional vision-related supports.","Apply for CCS — visual impairment is a qualifying condition."],
+      documents:["Ophthalmological/optometric evaluation","Functional vision assessment","Learning media assessment (determines Braille vs. print)","Medical records"],
+      insiderTip:"Under IDEA, schools must provide Braille instruction unless the IEP team determines it's not appropriate after a proper assessment. Don't let the school skip this. Also: contact the Department of Rehabilitation early — they have Pre-Employment Transition Services for blind/VI youth starting at age 14."},h()));
+  }
+
+  // TBI-specific
+  if (hasDx("tbi")) {
+    actions.push(Object.assign({id:"tbi_services",agencyKey:null,category:"standard",
+      title:"Coordinate TBI-specific services across systems",
+      subtitle:"Traumatic Brain Injury qualifies for RC, IEP (TBI is its own IDEA category), CCS, and full insurance-covered rehabilitation. TBI needs change over time — regular re-evaluations are essential.",
+      whyMatters:"TBI is unique because needs can evolve significantly over months and years. What your child needs today may differ from what they need in 6 months. RC, school, and medical services all need to coordinate. Under IDEA, TBI is its own disability category — the school cannot lump it into 'Other Health Impairment.' Push for TBI-specific classification as it unlocks specialized services.",
+      agency:"RC / School / CCS",deadline:"Start this week",
+      steps:["Ensure the IEP classifies your child under 'Traumatic Brain Injury' — not OHI.","Request neuropsychological re-evaluation every 6-12 months (TBI recovery evolves).","Contact RC for comprehensive service coordination.","Apply for CCS for specialized medical and rehabilitation services.","Request a school-based speech-language pathologist who has TBI experience.","Consider cognitive rehabilitation therapy through insurance."],
+      documents:["Neurological/neuropsychological evaluation","Hospital and rehabilitation records","Current therapy progress reports","School performance records pre- and post-injury"],
+      insiderTip:"Schools often underestimate the long-term effects of TBI. Push for re-evaluations — your child's needs 6 months after injury may be very different from day one. Also: RC eligibility for TBI requires the injury to have occurred before age 18 and to result in significant functional limitations. Document everything from the beginning."},h()));
+  }
+
+  // Emotional Disturbance-specific
+  if (hasDx("ed")) {
+    actions.push(Object.assign({id:"ed_ermhs",agencyKey:null,category:"standard",
+      title:"Request ERMHS (mental health services) through school",
+      subtitle:"Emotional Disturbance qualifies for an IEP and ERMHS — Educationally Related Mental Health Services. These are counseling, behavioral support, and therapeutic services provided through the school at no cost.",
+      whyMatters:"ERMHS provides school-based mental health services that are critical for students with emotional disturbance. These services are part of the IEP and legally enforceable — the school MUST provide them. ERMHS can include individual counseling, group therapy, behavioral intervention, crisis support, and parent training. County mental health may also be involved for more intensive needs.",
+      agency:"School / County MH",deadline:"Request this week",
+      steps:["Request an IEP evaluation under the Emotional Disturbance category.","Ask for an ERMHS assessment as part of the evaluation.","If eligible, ERMHS services are written into the IEP — they're legally binding.","Services may include: individual/group counseling, behavioral support, therapeutic behavioral services, day treatment.","If school-based services aren't sufficient, request county mental health referral.","Ensure a Behavioral Intervention Plan (BIP) is included in the IEP."],
+      documents:["Mental health evaluation or diagnosis","School behavioral records","Disciplinary records","Any private therapy records","Parent observations of behavioral concerns"],
+      insiderTip:"If your child is being suspended or disciplined repeatedly, they may need an ERMHS assessment. Under IDEA, a student with a disability cannot be suspended for more than 10 days if the behavior is a 'manifestation' of their disability. Request a Manifestation Determination Review (MDR) if facing suspension — and make sure ERMHS is part of the solution, not punishment."},h()));
+  }
+
+  // Speech/Language Impairment-specific
+  if (hasDx("sli") && !hasDx("autism")) {
+    actions.push(Object.assign({id:"sli_services",agencyKey:null,category:"standard",
+      title:"Request speech/language IEP evaluation",
+      subtitle:"Speech/Language Impairment is its own IDEA category. Your child is entitled to a school-based evaluation and, if eligible, speech therapy services through an IEP — completely free.",
+      whyMatters:"School-based speech therapy through an IEP is free and legally enforceable. Many families only pursue private therapy and don't realize the school must provide services too. You can (and should) have both — school speech therapy during the week and private therapy through insurance. They address different aspects: school focuses on educational impact, private focuses on broader communication goals.",
+      agency:"School District",deadline:"Request this week",
+      steps:["Send a written request for a speech/language evaluation to the Special Ed Director.","School has 15 calendar days to respond with an assessment plan.","A Speech-Language Pathologist (SLP) will evaluate articulation, language, fluency, and pragmatics.","If eligible, speech therapy goals and minutes are written into the IEP.","Request AAC (Augmentative and Alternative Communication) assessment if your child has limited verbal speech.","Pursue private speech therapy simultaneously through insurance — don't wait."],
+      documents:["Any existing speech/language evaluations","Pediatrician concerns or referral","Communication samples or parent observations","School report cards noting communication concerns"],
+      insiderTip:"Schools sometimes offer minimal speech minutes (like 30 min/week). Push for what your child actually needs based on the evaluation. If the SLP recommends more minutes than the school offers, document the discrepancy. Also: RC eligibility for SLI alone is conditional, but if speech delays are accompanied by other developmental concerns, RC may qualify your child."},h()));
   }
 
   // Transition
@@ -1324,6 +1661,384 @@ function generateRichPlan(intake) {
   return actions;
 }
 
+// ═══ JOURNEY MAP DATA & RENDERING ═══
+// Diagnosis-specific journey maps (from Waypoint-Journey-Maps.jsx, aligned with Landing Page messaging)
+var JOURNEY_MAP_DATA = {
+  "autism": {
+    icon:"🧩", title:"Autism (ASD)", subtitle:"Autism Spectrum Disorder", color:"#7C3AED",
+    intro:"The autism journey touches nearly every system — Regional Center, school, insurance, SSI, IHSS, and more. It's the most complex path, but also the one with the most resources available if you know where to look.",
+    phases:[
+      {age:"0–3",label:"Early Intervention",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+        description:"This is often the hardest moment — the one where everything shifts. Take a breath. You are not behind. Early intervention is the single most impactful thing you can do, and California has strong programs designed to help right now.",
+        entities:[{name:"Pediatrician",action:"Referral for evaluation",time:"Immediate"},{name:"Regional Center",action:"Early Start → IFSP",time:"45 days"},{name:"Insurance",action:"ABA authorization (CA mandate)",time:"30 days"}],
+        milestone:"IFSP in place, therapies started",alert:"RC intake within 45 days of referral"},
+      {age:"3–5",label:"School Transition",color:"#0891B2",bg:"#F0FDFA",icon:"🎒",
+        description:"At age 3, responsibility shifts to the school district. Your child has a legal right to a Free Appropriate Public Education, and you have a seat at the IEP table as an equal member.",
+        entities:[{name:"School District",action:"Assessment → first IEP",time:"90 days"},{name:"Regional Center",action:"Lanterman eligibility",time:"120 days"},{name:"IHSS / SSI",action:"Apply for support + income",time:"30–180 days"}],
+        milestone:"IEP active, RC confirmed, IHSS set",alert:"Start transition 6 months before 3rd birthday"},
+      {age:"5–13",label:"School Years",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"You've made it through the early chaos. The parent who sat in that first IEP meeting terrified? That parent is now the expert on their child. Focus on stability, financial planning, and keeping services current.",
+        entities:[{name:"School District",action:"Annual IEP + triennial reassessment",time:"Yearly / 3 yr"},{name:"Insurance",action:"Therapy re-authorizations",time:"Every 3–12 mo"},{name:"CalABLE",action:"Tax-advantaged savings",time:"Any time"}],
+        milestone:"Stable services, financial planning started",alert:"Request IEE if you disagree with school assessment"},
+      {age:"14–17",label:"Transition Planning",color:"#D97706",bg:"#FFFBEB",icon:"🎓",
+        description:"What does a good life look like for your child after school? Transition goals must be in the IEP by age 16. You're building a bridge to adulthood — and you don't have to build it alone.",
+        entities:[{name:"School District",action:"Transition IEP",time:"By age 16"},{name:"DOR",action:"Vocational rehab referral",time:"Apply at 16"},{name:"Conservatorship",action:"Research options vs. SDM",time:"Before 18"}],
+        milestone:"Transition plan active, legal planning started",alert:"Start conservatorship 6–12 months before 18"},
+      {age:"18+",label:"Adulthood",color:"#F97316",bg:"#FFF7ED",icon:"🏠",
+        description:"You've been doing this for almost two decades. You are your child's greatest advocate, and that doesn't change with a birthday. Every step you've taken has built a foundation that supports your child for life.",
+        entities:[{name:"Regional Center",action:"Adult services — lifelong",time:"Lifelong"},{name:"SSI / Medi-Cal",action:"Income + healthcare",time:"Lifelong"},{name:"Self-Determination",action:"Direct budget control",time:"If enrolled"}],
+        milestone:"Adult support system in place",alert:"CalABLE & SNT protect savings from SSI limits"}
+    ]
+  },
+  "down": {
+    icon:"💛", title:"Down Syndrome", subtitle:"Trisomy 21", color:"#D97706",
+    intro:"Down syndrome is an 'established risk' condition — meaning your child qualifies for Regional Center services from day one, often before they even leave the hospital. The support systems are strong.",
+    phases:[
+      {age:"0–3",label:"Early Days",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+        description:"Your baby is here, and they are perfect and yours. There is an entire community of families who have walked this path before you, and the support systems in California are among the strongest in the country.",
+        entities:[{name:"Hospital",action:"Cardiac screening, genetic confirmation",time:"At birth"},{name:"Regional Center",action:"Early Start (established risk)",time:"45 days"},{name:"CCS",action:"Cardiac and specialty care",time:"30 days"}],
+        milestone:"Therapies in place, cardiac care established",alert:"CCS referral critical if cardiac conditions present"},
+      {age:"3–13",label:"School Years",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"Children with Down syndrome thrive when they're included, challenged, and supported. Push for meaningful goals, not just compliance. You are the constant in your child's life.",
+        entities:[{name:"School District",action:"IEP with inclusion goals",time:"Annual"},{name:"CCS / Specialists",action:"Cardiac, thyroid, vision monitoring",time:"Annually"},{name:"IHSS / SSI",action:"In-home support + income",time:"Ongoing"}],
+        milestone:"Inclusive education, stable medical care",alert:"Annual thyroid, cardiac, vision, hearing checks essential"},
+      {age:"14+",label:"Transition & Adult Life",color:"#D97706",bg:"#FFFBEB",icon:"🎓",
+        description:"Many adults with Down syndrome work, live semi-independently, and have rich social lives. The foundation you lay now determines how much independence and security your child will have.",
+        entities:[{name:"DOR",action:"Supported employment",time:"Apply at 16"},{name:"Regional Center",action:"Adult services — lifelong",time:"Lifelong"},{name:"SNT / CalABLE",action:"Financial protection",time:"Start now"}],
+        milestone:"Meaningful adult life with community and support",alert:"Explore Supported Decision-Making before conservatorship"}
+    ]
+  },
+  "cp": {
+    icon:"💪", title:"Cerebral Palsy", subtitle:"Motor & Physical Disability", color:"#0891B2",
+    intro:"Cerebral palsy involves complex medical needs alongside developmental support. CCS plays a larger role here than in most other diagnoses, and IHSS hours tend to be higher due to physical care needs.",
+    phases:[
+      {age:"0–3",label:"Early Intervention",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+        description:"A CP diagnosis often comes after a frightening start. The guilt and grief are real, and they're normal. But your child is resilient, and so are you. CCS provides specialized medical therapy. You don't need to coordinate all of this alone.",
+        entities:[{name:"Neurologist",action:"Diagnosis, imaging, referrals",time:"Immediate"},{name:"CCS",action:"Medical Therapy Program — PT, OT",time:"30 days"},{name:"Regional Center",action:"Early Start → IFSP",time:"45 days"},{name:"Insurance",action:"DME — wheelchair, stander, orthotics",time:"Prior auth"}],
+        milestone:"Therapies in place, DME ordered, medical team set",alert:"CCS Medical Therapy Program is free regardless of income"},
+      {age:"3–13",label:"School Years",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"Your child's school needs to be physically accessible. But your child is also growing in ways that matter more — building friendships, discovering interests. You are more than a case manager. You are a parent.",
+        entities:[{name:"School District",action:"IEP with accessibility, adaptive PE",time:"Annual"},{name:"CCS MTP",action:"School-based PT and OT",time:"Ongoing"},{name:"IHSS",action:"High hours — bathing, feeding, mobility",time:"Yearly"}],
+        milestone:"Accessible education, equipment current",alert:"DME must be updated as child grows"},
+      {age:"14+",label:"Transition & Adult Life",color:"#D97706",bg:"#FFFBEB",icon:"🎓",
+        description:"Assistive technology is often a game-changer — communication devices, powered mobility, smart home adaptations. Many adults with CP live rich, full, connected lives with the right supports.",
+        entities:[{name:"DOR",action:"Assistive tech, vocational rehab",time:"Apply at 16"},{name:"IHSS",action:"Daily personal care — often high hours",time:"Lifelong"},{name:"Regional Center",action:"SLS/ILS, day programs",time:"Lifelong"}],
+        milestone:"Supported living established, medical care continuous",alert:"CCS ends at 21 — ensure Medi-Cal covers adult specialists"}
+    ]
+  },
+  "adhd": {
+    icon:"⚡", title:"ADHD", subtitle:"Attention-Deficit/Hyperactivity Disorder", color:"#0EA5E9",
+    intro:"ADHD on its own does not qualify for Regional Center services under the Lanterman Act. Adding a co-occurring learning disability (such as dyslexia or dyscalculia) also does not qualify, because learning disabilities are not one of the five Lanterman-qualifying conditions. However, if ADHD co-occurs with autism, intellectual disability, cerebral palsy, epilepsy, or a condition closely related to intellectual disability, then RC eligibility opens up. Regardless of RC status, ADHD absolutely qualifies for school supports (IEP under 'Other Health Impairment' or a 504 plan), and may qualify for SSI in severe cases.",
+    phases:[
+      {age:"0–5",label:"Early Recognition",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+        description:"ADHD is often first noticed when a child enters a structured environment. Trust your instincts. A developmental pediatrician can evaluate and help you understand what's happening. You are the first person who noticed. That matters.",
+        entities:[{name:"Pediatrician",action:"Screening, referral to specialist",time:"Immediate"},{name:"Dev. Pediatrician",action:"Comprehensive evaluation",time:"3–12 mo wait"},{name:"Insurance",action:"Behavioral therapy coverage",time:"Prior auth"}],
+        milestone:"Formal evaluation complete, strategies in place",alert:"Specialist waitlists 3–12 months — get on the list early"},
+      {age:"5–13",label:"School Support",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"Don't let anyone tell you ADHD isn't a 'real disability.' The law is clear. If your child's ADHD is affecting their education, the school has an obligation to help.",
+        entities:[{name:"School District",action:"Request evaluation → IEP or 504",time:"60 days"},{name:"Insurance",action:"Medication management, therapy",time:"Ongoing"},{name:"SSI",action:"May qualify if severe limitations",time:"3–6 months"}],
+        milestone:"504 or IEP in place, treatment plan established",alert:"Put evaluation request IN WRITING — starts the legal clock"},
+      {age:"14+",label:"Transition & Self-Advocacy",color:"#D97706",bg:"#FFFBEB",icon:"🎓",
+        description:"You're shifting from doing it for them to coaching them to do it themselves. The understanding that their brain works differently and it's not a character flaw — that's a gift that lasts a lifetime.",
+        entities:[{name:"School District",action:"Transition IEP with self-advocacy goals",time:"By age 16"},{name:"College Services",action:"Research accommodations process",time:"Junior year"},{name:"DOR",action:"Vocational support if needed",time:"Apply at 16"}],
+        milestone:"Self-advocacy skills, post-secondary plan in place",alert:"College requires self-identification — practice now"}
+    ]
+  },
+  "id": {
+    icon:"🌱", title:"Intellectual Disability", subtitle:"Intellectual & Developmental Disability", color:"#10B981",
+    intro:"Intellectual disability is a primary qualifying diagnosis for Regional Center — your child is entitled to lifelong services under the Lanterman Act.",
+    phases:[
+      {age:"0–3",label:"Early Intervention",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+        description:"'Delay' doesn't define your child's potential. Your child qualifies for Regional Center services — a service coordinator, a plan, and therapies delivered in your home. You are not expected to be a therapist. You are expected to be a parent.",
+        entities:[{name:"Regional Center",action:"Early Start → IFSP with full services",time:"45 days"},{name:"Pediatrician",action:"Developmental screening",time:"Immediate"},{name:"Medi-Cal",action:"Full healthcare coverage",time:"45 days"}],
+        milestone:"IFSP active, developmental therapies in progress",alert:"RC determination for ID is straightforward — don't delay"},
+      {age:"3–13",label:"School Years",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"Your child is learning — maybe not at the same pace as peers, but they are learning. Celebrate the progress. And don't forget about yourself. Caregiver burnout is real, and respite care exists for a reason.",
+        entities:[{name:"School District",action:"IEP with functional life skills focus",time:"Annual"},{name:"Regional Center",action:"Respite, social skills, camps",time:"Annual IPP"},{name:"IHSS / SSI",action:"Support and income",time:"Ongoing"}],
+        milestone:"Consistent progress, family supported",alert:"Request respite care through RC — your wellbeing matters"},
+      {age:"14+",label:"Transition & Adult Life",color:"#D97706",bg:"#FFFBEB",icon:"🎓",
+        description:"What does a good adult life look like? There is no wrong answer — only the one that fits your child. You have navigated one of the most complex systems in the country. You've earned every good thing that comes from it.",
+        entities:[{name:"DOR",action:"Supported employment",time:"Apply at 16"},{name:"Regional Center",action:"Day programs, SLS, community",time:"Lifelong"},{name:"Self-Determination",action:"Person-centered budget control",time:"If enrolled"}],
+        milestone:"Meaningful adult life with community and support",alert:"Limited conservatorship most common — start before 18"}
+    ]
+  },
+  "epilepsy": {
+    icon:"🧠", title:"Epilepsy", subtitle:"Seizure Disorders", color:"#E11D48",
+    intro:"Epilepsy qualifies for Regional Center as a primary diagnosis. CCS plays a significant role in neurological care. The unpredictability of seizures adds unique challenges to school, caregiving, and daily life.",
+    phases:[
+      {age:"0–5",label:"Diagnosis & Stabilization",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+        description:"Watching your child have a seizure is one of the most terrifying experiences a parent can have. But you are doing the right things by seeking answers. You don't have to have all the answers. You just need to take the next step.",
+        entities:[{name:"Neurologist",action:"EEG, diagnosis, medication",time:"Immediate"},{name:"CCS",action:"Neurological specialty care",time:"30 days"},{name:"Regional Center",action:"Early Start if developmental delays",time:"45 days"}],
+        milestone:"Seizures managed, supports in place",alert:"CCS covers neurology regardless of income"},
+      {age:"5–13",label:"School & Safety",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"Your child needs a seizure action plan at school. Staff need training. Rescue medication must be available. With the right plans in place, your child can thrive at school.",
+        entities:[{name:"School District",action:"IEP or 504 — seizure plan, accommodations",time:"60 days"},{name:"IHSS",action:"Protective supervision if uncontrolled",time:"30–60 days"},{name:"SSI",action:"Eligible if substantial limitations",time:"3–6 months"}],
+        milestone:"Safe school environment, effective management",alert:"Seizure action plan must be updated after any med changes"},
+      {age:"14+",label:"Transition & Adult Life",color:"#D97706",bg:"#FFFBEB",icon:"🎓",
+        description:"Driving restrictions, employment considerations, and transferring to adult neurology. If seizures are well-controlled, many adults live fully independent lives. Your child deserves a plan built around possibilities.",
+        entities:[{name:"Adult Neurology",action:"Transfer from pediatric provider",time:"Age 18"},{name:"DOR",action:"Vocational rehab with accommodations",time:"Apply at 16"},{name:"DMV",action:"Seizure-free driving requirements",time:"Varies"}],
+        milestone:"Adult medical care, employment or support in place",alert:"CA requires 3–6 month seizure-free period to drive"}
+    ]
+  },
+  "multiple": {
+    icon:"🌈", title:"Multiple Disabilities", subtitle:"Co-occurring Diagnoses", color:"#7C3AED",
+    intro:"When your child has multiple diagnoses, the complexity multiplies. But eligibility is also typically stronger across the board, and you have more leverage to request comprehensive services.",
+    phases:[
+      {age:"0–3",label:"Early Intervention",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+        description:"When your child has more than one diagnosis, the early days can feel like an avalanche. You're not failing. You're parenting a child with complex needs. Multiple diagnoses mean stronger eligibility across the board.",
+        entities:[{name:"Medical Team",action:"Multi-specialty coordination",time:"Immediate"},{name:"Regional Center",action:"Comprehensive IFSP",time:"45 days"},{name:"CCS",action:"Medical specialty care",time:"30 days"}],
+        milestone:"All diagnoses addressed, comprehensive plan in place",alert:"Ask RC for a coordinator experienced with complex cases"},
+      {age:"3–13",label:"School Years",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"Don't settle for an IEP that addresses one diagnosis but ignores the others. You are the only person who sees the whole picture. Use that power. Document everything.",
+        entities:[{name:"School District",action:"IEP — Multiple Disabilities, all goals",time:"Annual"},{name:"Regional Center",action:"Full service package",time:"Annual IPP"},{name:"IHSS / SSI",action:"High hours + income support",time:"Ongoing"}],
+        milestone:"Comprehensive IEP, all systems active",alert:"Email follow-ups create the paper trail you'll need"},
+      {age:"14+",label:"Transition & Adult Life",color:"#D97706",bg:"#FFFBEB",icon:"🎓",
+        description:"The most complex transition, but you've done harder things than this. This is the final major transition, and you have everything you need. The life ahead can be a good one.",
+        entities:[{name:"School District",action:"Comprehensive transition IEP",time:"By age 16"},{name:"Regional Center",action:"Complex adult service coordination",time:"Lifelong"},{name:"Conservatorship / SNT",action:"Legal and financial protection",time:"Before 18"}],
+        milestone:"All adult systems in place",alert:"Start transition planning at 14 — complex cases need extra time"}
+    ]
+  },
+  "delay": {
+    icon:"📊", title:"Developmental Delay", subtitle:"General Developmental Delay", color:"#0891B2",
+    intro:"Developmental delay qualifies your child for Regional Center Early Start services. This is often the beginning of a longer journey — and early intervention makes the biggest difference.",
+    phases:[
+      {age:"0–3",label:"Early Intervention",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+        description:"A developmental delay diagnosis doesn't predict your child's future — it tells you where they need help right now. California's Early Start program is one of the best in the country. Let the system work for you.",
+        entities:[{name:"Regional Center",action:"Early Start → IFSP",time:"45 days"},{name:"Pediatrician",action:"Developmental screening",time:"Immediate"},{name:"Medi-Cal",action:"Apply for health coverage",time:"45 days"}],
+        milestone:"IFSP active with therapies",alert:"Don't wait for a specific diagnosis — delay alone qualifies for Early Start"},
+      {age:"3–5",label:"School Transition",color:"#0891B2",bg:"#F0FDFA",icon:"🎒",
+        description:"At age 3, your child transitions from Early Start to the school district. This is also when a more specific diagnosis may emerge. Either way, your child has the right to an IEP.",
+        entities:[{name:"School District",action:"Assessment → IEP",time:"90 days"},{name:"Regional Center",action:"Lanterman eligibility review",time:"120 days"},{name:"IHSS / SSI",action:"Apply based on functional needs",time:"30–180 days"}],
+        milestone:"IEP active, RC status determined",alert:"Transition planning starts 6 months before 3rd birthday"},
+      {age:"5+",label:"School Years & Beyond",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"As your child grows, services evolve. Annual IEP reviews ensure goals stay relevant. If a more specific diagnosis is identified, new services may become available. Stay engaged and keep advocating.",
+        entities:[{name:"School District",action:"Annual IEP reviews",time:"Yearly"},{name:"Regional Center",action:"Annual IPP if eligible",time:"Yearly"},{name:"Insurance",action:"Therapy re-authorizations",time:"Ongoing"}],
+        milestone:"Stable services, ongoing progress",alert:"Request updated assessments if you notice new concerns"}
+    ]
+  },
+  "sli": {
+    icon:"🗣️", title:"Speech/Language Impairment", subtitle:"Communication Disorders", color:"#0891B2",
+    intro:"Speech and language impairments are among the most common childhood disabilities. School-based services are often the primary support, but insurance and Regional Center may also play a role.",
+    phases:[
+      {age:"0–3",label:"Early Intervention",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+        description:"If your child isn't babbling, pointing, or using words by expected milestones, trust your instincts. Early speech therapy can make a tremendous difference. Regional Center may provide services if the delay is significant.",
+        entities:[{name:"Pediatrician",action:"Hearing test + speech referral",time:"Immediate"},{name:"Regional Center",action:"Early Start if significant delay",time:"45 days"},{name:"Insurance",action:"Speech therapy coverage",time:"Prior auth"}],
+        milestone:"Speech therapy started, hearing verified",alert:"Always rule out hearing loss first"},
+      {age:"3–13",label:"School Years",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"Your child has the right to speech-language services at school through an IEP or 504 plan. Don't accept 'wait and see' if your child is struggling. Put your request for evaluation in writing.",
+        entities:[{name:"School District",action:"IEP or 504 with speech services",time:"60 days"},{name:"Insurance",action:"Private speech therapy if needed",time:"Ongoing"},{name:"SSI",action:"May qualify if severe impact",time:"3–6 months"}],
+        milestone:"Speech services active, progress monitored",alert:"School must evaluate within 60 days of written request"},
+      {age:"14+",label:"Transition",color:"#D97706",bg:"#FFFBEB",icon:"🎓",
+        description:"As your child enters adolescence, the focus shifts to social communication, self-advocacy, and preparing for life after school. Assistive technology may help with communication independence.",
+        entities:[{name:"School District",action:"Transition IEP with communication goals",time:"By age 16"},{name:"DOR",action:"Vocational support if communication barriers",time:"Apply at 16"}],
+        milestone:"Communication independence developing",alert:"Explore AAC devices if verbal communication is limited"}
+    ]
+  },
+  "sld": {
+    icon:"📖", title:"Specific Learning Disability", subtitle:"Dyslexia, Dyscalculia & Related", color:"#0EA5E9",
+    intro:"Learning disabilities are primarily addressed through the school system via IEP or 504 plans. Your child doesn't qualify for Regional Center, but their rights to educational support are strong.",
+    phases:[
+      {age:"5–13",label:"Identification & Support",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+        description:"Learning disabilities often become apparent when academic demands increase. If your child is struggling despite effort, request an evaluation. The school cannot say no to a written request.",
+        entities:[{name:"School District",action:"Psychoeducational evaluation → IEP or 504",time:"60 days"},{name:"Insurance",action:"Private neuropsych evaluation if needed",time:"Prior auth"},{name:"Private Tutor",action:"Specialized reading/math intervention",time:"As needed"}],
+        milestone:"IEP or 504 in place with accommodations",alert:"Put evaluation request IN WRITING to start the legal timeline"},
+      {age:"14+",label:"Transition & Self-Advocacy",color:"#D97706",bg:"#FFFBEB",icon:"🎓",
+        description:"Your teen needs to understand their disability and know how to request accommodations. In college, they must self-identify. These self-advocacy skills are essential for lifelong success.",
+        entities:[{name:"School District",action:"Transition IEP with self-advocacy",time:"By age 16"},{name:"College Board / ACT",action:"Request testing accommodations",time:"Junior year"},{name:"College Disability Office",action:"Register and provide documentation",time:"Before enrollment"}],
+        milestone:"Self-advocacy skills, post-secondary plan ready",alert:"Request updated evaluation before high school exit for documentation"}
+    ]
+  }
+};
+
+// Fallback journey for diagnoses without specific maps — general overview
+var JOURNEY_MAP_DEFAULT = {
+  icon:"🧭", title:"Your Child's Journey", subtitle:"Navigating California Disability Services", color:"#0891B2",
+  intro:"Every journey is different, but the systems your family will interact with follow common patterns. Here's a general roadmap of what lies ahead.",
+  phases:[
+    {age:"0–3",label:"Early Intervention",color:"#7C3AED",bg:"#F5F3FF",icon:"👶",
+      description:"California's Early Start program provides therapies and support for children birth to 3 with developmental concerns. Regional Center coordinates these services at no cost to families.",
+      entities:[{name:"Pediatrician",action:"Developmental screening and referrals",time:"Immediate"},{name:"Regional Center",action:"Intake and service planning",time:"45 days"},{name:"Insurance / Medi-Cal",action:"Therapy and specialist coverage",time:"Ongoing"}],
+      milestone:"Service plan active, therapies started",alert:"Don't wait for a specific diagnosis to contact Regional Center"},
+    {age:"3–17",label:"School Years",color:"#0EA5E9",bg:"#F0F9FF",icon:"📚",
+      description:"Your child has the right to a Free Appropriate Public Education. An IEP or 504 Plan ensures they get the support they need at school. You are an equal member of the IEP team.",
+      entities:[{name:"School District",action:"Evaluation → IEP or 504 Plan",time:"60–90 days"},{name:"Regional Center",action:"Ongoing services if eligible",time:"Annual"},{name:"IHSS / SSI",action:"Apply based on functional needs",time:"Varies"}],
+      milestone:"Educational supports in place, services coordinated",alert:"Always put requests in writing to start legal timelines"},
+    {age:"18+",label:"Adult Life",color:"#D97706",bg:"#FFFBEB",icon:"🏠",
+      description:"Transition to adulthood means new systems and new decisions — adult services, employment, legal planning, and financial protection. Start planning early.",
+      entities:[{name:"DOR",action:"Vocational rehabilitation",time:"Apply at 16"},{name:"SSI / Medi-Cal",action:"Adult benefits",time:"At age 18"},{name:"Regional Center",action:"Adult services if eligible",time:"Lifelong"}],
+      milestone:"Adult support systems established",alert:"Begin transition planning no later than age 14–16"}
+  ]
+};
+
+var journeyExpandedPhase = 0;
+
+function getJourneyForDiagnosis() {
+  var diagArr = state.intake.diagnosis || [];
+  // Use primary (first) diagnosis for journey map
+  var primary = diagArr[0] || '';
+  // Map some aliases
+  var dxKey = primary;
+  if (dxKey === 'dyslexia') dxKey = 'sld';
+  if (dxKey === 'md') dxKey = 'cp'; // muscular dystrophy shares similar physical disability path
+  if (dxKey === 'tbi') dxKey = 'multiple'; // TBI often co-occurs
+  if (dxKey === 'deaf' || dxKey === 'blind' || dxKey === 'ed' || dxKey === 'ohi' || dxKey === 'suspected') dxKey = '_default';
+  if (JOURNEY_MAP_DATA[dxKey]) return JOURNEY_MAP_DATA[dxKey];
+  return JOURNEY_MAP_DEFAULT;
+}
+
+function renderJourneyScreen() {
+  var journey = getJourneyForDiagnosis();
+  var childName = state.userInfo.childName || 'your child';
+  // Auto-expand the phase matching the child's age
+  journeyExpandedPhase = getJourneyPhaseForAge(journey);
+
+  // Compute age display
+  var ageDisplay = '';
+  if (state.intake.birthday) {
+    var ageInfo = calcChildAge(state.intake.birthday);
+    ageDisplay = ageInfo.display;
+  }
+
+  // Header
+  var hdr = '';
+  hdr += '<div style="text-align:center">';
+  hdr += '<div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0891B2,#10B981);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800">◎</div><span style="font-size:14px;font-weight:800;color:#fff;letter-spacing:-0.5px">WAYPOINT</span></div>';
+  hdr += '<h1 style="font-family:Georgia,serif;font-size:24px;color:#fff;line-height:1.2;margin:0 0 6px">'+escapeHtml(childName)+'\'s Journey Map</h1>';
+  if (ageDisplay) {
+    hdr += '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border-radius:8px;padding:4px 14px;margin-bottom:10px">';
+    hdr += '<span style="font-size:13px;color:rgba(255,255,255,0.7)">'+calcChildAge(state.intake.birthday).emoji+'</span>';
+    hdr += '<span style="font-size:13px;font-weight:700;color:#fff">'+escapeHtml(ageDisplay)+'</span>';
+    hdr += '</div><br>';
+  }
+  hdr += '<p style="color:rgba(255,255,255,0.6);font-size:13px;margin:0 auto 14px;max-width:400px">Every path is different. Here\'s the road ahead — the agencies, milestones, and deadlines mapped to '+escapeHtml(childName)+'\'s diagnosis'+(ageDisplay ? ' and age.' : '.')+'</p>';
+  hdr += '<div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 18px">';
+  hdr += '<span style="font-size:22px">'+journey.icon+'</span>';
+  hdr += '<span style="color:#fff;font-size:15px;font-weight:700">'+escapeHtml(journey.title)+'</span>';
+  hdr += '<span style="font-size:11px;color:'+journey.color+';font-weight:600;background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:5px">'+escapeHtml(journey.subtitle)+'</span>';
+  hdr += '</div></div>';
+  document.getElementById('journey-header').innerHTML = hdr;
+
+  // Intro card
+  var intro = '';
+  intro += '<div style="background:#fff;border-radius:14px;padding:16px 18px;border:1px solid #E2E8F0;box-shadow:0 1px 4px rgba(0,0,0,0.04)">';
+  intro += '<p style="font-size:13.5px;color:#475569;line-height:1.7;margin:0">'+escapeHtml(journey.intro)+'</p>';
+  intro += '</div>';
+  document.getElementById('journey-intro').innerHTML = intro;
+
+  // Timeline
+  renderJourneyTimeline(journey);
+
+  // CTA buttons
+  var cta = '';
+  cta += '<div style="text-align:center;background:linear-gradient(135deg,#1B2A4A,#0F2847);border-radius:16px;padding:24px 20px">';
+  cta += '<p style="font-family:Georgia,serif;font-size:18px;color:#fff;margin:0 0 6px">You shouldn\'t have to be the expert. That\'s our job.</p>';
+  cta += '<p style="font-size:12px;color:rgba(255,255,255,0.55);margin:0 0 18px;line-height:1.5">Waypoint maps every entity, deadline, and right for '+escapeHtml(childName)+'\'s diagnosis — so you can focus on what matters most.</p>';
+  cta += '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">';
+  cta += '<button onclick="journeyGoToActions()" style="display:inline-flex;align-items:center;gap:6px;background:#0891B2;color:#fff;padding:12px 22px;border-radius:9px;font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(8,145,178,0.3)">✅ Suggested Action Items</button>';
+  cta += '<button onclick="journeyGoToChat()" style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);color:#fff;padding:12px 22px;border-radius:9px;font-size:14px;font-weight:600;border:1px solid rgba(255,255,255,0.15);cursor:pointer">🤖 Ask AI Navigator</button>';
+  cta += '</div></div>';
+  document.getElementById('journey-cta').innerHTML = cta;
+}
+
+function renderJourneyTimeline(journey) {
+  var currentPhaseIdx = getJourneyPhaseForAge(journey);
+  var html = '<div style="position:relative">';
+  html += '<div style="position:absolute;left:21px;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,#E2E8F0,#CBD5E1,#E2E8F0);border-radius:2px;z-index:0"></div>';
+
+  journey.phases.forEach(function(phase, i) {
+    var isOpen = journeyExpandedPhase === i;
+    var isCurrent = (i === currentPhaseIdx) && state.intake.birthday;
+    html += '<div style="position:relative;margin-bottom:10px;z-index:1">';
+
+    // "YOU ARE HERE" badge for current phase
+    if (isCurrent) {
+      html += '<div style="text-align:center;margin-bottom:4px"><span style="display:inline-flex;align-items:center;gap:4px;background:linear-gradient(135deg,#0891B2,#10B981);color:#fff;font-size:10px;font-weight:800;padding:3px 12px;border-radius:20px;letter-spacing:0.8px;animation:pulseHere 2s ease-in-out infinite">📍 YOU ARE HERE</span></div>';
+    }
+
+    html += '<div onclick="toggleJourneyPhase('+i+')" style="display:flex;gap:12px;cursor:pointer;background:'+(isOpen?phase.bg:'#fff')+';border-radius:14px;border:2px solid '+(isCurrent && !isOpen ? phase.color : (isOpen?phase.color+'50':'#E2E8F0'))+';padding:'+(isOpen?'16px 16px':'10px 14px')+';transition:all 0.3s ease;box-shadow:'+(isOpen?'0 4px 16px '+phase.color+'10':(isCurrent?'0 2px 10px '+phase.color+'18':'0 1px 3px rgba(0,0,0,0.04)'))+';align-items:flex-start">';
+
+    // Phase icon badge
+    html += '<div style="width:40px;height:40px;border-radius:10px;flex-shrink:0;background:linear-gradient(140deg,'+phase.color+','+phase.color+'BB);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px '+phase.color+'25">'+phase.icon+'</div>';
+
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">';
+    html += '<span style="font-size:11px;font-weight:800;color:'+phase.color+';background:'+phase.color+'15;padding:2px 8px;border-radius:4px;letter-spacing:0.5px">AGE '+escapeHtml(phase.age)+'</span>';
+    html += '<span style="font-size:14px;font-weight:700;color:#1B2A4A">'+escapeHtml(phase.label)+'</span>';
+    html += '</div>';
+
+    if (isOpen) {
+      // Description
+      html += '<div style="background:#fff;border-radius:10px;padding:14px 16px;margin-top:10px;margin-bottom:12px;border-left:3px solid '+phase.color+';border:1px solid '+phase.color+'15">';
+      html += '<p style="font-size:13px;color:#475569;line-height:1.7;margin:0">'+escapeHtml(phase.description)+'</p>';
+      html += '</div>';
+
+      // Entities
+      html += '<p style="font-size:10px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;margin:0 0 6px">Key agencies & actions</p>';
+      phase.entities.forEach(function(ent) {
+        html += '<div style="display:flex;align-items:center;gap:8px;background:#fff;border-radius:8px;padding:7px 10px;border:1px solid #E2E8F0;margin-bottom:4px">';
+        html += '<div style="width:6px;height:6px;border-radius:50%;background:'+phase.color+';flex-shrink:0"></div>';
+        html += '<div style="flex:1;min-width:0"><span style="font-size:12px;font-weight:700;color:#1B2A4A">'+escapeHtml(ent.name)+'</span><span style="font-size:11px;color:#64748B;margin-left:4px">— '+escapeHtml(ent.action)+'</span></div>';
+        html += '<span style="font-size:10px;font-weight:600;color:'+phase.color+';background:'+phase.color+'12;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0">'+escapeHtml(ent.time)+'</span>';
+        html += '</div>';
+      });
+
+      // Milestone & Alert
+      html += '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">';
+      html += '<div style="flex:1;min-width:160px;background:#10B9810D;border-radius:8px;padding:8px 12px;border:1px solid #10B98122">';
+      html += '<span style="font-size:9px;font-weight:800;color:#10B981;text-transform:uppercase;letter-spacing:0.5px">✓ Milestone</span>';
+      html += '<p style="font-size:11px;color:#1B2A4A;margin:3px 0 0;font-weight:600">'+escapeHtml(phase.milestone)+'</p></div>';
+      html += '<div style="flex:1;min-width:160px;background:#F973160D;border-radius:8px;padding:8px 12px;border:1px solid #F9731622">';
+      html += '<span style="font-size:9px;font-weight:800;color:#F97316;text-transform:uppercase;letter-spacing:0.5px">⏰ Alert</span>';
+      html += '<p style="font-size:11px;color:#1B2A4A;margin:3px 0 0;font-weight:600">'+escapeHtml(phase.alert)+'</p></div>';
+      html += '</div>';
+
+      // ADHD conditional RC eligibility callout
+      var diagArr = state.intake.diagnosis || [];
+      if (diagArr.indexOf('adhd') > -1) {
+        var hasLanterman = diagArr.some(function(d){ return ['autism','id','cp','epilepsy','down','delay','multiple','tbi'].indexOf(d) > -1; });
+        html += '<div style="background:linear-gradient(135deg,#0EA5E910,#0EA5E905);border-radius:10px;padding:12px 14px;margin-top:10px;border:1px solid #0EA5E9;border-left:4px solid #0EA5E9">';
+        if (hasLanterman) {
+          html += '<p style="font-size:12px;color:#0C4A6E;margin:0;line-height:1.6">✅ <strong>RC Eligible:</strong> Because '+escapeHtml(state.userInfo.childName || 'your child')+' has a co-occurring Lanterman-qualifying diagnosis alongside ADHD, Regional Center services are available. Make sure BOTH diagnoses are documented in the IPP.</p>';
+        } else {
+          html += '<p style="font-size:12px;color:#0C4A6E;margin:0;line-height:1.6">ℹ️ <strong>RC Eligibility Note:</strong> ADHD alone does not qualify for Regional Center under the Lanterman Act. The five qualifying categories are: intellectual disability, cerebral palsy, epilepsy, autism, and conditions closely related to intellectual disability. A co-occurring learning disability (dyslexia, dyscalculia) also does not qualify. If you suspect your child may have a co-occurring qualifying condition, request a comprehensive evaluation.</p>';
+        }
+        html += '</div>';
+      }
+
+      // POS Tip callout (for phases involving Regional Center services)
+      html += '<div style="background:linear-gradient(135deg,#F9731610,#F9731605);border-radius:10px;padding:12px 14px;margin-top:10px;border:1px solid #F97316;border-left:4px solid #F97316">';
+      html += '<p style="font-size:12px;color:#7C2D12;margin:0;line-height:1.6">💰 '+t('pos_tip')+'</p>';
+      html += '</div>';
+    }
+
+    html += '</div>'; // flex:1
+
+    // Chevron
+    html += '<div style="font-size:14px;color:#94A3B8;transition:transform 0.25s;transform:'+(isOpen?'rotate(180deg)':'rotate(0deg)')+';flex-shrink:0;margin-top:3px">▾</div>';
+
+    html += '</div></div>'; // click area + outer wrapper
+  });
+
+  html += '</div>';
+  document.getElementById('journey-timeline').innerHTML = html;
+}
+
+function toggleJourneyPhase(idx) {
+  var journey = getJourneyForDiagnosis();
+  journeyExpandedPhase = journeyExpandedPhase === idx ? null : idx;
+  renderJourneyTimeline(journey);
+}
+
+function journeyGoToActions() {
+  showScreen('screen-home');
+  document.getElementById('nav-tabs').style.display = 'flex';
+}
+
+function journeyGoToChat() {
+  showScreen('screen-chat');
+  document.getElementById('nav-tabs').style.display = 'flex';
+}
+
 // ═══ HOME DASHBOARD RENDER ═══
 function renderHome() {
   var childName = state.userInfo.childName || 'Your Child';
@@ -1344,6 +2059,39 @@ function renderHome() {
   document.getElementById('home-greeting').textContent = parentName ? greeting+', '+parentName+' 👋' : greeting+' 👋';
   document.getElementById('home-title').textContent = childName+"'s Dashboard";
   document.getElementById('home-avatar').textContent = (parentName||'W').charAt(0).toUpperCase();
+
+  // ─── Age Context Badge ───
+  var ageBadgeEl = document.getElementById('home-age-badge');
+  if (!ageBadgeEl) {
+    var badgeContainer = document.createElement('div');
+    badgeContainer.id = 'home-age-badge';
+    document.getElementById('home-title').insertAdjacentElement('afterend', badgeContainer);
+    ageBadgeEl = badgeContainer;
+  }
+  if (state.intake.birthday) {
+    var homeAge = calcChildAge(state.intake.birthday);
+    ageBadgeEl.innerHTML = '<div style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);border:1px solid #BFDBFE;border-radius:20px;padding:4px 12px;margin-top:6px;font-size:12px;color:var(--accent-dark)">'
+      + '<span>'+homeAge.emoji+'</span><span><strong>'+escapeHtml(childName)+'</strong> — '+escapeHtml(homeAge.display)+'</span>'
+      + '<span style="background:var(--accent);color:#FFF;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600">'+homeAge.band+'</span>'
+      + '</div>';
+  } else {
+    ageBadgeEl.innerHTML = '';
+  }
+
+  // ─── Empathic Message ───
+  var empathyMessages = [
+    "You're not alone in this. Thousands of California families walk this same path — and you're already doing something powerful by being here.",
+    "Navigating the system is hard. You're doing it anyway, and that takes real strength. We're here to make each step a little clearer.",
+    "Every phone call, every form, every meeting — it all adds up. You are building something meaningful for "+escapeHtml(childName)+"'s future.",
+    "The system wasn't designed to be easy. But you don't have to figure it out alone. Waypoint is here to walk beside you.",
+    "What you're doing matters more than you know. "+escapeHtml(childName)+" is lucky to have someone fighting this hard for them.",
+    "Take a breath. You're making progress even when it doesn't feel like it. Every step forward counts."
+  ];
+  var empathyIdx = Math.floor(Date.now() / 86400000) % empathyMessages.length; // rotates daily
+  var empathyHtml = '<div style="background:linear-gradient(135deg,#F0FDFA,#ECFDF5);border:1px solid #A7F3D0;border-radius:14px;padding:16px 18px;margin-bottom:16px">';
+  empathyHtml += '<p style="font-size:14px;line-height:1.6;color:#065F46;margin:0;font-style:italic">"'+empathyMessages[empathyIdx]+'"</p>';
+  empathyHtml += '</div>';
+  document.getElementById('home-empathy').innerHTML = empathyHtml;
 
   // ─── Progress Ring ───
   var circumference = 2 * Math.PI * 30;
@@ -1445,6 +2193,29 @@ function renderHome() {
     });
   }
   document.getElementById('home-completed').innerHTML = compHtml;
+
+  // ─── Journey Map Link ───
+  var journey = getJourneyForDiagnosis();
+  var jHtml = '';
+  jHtml += '<div style="margin-top:20px;background:linear-gradient(135deg,#1B2A4A,#0F2847);border-radius:16px;padding:20px;cursor:pointer;box-shadow:0 2px 12px rgba(27,42,74,0.15)" onclick="showScreen(\'screen-journey\')">';
+  jHtml += '<div style="display:flex;align-items:center;gap:14px">';
+  jHtml += '<div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(140deg,'+journey.color+','+journey.color+'BB);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;box-shadow:0 2px 10px '+journey.color+'30">'+journey.icon+'</div>';
+  jHtml += '<div style="flex:1;min-width:0">';
+  jHtml += '<div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:2px">'+escapeHtml(childName)+'\'s Journey Map</div>';
+  jHtml += '<div style="font-size:12px;color:rgba(255,255,255,0.55);line-height:1.4">See every agency, milestone, and deadline from diagnosis to adulthood</div>';
+  // Show current phase on home journey link
+  var homeJourney = getJourneyForDiagnosis();
+  if (homeJourney && homeJourney.phases && state.intake.birthday) {
+    var homePhaseIdx = getJourneyPhaseForAge(homeJourney);
+    var homePhase = homeJourney.phases[homePhaseIdx];
+    if (homePhase) {
+      jHtml += '<div style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;background:rgba(255,255,255,0.12);border-radius:12px;padding:3px 10px"><span style="font-size:10px">📍</span><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.8)">Currently: '+escapeHtml(homePhase.label)+'</span></div>';
+    }
+  }
+  jHtml += '</div>';
+  jHtml += '<div style="color:rgba(255,255,255,0.4);font-size:18px;flex-shrink:0">→</div>';
+  jHtml += '</div></div>';
+  document.getElementById('home-journey-link').innerHTML = jHtml;
 }
 
 // ═══ DASHBOARD RENDER (Full Action List) ═══
@@ -2160,25 +2931,25 @@ function analyzeEmail() {
 
   // Render
   var html = '<div class="analysis-result">';
-  html += '<div style="font-size:16px;font-weight:700;color:var(--text);margin:16px 0 8px">Analysis: '+analysis.summary+'</div>';
+  html += '<div style="font-size:16px;font-weight:700;color:var(--text);margin:16px 0 8px">Analysis: '+escapeHtml(analysis.summary)+'</div>';
   if(analysis.red_flags.length){
     html+='<div class="expanded-section"><div class="expanded-label" style="color:var(--urgent)">🚩 Red Flags</div>';
-    analysis.red_flags.forEach(function(r){html+='<div class="analysis-tag red">'+r+'</div>'});
+    analysis.red_flags.forEach(function(r){html+='<div class="analysis-tag red">'+escapeHtml(r)+'</div>'});
     html+='</div>';
   }
   if(analysis.promises.length){
     html+='<div class="expanded-section"><div class="expanded-label" style="color:var(--warn)">📌 Promises to Track</div>';
-    analysis.promises.forEach(function(p){html+='<div class="analysis-tag yellow">"'+p.text+'" ('+p.type+')</div>'});
+    analysis.promises.forEach(function(p){html+='<div class="analysis-tag yellow">"'+escapeHtml(p.text)+'" ('+escapeHtml(p.type)+')</div>'});
     html+='</div>';
   }
   if(analysis.timeline_issues.length){
     html+='<div class="expanded-section"><div class="expanded-label">⏰ Timeline Issues</div>';
-    analysis.timeline_issues.forEach(function(t){html+='<div class="analysis-tag yellow">'+t+'</div>'});
+    analysis.timeline_issues.forEach(function(t){html+='<div class="analysis-tag yellow">'+escapeHtml(t)+'</div>'});
     html+='</div>';
   }
   if(analysis.legal_citations.length){
     html+='<div class="expanded-section"><div class="expanded-label" style="color:var(--accent)">⚖️ Applicable Law</div>';
-    analysis.legal_citations.forEach(function(c){html+='<div class="analysis-tag blue">'+c+'</div>'});
+    analysis.legal_citations.forEach(function(c){html+='<div class="analysis-tag blue">'+escapeHtml(c)+'</div>'});
     html+='</div>';
   }
 
@@ -2190,7 +2961,7 @@ function analyzeEmail() {
   resp+="If not resolved in 10 business days, I will:\n1. File 4731 complaint with DDS\n2. Contact Disability Rights CA (1-800-776-5746)\n3. Request Fair Hearing\n\nSincerely,\n"+(state.userInfo.parentName||"[Your Name]");
 
   html += '<div class="expanded-section" style="margin-top:16px"><div class="expanded-label">✉️ Draft Response <button class="action-btn copy" onclick="copyText(\'email-response\')">📋 Copy</button></div>';
-  html += '<div class="draft-box" id="email-response">'+resp.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>';
+  html += '<div class="draft-box" id="email-response">'+escapeHtml(resp)+'</div></div>';
   html += '</div>';
 
   document.getElementById('email-results').innerHTML = html;
@@ -2248,7 +3019,7 @@ function homeCheckIn(value) {
   } else if (value === 'overwhelmed') {
     document.getElementById(target).innerHTML = '<div class="checkin-card" style="margin-bottom:14px"><h3>Let\'s simplify. Focus on just the top action — everything else can wait. You\'re doing great. 💛</h3><button class="checkin-option" style="margin-top:12px;opacity:.6" onclick="renderHome()"><span class="emoji">↩️</span>Back to dashboard</button></div>';
   } else if (value === 'good') {
-    document.getElementById(target).innerHTML = '<div class="checkin-card" style="margin-bottom:14px"><h3>Amazing! Keep going. Every action you take is a step forward for '+state.userInfo.childName+'. 🎉</h3><button class="checkin-option" style="margin-top:12px;opacity:.6" onclick="renderHome()"><span class="emoji">↩️</span>Back to dashboard</button></div>';
+    document.getElementById(target).innerHTML = '<div class="checkin-card" style="margin-bottom:14px"><h3>Amazing! Keep going. Every action you take is a step forward for '+escapeHtml(state.userInfo.childName||'your child')+'. 🎉</h3><button class="checkin-option" style="margin-top:12px;opacity:.6" onclick="renderHome()"><span class="emoji">↩️</span>Back to dashboard</button></div>';
   }
 }
 
@@ -2372,7 +3143,7 @@ function handleCheckIn(value) {
   } else if (value === 'overwhelmed') {
     document.getElementById('checkin-area').innerHTML = '<div class="checkin-card"><h3>Let\'s simplify. Focus on just the top action — everything else can wait. You\'re doing great. 💛</h3></div>';
   } else if (value === 'good') {
-    document.getElementById('checkin-area').innerHTML = '<div class="checkin-card"><h3>Amazing! Keep going. Every action you take is a step forward for '+state.userInfo.childName+'. 🎉</h3></div>';
+    document.getElementById('checkin-area').innerHTML = '<div class="checkin-card"><h3>Amazing! Keep going. Every action you take is a step forward for '+escapeHtml(state.userInfo.childName||'your child')+'. 🎉</h3></div>';
   } else {
     document.getElementById('checkin-area').innerHTML = '<div class="checkin-card"><h3>The hardest part is knowing where to start. Pick any one action and make the call. You\'ve got this. 💪</h3></div>';
   }
@@ -2685,11 +3456,41 @@ function generateDeepInsuranceActions(issueType) {
 // ═══════════════════════════════════════════════════════
 
 var chatState = {
-  messages: [],
+  messages: [],   // WP-033: Now actively populated for conversation history
   isLoading: false,
   lastQuestion: null,
   lastResponse: null,
+  sessionId: null, // WP-033: Current chat session ID
 };
+
+// WP-033: Build chat history array for AI continuity (last 6 messages)
+function buildChatHistory() {
+  var recent = chatState.messages.slice(-6);
+  return recent.map(function(m) {
+    return { role: m.role, content: m.content };
+  });
+}
+
+// WP-033: Build action summary object for AI context
+function buildActionSummary() {
+  if (!state.actions || !state.actions.length) return null;
+  var allActions = [].concat(state.actions).concat(state.savedActions || []);
+  var relevant = allActions.filter(function(a) { return !state.dismissedActions[a.id]; });
+  var completedCount = relevant.filter(function(a) { return state.completedActions[a.id]; }).length;
+  var startedCount = relevant.filter(function(a) { return state.startedActions[a.id] && !state.completedActions[a.id]; }).length;
+  var pending = relevant.filter(function(a) { return !state.completedActions[a.id] && !state.startedActions[a.id]; });
+  var recentCompleted = relevant.filter(function(a) { return state.completedActions[a.id]; }).slice(-3).map(function(a) { return a.title; });
+
+  return {
+    total: relevant.length,
+    completed: completedCount,
+    started: startedCount,
+    pending: pending.length,
+    completedPct: relevant.length > 0 ? Math.round((completedCount / relevant.length) * 100) : 0,
+    topPending: pending.slice(0, 3).map(function(a) { return a.title; }),
+    recentCompleted: recentCompleted
+  };
+}
 
 function scrollChatToBottom() {
   var el = document.getElementById('chat-messages');
@@ -2766,6 +3567,12 @@ function renderProfile() {
   });
   html += '</div></div>';
 
+  // Privacy & Data note
+  html += '<div style="background:var(--muted-light);border-radius:var(--radius);padding:14px 16px;margin-top:20px;border:1px solid var(--border)">';
+  html += '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">🔒 Privacy & Data</div>';
+  html += '<p style="font-size:12px;color:var(--text-sec);line-height:1.6;margin:0">Your information is stored securely in Google\'s infrastructure (Google Sheets). It is never sold, shared with third parties, or used for advertising. You can delete all your data at any time by clicking "Start Over" on the Home screen.</p>';
+  html += '</div>';
+
   // Action buttons
   html += '<div class="profile-actions">';
   html += '<button class="profile-cancel-btn" onclick="navTo(\'screen-home\')">Cancel</button>';
@@ -2832,12 +3639,14 @@ function saveProfile() {
   state.actions = generateRichPlan(state.intake);
   saveState();
 
-  // Save to backend
+  // Save to backend — WP-033: Added failure handler to surface errors
   try {
     var userData = Object.assign({}, state.userInfo, state.intake);
     if (state.userInfo.regionalCenter) userData.regionalCenter = state.userInfo.regionalCenter.name;
     userData.diagnosis = Array.isArray(state.intake.diagnosis) ? state.intake.diagnosis.join(',') : state.intake.diagnosis;
-    google.script.run.saveUser(userData);
+    google.script.run
+      .withFailureHandler(function(err) { console.error('Profile save failed:', err); toast('⚠️ Could not save profile to server. Your changes are saved locally.'); })
+      .saveUser(userData);
   } catch(e) {}
 
   toast('Profile updated! Action plan refreshed.');
@@ -2848,17 +3657,25 @@ function getUserProfile() {
   var dxMap = {autism:'Autism (ASD)',delay:'Developmental delays',id:'Intellectual disability',cp:'Cerebral palsy',sld:'Learning disability',adhd:'ADHD',suspected:'Suspected developmental delays'};
   var ageMap = {'0-2':'0-2 (Early Start)','3-5':'3-5 (Preschool)','6-12':'6-12 (School age)','13-17':'13-17 (Transition age)'};
   var insMap = {private:'Private (employer)',medicaid:'Medi-Cal',both:'Private + Medi-Cal',none:'None / unsure'};
+  // Compute precise age if birthday is available
+  var ageInfo = state.intake.birthday ? calcChildAge(state.intake.birthday) : null;
   return {
     userId: state.userId || null,
     childName: state.userInfo.childName || null,
     parentName: state.userInfo.parentName || null,
+    birthday: state.intake.birthday || null,
     age: ageMap[state.intake.age] || state.intake.age || null,
+    childAgeYears: ageInfo ? ageInfo.years : null,
+    childAgeMonths: ageInfo ? ageInfo.months : null,
+    childAgeBand: ageInfo ? ageInfo.band : null,
+    childAgeDisplay: ageInfo ? ageInfo.display : null,
     diagnosis: (function(){ var arr=Array.isArray(state.intake.diagnosis)?state.intake.diagnosis:(state.intake.diagnosis?[state.intake.diagnosis]:[]); return arr.map(function(d){return dxMap[d]||d}).join(', ')||null; })(),
     rcStatus: state.intake.rc_status || null,
     iepStatus: state.intake.iep_status || null,
     insurance: insMap[state.intake.insurance] || state.intake.insurance || null,
     regionalCenter: state.userInfo.regionalCenter ? state.userInfo.regionalCenter.name : null,
     zipCode: state.userInfo.zipCode || null,
+    lang: state.lang || 'en',  // WP-033: Pass language preference to backend for i18n responses
   };
 }
 
@@ -2872,6 +3689,9 @@ function chatSend() {
   input.style.height = 'auto';
   chatState.lastQuestion = question;
 
+  // WP-033: Track user message in chat history
+  chatState.messages.push({ role: 'user', content: question });
+
   // Add user message
   var msgArea = document.getElementById('chat-messages');
   msgArea.innerHTML += '<div class="chat-msg user"><div class="chat-bubble">' + escapeHtml(question) + '</div></div>';
@@ -2884,16 +3704,28 @@ function chatSend() {
   chatState.isLoading = true;
   document.getElementById('chat-send-btn').disabled = true;
 
-  // Call backend
+  // WP-033: Build chat history and action summary for AI context
   var profile = getUserProfile();
+  var chatHistory = buildChatHistory();
+  var actionSummary = buildActionSummary();
+
+  // Call backend with full context
   try {
     google.script.run
       .withSuccessHandler(function(result) { chatHandleResponse(result, question); })
       .withFailureHandler(function(err) { chatHandleError(err, question); })
-      .askWaypoint(question, profile);
+      .askWaypoint(question, profile, chatHistory, actionSummary);
   } catch (e) {
     // If google.script.run not available (dev mode), show mock
     chatHandleError({message: 'Running outside Google Apps Script. Deploy the app to test the AI engine.'}, question);
+  }
+}
+
+function chatRetry() {
+  if (chatState.lastQuestion) {
+    var input = document.getElementById('chat-input');
+    input.value = chatState.lastQuestion;
+    chatSend();
   }
 }
 
@@ -2908,12 +3740,17 @@ function chatHandleResponse(result, question) {
   if (!result || !result.success) {
     var errMsg = (result && result.error) ? result.error : 'Something went wrong. Please try again.';
     var msgArea = document.getElementById('chat-messages');
-    msgArea.innerHTML += '<div class="chat-msg ai"><div class="chat-bubble"><div class="ai-inner"><div class="chat-error">' + escapeHtml(errMsg) + '</div></div></div></div>';
+    msgArea.innerHTML += '<div class="chat-msg ai"><div class="chat-bubble"><div class="ai-inner"><div class="chat-error">' + escapeHtml(errMsg) + '</div><button class="action-btn info" style="margin-top:8px;font-size:12px" onclick="chatRetry()">🔄 Try Again</button></div></div></div>';
     scrollChatToBottom();
     return;
   }
 
   chatState.lastResponse = result;
+
+  // WP-033: Track AI response in chat history for continuity
+  var aiContent = (result.empathy || '') + ' ' + (result.answer || '');
+  if (result.clarifying_question) aiContent += ' ' + result.clarifying_question;
+  chatState.messages.push({ role: 'ai', content: aiContent.trim() });
 
   // Build AI response card
   var html = '<div class="chat-msg ai"><div class="chat-bubble"><div class="ai-inner">';
@@ -2943,10 +3780,27 @@ function chatHandleResponse(result, question) {
     html += '<div class="chat-answer">' + escapeHtml(result.answer) + '</div>';
   }
 
-  // Clarifying follow-up question — rendered as natural conversational text
+  // Sections — for complex multi-part answers
+  if (result.sections && result.sections.length) {
+    result.sections.forEach(function(section) {
+      html += '<div style="margin-top:14px;padding:14px 16px;background:#F8FAFC;border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0">';
+      html += '<div style="font-weight:700;color:var(--navy);font-size:15px;margin-bottom:6px">' + escapeHtml(section.title || '') + '</div>';
+      html += '<div style="font-size:14px;line-height:1.6;color:var(--text)">' + escapeHtml(section.content || '') + '</div>';
+      html += '</div>';
+    });
+  }
+
+  // Important context — critical nuances
+  if (result.important_context) {
+    html += '<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.5;color:#9A3412">';
+    html += '<span style="font-weight:700">Key context: </span>' + escapeHtml(result.important_context);
+    html += '</div>';
+  }
+
+  // Clarifying follow-up question — rendered prominently
   if (result.clarifying_question) {
-    html += '<div style="background:var(--accent-light);border-radius:var(--radius-sm);padding:12px;margin-top:10px;margin-bottom:10px;font-size:14px;color:var(--accent-dark);font-style:italic;line-height:1.5">';
-    html += escapeHtml(result.clarifying_question);
+    html += '<div style="background:var(--accent-light);border-radius:var(--radius-sm);padding:14px;margin-top:12px;margin-bottom:10px;font-size:14.5px;color:var(--accent-dark);line-height:1.5;border-left:3px solid var(--accent)">';
+    html += '<span style="font-weight:600">Before I go further: </span>' + escapeHtml(result.clarifying_question);
     html += '</div>';
   }
 
@@ -2982,6 +3836,14 @@ function chatHandleResponse(result, question) {
     html += '<div class="chat-watchout">';
     html += '<div class="chat-watchout-label">Watch Out</div>';
     html += '<div class="chat-watchout-text">' + escapeHtml(result.watch_out) + '</div>';
+    html += '</div>';
+  }
+
+  // Resources — support organizations, websites, phone numbers
+  if (result.resources) {
+    html += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px">';
+    html += '<div style="font-weight:700;font-size:13px;color:#166534;margin-bottom:4px">Resources & Support</div>';
+    html += '<div style="font-size:14px;line-height:1.6;color:#15803D">' + escapeHtml(result.resources) + '</div>';
     html += '</div>';
   }
 
@@ -3024,9 +3886,37 @@ function chatHandleError(err, question) {
   var loadEl = document.getElementById('chat-loading');
   if (loadEl) loadEl.remove();
 
-  var errMsg = err && err.message ? err.message : 'Something went wrong. Please try again.';
+  var errMsg = err && err.message ? err.message : 'Something went wrong.';
   var msgArea = document.getElementById('chat-messages');
-  msgArea.innerHTML += '<div class="chat-msg ai"><div class="chat-bubble"><div class="ai-inner"><div class="chat-error">' + escapeHtml(errMsg) + '</div></div></div></div>';
+
+  // Build helpful fallback message
+  var fallbackHtml = '<div class="chat-msg ai"><div class="chat-bubble"><div class="ai-inner">';
+  fallbackHtml += '<div class="chat-error" style="margin-bottom:10px">Our AI assistant is temporarily unavailable. Don\'t worry — here\'s what you can do right now:</div>';
+
+  // Show profile-based suggestions
+  var nextActions = state.actions.filter(function(a){ return !state.completedActions[a.id] && !state.dismissedActions[a.id]; }).slice(0,3);
+  if (nextActions.length) {
+    fallbackHtml += '<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px">Your next recommended steps:</div>';
+    nextActions.forEach(function(a) {
+      fallbackHtml += '<div style="background:var(--accent-light);border:1px solid #BFDBFE;border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:13px">';
+      fallbackHtml += '<strong style="color:var(--accent-dark)">'+escapeHtml(a.title)+'</strong>';
+      if (a.deadline) fallbackHtml += ' <span style="color:var(--warn);font-size:11px">⏰ '+escapeHtml(a.deadline)+'</span>';
+      fallbackHtml += '</div>';
+    });
+  }
+
+  // Show helpful contacts
+  if (state.userInfo.regionalCenter) {
+    var rc = state.userInfo.regionalCenter;
+    fallbackHtml += '<div style="background:var(--teal-light);border:1px solid #99F6E4;border-radius:8px;padding:8px 12px;margin-top:8px;font-size:13px">';
+    fallbackHtml += '<strong>Your RC:</strong> '+escapeHtml(rc.name)+' — <a href="tel:'+rc.phone.replace(/[^\d]/g,'')+'">'+escapeHtml(rc.phone)+'</a>';
+    fallbackHtml += '</div>';
+  }
+
+  fallbackHtml += '<div style="font-size:11px;color:var(--muted);margin-top:8px">Try your question again in a moment, or browse your Action Plan for guidance.</div>';
+  fallbackHtml += '</div></div></div>';
+
+  msgArea.innerHTML += fallbackHtml;
   scrollChatToBottom();
 }
 
@@ -3447,6 +4337,51 @@ function qaSaveRating(testId) {
       alert('Error saving: ' + (res.error || 'Unknown'));
     }
   }).rateQATest(testId, rating, feedback);
+}
+
+// ═══ INTERNATIONALIZATION (i18n) FUNCTIONS ═══
+function toggleLang() {
+  state.lang = state.lang === 'en' ? 'es' : 'en';
+  var btn = document.getElementById('lang-toggle');
+  if (btn) {
+    btn.textContent = state.lang === 'es' ? 'EN 🇺🇸' : 'ES 🇲🇽';
+    btn.setAttribute('aria-label', state.lang === 'es' ? 'Cambiar a inglés' : 'Switch to Spanish');
+  }
+  updateLandingStrings();
+}
+
+function updateLandingStrings() {
+  // Update landing page text elements based on current language
+  var logoEl = document.querySelector('.landing-logo');
+  if (logoEl) logoEl.textContent = t('brand');
+
+  var taglineEl = document.querySelector('.landing-tagline');
+  if (taglineEl) taglineEl.innerHTML = t('tagline');
+
+  var features = document.querySelectorAll('.landing-feature');
+  if (features.length >= 4) {
+    // AI Navigator feature
+    features[0].querySelector('h3').textContent = t('ai_navigator');
+    features[0].querySelector('p').textContent = t('ai_nav_desc');
+
+    // Personalized Plan feature
+    features[1].querySelector('h3').textContent = t('personalized_plan');
+    features[1].querySelector('p').textContent = t('plan_desc');
+
+    // Draft Letters feature
+    features[2].querySelector('h3').textContent = t('draft_letters');
+    features[2].querySelector('p').textContent = t('letters_desc');
+
+    // Know Your Rights feature
+    features[3].querySelector('h3').textContent = t('know_rights');
+    features[3].querySelector('p').textContent = t('rights_desc');
+  }
+
+  var btnPrimary = document.querySelector('.btn-primary');
+  if (btnPrimary) btnPrimary.textContent = t('get_started');
+
+  var landingNote = document.querySelector('.landing-note');
+  if (landingNote) landingNote.textContent = t('no_account');
 }
 
 // ═══ PAGE LOAD — restore session or show landing ═══
