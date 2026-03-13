@@ -4,33 +4,17 @@
  */
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import HomeScreen from '@/screens/main/HomeScreen';
 import NavigatorScreen from '@/screens/main/NavigatorScreen';
 import ActionsScreen from '@/screens/main/ActionsScreen';
+import CalendarScreen from '@/screens/main/CalendarScreen';
 import ProfileScreen from '@/screens/main/ProfileScreen';
-import { colors, fonts, spacing } from '@/lib/theme';
+import { colors, fonts } from '@/lib/theme';
 import type { MainTabParamList } from '@/types/navigation';
 
 const Tab = createBottomTabNavigator();
-
-// ─── Placeholder screens for Sprint 2-4 ────────────────────────────────────
-
-function PlaceholderScreen({ title, sprint }: { title: string; sprint: string }) {
-  return (
-    <SafeAreaView style={styles.placeholder}>
-      <Text style={styles.placeholderEmoji}>🚧</Text>
-      <Text style={styles.placeholderTitle}>{title}</Text>
-      <Text style={styles.placeholderSubtitle}>Coming in {sprint}</Text>
-    </SafeAreaView>
-  );
-}
-
-function CalendarScreen() {
-  return <PlaceholderScreen title="Calendar & Deadlines" sprint="Sprint 4" />;
-}
 
 // ─── Tab Icons (simple text-based until we add an icon library) ─────────────
 
@@ -116,26 +100,5 @@ const styles = StyleSheet.create({
   },
   tabIconFocused: {
     opacity: 1,
-  },
-  placeholder: {
-    flex: 1,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  placeholderEmoji: {
-    fontSize: 48,
-    marginBottom: spacing.md,
-  },
-  placeholderTitle: {
-    fontSize: fonts.sizes['2xl'],
-    fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
-    marginBottom: spacing.sm,
-  },
-  placeholderSubtitle: {
-    fontSize: fonts.sizes.md,
-    color: colors.mid,
   },
 });
