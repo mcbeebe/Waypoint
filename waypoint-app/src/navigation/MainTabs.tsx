@@ -9,6 +9,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HomeScreen from '@/screens/main/HomeScreen';
 import NavigatorScreen from '@/screens/main/NavigatorScreen';
+import ActionsScreen from '@/screens/main/ActionsScreen';
 import ProfileScreen from '@/screens/main/ProfileScreen';
 import { colors, fonts, spacing } from '@/lib/theme';
 import type { MainTabParamList } from '@/types/navigation';
@@ -25,10 +26,6 @@ function PlaceholderScreen({ title, sprint }: { title: string; sprint: string })
       <Text style={styles.placeholderSubtitle}>Coming in {sprint}</Text>
     </SafeAreaView>
   );
-}
-
-function ActionsScreen() {
-  return <PlaceholderScreen title="Action Plan" sprint="Sprint 3" />;
 }
 
 function CalendarScreen() {

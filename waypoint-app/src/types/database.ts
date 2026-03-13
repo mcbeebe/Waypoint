@@ -175,6 +175,62 @@ export interface ChatMessage {
   created_at: string;
 }
 
+// ─── Actions (Sprint 3) ─────────────────────────────────────────────────────
+
+export type ActionStatus = 'not_started' | 'in_progress' | 'completed' | 'dismissed';
+export type ActionCategory = 'regional_center' | 'iep' | 'insurance' | 'benefits' | 'medical' | 'legal' | 'general';
+export type ActionPriority = 'urgent' | 'high' | 'medium' | 'low';
+export type ActionSource = 'ai_navigator' | 'manual' | 'system';
+
+export interface ActionStep {
+  step: string;
+  done: boolean;
+}
+
+export interface Action {
+  id: string;
+  family_id: string;
+  child_id: string | null;
+  chat_session_id: string | null;
+  title: string;
+  description: string | null;
+  category: ActionCategory;
+  priority: ActionPriority;
+  status: ActionStatus;
+  script: string | null;
+  steps: ActionStep[] | null;
+  kb_article_ids: string[] | null;
+  due_date: string | null;
+  deadline_warning_days: number;
+  completed_at: string | null;
+  dismissed_at: string | null;
+  dismissed_reason: string | null;
+  source: ActionSource;
+  source_message_id: string | null;
+  follow_up_date: string | null;
+  follow_up_note: string | null;
+  reminder_sent: boolean;
+  local_id: string | null;
+  synced_at: string | null;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Aggregated action stats from the action_stats view */
+export interface ActionStats {
+  family_id: string;
+  total_actions: number;
+  completed_count: number;
+  in_progress_count: number;
+  not_started_count: number;
+  dismissed_count: number;
+  completion_rate: number | null;
+  avg_days_to_complete: number | null;
+}
+
+// ─── Knowledge Base ─────────────────────────────────────────────────────────
+
 export interface KnowledgeEmbedding {
   id: string;
   content: string;
