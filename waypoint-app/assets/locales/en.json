@@ -1,0 +1,5 @@
+{
+  "CFBundleDisplayName": "Waypoint",
+  "NSCameraUsageDescription": "Waypoint uses the camera to scan documents for your Document Vault.",
+  "NSPhotoLibraryUsageDescription": "Waypoint accesses your photos to upload documents to your Document Vault."
+}

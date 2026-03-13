@@ -1,0 +1,5 @@
+{
+  "CFBundleDisplayName": "Waypoint",
+  "NSCameraUsageDescription": "Waypoint sử dụng máy ảnh để quét tài liệu cho Kho Tài Liệu của bạn.",
+  "NSPhotoLibraryUsageDescription": "Waypoint truy cập ảnh của bạn để tải tài liệu lên Kho Tài Liệu của bạn."
+}
