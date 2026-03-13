@@ -162,7 +162,7 @@ export default function ProfileScreen() {
         {/* Family Info Section */}
         <Text style={styles.sectionTitle}>Family Info</Text>
         <View style={styles.card}>
-          <Text style={styles.inputLabel}>Your first name</Text>
+          <Text style={styles.inputLabel} nativeID="label-parent-name">Your first name</Text>
           <TextInput
             style={styles.input}
             value={parentName}
@@ -170,9 +170,10 @@ export default function ProfileScreen() {
             placeholder="e.g., Sarah"
             placeholderTextColor={colors.mid}
             autoCapitalize="words"
+            accessibilityLabel="Your first name"
           />
 
-          <Text style={styles.inputLabel}>Email</Text>
+          <Text style={styles.inputLabel} nativeID="label-email">Email</Text>
           <TextInput
             style={styles.input}
             value={email}
@@ -181,9 +182,10 @@ export default function ProfileScreen() {
             placeholderTextColor={colors.mid}
             keyboardType="email-address"
             autoCapitalize="none"
+            accessibilityLabel="Email address"
           />
 
-          <Text style={styles.inputLabel}>Child's first name</Text>
+          <Text style={styles.inputLabel} nativeID="label-child-name">Child's first name</Text>
           <TextInput
             style={styles.input}
             value={childName}
@@ -191,9 +193,10 @@ export default function ProfileScreen() {
             placeholder="e.g., Maya"
             placeholderTextColor={colors.mid}
             autoCapitalize="words"
+            accessibilityLabel="Child's first name"
           />
 
-          <Text style={styles.inputLabel}>ZIP code</Text>
+          <Text style={styles.inputLabel} nativeID="label-zip">ZIP code</Text>
           <TextInput
             style={styles.input}
             value={zipCode}
@@ -202,6 +205,7 @@ export default function ProfileScreen() {
             placeholderTextColor={colors.mid}
             keyboardType="number-pad"
             maxLength={5}
+            accessibilityLabel="ZIP code"
           />
         </View>
 

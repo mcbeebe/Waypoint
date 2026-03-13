@@ -1,22 +1,34 @@
 /**
- * AI Navigator service — interfaces with Anthropic Claude API
- * Ported and enhanced from GAS MVP Code.gs AI engine
+ * AI Navigator service — interfaces with Anthropic Claude via Supabase Edge Function
+ *
+ * All API calls route through the ai-proxy Edge Function to keep
+ * API keys server-side. The client sends the Supabase JWT for auth.
  *
  * Features:
- * - Streaming responses via Anthropic Messages API
+ * - Streaming responses via SSE (proxied through Edge Function)
  * - Tone calibration (collaborative → assertive → adversarial)
  * - RAG context injection from pgvector KB
  * - Family context personalization
+ * - Prompt caching for cost optimization
  */
 
-import type { ChatContext, ToneLevel, ChatMessage } from '@/types/database';
+import { supabase } from './supabase';
+import type { ChatContext, ToneLevel } from '@/types/database';
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = 'claude-sonnet-4-20250514';
-const MAX_TOKENS = 2048;
+const EDGE_FN_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/ai-proxy`;
+
+/** Get current Supabase auth token for Edge Function auth */
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token ?? '';
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+}
 
 /** System prompt builder — ported from GAS MVP with enhancements */
-function buildSystemPrompt(context: ChatContext, ragContext: string): string {
+export function buildSystemPrompt(context: ChatContext, ragContext: string): string {
   const toneInstructions = getToneInstructions(context.toneLevel);
 
   const childInfo = context.childAge
@@ -31,7 +43,7 @@ function buildSystemPrompt(context: ChatContext, ragContext: string): string {
     context.county && `County: ${context.county}`,
     context.regionalCenter && `Regional Center: ${context.regionalCenter}`,
     context.schoolDistrict && `School District: ${context.schoolDistrict}`,
-    context.insuranceCarrier && `Insurance: ${context.insuranceCarrier}${context.toneLevel === 'collaborative' ? '' : ''}`,
+    context.insuranceCarrier && `Insurance: ${context.insuranceCarrier}`,
   ]
     .filter(Boolean)
     .join('. ');
@@ -65,7 +77,7 @@ ${ragContext}
 }
 
 /** Tone calibration instructions (ported from GAS MVP) */
-function getToneInstructions(tone: ToneLevel): string {
+export function getToneInstructions(tone: ToneLevel): string {
   switch (tone) {
     case 'collaborative':
       return `Use a warm, supportive, collaborative tone. Assume the system (Regional Center, school district, insurance) is acting in good faith and guide the parent through standard processes. Focus on partnership language: "working together," "requesting," "sharing your concerns." This is the default starting tone for new conversations.`;
@@ -85,42 +97,38 @@ interface StreamCallbacks {
 }
 
 /**
- * Send a message to the AI Navigator with streaming response
- * @param messages - Conversation history
- * @param context - Family context for personalization
- * @param ragContext - Retrieved KB articles
- * @param apiKey - Anthropic API key
- * @param callbacks - Streaming callbacks
+ * Send a message to the AI Navigator with streaming response.
+ * Routes through the Supabase Edge Function (ai-proxy) to keep API keys server-side.
+ *
+ * Includes prompt caching: the system prompt uses cache_control breakpoints
+ * so the static portions (instructions, KB context) are cached across messages.
  */
 export async function streamNavigatorResponse(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   context: ChatContext,
   ragContext: string,
-  apiKey: string,
+  _apiKey: string, // kept for backward compat — ignored, auth via JWT
   callbacks: StreamCallbacks
 ): Promise<void> {
   const systemPrompt = buildSystemPrompt(context, ragContext);
+  const headers = await getAuthHeaders();
 
   try {
-    const response = await fetch(ANTHROPIC_API_URL, {
+    const response = await fetch(EDGE_FN_URL, {
       method: 'POST',
-      headers: {
-        'anthropic-version': '2023-06-01',
-        'x-api-key': apiKey,
-        'content-type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
+        action: 'chat',
         system: systemPrompt,
         messages,
-        stream: true,
+        // Prompt caching: system prompt cached on Anthropic side
+        // The Edge Function passes this through to the Anthropic API
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Anthropic API error (${response.status}): ${errorText}`);
+      throw new Error(`AI proxy error (${response.status}): ${errorText}`);
     }
 
     if (!response.body) {
@@ -164,7 +172,6 @@ export async function streamNavigatorResponse(
       }
     }
 
-    // If we exit the loop without message_stop, still complete
     callbacks.onComplete(fullText);
   } catch (error) {
     callbacks.onError(
@@ -180,20 +187,16 @@ export async function getNavigatorResponse(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   context: ChatContext,
   ragContext: string,
-  apiKey: string
+  _apiKey: string
 ): Promise<string> {
   const systemPrompt = buildSystemPrompt(context, ragContext);
+  const headers = await getAuthHeaders();
 
-  const response = await fetch(ANTHROPIC_API_URL, {
+  const response = await fetch(EDGE_FN_URL, {
     method: 'POST',
-    headers: {
-      'anthropic-version': '2023-06-01',
-      'x-api-key': apiKey,
-      'content-type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
+      action: 'chat',
       system: systemPrompt,
       messages,
     }),
@@ -201,22 +204,40 @@ export async function getNavigatorResponse(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Anthropic API error (${response.status}): ${errorText}`);
+    throw new Error(`AI proxy error (${response.status}): ${errorText}`);
   }
 
-  const result = await response.json();
-  return result.content[0]?.text ?? '';
+  // For non-streaming, collect the full SSE response
+  const text = await response.text();
+  const lines = text.split('\n');
+  let fullText = '';
+
+  for (const line of lines) {
+    if (!line.startsWith('data: ')) continue;
+    const data = line.slice(6).trim();
+    if (data === '[DONE]') continue;
+    try {
+      const event = JSON.parse(data);
+      if (event.type === 'content_block_delta' && event.delta?.text) {
+        fullText += event.delta.text;
+      }
+    } catch {
+      // skip
+    }
+  }
+
+  return fullText;
 }
 
 /**
- * Classify user intent to determine which KB sources to search
- * Uses a fast model (Haiku) for low-latency classification
+ * Classify user intent to determine which KB sources to search.
+ * Uses a fast model (Haiku) via the Edge Function.
  */
 export async function classifyIntent(
   query: string,
-  apiKey: string
+  _apiKey: string
 ): Promise<{ sources: string[]; suggestedTone: ToneLevel }> {
-  const classificationPrompt = `Classify this parent's question about California disability services.
+  const classificationPrompt = `You are a classifier for a California disability services app. Classify this parent's question.
 
 Question: "${query}"
 
@@ -233,28 +254,24 @@ Rules:
 - If about processes, eligibility, or how-to → tone: "collaborative"
 - If about pushing back, delays, or escalation → tone: "assertive"`;
 
-  const response = await fetch(ANTHROPIC_API_URL, {
-    method: 'POST',
-    headers: {
-      'anthropic-version': '2023-06-01',
-      'x-api-key': apiKey,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 256,
-      messages: [{ role: 'user', content: classificationPrompt }],
-    }),
-  });
-
-  if (!response.ok) {
-    // Fall back to default classification on error
-    return { sources: [], suggestedTone: 'collaborative' };
-  }
-
   try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(EDGE_FN_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        action: 'classify',
+        query: classificationPrompt,
+        system: 'You are an intent classifier. Respond with valid JSON only.',
+      }),
+    });
+
+    if (!response.ok) {
+      return { sources: [], suggestedTone: 'collaborative' };
+    }
+
     const result = await response.json();
-    const text = result.content[0]?.text ?? '{}';
+    const text = result.content?.[0]?.text ?? '{}';
     const parsed = JSON.parse(text);
     return {
       sources: parsed.sources ?? [],

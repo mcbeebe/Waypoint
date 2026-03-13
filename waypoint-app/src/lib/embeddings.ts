@@ -1,47 +1,49 @@
 /**
- * Embedding service — generates vector embeddings via OpenAI API
- * Used for both KB article ingestion and query-time embedding
+ * Embedding service — generates vector embeddings via Supabase Edge Function
+ * The Edge Function proxies to OpenAI, keeping API keys server-side.
  */
 
-const OPENAI_API_URL = 'https://api.openai.com/v1/embeddings';
+import { supabase } from './supabase';
+
+const EDGE_FN_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/ai-proxy`;
 const EMBEDDING_MODEL = 'text-embedding-3-small';
 const EMBEDDING_DIMENSIONS = 1536;
 
-interface EmbeddingResponse {
-  data: Array<{ embedding: number[]; index: number }>;
-  usage: { prompt_tokens: number; total_tokens: number };
+/** Get current Supabase auth token */
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token ?? '';
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
 }
 
 /**
- * Generate an embedding vector for a single text string
+ * Generate an embedding vector for a single text string.
+ * Routes through Edge Function — no API key needed client-side.
  * @param text - The text to embed
- * @param apiKey - OpenAI API key
+ * @param _apiKey - Ignored (kept for backward compat — auth via JWT)
  * @returns 1536-dimensional embedding vector
  */
 export async function generateEmbedding(
   text: string,
-  apiKey: string
+  _apiKey: string
 ): Promise<number[]> {
   try {
-    const response = await fetch(OPENAI_API_URL, {
+    const headers = await getAuthHeaders();
+    const response = await fetch(EDGE_FN_URL, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: EMBEDDING_MODEL,
-        input: text,
-        dimensions: EMBEDDING_DIMENSIONS,
-      }),
+      headers,
+      body: JSON.stringify({ action: 'embed', texts: [text] }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`OpenAI API error (${response.status}): ${error}`);
+      throw new Error(`Embedding proxy error (${response.status}): ${error}`);
     }
 
-    const result: EmbeddingResponse = await response.json();
+    const result = await response.json();
     return result.data[0].embedding;
   } catch (error) {
     throw new Error(
@@ -51,38 +53,33 @@ export async function generateEmbedding(
 }
 
 /**
- * Generate embeddings for multiple texts in a single batch
+ * Generate embeddings for multiple texts in a single batch.
+ * Routes through Edge Function — no API key needed client-side.
  * @param texts - Array of texts to embed
- * @param apiKey - OpenAI API key
+ * @param _apiKey - Ignored (kept for backward compat — auth via JWT)
  * @returns Array of 1536-dimensional embedding vectors
  */
 export async function generateBatchEmbeddings(
   texts: string[],
-  apiKey: string
+  _apiKey: string
 ): Promise<number[][]> {
   try {
-    const response = await fetch(OPENAI_API_URL, {
+    const headers = await getAuthHeaders();
+    const response = await fetch(EDGE_FN_URL, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: EMBEDDING_MODEL,
-        input: texts,
-        dimensions: EMBEDDING_DIMENSIONS,
-      }),
+      headers,
+      body: JSON.stringify({ action: 'embed', texts }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`OpenAI API error (${response.status}): ${error}`);
+      throw new Error(`Embedding proxy error (${response.status}): ${error}`);
     }
 
-    const result: EmbeddingResponse = await response.json();
+    const result = await response.json();
     return result.data
-      .sort((a, b) => a.index - b.index)
-      .map((d) => d.embedding);
+      .sort((a: { index: number }, b: { index: number }) => a.index - b.index)
+      .map((d: { embedding: number[] }) => d.embedding);
   } catch (error) {
     throw new Error(
       `Failed to generate batch embeddings: ${error instanceof Error ? error.message : String(error)}`

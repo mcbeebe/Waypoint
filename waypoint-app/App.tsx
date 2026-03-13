@@ -16,6 +16,7 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 import { useAuth } from './src/hooks/useAuth';
 import { supabase } from './src/lib/supabase';
+import { initSentry, setSentryUser, clearSentryUser } from './src/lib/sentry';
 import WelcomeScreen from './src/screens/auth/WelcomeScreen';
 import OnboardingFlow from './src/screens/onboarding/OnboardingFlow';
 import MainTabs from './src/navigation/MainTabs';
@@ -24,6 +25,9 @@ import NetworkBanner from './src/components/NetworkBanner';
 import { ToastProvider } from './src/components/Toast';
 import { I18nProvider } from './src/i18n';
 import { colors } from './src/lib/theme';
+
+// Initialize Sentry crash reporting (no-op if DSN not configured)
+initSentry();
 
 const Stack = createNativeStackNavigator();
 
@@ -73,6 +77,15 @@ export default function App() {
   useEffect(() => {
     checkOnboarding();
   }, [checkOnboarding]);
+
+  // Track user context in Sentry for crash reports (family ID only, no PII)
+  useEffect(() => {
+    if (session?.user?.id) {
+      setSentryUser(session.user.id);
+    } else {
+      clearSentryUser();
+    }
+  }, [session?.user?.id]);
 
   const handleOnboardingComplete = useCallback(() => {
     setOnboardingComplete(true);

@@ -7,7 +7,7 @@
  * - Message persistence via Supabase
  */
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useChat, type UIMessage } from '@/hooks/useChat';
+import { useActions } from '@/hooks/useActions';
 import { useDiagnoses } from '@/hooks/useFamily';
+import { useToast } from '@/components/Toast';
 import type { ChatContext, ToneLevel } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -68,6 +70,7 @@ export default function NavigatorScreen() {
     messages,
     isLoading,
     error,
+    sessionId,
     toneLevel,
     sendMessage,
     setToneLevel,
@@ -79,9 +82,47 @@ export default function NavigatorScreen() {
     openAiKey: OPENAI_KEY,
   });
 
+  const { createAction } = useActions({ familyId: family?.id ?? '' });
+  const { showToast } = useToast();
+
   const [inputText, setInputText] = useState('');
   const [showTonePicker, setShowTonePicker] = useState(false);
+  const [savingMessageId, setSavingMessageId] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
+
+  /** Save an AI response as an action plan item */
+  const handleSaveAsAction = useCallback(async (message: UIMessage) => {
+    if (savingMessageId) return;
+    setSavingMessageId(message.id);
+
+    try {
+      // Extract a title from the first line/sentence of the message (max 100 chars)
+      const firstLine = message.content.split('\n')[0].trim();
+      const title = firstLine.length > 100
+        ? firstLine.slice(0, 97) + '...'
+        : firstLine;
+
+      const action = await createAction({
+        title,
+        description: message.content.slice(0, 500),
+        source: 'ai_navigator',
+        source_message_id: message.id,
+        chat_session_id: sessionId ?? undefined,
+        category: 'general',
+        priority: 'medium',
+      });
+
+      if (action) {
+        showToast('Saved to your Action Plan!', 'success');
+      } else {
+        showToast('Saved offline — will sync when connected', 'info');
+      }
+    } catch (err) {
+      showToast('Failed to save action', 'error');
+    } finally {
+      setSavingMessageId(null);
+    }
+  }, [savingMessageId, createAction, sessionId, showToast]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -164,7 +205,13 @@ export default function NavigatorScreen() {
             ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <MessageBubble message={item} />}
+            renderItem={({ item }) => (
+              <MessageBubble
+                message={item}
+                onSaveAction={handleSaveAsAction}
+                isSaving={savingMessageId === item.id}
+              />
+            )}
             contentContainerStyle={styles.messageList}
             showsVerticalScrollIndicator={false}
           />
@@ -191,6 +238,8 @@ export default function NavigatorScreen() {
             returnKeyType="send"
             blurOnSubmit={false}
             onSubmitEditing={handleSend}
+            accessibilityLabel="Message input"
+            accessibilityHint="Type your question about disability services"
           />
           <TouchableOpacity
             style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
@@ -236,9 +285,18 @@ function WelcomeView({ onSuggestion }: { onSuggestion: (text: string) => void })
   );
 }
 
-/** Individual message bubble */
-function MessageBubble({ message }: { message: UIMessage }) {
+/** Individual message bubble with optional save-to-action button */
+function MessageBubble({
+  message,
+  onSaveAction,
+  isSaving,
+}: {
+  message: UIMessage;
+  onSaveAction?: (msg: UIMessage) => void;
+  isSaving?: boolean;
+}) {
   const isUser = message.role === 'user';
+  const showSaveButton = !isUser && !message.isStreaming && message.content.length > 0;
 
   return (
     <View style={[styles.bubbleRow, isUser && styles.bubbleRowUser]}>
@@ -247,21 +305,38 @@ function MessageBubble({ message }: { message: UIMessage }) {
           <Text style={styles.avatarSmallText}>🧭</Text>
         </View>
       )}
-      <View
-        style={[
-          styles.bubble,
-          isUser ? styles.bubbleUser : styles.bubbleAssistant,
-        ]}
-      >
-        <Text
+      <View style={styles.bubbleWrapper}>
+        <View
           style={[
-            styles.bubbleText,
-            isUser ? styles.bubbleTextUser : styles.bubbleTextAssistant,
+            styles.bubble,
+            isUser ? styles.bubbleUser : styles.bubbleAssistant,
           ]}
         >
-          {message.content}
-          {message.isStreaming && <Text style={styles.cursor}>▊</Text>}
-        </Text>
+          <Text
+            style={[
+              styles.bubbleText,
+              isUser ? styles.bubbleTextUser : styles.bubbleTextAssistant,
+            ]}
+          >
+            {message.content}
+            {message.isStreaming && <Text style={styles.cursor}>▊</Text>}
+          </Text>
+        </View>
+        {showSaveButton && onSaveAction && (
+          <TouchableOpacity
+            style={styles.saveActionButton}
+            onPress={() => onSaveAction(message)}
+            disabled={isSaving}
+            accessibilityRole="button"
+            accessibilityLabel="Save this response as an action plan item"
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color={colors.teal} />
+            ) : (
+              <Text style={styles.saveActionText}>Save as Action</Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -374,6 +449,9 @@ const styles = StyleSheet.create({
   bubbleRowUser: {
     justifyContent: 'flex-end',
   },
+  bubbleWrapper: {
+    maxWidth: '78%',
+  },
   avatarSmall: {
     width: 28,
     height: 28,
@@ -387,7 +465,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   bubble: {
-    maxWidth: '78%',
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.base,
@@ -514,5 +591,22 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     color: colors.teal,
     lineHeight: 18,
+  },
+  saveActionButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    marginTop: 4,
+    borderRadius: radii.sm,
+    backgroundColor: '#E6F7F5',
+    borderWidth: 1,
+    borderColor: colors.teal,
+    minHeight: 24,
+    justifyContent: 'center',
+  },
+  saveActionText: {
+    fontSize: 10,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
   },
 });

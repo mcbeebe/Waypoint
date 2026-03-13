@@ -58,9 +58,19 @@ serve(async (req: Request) => {
     const body = await req.json();
     const { action } = body;
 
-    // ─── Chat (streaming) ────────────────────────────────────────────
+    // ─── Chat (streaming + prompt caching) ──────────────────────────
     if (action === 'chat') {
       const { messages, system, model } = body;
+
+      // Use prompt caching: wrap system prompt in cache_control blocks
+      // so the static instructions + KB context are cached across turns
+      const systemBlocks = [
+        {
+          type: 'text',
+          text: system,
+          cache_control: { type: 'ephemeral' },
+        },
+      ];
 
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -68,11 +78,12 @@ serve(async (req: Request) => {
           'Content-Type': 'application/json',
           'x-api-key': ANTHROPIC_API_KEY,
           'anthropic-version': '2023-06-01',
+          'anthropic-beta': 'prompt-caching-2024-07-31',
         },
         body: JSON.stringify({
           model: model ?? 'claude-sonnet-4-20250514',
           max_tokens: 4096,
-          system,
+          system: systemBlocks,
           messages,
           stream: true,
         }),

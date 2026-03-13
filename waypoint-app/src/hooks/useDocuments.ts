@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '@/lib/supabase';
 import type { Document, DocumentType } from '@/types/database';
 
@@ -198,6 +199,42 @@ export function useDocuments(options: UseDocumentsOptions) {
     return acc;
   }, {});
 
+  /**
+   * Launch the native document picker and upload the selected file.
+   * Convenience method that combines expo-document-picker + uploadDocument.
+   */
+  const pickAndUpload = useCallback(async (
+    documentType: DocumentType,
+    title?: string,
+    childIdOverride?: string
+  ): Promise<Document | null> => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/*', 'application/msword',
+               'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || !result.assets?.[0]) return null;
+
+      const asset = result.assets[0];
+      return await uploadDocument({
+        title: title ?? asset.name ?? 'Untitled Document',
+        document_type: documentType,
+        child_id: childIdOverride ?? childId ?? undefined,
+        file: {
+          uri: asset.uri,
+          name: asset.name ?? 'document',
+          type: asset.mimeType ?? 'application/octet-stream',
+          size: asset.size ?? 0,
+        },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      return null;
+    }
+  }, [uploadDocument, childId]);
+
   return {
     documents,
     loading,
@@ -206,6 +243,7 @@ export function useDocuments(options: UseDocumentsOptions) {
     countByType,
     uploadDocument,
     createDocument,
+    pickAndUpload,
     getDownloadUrl,
     updateDocument,
     refetch,

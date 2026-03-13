@@ -17,6 +17,7 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { percentageLabel } from '@/lib/accessibility';
 
 /** Get time-based greeting (ported from GAS MVP) */
 function getGreeting(): string {
@@ -125,7 +126,12 @@ export default function HomeScreen() {
         )}
 
         {/* Empathy Message */}
-        <View style={styles.empathyCard}>
+        <View
+          style={styles.empathyCard}
+          accessible={true}
+          accessibilityRole="text"
+          accessibilityLabel={`Encouragement: ${EMPATHY_MESSAGES[empathyIndex]}`}
+        >
           <Text style={styles.empathyText}>
             {EMPATHY_MESSAGES[empathyIndex]}
           </Text>
@@ -136,6 +142,9 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.alertCard}
             onPress={() => (navigation as any).navigate('Calendar')}
+            accessibilityRole="button"
+            accessibilityLabel={`${urgentDeadlines.length} upcoming deadline${urgentDeadlines.length !== 1 ? 's' : ''}, tap to view calendar`}
+            accessibilityHint="Opens the calendar screen"
           >
             <Text style={styles.alertEmoji}>⚠️</Text>
             <View style={styles.alertContent}>
@@ -155,7 +164,12 @@ export default function HomeScreen() {
         <View style={styles.progressCard}>
           <Text style={styles.progressTitle}>Your Action Plan</Text>
           <View style={styles.progressRow}>
-            <View style={styles.progressRing}>
+            <View
+              style={styles.progressRing}
+              accessible={true}
+              accessibilityRole="text"
+              accessibilityLabel={percentageLabel(completionPct, 'of action items complete')}
+            >
               <Text style={[styles.progressNumber, completionPct > 0 && { color: colors.sage }]}>
                 {Math.round(completionPct)}%
               </Text>
