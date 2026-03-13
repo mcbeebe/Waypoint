@@ -73,7 +73,7 @@ export default function MainTabs() {
         }}
       />
       <Tab.Screen
-        name="Documents"
+        name="Calendar"
         component={CalendarScreen}
         options={{
           tabBarLabel: 'Calendar',

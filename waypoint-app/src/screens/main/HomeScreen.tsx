@@ -14,6 +14,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren } from '@/hooks/useFamily';
+import { useActions } from '@/hooks/useActions';
+import { useDeadlines } from '@/hooks/useDeadlines';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 /** Get time-based greeting (ported from GAS MVP) */
@@ -61,8 +63,23 @@ export default function HomeScreen() {
   const navigation = useNavigation();
   const [empathyIndex, setEmpathyIndex] = useState(0);
 
-  const primaryChild = children.find(c => c.is_primary) || children[0];
+  const primaryChild = children.find((c) => c.is_primary) || children[0];
   const age = primaryChild ? getAgeDisplay(primaryChild.date_of_birth) : null;
+
+  // Live data from actions + deadlines
+  const { actions, stats } = useActions({ familyId: family?.id ?? '' });
+  const { deadlines } = useDeadlines({ familyId: family?.id ?? '' });
+
+  const urgentDeadlines = deadlines.filter((d) => {
+    if (d.status === 'completed') return false;
+    const daysLeft = Math.ceil(
+      (new Date(d.due_date).getTime() - new Date().getTime()) / 86400000
+    );
+    return daysLeft <= 14;
+  });
+
+  const activeActions = actions.filter((a) => a.status === 'in_progress');
+  const completionPct = stats?.completion_rate ?? 0;
 
   useEffect(() => {
     setEmpathyIndex(Math.floor(Math.random() * EMPATHY_MESSAGES.length));
@@ -114,22 +131,69 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Progress Summary (placeholder until action engine is ported in Sprint 3) */}
+        {/* Deadline Alerts */}
+        {urgentDeadlines.length > 0 && (
+          <TouchableOpacity
+            style={styles.alertCard}
+            onPress={() => (navigation as any).navigate('Calendar')}
+          >
+            <Text style={styles.alertEmoji}>⚠️</Text>
+            <View style={styles.alertContent}>
+              <Text style={styles.alertTitle}>
+                {urgentDeadlines.length} upcoming deadline{urgentDeadlines.length !== 1 ? 's' : ''}
+              </Text>
+              <Text style={styles.alertSubtitle} numberOfLines={1}>
+                {urgentDeadlines[0].title}
+                {urgentDeadlines.length > 1 ? ` + ${urgentDeadlines.length - 1} more` : ''}
+              </Text>
+            </View>
+            <Text style={styles.alertChevron}>›</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Progress Summary — live data */}
         <View style={styles.progressCard}>
           <Text style={styles.progressTitle}>Your Action Plan</Text>
-          <View style={styles.progressRing}>
-            <Text style={styles.progressNumber}>0</Text>
-            <Text style={styles.progressLabel}>actions</Text>
+          <View style={styles.progressRow}>
+            <View style={styles.progressRing}>
+              <Text style={[styles.progressNumber, completionPct > 0 && { color: colors.sage }]}>
+                {Math.round(completionPct)}%
+              </Text>
+              <Text style={styles.progressLabel}>complete</Text>
+            </View>
+            <View style={styles.progressStats}>
+              <StatRow count={stats?.in_progress_count ?? 0} label="In Progress" color={colors.teal} />
+              <StatRow count={stats?.not_started_count ?? 0} label="To Do" color="#94A3B8" />
+              <StatRow count={stats?.completed_count ?? 0} label="Completed" color={colors.sage} />
+            </View>
           </View>
-          <Text style={styles.progressHint}>
-            Your personalized action plan will appear here after you chat with the AI Navigator.
-          </Text>
+          {activeActions.length > 0 && (
+            <View style={styles.activeSection}>
+              <Text style={styles.activeLabel}>Currently working on:</Text>
+              {activeActions.slice(0, 2).map((a) => (
+                <View key={a.id} style={styles.activeItem}>
+                  <Text style={styles.activeItemDot}>◐</Text>
+                  <Text style={styles.activeItemText} numberOfLines={1}>{a.title}</Text>
+                </View>
+              ))}
+              {activeActions.length > 2 && (
+                <Text style={styles.activeMore}>+{activeActions.length - 2} more</Text>
+              )}
+            </View>
+          )}
+          {stats?.total_actions === 0 && (
+            <Text style={styles.progressHint}>
+              Your personalized action plan will appear here after you chat with the AI Navigator.
+            </Text>
+          )}
           <TouchableOpacity
             style={styles.ctaButton}
-            onPress={() => (navigation as any).navigate('Navigator')}
+            onPress={() => (navigation as any).navigate(stats?.total_actions ? 'Tracker' : 'Navigator')}
             accessibilityRole="button"
           >
-            <Text style={styles.ctaText}>Ask AI Navigator</Text>
+            <Text style={styles.ctaText}>
+              {stats?.total_actions ? 'View Actions' : 'Ask AI Navigator'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -139,7 +203,7 @@ export default function HomeScreen() {
           {[
             { emoji: '🧭', label: 'Ask AI', screen: 'Navigator' },
             { emoji: '📋', label: 'Actions', screen: 'Tracker' },
-            { emoji: '📅', label: 'Calendar', screen: 'Documents' },
+            { emoji: '📅', label: 'Calendar', screen: 'Calendar' },
             { emoji: '👤', label: 'Profile', screen: 'Profile' },
           ].map(action => (
             <TouchableOpacity
@@ -156,6 +220,17 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+/** Small stat row for progress card */
+function StatRow({ count, label, color }: { count: number; label: string; color: string }) {
+  return (
+    <View style={styles.statRow}>
+      <View style={[styles.statDot, { backgroundColor: color }]} />
+      <Text style={styles.statValue}>{count}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
   );
 }
 
@@ -252,6 +327,37 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     lineHeight: 20,
   },
+  alertCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderLeftWidth: 4,
+    borderLeftColor: '#DC2626',
+  },
+  alertEmoji: {
+    fontSize: 20,
+    marginRight: spacing.sm,
+  },
+  alertContent: {
+    flex: 1,
+  },
+  alertTitle: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold as '600',
+    color: '#DC2626',
+  },
+  alertSubtitle: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    marginTop: 2,
+  },
+  alertChevron: {
+    fontSize: 20,
+    color: '#DC2626',
+  },
   progressCard: {
     backgroundColor: colors.white,
     borderRadius: radii.lg,
@@ -288,6 +394,66 @@ const styles = StyleSheet.create({
   progressLabel: {
     fontSize: fonts.sizes.xs,
     color: colors.mid,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%' as const,
+    marginBottom: spacing.md,
+  },
+  progressStats: {
+    flex: 1,
+    gap: 6,
+  },
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statValue: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold as '600',
+    color: colors.dark,
+    width: 20,
+  },
+  statLabel: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+  },
+  activeSection: {
+    width: '100%' as const,
+    marginBottom: spacing.md,
+  },
+  activeLabel: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    marginBottom: 4,
+    fontWeight: fonts.weights.medium as '500',
+  },
+  activeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  activeItemDot: {
+    fontSize: 12,
+    color: colors.teal,
+  },
+  activeItemText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.dark,
+    flex: 1,
+  },
+  activeMore: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    fontStyle: 'italic' as const,
   },
   progressHint: {
     fontSize: fonts.sizes.sm,
