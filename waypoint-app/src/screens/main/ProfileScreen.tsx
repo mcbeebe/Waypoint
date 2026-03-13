@@ -19,6 +19,8 @@ import DiagnosisSelector from '@/components/DiagnosisSelector';
 import SelectGrid from '@/components/SelectGrid';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { signOut } from '@/lib/auth';
+import { useI18n } from '@/i18n';
+import type { SupportedLocale } from '@/i18n';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 // ─── Options (same as onboarding) ────────────────────────────────────────────
@@ -58,6 +60,7 @@ export default function ProfileScreen() {
   const { children } = useChildren(family?.id);
   const primaryChild = children.find(c => c.is_primary) || children[0];
   const { diagnoses, setDiagnoses } = useDiagnoses(primaryChild?.id);
+  const { t, locale, setLocale } = useI18n();
 
   const [saving, setSaving] = useState(false);
   const [parentName, setParentName] = useState('');
@@ -68,7 +71,6 @@ export default function ProfileScreen() {
   const [rcStatus, setRcStatus] = useState('');
   const [iepStatus, setIepStatus] = useState('');
   const [insurance, setInsurance] = useState('');
-  const [language, setLanguage] = useState('en');
 
   // Populate form from database
   useEffect(() => {
@@ -155,7 +157,7 @@ export default function ProfileScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Profile Settings</Text>
+        <Text style={styles.title}>{t.profile.title}</Text>
 
         {/* Family Info Section */}
         <Text style={styles.sectionTitle}>Family Info</Text>
@@ -245,13 +247,13 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* Language (UI only for now — i18n in Sprint 6) */}
-        <Text style={styles.sectionTitle}>Language</Text>
+        {/* Language — wired to i18n context */}
+        <Text style={styles.sectionTitle}>{t.profile.language}</Text>
         <View style={styles.card}>
           <SelectGrid
             options={LANGUAGE_OPTIONS}
-            selected={language}
-            onSelect={setLanguage}
+            selected={locale}
+            onSelect={(val: string) => setLocale(val as SupportedLocale)}
             columns={3}
           />
         </View>
@@ -269,13 +271,13 @@ export default function ProfileScreen() {
 
         <View style={styles.signOutRow}>
           <Button
-            title="Sign Out"
+            title={t.profile.signOut}
             onPress={handleSignOut}
             variant="outline"
           />
         </View>
 
-        <Text style={styles.version}>Waypoint v2.0.0 (Sprint 1)</Text>
+        <Text style={styles.version}>Waypoint v2.0.0 (Sprint 6)</Text>
       </ScrollView>
     </SafeAreaView>
   );

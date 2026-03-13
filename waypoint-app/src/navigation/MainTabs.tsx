@@ -11,6 +11,7 @@ import NavigatorScreen from '@/screens/main/NavigatorScreen';
 import ActionsScreen from '@/screens/main/ActionsScreen';
 import CalendarScreen from '@/screens/main/CalendarScreen';
 import ProfileScreen from '@/screens/main/ProfileScreen';
+import { useI18n } from '@/i18n';
 import { colors, fonts } from '@/lib/theme';
 import type { MainTabParamList } from '@/types/navigation';
 
@@ -29,6 +30,8 @@ function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
 // ─── Main Tab Navigator ─────────────────────────────────────────────────────
 
 export default function MainTabs() {
+  const { t } = useI18n();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -51,40 +54,47 @@ export default function MainTabs() {
         name="Home"
         component={HomeScreen}
         options={{
+          tabBarLabel: t.tabs.home,
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="🏠" focused={focused} />,
+          tabBarAccessibilityLabel: t.tabs.home,
         }}
       />
       <Tab.Screen
         name="Navigator"
         component={NavigatorScreen}
         options={{
-          tabBarLabel: 'Ask AI',
+          tabBarLabel: t.tabs.askAi,
           tabBarIcon: ({ focused }: { focused: boolean }) => (
             <TabIcon emoji="🧭" focused={focused} />
           ),
+          tabBarAccessibilityLabel: t.tabs.askAi,
         }}
       />
       <Tab.Screen
         name="Tracker"
         component={ActionsScreen}
         options={{
-          tabBarLabel: 'Actions',
+          tabBarLabel: t.tabs.actions,
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="📋" focused={focused} />,
+          tabBarAccessibilityLabel: t.tabs.actions,
         }}
       />
       <Tab.Screen
         name="Calendar"
         component={CalendarScreen}
         options={{
-          tabBarLabel: 'Calendar',
+          tabBarLabel: t.tabs.calendar,
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="📅" focused={focused} />,
+          tabBarAccessibilityLabel: t.tabs.calendar,
         }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
+          tabBarLabel: t.tabs.profile,
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="👤" focused={focused} />,
+          tabBarAccessibilityLabel: t.tabs.profile,
         }}
       />
     </Tab.Navigator>
