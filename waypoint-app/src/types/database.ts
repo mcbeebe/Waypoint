@@ -175,6 +175,48 @@ export interface ChatMessage {
   created_at: string;
 }
 
+export interface KnowledgeEmbedding {
+  id: string;
+  content: string;
+  source: string;
+  section: string | null;
+  metadata: Record<string, unknown> | null;
+  embedding?: number[];
+  created_at: string;
+}
+
+/** Result from match_knowledge RPC */
+export interface KnowledgeMatch {
+  id: string;
+  content: string;
+  source: string;
+  section: string | null;
+  metadata: Record<string, unknown> | null;
+  similarity: number;
+}
+
+/** Result from hybrid_search_knowledge RPC */
+export interface HybridSearchMatch extends KnowledgeMatch {
+  keyword_rank: number;
+  combined_score: number;
+}
+
+/** Tone level for AI Navigator responses (ported from GAS MVP) */
+export type ToneLevel = 'collaborative' | 'assertive' | 'adversarial';
+
+/** AI Navigator chat context */
+export interface ChatContext {
+  familyId: string;
+  childAge: string | null;
+  diagnoses: string[];
+  state: string;
+  county: string | null;
+  regionalCenter: string | null;
+  schoolDistrict: string | null;
+  insuranceCarrier: string | null;
+  toneLevel: ToneLevel;
+}
+
 // Onboarding convenience type
 export interface OnboardingData {
   parentFirstName: string;

@@ -8,6 +8,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HomeScreen from '@/screens/main/HomeScreen';
+import NavigatorScreen from '@/screens/main/NavigatorScreen';
 import ProfileScreen from '@/screens/main/ProfileScreen';
 import { colors, fonts, spacing } from '@/lib/theme';
 import type { MainTabParamList } from '@/types/navigation';
@@ -24,10 +25,6 @@ function PlaceholderScreen({ title, sprint }: { title: string; sprint: string })
       <Text style={styles.placeholderSubtitle}>Coming in {sprint}</Text>
     </SafeAreaView>
   );
-}
-
-function NavigatorScreen() {
-  return <PlaceholderScreen title="AI Navigator" sprint="Sprint 2" />;
 }
 
 function ActionsScreen() {
@@ -81,7 +78,9 @@ export default function MainTabs() {
         component={NavigatorScreen}
         options={{
           tabBarLabel: 'Ask AI',
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="🧭" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => (
+            <TabIcon emoji="🧭" focused={focused} />
+          ),
         }}
       />
       <Tab.Screen
