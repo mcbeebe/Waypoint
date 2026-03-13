@@ -62,7 +62,7 @@ export default function HomeScreen() {
   const [empathyIndex, setEmpathyIndex] = useState(0);
 
   const primaryChild = children.find(c => c.is_primary) || children[0];
-  const age = primaryChild ? getAgeDisplay(primaryChild.dob) : null;
+  const age = primaryChild ? getAgeDisplay(primaryChild.date_of_birth) : null;
 
   useEffect(() => {
     setEmpathyIndex(Math.floor(Math.random() * EMPATHY_MESSAGES.length));
@@ -78,7 +78,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.greeting}>{getGreeting()} 👋</Text>
-            <Text style={styles.parentName}>{family?.parent_name || 'Welcome'}</Text>
+            <Text style={styles.parentName}>{family?.parent_first_name || 'Welcome'}</Text>
           </View>
           <TouchableOpacity
             style={styles.avatar}
@@ -87,7 +87,7 @@ export default function HomeScreen() {
             accessibilityLabel="Open profile"
           >
             <Text style={styles.avatarText}>
-              {(family?.parent_name || 'W')[0].toUpperCase()}
+              {(family?.parent_first_name || 'W')[0].toUpperCase()}
             </Text>
           </TouchableOpacity>
         </View>

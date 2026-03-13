@@ -12,7 +12,7 @@ import ProfileScreen from '@/screens/main/ProfileScreen';
 import { colors, fonts, spacing } from '@/lib/theme';
 import type { MainTabParamList } from '@/types/navigation';
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+const Tab = createBottomTabNavigator();
 
 // ─── Placeholder screens for Sprint 2-4 ────────────────────────────────────
 
@@ -73,7 +73,7 @@ export default function MainTabs() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="🏠" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -81,7 +81,7 @@ export default function MainTabs() {
         component={NavigatorScreen}
         options={{
           tabBarLabel: 'Ask AI',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🧭" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="🧭" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -89,7 +89,7 @@ export default function MainTabs() {
         component={ActionsScreen}
         options={{
           tabBarLabel: 'Actions',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📋" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="📋" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -97,14 +97,14 @@ export default function MainTabs() {
         component={CalendarScreen}
         options={{
           tabBarLabel: 'Calendar',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📅" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="📅" focused={focused} />,
         }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
+          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="👤" focused={focused} />,
         }}
       />
     </Tab.Navigator>

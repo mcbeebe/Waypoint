@@ -73,9 +73,9 @@ export default function ProfileScreen() {
   // Populate form from database
   useEffect(() => {
     if (family) {
-      setParentName(family.parent_name || '');
+      setParentName(family.parent_first_name || '');
       setEmail(family.email || '');
-      setZipCode(''); // ZIP not in schema; could be stored in county field
+      setZipCode(family.zip_code || '');
       setInsurance(family.insurance_carrier || '');
     }
   }, [family]);
@@ -105,8 +105,9 @@ export default function ProfileScreen() {
     try {
       // Update family
       await updateFamily({
-        parent_name: parentName.trim(),
+        parent_first_name: parentName.trim(),
         email: email.trim(),
+        zip_code: zipCode.trim() || null,
         insurance_carrier: insurance,
       });
 

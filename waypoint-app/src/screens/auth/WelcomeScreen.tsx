@@ -18,6 +18,12 @@ import Button from '@/components/Button';
 import { signInWithApple, signInWithGoogle, signInWithEmail, signUpWithEmail } from '@/lib/auth';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
+/** Google Sign-In is deferred until OAuth client IDs are configured */
+const GOOGLE_SIGNIN_ENABLED = !!(
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
+  process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
+);
+
 export default function WelcomeScreen() {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isSignUp, setIsSignUp] = useState(true);
@@ -91,13 +97,15 @@ export default function WelcomeScreen() {
                   disabled={loading !== null}
                 />
               )}
-              <Button
-                title="Continue with Google"
-                onPress={handleGoogle}
-                variant="outline"
-                loading={loading === 'google'}
-                disabled={loading !== null}
-              />
+              {GOOGLE_SIGNIN_ENABLED && (
+                <Button
+                  title="Continue with Google"
+                  onPress={handleGoogle}
+                  variant="outline"
+                  loading={loading === 'google'}
+                  disabled={loading !== null}
+                />
+              )}
               <Button
                 title="Sign up with Email"
                 onPress={() => setShowEmailForm(true)}

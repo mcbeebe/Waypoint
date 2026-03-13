@@ -1,10 +1,15 @@
-// Auth hook — will be implemented in Issue #3
+/**
+ * Auth hook — manages Supabase session state
+ * Listens for auth state changes and provides current user
+ */
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Session } from '@supabase/supabase-js';
+
+/** Infer Session type from Supabase auth client */
+type Session = Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session'];
 
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<Session>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -54,7 +54,7 @@ const INSURANCE_OPTIONS = [
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface OnboardingData {
-  parentName: string;
+  parentFirstName: string;
   childName: string;
   zipCode: string;
   email: string;
@@ -79,7 +79,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios');
 
   const [data, setData] = useState<OnboardingData>({
-    parentName: '',
+    parentFirstName: '',
     childName: '',
     zipCode: '',
     email: '',
@@ -107,7 +107,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const canAdvance = (): boolean => {
     switch (step) {
-      case 0: return data.parentName.trim().length > 0 && data.childName.trim().length > 0;
+      case 0: return data.parentFirstName.trim().length > 0 && data.childName.trim().length > 0;
       case 1: return data.diagnoses.length > 0;
       case 2: return data.birthday !== null;
       case 3: return data.rcStatus !== '';
@@ -156,8 +156,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         .from('families')
         .upsert({
           user_id: user.id,
-          parent_name: data.parentName.trim(),
+          parent_first_name: data.parentFirstName.trim(),
           email: data.email.trim() || user.email || '',
+          zip_code: data.zipCode.trim() || null,
           state: 'CA',
           county: null,
           regional_center: null,
@@ -175,7 +176,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         .insert({
           family_id: family.id,
           first_name: data.childName.trim(),
-          dob: data.birthday?.toISOString().split('T')[0] || null,
+          date_of_birth: data.birthday?.toISOString().split('T')[0] || null,
           is_primary: true,
         })
         .select()
@@ -232,8 +233,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             <Text style={styles.inputLabel}>Your first name</Text>
             <TextInput
               style={styles.input}
-              value={data.parentName}
-              onChangeText={v => updateField('parentName', v)}
+              value={data.parentFirstName}
+              onChangeText={v => updateField('parentFirstName', v)}
               placeholder="e.g., Sarah"
               placeholderTextColor={colors.mid}
               autoCapitalize="words"
