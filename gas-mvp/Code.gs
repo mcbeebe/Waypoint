@@ -770,6 +770,18 @@ function getBuiltInPrompt_(category, profile, toneLevel, claimContext, actionSum
     + '- For disputes: lead with the most urgent action, then context — not a lengthy explanation first\n'
     + 'Think about what THIS parent needs to hear RIGHT NOW, not what your standard template says.\n\n'
 
+    + 'LANGUAGE RULES — YOUR WRITING MUST PASS THE "TEXT MESSAGE TEST":\n'
+    + '- NEVER use: "pursuant to", "in accordance with", "it is imperative", "be advised", "please be informed", "it should be noted that"\n'
+    + '- NEVER start sentences with: "It is important to note that...", "It should be noted...", "Please note that..."\n'
+    + '- NEVER use passive bureaucratic voice: "services shall be provided" → "they\'ll set up services for you"\n'
+    + '- USE contractions always: you\'ll, they\'re, it\'s, don\'t, can\'t, won\'t, here\'s, that\'s\n'
+    + '- USE short sentences. If a paragraph has more than 3 sentences, break it up or cut it down.\n'
+    + '- WRITE like you\'re texting a smart friend, not drafting a legal brief.\n'
+    + '- "Coffee shop test": Would you say this out loud to a friend at a coffee shop? If not, rewrite it.\n'
+    + '- "The Regional Center is mandated to provide..." → "Your RC should be able to help with..."\n'
+    + '- "You are entitled to request an Independent Educational Evaluation" → "You can ask for your own evaluation — it\'s called an IEE"\n'
+    + '- Keep it warm, keep it human, keep it short.\n\n'
+
     + '#1 RULE — ANSWER WHAT THEY ASKED:\n'
     + 'Always address the parent\'s specific question or request FIRST before offering additional guidance. '
     + 'If they ask you to draft an email, your primary job is to set up that draft (set offer_to_draft and draft_type). '
@@ -1004,9 +1016,54 @@ function askWaypoint(question, userProfile, chatHistory, actionSummary) {
         + 'MUST be in ' + langName + '. Only legal citations in "sources" may remain in English.\n';
     }
 
+    // WP-035: Calculate conversation turn count for phased response model
+    // Note: chatHistory already includes the current user message (pushed before buildChatHistory())
+    var turnCount = chatHistory ? chatHistory.filter(function(m) { return m.role === 'user'; }).length : 1;
+    var urgencyIsHigh = classification.urgency === 'high' || classification.emotional_state === 'crisis';
+    // WP-035h: Allow user to skip to full guidance via quick-reply button
+    var skipToAction = /skip to (action|full)|give me (the full|everything|all my options|the action)/i.test(question);
+    if (skipToAction) urgencyIsHigh = true; // Forces Phase 3
+
     // 4. Build the generation prompt with context + response format
+    // WP-035: PACING INSTRUCTIONS GO FIRST — before format rules — so they take priority
     var fullPrompt = systemPrompt
-      + '\n\nRESPONSE FORMAT — CRITICAL RULES:\n'
+      + '\n\n=== CONVERSATION PACING === THIS OVERRIDES ALL OTHER RESPONSE INSTRUCTIONS ===\n'
+      + 'This is user message #' + turnCount + ' in this conversation.\n\n'
+      + (turnCount <= 2 && !urgencyIsHigh
+        ? '*** YOU ARE IN PHASE 1 (DISCOVERY). YOU MUST FOLLOW THESE RULES: ***\n'
+          + '- Give a SHORT empathetic response (1-2 sentences)\n'
+          + '- Provide a BRIEF answer (2-3 sentences max — just enough to show you understand)\n'
+          + '- Ask exactly ONE clarifying question — ONE. Not two, not three. ONE single question.\n'
+          + '- Pick the single most important question whose answer will change your advice the most\n'
+          + '- Save all other questions for future turns — you will get to ask them later\n'
+          + '- Your clarifying_question field is the MOST IMPORTANT part of this response\n'
+          + '- YOU MUST set ALL of these to null: action_steps, sections, resources, rights_reminder, watch_out, offer_to_draft, draft_type, important_context, sources\n'
+          + '- DO NOT provide action steps, game plans, or detailed guidance yet — you don\'t know enough\n'
+          + '- This should feel like a friend asking ONE focused follow-up question\n\n'
+        : turnCount <= 4 && !urgencyIsHigh
+          ? '*** YOU ARE IN PHASE 2 (BUILDING CONTEXT). FOLLOW THESE RULES: ***\n'
+            + '- Build on what you\'ve learned from their earlier answers\n'
+            + '- Provide more detailed guidance but still focused — NOT everything at once\n'
+            + '- May include 1-3 action_steps if you have enough context\n'
+            + '- If you still need info, ask ONE more question (just one!)\n'
+            + '- Can include important_context or watch_out if critical\n'
+            + '- DO NOT duplicate content between "answer" and "action_steps"\n'
+            + '- Keep resources, rights_reminder, sections null unless essential\n\n'
+          : skipToAction
+            ? '*** USER CLICKED "SKIP TO ACTION ITEMS". PROVIDE FULL ACTION PLAN NOW. ***\n'
+              + '- DO NOT ask any clarifying questions — set clarifying_question to null and quick_replies to null\n'
+              + '- Based on everything you know so far, give your BEST action plan immediately\n'
+              + '- Include action_steps (numbered, specific), resources, rights_reminder, watch_out, offer_to_draft\n'
+              + '- Use what context you have — make reasonable assumptions and note them\n'
+              + '- DO NOT duplicate content between "answer" and "action_steps"\n\n'
+            : '*** YOU ARE IN PHASE 3 (FULL GUIDANCE). Provide comprehensive response. ***\n'
+              + '- If you still have a clarifying question, ask only ONE at a time\n'
+              + '- DO NOT duplicate content between "answer" and "action_steps"\n\n'
+      )
+      + 'ANTI-DUPLICATION RULE: The "answer" field provides context and explanation. The "action_steps" field provides specific numbered to-do items. NEVER repeat the same information in both. If you have action steps, keep the answer brief and explanatory — do NOT list out a "game plan" in the answer that duplicates the action_steps.\n'
+      + 'SECTIONS vs ACTION_STEPS: Do NOT use "sections" to create a "Part 1 / Part 2" breakdown that mirrors the action_steps. If your answer has action steps, put ALL actionable items in "action_steps" only. Use "sections" ONLY for genuinely different informational topics (e.g., "Your rights" vs "How the process works"). If in doubt, set sections to null and use action_steps.\n\n'
+
+      + 'RESPONSE FORMAT — CRITICAL RULES:\n'
       + '1. Your ENTIRE response must be a single JSON object. Nothing before it. Nothing after it.\n'
       + '2. Do NOT include markdown, code fences, commentary, or any text outside the JSON.\n'
       + '3. Do NOT draft the actual letter/email in your response — just describe what you CAN draft in "offer_to_draft".\n'
@@ -1014,7 +1071,7 @@ function askWaypoint(question, userProfile, chatHistory, actionSummary) {
       + '4. If the user asks you to draft something, set offer_to_draft and draft_type, but do NOT include the draft text.\n\n'
 
       + 'CRITICAL — RESPONSE SHAPE MUST VARY:\n'
-      + 'Do NOT produce the same structure every time. Adapt based on the question:\n'
+      + 'Do NOT produce the same structure every time. Adapt based on the question AND the conversation phase:\n'
       + '- Simple process question → short answer, 1-2 steps, no sections needed\n'
       + '- Multi-system situation (e.g., moving states, new diagnosis) → use "sections" to break into named parts (e.g., "Part 1: IEP Transfer", "Part 2: Medi-Cal Setup")\n'
       + '- Emotional/overwhelming → longer empathy, ONE clear first step, fewer action_steps\n'
@@ -1028,12 +1085,19 @@ function askWaypoint(question, userProfile, chatHistory, actionSummary) {
       + 'For new diagnoses/overwhelming moments: 3-5 sentences of genuine warmth, acknowledgment, and reassurance. Include that they are not alone and that feeling overwhelmed is normal. '
       + 'For routine questions: 1 short sentence. For disputes: 1-2 sentences validating their frustration. '
       + 'For time-sensitive situations: brief but direct (e.g., \'Take a breath. You are in a critical window, but you have options.\').",\n'
-      + '  "clarifying_question": "REQUIRED and CRITICAL — this is what makes you feel like a real advocate, not a chatbot. '
-      + 'Must be SPECIFIC to the situation, not generic. Bad: \'Would you like more information?\' Good: \'Was this ABA pre-authorized in the IPP, or are you requesting it for the first time? That changes the approach significantly.\' '
-      + 'For assertive tone: MUST ask what steps they have already taken and what communication has happened. '
-      + 'For adversarial: ask for ONE key fact (denial date, NOA date, written vs verbal). '
-      + 'For collaborative: ask what specific aspect they want to explore or if they want help with the next step. '
-      + 'Make it feel like a friend checking in, not an interrogation.",\n'
+      + '  "clarifying_question": "ONE SINGLE QUESTION — never combine multiple questions. '
+      + 'Ask exactly ONE thing at a time. The user will answer, and you will ask the next question in the following turn. '
+      + 'BAD: \'Do you have the denial letter? And is it an HMO or PPO? Also, what reason did they give?\' '
+      + 'GOOD: \'Do you have the denial letter in hand?\' '
+      + 'Pick the MOST IMPORTANT question — the one whose answer changes your advice the most — and ask ONLY that. '
+      + 'Save the other questions for subsequent turns. '
+      + 'Keep it short — one sentence, conversational, like a friend asking. No preamble like \'A few things that will shape my advice\'. '
+      + 'Just ask the question directly.",\n'
+      + '  "quick_replies": "REQUIRED when clarifying_question is set. Array of 2-3 short answer options the user can tap to respond. '
+      + 'These should be the most common/likely answers to your clarifying question. Keep each under 6 words. '
+      + 'Example for \'Do you have the denial letter?\': [\'Yes, I have it\', \'No, not yet\', \'I\'m not sure\'] '
+      + 'Example for \'Has this been pre-authorized in the IPP?\': [\'Yes, it\'s in the IPP\', \'No, new request\', \'I don\'t know\'] '
+      + 'Set to null when clarifying_question is null.",\n'
       + '  "answer": "ANSWER WHAT THEY ASKED FIRST. Be specific — name their RC, reference their child by name, give exact actions. '
       + 'LENGTH AND DEPTH SHOULD VARY: Simple process → 2-3 sentences. Complex multi-system → comprehensive with named parts. '
       + 'For assertive/adversarial when you don\'t know full context: give preliminary guidance AND note it may change. '
@@ -1042,23 +1106,21 @@ function askWaypoint(question, userProfile, chatHistory, actionSummary) {
       + '  "sections": "OPTIONAL — use for complex, multi-part situations. Array of {title, content} objects. '
       + 'Example: [{title:\'IEP Transfer\',content:\'Under federal IDEA law...\'},{title:\'Regional Center Intake\',content:\'In your county...\'}]. '
       + 'Use when the answer naturally breaks into 2-3 distinct topics. Set to null for simple questions.",\n'
-      + '  "action_steps": [\n'
-      + '    {\n'
-      + '      "step": 1,\n'
-      + '      "action": "Specific action to take",\n'
-      + '      "who": "Who to contact — be specific: name, phone, email if known",\n'
-      + '      "timeline": "When to do this — be specific: Today, This week, Within 10 days",\n'
-      + '      "script": "Exact words to say — match the tone! Collaborative scripts are friendly. Assertive scripts are firm. Adversarial scripts cite rights. Include the parent\'s and child\'s name when known."\n'
-      + '    }\n'
-      + '  ],\n'
+      + '  "action_steps": "ONLY specific numbered to-do items. In Phase 1: null. In Phase 2: 1-3 items max. In Phase 3: full list. '
+      + 'NEVER duplicate what is already in the answer field. The answer gives context; action_steps give the specific to-do list. '
+      + 'Each step: [{step:1, action:\'Specific action\', who:\'Who to contact\', timeline:\'Today/This week/Within 10 days\', '
+      + 'script:\'Exact words to say — match tone\'}]",\n'
       + '  "important_context": "OPTIONAL — use when the situation has a critical nuance most parents miss. '
       + 'Examples: \'Texas Medicaid is NOT California Medi-Cal — you need to re-establish eligibility.\' '
       + '\'The real risk isn\'t that they\'ll take away services — it\'s that low-quality therapy leads to flat data, which RC later uses to justify reducing hours.\' Set to null if not needed.",\n'
       + '  "rights_reminder": "One key legal right IF relevant. For collaborative: null unless genuinely useful. For adversarial: specific right with citation.",\n'
       + '  "watch_out": "One important warning or common pitfall. Be specific and practical, not generic.",\n'
-      + '  "offer_to_draft": "ALWAYS offer when the situation involves ANY written communication. Be specific: \'A formal fair hearing request letter citing the specific timeline and requesting aid paid pending\'. Null only if truly no written step is needed.",\n'
+      + '  "offer_to_draft": "In Phase 3, offer when the situation involves written communication. Be specific: \'A formal fair hearing request letter citing the specific timeline and requesting aid paid pending\'. In Phase 1-2, set to null.",\n'
       + '  "draft_type": "appeal_letter|iep_email|rc_request|iep_prep|complaint|general (or null)",\n'
-      + '  "resources": "OPTIONAL — specific organizations, websites, phone numbers. Include parent support groups, Family Resource Centers, or advocacy orgs when relevant. Set to null if not applicable.",\n'
+      + '  "resources": "OPTIONAL — array of objects: [{name:\'Org Name\', url:\'https://real-url.org\', how_it_helps:\'One sentence explaining how THIS resource helps with THIS specific issue\'}]. '
+      + 'EVERY resource MUST have a real url and a how_it_helps that is SPECIFIC to the user\'s situation — NOT generic. '
+      + 'Max 3-4 resources. Example: {name:\'Disability Rights CA\', url:\'https://www.disabilityrightsca.org\', how_it_helps:\'They can assign you a free advocate to attend your IPP meeting and push back on the Regional Center\'s denial\'}. '
+      + 'Set to null if not applicable.",\n'
       + '  "sources": ["Statute or code section — collaborative: minimal/empty; adversarial: all relevant citations"]\n'
       + '}\n\n'
       + 'REMEMBER: Output ONLY the JSON object. No text before or after. No draft content. Just the JSON.\n';
@@ -1094,6 +1156,7 @@ function askWaypoint(question, userProfile, chatHistory, actionSummary) {
       tone_level: effectiveTone, // WP-014: use effective (merged) tone
       empathy: response.empathy || '',
       clarifying_question: response.clarifying_question || null,
+      quick_replies: response.quick_replies || null,
       answer: response.answer || '',
       sections: response.sections || null,
       important_context: response.important_context || null,
@@ -1121,10 +1184,47 @@ function askWaypoint(question, userProfile, chatHistory, actionSummary) {
 // AI ENGINE — Draft Generation
 // ═══════════════════════════════════════════════════════
 
-function generateDraft(draftType, userProfile, originalQuestion, aiResponse) {
+function generateDraft(draftType, userProfile, originalQuestion, aiResponse, draftTone) {
   try {
-    // Determine tone from the AI response context
-    var toneLevel = (aiResponse && aiResponse.tone_level) || 'assertive';
+    // WP-035: Map user-selected tones to internal tone levels AND draft writing instructions
+    var toneMap = { 'warm': 'collaborative', 'professional': 'assertive', 'strong': 'adversarial' };
+    var userSelectedTone = draftTone || 'professional';
+    // Map to internal tone level for ternary operators in draft prompts
+    var toneLevel = toneMap[userSelectedTone] || (aiResponse && aiResponse.tone_level) || 'assertive';
+
+    // WP-035m: Drastically stronger tone overrides with LENGTH CAPS
+    var draftToneInstructions = {
+      'warm': 'CRITICAL TONE OVERRIDE — THE USER SELECTED "FRIENDLY & WARM". THIS IS THE #1 PRIORITY:\n\n'
+        + 'HARD RULES — VIOLATING ANY OF THESE IS A FAILURE:\n'
+        + '1. MAX 100 WORDS TOTAL. Count them. If over 100, delete sentences until under.\n'
+        + '2. ZERO legal citations — no § symbols, no "Section 1374.73", no "Health & Safety Code", no "Insurance Code", no "Lanterman Act", no "IDEA", no law names AT ALL.\n'
+        + '3. ZERO formal language — no "pursuant to", "in accordance with", "I am writing to", "please be advised", "entitled to", "obligation", "mandate", "compliance"\n'
+        + '4. Start with "Hi [Name]," — NEVER "Dear"\n'
+        + '5. Write like you\'re texting a friend. Short sentences. Contractions always (we\'re, we\'d, it\'s, don\'t).\n'
+        + '6. Structure: greeting (1 sentence) → what you need (2-3 sentences) → warm close (1 sentence). THAT\'S IT.\n'
+        + '7. End with "Thanks so much!" or "Really appreciate your help!" — NOT "Sincerely" or "Respectfully"\n\n'
+        + 'GOOD EXAMPLE (78 words):\n'
+        + 'Hi Sarah,\n\nHope you\'re doing well! I\'m reaching out because we recently got a denial for Teddy\'s ABA therapy and we\'d love some help figuring out next steps.\n\nWould you be able to take a look at the denial letter and let us know what our options are? We want to make sure Teddy keeps getting the support he needs.\n\nThanks so much — really appreciate it!\n\n'
+        + 'BAD EXAMPLE (too formal, too long, has legal citations): "Dear Ms. Johnson, I am writing to formally request... pursuant to Section 1374.73..."\n\n'
+        + 'IF YOUR DRAFT CONTAINS ANY LAW NAMES, SECTION NUMBERS, OR IS OVER 100 WORDS, YOU HAVE FAILED.\n',
+      'professional': 'CRITICAL TONE OVERRIDE — THE USER SELECTED "PROFESSIONAL & CLEAR":\n'
+        + 'LENGTH: The ENTIRE draft MUST be under 250 words. Be concise — every sentence must earn its place.\n'
+        + 'Write in a clear, professional but human tone. This overrides any other tone instructions below.\n'
+        + '- Be specific and organized but keep it accessible and brief\n'
+        + '- Use phrases like: "We are requesting...", "We would appreciate...", "We\'d like to discuss..."\n'
+        + '- Mention relevant timelines without being threatening\n'
+        + '- Minimal legal citations — only if directly helpful, not to intimidate\n'
+        + '- Max 3-4 short paragraphs. No walls of text.\n',
+      'strong': 'CRITICAL TONE OVERRIDE — THE USER SELECTED "STRONG & DIRECT":\n'
+        + 'LENGTH: The ENTIRE draft MUST be under 350 words. Be precise — legal language should be surgical, not verbose.\n'
+        + 'Write in a firm, direct tone. This overrides any other tone instructions below.\n'
+        + '- Be specific about rights and expectations\n'
+        + '- Include relevant legal citations and deadlines — but only the ones that matter most\n'
+        + '- Frame requests as expectations: "We expect...", "As required by...", "Please respond in writing by..."\n'
+        + '- Be respectful but leave no ambiguity about what is being requested\n'
+        + '- Max 4-5 paragraphs. Every paragraph must have a clear purpose.\n'
+    };
+    var tonePrefix = draftToneInstructions[userSelectedTone] || draftToneInstructions['professional'];
 
     var draftPrompts = {
       'appeal_letter': 'Draft a formal insurance appeal letter for a parent of a child with disabilities in California. '
@@ -1286,7 +1386,21 @@ function generateDraft(draftType, userProfile, originalQuestion, aiResponse) {
     };
 
     var systemPrompt = draftPrompts[draftType] || draftPrompts['general'];
-    systemPrompt += '\n\nReturn the complete draft as plain text (not JSON). Use clear formatting with line breaks.';
+    // WP-035: Prepend user-selected tone instructions to override default draft tone
+    systemPrompt = tonePrefix + '\n\n' + systemPrompt;
+    systemPrompt += '\n\nReturn the complete draft as plain text (not JSON). Use clear formatting with line breaks.\n'
+      + 'CRITICAL LENGTH RULE: Shorter is ALWAYS better. Parents are overwhelmed — they need drafts they can actually read, edit, and send in 2 minutes. '
+      + 'Cut every sentence that doesn\'t directly serve the ask. No padding, no filler, no "thank you for your attention to this matter" boilerplate. '
+      + 'The user will open this in Gmail and hit send — make it sendable as-is.\n\n'
+      + 'NO COMMENTS OR TIPS IN THE DRAFT: Output ONLY the actual letter/email text that the user would send. '
+      + 'Do NOT add any helper comments, tips, notes, or instructions like "Remember to attach...", "Tips for sending...", "Note: You may want to...", or "---" dividers followed by advice. '
+      + 'Those belong in the app, not the draft. The draft output must be copy-paste-send ready with ZERO meta-commentary.\n\n'
+      + 'CRITICAL — WHO IS THE DRAFT FROM AND TO:\n'
+      + '- The draft is written FROM the parent (user) TO the agency/school/insurance/Regional Center.\n'
+      + '- The parent\'s name goes at the bottom as the signature, NOT at the top as the recipient.\n'
+      + '- Address the letter TO the appropriate person at the organization (e.g., "Dear Service Coordinator", "Hi Claims Department", "To Whom It May Concern").\n'
+      + '- Do NOT write a message from Waypoint to the parent. Do NOT write "I put together a letter for you" or "Here\'s what I drafted" or "You\'ll need to fill in a few details".\n'
+      + '- The output IS the letter itself — the exact text the parent would send. Nothing else.';
 
     // WP-010: Generate draft in user's selected language
     var draftLang = userProfile ? (userProfile.lang || 'en') : 'en';
@@ -1298,13 +1412,26 @@ function generateDraft(draftType, userProfile, originalQuestion, aiResponse) {
         + 'Legal citations may remain in English but all other text must be in ' + draftLangName + '.';
     }
 
-    var userMsg = 'FAMILY CONTEXT:\n'
-      + 'Child: ' + (userProfile.childName || '[Child Name]') + '\n'
-      + 'Age range: ' + (userProfile.age || 'Not specified') + '\n'
-      + 'Diagnosis: ' + (userProfile.diagnosis || 'Not specified') + '\n'
-      + 'Regional Center: ' + (userProfile.regionalCenter || 'Not specified') + '\n'
-      + 'School District: ' + (userProfile.schoolDistrict || 'Not specified') + '\n'
-      + 'Insurance: ' + (userProfile.insurance || 'Not specified') + '\n\n'
+    // Build profile data — use real values where available, [BRACKET] only for missing
+    var pName = userProfile.parentName || '';
+    var cName = userProfile.childName || '';
+    var email = userProfile.email || '';
+    var insurance = userProfile.insurance || '';
+    var rc = userProfile.regionalCenter || '';
+    var diagnosis = userProfile.diagnosis || '';
+    var age = userProfile.childAgeDisplay || userProfile.age || '';
+    var schoolDistrict = userProfile.schoolDistrict || '';
+
+    var userMsg = 'FAMILY CONTEXT (use these REAL values in the draft — only use [BRACKETS] for info that is blank below):\n'
+      + 'Parent name: ' + (pName || '[Your Name]') + '\n'
+      + 'Child name: ' + (cName || '[Child Name]') + '\n'
+      + 'Email: ' + (email || '[Your Email]') + '\n'
+      + 'Child age: ' + (age || '[Child Age]') + '\n'
+      + 'Diagnosis: ' + (diagnosis || '[Diagnosis]') + '\n'
+      + 'Insurance: ' + (insurance || '[Insurance Provider]') + '\n'
+      + 'Regional Center: ' + (rc || '[Regional Center]') + '\n'
+      + 'School District: ' + (schoolDistrict || '[School District]') + '\n\n'
+      + 'IMPORTANT: If a value above is filled in (not in brackets), use it directly in the draft — do NOT put brackets around real data.\n\n'
       + 'ORIGINAL QUESTION:\n' + (originalQuestion || 'Not provided') + '\n\n'
       + 'AI GUIDANCE PROVIDED:\n' + JSON.stringify(aiResponse || {});
 
@@ -1328,6 +1455,67 @@ function generateDraft(draftType, userProfile, originalQuestion, aiResponse) {
   } catch (e) {
     Logger.log('generateDraft error: ' + e.toString());
     return { success: false, error: e.message || e.toString() };
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// GMAIL DRAFT INTEGRATION (WP-034)
+// ═══════════════════════════════════════════════════════
+
+/**
+ * Creates a Gmail draft from a Waypoint-generated document.
+ * Called from the frontend draft modal "Push to Gmail Drafts" button.
+ * @param {string} subject - Email subject line
+ * @param {string} body - Plain text body of the draft
+ * @param {string} [recipientHint] - Optional recipient email address
+ * @returns {Object} {success: boolean, error?: string}
+ */
+function createGmailDraft(subject, body, recipientHint) {
+  try {
+    if (!body || body.trim().length === 0) {
+      return { success: false, error: 'Draft body is empty.' };
+    }
+
+    // Convert plain text to basic HTML for better email formatting
+    var htmlBody = body
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>')
+      .replace(/\[([^\]]+)\]/g, '<span style="background:#FEF3C7;color:#92400E;font-weight:bold;padding:1px 4px;border-radius:3px">[$1]</span>');
+
+    // Wrap in a styled email template
+    htmlBody = '<div style="font-family:Georgia,serif;font-size:14px;line-height:1.7;color:#1a1a1a;max-width:600px">'
+      + htmlBody
+      + '<br><br><div style="font-size:11px;color:#999;border-top:1px solid #eee;padding-top:8px;margin-top:16px">'
+      + 'Generated by Waypoint — your disability services navigator'
+      + '</div></div>';
+
+    var safeSubject = subject || 'Waypoint Draft';
+    var safeRecipient = recipientHint || '';
+
+    var draft = GmailApp.createDraft(safeRecipient, safeSubject, body, {
+      htmlBody: htmlBody
+    });
+
+    // Log the Gmail draft creation
+    var sheet = getOrCreateSheet_('DraftLog', [
+      'timestamp', 'userId', 'draftType', 'originalQuestion', 'draft', 'status'
+    ]);
+    sheet.appendRow([
+      new Date().toISOString(),
+      Session.getActiveUser().getEmail() || '',
+      'gmail_draft',
+      safeSubject,
+      body.substring(0, 2000),
+      'gmail_draft_created'
+    ]);
+
+    return { success: true };
+
+  } catch (e) {
+    Logger.log('createGmailDraft error: ' + e.toString());
+    return { success: false, error: e.message || 'Failed to create Gmail draft.' };
   }
 }
 

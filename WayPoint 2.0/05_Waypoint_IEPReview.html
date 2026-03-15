@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — IEP Review</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-300:#fcd34d;--amber-400:#fbbf24;--amber-500:#f59e0b;--amber-600:#d97706;
+    --warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;
+    --rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-500:#f43f5e;--rose-600:#e11d48;--rose-700:#be123c;
+    --violet-50:#f5f3ff;--violet-100:#ede9fe;--violet-500:#8b5cf6;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;
+    --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--blue-600:#2563eb;
+    --font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;
+    --radius:16px;--radius-sm:10px;--radius-full:999px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:linear-gradient(160deg,var(--teal-50) 0%,var(--warm-50) 40%,var(--amber-50) 100%);min-height:100vh;display:flex;justify-content:center;padding:24px;color:var(--warm-900);}
+
+  .phone-frame{width:390px;min-height:844px;background:var(--warm-50);border-radius:40px;box-shadow:0 0 0 8px #1a1a1a,0 20px 60px rgba(0,0,0,0.2);overflow:hidden;position:relative;}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;}
+  .screen{padding:0 20px 100px;}
+
+  .back-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;color:var(--teal-600);font-weight:600;font-size:14px;}
+
+  .page-header{font-family:var(--font-display);font-size:22px;font-weight:500;margin-bottom:4px;}
+  .page-sub{font-size:13px;color:var(--warm-600);margin-bottom:16px;}
+
+  /* AI Summary */
+  .ai-summary{background:linear-gradient(135deg,var(--teal-700),var(--teal-800));border-radius:var(--radius);padding:18px;color:white;margin-bottom:16px;position:relative;overflow:hidden;}
+  .ai-summary::after{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,0.05);border-radius:50%;}
+  .ai-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;opacity:0.8;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
+  .ai-label .sparkle{font-size:14px;}
+  .ai-text{font-size:14px;line-height:1.6;opacity:0.95;}
+
+  /* Score badges */
+  .score-row{display:flex;gap:8px;margin-bottom:16px;}
+  .score-card{flex:1;background:white;border-radius:var(--radius-sm);padding:12px;border:1.5px solid var(--warm-200);text-align:center;}
+  .score-number{font-family:var(--font-display);font-size:24px;font-weight:700;}
+  .score-number.red{color:var(--rose-600);}
+  .score-number.amber{color:var(--amber-600);}
+  .score-number.green{color:var(--green-600);}
+  .score-label{font-size:11px;font-weight:600;color:var(--warm-600);margin-top:2px;}
+
+  /* Document preview */
+  .doc-preview{background:white;border-radius:var(--radius);border:1.5px solid var(--warm-200);padding:16px;margin-bottom:16px;}
+  .doc-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--warm-200);}
+  .doc-icon{width:40px;height:40px;border-radius:8px;background:var(--rose-50);display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .doc-name{font-weight:700;font-size:14px;}
+  .doc-meta{font-size:12px;color:var(--warm-600);}
+
+  .doc-section{padding:10px 0;border-bottom:1px solid var(--warm-100);}
+  .doc-section:last-child{border-bottom:none;}
+  .doc-section-title{font-size:12px;font-weight:700;color:var(--warm-600);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+  .doc-text{font-size:13px;line-height:1.5;color:var(--warm-800);}
+  .highlight-issue{background:var(--rose-100);border-left:3px solid var(--rose-500);padding:2px 6px;border-radius:0 4px 4px 0;margin:2px 0;display:inline;}
+  .highlight-good{background:var(--green-100);border-left:3px solid var(--green-500);padding:2px 6px;border-radius:0 4px 4px 0;display:inline;}
+
+  /* Flag cards */
+  .section-title{font-weight:700;font-size:15px;color:var(--warm-800);margin:16px 0 10px;}
+
+  .flag-card{background:white;border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;border-left:4px solid;cursor:pointer;transition:all 0.2s;}
+  .flag-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+  .flag-card.critical{border-left-color:var(--rose-500);border-top:1px solid var(--warm-200);border-right:1px solid var(--warm-200);border-bottom:1px solid var(--warm-200);}
+  .flag-card.warning{border-left-color:var(--amber-500);border-top:1px solid var(--warm-200);border-right:1px solid var(--warm-200);border-bottom:1px solid var(--warm-200);}
+  .flag-card.info{border-left-color:var(--blue-500);border-top:1px solid var(--warm-200);border-right:1px solid var(--warm-200);border-bottom:1px solid var(--warm-200);}
+
+  .flag-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .flag-type{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px;border-radius:var(--radius-full);}
+  .type-critical{background:var(--rose-100);color:var(--rose-700);}
+  .type-warning{background:var(--amber-100);color:var(--amber-600);}
+  .type-info{background:var(--blue-100);color:var(--blue-600);}
+
+  .flag-section{font-size:11px;color:var(--warm-600);}
+  .flag-title{font-weight:700;font-size:14px;margin-bottom:4px;}
+  .flag-desc{font-size:13px;color:var(--warm-600);line-height:1.5;margin-bottom:8px;}
+  .flag-suggestion{background:var(--warm-100);border-radius:8px;padding:10px;font-size:12px;line-height:1.5;color:var(--warm-800);}
+  .flag-suggestion strong{color:var(--teal-700);}
+  .flag-legal{font-size:11px;color:var(--teal-600);font-weight:600;margin-top:6px;cursor:pointer;}
+
+  /* Disclaimer */
+  .disclaimer{background:var(--warm-100);border-radius:var(--radius-sm);padding:12px;margin:16px 0;font-size:11px;color:var(--warm-600);line-height:1.5;display:flex;gap:8px;}
+  .disclaimer .icon{font-size:16px;flex-shrink:0;}
+
+  /* Bottom nav */
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--warm-200);display:flex;justify-content:space-around;padding:8px 0 28px;z-index:10;}
+  .nav-item{text-align:center;cursor:pointer;padding:4px 12px;}
+  .nav-icon{font-size:22px;margin-bottom:2px;}
+  .nav-label{font-size:10px;font-weight:600;color:var(--warm-600);}
+  .nav-item.active .nav-label{color:var(--teal-600);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .animate{animation:fadeUp 0.5s ease-out both;}
+  .d1{animation-delay:0.05s;}.d2{animation-delay:0.1s;}.d3{animation-delay:0.15s;}.d4{animation-delay:0.2s;}.d5{animation-delay:0.25s;}.d6{animation-delay:0.3s;}
+</style>
+</head>
+<body>
+
+<div>
+  <h2 style="font-family:var(--font-display);font-size:24px;text-align:center;margin-bottom:4px;color:var(--warm-900);">Waypoint</h2>
+  <p style="text-align:center;font-size:14px;color:var(--warm-600);margin-bottom:16px;">IEP AI Review</p>
+
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span style="font-size:15px;font-weight:700;">9:41</span>
+      <div style="display:flex;gap:6px;align-items:center;font-size:13px;"><span>●●●●</span><span>WiFi</span><span>🔋</span></div>
+    </div>
+
+    <div class="screen">
+      <div class="back-row animate">← Back to Documents</div>
+
+      <div class="page-header animate">IEP Review Results</div>
+      <div class="page-sub animate">AI-assisted analysis of Teddy's IEP</div>
+
+      <!-- AI Summary -->
+      <div class="ai-summary animate d1">
+        <div class="ai-label"><span class="sparkle">✨</span> Waypoint AI Analysis</div>
+        <div class="ai-text">Teddy's IEP has strong present levels documentation but has <strong>3 critical issues</strong> to address before your next meeting: vague speech goals, missing behavioral baseline data, and below-typical service hours for ASD.</div>
+      </div>
+
+      <!-- Score Row -->
+      <div class="score-row animate d2">
+        <div class="score-card">
+          <div class="score-number red">3</div>
+          <div class="score-label">Critical Issues</div>
+        </div>
+        <div class="score-card">
+          <div class="score-number amber">2</div>
+          <div class="score-label">Suggestions</div>
+        </div>
+        <div class="score-card">
+          <div class="score-number green">8</div>
+          <div class="score-label">Sections OK</div>
+        </div>
+      </div>
+
+      <!-- Document Preview -->
+      <div class="doc-preview animate d2">
+        <div class="doc-header">
+          <div class="doc-icon">📄</div>
+          <div>
+            <div class="doc-name">Teddy_IEP_2025-2026.pdf</div>
+            <div class="doc-meta">Uploaded Mar 1, 2026 · 12 pages</div>
+          </div>
+        </div>
+        <div class="doc-section">
+          <div class="doc-section-title">Goal 2 — Speech & Language</div>
+          <div class="doc-text">
+            "Teddy will <span class="highlight-issue">improve his communication skills</span> as measured by teacher observation during classroom activities."
+          </div>
+        </div>
+        <div class="doc-section">
+          <div class="doc-section-title">Present Levels — Academic</div>
+          <div class="doc-text">
+            "Teddy demonstrates <span class="highlight-good">grade-level performance in math computation (85th percentile)</span> and reads independently at a DRA level 18."
+          </div>
+        </div>
+      </div>
+
+      <!-- Flags -->
+      <div class="section-title animate d3">Issues & Suggestions</div>
+
+      <div class="flag-card critical animate d3">
+        <div class="flag-header">
+          <span class="flag-type type-critical">Critical</span>
+          <span class="flag-section">Goal 2, Page 5</span>
+        </div>
+        <div class="flag-title">Vague speech/language goal</div>
+        <div class="flag-desc">"Improve communication skills" is not measurable. IDEA requires goals with specific, measurable criteria and timeframes.</div>
+        <div class="flag-suggestion">
+          <strong>Suggested revision:</strong> "By [date], Teddy will use 3–4 word spontaneous requests across 3 different settings with 80% accuracy over 5 consecutive data points, as measured by SLP data collection."
+        </div>
+        <div class="flag-legal">📖 See: IDEA §300.320(a)(2) — Measurable Goals</div>
+      </div>
+
+      <div class="flag-card critical animate d4">
+        <div class="flag-header">
+          <span class="flag-type type-critical">Critical</span>
+          <span class="flag-section">Behavioral Support, Page 7</span>
+        </div>
+        <div class="flag-title">Missing behavioral baseline data</div>
+        <div class="flag-desc">The behavior section references "occasional meltdowns" but provides no frequency, duration, or intensity data. Baselines are required for meaningful progress measurement.</div>
+        <div class="flag-suggestion">
+          <strong>Action:</strong> Request a Functional Behavior Assessment (FBA) before the next IEP meeting. The district must complete this within 60 days of consent.
+        </div>
+        <div class="flag-legal">📖 See: CA Ed Code §56521.2 — Behavioral Interventions</div>
+      </div>
+
+      <div class="flag-card critical animate d4">
+        <div class="flag-header">
+          <span class="flag-type type-critical">Critical</span>
+          <span class="flag-section">Services, Page 9</span>
+        </div>
+        <div class="flag-title">Speech services below typical range</div>
+        <div class="flag-desc">IEP lists 30 min/week of speech therapy. For a child with ASD + SLI, typical range is 60–120 min/week. Current hours may be insufficient.</div>
+        <div class="flag-suggestion">
+          <strong>Action:</strong> Request increase to minimum 60 min/week. Ask the SLP for data supporting the current frequency, or request an independent evaluation.
+        </div>
+        <div class="flag-legal">📖 See: IDEA §300.320(a)(4) — Services to Advance Goals</div>
+      </div>
+
+      <div class="flag-card warning animate d5">
+        <div class="flag-header">
+          <span class="flag-type type-warning">Suggestion</span>
+          <span class="flag-section">Accommodations, Page 10</span>
+        </div>
+        <div class="flag-title">Consider adding sensory accommodations</div>
+        <div class="flag-desc">No sensory accommodations listed despite ASD diagnosis. Common accommodations include: sensory breaks, noise-canceling headphones, flexible seating, and reduced visual clutter.</div>
+      </div>
+
+      <div class="flag-card info animate d5">
+        <div class="flag-header">
+          <span class="flag-type type-info">Info</span>
+          <span class="flag-section">Transition, Page 11</span>
+        </div>
+        <div class="flag-title">Transition planning begins at age 16</div>
+        <div class="flag-desc">Teddy is currently 6 — no transition planning is needed yet. Waypoint will remind you when this becomes relevant.</div>
+      </div>
+
+      <!-- Disclaimer -->
+      <div class="disclaimer animate d6">
+        <span class="icon">⚠️</span>
+        <span>AI suggestions are informational only and do not constitute legal advice. Consult a special education advocate or attorney for guidance specific to your situation.</span>
+      </div>
+
+      <!-- Actions -->
+      <button style="width:100%;padding:14px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--teal-600),var(--teal-700));color:white;font-family:var(--font-body);font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;box-shadow:0 4px 12px rgba(13,148,136,0.3);" class="animate d6">
+        ✉️ Draft Email to IEP Team
+      </button>
+      <button style="width:100%;padding:14px;border-radius:10px;border:1.5px solid var(--warm-200);background:white;color:var(--warm-800);font-family:var(--font-body);font-size:15px;font-weight:500;cursor:pointer;" class="animate d6">
+        📤 Share with Advocate
+      </button>
+
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+      <div class="nav-item"><div class="nav-icon">🗺️</div><div class="nav-label">Journey</div></div>
+      <div class="nav-item active"><div class="nav-icon">📁</div><div class="nav-label">Docs</div></div>
+      <div class="nav-item"><div class="nav-icon">👥</div><div class="nav-label">Community</div></div>
+      <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Customer Journey Map</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;--teal-900:#134e4a;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-300:#fcd34d;--amber-400:#fbbf24;--amber-500:#f59e0b;--amber-600:#d97706;
+    --warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;
+    --rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-400:#fb7185;--rose-500:#f43f5e;--rose-600:#e11d48;
+    --violet-50:#f5f3ff;--violet-100:#ede9fe;--violet-400:#a78bfa;--violet-500:#8b5cf6;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-400:#4ade80;--green-500:#22c55e;--green-600:#16a34a;
+    --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-400:#60a5fa;--blue-500:#3b82f6;
+    --font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;
+    --radius:16px;--radius-sm:10px;--radius-full:999px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--warm-50);min-height:100vh;color:var(--warm-900);padding:0;}
+
+  /* Header */
+  .header{background:linear-gradient(135deg,var(--teal-800),var(--teal-900));color:white;padding:40px 48px 32px;position:relative;overflow:hidden;}
+  .header::after{content:'';position:absolute;top:-40px;right:-20px;width:200px;height:200px;background:rgba(255,255,255,0.03);border-radius:50%;}
+  .header::before{content:'';position:absolute;bottom:-60px;left:100px;width:150px;height:150px;background:rgba(255,255,255,0.02);border-radius:50%;}
+  .logo-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+  .logo-icon{width:40px;height:40px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .logo-text{font-family:var(--font-display);font-size:20px;font-weight:500;letter-spacing:-0.5px;}
+  .header h1{font-family:var(--font-display);font-size:36px;font-weight:500;margin-bottom:8px;line-height:1.2;}
+  .header p{font-size:16px;opacity:0.7;max-width:600px;line-height:1.5;}
+
+  .meta-row{display:flex;gap:24px;margin-top:20px;flex-wrap:wrap;}
+  .meta-item{font-size:12px;font-weight:600;padding:6px 14px;border-radius:var(--radius-full);background:rgba(255,255,255,0.1);display:flex;align-items:center;gap:6px;}
+
+  /* Journey container */
+  .journey-wrap{padding:32px 48px 60px;overflow-x:auto;}
+
+  /* Persona row */
+  .persona-section{margin-bottom:32px;}
+  .persona-label{font-family:var(--font-display);font-size:20px;font-weight:500;margin-bottom:16px;}
+  .persona-cards{display:flex;gap:16px;flex-wrap:wrap;}
+  .persona-card{background:white;border-radius:var(--radius);padding:16px 20px;border:1.5px solid var(--warm-200);min-width:200px;flex:1;max-width:280px;}
+  .persona-emoji{font-size:32px;margin-bottom:8px;}
+  .persona-name{font-weight:700;font-size:15px;margin-bottom:2px;}
+  .persona-desc{font-size:12px;color:var(--warm-600);line-height:1.4;}
+  .persona-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--radius-full);margin-top:8px;text-transform:uppercase;letter-spacing:0.5px;}
+  .tag-new{background:var(--rose-100);color:var(--rose-600);}
+  .tag-growing{background:var(--amber-100);color:var(--amber-600);}
+  .tag-experienced{background:var(--teal-100);color:var(--teal-700);}
+  .tag-advocate{background:var(--violet-100);color:var(--violet-500);}
+
+  /* Journey stages */
+  .stages-grid{display:grid;grid-template-columns:repeat(6, 1fr);gap:0;position:relative;margin-top:8px;}
+
+  .stage-col{position:relative;}
+  .stage-header{padding:14px 16px;text-align:center;color:white;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:1px;}
+  .stage-1 .stage-header{background:var(--rose-500);}
+  .stage-2 .stage-header{background:var(--amber-500);}
+  .stage-3 .stage-header{background:var(--amber-600);}
+  .stage-4 .stage-header{background:var(--teal-500);}
+  .stage-5 .stage-header{background:var(--teal-700);}
+  .stage-6 .stage-header{background:var(--violet-500);}
+
+  .stage-body{padding:16px;background:white;border:1px solid var(--warm-200);min-height:120px;}
+
+  /* Row labels */
+  .row-section{margin-top:0;}
+  .row-label{background:var(--warm-100);padding:10px 16px;font-weight:700;font-size:12px;color:var(--warm-800);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--warm-200);grid-column:1 / -1;}
+
+  .cell{padding:12px 14px;background:white;border:1px solid var(--warm-200);font-size:12px;line-height:1.5;color:var(--warm-800);min-height:80px;}
+  .cell ul{list-style:none;padding:0;}
+  .cell li{padding:3px 0;display:flex;align-items:flex-start;gap:6px;}
+  .cell li::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+  .stage-1 .cell li::before{background:var(--rose-400);}
+  .stage-2 .cell li::before{background:var(--amber-400);}
+  .stage-3 .cell li::before{background:var(--amber-500);}
+  .stage-4 .cell li::before{background:var(--teal-400);}
+  .stage-5 .cell li::before{background:var(--teal-600);}
+  .stage-6 .cell li::before{background:var(--violet-400);}
+
+  /* Emotion line */
+  .emotion-row{display:grid;grid-template-columns:repeat(6,1fr);margin-top:0;}
+  .emotion-cell{padding:12px 14px;background:white;border:1px solid var(--warm-200);text-align:center;}
+  .emotion-emoji{font-size:28px;margin-bottom:4px;}
+  .emotion-label{font-size:11px;font-weight:600;color:var(--warm-600);}
+
+  /* Waypoint features row */
+  .feature-cell{padding:12px 14px;background:var(--teal-50);border:1px solid var(--teal-100);font-size:12px;line-height:1.5;min-height:80px;}
+  .feature-cell .feature-tag{display:inline-block;font-size:10px;font-weight:700;background:var(--teal-600);color:white;padding:2px 8px;border-radius:var(--radius-full);margin:2px 2px 2px 0;}
+
+  /* Pain points */
+  .pain-cell{padding:12px 14px;background:var(--rose-50);border:1px solid var(--rose-100);font-size:12px;line-height:1.5;color:var(--rose-600);min-height:60px;}
+
+  /* Legend */
+  .legend{display:flex;gap:24px;margin-top:32px;flex-wrap:wrap;padding:16px 0;border-top:1px solid var(--warm-200);}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--warm-600);}
+  .legend-dot{width:12px;height:12px;border-radius:3px;}
+  .legend-dot.actions{background:white;border:1px solid var(--warm-200);}
+  .legend-dot.emotions{background:var(--warm-100);}
+  .legend-dot.pain{background:var(--rose-50);border:1px solid var(--rose-100);}
+  .legend-dot.waypoint{background:var(--teal-50);border:1px solid var(--teal-100);}
+
+  /* Responsive helper */
+  .scroll-container{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .scroll-inner{min-width:1100px;}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo-row">
+    <div class="logo-icon">🧭</div>
+    <div class="logo-text">Waypoint</div>
+  </div>
+  <h1>Customer Journey Map</h1>
+  <p>From first concern through confident advocacy — how families experience Waypoint across the full lifecycle of navigating disability services.</p>
+  <div class="meta-row">
+    <div class="meta-item">📊 Version 2.0</div>
+    <div class="meta-item">📅 March 2026</div>
+    <div class="meta-item">🎯 California Families</div>
+    <div class="meta-item">🧩 Autism · ADHD · SLD · ID · SLI · PDA</div>
+  </div>
+</div>
+
+<!-- Journey Content -->
+<div class="journey-wrap">
+
+  <!-- Personas -->
+  <div class="persona-section">
+    <div class="persona-label">Primary Personas</div>
+    <div class="persona-cards">
+      <div class="persona-card">
+        <div class="persona-emoji">👩‍👦</div>
+        <div class="persona-name">Maria — First Diagnosis</div>
+        <div class="persona-desc">Spanish-speaking, income $55K, child age 3, just received ASD diagnosis. Overwhelmed, doesn't know where to start.</div>
+        <div class="persona-tag tag-new">New to System</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-emoji">👩‍💻</div>
+        <div class="persona-name">Sarah — Advocacy Veteran</div>
+        <div class="persona-desc">Tech-savvy, income $120K, child age 10, deep in IEP process. Drowning in paperwork, wants AI help.</div>
+        <div class="persona-tag tag-experienced">Experienced</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-emoji">👨‍👧</div>
+        <div class="persona-name">David — Transition Planning</div>
+        <div class="persona-desc">Father, income $80K, child age 16, intellectual disability. Navigating conservatorship, SSI, adult services.</div>
+        <div class="persona-tag tag-advocate">Transition</div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-emoji">👩‍👧‍👦</div>
+        <div class="persona-name">Priya — Multi-System</div>
+        <div class="persona-desc">Hindi/English, income $35K, Medi-Cal eligible, child age 7, ASD + SLI. Falls through cracks between systems.</div>
+        <div class="persona-tag tag-growing">Growing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Journey Map Grid -->
+  <div class="scroll-container">
+    <div class="scroll-inner">
+
+      <!-- Stage Headers -->
+      <div class="stages-grid">
+        <div class="stage-col stage-1"><div class="stage-header">1. Awareness</div></div>
+        <div class="stage-col stage-2"><div class="stage-header">2. Onboarding</div></div>
+        <div class="stage-col stage-3"><div class="stage-header">3. First Value</div></div>
+        <div class="stage-col stage-4"><div class="stage-header">4. Active Use</div></div>
+        <div class="stage-col stage-5"><div class="stage-header">5. Deepening</div></div>
+        <div class="stage-col stage-6"><div class="stage-header">6. Advocacy</div></div>
+      </div>
+
+      <!-- Duration Row -->
+      <div class="stages-grid">
+        <div class="stage-col stage-1"><div class="cell" style="text-align:center;font-weight:700;font-size:11px;color:var(--warm-600);min-height:auto;padding:8px;">Day 0</div></div>
+        <div class="stage-col stage-2"><div class="cell" style="text-align:center;font-weight:700;font-size:11px;color:var(--warm-600);min-height:auto;padding:8px;">Day 1–3</div></div>
+        <div class="stage-col stage-3"><div class="cell" style="text-align:center;font-weight:700;font-size:11px;color:var(--warm-600);min-height:auto;padding:8px;">Week 1–2</div></div>
+        <div class="stage-col stage-4"><div class="cell" style="text-align:center;font-weight:700;font-size:11px;color:var(--warm-600);min-height:auto;padding:8px;">Month 1–3</div></div>
+        <div class="stage-col stage-5"><div class="cell" style="text-align:center;font-weight:700;font-size:11px;color:var(--warm-600);min-height:auto;padding:8px;">Month 3–12</div></div>
+        <div class="stage-col stage-6"><div class="cell" style="text-align:center;font-weight:700;font-size:11px;color:var(--warm-600);min-height:auto;padding:8px;">Year 1+</div></div>
+      </div>
+
+      <!-- Emotion Row -->
+      <div class="stages-grid">
+        <div class="emotion-cell"><div class="emotion-emoji">😰</div><div class="emotion-label">Overwhelmed / Scared</div></div>
+        <div class="emotion-cell"><div class="emotion-emoji">🤔</div><div class="emotion-label">Cautiously Hopeful</div></div>
+        <div class="emotion-cell"><div class="emotion-emoji">😮</div><div class="emotion-label">Relieved / Surprised</div></div>
+        <div class="emotion-cell"><div class="emotion-emoji">💪</div><div class="emotion-label">Empowered</div></div>
+        <div class="emotion-cell"><div class="emotion-emoji">😊</div><div class="emotion-label">Confident</div></div>
+        <div class="emotion-cell"><div class="emotion-emoji">🌟</div><div class="emotion-label">Expert / Giving Back</div></div>
+      </div>
+
+      <!-- User Actions Row Label -->
+      <div class="stages-grid">
+        <div style="grid-column:1/-1;background:var(--warm-100);padding:10px 16px;font-weight:700;font-size:12px;color:var(--warm-800);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--warm-200);">👤 User Actions & Touchpoints</div>
+      </div>
+
+      <div class="stages-grid">
+        <div class="stage-col stage-1"><div class="cell"><ul>
+          <li>Searches "help for child with autism"</li>
+          <li>Finds Waypoint via advocacy org referral, Google, or pediatrician</li>
+          <li>Downloads app or visits website</li>
+          <li>Reads landing page</li>
+        </ul></div></div>
+        <div class="stage-col stage-2"><div class="cell"><ul>
+          <li>Creates account (Google/Apple SSO)</li>
+          <li>Enters child's diagnosis, age, zip code</li>
+          <li>Sees Regional Center match</li>
+          <li>Selects preferred language</li>
+          <li>Reviews profile summary</li>
+        </ul></div></div>
+        <div class="stage-col stage-3"><div class="cell"><ul>
+          <li>Receives personalized action plan</li>
+          <li>Completes first 2-3 steps</li>
+          <li>Browses resource library</li>
+          <li>Bookmarks relevant resources</li>
+          <li>Sets up push notifications</li>
+        </ul></div></div>
+        <div class="stage-col stage-4"><div class="cell"><ul>
+          <li>Uploads IEP document for AI review</li>
+          <li>Uses email templates to contact school</li>
+          <li>Syncs Google Calendar</li>
+          <li>Manages therapy appointments</li>
+          <li>Tracks action plan progress</li>
+        </ul></div></div>
+        <div class="stage-col stage-5"><div class="cell"><ul>
+          <li>Joins community forums</li>
+          <li>Connects MyChart for medical sync</li>
+          <li>Tracks insurance authorizations</li>
+          <li>Uses legal resource guides</li>
+          <li>Manages multiple children's plans</li>
+        </ul></div></div>
+        <div class="stage-col stage-6"><div class="cell"><ul>
+          <li>Suggests resources for other parents</li>
+          <li>Answers community questions</li>
+          <li>Shares Waypoint with other families</li>
+          <li>Provides testimonials</li>
+          <li>Advocates for platform to Regional Centers</li>
+        </ul></div></div>
+      </div>
+
+      <!-- Pain Points Row -->
+      <div class="stages-grid">
+        <div style="grid-column:1/-1;background:var(--rose-100);padding:10px 16px;font-weight:700;font-size:12px;color:var(--rose-600);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--rose-100);">🔥 Pain Points & Barriers</div>
+      </div>
+
+      <div class="stages-grid">
+        <div class="pain-cell">"I just got the diagnosis and I'm terrified. I don't know what any of these acronyms mean."</div>
+        <div class="pain-cell">"Do I trust this app with my child's private info? Is this legit?"</div>
+        <div class="pain-cell">"Will this actually help, or is it just another generic resource list?"</div>
+        <div class="pain-cell">"The IEP process is so adversarial. I'm afraid to push back on the school."</div>
+        <div class="pain-cell">"I have so many systems to manage. It's a part-time job on top of everything else."</div>
+        <div class="pain-cell">"I want to help others but I worry about sharing advice that might not apply to their situation."</div>
+      </div>
+
+      <!-- Waypoint Features Row -->
+      <div class="stages-grid">
+        <div style="grid-column:1/-1;background:var(--teal-100);padding:10px 16px;font-weight:700;font-size:12px;color:var(--teal-800);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--teal-100);">🧭 Waypoint Features & Solutions</div>
+      </div>
+
+      <div class="stages-grid">
+        <div class="feature-cell">
+          <span class="feature-tag">SEO</span>
+          <span class="feature-tag">Referral</span>
+          <span class="feature-tag">Landing</span>
+          <br><br>
+          Clear value prop, social proof from parent testimonials, advocacy org partnerships, multilingual landing pages
+        </div>
+        <div class="feature-cell">
+          <span class="feature-tag">Onboarding</span>
+          <span class="feature-tag">RC Lookup</span>
+          <span class="feature-tag">SSO</span>
+          <br><br>
+          5-step wizard, zip-to-RC matching, optional income for resource filtering, privacy-first messaging
+        </div>
+        <div class="feature-cell">
+          <span class="feature-tag">Action Plans</span>
+          <span class="feature-tag">Resources</span>
+          <span class="feature-tag">Push</span>
+          <br><br>
+          AI-generated journey map, curated resource library with filters, first actionable step within 60 seconds
+        </div>
+        <div class="feature-cell">
+          <span class="feature-tag">IEP Review</span>
+          <span class="feature-tag">Templates</span>
+          <span class="feature-tag">Calendar</span>
+          <br><br>
+          AI IEP analysis with legal citations, pre-written email templates, Google Calendar sync, document management
+        </div>
+        <div class="feature-cell">
+          <span class="feature-tag">Community</span>
+          <span class="feature-tag">MyChart</span>
+          <span class="feature-tag">Insurance</span>
+          <br><br>
+          Peer forums, healthcare integration, authorization tracking, legal guides, multi-system dashboard
+        </div>
+        <div class="feature-cell">
+          <span class="feature-tag">Contribute</span>
+          <span class="feature-tag">Refer</span>
+          <span class="feature-tag">Provider</span>
+          <br><br>
+          Community contributions, resource suggestions, referral program, provider portal, verified expert badges
+        </div>
+      </div>
+
+      <!-- Key Metrics Row -->
+      <div class="stages-grid">
+        <div style="grid-column:1/-1;background:var(--warm-100);padding:10px 16px;font-weight:700;font-size:12px;color:var(--warm-800);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--warm-200);">📊 Key Metrics</div>
+      </div>
+
+      <div class="stages-grid">
+        <div class="cell" style="font-size:11px;">
+          <strong>Acquisition:</strong><br>
+          App downloads<br>
+          Landing page conversion<br>
+          Referral source attribution
+        </div>
+        <div class="cell" style="font-size:11px;">
+          <strong>Activation:</strong><br>
+          Onboarding completion rate<br>
+          Profile completeness<br>
+          Target: >80%
+        </div>
+        <div class="cell" style="font-size:11px;">
+          <strong>First Value:</strong><br>
+          Time to first action plan step<br>
+          Resources bookmarked (D7)<br>
+          Target: <60 sec to first step
+        </div>
+        <div class="cell" style="font-size:11px;">
+          <strong>Engagement:</strong><br>
+          WAU/MAU ratio<br>
+          Docs uploaded per user<br>
+          Emails sent via app<br>
+          Target: >40% WAU
+        </div>
+        <div class="cell" style="font-size:11px;">
+          <strong>Retention:</strong><br>
+          D30 / D90 retention<br>
+          DAU/MAU ratio<br>
+          NPS score<br>
+          Target: >30% DAU/MAU
+        </div>
+        <div class="cell" style="font-size:11px;">
+          <strong>Advocacy:</strong><br>
+          Referrals per user<br>
+          Resources contributed<br>
+          Community posts<br>
+          Target: 15% referral rate
+        </div>
+      </div>
+
+    </div><!-- /scroll-inner -->
+  </div><!-- /scroll-container -->
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot actions"></div> User Actions</div>
+    <div class="legend-item"><div class="legend-dot pain"></div> Pain Points</div>
+    <div class="legend-item"><div class="legend-dot waypoint"></div> Waypoint Solutions</div>
+    <div class="legend-item"><div class="legend-dot emotions" style="font-size:16px;width:auto;height:auto;background:none;border:none;">😰→🤔→😮→💪→😊→🌟</div> Emotional Journey</div>
+  </div>
+
+  <!-- Phase Mapping -->
+  <div style="margin-top:32px;background:white;border-radius:var(--radius);border:1.5px solid var(--warm-200);padding:24px;">
+    <h3 style="font-family:var(--font-display);font-size:20px;margin-bottom:16px;">Journey Stage → Development Phase Mapping</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+      <div style="padding:16px;border-radius:var(--radius-sm);background:var(--amber-50);border:1px solid var(--amber-100);">
+        <div style="font-weight:700;font-size:14px;color:var(--amber-600);margin-bottom:4px;">Phase 1: MVP (Wk 1–10)</div>
+        <div style="font-size:12px;color:var(--warm-600);line-height:1.5;">Covers journey stages 1–3: Awareness through First Value. Onboarding, action plans, resource library, RC lookup, basic notifications.</div>
+      </div>
+      <div style="padding:16px;border-radius:var(--radius-sm);background:var(--teal-50);border:1px solid var(--teal-100);">
+        <div style="font-weight:700;font-size:14px;color:var(--teal-700);margin-bottom:4px;">Phase 2: Intelligence (Wk 11–20)</div>
+        <div style="font-size:12px;color:var(--warm-600);line-height:1.5;">Covers journey stage 4: Active Use. IEP review, document management, email templates, calendar sync, communication log.</div>
+      </div>
+      <div style="padding:16px;border-radius:var(--radius-sm);background:var(--violet-50);border:1px solid var(--violet-100);">
+        <div style="font-weight:700;font-size:14px;color:var(--violet-500);margin-bottom:4px;">Phase 3–4: Scale (Wk 21–48)</div>
+        <div style="font-size:12px;color:var(--warm-600);line-height:1.5;">Covers journey stages 5–6: Deepening through Advocacy. Community, healthcare integration, insurance, legal, provider portal, analytics.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Insurance</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root{--teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;--amber-50:#fffbeb;--amber-100:#fef3c7;--amber-400:#fbbf24;--amber-500:#f59e0b;--amber-600:#d97706;--warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;--rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-500:#f43f5e;--rose-600:#e11d48;--green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;--radius:16px;--radius-sm:10px;--radius-full:999px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:linear-gradient(160deg,var(--teal-50) 0%,var(--warm-50) 40%,var(--amber-50) 100%);min-height:100vh;display:flex;justify-content:center;padding:24px;color:var(--warm-900);}
+  .phone-frame{width:390px;min-height:844px;background:var(--warm-50);border-radius:40px;box-shadow:0 0 0 8px #1a1a1a,0 20px 60px rgba(0,0,0,0.2);overflow:hidden;position:relative;}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;}
+  .screen{padding:0 20px 100px;}
+  .back-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;color:var(--teal-600);font-weight:600;font-size:14px;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--warm-200);display:flex;justify-content:space-around;padding:8px 0 28px;z-index:10;}
+  .nav-item{text-align:center;cursor:pointer;padding:4px 12px;}.nav-icon{font-size:22px;margin-bottom:2px;}.nav-label{font-size:10px;font-weight:600;color:var(--warm-600);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .a{animation:fadeUp .5s ease-out both;}.d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}.d5{animation-delay:.25s;}
+
+  h1{font-family:var(--font-display);font-size:24px;font-weight:500;margin-bottom:4px;}
+  .sub{font-size:13px;color:var(--warm-600);margin-bottom:16px;}
+  .section-title{font-weight:700;font-size:15px;color:var(--warm-800);margin:20px 0 10px;}
+
+  /* Insurance card */
+  .ins-card{background:linear-gradient(135deg,#1e3a5f,#2d5a8e);border-radius:var(--radius);padding:18px;color:white;margin-bottom:10px;position:relative;overflow:hidden;}
+  .ins-card::after{content:'';position:absolute;top:-20px;right:20px;width:100px;height:100px;background:rgba(255,255,255,.04);border-radius:50%;}
+  .ins-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.7;margin-bottom:6px;}
+  .ins-name{font-family:var(--font-display);font-size:18px;font-weight:500;margin-bottom:10px;}
+  .ins-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .ins-field{font-size:11px;opacity:.7;}
+  .ins-value{font-size:13px;font-weight:600;margin-top:2px;}
+  .ins-photo{position:absolute;top:12px;right:12px;font-size:10px;font-weight:600;padding:4px 10px;border-radius:var(--radius-full);background:rgba(255,255,255,.15);cursor:pointer;}
+
+  .ins-card.medicaid{background:linear-gradient(135deg,#0d6848,#158c64);}
+
+  /* Authorization cards */
+  .auth-card{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;transition:all .2s;}
+  .auth-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .auth-name{font-weight:700;font-size:14px;}
+  .auth-status{font-size:10px;font-weight:700;padding:3px 10px;border-radius:var(--radius-full);}
+  .status-active{background:var(--green-100);color:var(--green-600);}
+  .status-warning{background:var(--amber-100);color:var(--amber-600);}
+  .status-expired{background:var(--rose-100);color:var(--rose-600);}
+  .auth-provider{font-size:12px;color:var(--warm-600);margin-bottom:10px;}
+
+  .auth-progress{margin-bottom:8px;}
+  .auth-bar-bg{height:8px;background:var(--warm-100);border-radius:8px;overflow:hidden;}
+  .auth-bar-fill{height:8px;border-radius:8px;transition:width .5s;}
+  .fill-green{background:var(--green-500);width:35%;}
+  .fill-amber{background:var(--amber-400);width:72%;}
+  .fill-red{background:var(--rose-500);width:100%;}
+  .auth-stats{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--warm-600);}
+  .auth-stats strong{color:var(--warm-900);}
+
+  .auth-dates{display:flex;gap:16px;font-size:11px;color:var(--warm-600);margin-top:8px;padding-top:8px;border-top:1px solid var(--warm-100);}
+  .auth-dates strong{color:var(--warm-800);}
+
+  .reminder-badge{display:flex;align-items:center;gap:4px;margin-top:8px;font-size:11px;font-weight:600;color:var(--amber-600);background:var(--amber-50);padding:4px 10px;border-radius:var(--radius-full);width:fit-content;}
+</style>
+</head>
+<body>
+<div>
+  <h2 style="font-family:var(--font-display);font-size:24px;text-align:center;margin-bottom:4px;">Waypoint</h2>
+  <p style="text-align:center;font-size:14px;color:var(--warm-600);margin-bottom:16px;">F12 — Insurance & Authorization Tracking</p>
+  <div class="phone-frame">
+    <div class="status-bar"><span style="font-size:15px;font-weight:700;">9:41</span><div style="display:flex;gap:6px;align-items:center;font-size:13px;"><span>●●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="screen">
+      <div class="back-row a">← Settings</div>
+      <h1 class="a">Insurance</h1>
+      <div class="sub a">Plans, cards, and service authorizations</div>
+
+      <div class="ins-card a d1">
+        <div class="ins-photo">📷 View Card</div>
+        <div class="ins-type">Private Insurance</div>
+        <div class="ins-name">Blue Shield of California — PPO</div>
+        <div class="ins-grid">
+          <div><div class="ins-field">Member ID</div><div class="ins-value">BSC-8847291</div></div>
+          <div><div class="ins-field">Group #</div><div class="ins-value">KE-20251</div></div>
+          <div><div class="ins-field">Phone</div><div class="ins-value">(800) 431-2809</div></div>
+          <div><div class="ins-field">Patient</div><div class="ins-value">Teddy</div></div>
+        </div>
+      </div>
+
+      <div class="ins-card medicaid a d2">
+        <div class="ins-photo">📷 View Card</div>
+        <div class="ins-type">Medi-Cal</div>
+        <div class="ins-name">Medi-Cal Managed Care — Alameda Alliance</div>
+        <div class="ins-grid">
+          <div><div class="ins-field">CIN</div><div class="ins-value">9EJT12345</div></div>
+          <div><div class="ins-field">Plan</div><div class="ins-value">Alameda Alliance</div></div>
+          <div><div class="ins-field">Phone</div><div class="ins-value">(510) 747-4567</div></div>
+          <div><div class="ins-field">Patient</div><div class="ins-value">Teddy</div></div>
+        </div>
+      </div>
+
+      <div class="section-title a d3">Active Authorizations</div>
+
+      <div class="auth-card a d3">
+        <div class="auth-top">
+          <div class="auth-name">ABA Therapy</div>
+          <span class="auth-status status-active">● Active</span>
+        </div>
+        <div class="auth-provider">Behavioral Perspectives Inc. · via RCEB</div>
+        <div class="auth-progress">
+          <div class="auth-bar-bg"><div class="auth-bar-fill fill-green"></div></div>
+          <div class="auth-stats"><span>Used: <strong>140 hrs</strong></span><span>Authorized: <strong>400 hrs</strong></span></div>
+        </div>
+        <div class="auth-dates">
+          <span>Start: <strong>Jan 1, 2026</strong></span>
+          <span>End: <strong>Jun 30, 2026</strong></span>
+        </div>
+      </div>
+
+      <div class="auth-card a d4">
+        <div class="auth-top">
+          <div class="auth-name">Speech Therapy</div>
+          <span class="auth-status status-warning">⚠ Expiring Soon</span>
+        </div>
+        <div class="auth-provider">Oakland Speech & Language Center · via Blue Shield</div>
+        <div class="auth-progress">
+          <div class="auth-bar-bg"><div class="auth-bar-fill fill-amber"></div></div>
+          <div class="auth-stats"><span>Used: <strong>29 / 40</strong> sessions</span><span>11 remaining</span></div>
+        </div>
+        <div class="auth-dates">
+          <span>Start: <strong>Oct 1, 2025</strong></span>
+          <span>End: <strong>Mar 31, 2026</strong></span>
+        </div>
+        <div class="reminder-badge">⏰ Renewal reminder set for Mar 17</div>
+      </div>
+
+      <div class="auth-card a d5">
+        <div class="auth-top">
+          <div class="auth-name">Respite Care</div>
+          <span class="auth-status status-active">● Active</span>
+        </div>
+        <div class="auth-provider">Home Care Helpers · via RCEB</div>
+        <div class="auth-progress">
+          <div class="auth-bar-bg"><div class="auth-bar-fill fill-green" style="width:45%;"></div></div>
+          <div class="auth-stats"><span>Used: <strong>36 / 80</strong> hrs this quarter</span><span>44 remaining</span></div>
+        </div>
+        <div class="auth-dates">
+          <span>Start: <strong>Jan 1, 2026</strong></span>
+          <span>End: <strong>Mar 31, 2026</strong></span>
+        </div>
+      </div>
+
+      <div class="section-title a d5">Past Authorizations</div>
+      <div class="auth-card a d5" style="opacity:.5;">
+        <div class="auth-top">
+          <div class="auth-name">Occupational Therapy</div>
+          <span class="auth-status status-expired">Expired</span>
+        </div>
+        <div class="auth-provider">Kids OT Bay Area · via Blue Shield</div>
+        <div class="auth-dates"><span>Sep 1, 2025 – Dec 31, 2025</span></div>
+      </div>
+
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+      <div class="nav-item"><div class="nav-icon">🗺️</div><div class="nav-label">Journey</div></div>
+      <div class="nav-item"><div class="nav-icon">📁</div><div class="nav-label">Docs</div></div>
+      <div class="nav-item"><div class="nav-icon">👥</div><div class="nav-label">Community</div></div>
+      <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Home Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-300:#fcd34d;--amber-400:#fbbf24;--amber-500:#f59e0b;--amber-600:#d97706;
+    --warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;
+    --rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-500:#f43f5e;--rose-600:#e11d48;
+    --violet-50:#f5f3ff;--violet-100:#ede9fe;--violet-500:#8b5cf6;
+    --blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;
+    --font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;
+    --radius:16px;--radius-sm:10px;--radius-full:999px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:linear-gradient(160deg,var(--teal-50) 0%,var(--warm-50) 40%,var(--amber-50) 100%);min-height:100vh;display:flex;justify-content:center;padding:24px;color:var(--warm-900);}
+
+  .phone-frame{width:390px;min-height:844px;background:var(--warm-50);border-radius:40px;box-shadow:0 0 0 8px #1a1a1a,0 20px 60px rgba(0,0,0,0.2);overflow:hidden;position:relative;}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;}
+  .status-bar .time{font-size:15px;font-weight:700;}
+
+  .screen{padding:0 20px 100px;overflow-y:auto;}
+
+  /* Header */
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  .greeting{font-family:var(--font-display);font-size:24px;font-weight:500;}
+  .greeting-sub{font-size:13px;color:var(--warm-600);margin-top:2px;}
+  .avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--teal-400),var(--teal-600));display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px;}
+
+  /* Progress hero */
+  .progress-hero{background:linear-gradient(135deg,var(--teal-700),var(--teal-800));border-radius:var(--radius);padding:20px;color:white;margin-bottom:20px;position:relative;overflow:hidden;}
+  .progress-hero::after{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(255,255,255,0.06);border-radius:50%;}
+  .progress-hero::before{content:'';position:absolute;bottom:-30px;left:40px;width:80px;height:80px;background:rgba(255,255,255,0.04);border-radius:50%;}
+  .progress-title{font-size:13px;font-weight:500;opacity:0.8;margin-bottom:4px;}
+  .progress-child{font-family:var(--font-display);font-size:20px;font-weight:500;margin-bottom:12px;}
+  .progress-bar-bg{height:8px;background:rgba(255,255,255,0.2);border-radius:8px;margin-bottom:8px;}
+  .progress-bar-fill{height:8px;background:linear-gradient(90deg,var(--amber-300),var(--amber-400));border-radius:8px;width:38%;transition:width 1s ease;}
+  .progress-stats{display:flex;justify-content:space-between;font-size:12px;opacity:0.8;}
+  .progress-pct{font-size:32px;font-weight:700;font-family:var(--font-display);position:absolute;top:20px;right:20px;opacity:0.9;}
+
+  /* Section header */
+  .section-header{display:flex;justify-content:space-between;align-items:center;margin:20px 0 12px;}
+  .section-title{font-weight:700;font-size:15px;color:var(--warm-800);}
+  .section-link{font-size:13px;font-weight:600;color:var(--teal-600);cursor:pointer;}
+
+  /* Up Next cards */
+  .next-card{background:white;border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;border:1.5px solid var(--warm-200);display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;}
+  .next-card:hover{border-color:var(--teal-400);box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+  .next-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .next-icon.teal{background:var(--teal-50);}
+  .next-icon.amber{background:var(--amber-50);}
+  .next-icon.rose{background:var(--rose-50);}
+  .next-icon.violet{background:var(--violet-50);}
+  .next-content{flex:1;min-width:0;}
+  .next-title{font-weight:600;font-size:14px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .next-meta{font-size:12px;color:var(--warm-600);}
+  .next-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:var(--radius-full);white-space:nowrap;}
+  .badge-urgent{background:var(--rose-100);color:var(--rose-600);}
+  .badge-upcoming{background:var(--amber-100);color:var(--amber-600);}
+  .badge-new{background:var(--teal-100);color:var(--teal-700);}
+
+  /* Quick actions */
+  .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+  .quick-btn{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius-sm);padding:16px 14px;text-align:center;cursor:pointer;transition:all 0.2s;}
+  .quick-btn:hover{border-color:var(--teal-400);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.06);}
+  .quick-icon{font-size:24px;margin-bottom:6px;}
+  .quick-label{font-size:13px;font-weight:600;color:var(--warm-800);}
+
+  /* Upcoming appointments */
+  .appt-card{background:white;border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;border:1.5px solid var(--warm-200);display:flex;gap:12px;}
+  .appt-date{text-align:center;min-width:44px;}
+  .appt-day{font-size:22px;font-weight:700;color:var(--teal-700);line-height:1;}
+  .appt-month{font-size:11px;font-weight:600;color:var(--teal-600);text-transform:uppercase;letter-spacing:0.5px;}
+  .appt-divider{width:2px;background:var(--teal-200);border-radius:2px;}
+  .appt-content{flex:1;}
+  .appt-title{font-weight:600;font-size:14px;margin-bottom:2px;}
+  .appt-time{font-size:12px;color:var(--warm-600);}
+  .appt-location{font-size:12px;color:var(--warm-600);}
+
+  /* Community preview */
+  .community-card{background:linear-gradient(135deg,var(--violet-50),var(--blue-50));border:1.5px solid var(--violet-100);border-radius:var(--radius);padding:16px;margin-bottom:10px;}
+  .community-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .community-avatars{display:flex;}
+  .community-avatars span{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid white;margin-left:-8px;}
+  .community-avatars span:first-child{margin-left:0;}
+  .community-label{font-size:13px;color:var(--warm-600);}
+  .community-post{font-size:14px;color:var(--warm-800);line-height:1.5;}
+  .community-post strong{color:var(--violet-500);}
+
+  /* Bottom nav */
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--warm-200);display:flex;justify-content:space-around;padding:8px 0 28px;z-index:10;}
+  .nav-item{text-align:center;cursor:pointer;padding:4px 12px;}
+  .nav-icon{font-size:22px;margin-bottom:2px;}
+  .nav-label{font-size:10px;font-weight:600;color:var(--warm-600);}
+  .nav-item.active .nav-label{color:var(--teal-600);}
+  .nav-item.active .nav-icon{position:relative;}
+  .nav-item.active .nav-icon::after{content:'';position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--teal-500);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .animate{animation:fadeUp 0.5s ease-out both;}
+  .d1{animation-delay:0.1s;}.d2{animation-delay:0.2s;}.d3{animation-delay:0.3s;}.d4{animation-delay:0.4s;}.d5{animation-delay:0.5s;}
+</style>
+</head>
+<body>
+
+<div>
+  <h2 style="font-family:var(--font-display);font-size:24px;text-align:center;margin-bottom:4px;color:var(--warm-900);">Waypoint</h2>
+  <p style="text-align:center;font-size:14px;color:var(--warm-600);margin-bottom:16px;">Home Dashboard</p>
+
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div style="display:flex;gap:6px;align-items:center;font-size:13px;">
+        <span>●●●●</span><span>WiFi</span><span>🔋</span>
+      </div>
+    </div>
+
+    <div class="screen">
+      <!-- Header -->
+      <div class="header animate">
+        <div>
+          <div class="greeting">Good morning, Mike</div>
+          <div class="greeting-sub">Teddy's journey — 38% complete</div>
+        </div>
+        <div class="avatar">M</div>
+      </div>
+
+      <!-- Progress Hero -->
+      <div class="progress-hero animate d1">
+        <div class="progress-pct">38%</div>
+        <div class="progress-title">Active Journey</div>
+        <div class="progress-child">Teddy — Autism + Speech</div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
+        <div class="progress-stats">
+          <span>9 of 24 steps complete</span>
+          <span>~4 steps this month</span>
+        </div>
+      </div>
+
+      <!-- Up Next -->
+      <div class="section-header animate d2">
+        <span class="section-title">Up Next</span>
+        <span class="section-link">View all →</span>
+      </div>
+
+      <div class="next-card animate d2">
+        <div class="next-icon rose">📋</div>
+        <div class="next-content">
+          <div class="next-title">Request IEP Annual Review</div>
+          <div class="next-meta">Due in 5 days · Step 10 of 24</div>
+        </div>
+        <span class="next-badge badge-urgent">Urgent</span>
+      </div>
+
+      <div class="next-card animate d2">
+        <div class="next-icon amber">📞</div>
+        <div class="next-content">
+          <div class="next-title">Call RCEB for respite authorization</div>
+          <div class="next-meta">Due Mar 15 · Step 11 of 24</div>
+        </div>
+        <span class="next-badge badge-upcoming">Upcoming</span>
+      </div>
+
+      <div class="next-card animate d2">
+        <div class="next-icon teal">🔍</div>
+        <div class="next-content">
+          <div class="next-title">Research ABA therapy providers</div>
+          <div class="next-meta">New recommendation · Step 12</div>
+        </div>
+        <span class="next-badge badge-new">New</span>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="section-header animate d3">
+        <span class="section-title">Quick Actions</span>
+      </div>
+
+      <div class="quick-grid animate d3">
+        <div class="quick-btn">
+          <div class="quick-icon">📄</div>
+          <div class="quick-label">Upload Document</div>
+        </div>
+        <div class="quick-btn">
+          <div class="quick-icon">✉️</div>
+          <div class="quick-label">Email Template</div>
+        </div>
+        <div class="quick-btn">
+          <div class="quick-icon">🏛️</div>
+          <div class="quick-label">RC Services</div>
+        </div>
+        <div class="quick-btn">
+          <div class="quick-icon">🔎</div>
+          <div class="quick-label">Find Resources</div>
+        </div>
+      </div>
+
+      <!-- Upcoming Appointments -->
+      <div class="section-header animate d4">
+        <span class="section-title">Upcoming Appointments</span>
+        <span class="section-link">Calendar →</span>
+      </div>
+
+      <div class="appt-card animate d4">
+        <div class="appt-date">
+          <div class="appt-day">7</div>
+          <div class="appt-month">Mar</div>
+        </div>
+        <div class="appt-divider"></div>
+        <div class="appt-content">
+          <div class="appt-title">Speech Therapy — Ms. Chen</div>
+          <div class="appt-time">🕐 10:00 AM – 10:45 AM</div>
+          <div class="appt-location">📍 Oakland Speech & Language Center</div>
+        </div>
+      </div>
+
+      <div class="appt-card animate d4">
+        <div class="appt-date">
+          <div class="appt-day">12</div>
+          <div class="appt-month">Mar</div>
+        </div>
+        <div class="appt-divider"></div>
+        <div class="appt-content">
+          <div class="appt-title">IEP Meeting — Lincoln Elementary</div>
+          <div class="appt-time">🕐 2:30 PM – 3:30 PM</div>
+          <div class="appt-location">📍 Room 204, Main Office</div>
+        </div>
+      </div>
+
+      <!-- Community -->
+      <div class="section-header animate d5">
+        <span class="section-title">From the Community</span>
+        <span class="section-link">Join →</span>
+      </div>
+
+      <div class="community-card animate d5">
+        <div class="community-header">
+          <div class="community-avatars">
+            <span style="background:var(--amber-100);">👩</span>
+            <span style="background:var(--teal-100);">👨</span>
+            <span style="background:var(--rose-100);">👩</span>
+          </div>
+          <div class="community-label">3 parents replied in <strong>East Bay ASD</strong></div>
+        </div>
+        <div class="community-post">"Has anyone had success getting RCEB to approve more than 10hrs/week of respite? Our coordinator is saying that's the max but I've heard otherwise..."</div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <div class="nav-icon">🏠</div>
+        <div class="nav-label">Home</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">🗺️</div>
+        <div class="nav-label">Journey</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">📁</div>
+        <div class="nav-label">Docs</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">👥</div>
+        <div class="nav-label">Community</div>
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">⚙️</div>
+        <div class="nav-label">Settings</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

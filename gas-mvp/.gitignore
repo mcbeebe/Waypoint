@@ -1,0 +1,25 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# LibreOffice locks
+.~lock.*#
+
+# Claude Code local settings (user-specific)
+.claude/settings.local.json
+
+# Node (if clasp is used locally)
+node_modules/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+.clasprc.json

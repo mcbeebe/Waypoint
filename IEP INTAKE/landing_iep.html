@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IEPClarity.ai — Your Child's IEP, Organized and Actionable</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',sans-serif;color:#1a1a2e;background:#fafcfa;overflow-x:hidden}
+.hero{background:linear-gradient(135deg,#0E2E22 0%,#1A4D3E 40%,#2E6B4F 100%);padding:80px 24px 100px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;bottom:-40%;left:-15%;width:500px;height:500px;background:radial-gradient(circle,rgba(212,131,78,0.12) 0%,transparent 70%);border-radius:50%}
+.hero-inner{max-width:780px;margin:0 auto;position:relative;z-index:1}
+.badge{display:inline-block;background:rgba(212,131,78,0.2);color:#D4834E;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:6px 14px;border-radius:20px;margin-bottom:24px}
+.hero h1{font-family:'Lora',serif;font-size:48px;color:white;line-height:1.2;margin-bottom:20px}.hero h1 span{color:#7DD3A8}
+.hero p{font-size:18px;color:rgba(255,255,255,0.7);line-height:1.65;max-width:580px;margin-bottom:36px}
+.cta-btn{display:inline-block;background:#D4834E;color:white;font-weight:700;font-size:16px;padding:16px 36px;border-radius:8px;text-decoration:none;transition:all 0.2s;box-shadow:0 4px 20px rgba(212,131,78,0.35)}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(212,131,78,0.5)}
+.hero-sub{color:rgba(255,255,255,0.45);font-size:13px;margin-top:14px}
+.section-label{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#2E6B4F;margin-bottom:8px}
+.section-title{font-family:'Lora',serif;font-size:34px;color:#1A4D3E;margin-bottom:20px}
+.empathy{padding:80px 24px;background:white}.empathy-inner{max-width:720px;margin:0 auto;text-align:center}
+.empathy p{font-size:16px;color:#555;line-height:1.7;margin-bottom:16px}
+.empathy-highlight{background:#EAF5EF;border-left:4px solid #2E8B57;padding:20px 24px;border-radius:0 10px 10px 0;font-size:15px;color:#1A4D3E;line-height:1.6;text-align:left;margin-top:32px;font-style:italic}
+.how{padding:80px 24px;background:#f8faf8}.how-inner{max-width:860px;margin:0 auto}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.step{text-align:center;padding:28px 16px;background:white;border-radius:14px;border:1px solid #e5ebe8;transition:all 0.25s}
+.step:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,0.06);border-color:#2E8B57}
+.step-num{width:44px;height:44px;border-radius:50%;background:#2E6B4F;color:white;font-family:'Lora',serif;font-size:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.step h3{font-size:15px;font-weight:700;color:#1A4D3E;margin-bottom:8px}.step p{font-size:13px;color:#666;line-height:1.5}
+.deliverable{padding:80px 24px;background:white}.del-inner{max-width:860px;margin:0 auto}
+.del-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.del-item{display:flex;gap:14px;align-items:flex-start;padding:20px;background:#f8faf8;border-radius:12px;border:1px solid #e5ebe8;transition:all 0.2s}
+.del-item:hover{border-color:#2E8B57;box-shadow:0 4px 16px rgba(46,107,79,0.08)}
+.del-icon{width:40px;height:40px;border-radius:10px;background:#EAF5EF;color:#2E6B4F;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.del-item h4{font-size:14px;font-weight:700;color:#1A4D3E;margin-bottom:4px}.del-item p{font-size:12px;color:#666;line-height:1.5}
+.pricing{padding:80px 24px;background:#f8faf8}.pricing-inner{max-width:860px;margin:0 auto;text-align:center}
+.pricing-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
+.price-card{padding:32px 24px;border-radius:16px;border:2px solid #e5ebe8;background:white;text-align:left;transition:all 0.25s;position:relative}
+.price-card.featured{border-color:#2E8B57}
+.price-card.featured::after{content:'BEST VALUE';position:absolute;top:-12px;right:16px;background:#D4834E;color:white;font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:4px}
+.price-tier{font-size:12px;font-weight:700;color:#2E6B4F;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.price-amount{font-family:'Lora',serif;font-size:42px;color:#1A4D3E;margin-bottom:4px}.price-per{font-size:12px;color:#888;margin-bottom:20px}
+.price-feature{font-size:12px;color:#444;padding:7px 0;border-top:1px solid #f0f0f0;display:flex;gap:8px;align-items:center}
+.price-feature::before{content:'✓';color:#2E8B57;font-weight:700;font-size:13px}
+.price-cta{display:block;margin-top:20px;padding:13px;text-align:center;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;transition:all 0.2s}
+.price-cta.primary{background:#2E6B4F;color:white}.price-cta.primary:hover{background:#245a42}
+.price-cta.secondary{background:#EAF5EF;color:#2E6B4F}.price-cta.secondary:hover{background:#d5edde}
+.testimonial{padding:60px 24px;background:white}.test-inner{max-width:600px;margin:0 auto;text-align:center}
+.test-quote{font-family:'Lora',serif;font-size:20px;color:#1A4D3E;line-height:1.6;font-style:italic;margin-bottom:16px}
+.test-attr{font-size:13px;color:#888}
+.cta-footer{padding:80px 24px;background:linear-gradient(135deg,#0E2E22,#1A4D3E,#2E6B4F);text-align:center}
+.cta-footer h2{font-family:'Lora',serif;font-size:34px;color:white;margin-bottom:16px}
+.cta-footer p{color:rgba(255,255,255,0.65);font-size:16px;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto}
+.waypoint-note{margin-top:24px;padding:16px 20px;background:rgba(255,255,255,0.08);border-radius:10px;display:inline-block}
+.waypoint-note p{font-size:13px;color:rgba(255,255,255,0.6);margin:0}.waypoint-note a{color:#7DD3A8;text-decoration:none;font-weight:600}
+footer{padding:24px;text-align:center;font-size:12px;color:#8BB8A0;background:#0E2E22}footer a{color:#6B9B83}
+@media(max-width:768px){.hero h1{font-size:30px}.steps{grid-template-columns:1fr 1fr}.del-grid{grid-template-columns:1fr}.pricing-cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="badge">&#x1F49A; For Parents, By a Parent</div>
+    <h1>Your child's IEP &#8212; <span>clear, organized, actionable</span></h1>
+    <p>Upload your IEP or 504 plan and get a structured tracker with goals, deadlines, accommodations, and action items. No advocate needed. No appointment required.</p>
+    <a href="#pricing" class="cta-btn">Upload Your IEP &#8594;</a>
+    <div class="hero-sub">Starting at $29 &#8226; Delivered in under 2 hours &#8226; Refund guarantee</div>
+  </div>
+</section>
+
+<section class="empathy">
+  <div class="empathy-inner">
+    <div class="section-label">We Get It</div>
+    <div class="section-title">IEP paperwork shouldn't require a law degree</div>
+    <p>You're trying to do the best for your child. But between the jargon-filled documents, shifting deadlines, and the feeling that one missed detail could change everything &#8212; it's overwhelming.</p>
+    <p>You shouldn't need to spend $300/hour on an advocate just to understand your child's educational plan.</p>
+    <div class="empathy-highlight">
+      "I built this because I've been there &#8212; sitting at the kitchen table at midnight trying to make sense of a 30-page document that will shape my son's entire school year." &#8212; Mike, founder
+    </div>
+  </div>
+</section>
+
+<section class="how">
+  <div class="how-inner">
+    <div class="section-label">How It Works</div>
+    <div class="section-title">From paperwork chaos to clarity in 4 steps</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><h3>Upload Your IEP</h3><p>PDF or scan &#8212; we support any district format, any state</p></div>
+      <div class="step"><div class="step-num">2</div><h3>Add Quick Context</h3><p>Child's grade, district, any specific concerns or upcoming meetings</p></div>
+      <div class="step"><div class="step-num">3</div><h3>AI Parses &amp; Organizes</h3><p>We extract every goal, service, accommodation, date, and responsible party</p></div>
+      <div class="step"><div class="step-num">4</div><h3>Tracker Delivered</h3><p>Spreadsheet + PDF summary in your inbox within 2 hours</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="deliverable">
+  <div class="del-inner">
+    <div class="section-label">What You Get</div>
+    <div class="section-title">Everything you need to advocate with confidence</div>
+    <div class="del-grid">
+      <div class="del-item"><div class="del-icon">&#x1F3AF;</div><div><h4>Goal Tracker</h4><p>Every IEP goal extracted with baselines, targets, progress indicators, and responsible staff</p></div></div>
+      <div class="del-item"><div class="del-icon">&#x1F4C5;</div><div><h4>Deadline Calendar</h4><p>Annual review dates, re-evaluation timelines, and important milestones you can't afford to miss</p></div></div>
+      <div class="del-item"><div class="del-icon">&#x2705;</div><div><h4>Accommodation Checklist</h4><p>Every accommodation and modification organized by setting, so you can verify they're being implemented</p></div></div>
+      <div class="del-item"><div class="del-icon">&#x23F0;</div><div><h4>Service Hours Log</h4><p>Related services (speech, OT, counseling) with frequency and duration &#8212; easy to track delivery</p></div></div>
+      <div class="del-item"><div class="del-icon">&#x1F4CB;</div><div><h4>Meeting Prep Guide</h4><p>Questions to ask, documents to bring, and talking points for your next IEP meeting</p></div></div>
+      <div class="del-item"><div class="del-icon">&#x1F4A1;</div><div><h4>Action Items</h4><p>Clear next steps for both you and the school, so nothing falls through the cracks</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="pricing-inner">
+    <div class="section-label">Simple Pricing</div>
+    <div class="section-title">A fraction of what an advocate charges for one hour</div>
+    <div class="pricing-cards">
+      <div class="price-card">
+        <div class="price-tier">Single Document</div>
+        <div class="price-amount">$29</div>
+        <div class="price-per">One IEP or 504 plan</div>
+        <div class="price-feature">Full document parsing</div>
+        <div class="price-feature">Structured tracker (spreadsheet)</div>
+        <div class="price-feature">PDF summary with action items</div>
+        <div class="price-feature">Meeting prep guide</div>
+        <a href="#" class="price-cta secondary">Upload Document</a>
+      </div>
+      <div class="price-card featured">
+        <div class="price-tier">Annual Package</div>
+        <div class="price-amount">$69</div>
+        <div class="price-per">Full school year</div>
+        <div class="price-feature">Everything in Single</div>
+        <div class="price-feature">All amendments included</div>
+        <div class="price-feature">Re-evaluation tracking</div>
+        <div class="price-feature">Priority processing</div>
+        <a href="#" class="price-cta primary">Get Annual Package</a>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Subscription</div>
+        <div class="price-amount">$9</div>
+        <div class="price-per">per month</div>
+        <div class="price-feature">Ongoing tracking</div>
+        <div class="price-feature">Deadline reminders</div>
+        <div class="price-feature">Meeting prep updates</div>
+        <div class="price-feature">Document storage</div>
+        <a href="#" class="price-cta secondary">Start Subscription</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="testimonial">
+  <div class="test-inner">
+    <div class="test-quote">"For the first time I actually understood what my daughter's IEP was saying. The tracker made our next meeting the most productive one we've ever had."</div>
+    <div class="test-attr">&#8212; Parent of a 3rd grader with an IEP, Oakland USD</div>
+  </div>
+</section>
+
+<section class="cta-footer">
+  <h2>Your child deserves clarity</h2>
+  <p>Upload your IEP now and get an organized tracker in under 2 hours. No jargon. No confusion. Just clarity.</p>
+  <a href="#pricing" class="cta-btn">Upload Your IEP &#8594; Starting at $29</a>
+  <div class="waypoint-note">
+    <p>IEPClarity.ai is part of <a href="#">Waypoint</a> &#8212; an AI platform helping families navigate complex service systems.</p>
+  </div>
+</section>
+
+<footer>
+  &copy; 2026 IEPClarity.ai &#8212; Powered by Waypoint &nbsp;|&nbsp; <a href="#">Privacy Policy</a> &nbsp;|&nbsp; Your data is never shared or stored beyond delivery
+</footer>
+
+</body>
+</html>

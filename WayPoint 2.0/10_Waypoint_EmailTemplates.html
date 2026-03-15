@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Email Templates</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root{--teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;--amber-50:#fffbeb;--amber-100:#fef3c7;--amber-400:#fbbf24;--amber-600:#d97706;--warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;--rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-500:#f43f5e;--violet-50:#f5f3ff;--violet-100:#ede9fe;--violet-500:#8b5cf6;--green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;--radius:16px;--radius-sm:10px;--radius-full:999px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:linear-gradient(160deg,var(--teal-50) 0%,var(--warm-50) 40%,var(--amber-50) 100%);min-height:100vh;display:flex;justify-content:center;padding:24px;color:var(--warm-900);}
+  .phone-frame{width:390px;min-height:844px;background:var(--warm-50);border-radius:40px;box-shadow:0 0 0 8px #1a1a1a,0 20px 60px rgba(0,0,0,0.2);overflow:hidden;position:relative;}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;}
+  .screen{padding:0 20px 100px;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--warm-200);display:flex;justify-content:space-around;padding:8px 0 28px;z-index:10;}
+  .nav-item{text-align:center;cursor:pointer;padding:4px 12px;}.nav-icon{font-size:22px;margin-bottom:2px;}.nav-label{font-size:10px;font-weight:600;color:var(--warm-600);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .a{animation:fadeUp .5s ease-out both;}.d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}.d5{animation-delay:.25s;}.d6{animation-delay:.3s;}
+
+  h1{font-family:var(--font-display);font-size:24px;font-weight:500;margin-bottom:4px;}
+  .sub{font-size:13px;color:var(--warm-600);margin-bottom:16px;}
+
+  /* Gmail connected */
+  .gmail-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius-sm);margin-bottom:16px;}
+  .gmail-icon{width:28px;height:28px;border-radius:6px;background:#ea4335;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;}
+  .gmail-info{flex:1;}
+  .gmail-name{font-size:13px;font-weight:700;}
+  .gmail-email{font-size:11px;color:var(--warm-600);}
+  .gmail-status{font-size:10px;font-weight:600;color:var(--green-600);padding:3px 8px;border-radius:var(--radius-full);background:var(--green-50);}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--warm-100);border-radius:var(--radius-sm);padding:3px;}
+  .tab{flex:1;padding:9px 8px;border-radius:8px;text-align:center;font-size:12px;font-weight:600;color:var(--warm-600);cursor:pointer;border:none;background:none;font-family:var(--font-body);transition:all .2s;}
+  .tab.active{background:white;color:var(--teal-700);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+
+  /* Template cards */
+  .tpl-card{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+  .tpl-card:hover{border-color:var(--teal-400);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .tpl-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .tpl-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:var(--radius-full);}
+  .cat-iep{background:var(--amber-100);color:var(--amber-600);}
+  .cat-school{background:var(--blue-100);color:var(--blue-500);}
+  .cat-rc{background:var(--teal-100);color:var(--teal-700);}
+  .cat-legal{background:var(--rose-100);color:var(--rose-500);}
+  .cat-therapy{background:var(--violet-100);color:var(--violet-500);}
+  .tpl-popular{font-size:10px;color:var(--amber-600);font-weight:600;}
+  .tpl-name{font-weight:700;font-size:14px;margin-bottom:4px;}
+  .tpl-desc{font-size:12px;color:var(--warm-600);line-height:1.4;margin-bottom:8px;}
+  .tpl-footer{display:flex;justify-content:space-between;align-items:center;}
+  .tpl-legal{font-size:11px;color:var(--teal-600);font-weight:600;}
+  .tpl-use-btn{padding:6px 14px;border-radius:var(--radius-full);background:var(--teal-600);color:white;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all .2s;}
+  .tpl-use-btn:hover{background:var(--teal-700);}
+
+  /* Compose preview */
+  .compose{background:white;border:1.5px solid var(--teal-200);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+  .compose-label{font-size:11px;font-weight:700;color:var(--teal-600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+  .compose-field{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--warm-100);}
+  .compose-field label{font-size:12px;font-weight:600;color:var(--warm-600);min-width:40px;}
+  .compose-field span{font-size:13px;color:var(--warm-900);}
+  .compose-body{margin-top:12px;font-size:13px;color:var(--warm-800);line-height:1.6;}
+  .compose-body .fill-in{background:var(--amber-100);padding:1px 6px;border-radius:4px;color:var(--amber-600);font-weight:600;}
+  .compose-actions{display:flex;gap:8px;margin-top:14px;}
+  .compose-btn{flex:1;padding:12px;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+  .compose-send{background:linear-gradient(135deg,var(--teal-600),var(--teal-700));color:white;box-shadow:0 2px 8px rgba(13,148,136,.25);}
+  .compose-draft{background:white;border:1.5px solid var(--warm-200);color:var(--warm-800);}
+
+  .section-title{font-weight:700;font-size:15px;color:var(--warm-800);margin:16px 0 10px;}
+
+  /* Comm log */
+  .log-item{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--warm-100);}
+  .log-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .log-info{flex:1;}
+  .log-title{font-weight:600;font-size:13px;}
+  .log-meta{font-size:11px;color:var(--warm-600);margin-top:2px;}
+</style>
+</head>
+<body>
+<div>
+  <h2 style="font-family:var(--font-display);font-size:24px;text-align:center;margin-bottom:4px;">Waypoint</h2>
+  <p style="text-align:center;font-size:14px;color:var(--warm-600);margin-bottom:16px;">F8 — Email Integration & Templates</p>
+  <div class="phone-frame">
+    <div class="status-bar"><span style="font-size:15px;font-weight:700;">9:41</span><div style="display:flex;gap:6px;align-items:center;font-size:13px;"><span>●●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="screen">
+      <h1 class="a">Communications</h1>
+      <div class="sub a">Templates, email, and communication log</div>
+
+      <div class="gmail-bar a d1">
+        <div class="gmail-icon">G</div>
+        <div class="gmail-info"><div class="gmail-name">Gmail Connected</div><div class="gmail-email">mike@example.com</div></div>
+        <div class="gmail-status">● Connected</div>
+      </div>
+
+      <div class="tabs a d1">
+        <button class="tab active">Templates</button>
+        <button class="tab">Compose</button>
+        <button class="tab">Log</button>
+      </div>
+
+      <!-- Active compose -->
+      <div class="compose a d2">
+        <div class="compose-label">✏️ Draft in progress</div>
+        <div class="compose-field"><label>To:</label><span>iep-team@lincoln.ousd.edu</span></div>
+        <div class="compose-field"><label>Subj:</label><span>Request for Annual IEP Review — Teddy</span></div>
+        <div class="compose-body">
+          Dear IEP Team,<br><br>
+          I am writing to formally request an annual review of my child <span class="fill-in">Teddy's</span> Individualized Education Program (IEP). Per IDEA and California Education Code §56343, I understand the review must be conducted within <span class="fill-in">30 days</span> of this request.<br><br>
+          Please contact me to schedule the meeting at a mutually convenient time...
+        </div>
+        <div class="compose-actions">
+          <button class="compose-btn compose-draft">Save Draft</button>
+          <button class="compose-btn compose-send">✉️ Send via Gmail</button>
+        </div>
+      </div>
+
+      <div class="section-title a d3">Email Templates</div>
+
+      <div class="tpl-card a d3">
+        <div class="tpl-top"><span class="tpl-cat cat-iep">IEP</span><span class="tpl-popular">⭐ Most Used</span></div>
+        <div class="tpl-name">IEP Annual Review Request</div>
+        <div class="tpl-desc">Formal written request to your school district for an annual IEP review meeting.</div>
+        <div class="tpl-footer"><span class="tpl-legal">📖 IDEA §300.324</span><button class="tpl-use-btn">Use Template</button></div>
+      </div>
+
+      <div class="tpl-card a d4">
+        <div class="tpl-top"><span class="tpl-cat cat-iep">IEP</span></div>
+        <div class="tpl-name">Independent Educational Evaluation (IEE) Request</div>
+        <div class="tpl-desc">Request an IEE at public expense when you disagree with the district's assessment.</div>
+        <div class="tpl-footer"><span class="tpl-legal">📖 IDEA §300.502</span><button class="tpl-use-btn">Use Template</button></div>
+      </div>
+
+      <div class="tpl-card a d4">
+        <div class="tpl-top"><span class="tpl-cat cat-school">School</span></div>
+        <div class="tpl-name">Teacher Progress Check-In</div>
+        <div class="tpl-desc">Friendly email to check on your child's classroom progress and IEP goal implementation.</div>
+        <div class="tpl-footer"><span class="tpl-legal"></span><button class="tpl-use-btn">Use Template</button></div>
+      </div>
+
+      <div class="tpl-card a d5">
+        <div class="tpl-top"><span class="tpl-cat cat-rc">Regional Center</span></div>
+        <div class="tpl-name">Service Request Letter</div>
+        <div class="tpl-desc">Request new or increased services from your Regional Center service coordinator.</div>
+        <div class="tpl-footer"><span class="tpl-legal">📖 Lanterman Act §4646</span><button class="tpl-use-btn">Use Template</button></div>
+      </div>
+
+      <div class="tpl-card a d5">
+        <div class="tpl-top"><span class="tpl-cat cat-legal">Legal</span></div>
+        <div class="tpl-name">Prior Written Notice Request</div>
+        <div class="tpl-desc">Request formal explanation when the district proposes or refuses an action regarding your child.</div>
+        <div class="tpl-footer"><span class="tpl-legal">📖 IDEA §300.503</span><button class="tpl-use-btn">Use Template</button></div>
+      </div>
+
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+      <div class="nav-item"><div class="nav-icon">🗺️</div><div class="nav-label">Journey</div></div>
+      <div class="nav-item"><div class="nav-icon">📁</div><div class="nav-label">Docs</div></div>
+      <div class="nav-item"><div class="nav-icon">👥</div><div class="nav-label">Community</div></div>
+      <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

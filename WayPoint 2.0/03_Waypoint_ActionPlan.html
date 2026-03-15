@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Action Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;
+    --amber-50:#fffbeb;--amber-100:#fef3c7;--amber-300:#fcd34d;--amber-400:#fbbf24;--amber-500:#f59e0b;--amber-600:#d97706;
+    --warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;
+    --rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-500:#f43f5e;--rose-600:#e11d48;
+    --violet-50:#f5f3ff;--violet-100:#ede9fe;--violet-500:#8b5cf6;
+    --green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;
+    --font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;
+    --radius:16px;--radius-sm:10px;--radius-full:999px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:linear-gradient(160deg,var(--teal-50) 0%,var(--warm-50) 40%,var(--amber-50) 100%);min-height:100vh;display:flex;justify-content:center;padding:24px;color:var(--warm-900);}
+
+  .phone-frame{width:390px;min-height:844px;background:var(--warm-50);border-radius:40px;box-shadow:0 0 0 8px #1a1a1a,0 20px 60px rgba(0,0,0,0.2);overflow:hidden;position:relative;}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;}
+  .status-bar .time{font-size:15px;font-weight:700;}
+
+  .screen{padding:0 20px 100px;overflow-y:auto;}
+
+  .back-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;color:var(--teal-600);font-weight:600;font-size:14px;}
+
+  /* Hero */
+  .plan-hero{background:linear-gradient(135deg,var(--teal-700),var(--teal-800));border-radius:var(--radius);padding:20px;color:white;margin-bottom:8px;position:relative;overflow:hidden;}
+  .plan-hero::after{content:'';position:absolute;top:-30px;right:-10px;width:120px;height:120px;background:rgba(255,255,255,0.05);border-radius:50%;}
+  .plan-child{font-family:var(--font-display);font-size:22px;font-weight:500;margin-bottom:2px;}
+  .plan-diag{font-size:13px;opacity:0.75;margin-bottom:16px;}
+  .plan-progress-row{display:flex;align-items:center;gap:12px;}
+  .plan-pbar-bg{flex:1;height:6px;background:rgba(255,255,255,0.2);border-radius:6px;}
+  .plan-pbar-fill{height:6px;background:var(--amber-400);border-radius:6px;width:38%;}
+  .plan-pct{font-weight:700;font-size:14px;}
+
+  /* Filter tabs */
+  .filter-tabs{display:flex;gap:6px;padding:12px 0;overflow-x:auto;margin-bottom:4px;}
+  .filter-tab{padding:7px 14px;border-radius:var(--radius-full);border:1.5px solid var(--warm-200);background:white;font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--warm-600);cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+  .filter-tab.active{background:var(--teal-600);border-color:var(--teal-600);color:white;}
+  .filter-tab:hover:not(.active){border-color:var(--teal-400);}
+
+  /* Timeline */
+  .timeline{position:relative;padding-left:32px;}
+  .timeline::before{content:'';position:absolute;left:11px;top:0;bottom:0;width:2px;background:var(--warm-200);}
+
+  .phase-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--teal-600);margin:20px 0 12px;position:relative;}
+  .phase-label::before{content:'';position:absolute;left:-32px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:var(--teal-100);border:2px solid var(--teal-400);z-index:1;}
+  .phase-label::after{content:'';position:absolute;left:-25px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:var(--teal-500);z-index:2;}
+
+  .step-card{background:white;border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;border:1.5px solid var(--warm-200);position:relative;cursor:pointer;transition:all 0.2s;}
+  .step-card:hover{border-color:var(--teal-400);box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+
+  .step-card::before{content:'';position:absolute;left:-27px;top:18px;width:12px;height:12px;border-radius:50%;background:var(--warm-200);border:2px solid var(--warm-50);z-index:1;transition:all 0.2s;}
+  .step-card.complete::before{background:var(--green-500);border-color:var(--green-50);}
+  .step-card.active-step::before{background:var(--amber-400);border-color:var(--amber-50);box-shadow:0 0 0 4px rgba(251,191,36,0.2);}
+  .step-card.active-step{border-color:var(--amber-400);background:var(--amber-50);}
+
+  .step-number{font-size:11px;font-weight:700;color:var(--warm-600);margin-bottom:4px;}
+  .step-title{font-weight:600;font-size:14px;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+  .step-desc{font-size:13px;color:var(--warm-600);line-height:1.4;margin-bottom:8px;}
+
+  .step-meta{display:flex;gap:8px;flex-wrap:wrap;}
+  .step-tag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:var(--radius-full);}
+  .tag-complete{background:var(--green-100);color:var(--green-600);}
+  .tag-active{background:var(--amber-100);color:var(--amber-600);}
+  .tag-pending{background:var(--warm-200);color:var(--warm-600);}
+  .tag-time{background:var(--warm-100);color:var(--warm-600);}
+  .tag-urgent{background:var(--rose-100);color:var(--rose-600);}
+
+  .step-resources{margin-top:10px;padding-top:10px;border-top:1px solid var(--warm-200);}
+  .resource-link{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--teal-600);font-weight:600;margin-bottom:4px;cursor:pointer;}
+  .resource-link:hover{color:var(--teal-700);}
+
+  .check-icon{color:var(--green-500);font-weight:700;}
+
+  /* Bottom nav */
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--warm-200);display:flex;justify-content:space-around;padding:8px 0 28px;z-index:10;}
+  .nav-item{text-align:center;cursor:pointer;padding:4px 12px;}
+  .nav-icon{font-size:22px;margin-bottom:2px;}
+  .nav-label{font-size:10px;font-weight:600;color:var(--warm-600);}
+  .nav-item.active .nav-label{color:var(--teal-600);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .animate{animation:fadeUp 0.5s ease-out both;}
+  .d1{animation-delay:0.05s;}.d2{animation-delay:0.1s;}.d3{animation-delay:0.15s;}.d4{animation-delay:0.2s;}.d5{animation-delay:0.25s;}.d6{animation-delay:0.3s;}.d7{animation-delay:0.35s;}.d8{animation-delay:0.4s;}
+</style>
+</head>
+<body>
+
+<div>
+  <h2 style="font-family:var(--font-display);font-size:24px;text-align:center;margin-bottom:4px;color:var(--warm-900);">Waypoint</h2>
+  <p style="text-align:center;font-size:14px;color:var(--warm-600);margin-bottom:16px;">Action Plan / Journey Map</p>
+
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div style="display:flex;gap:6px;align-items:center;font-size:13px;"><span>●●●●</span><span>WiFi</span><span>🔋</span></div>
+    </div>
+
+    <div class="screen">
+      <div class="back-row animate">← Back to Home</div>
+
+      <!-- Hero -->
+      <div class="plan-hero animate d1">
+        <div class="plan-child">Teddy's Journey</div>
+        <div class="plan-diag">Autism (ASD) + Speech Language · Age 6 · School Age</div>
+        <div class="plan-progress-row">
+          <div class="plan-pbar-bg"><div class="plan-pbar-fill"></div></div>
+          <div class="plan-pct">9/24</div>
+        </div>
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="filter-tabs animate d2">
+        <div class="filter-tab active">All Steps</div>
+        <div class="filter-tab">To Do</div>
+        <div class="filter-tab">Regional Center</div>
+        <div class="filter-tab">IEP / School</div>
+        <div class="filter-tab">Therapy</div>
+        <div class="filter-tab">Legal</div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline">
+
+        <div class="phase-label animate d3">Phase 1 — Get Organized</div>
+
+        <div class="step-card complete animate d3">
+          <div class="step-number">Step 1</div>
+          <div class="step-title"><span class="check-icon">✓</span> Gather existing documents</div>
+          <div class="step-desc">Collect medical evaluations, school assessments, and therapy reports.</div>
+          <div class="step-meta">
+            <span class="step-tag tag-complete">✓ Completed</span>
+            <span class="step-tag tag-time">~2 hours</span>
+          </div>
+        </div>
+
+        <div class="step-card complete animate d4">
+          <div class="step-number">Step 2</div>
+          <div class="step-title"><span class="check-icon">✓</span> Understand your Regional Center</div>
+          <div class="step-desc">Learn about RCEB services, eligibility, and your rights under the Lanterman Act.</div>
+          <div class="step-meta">
+            <span class="step-tag tag-complete">✓ Completed</span>
+          </div>
+        </div>
+
+        <div class="step-card complete animate d4">
+          <div class="step-number">Step 3</div>
+          <div class="step-title"><span class="check-icon">✓</span> Contact RCEB service coordinator</div>
+          <div class="step-desc">Introduce yourself, confirm your assigned coordinator, and request your IPP.</div>
+          <div class="step-meta">
+            <span class="step-tag tag-complete">✓ Completed</span>
+          </div>
+        </div>
+
+        <div class="phase-label animate d5">Phase 2 — Services & School</div>
+
+        <div class="step-card complete animate d5">
+          <div class="step-number">Steps 4–9</div>
+          <div class="step-title"><span class="check-icon">✓</span> 6 steps completed</div>
+          <div class="step-desc">Requested records, reviewed IEP, identified therapy goals, connected with parent group.</div>
+          <div class="step-meta">
+            <span class="step-tag tag-complete">✓ All Complete</span>
+          </div>
+        </div>
+
+        <div class="step-card active-step animate d6">
+          <div class="step-number">Step 10 — Current</div>
+          <div class="step-title">📋 Request IEP Annual Review</div>
+          <div class="step-desc">Send a formal written request to your school district for Teddy's annual IEP review. The review must happen within 30 days of your request.</div>
+          <div class="step-meta">
+            <span class="step-tag tag-urgent">Due in 5 days</span>
+            <span class="step-tag tag-time">~30 min</span>
+          </div>
+          <div class="step-resources">
+            <div class="resource-link">📄 IEP Review Request Template</div>
+            <div class="resource-link">📖 Understanding Annual IEP Reviews</div>
+            <div class="resource-link">⚖️ Your Rights: CA Ed Code §56343</div>
+          </div>
+        </div>
+
+        <div class="step-card animate d7">
+          <div class="step-number">Step 11</div>
+          <div class="step-title">📞 Request respite authorization from RCEB</div>
+          <div class="step-desc">Contact your service coordinator to request respite care hours. Typical authorization: 10–20 hrs/month.</div>
+          <div class="step-meta">
+            <span class="step-tag tag-pending">Upcoming</span>
+            <span class="step-tag tag-time">~1 hour</span>
+          </div>
+        </div>
+
+        <div class="step-card animate d7">
+          <div class="step-number">Step 12</div>
+          <div class="step-title">🔍 Research ABA therapy providers</div>
+          <div class="step-desc">Review ABA providers in Alameda County. Filter by insurance acceptance and availability.</div>
+          <div class="step-meta">
+            <span class="step-tag tag-pending">Upcoming</span>
+            <span class="step-tag tag-time">~2 hours</span>
+          </div>
+        </div>
+
+        <div class="step-card animate d8">
+          <div class="step-number">Step 13</div>
+          <div class="step-title">💬 Schedule speech therapy re-evaluation</div>
+          <div class="step-desc">Request updated speech-language assessment to support IEP goals revision.</div>
+          <div class="step-meta">
+            <span class="step-tag tag-pending">Upcoming</span>
+          </div>
+        </div>
+
+        <div class="phase-label animate d8">Phase 3 — Advocacy & Growth</div>
+
+        <div class="step-card animate d8" style="opacity:0.6;">
+          <div class="step-number">Steps 14–24</div>
+          <div class="step-title">11 more steps ahead</div>
+          <div class="step-desc">Transition planning, legal rights review, community engagement, therapy milestones, and more.</div>
+          <div class="step-meta">
+            <span class="step-tag tag-pending">Locked until Phase 2 complete</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+      <div class="nav-item active"><div class="nav-icon">🗺️</div><div class="nav-label">Journey</div></div>
+      <div class="nav-item"><div class="nav-icon">📁</div><div class="nav-label">Docs</div></div>
+      <div class="nav-item"><div class="nav-icon">👥</div><div class="nav-label">Community</div></div>
+      <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -217,6 +217,12 @@ a{color:#2563EB;text-decoration:none}
 .chat-category-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:10px}
 .chat-empathy{font-size:14px;color:var(--accent-dark);font-style:italic;margin-bottom:10px;padding:10px;background:var(--accent-light);border-radius:var(--radius-sm);line-height:1.5}
 .chat-answer{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:14px}
+.chat-answer ul,.chat-answer ol,.chat-bubble ul,.chat-bubble ol{margin:8px 0;padding-left:24px}
+.chat-answer li,.chat-bubble li{margin-bottom:4px;line-height:1.5;font-size:14px}
+.chat-answer p,.chat-bubble p{margin:0 0 8px}
+.chat-answer p:last-child,.chat-bubble p:last-child{margin-bottom:0}
+.chat-answer strong,.chat-bubble strong{color:var(--navy);font-weight:700}
+.chat-answer em,.chat-bubble em{font-style:italic;color:var(--text-sec)}
 .chat-steps{margin-bottom:14px}
 .chat-step{display:flex;gap:10px;margin-bottom:10px;font-size:13px;line-height:1.5}
 .chat-step-num{width:24px;height:24px;border-radius:12px;background:var(--accent);color:#FFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
@@ -238,6 +244,12 @@ a{color:#2563EB;text-decoration:none}
 .chat-watchout-text{font-size:13px;color:#78350F;line-height:1.5}
 .chat-sources{font-size:11px;color:var(--muted);margin-top:8px}
 .chat-sources span{background:var(--muted-light);padding:2px 8px;border-radius:4px;margin:0 4px 4px 0;display:inline-block}
+.chat-section-card{border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-top:12px;background:#FAFBFC}
+.chat-section-header{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;cursor:pointer;user-select:none}
+.chat-section-header .collapse-icon{font-size:10px;transition:transform .2s;color:var(--muted)}
+.chat-section-header .collapse-icon.collapsed{transform:rotate(-90deg)}
+.collapsible-content{overflow:hidden;transition:max-height .3s ease;max-height:2000px}
+.collapsible-content.collapsed{max-height:0}
 .chat-draft-btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--teal-light);color:var(--teal);font-size:13px;font-weight:600;border:1px solid #99F6E4;margin-top:10px;cursor:pointer;transition:all .15s}
 .chat-draft-btn:hover{background:#CCFBF1;transform:translateY(-1px)}
 .chat-feedback{display:flex;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
@@ -262,9 +274,27 @@ a{color:#2563EB;text-decoration:none}
 .chat-draft-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;justify-content:center;align-items:flex-end}
 .chat-draft-modal.active{display:flex}
 .chat-draft-content{background:var(--card);border-radius:20px 20px 0 0;padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto;animation:slideUp .3s ease;position:relative}
-.chat-draft-content h3{font-size:18px;font-weight:700;color:var(--text);margin:0 0 4px}
-.chat-draft-content .draft-text{background:#F1F5F9;border-radius:var(--radius-sm);padding:16px;font-size:13px;color:var(--text);white-space:pre-wrap;line-height:1.6;max-height:50vh;overflow-y:auto;font-family:'SF Mono',Monaco,'Courier New',monospace;border:1px solid var(--border);margin:12px 0}
-.chat-draft-actions{display:flex;gap:8px;margin-top:12px}
+.chat-draft-content h3{font-size:18px;font-weight:700;color:var(--navy);margin:0;display:flex;align-items:center;gap:8px}
+.draft-modal-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.draft-modal-subtitle{font-size:13px;color:var(--muted);margin:4px 0 0}
+.chat-draft-content .draft-text{background:#FFFEF5;border-radius:var(--radius-sm);padding:24px 20px;font-size:14px;color:var(--text);white-space:pre-wrap;line-height:1.7;max-height:55vh;overflow-y:auto;font-family:Georgia,'Times New Roman',serif;border:1px solid #E5E2D8;margin:0 0 16px;box-shadow:inset 0 1px 3px rgba(0,0,0,.04)}
+.chat-draft-content .draft-text .bracket-placeholder{background:#FEF3C7;color:#92400E;font-weight:700;padding:1px 4px;border-radius:3px;font-family:system-ui,-apple-system,sans-serif;font-size:13px}
+.chat-draft-actions{display:flex;gap:8px;margin-top:0}
+.draft-gmail-btn{display:flex;align-items:center;gap:6px;flex:1;justify-content:center;font-size:13px;padding:10px;border-radius:var(--radius-sm);background:var(--teal-light);color:var(--teal);font-weight:600;border:1px solid #99F6E4;cursor:pointer;transition:all .15s}
+.draft-gmail-btn:hover{background:#CCFBF1;transform:translateY(-1px)}
+.draft-gmail-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.draft-tone-picker{padding:12px 0}
+.tone-picker-label{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:10px}
+.tone-picker-options{display:flex;gap:8px;flex-wrap:wrap}
+.tone-option{padding:10px 16px;border-radius:var(--radius-sm);border:2px solid var(--accent);background:white;color:var(--accent-dark);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.tone-option:hover{background:var(--accent);color:white;transform:translateY(-1px)}
+.tone-option .tone-desc{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
+.tone-option:hover .tone-desc{color:rgba(255,255,255,.8)}
+.tone-option-inline{padding:8px 14px;border-radius:20px;border:2px solid #0D9488;background:white;color:#0F766E;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.tone-option-inline:hover{background:#0D9488;color:white;transform:translateY(-1px)}
+.chat-quick-replies{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.quick-reply-btn{padding:10px 16px;border-radius:20px;font-size:13px;font-weight:600;border:2px solid var(--accent);background:white;color:var(--accent-dark);cursor:pointer;transition:all .2s}
+.quick-reply-btn:hover{background:var(--accent);color:white;transform:translateY(-1px)}
 .chat-error{background:var(--urgent-light);border:1px solid var(--urgent-border);border-radius:var(--radius-sm);padding:12px;color:var(--urgent);font-size:13px;margin-bottom:12px}
 
 /* ═══ VIEW TOGGLE (List/Cards) ═══ */
@@ -368,7 +398,7 @@ a{color:#2563EB;text-decoration:none}
 </style>
 </head>
 <body>
-<div class="container" role="application" aria-label="Waypoint — Disability Services Navigator">
+<div class="container" aria-label="Waypoint — Disability Services Navigator">
 
 <!-- ═══════════ SCREEN: LANDING ═══════════ -->
 <div id="screen-landing" class="screen active" role="main" aria-label="Welcome to Waypoint">
@@ -527,13 +557,19 @@ a{color:#2563EB;text-decoration:none}
 <!-- ═══════════ MODAL: DRAFT VIEWER ═══════════ -->
 <div id="modal-draft" class="chat-draft-modal" onclick="if(event.target===this)closeDraftModal()">
   <div class="chat-draft-content">
-    <button class="modal-close" onclick="closeDraftModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer">✕</button>
-    <h3 id="draft-modal-title">Your Draft</h3>
-    <p style="font-size:13px;color:var(--muted);margin:0 0 8px">Review, edit the [BRACKETED] fields, then copy</p>
+    <div class="draft-modal-header">
+      <div>
+        <h3 id="draft-modal-title">📝 Your Draft</h3>
+        <p class="draft-modal-subtitle">Review and edit the <span style="background:#FEF3C7;padding:1px 4px;border-radius:3px;font-weight:600;color:#92400E">[HIGHLIGHTED]</span> fields, then copy or push to Gmail</p>
+      </div>
+      <button class="modal-close" onclick="closeDraftModal()" style="background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;padding:4px 8px;line-height:1">✕</button>
+    </div>
     <div class="draft-text" id="draft-modal-text" contenteditable="true"></div>
+    <div id="draft-modal-tips" style="display:none;margin-top:8px"></div>
     <div class="chat-draft-actions">
-      <button class="btn-primary" style="flex:1;font-size:13px;padding:10px" onclick="copyDraft()">Copy to Clipboard</button>
-      <button class="action-btn info" style="flex:1;font-size:13px;padding:10px" onclick="closeDraftModal()">Close</button>
+      <button class="btn-primary" style="flex:1;font-size:13px;padding:10px" onclick="copyDraft()">📋 Copy to Clipboard</button>
+      <button class="draft-gmail-btn" id="draft-gmail-btn" onclick="openInEmail()">✉️ Open in Gmail</button>
+      <button class="action-btn info" style="font-size:13px;padding:10px 16px" onclick="closeDraftModal()">Close</button>
     </div>
   </div>
 </div>
@@ -610,7 +646,7 @@ a{color:#2563EB;text-decoration:none}
 </div>
 
 <!-- ═══════════ TOAST ═══════════ -->
-<div id="toast" class="toast"></div>
+<div id="toast" class="toast" role="alert" aria-live="assertive"></div>
 
 <!-- ═══════════ BOTTOM NAV ═══════════ -->
 <div class="nav-tabs" id="nav-tabs" style="display:none" role="navigation" aria-label="Main navigation">
@@ -1097,6 +1133,12 @@ function showScreen(id) {
   var activeTab = document.querySelector('.nav-tab[onclick*="'+id+'"]');
   if (activeTab) activeTab.setAttribute('aria-current', 'page');
   window.scrollTo(0,0);
+  // WP-036: Focus management — move focus to the new screen for screen reader users
+  var screenEl = document.getElementById(id);
+  if (screenEl) {
+    if (!screenEl.getAttribute('tabindex')) screenEl.setAttribute('tabindex', '-1');
+    screenEl.focus({ preventScroll: true });
+  }
 }
 
 function navTo(id) {
@@ -3673,6 +3715,7 @@ function getUserProfile() {
     rcStatus: state.intake.rc_status || null,
     iepStatus: state.intake.iep_status || null,
     insurance: insMap[state.intake.insurance] || state.intake.insurance || null,
+    email: state.userInfo.email || null,
     regionalCenter: state.userInfo.regionalCenter ? state.userInfo.regionalCenter.name : null,
     zipCode: state.userInfo.zipCode || null,
     lang: state.lang || 'en',  // WP-033: Pass language preference to backend for i18n responses
@@ -3729,6 +3772,23 @@ function chatRetry() {
   }
 }
 
+function sendQuickReply(btn) {
+  var text = btn.textContent;
+  var input = document.getElementById('chat-input');
+  input.value = text;
+  // Disable all quick-reply buttons so user can't double-tap
+  var allBtns = document.querySelectorAll('.quick-reply-btn');
+  allBtns.forEach(function(b) { b.disabled = true; b.style.opacity = '0.5'; });
+  chatSend();
+}
+
+function focusChatInput() {
+  var input = document.getElementById('chat-input');
+  input.focus();
+  input.setAttribute('placeholder', 'Type your answer here...');
+  input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 function chatHandleResponse(result, question) {
   chatState.isLoading = false;
   document.getElementById('chat-send-btn').disabled = false;
@@ -3766,26 +3826,77 @@ function chatHandleResponse(result, question) {
     'navigation': {bg:'#F1F5F9',color:'#475569',label:'Navigation'},
   };
   var catStyle = catColors[result.category] || catColors['navigation'];
+
+  // WP-035: GATING LOGIC — if there's a clarifying question, ONLY show empathy + question
+  // All other content is held back until the user answers. This forces step-by-step conversation.
+  if (result.clarifying_question) {
+    html += '<div class="chat-category-badge" style="background:' + catStyle.bg + ';color:' + catStyle.color + ';font-size:10px;padding:2px 8px">' + catStyle.label + '</div>';
+    if (result.empathy) {
+      html += '<p style="font-size:14px;color:var(--accent-dark);font-style:italic;line-height:1.6;margin:0 0 10px">' + formatAIText(result.empathy) + '</p>';
+    }
+    // Brief context only — 1-2 sentence max from the answer
+    if (result.answer) {
+      var briefAnswer = result.answer;
+      // Truncate long answers when gating — show just the first sentence or two
+      var sentences = briefAnswer.split(/(?<=[.!?])\s+/);
+      if (sentences.length > 2) {
+        briefAnswer = sentences.slice(0, 2).join(' ');
+      }
+      html += '<div style="font-size:14px;color:var(--text);line-height:1.6;margin-bottom:12px">' + formatAIText(briefAnswer) + '</div>';
+    }
+    // The clarifying question — prominent, this is the main thing
+    html += '<div style="background:var(--accent-light);border-radius:var(--radius-sm);padding:14px;font-size:15px;color:var(--accent-dark);line-height:1.6;border-left:4px solid var(--accent);margin-bottom:12px">';
+    html += '<span style="font-weight:700">❓ </span>' + formatAIText(result.clarifying_question);
+    html += '</div>';
+
+    // Quick-reply answer buttons — let user tap a common answer or type their own
+    html += '<div class="chat-quick-replies">';
+    if (result.quick_replies && result.quick_replies.length) {
+      result.quick_replies.forEach(function(reply) {
+        html += '<button class="quick-reply-btn" onclick="sendQuickReply(this)">' + escapeHtml(reply) + '</button>';
+      });
+    } else {
+      // Fallback if AI didn't provide quick_replies
+      html += '<button class="quick-reply-btn" onclick="sendQuickReply(this)">Yes</button>';
+      html += '<button class="quick-reply-btn" onclick="sendQuickReply(this)">No</button>';
+      html += '<button class="quick-reply-btn" onclick="sendQuickReply(this)">I\'m not sure</button>';
+    }
+    // "Other" button — focuses the text input so user can type a custom answer
+    html += '<button class="quick-reply-btn" style="background:var(--muted-light);color:var(--muted);border-color:var(--border)" onclick="focusChatInput()">Other — type below ✏️</button>';
+    html += '</div>';
+    // "Skip to action items" escape hatch — lets user jump to Phase 3 full guidance
+    html += '<div style="margin-top:6px;text-align:right">';
+    html += '<button class="quick-reply-btn" style="background:var(--accent);color:white;border-color:var(--accent);font-size:12px;padding:7px 14px" onclick="sendQuickReply(this)">Skip to action items →</button>';
+    html += '</div>';
+    html += '</div></div></div>';
+    document.getElementById('chat-messages').innerHTML += html;
+    scrollChatToBottom();
+    return;
+  }
+
+  // NO clarifying question — render full response (user has provided enough context)
+  var responseId = 'ai-resp-' + Date.now();
+  html = '<div class="chat-msg ai" id="' + responseId + '"><div class="chat-bubble"><div class="ai-inner">';
   html += '<div class="chat-category-badge" style="background:' + catStyle.bg + ';color:' + catStyle.color + '">' + catStyle.label;
   if (result.urgency === 'high') html += ' · <span style="color:var(--urgent)">HIGH URGENCY</span>';
   html += '</div>';
 
   // Empathy
   if (result.empathy) {
-    html += '<div class="chat-empathy">' + escapeHtml(result.empathy) + '</div>';
+    html += '<div class="chat-empathy">' + formatAIText(result.empathy) + '</div>';
   }
 
   // Answer
   if (result.answer) {
-    html += '<div class="chat-answer">' + escapeHtml(result.answer) + '</div>';
+    html += '<div class="chat-answer">' + formatAIText(result.answer) + '</div>';
   }
 
-  // Sections — for complex multi-part answers
+  // Sections — fold into answer as sub-headings instead of separate cards
   if (result.sections && result.sections.length) {
     result.sections.forEach(function(section) {
-      html += '<div style="margin-top:14px;padding:14px 16px;background:#F8FAFC;border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0">';
-      html += '<div style="font-weight:700;color:var(--navy);font-size:15px;margin-bottom:6px">' + escapeHtml(section.title || '') + '</div>';
-      html += '<div style="font-size:14px;line-height:1.6;color:var(--text)">' + escapeHtml(section.content || '') + '</div>';
+      html += '<div style="margin-top:10px">';
+      html += '<div style="font-weight:700;color:var(--navy);font-size:14px;margin-bottom:4px">' + escapeHtml(section.title || '') + '</div>';
+      html += '<div style="font-size:14px;line-height:1.6;color:var(--text)">' + formatAIText(section.content || '') + '</div>';
       html += '</div>';
     });
   }
@@ -3793,58 +3904,88 @@ function chatHandleResponse(result, question) {
   // Important context — critical nuances
   if (result.important_context) {
     html += '<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px;font-size:14px;line-height:1.5;color:#9A3412">';
-    html += '<span style="font-weight:700">Key context: </span>' + escapeHtml(result.important_context);
-    html += '</div>';
-  }
-
-  // Clarifying follow-up question — rendered prominently
-  if (result.clarifying_question) {
-    html += '<div style="background:var(--accent-light);border-radius:var(--radius-sm);padding:14px;margin-top:12px;margin-bottom:10px;font-size:14.5px;color:var(--accent-dark);line-height:1.5;border-left:3px solid var(--accent)">';
-    html += '<span style="font-weight:600">Before I go further: </span>' + escapeHtml(result.clarifying_question);
+    html += '<span style="font-weight:700">⚠️ Key context: </span>' + formatAIText(result.important_context);
     html += '</div>';
   }
 
   // Action steps
   if (result.action_steps && result.action_steps.length) {
+    var stepsId = 'steps-' + Date.now();
+    html += '<div class="chat-section-card">';
+    html += '<div class="chat-section-header" onclick="toggleCollapse(\'' + stepsId + '\')">';
+    html += '<span>📋</span> Action Steps <span class="collapse-icon" id="' + stepsId + '-icon">▼</span></div>';
+    html += '<div class="collapsible-content" id="' + stepsId + '">';
+    html += '<div style="text-align:right;margin-bottom:8px"><button class="chat-save-btn" style="font-size:13px;padding:6px 14px" onclick="saveAllActionsFromChat(this)">💾 Save All to Action Plan</button></div>';
     html += '<div class="chat-steps">';
     result.action_steps.forEach(function(step, idx) {
       html += '<div class="chat-step">';
       html += '<div class="chat-step-num">' + (step.step || '') + '</div>';
       html += '<div class="chat-step-body">';
-      html += '<div>' + escapeHtml(step.action || '') + '</div>';
+      html += '<div>' + formatAIText(step.action || '') + '</div>';
       if (step.who) html += '<div class="chat-step-who">' + escapeHtml(step.who) + '</div>';
-      if (step.timeline) html += '<div class="chat-step-timeline">' + escapeHtml(step.timeline) + '</div>';
+      if (step.timeline) html += '<div class="chat-step-timeline">⏰ ' + escapeHtml(step.timeline) + '</div>';
       if (step.script) html += '<div class="chat-step-script">"' + escapeHtml(step.script) + '"</div>';
       html += '<div class="chat-step-actions">';
       html += '<button class="chat-save-btn" data-step-idx="' + idx + '" onclick="saveActionFromChat(this,' + idx + ')">📋 Save as Action Item</button>';
       html += '</div>';
       html += '</div></div>';
     });
-    html += '</div>';
+    html += '</div></div></div>';
   }
 
   // Rights reminder
   if (result.rights_reminder) {
     html += '<div class="chat-rights">';
-    html += '<div class="chat-rights-label">Your Right</div>';
-    html += '<div class="chat-rights-text">' + escapeHtml(result.rights_reminder) + '</div>';
+    html += '<div class="chat-rights-label">⚖️ Your Right</div>';
+    html += '<div class="chat-rights-text">' + formatAIText(result.rights_reminder) + '</div>';
     html += '</div>';
   }
 
   // Watch out
   if (result.watch_out) {
     html += '<div class="chat-watchout">';
-    html += '<div class="chat-watchout-label">Watch Out</div>';
-    html += '<div class="chat-watchout-text">' + escapeHtml(result.watch_out) + '</div>';
+    html += '<div class="chat-watchout-label">🚨 Watch Out</div>';
+    html += '<div class="chat-watchout-text">' + formatAIText(result.watch_out) + '</div>';
     html += '</div>';
   }
 
   // Resources — support organizations, websites, phone numbers
   if (result.resources) {
-    html += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px">';
-    html += '<div style="font-weight:700;font-size:13px;color:#166534;margin-bottom:4px">Resources & Support</div>';
-    html += '<div style="font-size:14px;line-height:1.6;color:#15803D">' + escapeHtml(result.resources) + '</div>';
-    html += '</div>';
+    var resId = 'res-' + Date.now();
+    html += '<div class="chat-section-card" style="background:#F0FDF4;border-color:#BBF7D0">';
+    html += '<div class="chat-section-header" style="color:#166534" onclick="toggleCollapse(\'' + resId + '\')">';
+    html += '<span>📚</span> Resources & Support <span class="collapse-icon" id="' + resId + '-icon">▼</span></div>';
+    html += '<div class="collapsible-content" id="' + resId + '">';
+    // Resources — structured array with hyperlinks and issue-specific descriptions
+    var resHtml = '';
+    if (typeof result.resources === 'string') {
+      resHtml = formatAIText(result.resources);
+    } else if (Array.isArray(result.resources)) {
+      result.resources.forEach(function(r) {
+        if (typeof r === 'string') {
+          resHtml += '<div style="margin-bottom:6px">' + formatAIText(r) + '</div>';
+        } else if (r && typeof r === 'object') {
+          resHtml += '<div style="padding:10px 12px;margin-bottom:8px;background:#ECFDF5;border-radius:8px;border:1px solid #D1FAE5">';
+          var name = escapeHtml(r.name || r.title || 'Resource');
+          if (r.url) {
+            resHtml += '<a href="' + escapeHtml(r.url) + '" target="_blank" style="color:#166534;font-weight:700;font-size:14px;text-decoration:underline">' + name + ' →</a>';
+          } else {
+            resHtml += '<strong style="color:#166534;font-size:14px">' + name + '</strong>';
+          }
+          if (r.phone) resHtml += '<span style="margin-left:8px;font-size:13px;color:#047857">📞 ' + escapeHtml(r.phone) + '</span>';
+          if (r.how_it_helps) {
+            resHtml += '<div style="font-size:13px;color:#065F46;margin-top:3px;line-height:1.4">' + escapeHtml(r.how_it_helps) + '</div>';
+          } else if (r.description || r.note) {
+            resHtml += '<div style="font-size:13px;color:#065F46;margin-top:3px;line-height:1.4">' + escapeHtml(r.description || r.note) + '</div>';
+          }
+          resHtml += '</div>';
+        }
+      });
+    } else {
+      resHtml = escapeHtml(String(result.resources));
+    }
+    html += '<div style="font-size:14px;line-height:1.6">' + resHtml + '</div>';
+    html += '</div></div>';
   }
 
   // Sources
@@ -3856,12 +3997,17 @@ function chatHandleResponse(result, question) {
     html += '</div>';
   }
 
-  // Draft offer — use data attributes to avoid apostrophe/quote issues in onclick
+  // Draft offer — inline tone picker (no intermediate "Generate Draft" click)
   if (result.offer_to_draft && result.draft_type) {
-    html += '<div class="chat-draft-btn" data-draft-type="' + escapeAttr(result.draft_type) + '" onclick="chatRequestDraftFromState(this)">';
-    html += '<span style="font-size:16px">📝</span>';
-    html += '<span>Generate Draft: ' + escapeHtml(result.offer_to_draft) + '</span>';
-    html += '<span style="margin-left:auto;font-size:12px">→</span>';
+    var draftTypeAttr = escapeAttr(result.draft_type);
+    html += '<div class="chat-section-card" style="background:var(--teal-light);border-color:#99F6E4;padding:14px 16px">';
+    html += '<div style="font-weight:700;font-size:14px;color:#0F766E;margin-bottom:8px">✉️ ' + escapeHtml(result.offer_to_draft) + '</div>';
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    html += '<button class="tone-option-inline" data-draft-type="' + draftTypeAttr + '" onclick="selectInlineTone(this,\'warm\')">😊 Friendly</button>';
+    html += '<button class="tone-option-inline" data-draft-type="' + draftTypeAttr + '" onclick="selectInlineTone(this,\'professional\')">📋 Professional</button>';
+    html += '<button class="tone-option-inline" data-draft-type="' + draftTypeAttr + '" onclick="selectInlineTone(this,\'strong\')">💪 Strong</button>';
+    html += '</div>';
+    html += '<div style="font-size:11px;color:#5F6B7A;margin-top:6px">Pick a tone — opens a popup you can edit, then send to Gmail</div>';
     html += '</div>';
   }
 
@@ -3876,7 +4022,13 @@ function chatHandleResponse(result, question) {
   html += '</div></div></div>';
 
   document.getElementById('chat-messages').innerHTML += html;
-  scrollChatToBottom();
+  // Scroll to the TOP of the new AI response so user sees the answer from the beginning
+  var newResp = document.getElementById(responseId);
+  if (newResp) {
+    setTimeout(function() { newResp.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+  } else {
+    scrollChatToBottom();
+  }
 }
 
 function chatHandleError(err, question) {
@@ -3960,6 +4112,43 @@ function saveActionFromChat(btn, stepIdx) {
   toast('Action added to your Action Plan! 📋');
 }
 
+function saveAllActionsFromChat(btn) {
+  if (btn.classList.contains('saved')) return;
+  var result = chatState.lastResponse;
+  if (!result || !result.action_steps || !result.action_steps.length) { toast('No action steps found'); return; }
+  var savedCount = 0;
+  // Find all individual save buttons to mark them too
+  var stepBtns = btn.closest('.chat-section-card').querySelectorAll('.chat-save-btn[data-step-idx]');
+  result.action_steps.forEach(function(step, idx) {
+    // Skip if already saved (check if the individual button is already marked)
+    if (stepBtns[idx] && stepBtns[idx].classList.contains('saved')) return;
+    var actionId = 'chat_' + Date.now() + '_' + idx;
+    var priority = result.urgency === 'high' ? 'urgent' : 'standard';
+    var savedAction = {
+      id: actionId, priority: priority, category: result.category || 'navigation',
+      title: step.action || '[Untitled Action]', subtitle: 'Saved from AI suggestion',
+      whyMatters: result.empathy || '', agency: step.who || '',
+      deadline: step.timeline || null, agencyKey: null,
+      talkingPoints: step.script ? [step.script] : [], steps: [], documents: [],
+      smsReminder: 'Waypoint reminder: ' + (step.action || '') + (step.timeline ? ' — ' + step.timeline : ''),
+      insiderTip: result.watch_out || '', followUpKey: null, draftMessage: null,
+      eligibilityCheck: null, dependsOn: null, learnMoreKey: null,
+      source: 'chat', createdAt: new Date().toISOString(),
+      chatQuestion: chatState.lastQuestion || '', responseCategory: result.category
+    };
+    state.savedActions.push(savedAction);
+    if (stepBtns[idx]) { stepBtns[idx].classList.add('saved'); stepBtns[idx].innerHTML = '✅ Added'; }
+    savedCount++;
+  });
+  if (savedCount > 0) {
+    saveState();
+    try { google.script.run.logAction(state.userId, 'bulk_save', savedCount + ' actions', 'saved', '', 'source:chat_bulk'); } catch(e){}
+  }
+  btn.classList.add('saved');
+  btn.innerHTML = '✅ All Saved!';
+  toast(savedCount + ' action' + (savedCount !== 1 ? 's' : '') + ' added to your Action Plan! 📋');
+}
+
 function chatFeedbackFromBtn(btn) {
   var feedback = btn.getAttribute('data-fb');
   var question = chatState.lastQuestion || '';
@@ -3982,8 +4171,56 @@ function chatFeedbackFromBtn(btn) {
 
 function chatRequestDraftFromState(el) {
   var draftType = el.getAttribute('data-draft-type');
+  chatState.pendingDraftType = draftType;
+  showDraftTonePicker(draftType);
+}
+
+// WP-035m: Inline tone picker — skip the intermediate "Generate Draft" step
+function selectInlineTone(btn, tone) {
+  var draftType = btn.getAttribute('data-draft-type') || 'general';
+  // Disable all tone buttons in this group
+  var parent = btn.closest('.chat-section-card');
+  if (parent) {
+    parent.querySelectorAll('.tone-option-inline').forEach(function(b) { b.disabled = true; b.style.opacity = '0.5'; });
+  }
+  btn.style.opacity = '1';
+  btn.style.background = '#0D9488';
+  btn.style.color = 'white';
+  chatState.selectedDraftTone = tone;
+  chatState.pendingDraftType = draftType;
   var question = chatState.lastQuestion || '';
   chatRequestDraft(draftType, question);
+}
+
+// WP-035: Ask user for draft tone before generating
+function showDraftTonePicker(draftType) {
+  var pickerId = 'tone-picker-' + Date.now();
+  var html = '<div class="chat-msg ai"><div class="chat-bubble"><div class="ai-inner">';
+  html += '<div class="draft-tone-picker" id="' + pickerId + '">';
+  html += '<div class="tone-picker-label">What tone would you like for this draft?</div>';
+  html += '<div class="tone-picker-options">';
+  html += '<button class="tone-option" onclick="selectDraftTone(\'' + pickerId + '\',\'warm\')">😊 Friendly & Warm<span class="tone-desc">Collaborative, personal</span></button>';
+  html += '<button class="tone-option" onclick="selectDraftTone(\'' + pickerId + '\',\'professional\')">📋 Professional & Clear<span class="tone-desc">Organized, specific</span></button>';
+  html += '<button class="tone-option" onclick="selectDraftTone(\'' + pickerId + '\',\'strong\')">💪 Strong & Direct<span class="tone-desc">Firm, rights-focused</span></button>';
+  html += '</div></div>';
+  html += '</div></div></div>';
+
+  document.getElementById('chat-messages').innerHTML += html;
+  scrollChatToBottom();
+}
+
+function selectDraftTone(pickerId, tone) {
+  // Remove the picker message
+  var picker = document.getElementById(pickerId);
+  if (picker) {
+    var chatMsg = picker.closest('.chat-msg');
+    if (chatMsg) chatMsg.remove();
+  }
+
+  // Store tone and proceed with draft generation
+  chatState.selectedDraftTone = tone;
+  var question = chatState.lastQuestion || '';
+  chatRequestDraft(chatState.pendingDraftType || 'general', question);
 }
 
 function chatRequestDraft(draftType, question) {
@@ -4018,7 +4255,7 @@ function chatRequestDraft(draftType, question) {
         msgArea.innerHTML += '<div class="chat-msg ai"><div class="chat-bubble"><div class="ai-inner"><div class="chat-error">Draft generation failed. Please try again.</div></div></div></div>';
         scrollChatToBottom();
       })
-      .generateDraft(draftType, profile, question, chatState.lastResponse);
+      .generateDraft(draftType, profile, question, chatState.lastResponse, chatState.selectedDraftTone || 'professional');
   } catch (e) {
     chatState.isLoading = false;
     var loadEl = document.getElementById('draft-loading');
@@ -4027,17 +4264,66 @@ function chatRequestDraft(draftType, question) {
   }
 }
 
+// WP-034: Collapsible section toggle
+function toggleCollapse(id) {
+  var el = document.getElementById(id);
+  var icon = document.getElementById(id + '-icon');
+  if (el) {
+    el.classList.toggle('collapsed');
+    if (icon) icon.classList.toggle('collapsed');
+  }
+}
+
 function showDraftModal(draftType, draftText) {
   var titles = {
-    'appeal_letter': 'Insurance Appeal Letter',
-    'iep_email': 'Email to School District',
-    'rc_request': 'Regional Center Request',
-    'iep_prep': 'IEP Meeting Prep Checklist',
-    'complaint': 'Formal Complaint',
-    'general': 'Draft Document',
+    'appeal_letter': '📝 Insurance Appeal Letter',
+    'iep_email': '📝 Email to School District',
+    'rc_request': '📝 Regional Center Request',
+    'iep_prep': '📝 IEP Meeting Prep Checklist',
+    'complaint': '📝 Formal Complaint',
+    'general': '📝 Draft Document',
   };
-  document.getElementById('draft-modal-title').textContent = titles[draftType] || 'Your Draft';
-  document.getElementById('draft-modal-text').textContent = draftText;
+  document.getElementById('draft-modal-title').innerHTML = escapeHtml(titles[draftType] || '📝 Your Draft');
+
+  // WP-035n: Strip trailing AI helper comments/tips before displaying
+  // Matches patterns like "---\nNote:", "---\nTips:", "---\nRemember:", "Note:", etc. at end of draft
+  var cleanDraft = draftText.replace(/\n---\n[\s\S]*$/m, '');
+  // Also strip trailing "Note:" / "Tips:" / "Remember:" blocks not preceded by ---
+  cleanDraft = cleanDraft.replace(/\n\n(?:Note|Notes|Tips?|Remember|Important|Reminder|Pro tip|Tip|FYI):[\s\S]*$/im, '');
+  // Store stripped comments for in-app display
+  var strippedComments = draftText.substring(cleanDraft.length).trim();
+  if (strippedComments) {
+    // Remove leading --- if present
+    strippedComments = strippedComments.replace(/^---\s*\n?/, '');
+  }
+
+  // WP-035m: Render markdown formatting + highlight [BRACKETED PLACEHOLDERS]
+  var escaped = escapeHtml(cleanDraft);
+  // Bold **text** → <strong>
+  escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic *text* → <em>
+  escaped = escaped.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>');
+  // Line breaks
+  escaped = escaped.replace(/\n/g, '<br>');
+  // Bracket placeholders
+  var highlighted = escaped.replace(/\[([^\]]+)\]/g, '<span class="bracket-placeholder">[$1]</span>');
+  document.getElementById('draft-modal-text').innerHTML = highlighted;
+
+  // Show stripped AI comments as in-app tips (below the draft, not in the email)
+  var tipsEl = document.getElementById('draft-modal-tips');
+  if (tipsEl) {
+    if (strippedComments) {
+      tipsEl.innerHTML = '<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px 14px;font-size:13px;color:#92400E;line-height:1.5">'
+        + '<strong>💡 Waypoint tips:</strong><br>' + escapeHtml(strippedComments).replace(/\n/g, '<br>') + '</div>';
+      tipsEl.style.display = 'block';
+    } else {
+      tipsEl.style.display = 'none';
+    }
+  }
+
+  // Store clean text (without comments) for Gmail push
+  document.getElementById('modal-draft').dataset.rawText = cleanDraft;
+  document.getElementById('modal-draft').dataset.draftType = draftType;
   document.getElementById('modal-draft').classList.add('active');
 }
 
@@ -4046,13 +4332,13 @@ function closeDraftModal() {
 }
 
 function copyDraft() {
-  var text = document.getElementById('draft-modal-text').textContent;
+  // Get plain text from the contenteditable div
+  var text = document.getElementById('draft-modal-text').innerText || document.getElementById('draft-modal-text').textContent;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(function() {
       toast('Draft copied to clipboard!');
     });
   } else {
-    // Fallback
     var ta = document.createElement('textarea');
     ta.value = text;
     document.body.appendChild(ta);
@@ -4063,9 +4349,123 @@ function copyDraft() {
   }
 }
 
+// WP-035: Open draft directly in Gmail compose window
+function openInEmail() {
+  var modal = document.getElementById('modal-draft');
+  var draftType = modal.dataset.draftType || 'general';
+
+  var subjectMap = {
+    'appeal_letter': 'Insurance Appeal',
+    'iep_email': 'IEP Communication',
+    'rc_request': 'Regional Center Service Request',
+    'iep_prep': 'IEP Meeting Preparation',
+    'complaint': 'Formal Complaint',
+    'general': 'Waypoint Draft',
+  };
+  var subject = subjectMap[draftType] || 'Waypoint Draft';
+
+  // Get edited text from the contenteditable div
+  var body = document.getElementById('draft-modal-text').innerText || document.getElementById('draft-modal-text').textContent;
+
+  // Always copy to clipboard as backup
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(body).catch(function(){});
+  }
+
+  // Gmail compose URLs have a ~8000 char limit for the full URL.
+  // Truncate body if needed and let user paste the rest from clipboard.
+  var encodedSubject = encodeURIComponent(subject);
+  var encodedBody = encodeURIComponent(body);
+  var baseUrl = 'https://mail.google.com/mail/?view=cm&fs=1&su=' + encodedSubject + '&body=';
+  var maxBodyChars = 7500 - baseUrl.length; // leave room for base URL
+
+  var bodyTruncated = false;
+  if (encodedBody.length > maxBodyChars) {
+    // Truncate the raw body to fit, then re-encode
+    var charBudget = Math.floor(maxBodyChars / 3); // rough: encoded is ~3x raw
+    var truncBody = body.substring(0, charBudget) + '\n\n---\n[Draft was too long for Gmail link — paste the rest from your clipboard]';
+    encodedBody = encodeURIComponent(truncBody);
+    bodyTruncated = true;
+  }
+
+  var gmailUrl = baseUrl + encodedBody;
+
+  // Open Gmail in a NEW TAB so the user can easily come back to Waypoint
+  // Use <a target="_blank"> — works in GAS iframe sandbox
+  var a = document.createElement('a');
+  a.href = gmailUrl;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  if (bodyTruncated) {
+    toast('Gmail opened in new tab — full draft is in your clipboard. Paste it in!', 5000);
+  } else {
+    toast('Gmail opened in a new tab! Your draft is ready to send.', 4000);
+  }
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return str.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// WP-034: Safe markdown renderer — escapes first, then applies formatting
+function formatAIText(str) {
+  if (!str) return '';
+  var text = escapeHtml(str);
+
+  // Bold: **text**
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Italic: *text* (but not inside <strong> tags)
+  text = text.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>');
+
+  // Process lines for lists and paragraphs
+  var lines = text.split('\n');
+  var result = [];
+  var inUl = false, inOl = false;
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+
+    // Numbered list: "1. " or "1) "
+    var olMatch = line.match(/^(\d+)[.)]\s+(.+)/);
+    if (olMatch) {
+      if (inUl) { result.push('</ul>'); inUl = false; }
+      if (!inOl) { result.push('<ol>'); inOl = true; }
+      result.push('<li>' + olMatch[2] + '</li>');
+      continue;
+    }
+
+    // Bullet list: "- " or "• " or "* " (at start of line)
+    var ulMatch = line.match(/^[-•\*]\s+(.+)/);
+    if (ulMatch) {
+      if (inOl) { result.push('</ol>'); inOl = false; }
+      if (!inUl) { result.push('<ul>'); inUl = true; }
+      result.push('<li>' + ulMatch[1] + '</li>');
+      continue;
+    }
+
+    // Close open lists on non-list lines
+    if (inUl) { result.push('</ul>'); inUl = false; }
+    if (inOl) { result.push('</ol>'); inOl = false; }
+
+    // Empty line = paragraph break
+    if (line === '') {
+      result.push('<br>');
+    } else {
+      result.push(line);
+    }
+  }
+  // Close any trailing open lists
+  if (inUl) result.push('</ul>');
+  if (inOl) result.push('</ol>');
+
+  // Join with line breaks, but collapse multiple <br> tags
+  return result.join('<br>').replace(/(<br>){3,}/g, '<br><br>');
 }
 
 function escapeAttr(str) {
@@ -4074,9 +4474,9 @@ function escapeAttr(str) {
 }
 
 // ═══ UTILITIES ═══
-function toast(msg) {
+function toast(msg, duration) {
   var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show')},2500);
+  setTimeout(function(){t.classList.remove('show')}, duration || 2500);
 }
 
 // ═══════════════════════════════════════════════════════

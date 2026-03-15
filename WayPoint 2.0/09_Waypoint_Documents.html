@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Documents</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root{--teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;--amber-50:#fffbeb;--amber-100:#fef3c7;--amber-400:#fbbf24;--amber-600:#d97706;--warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;--rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-500:#f43f5e;--violet-50:#f5f3ff;--violet-100:#ede9fe;--violet-500:#8b5cf6;--green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;--radius:16px;--radius-sm:10px;--radius-full:999px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:linear-gradient(160deg,var(--teal-50) 0%,var(--warm-50) 40%,var(--amber-50) 100%);min-height:100vh;display:flex;justify-content:center;padding:24px;color:var(--warm-900);}
+  .phone-frame{width:390px;min-height:844px;background:var(--warm-50);border-radius:40px;box-shadow:0 0 0 8px #1a1a1a,0 20px 60px rgba(0,0,0,0.2);overflow:hidden;position:relative;}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;}
+  .screen{padding:0 20px 100px;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--warm-200);display:flex;justify-content:space-around;padding:8px 0 28px;z-index:10;}
+  .nav-item{text-align:center;cursor:pointer;padding:4px 12px;}.nav-icon{font-size:22px;margin-bottom:2px;}.nav-label{font-size:10px;font-weight:600;color:var(--warm-600);}
+  .nav-item.active .nav-label{color:var(--teal-600);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .a{animation:fadeUp .5s ease-out both;}.d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}.d5{animation-delay:.25s;}.d6{animation-delay:.3s;}
+
+  .header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .header-row h1{font-family:var(--font-display);font-size:24px;font-weight:500;}
+  .storage-badge{font-size:11px;font-weight:600;color:var(--warm-600);padding:5px 10px;border-radius:var(--radius-full);background:var(--warm-100);}
+  .sub{font-size:13px;color:var(--warm-600);margin-bottom:16px;}
+
+  /* Upload area */
+  .upload-area{border:2px dashed var(--teal-200);border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:16px;background:var(--teal-50);cursor:pointer;transition:all .2s;}
+  .upload-area:hover{border-color:var(--teal-400);background:var(--teal-100);}
+  .upload-icon{font-size:32px;margin-bottom:6px;}
+  .upload-text{font-size:14px;font-weight:600;color:var(--teal-700);}
+  .upload-hint{font-size:12px;color:var(--warm-600);margin-top:4px;}
+
+  /* Breadcrumb */
+  .breadcrumb{display:flex;align-items:center;gap:4px;margin-bottom:14px;font-size:13px;}
+  .bc-item{color:var(--teal-600);font-weight:600;cursor:pointer;}
+  .bc-sep{color:var(--warm-300);}
+  .bc-current{color:var(--warm-800);font-weight:700;}
+
+  /* Folder cards */
+  .folder-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .folder-card{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius-sm);padding:14px;cursor:pointer;transition:all .2s;}
+  .folder-card:hover{border-color:var(--teal-400);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .folder-icon{font-size:28px;margin-bottom:6px;}
+  .folder-name{font-weight:700;font-size:13px;margin-bottom:2px;}
+  .folder-count{font-size:11px;color:var(--warm-600);}
+
+  .section-title{font-weight:700;font-size:15px;color:var(--warm-800);margin:16px 0 10px;}
+
+  /* Document list */
+  .doc-item{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;}
+  .doc-item:hover{border-color:var(--teal-400);}
+  .doc-thumb{width:40px;height:48px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .doc-thumb.pdf{background:var(--rose-50);}
+  .doc-thumb.docx{background:var(--blue-50);}
+  .doc-thumb.img{background:var(--amber-50);}
+  .doc-info{flex:1;min-width:0;}
+  .doc-name{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .doc-meta{font-size:11px;color:var(--warm-600);margin-top:2px;}
+  .doc-badges{display:flex;gap:4px;margin-top:4px;}
+  .doc-badge{font-size:10px;font-weight:600;padding:2px 6px;border-radius:var(--radius-full);}
+  .badge-ai{background:var(--teal-100);color:var(--teal-700);}
+  .badge-shared{background:var(--violet-100);color:var(--violet-500);}
+  .badge-version{background:var(--amber-100);color:var(--amber-600);}
+  .badge-annotated{background:var(--blue-100);color:var(--blue-500);}
+  .doc-actions{display:flex;gap:6px;}
+  .doc-action{width:30px;height:30px;border-radius:8px;border:1px solid var(--warm-200);background:white;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:all .2s;}
+  .doc-action:hover{background:var(--warm-100);}
+
+  .fab{position:absolute;bottom:100px;right:28px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal-600),var(--teal-700));color:white;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(13,148,136,.35);cursor:pointer;border:none;z-index:11;}
+</style>
+</head>
+<body>
+<div>
+  <h2 style="font-family:var(--font-display);font-size:24px;text-align:center;margin-bottom:4px;">Waypoint</h2>
+  <p style="text-align:center;font-size:14px;color:var(--warm-600);margin-bottom:16px;">F6 — Document Management</p>
+  <div class="phone-frame">
+    <div class="status-bar"><span style="font-size:15px;font-weight:700;">9:41</span><div style="display:flex;gap:6px;align-items:center;font-size:13px;"><span>●●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="screen">
+      <div class="header-row a"><h1>Documents</h1><div class="storage-badge">📦 420 MB / 1 GB</div></div>
+      <div class="sub a">Teddy's secure document vault</div>
+
+      <div class="upload-area a d1">
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">Upload or Scan Document</div>
+        <div class="upload-hint">Camera scan · File picker · PDF, DOCX, JPG, PNG</div>
+      </div>
+
+      <div class="breadcrumb a d1">
+        <span class="bc-item">Teddy</span><span class="bc-sep">›</span><span class="bc-current">All Categories</span>
+      </div>
+
+      <div class="folder-grid a d2">
+        <div class="folder-card">
+          <div class="folder-icon">📋</div>
+          <div class="folder-name">IEP Documents</div>
+          <div class="folder-count">5 files · 3 versions</div>
+        </div>
+        <div class="folder-card">
+          <div class="folder-icon">🏥</div>
+          <div class="folder-name">Medical</div>
+          <div class="folder-count">8 files</div>
+        </div>
+        <div class="folder-card">
+          <div class="folder-icon">📝</div>
+          <div class="folder-name">Assessments</div>
+          <div class="folder-count">4 files</div>
+        </div>
+        <div class="folder-card">
+          <div class="folder-icon">🛡️</div>
+          <div class="folder-name">Insurance</div>
+          <div class="folder-count">3 files</div>
+        </div>
+      </div>
+
+      <div class="section-title a d3">Recent Documents</div>
+
+      <div class="doc-item a d3">
+        <div class="doc-thumb pdf">📄</div>
+        <div class="doc-info">
+          <div class="doc-name">Teddy_IEP_2025-2026.pdf</div>
+          <div class="doc-meta">Uploaded Mar 1 · 2.4 MB · 12 pages</div>
+          <div class="doc-badges">
+            <span class="doc-badge badge-ai">✨ AI Reviewed</span>
+            <span class="doc-badge badge-version">v3</span>
+            <span class="doc-badge badge-annotated">📝 5 notes</span>
+          </div>
+        </div>
+        <div class="doc-actions">
+          <div class="doc-action">📤</div>
+          <div class="doc-action">⋮</div>
+        </div>
+      </div>
+
+      <div class="doc-item a d4">
+        <div class="doc-thumb pdf">📄</div>
+        <div class="doc-info">
+          <div class="doc-name">Developmental_Eval_Dr_Nguyen.pdf</div>
+          <div class="doc-meta">Uploaded Feb 15 · 1.8 MB · 8 pages</div>
+          <div class="doc-badges">
+            <span class="doc-badge badge-shared">👤 Shared with advocate</span>
+          </div>
+        </div>
+        <div class="doc-actions">
+          <div class="doc-action">📤</div>
+          <div class="doc-action">⋮</div>
+        </div>
+      </div>
+
+      <div class="doc-item a d4">
+        <div class="doc-thumb docx">📝</div>
+        <div class="doc-info">
+          <div class="doc-name">IEP_Meeting_Notes_Feb2026.docx</div>
+          <div class="doc-meta">Uploaded Feb 20 · 340 KB</div>
+          <div class="doc-badges"><span class="doc-badge badge-annotated">📝 2 notes</span></div>
+        </div>
+        <div class="doc-actions">
+          <div class="doc-action">📤</div>
+          <div class="doc-action">⋮</div>
+        </div>
+      </div>
+
+      <div class="doc-item a d5">
+        <div class="doc-thumb img">🖼️</div>
+        <div class="doc-info">
+          <div class="doc-name">Insurance_Card_Front.jpg</div>
+          <div class="doc-meta">Uploaded Jan 10 · 1.2 MB</div>
+        </div>
+        <div class="doc-actions">
+          <div class="doc-action">📤</div>
+          <div class="doc-action">⋮</div>
+        </div>
+      </div>
+
+      <div class="doc-item a d5">
+        <div class="doc-thumb pdf">📄</div>
+        <div class="doc-info">
+          <div class="doc-name">RCEB_IPP_Teddy_2025.pdf</div>
+          <div class="doc-meta">Uploaded Dec 5 · 900 KB · 4 pages</div>
+          <div class="doc-badges"><span class="doc-badge badge-version">v2</span></div>
+        </div>
+        <div class="doc-actions">
+          <div class="doc-action">📤</div>
+          <div class="doc-action">⋮</div>
+        </div>
+      </div>
+
+    </div>
+    <button class="fab">📷</button>
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+      <div class="nav-item"><div class="nav-icon">🗺️</div><div class="nav-label">Journey</div></div>
+      <div class="nav-item active"><div class="nav-icon">📁</div><div class="nav-label">Docs</div></div>
+      <div class="nav-item"><div class="nav-icon">👥</div><div class="nav-label">Community</div></div>
+      <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

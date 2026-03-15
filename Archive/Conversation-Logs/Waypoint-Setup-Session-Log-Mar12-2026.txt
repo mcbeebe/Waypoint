@@ -1,0 +1,214 @@
+================================================================================
+WAYPOINT APP SETUP SESSION LOG
+Date: March 12, 2026
+================================================================================
+
+SESSION OVERVIEW
+================
+This session continued from a previous conversation. Work covered:
+- Committing Sprint 1 code to git
+- Running Supabase database migration
+- Starting Apple Developer enrollment
+- Setting up Google Cloud Console for OAuth
+
+================================================================================
+1. GIT COMMIT — SPRINT 1 (COMPLETED)
+================================================================================
+
+Sprint 1 was code-complete from the previous session (13 files, +2,333 lines)
+but the git commit failed due to stale lock files.
+
+RESOLVED:
+- Removed .git/HEAD.lock (required file deletion permission)
+- Removed .git/index.lock
+- Successfully committed as: 9814c2a
+
+Commit: feat: implement Sprint 1 — auth, onboarding, navigation, home, profile
+- Apple Sign-In + Google Sign-In (with Calendar/Gmail scopes)
+- 6-step onboarding flow ported from GAS MVP
+- Bottom tab navigator (Home, Navigator, Actions, Calendar, Profile)
+- Home dashboard with greeting, age badge, quick actions
+- Profile screen with diagnosis multi-select, RC/IEP/insurance settings
+- Supabase data hooks for families, children, diagnoses
+
+Files changed: 13 files, 2,355 insertions(+), 129 deletions(-)
+
+New files created:
+  - waypoint-app/src/lib/auth.ts
+  - waypoint-app/src/hooks/useFamily.ts
+  - waypoint-app/src/components/StepIndicator.tsx
+  - waypoint-app/src/components/SelectGrid.tsx
+  - waypoint-app/src/components/DiagnosisSelector.tsx
+  - waypoint-app/src/screens/onboarding/OnboardingFlow.tsx
+  - waypoint-app/src/navigation/MainTabs.tsx
+  - waypoint-app/src/screens/main/ProfileScreen.tsx
+
+Modified files:
+  - waypoint-app/App.tsx
+  - waypoint-app/src/components/Button.tsx
+  - waypoint-app/src/screens/auth/WelcomeScreen.tsx
+  - waypoint-app/src/screens/main/HomeScreen.tsx
+  - waypoint-app/src/screens/onboarding/index.ts
+
+Git log (latest):
+  9814c2a feat: implement Sprint 1 — auth, onboarding, navigation, home, profile
+  9e07e68 docs: add strategic analysis and port-first sprint plan
+  cfc7533 feat: upgrade AI engine to Claude Opus 4.6 + enable prompt caching
+  572a6d8 feat: expand Entity Navigation Matrix KB from 14 to 49 articles (v9.4)
+
+================================================================================
+2. SUPABASE MIGRATION (COMPLETED)
+================================================================================
+
+Project: Waypoint (Nano / Free tier)
+Project ID: pltcmpephjkcncxmwbyw
+Region: West US (North California), us-west-1
+URL: https://pltcmpephjkcncxmwbyw.supabase.co
+
+The project was restored from a previously paused state. After it came online
+(Status: Healthy), the full migration SQL was executed via the SQL Editor.
+
+Migration: 001_schema_v1.sql — ran successfully ("Success. No rows returned")
+
+What was created:
+  - pgvector extension enabled (for RAG embeddings)
+  - 13 tables:
+    1. families (core account, linked to auth.users)
+    2. children (multi-child support)
+    3. diagnoses (multiple per child)
+    4. providers (therapists, doctors, attorneys, etc.)
+    5. services (OT, ABA, speech, etc.)
+    6. documents (IEPs, evaluations, insurance docs)
+    7. expenses (financial tracker)
+    8. appointments (calendar tracking)
+    9. deadlines (IEP reviews, appeals, SSI redeterminations)
+    10. chat_sessions (AI Navigator conversation logs)
+    11. chat_messages (individual messages)
+    12. knowledge_embeddings (pgvector RAG table, 1536 dimensions)
+  - 19 indexes (including IVFFlat vector similarity search)
+  - 6 auto-update triggers for updated_at columns
+
+.env file confirmed at waypoint-app/.env with:
+  EXPO_PUBLIC_SUPABASE_URL=https://pltcmpephjkcncxmwbyw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs... (full key in file)
+
+.env is properly listed in .gitignore (line 11).
+
+API Keys captured from Supabase Connect dialog:
+  - Project URL: https://pltcmpephjkcncxmwbyw.supabase.co
+  - Publishable Key: sb_publishable_q2jE2GGLhx9m1NSbAB0iPQ_UIlw6ffq
+  - Anon Key (Legacy): eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+================================================================================
+3. APPLE DEVELOPER ENROLLMENT (PENDING ACTIVATION)
+================================================================================
+
+Enrollment completed and payment processed ($99/year, Individual account).
+Order confirmation received (tab: "Thank You: Order Confirmation - Apple").
+
+HOWEVER: Apple Developer account shows "Purchase your membership" with note
+"Your purchase may take up to 48 hours to process."
+
+The Certificates, Identifiers & Profiles section shows "Access Unavailable"
+until activation completes.
+
+Apple ID used: mcbeebe@gmail.com
+Account name: Mike beebe
+
+BLOCKED ITEMS (waiting for Apple activation):
+  - Create App ID with bundle identifier: com.waypoint.app
+  - Enable Sign-In with Apple capability
+  - Configure provisioning profile
+  - Get Team ID for Google OAuth iOS client
+
+================================================================================
+4. GOOGLE CLOUD CONSOLE SETUP (PARTIALLY COMPLETED)
+================================================================================
+
+Project created:
+  - Name: Waypoint
+  - Project ID: waypoint-489419
+  - Project Number: 575391933220
+  - Organization: kingenergy.com
+
+APIs enabled:
+  - Google Calendar API (Status: Enabled)
+  - Gmail API (Status: Enabled)
+
+OAuth consent screen configured:
+  - App name: Waypoint
+  - User support email: mbeebe@kingenergy.com
+  - Audience: External
+  - Contact email: mbeebe@kingenergy.com
+  - Google API Services User Data Policy: Agreed
+  - Status: "OAuth configuration created!"
+
+REMAINING — OAuth Credentials (not yet created):
+  Browser automation timed out on Google Cloud Console (heavy JS app).
+
+  TWO OAuth clients need to be created manually:
+
+  CLIENT #1 — iOS:
+    URL: https://console.cloud.google.com/auth/clients/create?project=waypoint-489419
+    Application type: iOS
+    Name: Waypoint iOS
+    Bundle ID: com.waypoint.app
+    App Store ID: (leave blank)
+    Team ID: (leave blank until Apple account activates)
+    → Click Create → Copy the iOS Client ID
+
+  CLIENT #2 — Web application:
+    URL: https://console.cloud.google.com/auth/clients/create?project=waypoint-489419
+    Application type: Web application
+    Name: Waypoint Web
+    Authorized redirect URIs: (leave blank)
+    → Click Create → Copy the Web Client ID
+
+  AFTER creating both, the Client IDs need to be added to:
+    - waypoint-app/app.json (iOS Client ID for @react-native-google-signin)
+    - waypoint-app/src/lib/auth.ts (Web Client ID for server token exchange)
+
+================================================================================
+5. OVERALL STATUS & NEXT STEPS
+================================================================================
+
+COMPLETED:
+  [x] Sprint 1 code committed (auth, onboarding, nav, home, profile)
+  [x] Supabase project restored and migration run (13 tables + pgvector)
+  [x] .env configured with Supabase credentials
+  [x] Apple Developer enrollment paid
+  [x] Google Cloud project "Waypoint" created
+  [x] Calendar API + Gmail API enabled
+  [x] OAuth consent screen configured
+
+TO DO NOW:
+  [ ] Create iOS OAuth client (see details above)
+  [ ] Create Web OAuth client (see details above)
+  [ ] Paste both Client IDs into chat for wiring into app config
+
+BLOCKED (waiting for Apple):
+  [ ] Apple Developer membership activation (up to 48 hrs)
+  [ ] Create App ID (com.waypoint.app) with Sign-In with Apple
+  [ ] Get Team ID for Google iOS OAuth client
+
+AFTER SETUP COMPLETE:
+  [ ] Install new npm dependencies:
+      - @react-navigation/bottom-tabs
+      - @react-native-google-signin/google-signin
+      - @react-native-community/datetimepicker
+  [ ] EAS Build setup (eas build --profile development)
+  [ ] Sprint 2: AI Navigator chat engine
+
+SPRINT ROADMAP (from Waypoint-Port-Sprint-Plan.xlsx):
+  Sprint 1: Foundation & Auth ← DONE
+  Sprint 2: AI Navigator (chat engine, RAG, tone calibration)
+  Sprint 3: Action Plans & Tracker
+  Sprint 4: Calendar & Deadline Engine (Google Calendar integration)
+  Sprint 5: Document Vault & Email (Gmail integration)
+  Sprint 6: Knowledge Base & i18n
+  Sprint 7: Polish, Accessibility, Performance
+  Sprint 8: App Store Submission
+
+================================================================================
+END OF SESSION LOG
+================================================================================

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Regional Center</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root{--teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;--amber-50:#fffbeb;--amber-100:#fef3c7;--amber-300:#fcd34d;--amber-400:#fbbf24;--amber-500:#f59e0b;--amber-600:#d97706;--warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;--rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-500:#f43f5e;--rose-600:#e11d48;--violet-50:#f5f3ff;--violet-100:#ede9fe;--violet-500:#8b5cf6;--green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;--radius:16px;--radius-sm:10px;--radius-full:999px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:linear-gradient(160deg,var(--teal-50) 0%,var(--warm-50) 40%,var(--amber-50) 100%);min-height:100vh;display:flex;justify-content:center;padding:24px;color:var(--warm-900);}
+  .phone-frame{width:390px;min-height:844px;background:var(--warm-50);border-radius:40px;box-shadow:0 0 0 8px #1a1a1a,0 20px 60px rgba(0,0,0,0.2);overflow:hidden;position:relative;}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;}
+  .screen{padding:0 20px 100px;}
+  .back-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer;color:var(--teal-600);font-weight:600;font-size:14px;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--warm-200);display:flex;justify-content:space-around;padding:8px 0 28px;z-index:10;}
+  .nav-item{text-align:center;cursor:pointer;padding:4px 12px;}.nav-icon{font-size:22px;margin-bottom:2px;}.nav-label{font-size:10px;font-weight:600;color:var(--warm-600);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .a{animation:fadeUp .5s ease-out both;}.d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}.d5{animation-delay:.25s;}.d6{animation-delay:.3s;}
+
+  /* RC Hero */
+  .rc-hero{background:linear-gradient(135deg,var(--teal-700),var(--teal-800));border-radius:var(--radius);padding:20px;color:white;margin-bottom:16px;position:relative;overflow:hidden;}
+  .rc-hero::after{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(255,255,255,.05);border-radius:50%;}
+  .rc-hero .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.7;margin-bottom:4px;}
+  .rc-hero h2{font-family:var(--font-display);font-size:22px;font-weight:500;margin-bottom:4px;}
+  .rc-hero .sub{font-size:13px;opacity:.8;margin-bottom:14px;}
+  .rc-contact{display:flex;gap:8px;flex-wrap:wrap;}
+  .rc-btn{padding:8px 14px;border-radius:var(--radius-full);background:rgba(255,255,255,.15);font-size:12px;font-weight:600;color:white;cursor:pointer;border:none;transition:background .2s;}
+  .rc-btn:hover{background:rgba(255,255,255,.25);}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--warm-100);border-radius:var(--radius-sm);padding:3px;}
+  .tab{flex:1;padding:9px 8px;border-radius:8px;text-align:center;font-size:12px;font-weight:600;color:var(--warm-600);cursor:pointer;transition:all .2s;border:none;background:none;font-family:var(--font-body);}
+  .tab.active{background:white;color:var(--teal-700);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+
+  /* Eligibility card */
+  .elig-card{background:var(--green-50);border:1.5px solid var(--green-100);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+  .elig-title{font-weight:700;font-size:14px;color:var(--green-600);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .elig-text{font-size:13px;color:var(--warm-800);line-height:1.5;margin-bottom:10px;}
+  .elig-conditions{display:flex;flex-wrap:wrap;gap:6px;}
+  .elig-tag{font-size:11px;font-weight:600;padding:4px 10px;border-radius:var(--radius-full);background:var(--green-100);color:var(--green-600);}
+  .elig-tag.match{background:var(--teal-600);color:white;}
+
+  /* Service cards */
+  .section-title{font-weight:700;font-size:15px;color:var(--warm-800);margin:16px 0 10px;}
+  .svc-card{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+  .svc-card:hover{border-color:var(--teal-400);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .svc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+  .svc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .svc-name{font-weight:700;font-size:14px;flex:1;margin-left:10px;}
+  .svc-arrow{color:var(--warm-300);font-size:18px;}
+  .svc-desc{font-size:12px;color:var(--warm-600);line-height:1.4;margin-bottom:8px;}
+  .svc-meta{display:flex;gap:6px;flex-wrap:wrap;}
+  .svc-tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:var(--radius-full);background:var(--warm-100);color:var(--warm-600);}
+
+  /* Intake checklist */
+  .checklist{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+  .check-title{font-weight:700;font-size:15px;margin-bottom:12px;}
+  .check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--warm-100);}
+  .check-item:last-child{border-bottom:none;}
+  .check-box{width:22px;height:22px;border-radius:6px;border:2px solid var(--warm-300);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;cursor:pointer;transition:all .2s;}
+  .check-box.done{background:var(--teal-500);border-color:var(--teal-500);color:white;}
+  .check-text{font-size:13px;color:var(--warm-800);line-height:1.4;}
+  .check-text small{display:block;color:var(--warm-600);font-size:11px;margin-top:2px;}
+</style>
+</head>
+<body>
+<div>
+  <h2 style="font-family:var(--font-display);font-size:24px;text-align:center;margin-bottom:4px;">Waypoint</h2>
+  <p style="text-align:center;font-size:14px;color:var(--warm-600);margin-bottom:16px;">F4 — Regional Center Integration</p>
+  <div class="phone-frame">
+    <div class="status-bar"><span style="font-size:15px;font-weight:700;">9:41</span><div style="display:flex;gap:6px;align-items:center;font-size:13px;"><span>●●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="screen">
+      <div class="back-row a">← Home</div>
+
+      <div class="rc-hero a d1">
+        <div class="label">Your Regional Center</div>
+        <h2>Regional Center of the East Bay</h2>
+        <div class="sub">Serving Alameda & Contra Costa Counties · Oakland, CA</div>
+        <div class="rc-contact">
+          <button class="rc-btn">📞 (510) 383-1200</button>
+          <button class="rc-btn">🌐 Website</button>
+          <button class="rc-btn">📍 Directions</button>
+        </div>
+      </div>
+
+      <div class="tabs a d2">
+        <button class="tab active">Services</button>
+        <button class="tab">Intake Guide</button>
+        <button class="tab">Eligibility</button>
+      </div>
+
+      <!-- Eligibility snapshot -->
+      <div class="elig-card a d2">
+        <div class="elig-title">✅ Teddy is likely eligible</div>
+        <div class="elig-text">Based on Teddy's ASD diagnosis, he meets one of the five qualifying conditions under the Lanterman Developmental Disabilities Services Act.</div>
+        <div class="elig-conditions">
+          <span class="elig-tag match">✓ Autism</span>
+          <span class="elig-tag">Intellectual Disability</span>
+          <span class="elig-tag">Cerebral Palsy</span>
+          <span class="elig-tag">Epilepsy</span>
+          <span class="elig-tag">5th Category</span>
+        </div>
+      </div>
+
+      <div class="section-title a d3">Available Services</div>
+
+      <div class="svc-card a d3">
+        <div class="svc-top">
+          <div class="svc-icon" style="background:var(--teal-50);">🧠</div>
+          <div class="svc-name">Behavioral Services (ABA)</div>
+          <span class="svc-arrow">›</span>
+        </div>
+        <div class="svc-desc">Applied behavior analysis therapy, social skills groups, and behavior intervention plans.</div>
+        <div class="svc-meta"><span class="svc-tag">Ages 0–21</span><span class="svc-tag">12 vendored providers</span><span class="svc-tag">~30 day wait</span></div>
+      </div>
+
+      <div class="svc-card a d4">
+        <div class="svc-top">
+          <div class="svc-icon" style="background:var(--amber-50);">🏠</div>
+          <div class="svc-name">Respite Care</div>
+          <span class="svc-arrow">›</span>
+        </div>
+        <div class="svc-desc">In-home or out-of-home temporary care to give families a break. Typical: 10–20 hrs/month.</div>
+        <div class="svc-meta"><span class="svc-tag">All ages</span><span class="svc-tag">8 vendored providers</span><span class="svc-tag">Authorization req'd</span></div>
+      </div>
+
+      <div class="svc-card a d4">
+        <div class="svc-top">
+          <div class="svc-icon" style="background:var(--violet-50);">💬</div>
+          <div class="svc-name">Speech & Language Therapy</div>
+          <span class="svc-arrow">›</span>
+        </div>
+        <div class="svc-desc">Individual and group speech therapy for communication goals. Supplements school-based services.</div>
+        <div class="svc-meta"><span class="svc-tag">Ages 0–21</span><span class="svc-tag">6 vendored providers</span></div>
+      </div>
+
+      <div class="svc-card a d5">
+        <div class="svc-top">
+          <div class="svc-icon" style="background:var(--rose-50);">🚗</div>
+          <div class="svc-name">Transportation</div>
+          <span class="svc-arrow">›</span>
+        </div>
+        <div class="svc-desc">Transportation assistance to and from therapy, day programs, and medical appointments.</div>
+        <div class="svc-meta"><span class="svc-tag">All ages</span><span class="svc-tag">Varies by need</span></div>
+      </div>
+
+      <div class="section-title a d5">Intake Checklist</div>
+      <div class="checklist a d6">
+        <div class="check-title">Preparing for Your First Appointment</div>
+        <div class="check-item">
+          <div class="check-box done">✓</div>
+          <div class="check-text">Gather medical evaluations and diagnosis reports<small>Pediatrician, developmental ped, or psychologist reports</small></div>
+        </div>
+        <div class="check-item">
+          <div class="check-box done">✓</div>
+          <div class="check-text">Collect school records and any existing IEP<small>Report cards, assessments, IEP if applicable</small></div>
+        </div>
+        <div class="check-item">
+          <div class="check-box">　</div>
+          <div class="check-text">Bring insurance cards (private + Medi-Cal if applicable)<small>RCEB may coordinate with your insurance</small></div>
+        </div>
+        <div class="check-item">
+          <div class="check-box">　</div>
+          <div class="check-text">Prepare list of current concerns and goals<small>What support does your family need most right now?</small></div>
+        </div>
+        <div class="check-item">
+          <div class="check-box">　</div>
+          <div class="check-text">Know your rights: 45-day assessment timeline<small>RCEB must complete intake assessment within 45 days</small></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+      <div class="nav-item"><div class="nav-icon">🗺️</div><div class="nav-label">Journey</div></div>
+      <div class="nav-item"><div class="nav-icon">📁</div><div class="nav-label">Docs</div></div>
+      <div class="nav-item"><div class="nav-icon">👥</div><div class="nav-label">Community</div></div>
+      <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

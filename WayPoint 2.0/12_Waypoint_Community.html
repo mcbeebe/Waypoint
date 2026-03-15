@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Community</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root{--teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;--amber-50:#fffbeb;--amber-100:#fef3c7;--amber-400:#fbbf24;--amber-600:#d97706;--warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;--rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-500:#f43f5e;--violet-50:#f5f3ff;--violet-100:#ede9fe;--violet-400:#a78bfa;--violet-500:#8b5cf6;--green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;--radius:16px;--radius-sm:10px;--radius-full:999px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:linear-gradient(160deg,var(--teal-50) 0%,var(--warm-50) 40%,var(--amber-50) 100%);min-height:100vh;display:flex;justify-content:center;padding:24px;color:var(--warm-900);}
+  .phone-frame{width:390px;min-height:844px;background:var(--warm-50);border-radius:40px;box-shadow:0 0 0 8px #1a1a1a,0 20px 60px rgba(0,0,0,0.2);overflow:hidden;position:relative;}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;}
+  .screen{padding:0 20px 100px;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--warm-200);display:flex;justify-content:space-around;padding:8px 0 28px;z-index:10;}
+  .nav-item{text-align:center;cursor:pointer;padding:4px 12px;}.nav-icon{font-size:22px;margin-bottom:2px;}.nav-label{font-size:10px;font-weight:600;color:var(--warm-600);}
+  .nav-item.active .nav-label{color:var(--teal-600);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .a{animation:fadeUp .5s ease-out both;}.d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}.d5{animation-delay:.25s;}
+
+  h1{font-family:var(--font-display);font-size:24px;font-weight:500;margin-bottom:4px;}
+  .sub{font-size:13px;color:var(--warm-600);margin-bottom:16px;}
+  .section-title{font-weight:700;font-size:15px;color:var(--warm-800);margin:16px 0 10px;display:flex;justify-content:space-between;align-items:center;}
+  .see-all{font-size:13px;font-weight:600;color:var(--teal-600);cursor:pointer;}
+
+  /* Local group banner */
+  .local-group{background:linear-gradient(135deg,var(--violet-50),var(--blue-50));border:1.5px solid var(--violet-100);border-radius:var(--radius);padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;}
+  .local-group:hover{box-shadow:0 2px 8px rgba(0,0,0,.06);}
+  .lg-icon{width:48px;height:48px;border-radius:14px;background:var(--violet-500);display:flex;align-items:center;justify-content:center;font-size:24px;color:white;flex-shrink:0;}
+  .lg-name{font-weight:700;font-size:15px;margin-bottom:2px;}
+  .lg-meta{font-size:12px;color:var(--warm-600);}
+  .lg-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:var(--radius-full);background:var(--teal-100);color:var(--teal-700);margin-top:4px;display:inline-block;}
+
+  /* Forum categories */
+  .cat-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;}
+  .cat-chip{padding:8px 14px;border-radius:var(--radius-full);border:1.5px solid var(--warm-200);background:white;font-size:12px;font-weight:600;color:var(--warm-600);white-space:nowrap;cursor:pointer;transition:all .2s;}
+  .cat-chip.active{background:var(--violet-500);border-color:var(--violet-500);color:white;}
+  .cat-chip:hover:not(.active){border-color:var(--violet-400);}
+
+  /* Post cards */
+  .post-card{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer;transition:all .2s;}
+  .post-card:hover{border-color:var(--violet-400);box-shadow:0 2px 8px rgba(0,0,0,.04);}
+  .post-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .post-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .post-author{font-weight:700;font-size:13px;}
+  .post-author-meta{font-size:11px;color:var(--warm-600);}
+  .post-anon{font-style:italic;color:var(--warm-600);}
+  .post-body{font-size:14px;color:var(--warm-800);line-height:1.6;margin-bottom:10px;}
+  .post-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+  .post-tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:var(--radius-full);background:var(--warm-100);color:var(--warm-600);}
+  .post-footer{display:flex;gap:16px;align-items:center;padding-top:10px;border-top:1px solid var(--warm-100);}
+  .post-action{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--warm-600);cursor:pointer;transition:color .2s;}
+  .post-action:hover{color:var(--violet-500);}
+  .post-action .count{font-weight:700;}
+
+  /* Verified badge */
+  .verified{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--teal-600);background:var(--teal-50);padding:2px 6px;border-radius:var(--radius-full);}
+
+  /* DM indicator */
+  .dm-bar{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;}
+  .dm-bar:hover{border-color:var(--teal-400);}
+  .dm-count{width:24px;height:24px;border-radius:50%;background:var(--rose-500);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .dm-text{flex:1;font-size:13px;font-weight:600;}
+
+  .fab{position:absolute;bottom:100px;right:28px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--violet-500),var(--violet-400));color:white;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(139,92,246,.35);cursor:pointer;border:none;z-index:11;}
+</style>
+</head>
+<body>
+<div>
+  <h2 style="font-family:var(--font-display);font-size:24px;text-align:center;margin-bottom:4px;">Waypoint</h2>
+  <p style="text-align:center;font-size:14px;color:var(--warm-600);margin-bottom:16px;">F10 — Peer Community</p>
+  <div class="phone-frame">
+    <div class="status-bar"><span style="font-size:15px;font-weight:700;">9:41</span><div style="display:flex;gap:6px;align-items:center;font-size:13px;"><span>●●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="screen">
+      <h1 class="a">Community</h1>
+      <div class="sub a">Connect with families on the same journey</div>
+
+      <div class="dm-bar a d1">
+        <div class="dm-count">2</div>
+        <div class="dm-text">Direct Messages</div>
+        <span style="color:var(--warm-300);font-size:18px;">›</span>
+      </div>
+
+      <div class="local-group a d1">
+        <div class="lg-icon">🏘️</div>
+        <div>
+          <div class="lg-name">East Bay ASD Parents</div>
+          <div class="lg-meta">142 members · 8 posts today</div>
+          <div class="lg-badge">📍 Your local group</div>
+        </div>
+      </div>
+
+      <div class="cat-scroll a d2">
+        <div class="cat-chip active">All</div>
+        <div class="cat-chip">Autism</div>
+        <div class="cat-chip">IEP Help</div>
+        <div class="cat-chip">ADHD</div>
+        <div class="cat-chip">Therapy</div>
+        <div class="cat-chip">Legal</div>
+        <div class="cat-chip">Transition</div>
+      </div>
+
+      <div class="section-title a d2">Trending Discussions <span class="see-all">See all →</span></div>
+
+      <div class="post-card a d3">
+        <div class="post-header">
+          <div class="post-avatar" style="background:var(--amber-100);">👩</div>
+          <div>
+            <div class="post-author">JessicaM <span class="verified">✓ Verified</span></div>
+            <div class="post-author-meta">Parent since 2020 · RCEB</div>
+          </div>
+        </div>
+        <div class="post-body">Has anyone had success getting RCEB to approve more than 10hrs/week of respite? Our coordinator is saying that's the max but I've heard from other parents that they got 15-20 hrs approved...</div>
+        <div class="post-tags"><span class="post-tag">Respite</span><span class="post-tag">RCEB</span><span class="post-tag">Authorization</span></div>
+        <div class="post-footer">
+          <div class="post-action">💬 <span class="count">12</span> replies</div>
+          <div class="post-action">❤️ <span class="count">24</span></div>
+          <div class="post-action">🤗 <span class="count">8</span> helpful</div>
+        </div>
+      </div>
+
+      <div class="post-card a d4">
+        <div class="post-header">
+          <div class="post-avatar" style="background:var(--warm-200);">👤</div>
+          <div>
+            <div class="post-author post-anon">Anonymous Parent</div>
+            <div class="post-author-meta">Posted anonymously</div>
+          </div>
+        </div>
+        <div class="post-body">I'm so overwhelmed. Just got the ASD diagnosis for my 3-year-old and I don't even know where to start. The Regional Center intake appointment isn't for 6 weeks. What should I be doing in the meantime?</div>
+        <div class="post-tags"><span class="post-tag">New Diagnosis</span><span class="post-tag">Autism</span><span class="post-tag">Early Start</span></div>
+        <div class="post-footer">
+          <div class="post-action">💬 <span class="count">18</span> replies</div>
+          <div class="post-action">❤️ <span class="count">45</span></div>
+          <div class="post-action">🤗 <span class="count">22</span> helpful</div>
+        </div>
+      </div>
+
+      <div class="post-card a d5">
+        <div class="post-header">
+          <div class="post-avatar" style="background:var(--teal-100);">👨</div>
+          <div>
+            <div class="post-author">DavidR</div>
+            <div class="post-author-meta">Parent since 2015 · SGPRC</div>
+          </div>
+        </div>
+        <div class="post-body">PSA: If you're approaching transition age (16+), start the conservatorship process EARLY. It took us 8 months and required a court hearing. Here's what I wish I'd known...</div>
+        <div class="post-tags"><span class="post-tag">Transition</span><span class="post-tag">Conservatorship</span><span class="post-tag">Adult Services</span></div>
+        <div class="post-footer">
+          <div class="post-action">💬 <span class="count">7</span> replies</div>
+          <div class="post-action">❤️ <span class="count">31</span></div>
+          <div class="post-action">🤗 <span class="count">15</span> helpful</div>
+        </div>
+      </div>
+
+    </div>
+    <button class="fab">✏️</button>
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+      <div class="nav-item"><div class="nav-icon">🗺️</div><div class="nav-label">Journey</div></div>
+      <div class="nav-item"><div class="nav-icon">📁</div><div class="nav-label">Docs</div></div>
+      <div class="nav-item active"><div class="nav-icon">👥</div><div class="nav-label">Community</div></div>
+      <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

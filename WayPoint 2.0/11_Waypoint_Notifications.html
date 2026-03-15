@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Notifications</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root{--teal-50:#f0fdfa;--teal-100:#ccfbf1;--teal-200:#99f6e4;--teal-400:#2dd4bf;--teal-500:#14b8a6;--teal-600:#0d9488;--teal-700:#0f766e;--teal-800:#115e59;--amber-50:#fffbeb;--amber-100:#fef3c7;--amber-400:#fbbf24;--amber-600:#d97706;--warm-50:#fefdfb;--warm-100:#faf8f5;--warm-200:#f0ece6;--warm-300:#e2ddd4;--warm-600:#8a8177;--warm-800:#44403c;--warm-900:#292524;--rose-50:#fff1f2;--rose-100:#ffe4e6;--rose-500:#f43f5e;--rose-600:#e11d48;--violet-50:#f5f3ff;--violet-100:#ede9fe;--violet-500:#8b5cf6;--green-50:#f0fdf4;--green-100:#dcfce7;--green-500:#22c55e;--green-600:#16a34a;--blue-50:#eff6ff;--blue-100:#dbeafe;--blue-500:#3b82f6;--font-display:'Fraunces',serif;--font-body:'DM Sans',sans-serif;--radius:16px;--radius-sm:10px;--radius-full:999px;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:linear-gradient(160deg,var(--teal-50) 0%,var(--warm-50) 40%,var(--amber-50) 100%);min-height:100vh;display:flex;justify-content:center;padding:24px;color:var(--warm-900);}
+  .phone-frame{width:390px;min-height:844px;background:var(--warm-50);border-radius:40px;box-shadow:0 0 0 8px #1a1a1a,0 20px 60px rgba(0,0,0,0.2);overflow:hidden;position:relative;}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:14px;font-weight:600;}
+  .screen{padding:0 20px 100px;}
+  .bottom-nav{position:absolute;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--warm-200);display:flex;justify-content:space-around;padding:8px 0 28px;z-index:10;}
+  .nav-item{text-align:center;cursor:pointer;padding:4px 12px;}.nav-icon{font-size:22px;margin-bottom:2px;}.nav-label{font-size:10px;font-weight:600;color:var(--warm-600);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .a{animation:fadeUp .5s ease-out both;}.d1{animation-delay:.05s;}.d2{animation-delay:.1s;}.d3{animation-delay:.15s;}.d4{animation-delay:.2s;}.d5{animation-delay:.25s;}.d6{animation-delay:.3s;}
+
+  h1{font-family:var(--font-display);font-size:24px;font-weight:500;margin-bottom:4px;}
+  .sub{font-size:13px;color:var(--warm-600);margin-bottom:16px;}
+  .section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--warm-600);margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--warm-200);}
+
+  .notif{display:flex;gap:12px;padding:14px;margin-bottom:8px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;border:1.5px solid transparent;}
+  .notif:hover{background:var(--warm-100);}
+  .notif.unread{background:white;border-color:var(--warm-200);}
+  .notif.unread::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--teal-500);flex-shrink:0;margin-top:6px;}
+  .notif-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .notif-content{flex:1;min-width:0;}
+  .notif-title{font-weight:600;font-size:13px;margin-bottom:2px;}
+  .notif-desc{font-size:12px;color:var(--warm-600);line-height:1.4;}
+  .notif-time{font-size:11px;color:var(--warm-300);margin-top:4px;}
+  .notif-actions{display:flex;gap:6px;margin-top:8px;}
+  .notif-btn{padding:5px 12px;border-radius:var(--radius-full);font-size:11px;font-weight:600;border:none;cursor:pointer;transition:all .2s;font-family:var(--font-body);}
+  .notif-btn.primary{background:var(--teal-600);color:white;}
+  .notif-btn.secondary{background:var(--warm-100);color:var(--warm-800);}
+
+  /* Settings preview */
+  .settings-card{background:white;border:1.5px solid var(--warm-200);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+  .settings-title{font-weight:700;font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+  .setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--warm-100);}
+  .setting-row:last-child{border-bottom:none;}
+  .setting-label{font-size:13px;font-weight:500;}
+  .setting-toggle{width:44px;height:24px;border-radius:12px;position:relative;cursor:pointer;transition:background .3s;}
+  .setting-toggle.on{background:var(--teal-500);}
+  .setting-toggle.off{background:var(--warm-300);}
+  .setting-toggle::after{content:'';position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:left .3s;}
+  .setting-toggle.on::after{left:22px;}
+  .setting-toggle.off::after{left:2px;}
+</style>
+</head>
+<body>
+<div>
+  <h2 style="font-family:var(--font-display);font-size:24px;text-align:center;margin-bottom:4px;">Waypoint</h2>
+  <p style="text-align:center;font-size:14px;color:var(--warm-600);margin-bottom:16px;">F9 — Notifications & Reminders</p>
+  <div class="phone-frame">
+    <div class="status-bar"><span style="font-size:15px;font-weight:700;">9:41</span><div style="display:flex;gap:6px;align-items:center;font-size:13px;"><span>●●●●</span><span>WiFi</span><span>🔋</span></div></div>
+    <div class="screen">
+      <h1 class="a">Notifications</h1>
+      <div class="sub a">Stay on top of deadlines, tasks, and community</div>
+
+      <div class="section-label a d1">🔴 Urgent — Today</div>
+
+      <div class="notif unread a d1">
+        <div class="notif-icon" style="background:var(--rose-50);">⏰</div>
+        <div class="notif-content">
+          <div class="notif-title">IEP Annual Review — 5 days left</div>
+          <div class="notif-desc">Your request must be submitted by March 10 to stay on timeline. Tap to open template.</div>
+          <div class="notif-time">2 hours ago</div>
+          <div class="notif-actions">
+            <button class="notif-btn primary">Open Template</button>
+            <button class="notif-btn secondary">Snooze 1 day</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="notif unread a d2">
+        <div class="notif-icon" style="background:var(--amber-50);">💊</div>
+        <div class="notif-content">
+          <div class="notif-title">Speech therapy authorization expiring</div>
+          <div class="notif-desc">Authorization ends March 31. Contact RCEB to request renewal (typically takes 2 weeks).</div>
+          <div class="notif-time">5 hours ago</div>
+          <div class="notif-actions">
+            <button class="notif-btn primary">View Authorization</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label a d2">📅 Upcoming</div>
+
+      <div class="notif unread a d3">
+        <div class="notif-icon" style="background:var(--teal-50);">📋</div>
+        <div class="notif-content">
+          <div class="notif-title">Action plan: Research ABA providers</div>
+          <div class="notif-desc">Step 12 of Teddy's journey. We found 3 providers accepting new clients near you.</div>
+          <div class="notif-time">Yesterday</div>
+        </div>
+      </div>
+
+      <div class="notif a d3">
+        <div class="notif-icon" style="background:var(--violet-50);">👥</div>
+        <div class="notif-content">
+          <div class="notif-title">2 replies to your community post</div>
+          <div class="notif-desc">Parents responded in "East Bay ASD" about respite authorization hours.</div>
+          <div class="notif-time">Yesterday</div>
+        </div>
+      </div>
+
+      <div class="notif a d4">
+        <div class="notif-icon" style="background:var(--blue-50);">📄</div>
+        <div class="notif-content">
+          <div class="notif-title">New resource matches your profile</div>
+          <div class="notif-desc">ACES Social Skills Group — Oakland, accepts ages 5–10, free via RCEB.</div>
+          <div class="notif-time">2 days ago</div>
+        </div>
+      </div>
+
+      <div class="notif a d4">
+        <div class="notif-icon" style="background:var(--green-50);">🎉</div>
+        <div class="notif-content">
+          <div class="notif-title">Milestone: Teddy's journey 38% complete!</div>
+          <div class="notif-desc">You've completed 9 of 24 steps. Keep up the great work.</div>
+          <div class="notif-time">3 days ago</div>
+        </div>
+      </div>
+
+      <!-- Notification settings preview -->
+      <div class="settings-card a d5">
+        <div class="settings-title">⚙️ Notification Preferences</div>
+        <div class="setting-row"><span class="setting-label">Action plan reminders</span><div class="setting-toggle on"></div></div>
+        <div class="setting-row"><span class="setting-label">IEP deadlines</span><div class="setting-toggle on"></div></div>
+        <div class="setting-row"><span class="setting-label">Appointment reminders</span><div class="setting-toggle on"></div></div>
+        <div class="setting-row"><span class="setting-label">Community replies</span><div class="setting-toggle on"></div></div>
+        <div class="setting-row"><span class="setting-label">New resources</span><div class="setting-toggle off"></div></div>
+        <div class="setting-row"><span class="setting-label">Therapy milestones</span><div class="setting-toggle on"></div></div>
+      </div>
+
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+      <div class="nav-item"><div class="nav-icon">🗺️</div><div class="nav-label">Journey</div></div>
+      <div class="nav-item"><div class="nav-icon">📁</div><div class="nav-label">Docs</div></div>
+      <div class="nav-item"><div class="nav-icon">👥</div><div class="nav-label">Community</div></div>
+      <div class="nav-item"><div class="nav-icon">⚙️</div><div class="nav-label">Settings</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

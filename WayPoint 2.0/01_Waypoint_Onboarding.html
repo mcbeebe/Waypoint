@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waypoint — Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal-50: #f0fdfa;
+    --teal-100: #ccfbf1;
+    --teal-200: #99f6e4;
+    --teal-400: #2dd4bf;
+    --teal-500: #14b8a6;
+    --teal-600: #0d9488;
+    --teal-700: #0f766e;
+    --teal-800: #115e59;
+    --teal-900: #134e4a;
+    --amber-50: #fffbeb;
+    --amber-100: #fef3c7;
+    --amber-300: #fcd34d;
+    --amber-400: #fbbf24;
+    --amber-500: #f59e0b;
+    --warm-50: #fefdfb;
+    --warm-100: #faf8f5;
+    --warm-200: #f0ece6;
+    --warm-300: #e2ddd4;
+    --warm-600: #8a8177;
+    --warm-800: #44403c;
+    --warm-900: #292524;
+    --rose-100: #ffe4e6;
+    --rose-500: #f43f5e;
+    --violet-100: #ede9fe;
+    --violet-500: #8b5cf6;
+    --blue-100: #dbeafe;
+    --blue-500: #3b82f6;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'DM Sans', sans-serif;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-full: 999px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: var(--font-body);
+    background: linear-gradient(160deg, var(--teal-50) 0%, var(--warm-50) 40%, var(--amber-50) 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px;
+    color: var(--warm-900);
+  }
+
+  .phone-frame {
+    width: 390px;
+    min-height: 844px;
+    background: var(--warm-50);
+    border-radius: 40px;
+    box-shadow: 0 0 0 8px #1a1a1a, 0 20px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+    position: relative;
+  }
+
+  .status-bar {
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .status-bar .time { font-size: 15px; font-weight: 700; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; }
+  .status-bar .icons span { font-size: 13px; }
+
+  .screen {
+    padding: 0 24px 40px;
+    animation: fadeUp 0.6s ease-out;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Progress bar */
+  .progress-container {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+
+  .progress-dot {
+    flex: 1;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--warm-200);
+    transition: background 0.4s ease;
+  }
+
+  .progress-dot.active {
+    background: var(--teal-500);
+  }
+
+  .progress-dot.complete {
+    background: var(--teal-400);
+  }
+
+  /* Logo */
+  .logo-area {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--teal-500), var(--teal-700));
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(13,148,136,0.3);
+  }
+
+  .step-label {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--teal-600);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--warm-900);
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--warm-600);
+    line-height: 1.5;
+    margin-bottom: 28px;
+  }
+
+  /* Diagnosis chips */
+  .chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .chip {
+    padding: 10px 18px;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--warm-200);
+    background: white;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--warm-800);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+  }
+
+  .chip:hover {
+    border-color: var(--teal-400);
+    background: var(--teal-50);
+  }
+
+  .chip.selected {
+    background: var(--teal-600);
+    border-color: var(--teal-600);
+    color: white;
+    box-shadow: 0 2px 8px rgba(13,148,136,0.25);
+  }
+
+  .chip .emoji {
+    margin-right: 6px;
+  }
+
+  /* Input fields */
+  .field-group {
+    margin-bottom: 20px;
+  }
+
+  .field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--warm-800);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--warm-200);
+    background: white;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-900);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field-input:focus {
+    border-color: var(--teal-500);
+    box-shadow: 0 0 0 3px rgba(20,184,166,0.1);
+  }
+
+  .field-input::placeholder {
+    color: var(--warm-300);
+  }
+
+  .field-hint {
+    font-size: 12px;
+    color: var(--warm-600);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .field-hint .match {
+    color: var(--teal-600);
+    font-weight: 600;
+  }
+
+  /* RC match card */
+  .rc-match {
+    background: linear-gradient(135deg, var(--teal-50), var(--teal-100));
+    border: 1.5px solid var(--teal-200);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeUp 0.4s ease-out;
+  }
+
+  .rc-match .rc-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--teal-500);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .rc-match .rc-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--teal-800);
+  }
+
+  .rc-match .rc-detail {
+    font-size: 12px;
+    color: var(--teal-700);
+    margin-top: 2px;
+  }
+
+  /* Language selector */
+  .lang-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .lang-option {
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--warm-200);
+    background: white;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .lang-option:hover {
+    border-color: var(--teal-400);
+  }
+
+  .lang-option.selected {
+    border-color: var(--teal-500);
+    background: var(--teal-50);
+    box-shadow: 0 0 0 3px rgba(20,184,166,0.1);
+  }
+
+  .lang-option .lang-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--warm-900);
+  }
+
+  .lang-option .lang-native {
+    font-size: 12px;
+    color: var(--warm-600);
+    margin-top: 2px;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: linear-gradient(135deg, var(--teal-600), var(--teal-700));
+    color: white;
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(13,148,136,0.3);
+    transition: all 0.25s ease;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(13,148,136,0.35);
+  }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--warm-200);
+    background: white;
+    color: var(--warm-800);
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--warm-300);
+    background: var(--warm-100);
+  }
+
+  .nav-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .nav-row .btn-back {
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--warm-200);
+    background: white;
+    font-family: var(--font-body);
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--warm-600);
+    transition: all 0.2s;
+  }
+
+  .nav-row .btn-primary { flex: 1; }
+
+  /* Optional badge */
+  .optional-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--warm-200);
+    color: var(--warm-600);
+    padding: 3px 8px;
+    border-radius: var(--radius-full);
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* Child info summary */
+  .child-card {
+    background: white;
+    border: 1.5px solid var(--warm-200);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .child-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .child-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--amber-300), var(--amber-400));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .child-name {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .child-age {
+    font-size: 13px;
+    color: var(--warm-600);
+  }
+
+  .child-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .child-tag {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    background: var(--teal-50);
+    color: var(--teal-700);
+  }
+
+  /* Illustration area */
+  .illustration {
+    text-align: center;
+    margin: 12px 0 20px;
+    font-size: 56px;
+    line-height: 1;
+    opacity: 0.9;
+  }
+
+  /* Screen tabs for demo */
+  .demo-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .demo-tab {
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--warm-200);
+    background: white;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--warm-600);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .demo-tab:hover { border-color: var(--teal-400); color: var(--teal-600); }
+  .demo-tab.active {
+    background: var(--teal-600);
+    border-color: var(--teal-600);
+    color: white;
+  }
+
+  .screen-container { position: relative; }
+  .screen-view { display: none; }
+  .screen-view.active { display: block; }
+
+  /* Home indicator */
+  .home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 134px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--warm-800);
+    opacity: 0.2;
+  }
+
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div>
+  <h2 style="font-family: var(--font-display); font-size: 24px; text-align: center; margin-bottom: 4px; color: var(--warm-900);">Waypoint</h2>
+  <p style="text-align: center; font-size: 14px; color: var(--warm-600); margin-bottom: 16px;">Onboarding Flow — 5 Steps</p>
+
+  <div class="demo-tabs">
+    <button class="demo-tab active" onclick="showStep(0)">Welcome</button>
+    <button class="demo-tab" onclick="showStep(1)">Diagnosis</button>
+    <button class="demo-tab" onclick="showStep(2)">Location</button>
+    <button class="demo-tab" onclick="showStep(3)">Language</button>
+    <button class="demo-tab" onclick="showStep(4)">Review</button>
+  </div>
+
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="icons">
+        <span>●●●●</span>
+        <span>WiFi</span>
+        <span>🔋</span>
+      </div>
+    </div>
+
+    <div class="screen-container">
+
+      <!-- Step 0: Welcome -->
+      <div class="screen-view active" id="step-0">
+        <div class="screen">
+          <div style="text-align:center; padding-top: 40px;">
+            <div class="logo-icon" style="width:72px; height:72px; border-radius:20px; font-size:36px; margin: 0 auto 20px;">🧭</div>
+            <h1 style="font-size: 32px; margin-bottom: 12px;">Welcome to<br>Waypoint</h1>
+            <p class="subtitle" style="max-width: 280px; margin: 0 auto 40px;">Your guide through every step of your child's developmental journey.</p>
+          </div>
+
+          <div style="background: white; border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm);">
+            <div style="display:flex; gap:14px; margin-bottom: 16px; align-items: flex-start;">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--teal-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">📋</div>
+              <div>
+                <div style="font-weight:600;font-size:14px;margin-bottom:2px;">Personalized Action Plans</div>
+                <div style="font-size:13px;color:var(--warm-600);">Step-by-step guidance tailored to your child's needs</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:14px; margin-bottom: 16px; align-items: flex-start;">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--amber-50);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">🏛️</div>
+              <div>
+                <div style="font-weight:600;font-size:14px;margin-bottom:2px;">Regional Center Navigator</div>
+                <div style="font-size:13px;color:var(--warm-600);">Know your services, rights, and next steps</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:14px; align-items: flex-start;">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--violet-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">👥</div>
+              <div>
+                <div style="font-weight:600;font-size:14px;margin-bottom:2px;">Parent Community</div>
+                <div style="font-size:13px;color:var(--warm-600);">Connect with families on the same path</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="showStep(1)">Get Started</button>
+          <button class="btn-secondary">I already have an account</button>
+        </div>
+      </div>
+
+      <!-- Step 1: Diagnosis -->
+      <div class="screen-view" id="step-1">
+        <div class="screen">
+          <div class="progress-container">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+          </div>
+
+          <div class="step-label">Step 1 of 4</div>
+          <h1>Tell us about your child</h1>
+          <p class="subtitle">Select all that apply. This helps us personalize your action plan.</p>
+
+          <div class="field-group">
+            <label class="field-label">Child's first name <span class="optional-badge">Optional</span></label>
+            <input class="field-input" type="text" placeholder="e.g., Teddy" value="Teddy">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Date of birth</label>
+            <input class="field-input" type="text" placeholder="MM/DD/YYYY" value="03/15/2019">
+          </div>
+
+          <label class="field-label" style="margin-bottom: 12px;">Diagnosis or area of concern</label>
+          <div class="chip-grid">
+            <div class="chip selected"><span class="emoji">🧩</span>Autism (ASD)</div>
+            <div class="chip" onclick="this.classList.toggle('selected')"><span class="emoji">⚡</span>ADHD</div>
+            <div class="chip" onclick="this.classList.toggle('selected')"><span class="emoji">📖</span>Specific Learning Disability</div>
+            <div class="chip selected"><span class="emoji">💬</span>Speech / Language</div>
+            <div class="chip" onclick="this.classList.toggle('selected')"><span class="emoji">🧠</span>Intellectual Disability</div>
+            <div class="chip" onclick="this.classList.toggle('selected')"><span class="emoji">🔄</span>PDA</div>
+            <div class="chip" onclick="this.classList.toggle('selected')"><span class="emoji">🏃</span>Developmental Delay</div>
+            <div class="chip" onclick="this.classList.toggle('selected')"><span class="emoji">✏️</span>Other</div>
+          </div>
+
+          <div class="nav-row">
+            <button class="btn-back" onclick="showStep(0)">←</button>
+            <button class="btn-primary" onclick="showStep(2)">Continue</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Location -->
+      <div class="screen-view" id="step-2">
+        <div class="screen">
+          <div class="progress-container">
+            <div class="progress-dot complete"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+          </div>
+
+          <div class="step-label">Step 2 of 4</div>
+          <h1>Where are you located?</h1>
+          <p class="subtitle">Your zip code helps us find your Regional Center and local resources.</p>
+
+          <div class="field-group">
+            <label class="field-label">Zip code</label>
+            <input class="field-input" type="text" placeholder="e.g., 94611" value="94611">
+            <div class="rc-match">
+              <div class="rc-icon">🏛️</div>
+              <div>
+                <div class="rc-name">Regional Center of the East Bay</div>
+                <div class="rc-detail">Serving Alameda & Contra Costa counties</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group" style="margin-top: 24px;">
+            <label class="field-label">Household income <span class="optional-badge">Optional</span></label>
+            <select class="field-input" style="appearance: auto;">
+              <option>Prefer not to say</option>
+              <option>Under $40,000</option>
+              <option selected>$40,000 – $80,000</option>
+              <option>$80,000 – $120,000</option>
+              <option>Over $120,000</option>
+            </select>
+            <div class="field-hint">🔒 Used only to surface income-eligible resources. Never shared.</div>
+          </div>
+
+          <div class="nav-row" style="margin-top: 24px;">
+            <button class="btn-back" onclick="showStep(1)">←</button>
+            <button class="btn-primary" onclick="showStep(3)">Continue</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Language -->
+      <div class="screen-view" id="step-3">
+        <div class="screen">
+          <div class="progress-container">
+            <div class="progress-dot complete"></div>
+            <div class="progress-dot complete"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+          </div>
+
+          <div class="step-label">Step 3 of 4</div>
+          <h1>Preferred language</h1>
+          <p class="subtitle">We'll show resources, guides, and action plans in your language.</p>
+
+          <div class="lang-options">
+            <div class="lang-option selected" onclick="selectLang(this)">
+              <div class="lang-name">English</div>
+              <div class="lang-native">English</div>
+            </div>
+            <div class="lang-option" onclick="selectLang(this)">
+              <div class="lang-name">Spanish</div>
+              <div class="lang-native">Español</div>
+            </div>
+            <div class="lang-option" onclick="selectLang(this)">
+              <div class="lang-name">Mandarin</div>
+              <div class="lang-native">中文</div>
+            </div>
+            <div class="lang-option" onclick="selectLang(this)">
+              <div class="lang-name">Vietnamese</div>
+              <div class="lang-native">Tiếng Việt</div>
+            </div>
+            <div class="lang-option" onclick="selectLang(this)">
+              <div class="lang-name">Hindi</div>
+              <div class="lang-native">हिन्दी</div>
+            </div>
+            <div class="lang-option" onclick="selectLang(this)">
+              <div class="lang-name">Tagalog</div>
+              <div class="lang-native">Tagalog</div>
+            </div>
+          </div>
+
+          <div class="nav-row">
+            <button class="btn-back" onclick="showStep(2)">←</button>
+            <button class="btn-primary" onclick="showStep(4)">Continue</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Review -->
+      <div class="screen-view" id="step-4">
+        <div class="screen">
+          <div class="progress-container">
+            <div class="progress-dot complete"></div>
+            <div class="progress-dot complete"></div>
+            <div class="progress-dot complete"></div>
+            <div class="progress-dot active"></div>
+          </div>
+
+          <div class="step-label">Almost done</div>
+          <h1>Here's your setup</h1>
+          <p class="subtitle">We'll build a personalized journey based on this information.</p>
+
+          <div class="child-card">
+            <div class="child-card-header">
+              <div class="child-avatar">🧒</div>
+              <div>
+                <div class="child-name">Teddy</div>
+                <div class="child-age">Age 6 · Born March 2019</div>
+              </div>
+            </div>
+            <div class="child-tags">
+              <span class="child-tag">🧩 Autism (ASD)</span>
+              <span class="child-tag">💬 Speech / Language</span>
+            </div>
+          </div>
+
+          <div style="background:white; border-radius: var(--radius); padding: 16px; margin-bottom: 16px; border: 1.5px solid var(--warm-200);">
+            <div style="display:flex; justify-content:space-between; margin-bottom: 12px;">
+              <span style="font-size:13px; color:var(--warm-600);">Regional Center</span>
+              <span style="font-size:13px; font-weight:600; color:var(--teal-700);">RCEB — East Bay</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom: 12px;">
+              <span style="font-size:13px; color:var(--warm-600);">Location</span>
+              <span style="font-size:13px; font-weight:600;">Oakland, CA 94611</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom: 12px;">
+              <span style="font-size:13px; color:var(--warm-600);">Language</span>
+              <span style="font-size:13px; font-weight:600;">English</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span style="font-size:13px; color:var(--warm-600);">Age bracket</span>
+              <span style="font-size:13px; font-weight:600;">School Age (5–14)</span>
+            </div>
+          </div>
+
+          <div style="background:var(--teal-50); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; border: 1px solid var(--teal-100);">
+            <div style="font-weight:600; font-size:14px; color: var(--teal-800); margin-bottom: 4px;">✨ Your personalized action plan is ready</div>
+            <div style="font-size:13px; color: var(--teal-700); line-height: 1.4;">We've built a journey map with 24 steps covering Regional Center services, IEP preparation, therapy options, and community resources.</div>
+          </div>
+
+          <button class="btn-primary">🚀 Start My Journey</button>
+          <button class="btn-secondary" onclick="showStep(1)">Edit information</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<script>
+function showStep(n) {
+  document.querySelectorAll('.screen-view').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  document.querySelectorAll('.demo-tab')[n].classList.add('active');
+}
+
+function selectLang(el) {
+  document.querySelectorAll('.lang-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('selected'));
+});
+</script>
+
+</body>
+</html>

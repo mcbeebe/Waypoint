@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "project": "Waypoint Lite",
+    "jurisdiction": "California",
+    "last_compiled": "February 23, 2026",
+    "structure_version": "1.0"
+  },
+  "articles": [
+    {
+      "code": "RC-001",
+      "title": "Lanterman Act Rights Overview",
+      "body": "The Lanterman Act guarantees eligible Californians with developmental disabilities the right to services and supports necessary to live in the least restrictive, most integrated setting appropriate.",
+      "citations": [
+        "CA Welfare & Institutions Code \u00a74500 et seq.",
+        "WIC \u00a74646.5 (IPP requirements)"
+      ],
+      "last_reviewed": "February 23, 2026",
+      "related": [
+        "RC-005 Regional Center Appeals",
+        "BEN-003 Funding Responsibilities Overview"
+      ],
+      "templates": {
+        "Sample IPP Meeting Request Email": "Subject: Request for IPP Meeting\n\nDear [Service Coordinator],\n\nI am requesting an IPP meeting within 30 days under WIC \u00a74646.5 to review and update my child's services.\n\nPlease provide available dates.\n\nSincerely,\n[Parent Name]"
+      }
+    },
+    {
+      "code": "IEP-002",
+      "title": "California IEP Timelines & Parent Rights",
+      "body": "California law requires school districts to provide an assessment plan within 15 calendar days of written referral. Assessments must generally be completed within 60 days, excluding long school breaks.",
+      "citations": [
+        "CA Education Code \u00a756321",
+        "CA Education Code \u00a756344",
+        "34 C.F.R. \u00a7300.301"
+      ],
+      "last_reviewed": "February 23, 2026",
+      "related": [
+        "IEP-004 Dispute Resolution",
+        "IEP-005 Independent Educational Evaluations"
+      ],
+      "templates": {
+        "Sample Assessment Request": "Subject: Written Request for Special Education Assessment\n\nDear [Principal/SELPA],\n\nI am requesting a comprehensive special education assessment for my child under IDEA and CA Education Code \u00a756321.\n\nPlease provide an assessment plan within 15 calendar days.\n\nSincerely,\n[Parent Name]"
+      }
+    },
+    {
+      "code": "BEN-005",
+      "title": "CalABLE Accounts (Updated for 2026)",
+      "body": "CalABLE allows eligible individuals whose disability began before age 46 (effective Jan 1, 2026) to save money without affecting SSI or Medi-Cal resource limits, subject to annual contribution limits.",
+      "citations": [
+        "26 U.S.C. \u00a7529A",
+        "CalABLE Program Disclosure Statement (current year)"
+      ],
+      "last_reviewed": "February 23, 2026",
+      "related": [
+        "BEN-001 SSI Overview",
+        "BEN-003 Funding Waterfall"
+      ],
+      "templates": {
+        "Sample ABLE Contribution Tracking Log": "Keep a spreadsheet tracking:\n- Date of contribution\n- Contributor\n- Amount\n- Total annual contributions\n- Qualified disability expense category"
+      }
+    }
+  ]
+}
