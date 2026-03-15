@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Waypoint — Interactive Prototype</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --navy: #1B2A4A;
+  --teal: #0891B2;
+  --coral: #F97316;
+  --sage: #10B981;
+  --dark: #334155;
+  --mid: #64748B;
+  --light: #F8FAFC;
+  --white: #FFFFFF;
+  --error: #EF4444;
+  --border: #E2E8F0;
+  --bg: #F8FAFB;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.phone-frame {
+  width: 390px;
+  height: 844px;
+  background: var(--bg);
+  border-radius: 44px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.5), inset 0 0 0 3px #333;
+  display: flex;
+  flex-direction: column;
+}
+
+.notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 34px;
+  background: #000;
+  border-radius: 0 0 20px 20px;
+  z-index: 100;
+}
+
+.status-bar {
+  height: 54px;
+  background: var(--white);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 24px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dark);
+  flex-shrink: 0;
+}
+
+.screen {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.active { display: flex; flex-direction: column; }
+
+.tab-bar {
+  display: flex;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  padding: 6px 0 28px;
+  flex-shrink: 0;
+}
+.tab-bar.hidden { display: none; }
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+.tab:active { opacity: 0.6; }
+.tab-icon { font-size: 22px; }
+.tab-label { font-size: 10px; color: var(--mid); font-weight: 500; }
+.tab.active .tab-label { color: var(--teal); font-weight: 600; }
+
+/* ─── Welcome Screen ─── */
+.welcome-screen {
+  background: linear-gradient(180deg, #E6F7F5 0%, var(--white) 50%);
+  justify-content: center;
+  align-items: center;
+  padding: 40px 30px;
+  text-align: center;
+}
+.welcome-logo { font-size: 64px; margin-bottom: 16px; }
+.welcome-title { font-size: 28px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+.welcome-subtitle { font-size: 15px; color: var(--mid); line-height: 1.5; margin-bottom: 40px; max-width: 300px; }
+.welcome-btn {
+  width: 100%;
+  max-width: 300px;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.1s;
+  font-family: inherit;
+}
+.welcome-btn:active { transform: scale(0.97); }
+.btn-apple { background: #000; color: #fff; }
+.btn-google { background: var(--white); color: var(--dark); border: 1.5px solid var(--border); }
+.btn-apple-icon { font-size: 20px; }
+.welcome-terms { font-size: 11px; color: var(--mid); margin-top: 20px; line-height: 1.4; }
+.welcome-terms a { color: var(--teal); text-decoration: none; }
+
+/* ─── Home Screen ─── */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+}
+.home-greeting { font-size: 12px; color: var(--mid); margin-bottom: 2px; }
+.home-name { font-size: 24px; font-weight: 700; color: var(--navy); }
+.home-avatar {
+  width: 44px; height: 44px; border-radius: 22px;
+  background: var(--teal); display: flex; align-items: center;
+  justify-content: center; color: white; font-weight: 700; font-size: 18px;
+  cursor: pointer; border: none; font-family: inherit;
+}
+.home-avatar:active { opacity: 0.8; }
+
+.child-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin: 0 20px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.child-name { font-size: 18px; font-weight: 600; color: var(--navy); }
+.age-badge {
+  background: #E6F7F5;
+  border-radius: 12px;
+  padding: 6px 14px;
+  text-align: center;
+}
+.age-value { font-size: 14px; font-weight: 700; color: var(--teal); }
+.age-band { font-size: 10px; color: var(--mid); }
+
+.empathy-card {
+  background: #FFF7ED;
+  border-radius: 16px;
+  border-left: 4px solid var(--coral);
+  padding: 14px 16px;
+  margin: 0 20px 12px;
+}
+.empathy-text { font-size: 13px; color: var(--dark); font-style: italic; line-height: 1.5; }
+
+.alert-card {
+  display: flex;
+  align-items: center;
+  background: #FEF2F2;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 0 20px 12px;
+  border-left: 4px solid #DC2626;
+  cursor: pointer;
+  border-top: none; border-right: none; border-bottom: none;
+  text-align: left;
+  width: calc(100% - 40px);
+  font-family: inherit;
+}
+.alert-card:active { opacity: 0.8; }
+.alert-emoji { font-size: 20px; margin-right: 10px; flex-shrink: 0; }
+.alert-content { flex: 1; }
+.alert-title { font-size: 13px; font-weight: 600; color: #DC2626; }
+.alert-subtitle { font-size: 11px; color: var(--mid); margin-top: 2px; }
+
+.progress-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 0 20px 16px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.progress-title { font-size: 18px; font-weight: 600; color: var(--navy); margin-bottom: 14px; }
+.progress-row { display: flex; align-items: center; margin-bottom: 14px; }
+.progress-ring {
+  width: 80px; height: 80px; border-radius: 40px;
+  border: 4px solid var(--border); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; margin-right: 20px; flex-shrink: 0;
+}
+.progress-number { font-size: 24px; font-weight: 700; color: var(--sage); }
+.progress-label-text { font-size: 10px; color: var(--mid); }
+.progress-stats { text-align: left; }
+.stat-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.stat-dot { width: 8px; height: 8px; border-radius: 4px; flex-shrink: 0; }
+.stat-value { font-size: 13px; font-weight: 600; color: var(--dark); width: 18px; }
+.stat-label { font-size: 11px; color: var(--mid); }
+
+.cta-btn {
+  background: var(--teal);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.1s;
+}
+.cta-btn:active { transform: scale(0.96); }
+
+.section-title { font-size: 18px; font-weight: 600; color: var(--navy); margin: 0 20px 12px; }
+
+.quick-actions {
+  display: flex;
+  gap: 10px;
+  padding: 0 20px 20px;
+}
+.quick-action {
+  flex: 1;
+  background: var(--white);
+  border-radius: 16px;
+  padding: 14px 0;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: transform 0.1s;
+}
+.quick-action:active { transform: scale(0.95); }
+.qa-emoji { font-size: 24px; margin-bottom: 4px; }
+.qa-label { font-size: 11px; font-weight: 500; color: var(--dark); }
+
+/* ─── Navigator Screen ─── */
+.nav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+.nav-title { font-size: 20px; font-weight: 700; color: var(--navy); }
+.nav-subtitle { font-size: 10px; color: var(--mid); margin-top: 1px; }
+.new-chat-btn {
+  width: 36px; height: 36px; border-radius: 18px;
+  background: var(--teal); border: none; color: white;
+  font-size: 20px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.tone-bar {
+  display: flex;
+  align-items: center;
+  padding: 8px 20px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  gap: 6px;
+}
+.tone-label { font-size: 10px; color: var(--mid); font-weight: 500; margin-right: 4px; }
+.tone-pill {
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: var(--light);
+  font-size: 11px;
+  color: var(--dark);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.tone-pill.active { color: white; }
+.tone-pill.collab.active { background: #2E9E8F; }
+.tone-pill.assert.active { background: #E8913A; }
+.tone-pill.advocacy.active { background: #D94B4B; }
+
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.welcome-chat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  height: 100%;
+}
+.welcome-chat-emoji { font-size: 48px; margin-bottom: 14px; }
+.welcome-chat-title { font-size: 20px; font-weight: 700; color: var(--navy); margin-bottom: 8px; text-align: center; }
+.welcome-chat-sub { font-size: 13px; color: var(--mid); text-align: center; line-height: 1.5; margin-bottom: 20px; }
+.suggestions-label { font-size: 10px; color: var(--mid); font-weight: 500; margin-bottom: 8px; align-self: stretch; }
+.suggestion-chip {
+  width: 100%;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--teal);
+  line-height: 1.3;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.suggestion-chip:active { background: #E6F7F5; }
+
+.message-list { display: none; flex-direction: column; gap: 14px; }
+.message-list.active { display: flex; }
+
+.msg-row { display: flex; gap: 8px; align-items: flex-end; }
+.msg-row.user { justify-content: flex-end; }
+.msg-avatar { width: 28px; height: 28px; border-radius: 14px; background: #E6F7F5; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.msg-wrapper { max-width: 78%; }
+.msg-bubble {
+  border-radius: 16px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.msg-bubble.user { background: var(--teal); color: white; border-bottom-right-radius: 4px; }
+.msg-bubble.assistant { background: var(--white); color: var(--dark); border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+
+.save-action-btn {
+  display: inline-block;
+  padding: 3px 8px;
+  margin-top: 4px;
+  border-radius: 8px;
+  background: #E6F7F5;
+  border: 1px solid var(--teal);
+  font-size: 10px;
+  color: var(--teal);
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+}
+.save-action-btn:active { background: var(--teal); color: white; }
+
+.typing-indicator {
+  display: none;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--white);
+  border-radius: 16px;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  width: fit-content;
+}
+.typing-indicator.active { display: flex; }
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 3px; background: var(--mid);
+  animation: typingBounce 1.4s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.input-bar {
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 14px 10px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  gap: 8px;
+}
+.chat-input {
+  flex: 1;
+  background: var(--light);
+  border: none;
+  border-radius: 16px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--dark);
+  outline: none;
+  font-family: inherit;
+  resize: none;
+  min-height: 40px;
+  max-height: 80px;
+}
+.chat-input::placeholder { color: var(--mid); }
+.send-btn {
+  width: 40px; height: 40px; border-radius: 20px;
+  background: var(--teal); border: none; color: white;
+  font-size: 18px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: transform 0.1s;
+}
+.send-btn:active { transform: scale(0.9); }
+.send-btn:disabled { background: var(--border); }
+
+/* ─── Actions Screen ─── */
+.actions-header {
+  padding: 16px 20px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+.actions-title { font-size: 20px; font-weight: 700; color: var(--navy); }
+
+.filter-pills {
+  display: flex;
+  gap: 6px;
+  padding: 10px 20px;
+  overflow-x: auto;
+}
+.filter-pill {
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: var(--light);
+  font-size: 12px;
+  color: var(--dark);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.filter-pill.active { background: var(--teal); color: white; }
+
+.action-list { padding: 12px 20px; flex: 1; overflow-y: auto; }
+
+.action-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  cursor: pointer;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+.action-card:active { background: #f3f4f6; }
+.action-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.action-card-title { font-size: 14px; font-weight: 600; color: var(--navy); flex: 1; line-height: 1.3; }
+.action-priority {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.priority-urgent { background: #FEE2E2; color: #DC2626; }
+.priority-high { background: #FFF7ED; color: #EA580C; }
+.priority-medium { background: #EFF6FF; color: #2563EB; }
+.action-meta { display: flex; gap: 10px; align-items: center; }
+.action-category { font-size: 11px; color: var(--mid); }
+.action-status { font-size: 11px; display: flex; align-items: center; gap: 4px; }
+.status-dot { width: 6px; height: 6px; border-radius: 3px; }
+
+/* ─── Calendar Screen ─── */
+.cal-header {
+  padding: 16px 20px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cal-title { font-size: 20px; font-weight: 700; color: var(--navy); }
+.cal-add-btn {
+  width: 36px; height: 36px; border-radius: 18px;
+  background: var(--teal); border: none; color: white;
+  font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.week-nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--white);
+}
+.day-item { text-align: center; padding: 6px 12px; border-radius: 12px; cursor: pointer; border: none; background: none; font-family: inherit; }
+.day-item.today { background: var(--teal); }
+.day-letter { font-size: 10px; color: var(--mid); font-weight: 500; }
+.day-item.today .day-letter { color: rgba(255,255,255,0.7); }
+.day-number { font-size: 16px; font-weight: 600; color: var(--navy); margin-top: 2px; }
+.day-item.today .day-number { color: white; }
+
+.cal-content { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.cal-section-title { font-size: 13px; font-weight: 600; color: var(--mid); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.appt-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border-left: 4px solid;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.appt-time { font-size: 11px; color: var(--mid); font-weight: 500; }
+.appt-title { font-size: 14px; font-weight: 600; color: var(--navy); margin-top: 2px; }
+.appt-location { font-size: 11px; color: var(--mid); margin-top: 4px; }
+
+.deadline-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.deadline-info { flex: 1; }
+.deadline-title { font-size: 14px; font-weight: 600; color: var(--navy); }
+.deadline-date { font-size: 11px; color: var(--mid); margin-top: 2px; }
+.deadline-badge {
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.badge-urgent { background: #FEE2E2; color: #DC2626; }
+.badge-soon { background: #FFF7ED; color: #EA580C; }
+.badge-ok { background: #ECFDF5; color: #059669; }
+
+/* ─── Documents Screen ─── */
+.docs-header {
+  padding: 16px 20px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.docs-title { font-size: 20px; font-weight: 700; color: var(--navy); }
+.upload-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: var(--teal);
+  color: white;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.doc-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.doc-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.doc-details { flex: 1; }
+.doc-name { font-size: 14px; font-weight: 600; color: var(--navy); }
+.doc-meta { font-size: 11px; color: var(--mid); margin-top: 2px; }
+.doc-tags { display: flex; gap: 4px; margin-top: 6px; }
+.doc-tag { font-size: 9px; background: var(--light); color: var(--mid); padding: 2px 8px; border-radius: 6px; }
+
+/* ─── Profile Screen ─── */
+.profile-scroll { flex: 1; overflow-y: auto; padding: 20px; }
+.profile-title { font-size: 24px; font-weight: 700; color: var(--navy); margin-bottom: 20px; }
+.profile-section { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 8px; margin-top: 16px; }
+.profile-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.field-label { font-size: 12px; font-weight: 600; color: var(--dark); margin-bottom: 4px; margin-top: 10px; }
+.field-label:first-child { margin-top: 0; }
+.field-input {
+  width: 100%;
+  background: var(--light);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--dark);
+  outline: none;
+  font-family: inherit;
+}
+
+.lang-grid {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.lang-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  text-align: center;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.lang-btn.active { border-color: var(--teal); background: #E6F7F5; }
+.lang-emoji { font-size: 20px; }
+.lang-label { font-size: 11px; color: var(--dark); margin-top: 4px; font-weight: 500; }
+
+.profile-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  font-family: inherit;
+  transition: transform 0.1s;
+}
+.profile-btn:active { transform: scale(0.97); }
+.btn-save { background: var(--teal); color: white; }
+.btn-signout { background: none; border: 1.5px solid var(--border); color: var(--mid); }
+.profile-version { font-size: 11px; color: var(--mid); text-align: center; margin-top: 20px; }
+
+/* ─── Toast ─── */
+.toast {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background: var(--sage);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 200;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Smooth transitions */
+.screen { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="notch"></div>
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>Waypoint</span>
+    <span>●●●●</span>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══ Welcome Screen ═══ -->
+  <div class="screen welcome-screen active" id="screen-welcome">
+    <div class="welcome-logo">🧭</div>
+    <div class="welcome-title">Waypoint</div>
+    <div class="welcome-subtitle">Your GPS for navigating disability services. Personalized guidance for California families.</div>
+    <button class="welcome-btn btn-apple" onclick="navigate('home')">
+      <span class="btn-apple-icon"></span> Sign in with Apple
+    </button>
+    <button class="welcome-btn btn-google" onclick="navigate('home')">
+      <img src="data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z' fill='%234285F4'/%3E%3Cpath d='M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z' fill='%2334A853'/%3E%3Cpath d='M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z' fill='%23FBBC05'/%3E%3Cpath d='M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z' fill='%23EA4335'/%3E%3C/svg%3E" width="18" height="18" alt="">
+      Continue with Google
+    </button>
+    <div class="welcome-terms">
+      By continuing, you agree to our <a href="#" onclick="event.preventDefault()">Terms of Service</a> and <a href="#" onclick="event.preventDefault()">Privacy Policy</a>
+    </div>
+  </div>
+
+  <!-- ═══ Home Screen ═══ -->
+  <div class="screen" id="screen-home">
+    <div style="flex:1;overflow-y:auto;">
+      <div class="home-header">
+        <div>
+          <div class="home-greeting">Good morning 👋</div>
+          <div class="home-name">Mike</div>
+        </div>
+        <button class="home-avatar" onclick="navigate('profile')">M</button>
+      </div>
+
+      <div class="child-card">
+        <div class="child-name">Maya's Dashboard</div>
+        <div class="age-badge">
+          <div class="age-value">4y 2m</div>
+          <div class="age-band">Preschool (3-5)</div>
+        </div>
+      </div>
+
+      <div class="empathy-card">
+        <div class="empathy-text">You're doing an incredible job advocating for your child. Every step you take makes a difference.</div>
+      </div>
+
+      <button class="alert-card" onclick="navigate('calendar')">
+        <span class="alert-emoji">⚠️</span>
+        <div class="alert-content">
+          <div class="alert-title">2 upcoming deadlines</div>
+          <div class="alert-subtitle">IEP Annual Review + 1 more</div>
+        </div>
+        <span style="font-size:20px;color:#DC2626">›</span>
+      </button>
+
+      <div class="progress-card">
+        <div class="progress-title">Your Action Plan</div>
+        <div class="progress-row">
+          <div class="progress-ring">
+            <div class="progress-number">42%</div>
+            <div class="progress-label-text">complete</div>
+          </div>
+          <div class="progress-stats">
+            <div class="stat-row"><div class="stat-dot" style="background:var(--teal)"></div><div class="stat-value">3</div><div class="stat-label">In Progress</div></div>
+            <div class="stat-row"><div class="stat-dot" style="background:#94A3B8"></div><div class="stat-value">4</div><div class="stat-label">To Do</div></div>
+            <div class="stat-row"><div class="stat-dot" style="background:var(--sage)"></div><div class="stat-value">5</div><div class="stat-label">Completed</div></div>
+          </div>
+        </div>
+        <button class="cta-btn" onclick="navigate('actions')">View Actions</button>
+      </div>
+
+      <div class="section-title">Quick Actions</div>
+      <div class="quick-actions">
+        <button class="quick-action" onclick="navigate('navigator')"><div class="qa-emoji">🧭</div><div class="qa-label">Ask AI</div></button>
+        <button class="quick-action" onclick="navigate('actions')"><div class="qa-emoji">📋</div><div class="qa-label">Actions</div></button>
+        <button class="quick-action" onclick="navigate('calendar')"><div class="qa-emoji">📅</div><div class="qa-label">Calendar</div></button>
+        <button class="quick-action" onclick="navigate('profile')"><div class="qa-emoji">👤</div><div class="qa-label">Profile</div></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Navigator Screen ═══ -->
+  <div class="screen" id="screen-navigator">
+    <div class="nav-header">
+      <div>
+        <div class="nav-title">AI Navigator</div>
+        <div class="nav-subtitle">Your disability services guide</div>
+      </div>
+      <button class="new-chat-btn" onclick="resetChat()">+</button>
+    </div>
+    <div class="tone-bar">
+      <span class="tone-label">Tone:</span>
+      <button class="tone-pill collab active" onclick="setTone(this)">🤝 Collaborative</button>
+      <button class="tone-pill assert" onclick="setTone(this)">💪 Assertive</button>
+      <button class="tone-pill advocacy" onclick="setTone(this)">⚖️ Advocacy</button>
+    </div>
+    <div class="chat-area" id="chatArea">
+      <div class="welcome-chat" id="welcomeChat">
+        <div class="welcome-chat-emoji">🧭</div>
+        <div class="welcome-chat-title">Hi! I'm your AI Navigator.</div>
+        <div class="welcome-chat-sub">I can help you understand your rights, navigate Regional Centers, prepare for IEP meetings, and take concrete next steps for your child.</div>
+        <div class="suggestions-label">Try asking:</div>
+        <button class="suggestion-chip" onclick="sendSuggestion(this.textContent)">How do I get my child evaluated for services?</button>
+        <button class="suggestion-chip" onclick="sendSuggestion(this.textContent)">My Regional Center denied our request. What can I do?</button>
+        <button class="suggestion-chip" onclick="sendSuggestion(this.textContent)">What should I know before my child's IEP meeting?</button>
+        <button class="suggestion-chip" onclick="sendSuggestion(this.textContent)">How does the IPP process work?</button>
+      </div>
+      <div class="message-list" id="messageList"></div>
+    </div>
+    <div class="input-bar">
+      <input class="chat-input" id="chatInput" placeholder="Ask about your child's services..." onkeydown="if(event.key==='Enter'){sendMessage();event.preventDefault();}">
+      <button class="send-btn" onclick="sendMessage()">↑</button>
+    </div>
+  </div>
+
+  <!-- ═══ Actions Screen ═══ -->
+  <div class="screen" id="screen-actions">
+    <div class="actions-header">
+      <div class="actions-title">Action Plan</div>
+    </div>
+    <div class="filter-pills">
+      <button class="filter-pill active">All (12)</button>
+      <button class="filter-pill" onclick="this.classList.toggle('active')">To Do</button>
+      <button class="filter-pill" onclick="this.classList.toggle('active')">In Progress</button>
+      <button class="filter-pill" onclick="this.classList.toggle('active')">Completed</button>
+    </div>
+    <div class="action-list">
+      <div class="action-card">
+        <div class="action-card-header">
+          <div class="action-card-title">Request comprehensive assessment from Regional Center</div>
+          <span class="action-priority priority-urgent">Urgent</span>
+        </div>
+        <div class="action-meta">
+          <span class="action-category">🏛️ Regional Center</span>
+          <span class="action-status"><span class="status-dot" style="background:var(--teal)"></span> In Progress</span>
+        </div>
+      </div>
+      <div class="action-card">
+        <div class="action-card-header">
+          <div class="action-card-title">Prepare for IEP annual review meeting</div>
+          <span class="action-priority priority-high">High</span>
+        </div>
+        <div class="action-meta">
+          <span class="action-category">🏫 IEP / School</span>
+          <span class="action-status"><span class="status-dot" style="background:var(--teal)"></span> In Progress</span>
+        </div>
+      </div>
+      <div class="action-card">
+        <div class="action-card-header">
+          <div class="action-card-title">Appeal insurance denial for ABA therapy</div>
+          <span class="action-priority priority-urgent">Urgent</span>
+        </div>
+        <div class="action-meta">
+          <span class="action-category">🏥 Insurance</span>
+          <span class="action-status"><span class="status-dot" style="background:#94A3B8"></span> To Do</span>
+        </div>
+      </div>
+      <div class="action-card">
+        <div class="action-card-header">
+          <div class="action-card-title">Submit SSI application for Maya</div>
+          <span class="action-priority priority-medium">Med</span>
+        </div>
+        <div class="action-meta">
+          <span class="action-category">💰 Benefits</span>
+          <span class="action-status"><span class="status-dot" style="background:#94A3B8"></span> To Do</span>
+        </div>
+      </div>
+      <div class="action-card">
+        <div class="action-card-header">
+          <div class="action-card-title">Request IPP meeting with service coordinator</div>
+          <span class="action-priority priority-medium">Med</span>
+        </div>
+        <div class="action-meta">
+          <span class="action-category">🏛️ Regional Center</span>
+          <span class="action-status"><span class="status-dot" style="background:var(--teal)"></span> In Progress</span>
+        </div>
+      </div>
+      <div class="action-card" style="opacity:0.6">
+        <div class="action-card-header">
+          <div class="action-card-title">✅ Obtained developmental evaluation report</div>
+        </div>
+        <div class="action-meta">
+          <span class="action-category">⚕️ Medical</span>
+          <span class="action-status"><span class="status-dot" style="background:var(--sage)"></span> Completed</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Calendar Screen ═══ -->
+  <div class="screen" id="screen-calendar">
+    <div class="cal-header">
+      <div class="cal-title">Calendar</div>
+      <button class="cal-add-btn">+</button>
+    </div>
+    <div class="week-nav">
+      <button class="day-item"><div class="day-letter">M</div><div class="day-number">10</div></button>
+      <button class="day-item"><div class="day-letter">T</div><div class="day-number">11</div></button>
+      <button class="day-item"><div class="day-letter">W</div><div class="day-number">12</div></button>
+      <button class="day-item"><div class="day-letter">T</div><div class="day-number">13</div></button>
+      <button class="day-item today"><div class="day-letter">F</div><div class="day-number">14</div></button>
+      <button class="day-item"><div class="day-letter">S</div><div class="day-number">15</div></button>
+      <button class="day-item"><div class="day-letter">S</div><div class="day-number">16</div></button>
+    </div>
+    <div class="cal-content">
+      <div class="cal-section-title">Today's Appointments</div>
+      <div class="appt-card" style="border-left-color:#7C3AED">
+        <div class="appt-time">9:00 AM – 10:00 AM</div>
+        <div class="appt-title">🧠 Speech Therapy — Maya</div>
+        <div class="appt-location">📍 Valley Speech Center, Suite 204</div>
+      </div>
+      <div class="appt-card" style="border-left-color:#2563EB">
+        <div class="appt-time">2:30 PM – 3:30 PM</div>
+        <div class="appt-title">🏫 IEP Meeting — Lincoln Elementary</div>
+        <div class="appt-location">📍 Room 112, Admin Building</div>
+      </div>
+
+      <div class="cal-section-title" style="margin-top:20px">Upcoming Deadlines</div>
+      <div class="deadline-card">
+        <div class="deadline-info">
+          <div class="deadline-title">🏫 IEP Annual Review</div>
+          <div class="deadline-date">Due March 28, 2026</div>
+        </div>
+        <span class="deadline-badge badge-urgent">14 days</span>
+      </div>
+      <div class="deadline-card">
+        <div class="deadline-info">
+          <div class="deadline-title">🏥 Insurance Appeal Deadline</div>
+          <div class="deadline-date">Due April 10, 2026</div>
+        </div>
+        <span class="deadline-badge badge-soon">27 days</span>
+      </div>
+      <div class="deadline-card">
+        <div class="deadline-info">
+          <div class="deadline-title">🏛️ IPP Annual Review</div>
+          <div class="deadline-date">Due May 15, 2026</div>
+        </div>
+        <span class="deadline-badge badge-ok">62 days</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Documents Screen ═══ -->
+  <div class="screen" id="screen-documents">
+    <div class="docs-header">
+      <div class="docs-title">Document Vault</div>
+      <button class="upload-btn" onclick="showToast('📎 Document picker opened')">+ Upload</button>
+    </div>
+    <div class="filter-pills">
+      <button class="filter-pill active">All (8)</button>
+      <button class="filter-pill">IEP</button>
+      <button class="filter-pill">Evaluations</button>
+      <button class="filter-pill">Denials</button>
+      <button class="filter-pill">Medical</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:12px 20px;">
+      <div class="doc-card">
+        <div class="doc-icon" style="background:#EFF6FF">🏫</div>
+        <div class="doc-details">
+          <div class="doc-name">Maya IEP — 2025-2026</div>
+          <div class="doc-meta">IEP • 2.4 MB • Dec 15, 2025</div>
+          <div class="doc-tags"><span class="doc-tag">current</span><span class="doc-tag">goals</span></div>
+        </div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon" style="background:#F5F3FF">📋</div>
+        <div class="doc-details">
+          <div class="doc-name">Developmental Evaluation Report</div>
+          <div class="doc-meta">Evaluation • 1.8 MB • Oct 3, 2025</div>
+          <div class="doc-tags"><span class="doc-tag">autism</span><span class="doc-tag">diagnosis</span></div>
+        </div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon" style="background:#FEF2F2">🚫</div>
+        <div class="doc-details">
+          <div class="doc-name">ABA Therapy Denial — Anthem</div>
+          <div class="doc-meta">Denial • 856 KB • Feb 20, 2026</div>
+          <div class="doc-tags"><span class="doc-tag">appeal-needed</span></div>
+        </div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon" style="background:#FFF7ED">⚖️</div>
+        <div class="doc-details">
+          <div class="doc-name">Insurance Appeal Letter — Draft</div>
+          <div class="doc-meta">Appeal • 420 KB • Mar 1, 2026</div>
+          <div class="doc-tags"><span class="doc-tag">draft</span><span class="doc-tag">ABA</span></div>
+        </div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon" style="background:#ECFDF5">⚕️</div>
+        <div class="doc-details">
+          <div class="doc-name">Pediatrician Support Letter</div>
+          <div class="doc-meta">Medical • 340 KB • Jan 8, 2026</div>
+        </div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-icon" style="background:#E6F7F5">🏛️</div>
+        <div class="doc-details">
+          <div class="doc-name">IPP — Regional Center</div>
+          <div class="doc-meta">IPP • 1.1 MB • Nov 20, 2025</div>
+          <div class="doc-tags"><span class="doc-tag">services</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Profile Screen ═══ -->
+  <div class="screen" id="screen-profile">
+    <div class="profile-scroll">
+      <div class="profile-title">Profile</div>
+
+      <div class="profile-section">Family Info</div>
+      <div class="profile-card">
+        <div class="field-label">Your first name</div>
+        <input class="field-input" value="Mike">
+        <div class="field-label">Email</div>
+        <input class="field-input" value="mcbeebe@gmail.com">
+        <div class="field-label">Child's first name</div>
+        <input class="field-input" value="Maya">
+        <div class="field-label">ZIP code</div>
+        <input class="field-input" value="94610" maxlength="5">
+      </div>
+
+      <div class="profile-section">Diagnosis</div>
+      <div class="profile-card">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <span style="padding:8px 14px;border-radius:10px;background:#E6F7F5;color:var(--teal);font-size:13px;font-weight:500;border:1.5px solid var(--teal);">Autism (ASD) ✓</span>
+          <span style="padding:8px 14px;border-radius:10px;background:var(--light);color:var(--mid);font-size:13px;font-weight:500;border:1.5px solid var(--border);">Down Syndrome</span>
+          <span style="padding:8px 14px;border-radius:10px;background:var(--light);color:var(--mid);font-size:13px;font-weight:500;border:1.5px solid var(--border);">Cerebral Palsy</span>
+          <span style="padding:8px 14px;border-radius:10px;background:#E6F7F5;color:var(--teal);font-size:13px;font-weight:500;border:1.5px solid var(--teal);">Speech Delay ✓</span>
+          <span style="padding:8px 14px;border-radius:10px;background:var(--light);color:var(--mid);font-size:13px;font-weight:500;border:1.5px solid var(--border);">ADHD</span>
+        </div>
+      </div>
+
+      <div class="profile-section">Language</div>
+      <div class="profile-card">
+        <div class="lang-grid">
+          <div class="lang-btn active"><div class="lang-emoji">🇺🇸</div><div class="lang-label">English</div></div>
+          <div class="lang-btn" onclick="this.parentElement.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');showToast('Idioma cambiado a Español')"><div class="lang-emoji">🇲🇽</div><div class="lang-label">Español</div></div>
+          <div class="lang-btn" onclick="this.parentElement.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');showToast('Ngôn ngữ đã đổi sang Tiếng Việt')"><div class="lang-emoji">🇻🇳</div><div class="lang-label">Tiếng Việt</div></div>
+        </div>
+      </div>
+
+      <button class="profile-btn btn-save" onclick="showToast('✓ Profile saved!')">Save Changes</button>
+      <button class="profile-btn btn-signout" onclick="navigate('welcome')">Sign Out</button>
+      <div class="profile-version">Waypoint v1.0.0</div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar" id="tabBar">
+    <button class="tab active" onclick="navigate('home')">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">Home</span>
+    </button>
+    <button class="tab" onclick="navigate('navigator')">
+      <span class="tab-icon">🧭</span>
+      <span class="tab-label">Navigator</span>
+    </button>
+    <button class="tab" onclick="navigate('actions')">
+      <span class="tab-icon">📋</span>
+      <span class="tab-label">Actions</span>
+    </button>
+    <button class="tab" onclick="navigate('calendar')">
+      <span class="tab-icon">📅</span>
+      <span class="tab-label">Calendar</span>
+    </button>
+    <button class="tab" onclick="navigate('documents')">
+      <span class="tab-icon">📁</span>
+      <span class="tab-label">Docs</span>
+    </button>
+    <button class="tab" onclick="navigate('profile')">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">Profile</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ─── Navigation ─────────────────────────────────────────────────────────────
+
+function navigate(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+
+  // Tab bar visibility
+  const tabBar = document.getElementById('tabBar');
+  tabBar.classList.toggle('hidden', screen === 'welcome');
+
+  // Active tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const tabMap = { home: 0, navigator: 1, actions: 2, calendar: 3, documents: 4, profile: 5 };
+  if (tabMap[screen] !== undefined) {
+    document.querySelectorAll('.tab')[tabMap[screen]].classList.add('active');
+  }
+}
+
+// ─── Toast ──────────────────────────────────────────────────────────────────
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ─── Tone Selector ──────────────────────────────────────────────────────────
+
+function setTone(el) {
+  document.querySelectorAll('.tone-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── Chat System ────────────────────────────────────────────────────────────
+
+// ─── Keyword-based smart response system ────────────────────────────────────
+
+const KEYWORD_RESPONSES = [
+  // Email / letter drafting
+  {
+    keywords: ['draft', 'email', 'letter', 'write', 'compose', 'send', 'template'],
+    extraKeywords: ['regional center', 'rc', 'service coordinator'],
+    response: `Of course! Here's a draft email you can send to your Regional Center service coordinator:\n\n---\n\n**Subject: Request for Service Review — Maya Beebe**\n\nDear Service Coordinator,\n\nI am writing to request a review of services for my daughter, Maya Beebe (DOB: XX/XX/XXXX), who is currently a client of [Regional Center Name].\n\nAs Maya's parent and advocate, I believe her current Individual Program Plan (IPP) does not adequately address her needs in the following areas:\n\n• [Describe specific need or service gap]\n• [Describe additional concern]\n\nUnder the Lanterman Developmental Disabilities Services Act (Welfare & Institutions Code §4500 et seq.), Maya is entitled to services and supports that meet her individual needs and help her achieve her fullest potential.\n\nI am requesting an IPP meeting to discuss:\n1. A reassessment of Maya's current needs\n2. Additional services including [specific services]\n3. Updated goals reflecting her current developmental level\n\nPlease contact me at your earliest convenience to schedule this meeting. Per Lanterman Act requirements, I understand this meeting should be scheduled within 30 days of this request.\n\nThank you for your continued support.\n\nSincerely,\nMike Beebe\n[Phone Number]\n[Email]\n\n---\n\n📧 **I've drafted this for you.** You can customize the bracketed sections and send it. Would you like me to adjust the tone or add anything specific?`
+  },
+  {
+    keywords: ['draft', 'email', 'letter', 'write', 'compose', 'send', 'template'],
+    extraKeywords: ['school', 'iep', 'teacher', 'principal', 'district', 'special education'],
+    response: `Here's a draft letter to request an IEP meeting with your school district:\n\n---\n\n**Subject: Written Request for IEP Meeting — Maya Beebe**\n\nDear [Special Education Director / IEP Team],\n\nI am the parent of Maya Beebe, a student at [School Name]. I am writing to formally request an Individualized Education Program (IEP) meeting to discuss my daughter's educational needs.\n\nI have concerns about the following areas:\n• [Describe academic or developmental concern]\n• [Describe behavioral or social concern]\n• [Describe any service gaps]\n\nUnder the Individuals with Disabilities Education Act (IDEA) and California Education Code §56343, I am requesting that we convene an IEP meeting within 30 calendar days to:\n\n1. Review Maya's current goals and progress\n2. Discuss additional assessments or evaluations needed\n3. Consider modifications to her current services\n4. Address [specific concern]\n\nPlease confirm receipt of this letter and provide available dates for the meeting. I would also like to receive copies of all assessment reports at least 5 days prior to the meeting.\n\nThank you for your attention to this matter.\n\nSincerely,\nMike Beebe\n[Phone] | [Email]\n\n---\n\n📧 **This letter establishes a formal paper trail**, which is important for protecting your rights. Want me to make it more assertive, or add anything?`
+  },
+  {
+    keywords: ['draft', 'email', 'letter', 'write', 'compose', 'send', 'template'],
+    extraKeywords: ['insurance', 'appeal', 'denial', 'denied'],
+    response: `Here's a draft insurance appeal letter for the ABA therapy denial:\n\n---\n\n**Subject: Formal Appeal — Denial of ABA Therapy Services**\n**Member: Maya Beebe | Policy #: [Your Policy Number]**\n**Claim/Reference #: [From Denial Letter]**\n\nDear Appeals Department,\n\nI am writing to formally appeal the denial of Applied Behavior Analysis (ABA) therapy services for my daughter, Maya Beebe, as outlined in your Notice of Adverse Benefit Determination dated [date].\n\n**Reason for Appeal:**\nMaya has been diagnosed with Autism Spectrum Disorder (ASD) and her treating providers have recommended ABA therapy as medically necessary. The denial of these services is inconsistent with:\n\n• California Mental Health Parity Act (SB 855) — which requires coverage of medically necessary treatments for mental health conditions on par with physical health\n• Your plan's own clinical guidelines for ASD treatment\n• The treating physician's recommendation\n\n**Supporting Documentation Enclosed:**\n1. Letter of medical necessity from Dr. [Name], developmental pediatrician\n2. Maya's most recent developmental evaluation\n3. Treatment plan from [ABA Provider Name]\n4. Peer-reviewed research supporting ABA for ASD\n\n**Requested Action:**\nI request that you overturn this denial and authorize [number] hours per week of ABA therapy as recommended by Maya's treatment team.\n\nPer California law, you must respond to this appeal within 30 days. If this appeal is denied, I intend to request an Independent Medical Review through the DMHC.\n\nSincerely,\nMike Beebe\n\n---\n\n⚖️ **This is a strong appeal letter.** The SB 855 reference is powerful — California requires insurers to cover evidence-based treatments. Would you like me to adjust anything?`
+  },
+  {
+    keywords: ['draft', 'email', 'letter', 'write', 'compose'],
+    response: `I'd be happy to draft that for you! To write the best letter, I need a few details:\n\n**Who is this email/letter going to?**\n• Regional Center service coordinator\n• School district / IEP team\n• Insurance company (appeal)\n• Doctor or therapist\n• Someone else\n\n**What's the purpose?**\n• Request services or assessment\n• Appeal a denial\n• Follow up on a previous request\n• Document a concern\n• Schedule a meeting\n\nJust tell me the recipient and purpose, and I'll draft something tailored to your situation with the right legal references. For example, try:\n\n• "Draft an email to my Regional Center requesting more respite hours"\n• "Write an appeal letter for the insurance denial"\n• "Draft a letter to the school requesting an IEP meeting"`
+  },
+  // Evaluations
+  {
+    keywords: ['evaluat', 'assess', 'test', 'diagnos', 'screening'],
+    response: `Great question! Here's how to get your child evaluated in California:\n\n**1. Regional Center (ages 0-3 or any age with suspected developmental disability)**\nCall your local Regional Center and request an intake appointment. Under the Lanterman Act, they must assess your child within 120 days — and it's free.\n\n**2. School District (ages 3+)**\nSend a written request to your school district's Special Education department asking for a comprehensive evaluation. They have 15 days to respond and 60 days to complete the assessment.\n\n**3. Private Evaluation**\nYou can also get a private developmental evaluation through your pediatrician or a developmental pediatrician. This can be expensive ($2,000-$5,000) but gives you an independent assessment.\n\n💡 **Pro tip:** Always put requests in writing and keep copies of everything. A paper trail protects your rights.\n\nWould you like me to draft a request letter for any of these?`
+  },
+  // Regional Center denial
+  {
+    keywords: ['denied', 'denial', 'reject', 'refused', 'won\'t', 'can\'t get'],
+    extraKeywords: ['regional', 'rc', 'center'],
+    response: `I understand how frustrating a denial can be. You have strong rights here. Under the Lanterman Act:\n\n**Your Options:**\n\n**1. Request a written Notice of Action (NOA)**\nThe RC must provide a written explanation. This triggers your appeal rights and starts the clock.\n\n**2. Informal Meeting**\nAsk to meet with your service coordinator's supervisor. Sometimes denials can be resolved at this level.\n\n**3. Fair Hearing**\nYou have the right to request a fair hearing within 30 days of the NOA. An administrative law judge will review your case.\n\n**4. Contact OCRA (Office of Clients' Rights Advocacy)**\nThey provide **free** legal advocacy for Regional Center clients. Call 1-800-390-7032.\n\n⚖️ **Key fact:** The burden of proof is on the Regional Center, not on you. They must justify the denial.\n\n**Immediate steps:**\n1. Get the denial in writing (NOA)\n2. Document why the service is needed\n3. Gather supporting evidence (evaluations, doctor letters)\n\nWould you like me to draft an appeal letter or help prepare for a fair hearing?`
+  },
+  // IEP
+  {
+    keywords: ['iep', 'school', 'special education', 'individualized education'],
+    response: `Here are the key things to know about the IEP process:\n\n**Your Rights (under IDEA):**\n• You are an **equal member** of the IEP team\n• You can bring anyone to support you (advocate, friend, attorney)\n• You can request an IEP meeting **at any time** — not just annually\n• You can audio-record the meeting (give 24hr notice in CA)\n• The school must provide a copy of your rights (procedural safeguards)\n\n**Preparation Checklist:**\n✅ Review your child's current IEP and progress reports\n✅ Write down your concerns and goals\n✅ Gather any private evaluations or reports\n✅ Prepare a parent concerns letter (this becomes part of the record)\n✅ Know what services you want to request\n\n**During the Meeting:**\n• Don't sign anything you're not comfortable with — you can take it home\n• Ask for clarification on anything unclear\n• Request a recess if you need time to think\n• Everything discussed should be documented\n\n**If you disagree with the IEP:**\n• Write "I disagree" on the signature page and note your concerns\n• You can file for mediation or due process\n\n📋 Would you like me to draft a parent concerns letter or save this as an action item?`
+  },
+  // IPP
+  {
+    keywords: ['ipp', 'individual program plan', 'program plan'],
+    response: `The Individual Program Plan (IPP) is your family's roadmap for Regional Center services.\n\n**What is it?**\nThe IPP documents your child's needs, goals, and the services the Regional Center will provide. It's updated at least annually.\n\n**The Process:**\n1. **Assessment** — RC evaluates your child's needs\n2. **Planning Meeting** — You meet with your service coordinator to discuss goals\n3. **Services Identified** — Together, you determine what services are needed\n4. **IPP Written** — The plan is documented and signed\n5. **Services Begin** — RC authorizes and funds the services\n\n**Your Rights:**\n• Services must be based on your child's **individual needs** (not budget)\n• You can request services not currently offered\n• The RC must consider your family's preferences\n• You can disagree and appeal any decision\n• You can request an IPP meeting at any time\n\n🏛️ **Lanterman Act guarantee:** Every eligible person has the right to services and supports that help them live as independently as possible.\n\nWould you like help preparing for your next IPP meeting?`
+  },
+  // Insurance / ABA
+  {
+    keywords: ['insurance', 'aba', 'therapy', 'coverage', 'appeal', 'denied'],
+    response: `Here's what you need to know about insurance coverage for therapy in California:\n\n**Your Rights Under California Law:**\n\n**SB 855 (Mental Health Parity)** requires health plans to cover medically necessary treatments for mental health conditions — including ABA therapy for autism — at the **same level as physical health conditions**.\n\n**If your claim was denied:**\n1. **Get the denial in writing** with the specific reason\n2. **File a formal appeal** with your insurance within 180 days\n3. **Include supporting documentation:** medical necessity letter, evaluations, treatment plan\n4. **If appeal is denied:** Request an **Independent Medical Review (IMR)** through the CA Dept of Managed Health Care (DMHC)\n\n**Key contacts:**\n• DMHC Help Center: 1-888-466-2219\n• CA Dept of Insurance: 1-800-927-4357\n\n💡 **Tip:** Insurance companies deny claims hoping you won't appeal. The data shows that a significant percentage of appeals are overturned — especially with proper documentation.\n\nWould you like me to draft an appeal letter for the ABA therapy denial?`
+  },
+  // SSI / benefits
+  {
+    keywords: ['ssi', 'benefits', 'disability benefits', 'social security', 'supplemental'],
+    response: `Here's an overview of SSI (Supplemental Security Income) for children with disabilities:\n\n**Eligibility:**\n• Child must have a medical condition that results in "marked and severe functional limitations"\n• Family income and resources must be below SSI limits\n• Child must be under 18 (different rules for adults)\n\n**How to Apply:**\n1. **Call SSA** at 1-800-772-1213 to schedule an appointment\n2. **Gather documentation:** medical records, IEP, evaluations, diagnosis reports\n3. **Complete the application** at your local Social Security office\n4. **Childhood Disability Report** — detailed form about your child's condition\n\n**What to expect:**\n• Initial decisions take 3-5 months\n• About 60% of initial applications are denied — **don't give up**\n• You can appeal within 60 days\n• Maximum SSI benefit for 2026 is approximately $943/month\n\n**Important tips:**\n• Apply even if you're unsure about eligibility\n• Keep copies of everything\n• The denial rate is high initially, but many are approved on appeal\n• Consider getting help from a disability attorney (they only get paid if you win)\n\nWould you like me to create an action plan for the SSI application process?`
+  },
+  // Lanterman Act
+  {
+    keywords: ['lanterman', 'act', 'rights', 'law', 'legal'],
+    response: `The **Lanterman Developmental Disabilities Services Act** is the foundation of California's disability services system. Here's what every parent should know:\n\n**What it guarantees:**\n• Every person with a developmental disability has the right to services and supports\n• Services must be individualized — based on **your child's needs**, not a one-size-fits-all budget\n• The state (through Regional Centers) must fund these services\n• Services should help your child live as independently as possible\n\n**Who qualifies:**\n• Intellectual disability\n• Cerebral palsy\n• Epilepsy\n• Autism\n• Conditions requiring similar services (the "5th category")\n• Must originate before age 18\n\n**Your key rights:**\n• Right to an assessment within 120 days\n• Right to an Individual Program Plan (IPP)\n• Right to choose your service providers\n• Right to appeal any decision\n• Right to fair hearing\n• Right to advocacy services (OCRA)\n\n⚖️ The Lanterman Act is one of the strongest disability rights laws in the country. **Knowing your rights is your superpower.**\n\nWould you like me to explain how a specific right applies to your situation?`
+  },
+  // Respite / specific services
+  {
+    keywords: ['respite', 'caregiver', 'break', 'rest', 'burnout', 'self-care'],
+    response: `Respite care is something every parent deserves, and you may be entitled to it through the Regional Center. Here's what you should know:\n\n**What is respite care?**\nTemporary care for your child so you can take a break — could be a few hours, an evening, or even overnight.\n\n**How to get it through Regional Center:**\n1. **Request it in your IPP** — respite is a vendored service under the Lanterman Act\n2. **Typical allocations:** 60-90 hours per quarter (varies by RC)\n3. **Types available:** in-home, out-of-home, day programs, camps\n\n**If you're denied respite:**\n• Ask for the specific reason in writing\n• Document the impact on your family (caregiver stress, missed work, etc.)\n• Request an IPP meeting to discuss\n• You can appeal through fair hearing\n\n**Other respite resources:**\n• Some insurance plans cover respite\n• IHSS (In-Home Supportive Services) through Medi-Cal\n• Nonprofit organizations (Easter Seals, UCP, Family Resource Centers)\n\n💛 **Remember:** Taking care of yourself isn't selfish — it makes you a better advocate for your child.\n\nWould you like me to draft a request for respite services to your Regional Center?`
+  },
+  // Medi-Cal / CCS
+  {
+    keywords: ['medi-cal', 'medicaid', 'ccs', 'california children', 'health insurance'],
+    response: `Here's what you need to know about Medi-Cal and CCS for your child:\n\n**Medi-Cal:**\n• California's Medicaid program — covers low-income families and individuals with disabilities\n• Your child may qualify based on disability even if family income is above normal limits\n• Covers medical care, therapy, mental health services, and more\n• **EPSDT (Early and Periodic Screening)** requires Medi-Cal to cover all medically necessary services for children under 21\n\n**California Children's Services (CCS):**\n• Covers treatment for certain physical conditions (cerebral palsy, hearing loss, etc.)\n• Provides specialized care through CCS-paneled providers\n• Income limit: up to 400% of federal poverty level for some services\n• Can work alongside other insurance\n\n**Key tip about EPSDT:**\nIf your child is on Medi-Cal and under 21, they're entitled to **any medically necessary service** — even if it's not normally covered for adults. This is a powerful tool for getting therapy, equipment, and other supports.\n\nWould you like help applying for Medi-Cal or CCS, or appealing a coverage decision?`
+  },
+  // Help / what can you do
+  {
+    keywords: ['help', 'what can you', 'what do you', 'how do you work', 'features'],
+    response: `I'm your AI Navigator — think of me as a knowledgeable friend who happens to know California disability law. Here's how I can help:\n\n**🧭 Navigate Systems**\n• Explain Regional Center, school district, and insurance processes\n• Walk you through your rights under the Lanterman Act, IDEA, and ADA\n• Help you understand IPPs, IEPs, and appeals\n\n**📧 Draft Communications**\n• Write emails to service coordinators, schools, and insurers\n• Draft appeal letters with legal citations\n• Create parent concern letters for IEP meetings\n\n**📋 Create Action Plans**\n• Break down complex tasks into manageable steps\n• Set reminders for deadlines (IEP reviews, appeal windows, etc.)\n• Track your progress\n\n**🎯 Personalized Guidance**\n• Advice tailored to Maya's age, diagnoses, and your location\n• Tone calibration: collaborative, assertive, or advocacy mode\n• Available in English, Spanish, and Vietnamese\n\n**Try asking me things like:**\n• "Draft an email to my Regional Center about respite hours"\n• "What are my rights if the school denies OT services?"\n• "Help me prepare for Maya's IEP meeting next week"\n• "How do I appeal an insurance denial for ABA therapy?"`
+  },
+  // Thanks / positive
+  {
+    keywords: ['thank', 'thanks', 'great', 'awesome', 'helpful', 'perfect', 'amazing'],
+    response: `You're welcome! I'm glad I could help. 💛\n\nRemember — you're doing an incredible job advocating for Maya. The fact that you're here learning about your rights and taking action says a lot.\n\n**A few things I can help with next:**\n• Draft emails or letters to service providers\n• Create an action plan with specific next steps\n• Explain any law or process in more detail\n• Help prepare for upcoming meetings\n\nJust ask whenever you need me. I'm here for you and Maya.`
+  }
+];
+
+const DEFAULT_RESPONSE = `That's a great question. Based on California disability law and Maya's situation, here's what I'd recommend:\n\n**Key points to consider:**\n• Under the Lanterman Act, Maya has the right to services that meet her individual needs\n• All requests should be made in writing to create a paper trail\n• You have the right to appeal any decision you disagree with\n\n**I can help you with:**\n1. **Drafting emails or letters** — just tell me who to write to and what about\n2. **Explaining your rights** for specific situations\n3. **Creating action plans** with step-by-step next steps\n4. **Preparing for meetings** (IEP, IPP, or insurance appeals)\n\n💡 **Try being specific** — for example:\n• "Draft an email to the school about Maya's IEP"\n• "What are my options if insurance denies ABA therapy?"\n• "Help me prepare for our IPP meeting"\n\nHow can I help you today?`;
+
+function findBestResponse(text) {
+  const lower = text.toLowerCase();
+
+  // First pass: look for matches with extraKeywords (more specific)
+  for (const entry of KEYWORD_RESPONSES) {
+    if (!entry.extraKeywords) continue;
+    const hasMainKeyword = entry.keywords.some(k => lower.includes(k));
+    const hasExtraKeyword = entry.extraKeywords.some(k => lower.includes(k));
+    if (hasMainKeyword && hasExtraKeyword) return entry.response;
+  }
+
+  // Second pass: match on primary keywords only
+  for (const entry of KEYWORD_RESPONSES) {
+    if (entry.extraKeywords) continue; // skip the specific ones
+    const matchCount = entry.keywords.filter(k => lower.includes(k)).length;
+    if (matchCount >= 1) return entry.response;
+  }
+
+  return DEFAULT_RESPONSE;
+}
+
+function sendSuggestion(text) {
+  document.getElementById('chatInput').value = '';
+  addMessage('user', text);
+  document.getElementById('welcomeChat').style.display = 'none';
+  document.getElementById('messageList').classList.add('active');
+  simulateResponse(text);
+}
+
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  document.getElementById('welcomeChat').style.display = 'none';
+  document.getElementById('messageList').classList.add('active');
+
+  addMessage('user', text);
+  simulateResponse(text);
+}
+
+function addMessage(role, text) {
+  const list = document.getElementById('messageList');
+  const row = document.createElement('div');
+  row.className = 'msg-row' + (role === 'user' ? ' user' : '');
+
+  if (role === 'assistant') {
+    row.innerHTML = `
+      <div class="msg-avatar">🧭</div>
+      <div class="msg-wrapper">
+        <div class="msg-bubble assistant">${formatText(text)}</div>
+        <button class="save-action-btn" onclick="saveAsAction(this)">Save as Action</button>
+      </div>`;
+  } else {
+    row.innerHTML = `<div class="msg-bubble user">${text}</div>`;
+  }
+
+  list.appendChild(row);
+  document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
+}
+
+function simulateResponse(text) {
+  // Show typing indicator
+  const list = document.getElementById('messageList');
+  const typingRow = document.createElement('div');
+  typingRow.className = 'msg-row';
+  typingRow.id = 'typingRow';
+  typingRow.innerHTML = `
+    <div class="msg-avatar">🧭</div>
+    <div class="typing-indicator active">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>`;
+  list.appendChild(typingRow);
+  document.getElementById('chatArea').scrollTop = document.getElementById('chatArea').scrollHeight;
+
+  // Simulate delay then respond
+  setTimeout(() => {
+    typingRow.remove();
+    const response = findBestResponse(text);
+    addMessage('assistant', response);
+  }, 1500);
+}
+
+function formatText(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>')
+    .replace(/• /g, '&bull; ');
+}
+
+function saveAsAction(btn) {
+  btn.textContent = '✓ Saved!';
+  btn.style.background = 'var(--teal)';
+  btn.style.color = 'white';
+  btn.style.borderColor = 'var(--teal)';
+  showToast('✓ Saved to your Action Plan!');
+  setTimeout(() => {
+    btn.textContent = 'Save as Action';
+    btn.style.background = '#E6F7F5';
+    btn.style.color = 'var(--teal)';
+    btn.style.borderColor = 'var(--teal)';
+  }, 2000);
+}
+
+function resetChat() {
+  document.getElementById('messageList').innerHTML = '';
+  document.getElementById('messageList').classList.remove('active');
+  document.getElementById('welcomeChat').style.display = 'flex';
+}
+</script>
+
+</body>
+</html>
