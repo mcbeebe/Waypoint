@@ -107,7 +107,6 @@ export async function streamNavigatorResponse(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   context: ChatContext,
   ragContext: string,
-  _apiKey: string, // kept for backward compat — ignored, auth via JWT
   callbacks: StreamCallbacks
 ): Promise<void> {
   const systemPrompt = buildSystemPrompt(context, ragContext);
@@ -186,8 +185,7 @@ export async function streamNavigatorResponse(
 export async function getNavigatorResponse(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   context: ChatContext,
-  ragContext: string,
-  _apiKey: string
+  ragContext: string
 ): Promise<string> {
   const systemPrompt = buildSystemPrompt(context, ragContext);
   const headers = await getAuthHeaders();
@@ -234,8 +232,7 @@ export async function getNavigatorResponse(
  * Uses a fast model (Haiku) via the Edge Function.
  */
 export async function classifyIntent(
-  query: string,
-  _apiKey: string
+  query: string
 ): Promise<{ sources: string[]; suggestedTone: ToneLevel }> {
   const classificationPrompt = `You are a classifier for a California disability services app. Classify this parent's question.
 

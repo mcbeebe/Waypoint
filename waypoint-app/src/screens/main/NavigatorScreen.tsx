@@ -28,10 +28,6 @@ import { useToast } from '@/components/Toast';
 import type { ChatContext, ToneLevel } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
-/** Env keys — in production these come from secure storage / env vars */
-const ANTHROPIC_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
-const OPENAI_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY ?? '';
-
 /** Tone display labels */
 const TONE_LABELS: Record<ToneLevel, { label: string; emoji: string; color: string }> = {
   collaborative: { label: 'Collaborative', emoji: '🤝', color: '#2E9E8F' },
@@ -78,8 +74,6 @@ export default function NavigatorScreen() {
   } = useChat({
     familyId: family?.id ?? '',
     context: chatContext,
-    anthropicKey: ANTHROPIC_KEY,
-    openAiKey: OPENAI_KEY,
   });
 
   const { createAction } = useActions({ familyId: family?.id ?? '' });

@@ -23,12 +23,10 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
  * Generate an embedding vector for a single text string.
  * Routes through Edge Function — no API key needed client-side.
  * @param text - The text to embed
- * @param _apiKey - Ignored (kept for backward compat — auth via JWT)
  * @returns 1536-dimensional embedding vector
  */
 export async function generateEmbedding(
-  text: string,
-  _apiKey: string
+  text: string
 ): Promise<number[]> {
   try {
     const headers = await getAuthHeaders();
@@ -56,12 +54,10 @@ export async function generateEmbedding(
  * Generate embeddings for multiple texts in a single batch.
  * Routes through Edge Function — no API key needed client-side.
  * @param texts - Array of texts to embed
- * @param _apiKey - Ignored (kept for backward compat — auth via JWT)
  * @returns Array of 1536-dimensional embedding vectors
  */
 export async function generateBatchEmbeddings(
-  texts: string[],
-  _apiKey: string
+  texts: string[]
 ): Promise<number[][]> {
   try {
     const headers = await getAuthHeaders();

@@ -18,15 +18,14 @@ interface RAGResult {
 }
 
 /**
- * Retrieve relevant KB articles for a user query using semantic search
+ * Retrieve relevant KB articles for a user query using semantic search.
+ * Embeddings generated via Edge Function — no API key needed client-side.
  * @param query - The user's question
- * @param openAiKey - OpenAI API key for embedding the query
  * @param options - Search configuration
  * @returns Formatted context string + source metadata
  */
 export async function retrieveContext(
   query: string,
-  openAiKey: string,
   options: {
     matchCount?: number;
     matchThreshold?: number;
@@ -42,7 +41,7 @@ export async function retrieveContext(
 
   try {
     // Step 1: Generate embedding for the query
-    const queryEmbedding = await generateEmbedding(query, openAiKey);
+    const queryEmbedding = await generateEmbedding(query);
 
     // Step 2: Call the similarity search RPC function
     const { data, error } = await supabase.rpc('match_knowledge', {
@@ -79,7 +78,6 @@ export async function retrieveContext(
  */
 export async function hybridRetrieveContext(
   query: string,
-  openAiKey: string,
   options: {
     matchCount?: number;
     semanticWeight?: number;
@@ -96,7 +94,7 @@ export async function hybridRetrieveContext(
   } = options;
 
   try {
-    const queryEmbedding = await generateEmbedding(query, openAiKey);
+    const queryEmbedding = await generateEmbedding(query);
 
     const { data, error } = await supabase.rpc('hybrid_search_knowledge', {
       query_embedding: queryEmbedding,

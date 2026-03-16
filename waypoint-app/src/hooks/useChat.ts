@@ -22,8 +22,6 @@ export interface UIMessage {
 interface UseChatOptions {
   familyId: string;
   context: ChatContext;
-  anthropicKey: string;
-  openAiKey: string;
 }
 
 interface UseChatReturn {
@@ -39,7 +37,7 @@ interface UseChatReturn {
 }
 
 export function useChat(options: UseChatOptions): UseChatReturn {
-  const { familyId, context, anthropicKey, openAiKey } = options;
+  const { familyId, context } = options;
 
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -121,10 +119,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       await persistMessage(sid, 'user', text.trim());
 
       // Step 1: Classify intent (fast, uses Haiku)
-      const classification = await classifyIntent(text, anthropicKey);
+      const classification = await classifyIntent(text);
 
       // Step 2: Retrieve relevant KB articles via RAG
-      const ragResult = await retrieveContext(text, openAiKey, {
+      const ragResult = await retrieveContext(text, {
         matchCount: 5,
         filterSource: classification.sources[0] ?? null,
       });
@@ -142,7 +140,6 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         apiMessages,
         currentContext,
         ragResult.context,
-        anthropicKey,
         {
           onToken: (token) => {
             setMessages((prev) =>
@@ -199,7 +196,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       );
       setIsLoading(false);
     }
-  }, [isLoading, sessionId, messages, toneLevel, context, anthropicKey, openAiKey, createSession, persistMessage]);
+  }, [isLoading, sessionId, messages, toneLevel, context, createSession, persistMessage]);
 
   /** Load an existing chat session */
   const loadSession = useCallback(async (sid: string) => {
