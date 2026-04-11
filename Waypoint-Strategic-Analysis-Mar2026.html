@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waypoint Strategic Analysis &amp; Competitive Assessment - March 2026</title>
+  <style>
+    /* Reset & Base */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #2d2d2d;
+      background: #f5f6fa;
+      padding: 0;
+    }
+    .page-wrapper {
+      max-width: 900px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+      padding: 56px 64px;
+    }
+    @media (max-width: 768px) {
+      .page-wrapper { padding: 28px 20px; margin: 16px; }
+    }
+
+    /* Cover / Title Block */
+    .cover {
+      text-align: center;
+      padding: 48px 0 40px;
+      border-bottom: 3px solid #1a3a5c;
+      margin-bottom: 40px;
+    }
+    .cover .brand {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: 6px;
+      color: #1a3a5c;
+      margin-bottom: 8px;
+    }
+    .cover .subtitle {
+      font-size: 20px;
+      color: #4a6785;
+      margin-bottom: 4px;
+    }
+    .cover .sub2 {
+      font-size: 16px;
+      color: #6a8aaa;
+      margin-bottom: 24px;
+    }
+    .cover .meta {
+      font-size: 14px;
+      color: #888;
+      line-height: 1.8;
+    }
+    .cover .confidential {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 4px 16px;
+      background: #ffeaea;
+      color: #c0392b;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 2px;
+      border-radius: 4px;
+    }
+
+    /* Table of Contents */
+    .toc {
+      background: #f8f9fc;
+      border: 1px solid #e0e4ec;
+      border-radius: 6px;
+      padding: 24px 32px;
+      margin-bottom: 40px;
+    }
+    .toc h2 {
+      font-size: 18px;
+      color: #1a3a5c;
+      margin-bottom: 12px;
+    }
+    .toc ol {
+      padding-left: 20px;
+    }
+    .toc li {
+      margin-bottom: 6px;
+    }
+    .toc a {
+      color: #2a6496;
+      text-decoration: none;
+    }
+    .toc a:hover { text-decoration: underline; }
+
+    /* Headings */
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a3a5c;
+      margin: 48px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #dce3ed;
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a3a5c;
+      margin: 36px 0 12px;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c5282;
+      margin: 28px 0 10px;
+    }
+
+    /* Paragraphs */
+    p { margin-bottom: 14px; }
+
+    /* Key Findings Callout */
+    .callout {
+      background: #eef4fb;
+      border-left: 5px solid #2a6496;
+      border-radius: 0 6px 6px 0;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .callout h3 {
+      margin: 0 0 10px;
+      color: #1a3a5c;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+    .callout ul { margin: 0; padding-left: 20px; }
+    .callout li { margin-bottom: 8px; }
+
+    /* Remember / Bottom Callout */
+    .callout-bottom {
+      background: #fff8e6;
+      border-left: 5px solid #d4a017;
+      border-radius: 0 6px 6px 0;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .callout-bottom strong { color: #8a6d00; }
+
+    /* Lists */
+    ul, ol { margin: 8px 0 16px 24px; }
+    li { margin-bottom: 8px; }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 14px;
+    }
+    thead th {
+      background: #1a3a5c;
+      color: #fff;
+      font-weight: 600;
+      padding: 10px 14px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #e6e9ef;
+      vertical-align: top;
+    }
+    tbody tr:nth-child(even) { background: #f8f9fc; }
+    tbody tr:hover { background: #eef2f8; }
+    /* First column bold in certain tables */
+    .feature-table td:first-child { font-weight: 600; color: #1a3a5c; }
+
+    /* SWOT Grid */
+    .swot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+    @media (max-width: 600px) {
+      .swot-grid { grid-template-columns: 1fr; }
+    }
+    .swot-card {
+      border-radius: 6px;
+      padding: 20px;
+    }
+    .swot-card h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      letter-spacing: 1px;
+    }
+    .swot-card ul { margin: 0; padding-left: 18px; }
+    .swot-card li { margin-bottom: 6px; font-size: 14px; }
+    .swot-strengths { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .swot-strengths h3 { color: #2e7d32; }
+    .swot-weaknesses { background: #fce4ec; border: 1px solid #ef9a9a; }
+    .swot-weaknesses h3 { color: #c62828; }
+    .swot-opportunities { background: #e3f2fd; border: 1px solid #90caf9; }
+    .swot-opportunities h3 { color: #1565c0; }
+    .swot-threats { background: #fff3e0; border: 1px solid #ffcc80; }
+    .swot-threats h3 { color: #e65100; }
+
+    /* Bottom-line highlight */
+    .bottom-line {
+      background: #1a3a5c;
+      color: #fff;
+      padding: 24px 28px;
+      border-radius: 6px;
+      margin: 32px 0;
+      font-size: 15px;
+      line-height: 1.8;
+    }
+    .bottom-line strong { color: #7fc4fd; }
+
+    /* Utility */
+    strong { color: #1a3a5c; }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="brand">WAYPOINT</div>
+    <div class="subtitle">Strategic Analysis &amp; Competitive Assessment</div>
+    <div class="sub2">GAS MVP vs. Waypoint 2.0 PRD</div>
+    <div class="meta">
+      Prepared for: Mike Beebe<br>
+      Director of Asset Management, King Energy<br>
+      March 5, 2026
+    </div>
+    <div class="confidential">CONFIDENTIAL</div>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#exec-summary">Executive Summary</a></li>
+      <li><a href="#feature-comparison">GAS MVP vs. Waypoint 2.0: Feature Comparison</a></li>
+      <li><a href="#gap-analysis">Gap Analysis: MVP to 2.0</a></li>
+      <li><a href="#swot">SWOT Analysis</a></li>
+      <li><a href="#competitive">Competitive Market Analysis</a></li>
+      <li><a href="#moat">Building a Defensible Moat</a></li>
+      <li><a href="#parent-impact">Maximizing Parent Impact</a></li>
+      <li><a href="#monetization">Monetization Strategy</a></li>
+      <li><a href="#recommendations">Strategic Recommendations</a></li>
+      <li><a href="#risk">Risk Assessment &amp; Mitigation</a></li>
+      <li><a href="#conclusion">Conclusion &amp; Next Steps</a></li>
+    </ol>
+  </div>
+
+  <!-- EXECUTIVE SUMMARY -->
+  <h1 id="exec-summary">Executive Summary</h1>
+  <p>This document provides a comprehensive strategic analysis comparing Waypoint's current Google Apps Script (GAS) MVP against the Waypoint 2.0 Product Requirements Document, evaluates the competitive landscape, and provides actionable recommendations for building a defensible moat, maximizing parent impact, and generating sustainable revenue.</p>
+
+  <div class="callout">
+    <h3>KEY FINDINGS</h3>
+    <ul>
+      <li><strong>GAS MVP is remarkably feature-complete:</strong> 12 sprints, 31 features, 49 KB articles, 3 languages, WCAG AA compliance, 1,000+ QA tests</li>
+      <li><strong>Waypoint 2.0 adds 7 major new capabilities:</strong> IEP document intelligence, calendar sync, community forum, provider portal, financial tracker, document vault, co-parent coordination</li>
+      <li><strong>No direct AI competitor exists:</strong> Undivided ($9.4M raised) relies on human navigators. Eleplan ($1M pre-seed) focuses on care planning, not benefits navigation.</li>
+      <li><strong>Market timing is ideal:</strong> Autism prevalence at 1 in 31, CA DDS budget $18.7B, Federal Medicaid cuts creating urgency, 39K new RC clients/year</li>
+      <li><strong>Revenue potential:</strong> $318K-$500K Year 1 ARR across 3 streams (consumer subs + RC reimbursement + B2B), with 75-90% gross margins</li>
+    </ul>
+  </div>
+
+  <!-- FEATURE COMPARISON -->
+  <h1 id="feature-comparison">GAS MVP vs. Waypoint 2.0: Feature Comparison</h1>
+
+  <h2>What the GAS MVP Has Already Built</h2>
+  <p>The GAS MVP represents 12 completed sprints with an extraordinary feature set built on Google Apps Script. It far exceeded initial projections, delivering in approximately 6 hours what was planned for 50 hours of development.</p>
+
+  <h3>Core Engine Capabilities</h3>
+  <table class="feature-table">
+    <thead>
+      <tr><th>Feature Area</th><th>Status</th><th>Depth</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>AI Navigator Chat</td><td>Complete</td><td>7 category prompts, tone calibration, context injection</td></tr>
+      <tr><td>Knowledge Base</td><td>49 articles</td><td>Entity Navigation Matrix v9.4, 73 entity rows, 14 sheets</td></tr>
+      <tr><td>Action Plan Engine</td><td>Complete</td><td>Priority cards, save-from-chat, follow-ups, edit modal</td></tr>
+      <tr><td>Draft Generation</td><td>12 templates</td><td>Appeals, IEP emails, RC requests, complaints, assessments</td></tr>
+      <tr><td>Email Analyzer</td><td>Complete</td><td>Red flags, action items, rights at stake, draft responses</td></tr>
+      <tr><td>Tone Calibration</td><td>Complete</td><td>Collaborative, assertive, adversarial with user override</td></tr>
+      <tr><td>Internationalization</td><td>3 languages</td><td>English, Spanish, Vietnamese (1,000+ keys)</td></tr>
+      <tr><td>Agency Directory</td><td>Complete</td><td>21 RCs, school districts, insurance, SSA, IHSS, DOR</td></tr>
+      <tr><td>Accessibility (WCAG AA)</td><td>Complete</td><td>Focus indicators, skip nav, 44px targets, high contrast</td></tr>
+      <tr><td>QA Testing Framework</td><td>1,000+ tests</td><td>Classification accuracy, tone detection, response quality</td></tr>
+      <tr><td>Journey Maps</td><td>7 diagnoses</td><td>Autism, Down syndrome, CP, ADHD, SLD, SLI, ID</td></tr>
+    </tbody>
+  </table>
+
+  <h2>What Waypoint 2.0 Adds</h2>
+  <p>The 2.0 PRD proposes a mobile-first React Native app with 16 screens, adding significant new capabilities beyond the chat-driven MVP.</p>
+
+  <table>
+    <thead>
+      <tr><th>New Feature</th><th>Value to Parents</th><th>Revenue Impact</th><th>Build Complexity</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>IEP Document Intelligence</strong></td><td>AI reads IEPs, flags weak goals, suggests improvements</td><td>High: Premium differentiator</td><td>High: OCR + NLP pipeline</td></tr>
+      <tr><td><strong>Calendar + Deadline Engine</strong></td><td>Auto-tracks legal deadlines, syncs with Google/Apple</td><td>Medium: Reduces churn</td><td>Medium: API integrations</td></tr>
+      <tr><td><strong>Community Forum</strong></td><td>Peer support by diagnosis, local groups, DMs</td><td>High: Engagement + retention</td><td>High: Moderation needed</td></tr>
+      <tr><td><strong>Provider Portal (B2B)</strong></td><td>Verified providers see shared docs, coordinate care</td><td>High: New revenue stream</td><td>High: Multi-tenant arch</td></tr>
+      <tr><td><strong>Financial Tracker</strong></td><td>Expense logging, reimbursement tracking, tax optimization</td><td>High: Unique differentiator</td><td>Medium: Data entry UX</td></tr>
+      <tr><td><strong>Document Vault</strong></td><td>Upload IEPs, evaluations, insurance docs in one place</td><td>Medium: Stickiness driver</td><td>Medium: Storage + parsing</td></tr>
+      <tr><td><strong>Co-Parent Coordination</strong></td><td>Shared calendar, split responsibilities, multi-user</td><td>Low-Med: Family plan upsell</td><td>Medium: Auth + sharing</td></tr>
+    </tbody>
+  </table>
+
+  <!-- GAP ANALYSIS -->
+  <h1 id="gap-analysis">Gap Analysis: MVP to 2.0</h1>
+
+  <h2>Technical Gaps</h2>
+  <table>
+    <thead>
+      <tr><th>Gap</th><th>Current State (MVP)</th><th>Required for 2.0</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Runtime</strong></td><td>GAS: 30-sec timeout, 90 min/day limit</td><td>Supabase + Edge Functions, no execution limits</td></tr>
+      <tr><td><strong>Database</strong></td><td>Google Sheets: slow, no concurrency, row limits</td><td>Postgres + pgvector: scalable, concurrent, RAG-ready</td></tr>
+      <tr><td><strong>Authentication</strong></td><td>None: anyone with URL can access</td><td>Supabase Auth: Apple Sign-In, OAuth, session persistence</td></tr>
+      <tr><td><strong>Frontend</strong></td><td>Single HTML file (7,200 lines)</td><td>React Native + Expo: native iOS/Android, component arch</td></tr>
+      <tr><td><strong>Data Privacy</strong></td><td>PII in localStorage unencrypted, API key exposure</td><td>RLS, encryption at rest/transit, HIPAA pathway</td></tr>
+      <tr><td><strong>Scalability</strong></td><td>Hits wall at 50-100 daily users</td><td>Designed for 10,000+ users with caching layer</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Product Gaps</h2>
+  <ul>
+    <li><strong>Mobile App:</strong> MVP is web-only; 2.0 targets iOS App Store with React Native</li>
+    <li><strong>Push Notifications:</strong> MVP has email reminders; 2.0 adds real-time push for deadlines</li>
+    <li><strong>Offline Support:</strong> MVP requires internet; 2.0 plans offline action plan access</li>
+    <li><strong>Document Intelligence:</strong> MVP analyzes pasted text; 2.0 uploads and parses actual IEP/IPP PDFs</li>
+    <li><strong>Community Features:</strong> MVP is single-user; 2.0 adds peer forums, provider coordination, co-parenting</li>
+    <li><strong>Financial Tracking:</strong> MVP has no expense tracking; 2.0 adds full reimbursement + tax optimization</li>
+  </ul>
+
+  <h2>What Transfers Directly</h2>
+  <p>Nothing built in the GAS MVP is throwaway. These assets transfer directly to the 2.0 architecture:</p>
+  <ul>
+    <li>49 Knowledge Base articles (the core intellectual property)</li>
+    <li>Entity Navigation Matrix v9.4 (73 entities, 14 sheets of structured data)</li>
+    <li>7 diagnosis-specific journey maps with milestones and legal timelines</li>
+    <li>12 draft templates with tone calibration logic</li>
+    <li>Question classification system (7 categories + urgency + emotional state)</li>
+    <li>1,000+ QA test cases (portable to any testing framework)</li>
+    <li>1,000+ i18n translation keys (Spanish + Vietnamese)</li>
+    <li>All system prompts and tone calibration rules</li>
+  </ul>
+
+  <!-- SWOT -->
+  <h1 id="swot">SWOT Analysis</h1>
+  <h2>Waypoint 2.0 SWOT</h2>
+
+  <div class="swot-grid">
+    <div class="swot-card swot-strengths">
+      <h3>STRENGTHS</h3>
+      <ul>
+        <li>AI-agent model: 10-100x more scalable than human navigators at near-zero marginal cost</li>
+        <li>5-10x cheaper than Undivided ($9.99-$19.99/mo vs. $115/mo for comparable 1:1 support)</li>
+        <li>AI does the work: drafts emails, writes appeals, redlines IEPs (not just guidance)</li>
+        <li>Deep legal KB: Lanterman Act, IDEA, SSI, all 21 CA RC Purchase of Service Standards</li>
+        <li>3 revenue streams: consumer subs + RC reimbursement + B2B provider fees</li>
+        <li>California beachhead: 1 in 19 autism prevalence, $18.7B DDS budget</li>
+        <li>Data moat compounds: which strategies work for which RCs/insurers becomes proprietary</li>
+        <li>Multi-language: English, Spanish, Vietnamese from day one</li>
+      </ul>
+    </div>
+    <div class="swot-card swot-weaknesses">
+      <h3>WEAKNESSES</h3>
+      <ul>
+        <li>Solo founder bootstrapping: limited bandwidth across dev, sales, partnerships, content</li>
+        <li>AI hallucination risk: disability law is high-stakes; one bad citation erodes trust</li>
+        <li>Cold start problem: AI quality depends on KB depth; early users may hit gaps</li>
+        <li>No clinical credentials: must disclaim legal/medical advice</li>
+        <li>RC reimbursement unproven: codes exist but Waypoint not yet approved by any RC</li>
+        <li>Third-party AI dependency: API costs, rate limits, model changes affect quality/margins</li>
+        <li>Consumer app discovery: high CAC without marketing spend</li>
+      </ul>
+    </div>
+    <div class="swot-card swot-opportunities">
+      <h3>OPPORTUNITIES</h3>
+      <ul>
+        <li>Federal Medicaid cuts ($698B) create urgent demand for navigation tools</li>
+        <li>Autism prevalence surging: 1 in 31 and accelerating (hundreds of thousands of new families/year)</li>
+        <li>CA RCs adding 39K new individuals/year: organic beachhead growth</li>
+        <li>Multi-state expansion: NY ($13.1B OPWDD), TX, IL have identical pain points</li>
+        <li>RC reimbursement as acquisition channel: families get Waypoint free, RC pays $50-150/mo</li>
+        <li>SDP growth: 6K to 9K families need spending/compliance tools</li>
+        <li>B2B provider channel: therapists, attorneys, financial planners as referral partners</li>
+      </ul>
+    </div>
+    <div class="swot-card swot-threats">
+      <h3>THREATS</h3>
+      <ul>
+        <li>Undivided pivots to AI: has $9.4M raised, existing content + customer base</li>
+        <li>Big tech entry: Google, Apple, Amazon Health with massive distribution</li>
+        <li>Regulatory risk: AI legal citations deemed unauthorized practice of law</li>
+        <li>Lanterman Act erosion: federal cuts weaken CA entitlements, reducing value unlocked</li>
+        <li>RC gatekeeping: Regional Centers refuse to reimburse AI-based tools</li>
+        <li>Parent trust barrier: burned-out families skeptical of yet another app</li>
+        <li>AI cost inflation: API price increases threaten $9.99/mo sustainability</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- COMPETITIVE -->
+  <h1 id="competitive">Competitive Market Analysis</h1>
+
+  <h2>Competitive Landscape Overview</h2>
+  <p>The disability navigation space is fragmented across human-service models, content libraries, provider software, and generic directories. No existing solution satisfies all four critical dimensions: disability-specific, action-oriented, full-lifecycle, and affordable. Waypoint is positioned to be the first AI-native platform that does.</p>
+
+  <table>
+    <thead>
+      <tr><th>Capability</th><th>Waypoint</th><th>Undivided</th><th>Eleplan</th><th>Findhelp</th><th>Understood</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>AI-Powered Navigation</strong></td><td>Yes (Claude API)</td><td>No (human navigators)</td><td>Yes (care planning)</td><td>No (directory)</td><td>No (content library)</td></tr>
+      <tr><td><strong>Systems Covered</strong></td><td>RC, IEP, IPP, Medi-Cal, SSI, IHSS, SDP</td><td>RC, IEP, Medi-Cal</td><td>Care plans only</td><td>Generic social svcs</td><td>Learning disabilities</td></tr>
+      <tr><td><strong>Action Execution</strong></td><td>Drafts emails, appeals, letters</td><td>Guidance only</td><td>AI plan generation</td><td>Resource matching</td><td>Information only</td></tr>
+      <tr><td><strong>24/7 Availability</strong></td><td>Yes</td><td>No (business hours)</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td><strong>Multi-Language</strong></td><td>EN, ES, VI</td><td>EN, ES</td><td>EN only</td><td>Multiple</td><td>EN, ES</td></tr>
+      <tr><td><strong>Pricing</strong></td><td>$9.99-$19.99/mo</td><td>$9-$115/mo</td><td>$15/mo</td><td>Free</td><td>Free (nonprofit)</td></tr>
+      <tr><td><strong>Scalability</strong></td><td>Unlimited (AI)</td><td>Limited (humans)</td><td>Scalable (AI)</td><td>Scalable</td><td>Scalable (content)</td></tr>
+      <tr><td><strong>Financial Tracking</strong></td><td>Yes (2.0)</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Competitor Deep Dives</h2>
+
+  <h3>Undivided (Primary Competitor)</h3>
+  <ul>
+    <li><strong>Model:</strong> Human parent-navigators trained in CA disability systems</li>
+    <li><strong>Funding:</strong> $9.4M raised (Barrel, Red Sea, StartUp Health)</li>
+    <li><strong>Pricing:</strong> Platform $9/mo (content library), Platform Plus $49/mo (messaging), Navigator $115/mo (1:1 dedicated)</li>
+    <li><strong>Key Insight:</strong> The $9/mo comparison is misleading. Undivided's $9 tier is a content library. Waypoint's $9.99 Plus is a full AI agent that reads IEPs, drafts appeals, and identifies missed benefits. The correct comparison is Waypoint Plus ($9.99) vs. Undivided Navigator ($115/mo).</li>
+    <li><strong>Vulnerability:</strong> Scale economics. Each Undivided Navigator serves 30-50 families. Reaching 10,000 families requires 200-300 Navigators. Waypoint serves the 10,000th family at the same marginal cost as the 10th.</li>
+  </ul>
+
+  <h3>Eleplan (Emerging Competitor)</h3>
+  <ul>
+    <li><strong>Model:</strong> AI-powered care planning platform for families and providers</li>
+    <li><strong>Funding:</strong> Closing $1M pre-seed (as of early 2026)</li>
+    <li><strong>Pricing:</strong> Free tier + $15/mo paid</li>
+    <li><strong>Differentiator:</strong> HIPAA-compliant vault, medication tracking, CES 2025 Innovation recognition</li>
+    <li><strong>Gap vs. Waypoint:</strong> Organizes care information but does not navigate benefits systems (RC, IEP, SSI, IHSS). No California-specific legal knowledge. No multi-language support.</li>
+  </ul>
+
+  <h3>Other Players</h3>
+  <ul>
+    <li><strong>Findhelp (Aunt Bertha):</strong> National social services directory ($54M raised). Generic, no AI, no disability specialization. Passive resource matching.</li>
+    <li><strong>Joshin (now RethinkFirst):</strong> Acquired Aug 2025. Employer-focused disability support. B2B model, not family navigation.</li>
+    <li><strong>Exceptional Lives:</strong> Nonprofit with 2,500+ resources and 70M+ reach. Content library, not AI navigation. No California-specific systems guidance.</li>
+    <li><strong>Playground IEP:</strong> Free AI IEP writing tool for teachers. School-focused, not parent-facing. Limited to IEP workflows.</li>
+    <li><strong>SpedTrack:</strong> School district IEP management software. Enterprise B2B, not consumer. No broader disability navigation.</li>
+    <li><strong>Therap Services:</strong> Provider documentation platform (80+ modules). Agency software, not family-facing.</li>
+  </ul>
+
+  <h3>The Competitive Gap</h3>
+  <p>No existing solution satisfies all four critical dimensions simultaneously:</p>
+  <table>
+    <thead>
+      <tr><th>Disability-Specific</th><th>Action-Oriented</th><th>Full-Lifecycle</th><th>Affordable</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Not Findhelp or generic health tools</td><td>Not content libraries or directories</td><td>Not single-system IEP or RC tools</td><td>Not $99+/mo human navigators</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Waypoint is the only platform designed to satisfy all four.</strong> Undivided proved the market. Waypoint is built to serve it at scale.</p>
+
+  <!-- MOAT -->
+  <h1 id="moat">Building a Defensible Moat</h1>
+  <p>A sustainable competitive advantage requires multiple reinforcing layers. Here are the seven moat strategies, ranked by defensibility and feasibility:</p>
+
+  <h3>1. Proprietary Outcome Data (Strongest Moat)</h3>
+  <ul>
+    <li><strong>What:</strong> Every family interaction generates structured data on which strategies work for which Regional Centers, insurers, diagnoses, and demographics</li>
+    <li><strong>Why it matters:</strong> Over time, Waypoint learns that RCEB approves ABA faster with IPP amendment language X, while NLACRC requires documentation Y. This knowledge cannot be replicated without serving thousands of families.</li>
+    <li><strong>Defensibility:</strong> Extremely high. This data does not exist anywhere. Facebook groups have anecdotal fragments; Waypoint has structured, anonymized, outcome-tracked data across all 21 RCs.</li>
+    <li><strong>Action:</strong> Instrument every action completion, draft usage, and outcome (service approved/denied) from Day 1. Build an anonymous insights engine that feeds back into AI recommendations.</li>
+  </ul>
+
+  <h3>2. Knowledge Base Depth + Legal Precision</h3>
+  <ul>
+    <li><strong>What:</strong> 49 KB articles today; target 150+ covering every RC, diagnosis, and multi-system scenario with exact statute citations (W&amp;I 4646, IDEA 300.303, etc.)</li>
+    <li><strong>Why it matters:</strong> Legal precision is the trust foundation. Parents share Waypoint because it cited the exact law that got their child services. No competitor has RAG-structured, citation-verified disability law content.</li>
+    <li><strong>Action:</strong> Engage disability rights attorneys for quarterly content review. Build a content pipeline with contract KB writers post-MVP. Version-control every article.</li>
+  </ul>
+
+  <h3>3. RC Reimbursement Channel Lock-In</h3>
+  <ul>
+    <li><strong>What:</strong> Get Waypoint listed as an approved vendor under POS codes 371/331 (Parent Education/Support Services) at each Regional Center</li>
+    <li><strong>Why it matters:</strong> Once a family's IPP or SDP spending plan includes Waypoint, switching costs are high. RC coordinators recommend Waypoint by name. This is the zero-CAC acquisition flywheel.</li>
+    <li><strong>Action:</strong> Start with RCEB (home market). Document outcomes rigorously. Use early success stories to expand to all 21 RCs. Target Service Coordinator champions.</li>
+  </ul>
+
+  <h3>4. Community Network Effects</h3>
+  <ul>
+    <li><strong>What:</strong> Diagnosis-specific forums, local parent groups, provider-family coordination within Waypoint</li>
+    <li><strong>Why it matters:</strong> Special needs communities are the most tight-knit and share-aggressive communities on the internet. If parents find their tribe inside Waypoint, switching to a competitor means leaving their support network.</li>
+    <li><strong>Action:</strong> Seed community with power users from Facebook groups. Create diagnosis-specific channels. Add moderation (critical for trust). Launch after core AI navigation is proven.</li>
+  </ul>
+
+  <h3>5. Multi-System Integration Complexity</h3>
+  <ul>
+    <li><strong>What:</strong> Waypoint understands how RC, IEP, insurance, Medi-Cal, IHSS, SSI, and SDP all interact and who pays first</li>
+    <li><strong>Why it matters:</strong> The payer-of-last-resort logic alone saves families thousands. No competitor maps these cross-system interactions. Building this knowledge takes years of research and real-world validation.</li>
+    <li><strong>Action:</strong> Continue deepening the funding waterfall logic. Add outcome tracking for multi-system scenarios. Document the decision trees that generate the most value for families.</li>
+  </ul>
+
+  <h3>6. Provider Marketplace (B2B Lock-In)</h3>
+  <ul>
+    <li><strong>What:</strong> Therapists, attorneys, and financial planners listed in Waypoint's directory, referring clients, and paying for listings</li>
+    <li><strong>Why it matters:</strong> Two-sided marketplace effects: more providers attract more families, and more families attract more providers. Once providers build referral workflows around Waypoint, switching costs are high.</li>
+    <li><strong>Action:</strong> Start with 5 OT/ABA practices. Offer free access for their clients. Build to 25 paying partners by Month 6. Create 'Certified Waypoint Provider' badge program.</li>
+  </ul>
+
+  <h3>7. Tone Calibration IP</h3>
+  <ul>
+    <li><strong>What:</strong> The collaborative-to-assertive-to-adversarial tone system with diagnosis-aware, agency-specific prompt engineering</li>
+    <li><strong>Why it matters:</strong> Parents need different communication styles for different situations. A friendly IEP request vs. a formal 4731 complaint require fundamentally different approaches. This prompt engineering IP is hard to replicate without extensive testing.</li>
+    <li><strong>Action:</strong> Continue refining tone system based on user feedback and outcomes. A/B test tone effectiveness. This is a defensible asset that improves with every interaction.</li>
+  </ul>
+
+  <!-- PARENT IMPACT -->
+  <h1 id="parent-impact">Maximizing Parent Impact</h1>
+  <p>The core question: how can Waypoint help parents the most? Based on the market research, user personas, and caregiver burden data, here are the highest-impact strategies ranked by urgency and feasibility.</p>
+
+  <h3>1. Solve the "I Don't Know What I Don't Know" Problem</h3>
+  <p>The single biggest value Waypoint delivers is revealing benefits families didn't know existed. Research shows families leave tens of thousands of dollars in unclaimed services on the table.</p>
+  <ul>
+    <li><strong>Eligibility engine:</strong> 60-second onboarding reveals 5-15 programs the family qualifies for but hasn't applied to</li>
+    <li><strong>Funding waterfall:</strong> Maps which entity pays first (insurance, Medi-Cal, CCS, then RC) so families don't pay out-of-pocket for covered services</li>
+    <li><strong>Proactive nudges:</strong> "Your child turns 3 in 4 months. Here's what changes and what to file now."</li>
+  </ul>
+
+  <h3>2. Remove Parent Paralysis with Scripts and Drafts</h3>
+  <p>Parents know they need to advocate but freeze when facing bureaucracy. Waypoint's greatest feature is not answers but the exact words to say.</p>
+  <ul>
+    <li><strong>Every action includes a script:</strong> "Call your Service Coordinator and say: 'I am requesting an IPP amendment under W&amp;I Section 4646 to add ABA therapy.'"</li>
+    <li><strong>Draft generation:</strong> 12 templates that produce ready-to-send emails and letters with the family's specific details pre-filled</li>
+    <li><strong>Tone escalation:</strong> Start collaborative. If denied, Waypoint generates an assertive follow-up. If still denied, an adversarial complaint citing specific legal violations.</li>
+  </ul>
+
+  <h3>3. Reduce Caregiver Burnout</h3>
+  <p>33% of informal caregivers experience clinical depression. 1 in 5 are at risk of burnout. Waypoint can directly reduce the administrative burden that drives this.</p>
+  <ul>
+    <li><strong>Deadline tracking:</strong> Auto-calculates every legal deadline (IEP review, insurance appeal window, SSI redetermination) so parents stop worrying about what they're missing</li>
+    <li><strong>Document vault:</strong> One place for IEPs, evaluations, insurance denials. No more frantic searching through email and filing cabinets before meetings</li>
+    <li><strong>Emotional check-ins:</strong> Track frustration levels, offer encouragement, connect to peer support when needed</li>
+  </ul>
+
+  <h3>4. Serve Underserved Families</h3>
+  <p>The equity analysis reveals significant racial/ethnic disparities in RC service distribution. Non-English-speaking and low-income families face the steepest barriers.</p>
+  <ul>
+    <li><strong>Full Spanish + Vietnamese support:</strong> Both UI and AI responses, not just translated labels but culturally appropriate guidance</li>
+    <li><strong>RC POS data transparency:</strong> Show families the Purchase of Service data proving disparities, empowering them to advocate for equitable services</li>
+    <li><strong>RC reimbursement:</strong> Makes Waypoint free for families whose RC covers the cost, removing the financial barrier entirely</li>
+  </ul>
+
+  <h3>5. Bridge the Gap at Key Transitions</h3>
+  <p>Families face the highest stress at age transitions: birth-to-3, 3-to-school, elementary-to-middle, and the critical 18-22 adult transition.</p>
+  <ul>
+    <li><strong>Age-triggered guidance:</strong> Waypoint knows the child's birthday and proactively surfaces what changes and what to do before each transition</li>
+    <li><strong>Transition planning:</strong> DOR vocational services, ABLE accounts, conservatorship alternatives, SDP enrollment</li>
+    <li><strong>Multi-year journey maps:</strong> Visual roadmaps showing where the family is and what's coming next, reducing the overwhelming feeling of an infinite to-do list</li>
+  </ul>
+
+  <!-- MONETIZATION -->
+  <h1 id="monetization">Monetization Strategy</h1>
+  <p>Waypoint has three independent revenue streams that create resilience and compound growth.</p>
+
+  <h2>Revenue Stream 1: Consumer Subscriptions</h2>
+  <table>
+    <thead>
+      <tr><th>Tier</th><th>Price</th><th>Features</th><th>Target Segment</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Free</strong></td><td>$0</td><td>Limited AI Q&amp;A, basic resources, community access</td><td>Awareness + top-of-funnel</td></tr>
+      <tr><td><strong>Plus</strong></td><td>$9.99/mo ($89.99/yr)</td><td>Unlimited AI, expense tracker, vault, deadline alerts, IEP/IPP prep, tax reports</td><td>Newly diagnosed, active advocates</td></tr>
+      <tr><td><strong>Pro</strong></td><td>$19.99/mo ($179.99/yr)</td><td>Plus + insurance appeal gen, multi-child, priority AI, advocate connections</td><td>Multi-child families, complex cases</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>Conversion target:</strong> 8-12% free-to-paid (high urgency drives conversion)</li>
+    <li><strong>Blended ARPU:</strong> ~$12/month</li>
+    <li><strong>Monthly churn:</strong> 3-5% (lifelong need = multi-year retention)</li>
+    <li><strong>LTV:</strong> $300-$500+ per subscriber</li>
+    <li><strong>Gross margin:</strong> 75-85%</li>
+  </ul>
+
+  <h2>Revenue Stream 2: Regional Center Reimbursement</h2>
+  <p>This is the highest-margin, lowest-CAC channel. Regional Centers already reimburse parent education services under POS codes 371/331.</p>
+  <ul>
+    <li><strong>Revenue per family:</strong> $50-$150/month (RC pays, family gets Waypoint free)</li>
+    <li><strong>Gross margin:</strong> 90%+ (near-zero marginal cost to serve)</li>
+    <li><strong>CAC:</strong> Approaches $0 (RC Service Coordinators refer families directly)</li>
+    <li><strong>Validation:</strong> Undivided already uses this channel successfully. The precedent exists.</li>
+    <li><strong>Strategy:</strong> Start with RCEB (East Bay). Document outcomes rigorously. Expand to all 21 RCs with coordinator-champion model.</li>
+  </ul>
+
+  <h2>Revenue Stream 3: B2B Provider Marketplace</h2>
+  <ul>
+    <li><strong>Provider listings:</strong> $99-$299/month for ABA practices, OT/PT, speech therapists</li>
+    <li><strong>Professional services:</strong> Special education attorneys, disability financial planners, trust attorneys</li>
+    <li><strong>ARPU:</strong> $1,800-$3,600/year per provider partner</li>
+    <li><strong>Network effect:</strong> More providers attract more families; more families attract more providers</li>
+  </ul>
+
+  <h2>Financial Projections Summary</h2>
+  <table>
+    <thead>
+      <tr><th>Metric</th><th>M1-2</th><th>M3-4</th><th>M5-6</th><th>M7-8</th><th>M11-12</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Registered Users</strong></td><td>200</td><td>800</td><td>2,000</td><td>4,000</td><td>10,000</td></tr>
+      <tr><td><strong>Paid Subscribers</strong></td><td>0</td><td>80</td><td>220</td><td>440</td><td>1,100</td></tr>
+      <tr><td><strong>Subscription MRR</strong></td><td>$0</td><td>$960</td><td>$2,640</td><td>$5,280</td><td>$13,200</td></tr>
+      <tr><td><strong>B2B Partners</strong></td><td>0</td><td>3</td><td>8</td><td>15</td><td>30</td></tr>
+      <tr><td><strong>Total MRR</strong></td><td>$0</td><td>$1,410</td><td>$4,040</td><td>$7,980</td><td>$18,600</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>Year 1 Revenue:</strong> $130K-$180K</li>
+    <li><strong>Year 1 Costs:</strong> &lt;$15K (infrastructure + content)</li>
+    <li><strong>Year 1 Net Margin:</strong> &gt;85% by Month 12</li>
+    <li><strong>Year 2 ARR Target:</strong> $2.7M-$3.5M (Series A territory)</li>
+    <li><strong>Year 3 ARR Target:</strong> $10M-$14M</li>
+  </ul>
+
+  <!-- RECOMMENDATIONS -->
+  <h1 id="recommendations">Strategic Recommendations</h1>
+
+  <h3>Priority 1: Ship the Mobile App (Weeks 1-8)</h3>
+  <p>The GAS MVP proved the concept. Now the 2.0 React Native app must ship to reach families where they are: on their phones, at 11pm, the night before an IEP meeting.</p>
+  <ul>
+    <li>Port the AI Navigator, action plan engine, and draft generator first (core value)</li>
+    <li>Add Apple Sign-In + Supabase Auth (table stakes for App Store)</li>
+    <li>Migrate KB articles and prompts to Supabase + pgvector (RAG architecture)</li>
+    <li>Launch on TestFlight with 100 beta families from Facebook groups</li>
+  </ul>
+
+  <h3>Priority 2: Prove RC Reimbursement (Weeks 5-16)</h3>
+  <p>This is the single most important business validation. If RCs will pay for Waypoint, the business model is proven and CAC drops to near-zero.</p>
+  <ul>
+    <li>Document outcomes from beta testers (hours saved, services obtained, appeals won)</li>
+    <li>Create one-pager for Service Coordinators explaining Waypoint's value</li>
+    <li>Secure pilot agreement with RCEB for 50-100 families</li>
+    <li>Build RC admin dashboard showing family usage and outcomes</li>
+  </ul>
+
+  <h3>Priority 3: Build the Data Moat (Ongoing)</h3>
+  <p>Start collecting structured outcome data from Day 1. This is the long-term competitive advantage that compounds over time.</p>
+  <ul>
+    <li>Instrument every action completion, draft usage, and service outcome</li>
+    <li>Build anonymous insights engine ("Families at RCEB who used script X got approved 73% of the time")</li>
+    <li>Create quarterly outcome reports for RC partners and investors</li>
+  </ul>
+
+  <h3>Priority 4: Expand KB to 150+ Articles (Weeks 9-26)</h3>
+  <ul>
+    <li>Cover all 21 Regional Centers with RC-specific guides (forms, processes, culture)</li>
+    <li>Add advanced topics: appeals, multi-system scenarios, special needs trusts, ABLE accounts</li>
+    <li>Engage disability rights attorney for quarterly content review</li>
+    <li>Build content pipeline with contract KB writers</li>
+  </ul>
+
+  <h3>Priority 5: Launch Community (Weeks 17-26)</h3>
+  <p>Community is the retention and engagement multiplier. But only launch after core AI navigation is proven.</p>
+  <ul>
+    <li>Seed with power users from Facebook groups (they're already looking for a better platform)</li>
+    <li>Create diagnosis-specific channels (autism, ADHD, Down syndrome, etc.)</li>
+    <li>Add moderation tooling (critical for trust in a vulnerable community)</li>
+    <li>Enable provider participation (verified badge, Q&amp;A, not advertising)</li>
+  </ul>
+
+  <!-- RISK -->
+  <h1 id="risk">Risk Assessment &amp; Mitigation</h1>
+  <table>
+    <thead>
+      <tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th><th>Contingency</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>AI hallucination in legal domain</strong></td><td>Medium</td><td>Critical</td><td>RAG grounds responses in verified KB with citations. Strict guardrails. Disclaimers.</td><td>Human review queue for flagged responses. Beta with attorneys.</td></tr>
+      <tr><td><strong>Undivided pivots to AI</strong></td><td>Medium</td><td>High</td><td>Move fast. 12-18 month head start. Their value prop is human relationships.</td><td>Deepen data moat + RC relationships. Community lock-in.</td></tr>
+      <tr><td><strong>RC reimbursement denied</strong></td><td>Medium</td><td>High</td><td>RC reimbursement is 1 of 3 revenue streams. Consumer subs + B2B are independent.</td><td>Lean into consumer + B2B. Revisit RC after more traction.</td></tr>
+      <tr><td><strong>Regulatory: unauthorized practice of law</strong></td><td>Low</td><td>Critical</td><td>Disclaimers on every response. Cite but don't interpret. Recommend attorney for complex cases.</td><td>Rebrand as 'legal information' not 'legal advice.' Partner with bar associations.</td></tr>
+      <tr><td><strong>Solo founder bandwidth</strong></td><td>High</td><td>Medium</td><td>AI-assisted development (Claude, Copilot). Parallelize content creation after MVP.</td><td>Hire part-time content manager at Month 6. Raise seed if traction proves out.</td></tr>
+      <tr><td><strong>API cost inflation</strong></td><td>Low-Med</td><td>Medium</td><td>Caching layer (60-70% cost reduction). Use Sonnet for most queries, Opus for complex.</td><td>Adjust pricing if needed. Explore fine-tuned smaller models.</td></tr>
+    </tbody>
+  </table>
+
+  <!-- CONCLUSION -->
+  <h1 id="conclusion">Conclusion &amp; Next Steps</h1>
+  <p>Waypoint sits at a rare intersection: a validated market (Undivided proved families pay $99+/month for navigation), no AI-native competitor, surging demand (1 in 31 children with autism and rising), and a solo founder who has already built a feature-complete MVP in a fraction of the expected timeline.</p>
+
+  <p>The path from here is clear:</p>
+  <table>
+    <thead>
+      <tr><th>Timeline</th><th>Action</th><th>Exit Criteria</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Weeks 1-4</strong></td><td>Ship MVP on TestFlight. Port AI engine + action plan to React Native.</td><td>100 beta users, 70%+ retention</td></tr>
+      <tr><td><strong>Weeks 5-8</strong></td><td>Launch monetization. Begin RC outreach at RCEB.</td><td>50 paying customers, RC pilot agreement</td></tr>
+      <tr><td><strong>Weeks 9-16</strong></td><td>Scale KB. Expand to 3-5 RCs. Launch financial tracker.</td><td>500 RC users, 200 paid subs, &gt;$5K MRR</td></tr>
+      <tr><td><strong>Weeks 17-26</strong></td><td>RC blitz (all 21 RCs). Launch community. Optimize pricing.</td><td>2,000 RC users, $30K annual RC revenue</td></tr>
+      <tr><td><strong>Weeks 27-52</strong></td><td>Statewide dominance. Prepare Series A. Multi-state roadmap.</td><td>10,000 users, 1,100 paid, $18.6K MRR</td></tr>
+    </tbody>
+  </table>
+
+  <div class="bottom-line">
+    <strong>The bottom line:</strong> Waypoint has the product, the market, and the mission. The gap is execution speed. Every week of delay is a week Undivided could use to build an AI layer. Move fast, ship the app, prove RC reimbursement, and build the data moat that makes Waypoint irreplaceable.
+  </div>
+
+  <div class="callout-bottom">
+    <strong>REMEMBER:</strong> Undivided proved the market. Eleplan validated AI care planning. Facebook groups proved the demand. Federal Medicaid cuts created the urgency. Waypoint is built to serve this market at scale, with the legal precision families need, the action execution they crave, and the affordability that makes it accessible to everyone. The window is open. Ship it.
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Waypoint 2.0 — Product Requirements Document & Sprint Roadmap</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --navy: #1A3A5C;
+      --teal: #0D9488;
+      --light-gray: #f5f6fa;
+      --white: #ffffff;
+      --dark-text: #1F2937;
+      --light-text: #6B7280;
+      --border: #E5E7EB;
+      --blue: #2563EB;
+      --green: #059669;
+      --purple: #7C3AED;
+      --red: #DC2626;
+      --amber: #D97706;
+      --pink: #EC4899;
+      --cyan: #0891B2;
+      --indigo: #4F46E5;
+      --emerald: #15803D;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      color: var(--dark-text);
+      background-color: var(--light-gray);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      background-color: var(--white);
+    }
+
+    /* Cover Page */
+    .cover {
+      text-align: center;
+      padding: 80px 40px;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--teal) 100%);
+      color: var(--white);
+      border-radius: 8px;
+      margin-bottom: 60px;
+    }
+
+    .cover h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+
+    .cover .subtitle {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 32px;
+      opacity: 0.95;
+    }
+
+    .cover .meta {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      opacity: 0.9;
+    }
+
+    .cover .confidential {
+      display: inline-block;
+      background-color: rgba(255, 255, 255, 0.15);
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin-top: 24px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    /* Navigation */
+    .toc-nav {
+      background-color: var(--navy);
+      padding: 0;
+      border-radius: 8px;
+      margin-bottom: 40px;
+      overflow: hidden;
+    }
+
+    .toc-nav button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 16px 24px;
+      background: none;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--white);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .toc-nav button:last-child {
+      border-bottom: none;
+    }
+
+    .toc-nav button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .toc-nav button::before {
+      content: '→ ';
+      margin-right: 8px;
+      opacity: 0.7;
+    }
+
+    /* Headings */
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-top: 48px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 3px solid var(--teal);
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-top: 32px;
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--dark-text);
+      margin-top: 20px;
+      margin-bottom: 12px;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--dark-text);
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+
+    /* Paragraphs & Lists */
+    p {
+      margin-bottom: 16px;
+      color: var(--dark-text);
+    }
+
+    p.intro {
+      font-size: 1.05rem;
+      color: var(--light-text);
+      font-style: italic;
+      margin-bottom: 24px;
+    }
+
+    ul, ol {
+      margin-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    li {
+      margin-bottom: 8px;
+      color: var(--dark-text);
+    }
+
+    strong {
+      font-weight: 600;
+      color: var(--navy);
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+
+    .badge-blue { background-color: #EFF6FF; color: var(--blue); }
+    .badge-green { background-color: #F0FDF4; color: var(--green); }
+    .badge-purple { background-color: #FAF5FF; color: var(--purple); }
+    .badge-red { background-color: #FEF2F2; color: var(--red); }
+    .badge-amber { background-color: #FFFBEB; color: var(--amber); }
+    .badge-pink { background-color: #FDF2F8; color: var(--pink); }
+    .badge-cyan { background-color: #F0F9FA; color: var(--cyan); }
+    .badge-indigo { background-color: #EEF2FF; color: var(--indigo); }
+    .badge-emerald { background-color: #F0FDF4; color: var(--emerald); }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background-color: var(--navy);
+      color: var(--white);
+      padding: 14px;
+      text-align: left;
+      font-weight: 600;
+      border: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+    }
+
+    tr:nth-child(even) {
+      background-color: #FAFBFC;
+    }
+
+    tr:hover {
+      background-color: #F3F4F6;
+    }
+
+    /* Feature Cards */
+    .feature-card {
+      background-color: var(--white);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--teal);
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+    }
+
+    .feature-card h3 {
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .feature-card .badge {
+      margin-bottom: 0;
+      margin-right: 0;
+    }
+
+    .feature-card .description {
+      color: var(--light-text);
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+
+    /* Phase Sections */
+    .phase-section {
+      margin-bottom: 40px;
+    }
+
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      border-radius: 8px 8px 0 0;
+      color: var(--white);
+      margin-bottom: 0;
+    }
+
+    .phase-header.blue { background-color: var(--blue); }
+    .phase-header.green { background-color: var(--green); }
+    .phase-header.purple { background-color: var(--purple); }
+    .phase-header.red { background-color: var(--red); }
+    .phase-header.amber { background-color: var(--amber); }
+    .phase-header.pink { background-color: var(--pink); }
+    .phase-header.cyan { background-color: var(--cyan); }
+    .phase-header.indigo { background-color: var(--indigo); }
+    .phase-header.emerald { background-color: var(--emerald); }
+
+    .phase-header h2 {
+      margin: 0;
+      color: var(--white);
+      font-size: 1.5rem;
+      flex: 1;
+    }
+
+    .phase-sprint-count {
+      background-color: rgba(255, 255, 255, 0.25);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* Collapsible Details */
+    details {
+      margin-bottom: 24px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    details[open] {
+      border-color: var(--teal);
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+    }
+
+    summary {
+      cursor: pointer;
+      padding: 16px 24px;
+      background-color: #FAFBFC;
+      font-weight: 600;
+      color: var(--navy);
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s;
+    }
+
+    summary:hover {
+      background-color: #F3F4F6;
+    }
+
+    summary::marker {
+      color: var(--teal);
+      font-size: 1.2rem;
+    }
+
+    details[open] > summary {
+      background-color: #F3F4F6;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .details-content {
+      padding: 24px;
+    }
+
+    /* Sprint Table */
+    .sprint-table {
+      font-size: 0.9rem;
+      overflow-x: auto;
+    }
+
+    .sprint-table table {
+      min-width: 100%;
+    }
+
+    .sprint-table th {
+      font-size: 0.85rem;
+    }
+
+    .sprint-table td {
+      font-size: 0.85rem;
+    }
+
+    .sprint-id {
+      font-weight: 600;
+      color: var(--navy);
+      white-space: nowrap;
+    }
+
+    .acceptance-list {
+      margin: 0;
+      padding-left: 16px;
+      font-size: 0.9rem;
+    }
+
+    .acceptance-list li {
+      margin-bottom: 4px;
+    }
+
+    /* Key Requirements / User Stories */
+    .requirements, .user-stories {
+      background-color: #FAFBFC;
+      padding: 16px 20px;
+      border-left: 4px solid var(--teal);
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+
+    .requirements ul, .user-stories ul {
+      margin-left: 20px;
+    }
+
+    .user-stories ul li::before {
+      content: '👤 ';
+      margin-right: 4px;
+    }
+
+    /* Current State Table */
+    .infrastructure-note {
+      background-color: #F0FDF4;
+      border-left: 4px solid var(--green);
+      padding: 16px 20px;
+      border-radius: 4px;
+      margin: 24px 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Risk Table */
+    .risk-critical {
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    .risk-high {
+      color: var(--amber);
+      font-weight: 600;
+    }
+
+    .risk-medium {
+      color: #B45309;
+    }
+
+    .risk-low {
+      color: var(--green);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 32px 20px;
+      border-top: 2px solid var(--border);
+      margin-top: 60px;
+      color: var(--light-text);
+      font-size: 0.9rem;
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background-color: var(--white);
+      }
+
+      .container {
+        padding: 20px 0;
+        max-width: 100%;
+      }
+
+      .toc-nav {
+        page-break-inside: avoid;
+      }
+
+      .phase-section {
+        page-break-inside: avoid;
+      }
+
+      .feature-card {
+        page-break-inside: avoid;
+      }
+
+      details {
+        page-break-inside: avoid;
+      }
+
+      h1 {
+        page-break-after: avoid;
+      }
+
+      h2 {
+        page-break-after: avoid;
+      }
+
+      table {
+        page-break-inside: avoid;
+      }
+
+      .cover {
+        page-break-after: always;
+      }
+
+      @page {
+        size: A4;
+        margin: 2cm;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 16px;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      .cover {
+        padding: 40px 20px;
+      }
+
+      .cover h1 {
+        font-size: 2rem;
+      }
+
+      .cover .subtitle {
+        font-size: 1.1rem;
+      }
+
+      table {
+        font-size: 0.85rem;
+      }
+
+      th, td {
+        padding: 8px 10px;
+      }
+
+      .sprint-table td {
+        word-break: break-word;
+      }
+
+      .phase-header {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .phase-header h2 {
+        margin-bottom: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- COVER PAGE -->
+    <div class="cover">
+      <h1>WAYPOINT 2.0</h1>
+      <div class="subtitle">Product Requirements Document & Sprint Roadmap</div>
+      <div class="meta">Prepared for: Mike Beebe</div>
+      <div class="meta">April 10, 2026</div>
+      <div class="confidential">CONFIDENTIAL</div>
+    </div>
+
+    <!-- TABLE OF CONTENTS -->
+    <nav class="toc-nav">
+      <button onclick="document.getElementById('executive-summary').scrollIntoView()">Executive Summary</button>
+      <button onclick="document.getElementById('current-state').scrollIntoView()">Current State Assessment</button>
+      <button onclick="document.getElementById('features').scrollIntoView()">Feature Requirements</button>
+      <button onclick="document.getElementById('sprint-roadmap').scrollIntoView()">Sprint Roadmap (Phases 1-9)</button>
+      <button onclick="document.getElementById('architecture').scrollIntoView()">Technical Architecture</button>
+      <button onclick="document.getElementById('testing').scrollIntoView()">Testing Strategy</button>
+      <button onclick="document.getElementById('risks').scrollIntoView()">Risk Register</button>
+    </nav>
+
+    <!-- 1. EXECUTIVE SUMMARY -->
+    <section id="executive-summary">
+      <h1>Executive Summary</h1>
+
+      <p class="intro">Waypoint 2.0 builds on 12 completed sprints of the GAS MVP and React Native app foundation. This PRD defines 58 remaining sprints (S13–S70) across 9 phases to deliver all 7 strategic features identified in the March 2026 Strategic Analysis.</p>
+
+      <h3>Current Product Status</h3>
+      <p>The waypoint-app already includes:</p>
+      <ul>
+        <li><strong>Supabase Auth</strong> — Apple Sign-In, Google Sign-In (Calendar + Gmail scopes), Email/Password</li>
+        <li><strong>6-Step Onboarding</strong> — Family setup, child profiles, diagnosis tags, RC selection, contact info</li>
+        <li><strong>AI Navigator</strong> — RAG-powered chat with pgvector embeddings, streaming, tone calibration (collaborative → assertive → adversarial)</li>
+        <li><strong>Action Plan Tracker</strong> — 4-state management (proposed/in-progress/completed/abandoned) with offline queue</li>
+        <li><strong>Calendar & Deadlines</strong> — Appointment scheduling, deadline tracking, push notifications</li>
+        <li><strong>Document Vault</strong> — Supabase Storage integration, file upload/download, document metadata</li>
+        <li><strong>Internationalization</strong> — English, Spanish, Vietnamese (es, vi, en)</li>
+        <li><strong>QA & Stability</strong> — ErrorBoundary, Sentry integration, Toast system, NetworkBanner</li>
+      </ul>
+
+      <h3>Strategic Goals for Waypoint 2.0</h3>
+      <p>Deploy the 7 strategic features below to create a comprehensive, defensible platform that parents can't live without:</p>
+      <ol>
+        <li><strong>Calendar + Google Sync</strong> — Bi-directional sync with Google Calendar</li>
+        <li><strong>Financial Tracker</strong> — Expense management with tax deduction reports</li>
+        <li><strong>Provider & Service Management</strong> — Care team directory, service authorizations</li>
+        <li><strong>IEP Document Intelligence</strong> — PDF OCR, goal parsing, weakness analysis, improvement suggestions</li>
+        <li><strong>Community Forum</strong> — Diagnosis-specific forums, peer support, DMs</li>
+        <li><strong>Co-Parent Coordination</strong> — Multi-user family sharing, task assignment, activity feed</li>
+        <li><strong>Provider Portal (B2B)</strong> — Separate experience for therapists, attorneys, coordinators</li>
+      </ol>
+
+      <p>Plus <strong>Data Moat instrumentation</strong> (anonymous outcomes tracking) and <strong>launch prep</strong> (TestFlight, App Store, accessibility audit).</p>
+
+      <h3>Development Model</h3>
+      <p>Each sprint is scoped for <strong>5–10 minutes of AI-assisted development</strong> using Cowork sessions. All sprints include rigorous <strong>acceptance criteria</strong> and <strong>automated test plans</strong>. This doc is both a contract and a test suite.</p>
+    </section>
+
+    <!-- 2. CURRENT STATE ASSESSMENT -->
+    <section id="current-state">
+      <h1>Current State Assessment</h1>
+
+      <p>Sprints 1–12 have delivered the following:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Sprint</th>
+            <th>Feature</th>
+            <th>Status</th>
+            <th>Key Deliverables</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="sprint-id">S1</td>
+            <td>Core Infrastructure</td>
+            <td>✅ Complete</td>
+            <td>DB schema (11 tables), Supabase RLS, Auth (Apple/Google/Email), Theme tokens</td>
+          </tr>
+          <tr>
+            <td class="sprint-id">S2</td>
+            <td>Core Screens</td>
+            <td>✅ Complete</td>
+            <td>Onboarding (6-step), HomeScreen, WelcomeScreen, Bottom tabs, ProfileScreen</td>
+          </tr>
+          <tr>
+            <td class="sprint-id">S3</td>
+            <td>Action Plan Tracker</td>
+            <td>✅ Complete</td>
+            <td>useActions hook, ActionsScreen, 4-state management, offline queue, action stats</td>
+          </tr>
+          <tr>
+            <td class="sprint-id">S4</td>
+            <td>Calendar & Deadlines</td>
+            <td>✅ Complete</td>
+            <td>CalendarScreen, useAppointments, useDeadlines, push notifications</td>
+          </tr>
+          <tr>
+            <td class="sprint-id">S5</td>
+            <td>Document Vault</td>
+            <td>✅ Complete</td>
+            <td>DocumentsScreen, useDocuments, Supabase Storage, file upload/download</td>
+          </tr>
+          <tr>
+            <td class="sprint-id">S6–7</td>
+            <td>AI Navigator</td>
+            <td>✅ Complete</td>
+            <td>NavigatorScreen, useChat, RAG (pgvector), streaming, tone calibration, Edge Function proxy</td>
+          </tr>
+          <tr>
+            <td class="sprint-id">S8–9</td>
+            <td>Internationalization & Accessibility</td>
+            <td>✅ Complete</td>
+            <td>3 languages (en/es/vi), i18n provider, accessibility utilities</td>
+          </tr>
+          <tr>
+            <td class="sprint-id">S10–12</td>
+            <td>QA & Stability</td>
+            <td>✅ Complete</td>
+            <td>ErrorBoundary, Sentry integration, Toast system, NetworkBanner, LoadingScreen</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="infrastructure-note">
+        <strong>Infrastructure Already in Place:</strong> 11 DB tables with migrations, 4 Supabase migrations, 8 custom hooks (useActions, useAppointments, useDeadlines, useDocuments, useChat, useAuth, useI18n, useTheme), 9 reusable components (Button, Card, TextInput, ActionCard, AppointmentCard, DocumentCard, ChatBubble, TabBar, ErrorBoundary), 7 library modules (AI, RAG, embeddings, auth, accessibility, Sentry, theme), 5 main screens (Welcome, Onboarding, Home, Navigator, Actions), and full TypeScript support with strict mode.
+      </div>
+    </section>
+
+    <!-- 3. FEATURE REQUIREMENTS -->
+    <section id="features">
+      <h1>Feature Requirements</h1>
+
+      <div class="feature-card">
+        <h3>
+          <span>Calendar + Google Sync</span>
+          <span class="badge badge-blue">Phase 1</span>
+        </h3>
+        <p class="description">Complete the partially-built calendar by adding bi-directional Google Calendar sync. OAuth tokens are already stored in SecureStore. Google Calendar and Gmail scopes already requested during sign-in.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a parent, I want my Waypoint appointments to appear in my Google Calendar so I don't double-book</li>
+            <li>As a parent, I want to see my existing Google Calendar events in Waypoint so I have one unified view</li>
+            <li>As a parent, I want automatic sync so I don't have to manually update two calendars</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>Bi-directional sync (Waypoint ↔ Google Calendar)</li>
+            <li>Conflict resolution (Waypoint event wins if both sides modified)</li>
+            <li>Visual indicator for synced vs local-only events</li>
+            <li>Token refresh handling on 401 responses</li>
+            <li>Handles network errors gracefully</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S13–S15 (3 sprints)</p>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>Gmail Integration</span>
+          <span class="badge badge-blue">Phase 1</span>
+        </h3>
+        <p class="description">Let parents send AI-generated emails directly from Waypoint and read relevant emails from schools and Regional Centers.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a parent, I want to send the AI-drafted appeal letter directly as an email so I don't have to copy/paste</li>
+            <li>As a parent, I want to see relevant emails from my child's school/RC in one place</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>Create draft from AI Navigator content</li>
+            <li>Send via Gmail API with pre-filled recipient</li>
+            <li>Inbox view with pagination and label filtering</li>
+            <li>Search by sender, subject, or keyword</li>
+            <li>Handle auth errors and expired tokens</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S16–S17 (2 sprints)</p>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>Financial Tracker</span>
+          <span class="badge badge-green">Phase 2</span>
+        </h3>
+        <p class="description">The expenses table already exists in the DB. Build a complete expense management UI with reimbursement tracking and tax optimization reports.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a parent, I want to log therapy and medical expenses so I can track spending</li>
+            <li>As a parent, I want to track reimbursement status so I know what's owed to me</li>
+            <li>As a parent, I want a tax deduction report so I can maximize my tax benefits</li>
+            <li>As a parent, I want to see my monthly spending dashboard so I can budget</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>CRUD operations on expenses (create, read, update, delete)</li>
+            <li>Reimbursement status tracking (pending/submitted/approved/denied)</li>
+            <li>Tax deduction flagging and annual reports</li>
+            <li>Monthly/annual summary dashboards</li>
+            <li>Receipt attachment capability</li>
+            <li>Category filtering and search</li>
+            <li>Offline queue for new expenses</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S19–S24 (6 sprints)</p>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>Provider & Service Management</span>
+          <span class="badge badge-purple">Phase 3</span>
+        </h3>
+        <p class="description">Providers and services tables exist in DB. Build screens for managing the care team directory and service authorizations.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a parent, I want to keep all my child's providers in one place with their contact info</li>
+            <li>As a parent, I want to track service authorizations so I know when they expire</li>
+            <li>As a parent, I want to see which provider delivers which service</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>Provider CRUD (create, read, update, deactivate)</li>
+            <li>Service CRUD with provider linking</li>
+            <li>Service authorization tracking (hours used vs authorized)</li>
+            <li>Expiry date alerts (highlight within 30 days)</li>
+            <li>Provider type filtering (therapist, attorney, coordinator, etc.)</li>
+            <li>Bidirectional navigation (provider → services and vice versa)</li>
+            <li>Phone/email quick action buttons</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S25–S30 (6 sprints)</p>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>IEP Document Intelligence</span>
+          <span class="badge badge-red">Phase 4</span>
+        </h3>
+        <p class="description">The killer differentiator. AI reads uploaded IEP PDFs, extracts goals, flags weaknesses, suggests improvements, and generates meeting prep materials. No competitor offers this.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a parent, I want to upload my child's IEP and have AI explain what each goal means</li>
+            <li>As a parent, I want AI to flag weak or vague goals so I know what to challenge</li>
+            <li>As a parent, I want specific suggestions for stronger goal language citing IDEA requirements</li>
+            <li>As a parent, I want to compare this year's IEP to last year's to see progress</li>
+            <li>As a parent, I want a meeting prep doc generated before my IEP meeting</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>PDF OCR/text extraction via Supabase Edge Function</li>
+            <li>Goal parsing (domain, baseline, target, measurement, timeline)</li>
+            <li>Weakness analysis (vague goals, missing baselines, unrealistic timelines) with severity rating</li>
+            <li>Improvement suggestions with IDEA statute citations and rewritten goal text</li>
+            <li>Side-by-side comparison of two IEPs with diff highlighting</li>
+            <li>Meeting prep doc generation (customized to RC/district)</li>
+            <li>Save improved goals as action items</li>
+            <li>Caching of analysis results</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S31–S38 (8 sprints)</p>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>Community Forum</span>
+          <span class="badge badge-amber">Phase 5</span>
+        </h3>
+        <p class="description">Diagnosis-specific forums, local parent groups, peer support, and direct messaging. Requires new DB schema and careful moderation.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a parent, I want to connect with other parents whose children have the same diagnosis</li>
+            <li>As a parent, I want to ask questions and share what worked for us at our Regional Center</li>
+            <li>As a parent, I want to privately message another parent who offered helpful advice</li>
+            <li>As a parent, I want to report inappropriate content to keep the community safe</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>Forum categories by diagnosis and region</li>
+            <li>Threads with nested replies (1 level)</li>
+            <li>Reactions (👍 👏 ❤️)</li>
+            <li>Direct messaging between users with block capability</li>
+            <li>Report queue for moderation</li>
+            <li>Auto-flagging of keywords (abuse, spam)</li>
+            <li>User ban/warn capabilities</li>
+            <li>Real-time notifications</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S39–S46 (8 sprints)</p>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>Co-Parent Coordination</span>
+          <span class="badge badge-pink">Phase 6</span>
+        </h3>
+        <p class="description">Multi-user family sharing so both parents (or co-caregivers) can collaborate within Waypoint.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a parent, I want to invite my co-parent so we both see the same action items</li>
+            <li>As a parent, I want to assign tasks to my co-parent so we split the advocacy work</li>
+            <li>As a parent, I want to see what my co-parent did today without having to ask</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>Email-based invitation system</li>
+            <li>Role-based permissions (admin, member, viewer)</li>
+            <li>Shared calendar, actions, and deadlines</li>
+            <li>Task assignment with notifications</li>
+            <li>Activity feed (attributed to family member)</li>
+            <li>Ability to remove family members</li>
+            <li>Real-time sync across devices</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S47–S52 (6 sprints)</p>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>Provider Portal (B2B)</span>
+          <span class="badge badge-cyan">Phase 7</span>
+        </h3>
+        <p class="description">Separate experience for providers (therapists, attorneys, coordinators) with their own dashboard, shared document access, and family messaging.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a therapist, I want to see shared documents from my client families</li>
+            <li>As a provider, I want to message families securely within Waypoint</li>
+            <li>As a parent, I want to find verified providers near me who specialize in my child's needs</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>Separate provider auth flow and onboarding</li>
+            <li>Organization/group affiliation</li>
+            <li>Family connection requests (invite or accept)</li>
+            <li>Shared document viewer (read-only)</li>
+            <li>Secure messaging with families</li>
+            <li>Searchable provider directory (by type/specialty/location/insurance)</li>
+            <li>Verified provider badge</li>
+            <li>Appointment visibility for providers</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S53–S58 (6 sprints)</p>
+      </div>
+    </section>
+
+    <!-- 4. SPRINT ROADMAP -->
+    <section id="sprint-roadmap">
+      <h1>Sprint Roadmap (Phases 1–9)</h1>
+
+      <!-- PHASE 1 -->
+      <div class="phase-section">
+        <div class="phase-header blue">
+          <h2>Phase 1: Foundation Completions</h2>
+          <div class="phase-sprint-count">S13–S18 (6 sprints)</div>
+        </div>
+        <details open>
+          <summary>Expand Phase 1 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S13</td>
+                    <td>Google Calendar - Fetch Events</td>
+                    <td>Create src/lib/googleCalendar.ts with fetchCalendarEvents() using stored Google access token</td>
+                    <td>src/lib/googleCalendar.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Returns array of calendar events for date range</li>
+                        <li>Handles token refresh on 401</li>
+                        <li>Handles network errors</li>
+                      </ul>
+                    </td>
+                    <td>S4</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S14</td>
+                    <td>Google Calendar - Create/Update Events</td>
+                    <td>Add createCalendarEvent(), updateCalendarEvent(), deleteCalendarEvent() to googleCalendar.ts</td>
+                    <td>src/lib/googleCalendar.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Create event with title/time/location</li>
+                        <li>Update existing event</li>
+                        <li>Delete event</li>
+                        <li>Handle conflicts gracefully</li>
+                      </ul>
+                    </td>
+                    <td>S13</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S15</td>
+                    <td>Calendar Bi-directional Sync</td>
+                    <td>Create useCalendarSync hook, update CalendarScreen for merged view</td>
+                    <td>src/hooks/useCalendarSync.ts, src/screens/main/CalendarScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Pull Google events → Waypoint</li>
+                        <li>Push Waypoint → Google</li>
+                        <li>Conflict resolution (Waypoint wins)</li>
+                        <li>Visual sync indicator</li>
+                      </ul>
+                    </td>
+                    <td>S13, S14</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S16</td>
+                    <td>Gmail Integration - Read Emails</td>
+                    <td>Create src/lib/gmail.ts with fetchEmails(), getEmailDetail()</td>
+                    <td>src/lib/gmail.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Fetch inbox with pagination</li>
+                        <li>Filter by label</li>
+                        <li>Extract full email body</li>
+                        <li>Handle auth errors</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S17</td>
+                    <td>Gmail Integration - Draft & Send</td>
+                    <td>Add createDraft(), sendEmail() to gmail.ts; add "Send as Email" to NavigatorScreen</td>
+                    <td>src/lib/gmail.ts, src/screens/main/NavigatorScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Create draft from AI content</li>
+                        <li>Send email with recipient</li>
+                        <li>UI integration in Navigator</li>
+                      </ul>
+                    </td>
+                    <td>S16</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S18</td>
+                    <td>Multi-Child Picker Component</td>
+                    <td>Create ChildPicker.tsx; update Home, Navigator, Actions screens for multi-child</td>
+                    <td>src/components/ChildPicker.tsx, HomeScreen.tsx, NavigatorScreen.tsx, ActionsScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Shows picker when >1 child</li>
+                        <li>Persists selection</li>
+                        <li>All screens filter by selected child</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- PHASE 2 -->
+      <div class="phase-section">
+        <div class="phase-header green">
+          <h2>Phase 2: Financial Tracker</h2>
+          <div class="phase-sprint-count">S19–S24 (6 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 2 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S19</td>
+                    <td>useExpenses Hook</td>
+                    <td>Create hook with CRUD on expenses table</td>
+                    <td>src/hooks/useExpenses.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Fetch with date/category filters</li>
+                        <li>Create/update/delete operations</li>
+                        <li>Compute totals and summaries</li>
+                        <li>Offline queue support</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S20</td>
+                    <td>ExpensesScreen - List View</td>
+                    <td>Create expense list screen grouped by month</td>
+                    <td>src/screens/main/ExpensesScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Monthly grouping</li>
+                        <li>Category filter pills</li>
+                        <li>Running total header</li>
+                        <li>Pull-to-refresh</li>
+                        <li>Empty state</li>
+                      </ul>
+                    </td>
+                    <td>S19</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S21</td>
+                    <td>Add/Edit Expense Modal</td>
+                    <td>Modal form for expense creation and editing</td>
+                    <td>src/screens/main/ExpensesScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Amount, category, description, date fields</li>
+                        <li>Funding source and tax deductible toggle</li>
+                        <li>Edit pre-fills existing values</li>
+                        <li>Validates required fields</li>
+                      </ul>
+                    </td>
+                    <td>S20</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S22</td>
+                    <td>Reimbursement Status Tracker</td>
+                    <td>Reimbursement section with status filters</td>
+                    <td>src/screens/main/ExpensesScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Filter by status (pending/submitted/approved/denied)</li>
+                        <li>Show reimbursement amounts</li>
+                        <li>Batch update support</li>
+                      </ul>
+                    </td>
+                    <td>S21</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S23</td>
+                    <td>Tax Deduction Report</td>
+                    <td>Annual tax deduction summary screen</td>
+                    <td>src/screens/main/TaxReportScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Annual summary of deductible expenses</li>
+                        <li>Group by category</li>
+                        <li>Total deductible amount</li>
+                        <li>Export-ready format</li>
+                      </ul>
+                    </td>
+                    <td>S19</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S24</td>
+                    <td>Financial Dashboard Widget</td>
+                    <td>Add financial summary card to HomeScreen</td>
+                    <td>src/screens/main/HomeScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Current month spending</li>
+                        <li>Reimbursement pending amount</li>
+                        <li>YTD total</li>
+                        <li>Tap navigates to Expenses</li>
+                        <li>Loading state</li>
+                      </ul>
+                    </td>
+                    <td>S19, S20</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- PHASE 3 -->
+      <div class="phase-section">
+        <div class="phase-header purple">
+          <h2>Phase 3: Provider & Service Management</h2>
+          <div class="phase-sprint-count">S25–S30 (6 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 3 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S25</td>
+                    <td>useProviders Hook</td>
+                    <td>Create hook with CRUD and filtering on providers table</td>
+                    <td>src/hooks/useProviders.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Fetch with type filter</li>
+                        <li>Create/update/deactivate operations</li>
+                        <li>Search by name</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S26</td>
+                    <td>ProvidersScreen - List & Detail</td>
+                    <td>Create provider card list and detail view</td>
+                    <td>src/screens/main/ProvidersScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Card list grouped by type</li>
+                        <li>Detail view navigation</li>
+                        <li>Phone/email quick actions</li>
+                        <li>Active/inactive filter</li>
+                      </ul>
+                    </td>
+                    <td>S25</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S27</td>
+                    <td>Add/Edit Provider Modal</td>
+                    <td>Modal form for provider creation and editing</td>
+                    <td>src/screens/main/ProvidersScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Name, type, specialty, org, contact info, notes</li>
+                        <li>Edit pre-fills existing values</li>
+                        <li>Validates format (phone, email)</li>
+                      </ul>
+                    </td>
+                    <td>S26</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S28</td>
+                    <td>useServices Hook</td>
+                    <td>Create hook with CRUD and linking to provider + child</td>
+                    <td>src/hooks/useServices.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Fetch with status/type filter</li>
+                        <li>Link to provider and child</li>
+                        <li>Track authorization hours/dates</li>
+                      </ul>
+                    </td>
+                    <td>S25</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S29</td>
+                    <td>ServicesScreen - Authorization Tracker</td>
+                    <td>Create screen showing active services with auth status</td>
+                    <td>src/screens/main/ServicesScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Active services with auth status</li>
+                        <li>Hours used vs authorized</li>
+                        <li>Expiring services highlighted (within 30 days)</li>
+                        <li>Grouped by child</li>
+                      </ul>
+                    </td>
+                    <td>S28</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S30</td>
+                    <td>Provider-Service Linking</td>
+                    <td>Add navigation between provider ↔ services views</td>
+                    <td>ProvidersScreen.tsx, ServicesScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Navigate from provider to services</li>
+                        <li>Navigate from service to provider</li>
+                        <li>Service count shown on provider card</li>
+                        <li>Provider name shown on service card</li>
+                      </ul>
+                    </td>
+                    <td>S26, S29</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- PHASE 4 -->
+      <div class="phase-section">
+        <div class="phase-header red">
+          <h2>Phase 4: IEP Document Intelligence</h2>
+          <div class="phase-sprint-count">S31–S38 (8 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 4 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S31</td>
+                    <td>Document OCR Edge Function</td>
+                    <td>Create Supabase Edge Function for PDF/image OCR</td>
+                    <td>supabase/functions/document-ocr/index.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Accepts PDF/image input</li>
+                        <li>Extracts text via OCR</li>
+                        <li>Stores extracted_text</li>
+                        <li>Handles multi-page documents</li>
+                      </ul>
+                    </td>
+                    <td>S5</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S32</td>
+                    <td>useDocumentAnalysis Hook</td>
+                    <td>Create hook to trigger analysis and poll for results</td>
+                    <td>src/hooks/useDocumentAnalysis.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Trigger analysis on document</li>
+                        <li>Poll for completion</li>
+                        <li>Return structured results</li>
+                        <li>Cache results in memory</li>
+                      </ul>
+                    </td>
+                    <td>S31</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S33</td>
+                    <td>IEP Goal Parser</td>
+                    <td>Create Edge Function to parse goals from IEP text</td>
+                    <td>supabase/functions/iep-parser/index.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Extract goals with domain/baseline/target/measurement/timeline</li>
+                        <li>Handle variable IEP formats</li>
+                        <li>Return structured JSON</li>
+                      </ul>
+                    </td>
+                    <td>S31</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S34</td>
+                    <td>IEP Goal Weakness Analyzer</td>
+                    <td>Extend parser to flag weak goals</td>
+                    <td>supabase/functions/iep-parser/index.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Flag vague goals</li>
+                        <li>Flag missing baselines</li>
+                        <li>Flag unrealistic timelines</li>
+                        <li>Assign severity rating</li>
+                      </ul>
+                    </td>
+                    <td>S33</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S35</td>
+                    <td>IEP Improvement Suggestions</td>
+                    <td>Extend parser with improvement suggestions</td>
+                    <td>supabase/functions/iep-parser/index.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Suggest improvements for each weakness</li>
+                        <li>Cite IDEA 300.320 statute</li>
+                        <li>Provide rewritten goal text</li>
+                        <li>Maintain tone of communication</li>
+                      </ul>
+                    </td>
+                    <td>S34</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S36</td>
+                    <td>DocumentAnalysisScreen</td>
+                    <td>Create screen to display goal analysis</td>
+                    <td>src/screens/main/DocumentAnalysisScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Goal cards with analysis</li>
+                        <li>Color-coded strength (green/yellow/red)</li>
+                        <li>Expandable weaknesses</li>
+                        <li>"Copy improved goal" button</li>
+                        <li>Empty state when no analysis</li>
+                      </ul>
+                    </td>
+                    <td>S32, S33, S34, S35</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S37</td>
+                    <td>Side-by-Side IEP Comparison</td>
+                    <td>Add comparison mode to DocumentAnalysisScreen</td>
+                    <td>src/screens/main/DocumentAnalysisScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Select two IEPs</li>
+                        <li>Side-by-side goal display</li>
+                        <li>Highlight new/removed/changed goals</li>
+                        <li>Progress indicators</li>
+                      </ul>
+                    </td>
+                    <td>S36</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S38</td>
+                    <td>IEP Meeting Prep Generator</td>
+                    <td>Generate meeting prep doc from analysis</td>
+                    <td>src/screens/main/DocumentAnalysisScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Generate prep document</li>
+                        <li>Customized to RC/district</li>
+                        <li>Include law citations</li>
+                        <li>Save improved goals as action items</li>
+                      </ul>
+                    </td>
+                    <td>S36</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- PHASE 5 -->
+      <div class="phase-section">
+        <div class="phase-header amber">
+          <h2>Phase 5: Community Forum</h2>
+          <div class="phase-sprint-count">S39–S46 (8 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 5 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S39</td>
+                    <td>Forum DB Schema</td>
+                    <td>Create database migrations for forum</td>
+                    <td>supabase/migrations/005_forum_schema.sql</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Create tables (categories, threads, posts, reactions, reports, DMs)</li>
+                        <li>Set up RLS policies</li>
+                        <li>Configure cascade deletes</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S40</td>
+                    <td>useForum Hook</td>
+                    <td>Create hook for forum operations</td>
+                    <td>src/hooks/useForum.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Fetch categories</li>
+                        <li>Fetch threads with pagination</li>
+                        <li>Create/reply to threads</li>
+                        <li>React to posts</li>
+                        <li>Report content</li>
+                      </ul>
+                    </td>
+                    <td>S39</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S41</td>
+                    <td>ForumScreen - Category List</td>
+                    <td>Create forum category list screen</td>
+                    <td>src/screens/main/ForumScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Display categories with thread counts</li>
+                        <li>Auto-create diagnosis-specific categories</li>
+                        <li>Show trending indicator</li>
+                        <li>Tab navigation</li>
+                      </ul>
+                    </td>
+                    <td>S40</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S42</td>
+                    <td>ThreadScreen - Posts & Replies</td>
+                    <td>Create thread view with posts and replies</td>
+                    <td>src/screens/main/ThreadScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Display thread title and posts</li>
+                        <li>Reply composer</li>
+                        <li>Nested replies (1 level)</li>
+                        <li>Reactions (👍 👏 ❤️)</li>
+                        <li>Report button</li>
+                        <li>Auto-scroll to new posts</li>
+                      </ul>
+                    </td>
+                    <td>S41</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S43</td>
+                    <td>New Thread Composer</td>
+                    <td>Add composer to create threads</td>
+                    <td>src/screens/main/ForumScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Title and body fields</li>
+                        <li>Category selection</li>
+                        <li>Tag selection</li>
+                        <li>Markdown preview</li>
+                      </ul>
+                    </td>
+                    <td>S41</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S44</td>
+                    <td>Direct Messaging Schema & Hook</td>
+                    <td>Create DM functionality</td>
+                    <td>supabase/migrations (extend 005), src/hooks/useDirectMessages.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Send/receive DMs</li>
+                        <li>Conversation list with unread</li>
+                        <li>Block user capability</li>
+                      </ul>
+                    </td>
+                    <td>S39</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S45</td>
+                    <td>MessagesScreen</td>
+                    <td>Create DM conversation interface</td>
+                    <td>src/screens/main/MessagesScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Conversation list with preview</li>
+                        <li>Unread badge</li>
+                        <li>Compose from forum profile</li>
+                        <li>Real-time sync</li>
+                      </ul>
+                    </td>
+                    <td>S44</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S46</td>
+                    <td>Moderation Tools</td>
+                    <td>Add admin moderation capabilities</td>
+                    <td>Forum screens + Edge Function</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Report queue for admin</li>
+                        <li>Hide/remove post</li>
+                        <li>Warn/ban user</li>
+                        <li>Auto-flag keywords</li>
+                        <li>Mod log</li>
+                      </ul>
+                    </td>
+                    <td>S42</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- PHASE 6 -->
+      <div class="phase-section">
+        <div class="phase-header pink">
+          <h2>Phase 6: Co-Parent Coordination</h2>
+          <div class="phase-sprint-count">S47–S52 (6 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 6 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S47</td>
+                    <td>Family Sharing Schema</td>
+                    <td>Create database tables for family sharing</td>
+                    <td>supabase/migrations/006_family_sharing.sql</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Support multiple users per family</li>
+                        <li>Role-based permissions (admin/member/viewer)</li>
+                        <li>Track invitations</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S48</td>
+                    <td>useFamilySharing Hook</td>
+                    <td>Create hook for family sharing operations</td>
+                    <td>src/hooks/useFamilySharing.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Invite by email</li>
+                        <li>Accept/decline invitations</li>
+                        <li>List members</li>
+                        <li>Update permissions</li>
+                        <li>Remove members</li>
+                      </ul>
+                    </td>
+                    <td>S47</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S49</td>
+                    <td>InviteCoParentScreen</td>
+                    <td>Create invitation interface</td>
+                    <td>src/screens/main/InviteCoParentScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Email input with validation</li>
+                        <li>Pending invitations list</li>
+                        <li>Resend/cancel buttons</li>
+                        <li>Accepted members with roles</li>
+                      </ul>
+                    </td>
+                    <td>S48</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S50</td>
+                    <td>Shared Calendar & Action Visibility</td>
+                    <td>Update Calendar and Actions screens for multi-user</td>
+                    <td>CalendarScreen.tsx, ActionsScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Both parents see same data</li>
+                        <li>Creator shown on items</li>
+                        <li>Filter "mine" vs "all"</li>
+                        <li>Real-time sync</li>
+                      </ul>
+                    </td>
+                    <td>S47, S48</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S51</td>
+                    <td>Responsibility Assignment</td>
+                    <td>Add task assignment capability</td>
+                    <td>ActionsScreen.tsx, CalendarScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Assign to family member</li>
+                        <li>Push notification on assignment</li>
+                        <li>Filter "assigned to me"</li>
+                        <li>Allow reassignment</li>
+                      </ul>
+                    </td>
+                    <td>S50</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S52</td>
+                    <td>Activity Feed</td>
+                    <td>Add family activity feed to HomeScreen</td>
+                    <td>src/screens/main/HomeScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Show recent family activity</li>
+                        <li>Attribute to family member</li>
+                        <li>Chronological ordering</li>
+                        <li>Read/unread tracking</li>
+                      </ul>
+                    </td>
+                    <td>S47, S50</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- PHASE 7 -->
+      <div class="phase-section">
+        <div class="phase-header cyan">
+          <h2>Phase 7: Provider Portal (B2B)</h2>
+          <div class="phase-sprint-count">S53–S58 (6 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 7 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S53</td>
+                    <td>Provider User Type & Auth</td>
+                    <td>Create provider registration and linking</td>
+                    <td>supabase/migrations/007_provider_portal.sql</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Provider registration flow</li>
+                        <li>Organization linking</li>
+                        <li>Family connection requests</li>
+                        <li>Families can approve/deny</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S54</td>
+                    <td>Provider Onboarding Screen</td>
+                    <td>Create provider signup/setup screen</td>
+                    <td>src/screens/provider/ProviderOnboardingScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Name, type, NPI, org, specialties fields</li>
+                        <li>NPI format validation</li>
+                        <li>Terms acceptance required</li>
+                      </ul>
+                    </td>
+                    <td>S53</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S55</td>
+                    <td>Provider Dashboard Screen</td>
+                    <td>Create provider home screen</td>
+                    <td>src/screens/provider/ProviderDashboardScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Connected families count</li>
+                        <li>Shared documents list</li>
+                        <li>Upcoming appointments</li>
+                        <li>Quick action buttons</li>
+                      </ul>
+                    </td>
+                    <td>S53, S54</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S56</td>
+                    <td>Shared Document Viewer</td>
+                    <td>Add read-only document access for providers</td>
+                    <td>Provider screens</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Provider sees only shared docs</li>
+                        <li>Download capability</li>
+                        <li>No edit permissions</li>
+                        <li>Audit log tracking</li>
+                      </ul>
+                    </td>
+                    <td>S53, S5</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S57</td>
+                    <td>Provider-Family Messaging</td>
+                    <td>Add messaging between providers and families</td>
+                    <td>Provider + family screens</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Messaging thread per pair</li>
+                        <li>Push notifications</li>
+                        <li>Message history</li>
+                        <li>Disable option</li>
+                      </ul>
+                    </td>
+                    <td>S53</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S58</td>
+                    <td>Provider Directory Listing</td>
+                    <td>Create searchable provider directory</td>
+                    <td>src/screens/main/ProviderDirectoryScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Search by type/specialty/location/insurance</li>
+                        <li>Verified badge display</li>
+                        <li>Connect button</li>
+                      </ul>
+                    </td>
+                    <td>S53, S26</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- PHASE 8 -->
+      <div class="phase-section">
+        <div class="phase-header indigo">
+          <h2>Phase 8: Data Moat & Analytics</h2>
+          <div class="phase-sprint-count">S59–S63 (5 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 8 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S59</td>
+                    <td>Outcome Instrumentation</td>
+                    <td>Add telemetry for action outcomes</td>
+                    <td>supabase/migrations/008_analytics.sql, src/lib/analytics.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Track action outcomes (approved/denied)</li>
+                        <li>Track draft usage</li>
+                        <li>Track KB helpfulness</li>
+                        <li>Anonymous, GDPR-compliant</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S60</td>
+                    <td>Anonymous Insights Aggregation</td>
+                    <td>Create Edge Function to aggregate insights</td>
+                    <td>supabase/functions/insights/index.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Aggregate by RC/diagnosis/action type</li>
+                        <li>Minimum 10 families threshold</li>
+                        <li>Weekly refresh</li>
+                      </ul>
+                    </td>
+                    <td>S59</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S61</td>
+                    <td>RC-Specific Success Rates</td>
+                    <td>Include success rates in AI prompts</td>
+                    <td>src/lib/ai.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>AI includes "Families at [RC] succeeded X%"</li>
+                        <li>Threshold gating (min 10 families)</li>
+                        <li>Freshness label</li>
+                      </ul>
+                    </td>
+                    <td>S60</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S62</td>
+                    <td>InsightsScreen</td>
+                    <td>Create personalized insights screen</td>
+                    <td>src/screens/main/InsightsScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Personalized for RC/diagnoses</li>
+                        <li>"What's working" section</li>
+                        <li>"Trending strategies"</li>
+                        <li>Tap for detail view</li>
+                      </ul>
+                    </td>
+                    <td>S60</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S63</td>
+                    <td>Admin Analytics Dashboard</td>
+                    <td>Create admin analytics dashboard</td>
+                    <td>Web-based admin or Supabase dashboard</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Total/active users, actions completed, conversion rates</li>
+                        <li>RC breakdown</li>
+                        <li>Date range filtering</li>
+                      </ul>
+                    </td>
+                    <td>S59</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- PHASE 9 -->
+      <div class="phase-section">
+        <div class="phase-header emerald">
+          <h2>Phase 9: Polish & Launch Prep</h2>
+          <div class="phase-sprint-count">S64–S70 (7 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 9 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S64</td>
+                    <td>Offline Sync Robustness</td>
+                    <td>Improve offline queue handling</td>
+                    <td>useActions.ts, useExpenses.ts, useDocuments.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>All CRUD queues offline</li>
+                        <li>Auto-sync on reconnect</li>
+                        <li>Conflict resolution (server wins with merge)</li>
+                        <li>Visual indicator</li>
+                      </ul>
+                    </td>
+                    <td>All prior</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S65</td>
+                    <td>Performance Optimization</td>
+                    <td>Optimize app performance</td>
+                    <td>Various</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Cold start < 3s</li>
+                        <li>Transitions < 300ms</li>
+                        <li>API cached 5 min</li>
+                        <li>Images lazy-loaded</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S66</td>
+                    <td>Accessibility Audit (WCAG AA)</td>
+                    <td>Verify WCAG AA compliance</td>
+                    <td>All screens and components</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>All elements have accessibilityLabel</li>
+                        <li>44px touch targets</li>
+                        <li>Focus management</li>
+                        <li>Screen reader tested</li>
+                        <li>High contrast</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S67</td>
+                    <td>App Store Metadata</td>
+                    <td>Prepare App Store Connect submission</td>
+                    <td>App Store Connect</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Name, subtitle, description</li>
+                        <li>Keywords</li>
+                        <li>6 screenshots</li>
+                        <li>Privacy policy & support URLs</li>
+                        <li>Age rating</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S68</td>
+                    <td>TestFlight Beta Configuration</td>
+                    <td>Set up TestFlight beta</td>
+                    <td>eas.json</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Preview + production profiles</li>
+                        <li>Build succeeds</li>
+                        <li>Upload succeeds</li>
+                        <li>Testers invited</li>
+                      </ul>
+                    </td>
+                    <td>S67</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S69</td>
+                    <td>Onboarding Tutorial</td>
+                    <td>Create interactive onboarding tutorial</td>
+                    <td>src/components/OnboardingTutorial.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>4-step tutorial</li>
+                        <li>Skip button</li>
+                        <li>Don't show again</li>
+                        <li>Localized in 3 languages</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S70</td>
+                    <td>Launch Checklist Verification</td>
+                    <td>Full regression testing</td>
+                    <td>N/A (testing only)</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>All prior features work</li>
+                        <li>No critical bugs</li>
+                        <li>Performance targets met</li>
+                        <li>Accessibility passes</li>
+                      </ul>
+                    </td>
+                    <td>All prior</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- 5. TECHNICAL ARCHITECTURE -->
+    <section id="architecture">
+      <h1>Technical Architecture Notes</h1>
+
+      <h3>Stack Overview</h3>
+      <ul>
+        <li><strong>Frontend:</strong> React Native 0.76 + Expo 52 + TypeScript (strict mode)</li>
+        <li><strong>State Management:</strong> React hooks + Supabase real-time subscriptions</li>
+        <li><strong>Navigation:</strong> React Navigation (native-stack + bottom-tabs)</li>
+        <li><strong>Backend:</strong> Supabase Postgres + Auth + Storage + Edge Functions</li>
+        <li><strong>AI:</strong> Anthropic Claude API (Sonnet for fast queries, Opus for complex analysis)</li>
+        <li><strong>RAG:</strong> pgvector embeddings (text-embedding-3-small, 1536 dims) with hybrid semantic + keyword search</li>
+        <li><strong>Offline:</strong> AsyncStorage queue for CRUD operations, auto-sync on reconnect</li>
+        <li><strong>Auth:</strong> Apple Sign-In, Google Sign-In (Calendar + Gmail scopes), Email/Password</li>
+        <li><strong>Design System:</strong> Custom tokens in src/lib/theme.ts (colors: navy, teal, coral, sage; spacing scale; radii)</li>
+      </ul>
+
+      <h3>API Integration Points</h3>
+      <ul>
+        <li><strong>Google Calendar API:</strong> Bi-directional sync via OAuth tokens stored in SecureStore</li>
+        <li><strong>Gmail API:</strong> Read inbox, send drafts, create/update messages</li>
+        <li><strong>Anthropic Claude API:</strong> Via Supabase Edge Function proxy for cost control and request logging</li>
+        <li><strong>Document OCR:</strong> Edge Function (integrated with document processing service)</li>
+      </ul>
+
+      <h3>Database Schema (11 Tables)</h3>
+      <p>Core tables already exist: families, children, diagnoses, providers, services, documents, expenses, appointments, deadlines, chat_sessions, chat_messages. Additional tables added per phase: forum_categories, forum_threads, forum_posts, forum_reactions, forum_reports, direct_messages, family_members, analytics_events, provider_profiles, knowledge_embeddings (pgvector).</p>
+
+      <h3>Performance Targets</h3>
+      <ul>
+        <li>Cold app start: < 3 seconds</li>
+        <li>Screen transitions: < 300ms</li>
+        <li>AI response start: < 2 seconds (streaming)</li>
+        <li>API caching: 5 minutes default</li>
+        <li>Image lazy loading: All images off-screen</li>
+      </ul>
+
+      <h3>Cost Optimization</h3>
+      <ul>
+        <li><strong>Prompt Caching:</strong> Cache system prompts and KB context in Claude API calls to reduce token costs</li>
+        <li><strong>Streaming:</strong> Stream all AI responses to reduce perceived latency and improve UX</li>
+        <li><strong>Edge Functions:</strong> Batch requests where possible, use Sonnet for fast queries, Opus only for complex analysis</li>
+        <li><strong>Data Aggregation:</strong> Weekly refresh of analytics insights to avoid real-time computation</li>
+      </ul>
+    </section>
+
+    <!-- 6. TESTING STRATEGY -->
+    <section id="testing">
+      <h1>Testing Strategy</h1>
+
+      <h3>Unit Tests</h3>
+      <p>Each hook gets comprehensive unit tests with mocked Supabase client. Target coverage: 80% of hooks. Frameworks: Jest (or Vitest) for JavaScript, React Native Testing Library for components.</p>
+      <ul>
+        <li>Test all CRUD operations in isolation</li>
+        <li>Mock API responses and network errors</li>
+        <li>Verify offline queue behavior</li>
+        <li>Test data transformation and filtering</li>
+      </ul>
+
+      <h3>Integration Tests</h3>
+      <p>Each screen tested with React Native Testing Library. Verify rendering, user interactions, navigation flows, and state changes.</p>
+      <ul>
+        <li>Render screen and verify UI elements present</li>
+        <li>Simulate user actions (tap, scroll, text input)</li>
+        <li>Verify navigation to child screens</li>
+        <li>Test loading states and error handling</li>
+      </ul>
+
+      <h3>End-to-End Tests</h3>
+      <p>Critical flows tested with Detox or Maestro. Flows: Onboarding, AI Chat, Action Management, Document Upload, Calendar Sync.</p>
+      <ul>
+        <li>Test from real device (or simulator)</li>
+        <li>Verify full flow including API calls</li>
+        <li>Test offline→online transitions</li>
+        <li>Test multi-language flows</li>
+      </ul>
+
+      <h3>Acceptance Testing</h3>
+      <p>Each sprint's acceptance criteria must be verified before marking the sprint complete. Create a test checklist per sprint, grouped by acceptance criterion.</p>
+
+      <h3>Regression Testing</h3>
+      <p>Sprint 70 runs full regression across all features. Test on iPhone SE (small screen) and iPhone 15 Pro Max (large screen). Test all 3 languages (en, es, vi). Test offline mode.</p>
+
+      <h3>Performance Testing</h3>
+      <ul>
+        <li>Measure cold start time (adb logcat for Android, Instruments for iOS)</li>
+        <li>Measure screen transition times (React Navigation performance monitoring)</li>
+        <li>Measure AI response time (measure time to first token, not full response)</li>
+        <li>Profile memory usage under load</li>
+      </ul>
+
+      <h3>Accessibility Testing</h3>
+      <p>WCAG AA compliance verified with automated tools + manual screen reader testing.</p>
+      <ul>
+        <li>Run automated accessibility scanner on all screens</li>
+        <li>Test with VoiceOver (iOS) and TalkBack (Android)</li>
+        <li>Verify 44px touch targets</li>
+        <li>Verify color contrast ratios (4.5:1 for text)</li>
+      </ul>
+    </section>
+
+    <!-- 7. RISK REGISTER -->
+    <section id="risks">
+      <h1>Risk Register</h1>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Risk</th>
+            <th>Likelihood</th>
+            <th>Impact</th>
+            <th>Mitigation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Google API Rate Limits</strong></td>
+            <td class="risk-medium">Medium</td>
+            <td class="risk-high">High</td>
+            <td>Implement caching layer (5 min default), batch sync requests, exponential backoff on 429 responses</td>
+          </tr>
+          <tr>
+            <td><strong>OCR Accuracy on Poor Scans</strong></td>
+            <td class="risk-high">High</td>
+            <td class="risk-medium">Medium</td>
+            <td>Offer manual text paste as fallback, pre-process images (deskew, enhance), show confidence score to user</td>
+          </tr>
+          <tr>
+            <td><strong>Forum Moderation at Scale</strong></td>
+            <td class="risk-medium">Medium</td>
+            <td class="risk-critical">Critical</td>
+            <td>Auto-flagging of abuse keywords, human moderation queue, clear community guidelines, block/ban tools</td>
+          </tr>
+          <tr>
+            <td><strong>Provider Adoption for B2B Portal</strong></td>
+            <td class="risk-medium">Medium</td>
+            <td class="risk-high">High</td>
+            <td>Start with 5 pilot providers, iterate on feedback, offer free tier for first 6 months, co-market with advocacy groups</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-User Sync Conflicts</strong></td>
+            <td class="risk-low">Low</td>
+            <td class="risk-medium">Medium</td>
+            <td>Server-wins conflict resolution with merge, optimistic UI with rollback, activity log for debugging</td>
+          </tr>
+          <tr>
+            <td><strong>AI Hallucination in IEP Analysis</strong></td>
+            <td class="risk-medium">Medium</td>
+            <td class="risk-critical">Critical</td>
+            <td>Ground analysis in IDEA statute text, add confidence scores, always include disclaimer "AI suggestions only", human review option</td>
+          </tr>
+          <tr>
+            <td><strong>App Store Rejection</strong></td>
+            <td class="risk-low">Low</td>
+            <td class="risk-high">High</td>
+            <td>Follow Apple guidelines precisely, prepare for review (privacy, accessibility), include clear disclosures about AI</td>
+          </tr>
+          <tr>
+            <td><strong>Supabase Edge Function Cold Starts</strong></td>
+            <td class="risk-medium">Medium</td>
+            <td class="risk-low">Low</td>
+            <td>Keep function bundles small, use connection pooling, consider scheduled warming on high-traffic functions</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <p>Waypoint 2.0 PRD & Sprint Roadmap v1.0 | April 10, 2026 | CONFIDENTIAL</p>
+    </div>
+  </div>
+</body>
+</html>
