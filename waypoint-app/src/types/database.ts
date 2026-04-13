@@ -538,3 +538,41 @@ export interface OnboardingData {
   insuranceCarrier: string | null;
   insurancePlan: string | null;
 }
+
+// ─── Resources & Blog (Phase 10) ────────────────────────────────────────────
+
+export type ResourceCategory = 'getting_started' | 'regional_center' | 'iep' | 'insurance' | 'legal' | 'transitions';
+export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
+
+export interface Resource {
+  id: string;
+  title: string;
+  body: string;
+  category: ResourceCategory;
+  tags: string[];
+  difficulty_level: DifficultyLevel;
+  estimated_read_time: number;
+  related_kb_ids: string[];
+  is_published: boolean;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type BlogCategory = 'advocacy' | 'news' | 'guides' | 'stories' | 'updates';
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string | null;
+  body: string;
+  author: string;
+  category: BlogCategory;
+  tags: string[];
+  featured_image_url: string | null;
+  is_featured: boolean;
+  is_published: boolean;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
