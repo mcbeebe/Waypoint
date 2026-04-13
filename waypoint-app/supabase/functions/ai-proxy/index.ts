@@ -5,9 +5,11 @@
  * Keeps API keys server-side (never in client bundle).
  *
  * Endpoints (via action field):
- *   - "chat": Stream a response from Claude (Sonnet)
+ *   - "chat": Stream a response from Claude (Opus)
  *   - "classify": Classify user intent via Claude (Haiku)
  *   - "embed": Generate embeddings via OpenAI
+ *   - "ocr": Extract text from document via Claude vision
+ *   - "analyze-iep": Parse IEP goals, weaknesses, and suggestions
  *
  * Auth: Requires Supabase JWT (passed via Authorization header)
  *
@@ -143,6 +145,167 @@ serve(async (req: Request) => {
 
       const data = await response.json();
       return new Response(JSON.stringify(data), {
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ─── OCR: Extract text from document image/PDF ────────────────
+    if (action === 'ocr') {
+      const { documentId, imageBase64, mimeType } = body;
+
+      const ocrResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 8192,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'image',
+                  source: {
+                    type: 'base64',
+                    media_type: mimeType || 'image/png',
+                    data: imageBase64,
+                  },
+                },
+                {
+                  type: 'text',
+                  text: 'Extract ALL text from this document image. Preserve the structure, headings, and formatting as closely as possible. If this is an IEP or educational document, pay special attention to goals, objectives, baselines, and dates. Return only the extracted text.',
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const ocrData = await ocrResponse.json();
+      const extractedText = ocrData.content?.[0]?.text ?? '';
+
+      // Update document record with extracted text if documentId provided
+      if (documentId && extractedText) {
+        await supabase
+          .from('documents')
+          .update({ extracted_text: extractedText })
+          .eq('id', documentId);
+      }
+
+      return new Response(JSON.stringify({ extractedText, documentId }), {
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ─── Analyze IEP: Parse goals, weaknesses, suggestions ──────
+    if (action === 'analyze-iep') {
+      const { extractedText, analysisType } = body;
+      // analysisType: 'parse' | 'weaknesses' | 'full'
+
+      const systemPrompt = `You are an expert IEP (Individualized Education Program) analyst specializing in California special education law. You analyze IEP documents to identify goals, assess their quality, and suggest improvements.
+
+## Your Expertise
+- IDEA Section 300.320 requirements for measurable annual goals
+- California Education Code requirements for IEPs
+- Best practices for SMART goal writing in special education
+- Common weaknesses in IEP goals and how to strengthen them
+
+## Goal Quality Criteria
+A strong IEP goal must have ALL of these components:
+1. **Baseline**: Current performance level with specific data
+2. **Condition**: The circumstances under which the goal will be measured
+3. **Behavior**: Observable, measurable target behavior
+4. **Criterion**: Specific success criteria (percentage, frequency, duration)
+5. **Timeline**: Clear timeframe for achievement
+6. **Measurement**: How progress will be measured and reported
+
+## Weakness Severity Levels
+- "critical": Goal is non-compliant with IDEA (missing required components)
+- "major": Goal is technically compliant but too vague to be meaningful
+- "minor": Goal could be strengthened but meets basic requirements`;
+
+      const userPrompt = analysisType === 'parse'
+        ? `Parse this IEP document and extract all goals. For each goal, identify:
+- domain (e.g., "Reading", "Math", "Speech/Language", "Behavior", "OT", "Social Skills")
+- goalText (the full goal text)
+- baseline (current performance level, or null if missing)
+- target (target performance level, or null if missing)
+- measurement (how progress is measured, or null if missing)
+- timeline (timeframe, or null if missing)
+
+Return valid JSON: { "goals": [...] }
+
+IEP TEXT:
+${extractedText}`
+        : `Analyze this IEP document completely. For each goal:
+1. Parse the goal components (domain, goalText, baseline, target, measurement, timeline)
+2. Identify weaknesses with severity (critical/major/minor) and explanation
+3. Provide an improved rewritten version citing IDEA 300.320 where applicable
+
+Return valid JSON:
+{
+  "goals": [
+    {
+      "domain": "string",
+      "goalText": "string",
+      "baseline": "string|null",
+      "target": "string|null",
+      "measurement": "string|null",
+      "timeline": "string|null",
+      "strength": "strong|adequate|weak",
+      "weaknesses": [
+        { "severity": "critical|major|minor", "issue": "string", "explanation": "string" }
+      ],
+      "improvedGoal": "string",
+      "legalCitation": "string|null"
+    }
+  ],
+  "summary": {
+    "totalGoals": number,
+    "strongCount": number,
+    "adequateCount": number,
+    "weakCount": number,
+    "criticalIssues": number,
+    "overallAssessment": "string"
+  }
+}
+
+IEP TEXT:
+${extractedText}`;
+
+      const analysisResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-4-6-20250514',
+          max_tokens: 8192,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userPrompt }],
+        }),
+      });
+
+      const analysisData = await analysisResponse.json();
+      const analysisText = analysisData.content?.[0]?.text ?? '{}';
+
+      // Try to parse the JSON response
+      let analysis;
+      try {
+        // Extract JSON from possible markdown code blocks
+        const jsonMatch = analysisText.match(/```json\s*([\s\S]*?)\s*```/) ?? analysisText.match(/\{[\s\S]*\}/);
+        analysis = JSON.parse(jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : analysisText);
+      } catch {
+        analysis = { error: 'Failed to parse analysis', raw: analysisText };
+      }
+
+      return new Response(JSON.stringify(analysis), {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }

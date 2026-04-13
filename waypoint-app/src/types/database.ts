@@ -101,6 +101,42 @@ export interface Document {
   created_at: string;
 }
 
+// ─── IEP Document Intelligence (Phase 4) ────────────────────────────────────
+
+export type GoalStrength = 'strong' | 'adequate' | 'weak';
+export type WeaknessSeverity = 'critical' | 'major' | 'minor';
+
+export interface IEPGoalWeakness {
+  severity: WeaknessSeverity;
+  issue: string;
+  explanation: string;
+}
+
+export interface IEPGoal {
+  domain: string;
+  goalText: string;
+  baseline: string | null;
+  target: string | null;
+  measurement: string | null;
+  timeline: string | null;
+  strength: GoalStrength;
+  weaknesses: IEPGoalWeakness[];
+  improvedGoal: string;
+  legalCitation: string | null;
+}
+
+export interface IEPAnalysisResult {
+  goals: IEPGoal[];
+  summary: {
+    totalGoals: number;
+    strongCount: number;
+    adequateCount: number;
+    weakCount: number;
+    criticalIssues: number;
+    overallAssessment: string;
+  };
+}
+
 export type ExpenseCategory = 'therapy' | 'equipment' | 'transportation' | 'copay' | 'medication' | 'other';
 export type ReimbursementStatus = 'none' | 'submitted' | 'approved' | 'denied' | 'received';
 
