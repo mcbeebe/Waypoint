@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import { useDeadlines } from '@/hooks/useDeadlines';
+import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { percentageLabel } from '@/lib/accessibility';
 
@@ -61,10 +62,20 @@ const EMPATHY_MESSAGES = [
 export default function HomeScreen() {
   const { family } = useFamily();
   const { children } = useChildren(family?.id);
+
+  return (
+    <SelectedChildProvider childRecords={children}>
+      <HomeScreenInner family={family} />
+    </SelectedChildProvider>
+  );
+}
+
+function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['family'] }) {
   const navigation = useNavigation();
   const [empathyIndex, setEmpathyIndex] = useState(0);
+  const { selectedChild } = useSelectedChild();
 
-  const primaryChild = children.find((c) => c.is_primary) || children[0];
+  const primaryChild = selectedChild;
   const age = primaryChild ? getAgeDisplay(primaryChild.date_of_birth) : null;
 
   // Live data from actions + deadlines
@@ -97,6 +108,7 @@ export default function HomeScreen() {
           <View style={styles.headerLeft}>
             <Text style={styles.greeting}>{getGreeting()} 👋</Text>
             <Text style={styles.parentName}>{family?.parent_first_name || 'Welcome'}</Text>
+            <ChildPicker />
           </View>
           <TouchableOpacity
             style={styles.avatar}

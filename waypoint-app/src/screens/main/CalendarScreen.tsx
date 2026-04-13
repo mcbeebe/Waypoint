@@ -21,11 +21,13 @@ import {
   ScrollView,
   StyleSheet,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily } from '@/hooks/useFamily';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useDeadlines } from '@/hooks/useDeadlines';
+import { useCalendarSync } from '@/hooks/useCalendarSync';
 import type {
   Appointment,
   AppointmentType,
@@ -94,6 +96,8 @@ export default function CalendarScreen() {
     refetch: refetchDeadlines,
   } = useDeadlines({ familyId });
 
+  const { isSyncing, syncNow, isGoogleConnected } = useCalendarSync({ familyId });
+
   const loading = loadingAppts || loadingDeadlines;
 
   const handleRefresh = useCallback(async () => {
@@ -148,12 +152,27 @@ export default function CalendarScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Calendar</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowAddModal(true)}
-        >
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[styles.syncButton, !isGoogleConnected && styles.syncButtonDisabled]}
+            onPress={async () => { await syncNow(); await handleRefresh(); }}
+            disabled={isSyncing}
+            accessibilityRole="button"
+            accessibilityLabel="Sync with Google Calendar"
+          >
+            {isSyncing ? (
+              <ActivityIndicator size="small" color={colors.teal} />
+            ) : (
+              <Text style={styles.syncButtonText}>Sync</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setShowAddModal(true)}
+          >
+            <Text style={styles.addButtonText}>+</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* View Toggle */}
@@ -588,6 +607,28 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   headerTitle: { fontSize: fonts.sizes.xl, fontWeight: fonts.weights.bold, color: colors.navy },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  syncButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.teal,
+    minWidth: 52,
+    alignItems: 'center',
+  },
+  syncButtonDisabled: {
+    borderColor: colors.border,
+  },
+  syncButtonText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
+  },
   addButton: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: colors.teal,

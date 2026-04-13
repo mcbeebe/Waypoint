@@ -17,6 +17,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Modal,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
@@ -26,6 +27,8 @@ import { useChat, type UIMessage } from '@/hooks/useChat';
 import { useActions } from '@/hooks/useActions';
 import { useDiagnoses } from '@/hooks/useFamily';
 import { useToast } from '@/components/Toast';
+import { sendEmail } from '@/lib/gmail';
+import { getGoogleAccessToken } from '@/lib/auth';
 import type { ChatContext, ToneLevel } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -84,6 +87,10 @@ export default function NavigatorScreen() {
   const [inputText, setInputText] = useState('');
   const [showTonePicker, setShowTonePicker] = useState(false);
   const [savingMessageId, setSavingMessageId] = useState<string | null>(null);
+  const [emailComposeMessage, setEmailComposeMessage] = useState<UIMessage | null>(null);
+  const [emailTo, setEmailTo] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
   /** Save an AI response as an action plan item */
@@ -119,6 +126,35 @@ export default function NavigatorScreen() {
       setSavingMessageId(null);
     }
   }, [savingMessageId, createAction, sessionId, showToast]);
+
+  /** Open email compose modal with AI response pre-filled */
+  const handleEmailThis = useCallback(async (message: UIMessage) => {
+    const token = await getGoogleAccessToken();
+    if (!token) {
+      showToast('Sign in with Google to send emails', 'error');
+      return;
+    }
+    setEmailComposeMessage(message);
+    setEmailSubject('Waypoint: Disability Services Guidance');
+    setEmailTo('');
+  }, [showToast]);
+
+  /** Send the composed email */
+  const handleSendEmail = useCallback(async () => {
+    if (!emailTo.trim() || !emailComposeMessage) return;
+    setIsSendingEmail(true);
+    try {
+      await sendEmail(emailTo.trim(), emailSubject, emailComposeMessage.content);
+      showToast('Email sent!', 'success');
+      setEmailComposeMessage(null);
+      setEmailTo('');
+      setEmailSubject('');
+    } catch (err) {
+      showToast('Failed to send email', 'error');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  }, [emailTo, emailSubject, emailComposeMessage, showToast]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -205,6 +241,7 @@ export default function NavigatorScreen() {
               <MessageBubble
                 message={item}
                 onSaveAction={handleSaveAsAction}
+                onEmailThis={handleEmailThis}
                 isSaving={savingMessageId === item.id}
               />
             )}
@@ -252,6 +289,56 @@ export default function NavigatorScreen() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Email Compose Modal */}
+      <Modal visible={!!emailComposeMessage} animationType="slide" transparent>
+        <View style={styles.emailModalOverlay}>
+          <View style={styles.emailModalContent}>
+            <Text style={styles.emailModalTitle}>Email This Response</Text>
+            <TextInput
+              style={styles.emailInput}
+              placeholder="Recipient email"
+              placeholderTextColor={colors.mid}
+              value={emailTo}
+              onChangeText={setEmailTo}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={styles.emailInput}
+              placeholder="Subject"
+              placeholderTextColor={colors.mid}
+              value={emailSubject}
+              onChangeText={setEmailSubject}
+            />
+            <View style={styles.emailPreview}>
+              <Text style={styles.emailPreviewText} numberOfLines={6}>
+                {emailComposeMessage?.content.slice(0, 300)}
+                {(emailComposeMessage?.content.length ?? 0) > 300 ? '...' : ''}
+              </Text>
+            </View>
+            <View style={styles.emailModalActions}>
+              <TouchableOpacity
+                style={styles.emailCancelButton}
+                onPress={() => setEmailComposeMessage(null)}
+              >
+                <Text style={styles.emailCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.emailSendButton, (!emailTo.trim() || isSendingEmail) && styles.sendButtonDisabled]}
+                onPress={handleSendEmail}
+                disabled={!emailTo.trim() || isSendingEmail}
+              >
+                {isSendingEmail ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <Text style={styles.emailSendText}>Send</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -285,10 +372,12 @@ function WelcomeView({ onSuggestion }: { onSuggestion: (text: string) => void })
 function MessageBubble({
   message,
   onSaveAction,
+  onEmailThis,
   isSaving,
 }: {
   message: UIMessage;
   onSaveAction?: (msg: UIMessage) => void;
+  onEmailThis?: (msg: UIMessage) => void;
   isSaving?: boolean;
 }) {
   const isUser = message.role === 'user';
@@ -333,6 +422,16 @@ function MessageBubble({
             ) : (
               <Text style={styles.saveActionText}>Save as Action</Text>
             )}
+          </TouchableOpacity>
+        )}
+        {showSaveButton && onEmailThis && (
+          <TouchableOpacity
+            style={styles.emailThisButton}
+            onPress={() => onEmailThis(message)}
+            accessibilityRole="button"
+            accessibilityLabel="Email this response"
+          >
+            <Text style={styles.emailThisText}>Email This</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -704,5 +803,89 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     color: colors.dark,
     lineHeight: 16,
+  },
+  emailThisButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    marginTop: 4,
+    marginLeft: 4,
+    borderRadius: radii.sm,
+    backgroundColor: '#EEF2FF',
+    borderWidth: 1,
+    borderColor: '#6366F1',
+    minHeight: 24,
+    justifyContent: 'center',
+  },
+  emailThisText: {
+    fontSize: 10,
+    color: '#6366F1',
+    fontWeight: fonts.weights.medium as '500',
+  },
+  emailModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  emailModalContent: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: radii.xl,
+    borderTopRightRadius: radii.xl,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
+  },
+  emailModalTitle: {
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.bold as '700',
+    color: colors.navy,
+    marginBottom: spacing.md,
+  },
+  emailInput: {
+    backgroundColor: colors.light,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.base,
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+    marginBottom: spacing.sm,
+  },
+  emailPreview: {
+    backgroundColor: colors.light,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    maxHeight: 120,
+  },
+  emailPreviewText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    lineHeight: 16,
+  },
+  emailModalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
+  },
+  emailCancelButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.base,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  emailCancelText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+  },
+  emailSendButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.base,
+    borderRadius: radii.md,
+    backgroundColor: '#6366F1',
+  },
+  emailSendText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.white,
+    fontWeight: fonts.weights.medium as '500',
   },
 });

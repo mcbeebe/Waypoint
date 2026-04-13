@@ -138,6 +138,7 @@ export interface Appointment {
   notes: string | null;
   reminder_sent: boolean;
   status: AppointmentStatus;
+  google_calendar_event_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -155,6 +156,7 @@ export interface Deadline {
   reminder_days: number[];
   status: DeadlineStatus;
   notes: string | null;
+  google_calendar_event_id: string | null;
   created_at: string;
 }
 
@@ -271,6 +273,43 @@ export interface ChatContext {
   schoolDistrict: string | null;
   insuranceCarrier: string | null;
   toneLevel: ToneLevel;
+}
+
+// ─── Google Calendar (Phase 1) ──────────────────────────────────────────────
+
+export interface GoogleCalendarEvent {
+  id: string;
+  summary: string;
+  description: string | null;
+  location: string | null;
+  start: { dateTime?: string; date?: string; timeZone?: string };
+  end: { dateTime?: string; date?: string; timeZone?: string };
+  htmlLink: string;
+  status: string;
+  created: string;
+  updated: string;
+}
+
+export interface GoogleCalendarEventInput {
+  summary: string;
+  description?: string;
+  location?: string;
+  start: { dateTime: string; timeZone?: string };
+  end: { dateTime: string; timeZone?: string };
+}
+
+// ─── Gmail (Phase 1) ────────────────────────────────────────────────────────
+
+export interface GmailMessage {
+  id: string;
+  threadId: string;
+  from: string;
+  to: string;
+  subject: string;
+  snippet: string;
+  body: string;
+  date: string;
+  labelIds: string[];
 }
 
 // Onboarding convenience type
