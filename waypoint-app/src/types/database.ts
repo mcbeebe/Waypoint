@@ -220,6 +220,100 @@ export interface UserBlock {
   created_at: string;
 }
 
+// ─── Co-Parent Coordination (Phase 6) ────────────────────────────────────────
+
+export type FamilyMemberRole = 'admin' | 'member' | 'viewer';
+export type InvitationStatus = 'pending' | 'accepted' | 'declined';
+
+export interface FamilyMember {
+  id: string;
+  family_id: string;
+  user_id: string;
+  role: FamilyMemberRole;
+  display_name: string;
+  joined_at: string;
+}
+
+export interface FamilyInvitation {
+  id: string;
+  family_id: string;
+  inviter_id: string;
+  invitee_email: string;
+  role: FamilyMemberRole;
+  status: InvitationStatus;
+  token: string;
+  created_at: string;
+  responded_at: string | null;
+}
+
+export type ActivityActionType =
+  | 'created_action' | 'completed_action' | 'added_appointment'
+  | 'uploaded_document' | 'added_expense' | 'sent_message'
+  | 'updated_profile' | 'invited_member' | 'joined_family';
+
+export interface ActivityLogEntry {
+  id: string;
+  family_id: string;
+  user_id: string | null;
+  user_display_name: string;
+  action_type: ActivityActionType;
+  entity_type: string | null;
+  entity_id: string | null;
+  description: string;
+  created_at: string;
+}
+
+// ─── Provider Portal B2B (Phase 7) ──────────────────────────────────────────
+
+export type ConnectionStatus = 'pending' | 'approved' | 'declined' | 'revoked';
+
+export interface ProviderProfile {
+  id: string;
+  user_id: string;
+  name: string;
+  provider_type: ProviderType;
+  specialty: string | null;
+  organization: string | null;
+  npi_number: string | null;
+  credentials: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  bio: string | null;
+  is_verified: boolean;
+  is_accepting_patients: boolean;
+  insurance_accepted: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProviderFamilyConnection {
+  id: string;
+  provider_profile_id: string;
+  family_id: string;
+  status: ConnectionStatus;
+  requested_by: 'provider' | 'family';
+  created_at: string;
+  responded_at: string | null;
+}
+
+export interface ProviderMessage {
+  id: string;
+  connection_id: string;
+  sender_type: 'provider' | 'family';
+  sender_id: string;
+  body: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface DocumentAccessLog {
+  id: string;
+  document_id: string;
+  provider_profile_id: string;
+  accessed_at: string;
+}
+
 export type ExpenseCategory = 'therapy' | 'equipment' | 'transportation' | 'copay' | 'medication' | 'other';
 export type ReimbursementStatus = 'none' | 'submitted' | 'approved' | 'denied' | 'received';
 
