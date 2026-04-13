@@ -14,6 +14,7 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -48,12 +49,13 @@ export default function NavigatorScreen() {
   const { family } = useFamily();
   const { children } = useChildren(family?.id);
   const primaryChild = children.find((c) => c.is_primary) || children[0];
+  const { diagnoses: childDiagnoses } = useDiagnoses(primaryChild?.id);
 
   // Build context for AI
   const chatContext: ChatContext = {
     familyId: family?.id ?? '',
     childAge: primaryChild?.date_of_birth ? getAgeString(primaryChild.date_of_birth) : null,
-    diagnoses: [], // TODO: Wire up useDiagnoses when child exists
+    diagnoses: childDiagnoses.map(d => d.name),
     state: family?.state ?? 'California',
     county: family?.county ?? null,
     regionalCenter: family?.regional_center ?? null,
@@ -291,6 +293,7 @@ function MessageBubble({
 }) {
   const isUser = message.role === 'user';
   const showSaveButton = !isUser && !message.isStreaming && message.content.length > 0;
+  const showSources = !isUser && !message.isStreaming && message.content.length > 0;
 
   return (
     <View style={[styles.bubbleRow, isUser && styles.bubbleRowUser]}>
@@ -316,6 +319,7 @@ function MessageBubble({
             {message.isStreaming && <Text style={styles.cursor}>▊</Text>}
           </Text>
         </View>
+        {showSources && <SourceAttribution sources={message.sources} />}
         {showSaveButton && onSaveAction && (
           <TouchableOpacity
             style={styles.saveActionButton}
@@ -332,6 +336,63 @@ function MessageBubble({
           </TouchableOpacity>
         )}
       </View>
+    </View>
+  );
+}
+
+/** Source attribution pills below AI responses */
+function SourceAttribution({
+  sources,
+}: {
+  sources?: UIMessage['sources'];
+}) {
+  const [expandedSource, setExpandedSource] = useState<string | null>(null);
+
+  const hasSources = sources && sources.length > 0;
+
+  return (
+    <View style={styles.sourceContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.sourceRow}
+      >
+        {hasSources ? (
+          sources.map((s, i) => {
+            const label = s.source.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+            const pct = Math.round(s.similarity * 100);
+            const key = `${s.source}-${i}`;
+            return (
+              <TouchableOpacity
+                key={key}
+                style={styles.sourcePill}
+                onPress={() => setExpandedSource(expandedSource === key ? null : key)}
+                accessibilityRole="button"
+                accessibilityLabel={`Source: ${label}, ${pct}% relevance`}
+              >
+                <Text style={styles.sourcePillText}>{label} {pct}%</Text>
+              </TouchableOpacity>
+            );
+          })
+        ) : (
+          <View style={styles.generalKnowledgePill}>
+            <Text style={styles.generalKnowledgeText}>General knowledge</Text>
+          </View>
+        )}
+      </ScrollView>
+      {expandedSource && hasSources && (() => {
+        const idx = sources.findIndex((_, i) => `${sources[i].source}-${i}` === expandedSource);
+        if (idx === -1) return null;
+        const s = sources[idx];
+        const label = s.source.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+        return (
+          <View style={styles.sourceExpanded}>
+            <Text style={styles.sourceExpandedText}>Source: {label}</Text>
+            {s.section && <Text style={styles.sourceExpandedText}>Section: {s.section}</Text>}
+            <Text style={styles.sourceExpandedText}>Relevance: {Math.round(s.similarity * 100)}%</Text>
+          </View>
+        );
+      })()}
     </View>
   );
 }
@@ -602,5 +663,46 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: colors.teal,
     fontWeight: fonts.weights.medium as '500',
+  },
+  sourceContainer: {
+    marginTop: 4,
+  },
+  sourceRow: {
+    flexDirection: 'row',
+    gap: 4,
+    paddingVertical: 2,
+  },
+  sourcePill: {
+    backgroundColor: colors.light,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radii.sm,
+  },
+  sourcePillText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
+  },
+  generalKnowledgePill: {
+    backgroundColor: colors.light,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radii.sm,
+  },
+  generalKnowledgeText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    fontStyle: 'italic',
+  },
+  sourceExpanded: {
+    backgroundColor: colors.light,
+    borderRadius: radii.sm,
+    padding: spacing.sm,
+    marginTop: 4,
+  },
+  sourceExpandedText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.dark,
+    lineHeight: 16,
   },
 });

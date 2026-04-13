@@ -14,6 +14,7 @@
 
 import { supabase } from './supabase';
 import type { ChatContext, ToneLevel } from '@/types/database';
+import type { RAGConfidence } from './rag';
 
 const EDGE_FN_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/ai-proxy`;
 
@@ -28,7 +29,11 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 }
 
 /** System prompt builder — ported from GAS MVP with enhancements */
-export function buildSystemPrompt(context: ChatContext, ragContext: string): string {
+export function buildSystemPrompt(
+  context: ChatContext,
+  ragContext: string,
+  ragConfidence: RAGConfidence = 'high'
+): string {
   const toneInstructions = getToneInstructions(context.toneLevel);
 
   const childInfo = context.childAge
@@ -65,7 +70,13 @@ ${toneInstructions}
 The following knowledge base articles are relevant to this conversation. Use them to provide accurate, specific guidance with legal citations where appropriate:
 
 ${ragContext}
-
+${ragConfidence === 'none' ? `
+## ⚠️ Knowledge Base Warning
+No relevant knowledge base articles were found for this query. Be transparent about this limitation. Do NOT fabricate legal citations or specific program details. Instead, provide general guidance and strongly recommend the parent consult Disability Rights California (DRC) at 1-800-776-5746 or a disability rights attorney for specific guidance on this topic.
+` : ragConfidence === 'low' ? `
+## ⚠️ Low Confidence Warning
+The knowledge base matches for this query have low confidence scores. Use the provided articles cautiously and recommend the parent verify specific details with a disability rights professional or Disability Rights California (DRC) at 1-800-776-5746.
+` : ''}
 ## Critical Rules
 1. ALWAYS cite specific code sections when referencing laws (e.g., W&I Code §4512, Ed Code §56341)
 2. NEVER provide specific legal advice — frame as "you may have the right to..." or "the law provides..."
@@ -73,7 +84,30 @@ ${ragContext}
 4. Always provide concrete next steps the parent can take
 5. Be warm and empathetic — these parents are often stressed and overwhelmed
 6. When relevant, mention timelines and deadlines (they matter enormously in disability law)
-7. If a question falls outside California disability services, acknowledge it and redirect gently`;
+7. If a question falls outside California disability services, acknowledge it and redirect gently
+
+## Legal Disclaimer
+You are NOT an attorney and do NOT provide legal advice. All guidance is educational and informational only. No attorney-client relationship is created by this conversation. The information provided should not be used as a substitute for professional legal counsel.
+
+## Escalation Rules — High-Risk Scenarios
+When the parent's question involves any of these high-risk topics, you MUST recommend they consult with a disability rights attorney or advocacy organization:
+- Fair hearings or due process filings
+- Service denials or funding disputes
+- Compliance complaints against Regional Centers or school districts
+- Appeals of any kind (insurance, SSI, IEP, IPP)
+- SSI denials or overpayment notices
+- Allegations of rights violations or discrimination
+
+Include these contacts for high-risk scenarios:
+- Disability Rights California (DRC): 1-800-776-5746 — free legal advocacy for people with disabilities
+- Office of Administrative Hearings (OAH): 916-263-0550 — for fair hearing filings
+- Office for Civil Rights (OCR): 1-800-421-3481 — for discrimination complaints
+
+## Response Footer
+End EVERY response with the following disclaimer footer (after a horizontal rule):
+
+---
+*This information is for educational purposes only and is not legal advice. For specific legal guidance, consult a disability rights attorney or contact Disability Rights California at 1-800-776-5746.*`;
 }
 
 /** Tone calibration instructions (ported from GAS MVP) */
@@ -107,9 +141,10 @@ export async function streamNavigatorResponse(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   context: ChatContext,
   ragContext: string,
-  callbacks: StreamCallbacks
+  callbacks: StreamCallbacks,
+  ragConfidence: RAGConfidence = 'high'
 ): Promise<void> {
-  const systemPrompt = buildSystemPrompt(context, ragContext);
+  const systemPrompt = buildSystemPrompt(context, ragContext, ragConfidence);
   const headers = await getAuthHeaders();
 
   try {
@@ -185,9 +220,10 @@ export async function streamNavigatorResponse(
 export async function getNavigatorResponse(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   context: ChatContext,
-  ragContext: string
+  ragContext: string,
+  ragConfidence: RAGConfidence = 'high'
 ): Promise<string> {
-  const systemPrompt = buildSystemPrompt(context, ragContext);
+  const systemPrompt = buildSystemPrompt(context, ragContext, ragConfidence);
   const headers = await getAuthHeaders();
 
   const response = await fetch(EDGE_FN_URL, {

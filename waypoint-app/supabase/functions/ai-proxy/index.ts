@@ -81,7 +81,7 @@ serve(async (req: Request) => {
           'anthropic-beta': 'prompt-caching-2024-07-31',
         },
         body: JSON.stringify({
-          model: model ?? 'claude-sonnet-4-20250514',
+          model: model ?? 'claude-opus-4-6-20250514',
           max_tokens: 4096,
           system: systemBlocks,
           messages,

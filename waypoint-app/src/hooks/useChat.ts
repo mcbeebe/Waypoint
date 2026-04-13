@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { retrieveContext } from '@/lib/rag';
+import { retrieveMultiSourceContext } from '@/lib/rag';
 import { streamNavigatorResponse, classifyIntent } from '@/lib/ai';
 import type { ChatContext, ChatMessage, ToneLevel } from '@/types/database';
 
@@ -15,7 +15,7 @@ export interface UIMessage {
   role: 'user' | 'assistant';
   content: string;
   isStreaming?: boolean;
-  sources?: Array<{ source: string; similarity: number }>;
+  sources?: Array<{ source: string; section?: string | null; similarity: number }>;
   createdAt: string;
 }
 
@@ -121,10 +121,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       // Step 1: Classify intent (fast, uses Haiku)
       const classification = await classifyIntent(text);
 
-      // Step 2: Retrieve relevant KB articles via RAG
-      const ragResult = await retrieveContext(text, {
+      // Step 2: Retrieve relevant KB articles via RAG (multi-source for cross-topic queries)
+      const ragResult = await retrieveMultiSourceContext(text, classification.sources, {
         matchCount: 5,
-        filterSource: classification.sources[0] ?? null,
       });
 
       // Step 3: Build conversation history for API
@@ -161,6 +160,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                       isStreaming: false,
                       sources: ragResult.sources.map((s) => ({
                         source: s.source,
+                        section: s.section ?? null,
                         similarity: s.similarity,
                       })),
                     }
@@ -183,7 +183,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             );
             setIsLoading(false);
           },
-        }
+        },
+        ragResult.confidence
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

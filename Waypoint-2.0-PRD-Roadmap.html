@@ -299,6 +299,8 @@
     .phase-header.cyan { background-color: var(--cyan); }
     .phase-header.indigo { background-color: var(--indigo); }
     .phase-header.emerald { background-color: var(--emerald); }
+    .phase-header.dark-red { background-color: #B91C1C; }
+    .phase-header.deep-purple { background-color: #7E22CE; }
 
     .phase-header h2 {
       margin: 0;
@@ -561,7 +563,7 @@
       <button onclick="document.getElementById('executive-summary').scrollIntoView()">Executive Summary</button>
       <button onclick="document.getElementById('current-state').scrollIntoView()">Current State Assessment</button>
       <button onclick="document.getElementById('features').scrollIntoView()">Feature Requirements</button>
-      <button onclick="document.getElementById('sprint-roadmap').scrollIntoView()">Sprint Roadmap (Phases 1-9)</button>
+      <button onclick="document.getElementById('sprint-roadmap').scrollIntoView()">Sprint Roadmap (Phases 0-11)</button>
       <button onclick="document.getElementById('architecture').scrollIntoView()">Technical Architecture</button>
       <button onclick="document.getElementById('testing').scrollIntoView()">Testing Strategy</button>
       <button onclick="document.getElementById('risks').scrollIntoView()">Risk Register</button>
@@ -571,7 +573,7 @@
     <section id="executive-summary">
       <h1>Executive Summary</h1>
 
-      <p class="intro">Waypoint 2.0 builds on 12 completed sprints of the GAS MVP and React Native app foundation. This PRD defines 58 remaining sprints (S13–S70) across 9 phases to deliver all 7 strategic features identified in the March 2026 Strategic Analysis.</p>
+      <p class="intro">Waypoint 2.0 builds on 12 completed sprints of the GAS MVP and React Native app foundation. This PRD defines 69 remaining sprints (S0A–S0F + S13–S81) across 12 phases to deliver all 11 strategic features identified in the March 2026 Strategic Analysis. Phase 0 addresses critical AI Navigator hardening gaps; Phases 1–9 deliver core features; Phase 10 adds Resources & Blog; Phase 11 (conditional) enables Epic MyChart integration.</p>
 
       <h3>Current Product Status</h3>
       <p>The waypoint-app already includes:</p>
@@ -587,8 +589,9 @@
       </ul>
 
       <h3>Strategic Goals for Waypoint 2.0</h3>
-      <p>Deploy the 7 strategic features below to create a comprehensive, defensible platform that parents can't live without:</p>
+      <p>Deploy the 11 strategic features below to create a comprehensive, defensible platform that parents can't live without:</p>
       <ol>
+        <li><strong>AI Navigator Hardening (Phase 0)</strong> — Critical bug fixes: Opus 4.6 upgrade, source attribution, RAG fallbacks, diagnosis context, legal disclaimers</li>
         <li><strong>Calendar + Google Sync</strong> — Bi-directional sync with Google Calendar</li>
         <li><strong>Financial Tracker</strong> — Expense management with tax deduction reports</li>
         <li><strong>Provider & Service Management</strong> — Care team directory, service authorizations</li>
@@ -596,6 +599,9 @@
         <li><strong>Community Forum</strong> — Diagnosis-specific forums, peer support, DMs</li>
         <li><strong>Co-Parent Coordination</strong> — Multi-user family sharing, task assignment, activity feed</li>
         <li><strong>Provider Portal (B2B)</strong> — Separate experience for therapists, attorneys, coordinators</li>
+        <li><strong>Resources & Guides</strong> — Curated content library, blog, difficulty-leveled articles</li>
+        <li><strong>Blog</strong> — In-app blog with news, tips, legal updates, community stories</li>
+        <li><strong>Epic MyChart Integration (Conditional)</strong> — SMART on FHIR OAuth to import medical records and sync with Navigator</li>
       </ol>
 
       <p>Plus <strong>Data Moat instrumentation</strong> (anonymous outcomes tracking) and <strong>launch prep</strong> (TestFlight, App Store, accessibility audit).</p>
@@ -913,11 +919,217 @@
         </div>
         <p><strong>Sprint Range:</strong> S53–S58 (6 sprints)</p>
       </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>Resources & Guides</span>
+          <span class="badge badge-indigo">Phase 10</span>
+        </h3>
+        <p class="description">In-app curated resource library organized by topic (Regional Centers, IEP/School, Insurance, Benefits, Transitions, etc.) with difficulty-leveled articles and seamless Navigator integration.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a newly diagnosed parent, I want to browse getting-started guides so I know where to begin</li>
+            <li>As a parent preparing for an IEP meeting, I want to read a step-by-step prep guide</li>
+            <li>As a parent, I want to search for guides relevant to my child's specific situation</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>Category browsing (Getting Started, Regional Centers, IEP/School, Insurance, Benefits, Transitions, Financial, Legal Rights)</li>
+            <li>Full-text search with instant results</li>
+            <li>Difficulty levels (Beginner/Intermediate/Advanced)</li>
+            <li>Estimated read time and related KB article linking</li>
+            <li>"Ask Navigator about this" button to launch chat with article context</li>
+            <li>Bookmark/save functionality with persistence</li>
+            <li>Markdown rendering with proper formatting</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S71–S76 (6 sprints)</p>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>Blog</span>
+          <span class="badge badge-indigo">Phase 10</span>
+        </h3>
+        <p class="description">In-app blog with news, tips, legal updates, and community stories. Featured posts, category tabs, and easy sharing to keep families informed and engaged.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a parent, I want to stay informed about changes to CA disability law</li>
+            <li>As a parent, I want to read tips from other families who've navigated the system</li>
+            <li>As a parent, I want to know about new Waypoint features and how to use them</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>Featured post hero at top with featured image</li>
+            <li>Category tabs (News, Tips, Legal Updates, Community Stories, Product Updates)</li>
+            <li>Article cards with excerpt, author, and read time</li>
+            <li>Markdown rendering for rich formatting</li>
+            <li>Pull-to-refresh and infinite scroll pagination</li>
+            <li>Author attribution and publication dates</li>
+            <li>Share capability (copy link, social media)</li>
+          </ul>
+        </div>
+        <p><strong>Sprint Range:</strong> S74–S76 (3 sprints)</p>
+      </div>
+
+      <div class="feature-card">
+        <h3>
+          <span>Epic MyChart Integration</span>
+          <span class="badge badge-pink">Phase 11 (Conditional)</span>
+        </h3>
+        <p class="description">Connect to Epic MyChart via SMART on FHIR OAuth to import medical records (diagnoses, medications, labs, appointments) and inject into AI Navigator context. IEP/educational records NOT accessible via FHIR (FERPA, not HIPAA). Focus is medical records only.</p>
+        <div class="user-stories">
+          <h4>User Stories</h4>
+          <ul>
+            <li>As a parent, I want Waypoint to automatically know my child's diagnoses from their medical records</li>
+            <li>As a parent, I want my child's medical appointments to appear in Waypoint's calendar</li>
+            <li>As a parent, I want the AI Navigator to reference my child's actual medications and conditions when giving advice</li>
+          </ul>
+        </div>
+        <div class="requirements">
+          <h4>Key Requirements</h4>
+          <ul>
+            <li>SMART on FHIR patient-facing OAuth flow with MyChart redirect</li>
+            <li>Access token storage and secure refresh handling</li>
+            <li>FHIR R4 read-only access (Condition, Medication, Appointment, Observation, DocumentReference resources)</li>
+            <li>Auto-population of diagnoses and medications with manual override option</li>
+            <li>Calendar sync with visual indicators for MyChart vs local appointments</li>
+            <li>Health Records screen showing labs, clinical notes, and allergy information</li>
+            <li>Privacy consent shown before health data shared with AI</li>
+            <li>Disconnect capability to revoke MyChart access</li>
+            <li>Graceful handling when MyChart not connected (no blocking)</li>
+          </ul>
+        </div>
+        <p><strong>Note:</strong> This phase is conditional on securing a health system partnership. Sandbox development is free; production deployment requires $15K–$200K+ per health system.</p>
+        <p><strong>Sprint Range:</strong> S77–S81 (5 sprints)</p>
+      </div>
     </section>
 
     <!-- 4. SPRINT ROADMAP -->
     <section id="sprint-roadmap">
-      <h1>Sprint Roadmap (Phases 1–9)</h1>
+      <h1>Sprint Roadmap (Phases 0–11)</h1>
+
+      <!-- PHASE 0: AI NAVIGATOR HARDENING -->
+      <div class="phase-section">
+        <div class="phase-header dark-red">
+          <h2>Phase 0: AI Navigator Hardening</h2>
+          <div class="phase-sprint-count">S0A–S0F (6 sprints)</div>
+        </div>
+        <details open>
+          <summary>Expand Phase 0 Details</summary>
+          <div class="details-content">
+            <p style="margin-bottom: 16px; font-weight: 500; color: #B91C1C;">CRITICAL PRE-WORK: This phase addresses 4 critical AI Navigator gaps identified in March 2026 review. These sprints must be completed before any new features to ensure legal accuracy and responsible AI guidance.</p>
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S0A</td>
+                    <td>Upgrade to Claude Opus 4.6</td>
+                    <td>Update ai-proxy Edge Function to use claude-opus-4-6 as the primary model for all Navigator responses. Keep Haiku for intent classification.</td>
+                    <td>supabase/functions/ai-proxy/index.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Model string updated to claude-opus-4-6</li>
+                        <li>Responses show improved accuracy on legal citations</li>
+                        <li>Latency acceptable (<3s first token)</li>
+                        <li>Prompt caching still works</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S0B</td>
+                    <td>Display Sources in Chat UI</td>
+                    <td>Add source attribution to MessageBubble component. Show KB article titles, relevance scores, and expandable source details after each AI response.</td>
+                    <td>src/screens/main/NavigatorScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Each AI message shows source pills below text</li>
+                        <li>Tapping expands source details (title, section, similarity %)</li>
+                        <li>Messages with no sources show "General knowledge" indicator</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S0C</td>
+                    <td>RAG Fallback & Guardrails</td>
+                    <td>Add fallback behavior when KB returns 0 results or low-confidence matches. AI should warn the user and suggest professional consultation instead of generating ungrounded advice.</td>
+                    <td>src/lib/rag.ts, src/lib/ai.ts, src/hooks/useChat.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>When 0 KB results: system prompt includes warning to recommend professional consultation</li>
+                        <li>When all matches < 0.5 similarity: same warning</li>
+                        <li>Raise default threshold from 0.4 to 0.6</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S0D</td>
+                    <td>Wire Up Child Diagnoses to AI Context</td>
+                    <td>Fix the TODO in NavigatorScreen — pass child diagnoses to the AI system prompt so responses are personalized to the child's specific conditions.</td>
+                    <td>src/screens/main/NavigatorScreen.tsx, src/hooks/useChat.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>ChatContext includes diagnoses array</li>
+                        <li>System prompt references specific diagnoses</li>
+                        <li>AI responses reference diagnosis-specific programs and rights</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S0E</td>
+                    <td>Add Legal Disclaimer & Escalation Rules</td>
+                    <td>Add explicit legal disclaimer to system prompt and escalation instructions for high-risk scenarios (denials, appeals, fair hearings).</td>
+                    <td>src/lib/ai.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>System prompt includes legal disclaimer with DRC contact info</li>
+                        <li>High-risk topics trigger attorney suggestion</li>
+                        <li>Every response ends with disclaimer footer</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S0F</td>
+                    <td>Improve RAG Multi-Source Retrieval</td>
+                    <td>Update intent classification to pass multiple sources for cross-topic queries, and update RAG to retrieve from all classified sources instead of just the first.</td>
+                    <td>src/hooks/useChat.ts, src/lib/rag.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Multi-topic queries retrieve from both sources</li>
+                        <li>retrieveContext accepts sources[] array</li>
+                        <li>Results merged and de-duplicated by relevance</li>
+                        <li>Single-topic queries still work</li>
+                      </ul>
+                    </td>
+                    <td>S0C</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
 
       <!-- PHASE 1 -->
       <div class="phase-section">
@@ -2043,6 +2255,244 @@
           </div>
         </details>
       </div>
+
+      <!-- PHASE 10: RESOURCES, GUIDES & BLOG -->
+      <div class="phase-section">
+        <div class="phase-header indigo">
+          <h2>Phase 10: Resources, Guides & Blog</h2>
+          <div class="phase-sprint-count">S71–S76 (6 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 10 Details</summary>
+          <div class="details-content">
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S71</td>
+                    <td>Resources DB Schema & Hook</td>
+                    <td>Create migration for resources/guides content table (title, body, category, tags, difficulty_level, estimated_read_time, related_kb_ids, published_at). Create useResources hook with fetch/filter/search.</td>
+                    <td>supabase/migrations/009_resources_blog.sql, src/hooks/useResources.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Table created with RLS (all authenticated users can read)</li>
+                        <li>Hook fetches with category/tag/search filters</li>
+                        <li>Pagination support</li>
+                        <li>Related KB article linking</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S72</td>
+                    <td>ResourcesScreen - Browse & Search</td>
+                    <td>Create in-app Resources screen with category browsing, search, and difficulty filtering. Add to navigation.</td>
+                    <td>src/screens/main/ResourcesScreen.tsx, src/navigation/MainTabs.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Category cards render correctly</li>
+                        <li>Search bar with instant results</li>
+                        <li>Difficulty badges (Beginner/Intermediate/Advanced)</li>
+                        <li>Estimated read time visible</li>
+                        <li>Tap opens full article</li>
+                        <li>Empty state displays</li>
+                      </ul>
+                    </td>
+                    <td>S71</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S73</td>
+                    <td>ResourceDetailScreen - Article View</td>
+                    <td>Full article reader with markdown rendering, related guides, "Ask Navigator about this" button, and save/bookmark capability.</td>
+                    <td>src/screens/main/ResourceDetailScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Markdown body renders with proper formatting</li>
+                        <li>Related guides shown at bottom</li>
+                        <li>"Ask Navigator" button pre-fills chat with article topic</li>
+                        <li>Bookmark persists to AsyncStorage</li>
+                        <li>Share capability</li>
+                        <li>Reading progress indicator</li>
+                      </ul>
+                    </td>
+                    <td>S72</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S74</td>
+                    <td>Blog DB Schema & Hook</td>
+                    <td>Create blog_posts table (title, excerpt, body, author, category, tags, featured_image_url, published_at, is_featured). Create useBlog hook.</td>
+                    <td>supabase/migrations/009_resources_blog.sql (extend), src/hooks/useBlog.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Table with RLS</li>
+                        <li>Hook fetches with pagination and category filter</li>
+                        <li>Featured post support</li>
+                        <li>Draft/published status</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S75</td>
+                    <td>BlogScreen - Feed & Reader</td>
+                    <td>Blog feed with featured post hero, category tabs, and article cards. Tap opens full article reader.</td>
+                    <td>src/screens/main/BlogScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Featured post at top with hero image</li>
+                        <li>Category tabs render and filter correctly</li>
+                        <li>Article cards with excerpt + read time</li>
+                        <li>Pull-to-refresh works</li>
+                        <li>Infinite scroll pagination</li>
+                        <li>Article navigation</li>
+                      </ul>
+                    </td>
+                    <td>S74</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S76</td>
+                    <td>Content Seeding & Admin</td>
+                    <td>Create content ingestion script to seed initial resources and blog posts from existing KB articles. Add basic admin capability for publishing.</td>
+                    <td>src/scripts/seed-content.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Script converts top 20 KB articles into resource format</li>
+                        <li>Creates 5 initial blog posts</li>
+                        <li>Admin flag on family table for content management</li>
+                        <li>published_at controls visibility</li>
+                      </ul>
+                    </td>
+                    <td>S71, S74</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- PHASE 11: EPIC MYCHART INTEGRATION -->
+      <div class="phase-section">
+        <div class="phase-header deep-purple">
+          <h2>Phase 11: Epic MyChart Integration</h2>
+          <div class="phase-sprint-count">S77–S81 (5 sprints)</div>
+        </div>
+        <details>
+          <summary>Expand Phase 11 Details</summary>
+          <div class="details-content">
+            <p style="margin-bottom: 16px; padding: 12px 16px; background-color: #FCE7F3; border-left: 4px solid #EC4899; border-radius: 4px; color: #831843;">
+              <strong>Conditional Phase:</strong> This phase is conditional on securing a health system partnership. Sandbox development is free; production deployment requires $15K–$200K+ per health system. IEP/educational records are NOT accessible via FHIR (they're FERPA, not HIPAA). Focus is on medical records: diagnoses, medications, allergies, appointments, lab results.
+            </p>
+            <div class="sprint-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Sprint</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Files</th>
+                    <th>Acceptance Criteria</th>
+                    <th>Deps</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sprint-id">S77</td>
+                    <td>SMART on FHIR OAuth Flow</td>
+                    <td>Implement SMART on FHIR patient-facing OAuth in React Native. Patient authenticates via their MyChart portal and grants read access to Waypoint.</td>
+                    <td>src/lib/fhir.ts, src/screens/main/ProfileScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>OAuth redirect to MyChart login works</li>
+                        <li>Patient consent screen displayed</li>
+                        <li>Access token stored securely</li>
+                        <li>Token refresh handling</li>
+                        <li>Disconnect capability in Profile</li>
+                      </ul>
+                    </td>
+                    <td>None</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S78</td>
+                    <td>FHIR Data Fetch - Conditions & Medications</td>
+                    <td>Fetch patient conditions (diagnoses) and medications via FHIR R4 API. Auto-populate child's diagnosis list and active medications.</td>
+                    <td>src/lib/fhir.ts, src/hooks/useFamily.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Fetch Condition resources filtered to child</li>
+                        <li>Map ICD-10 codes to Waypoint diagnosis names</li>
+                        <li>Fetch MedicationRequest resources</li>
+                        <li>Display in Profile</li>
+                        <li>Option to sync or manually override</li>
+                      </ul>
+                    </td>
+                    <td>S77</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S79</td>
+                    <td>FHIR Data Fetch - Appointments & Allergies</td>
+                    <td>Fetch upcoming appointments and allergy list from MyChart. Merge with Waypoint calendar.</td>
+                    <td>src/lib/fhir.ts, src/hooks/useCalendarSync.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Fetch Appointment resources</li>
+                        <li>Merge with Waypoint calendar (visual indicator for MyChart vs local)</li>
+                        <li>Fetch AllergyIntolerance resources</li>
+                        <li>Display in child profile</li>
+                        <li>Date range filtering</li>
+                      </ul>
+                    </td>
+                    <td>S77, S15</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S80</td>
+                    <td>FHIR Data Fetch - Lab Results & Clinical Notes</td>
+                    <td>Fetch lab results (Observation) and clinical notes (DocumentReference) for the child. Display in a Health Records section.</td>
+                    <td>src/lib/fhir.ts, src/screens/main/HealthRecordsScreen.tsx</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>Fetch Observation resources (labs)</li>
+                        <li>Display with date, value, reference range, status</li>
+                        <li>Fetch DocumentReference (clinical notes) where available</li>
+                        <li>Chronological timeline view</li>
+                        <li>Date filtering works</li>
+                        <li>Empty state for unavailable data</li>
+                      </ul>
+                    </td>
+                    <td>S77</td>
+                  </tr>
+                  <tr>
+                    <td class="sprint-id">S81</td>
+                    <td>MyChart Health Summary for Navigator</td>
+                    <td>Inject MyChart health data into AI Navigator context so the AI can reference actual diagnoses, medications, and recent appointments when providing guidance.</td>
+                    <td>src/hooks/useChat.ts, src/lib/ai.ts</td>
+                    <td>
+                      <ul class="acceptance-list">
+                        <li>System prompt includes MyChart health data</li>
+                        <li>Privacy notice shown before health data shared with AI</li>
+                        <li>AI references actual medications when discussing side effects</li>
+                        <li>AI references actual diagnoses and services</li>
+                        <li>Graceful handling when MyChart not connected</li>
+                      </ul>
+                    </td>
+                    <td>S77, S78, S0D</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
     </section>
 
     <!-- 5. TECHNICAL ARCHITECTURE -->
@@ -2207,6 +2657,18 @@
             <td class="risk-medium">Medium</td>
             <td class="risk-low">Low</td>
             <td>Keep function bundles small, use connection pooling, consider scheduled warming on high-traffic functions</td>
+          </tr>
+          <tr>
+            <td><strong>Epic MyChart Production Costs</strong></td>
+            <td class="risk-medium">Medium</td>
+            <td class="risk-high">High</td>
+            <td>Start with free sandbox; pursue one health system pilot partnership before committing budget. Conditional phase — skip if no partnership materializes.</td>
+          </tr>
+          <tr>
+            <td><strong>AI Hallucination in Legal Domain (Upgraded)</strong></td>
+            <td class="risk-medium">Medium</td>
+            <td class="risk-critical">Critical</td>
+            <td>Upgraded to Opus 4.6; RAG fallback warns when KB has no match; legal disclaimer on every response; attorney escalation for high-risk queries. Phase 0 addresses all critical gaps.</td>
           </tr>
         </tbody>
       </table>
