@@ -137,6 +137,89 @@ export interface IEPAnalysisResult {
   };
 }
 
+// ─── Community Forum (Phase 5) ──────────────────────────────────────────────
+
+export interface ForumCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  emoji: string;
+  sort_order: number;
+  is_diagnosis_specific: boolean;
+  thread_count: number;
+  created_at: string;
+}
+
+export interface ForumThread {
+  id: string;
+  category_id: string;
+  author_id: string;
+  author_display_name: string;
+  title: string;
+  body: string;
+  tags: string[];
+  is_pinned: boolean;
+  is_locked: boolean;
+  is_hidden: boolean;
+  post_count: number;
+  last_post_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ForumPost {
+  id: string;
+  thread_id: string;
+  parent_post_id: string | null;
+  author_id: string;
+  author_display_name: string;
+  body: string;
+  is_hidden: boolean;
+  reaction_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ReactionType = '👍' | '👏' | '❤️';
+
+export interface ForumReaction {
+  id: string;
+  post_id: string;
+  user_id: string;
+  reaction: ReactionType;
+  created_at: string;
+}
+
+export type ReportStatus = 'pending' | 'reviewed' | 'actioned' | 'dismissed';
+
+export interface ForumReport {
+  id: string;
+  reporter_id: string;
+  thread_id: string | null;
+  post_id: string | null;
+  reason: string;
+  status: ReportStatus;
+  moderator_notes: string | null;
+  created_at: string;
+  resolved_at: string | null;
+}
+
+export interface DirectMessage {
+  id: string;
+  sender_id: string;
+  recipient_id: string;
+  body: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface UserBlock {
+  id: string;
+  blocker_id: string;
+  blocked_id: string;
+  created_at: string;
+}
+
 export type ExpenseCategory = 'therapy' | 'equipment' | 'transportation' | 'copay' | 'medication' | 'other';
 export type ReimbursementStatus = 'none' | 'submitted' | 'approved' | 'denied' | 'received';
 
