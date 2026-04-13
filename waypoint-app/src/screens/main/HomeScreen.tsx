@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import { useDeadlines } from '@/hooks/useDeadlines';
+import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { percentageLabel } from '@/lib/accessibility';
@@ -78,9 +79,10 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
   const primaryChild = selectedChild;
   const age = primaryChild ? getAgeDisplay(primaryChild.date_of_birth) : null;
 
-  // Live data from actions + deadlines
+  // Live data from actions + deadlines + expenses
   const { actions, stats } = useActions({ familyId: family?.id ?? '' });
   const { deadlines } = useDeadlines({ familyId: family?.id ?? '' });
+  const { summary: expenseSummary } = useExpenses({ familyId: family?.id ?? '' });
 
   const urgentDeadlines = deadlines.filter((d) => {
     if (d.status === 'completed') return false;
@@ -221,6 +223,29 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
               {stats?.total_actions ? 'View Actions' : 'Ask AI Navigator'}
             </Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Financial Summary Widget */}
+        <Text style={styles.sectionTitle}>Financial Snapshot</Text>
+        <View style={styles.financeCard}>
+          <View style={styles.financeRow}>
+            <View style={styles.financeItem}>
+              <Text style={styles.financeValue}>${expenseSummary.monthlyTotal.toFixed(0)}</Text>
+              <Text style={styles.financeLabel}>This Month</Text>
+            </View>
+            <View style={styles.financeItem}>
+              <Text style={[styles.financeValue, { color: '#F59E0B' }]}>
+                ${expenseSummary.totalReimbursementPending.toFixed(0)}
+              </Text>
+              <Text style={styles.financeLabel}>Pending</Text>
+            </View>
+            <View style={styles.financeItem}>
+              <Text style={[styles.financeValue, { color: '#10B981' }]}>
+                ${expenseSummary.totalAmount.toFixed(0)}
+              </Text>
+              <Text style={styles.financeLabel}>YTD Total</Text>
+            </View>
+          </View>
         </View>
 
         {/* Quick Actions */}
@@ -530,5 +555,33 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.medium as '500',
     color: colors.dark,
+  },
+  financeCard: {
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  financeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  financeItem: {
+    alignItems: 'center',
+  },
+  financeValue: {
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.bold as '700',
+    color: colors.navy,
+  },
+  financeLabel: {
+    fontSize: 10,
+    color: colors.mid,
+    marginTop: 2,
   },
 });
