@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Waypoint — Web MVP</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ─── CONFIG: Set your Supabase credentials here ─── */
+/* (or they'll be prompted on first load) */
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --navy: #1B2A4A;
+  --teal: #0891B2;
+  --coral: #F97316;
+  --sage: #10B981;
+  --dark: #334155;
+  --mid: #64748B;
+  --light: #F8FAFC;
+  --white: #FFFFFF;
+  --error: #EF4444;
+  --border: #E2E8F0;
+  --bg: #F8FAFB;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.phone-frame {
+  width: 390px; height: 844px; background: var(--bg);
+  border-radius: 44px; overflow: hidden; position: relative;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.5), inset 0 0 0 3px #333;
+  display: flex; flex-direction: column;
+}
+.notch {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 126px; height: 34px; background: #000; border-radius: 0 0 20px 20px; z-index: 100;
+}
+.status-bar {
+  height: 54px; background: var(--white); display: flex;
+  align-items: flex-end; justify-content: space-between;
+  padding: 0 24px 6px; font-size: 12px; font-weight: 600; color: var(--dark); flex-shrink: 0;
+}
+
+/* Screens */
+.screen { display: none; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* Tab Bar */
+.tab-bar {
+  display: flex; background: var(--white); border-top: 1px solid var(--border);
+  padding: 6px 0 28px; flex-shrink: 0;
+}
+.tab-bar.hidden { display: none; }
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 0; cursor: pointer; border: none; background: none; font-family: inherit;
+}
+.tab:active { opacity: 0.6; }
+.tab-icon { font-size: 22px; }
+.tab-label { font-size: 10px; color: var(--mid); font-weight: 500; }
+.tab.active .tab-label { color: var(--teal); font-weight: 600; }
+
+/* Header */
+.screen-header {
+  padding: 12px 20px; background: var(--white); border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+}
+.screen-title { font-size: 20px; font-weight: 700; color: var(--navy); }
+.screen-subtitle { font-size: 11px; color: var(--mid); margin-top: 2px; }
+
+/* Welcome Screen */
+.welcome-screen {
+  background: linear-gradient(180deg, #E6F7F5 0%, var(--white) 50%);
+  justify-content: center; align-items: center; padding: 40px 30px; text-align: center;
+}
+.welcome-logo { font-size: 64px; margin-bottom: 16px; }
+.welcome-title { font-size: 28px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+.welcome-subtitle { font-size: 15px; color: var(--mid); line-height: 1.5; margin-bottom: 40px; max-width: 300px; }
+.welcome-btn {
+  width: 100%; max-width: 300px; padding: 14px; border-radius: 14px; border: none;
+  font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 10px; font-family: inherit;
+}
+.welcome-btn:active { transform: scale(0.97); }
+.btn-email { background: var(--teal); color: #fff; }
+.btn-apple { background: #000; color: #fff; }
+
+/* Auth Form */
+.auth-form { padding: 0 30px; width: 100%; max-width: 300px; }
+.auth-input {
+  width: 100%; padding: 14px 16px; border-radius: 12px; border: 1.5px solid var(--border);
+  font-size: 15px; margin-bottom: 10px; background: var(--white); font-family: inherit; color: var(--dark);
+}
+.auth-input:focus { outline: none; border-color: var(--teal); }
+.auth-error { color: var(--error); font-size: 12px; margin-bottom: 10px; text-align: center; }
+.auth-toggle { color: var(--teal); font-size: 13px; cursor: pointer; margin-top: 12px; text-decoration: underline; background: none; border: none; font-family: inherit; }
+
+/* Cards */
+.card {
+  background: var(--white); border-radius: 12px; padding: 14px; margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* Tone Selector */
+.tone-bar {
+  display: flex; gap: 6px; padding: 8px 20px; background: var(--white);
+  border-bottom: 1px solid var(--border); flex-shrink: 0; align-items: center;
+}
+.tone-label { font-size: 11px; color: var(--mid); font-weight: 500; margin-right: 4px; }
+.tone-pill {
+  padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer;
+  background: var(--light); color: var(--dark); border: none; font-family: inherit; font-weight: 500;
+}
+.tone-pill.active { color: #fff; }
+.tone-collaborative.active { background: #2E9E8F; }
+.tone-assertive.active { background: #E8913A; }
+.tone-adversarial.active { background: #D94B4B; }
+
+/* Chat */
+.chat-messages { flex: 1; padding: 16px; overflow-y: auto; }
+.msg-row { display: flex; margin-bottom: 12px; gap: 8px; align-items: flex-end; }
+.msg-row.user { justify-content: flex-end; }
+.msg-avatar { width: 28px; height: 28px; border-radius: 14px; background: #E6F7F5; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.msg-wrapper { max-width: 78%; }
+.msg-bubble {
+  border-radius: 16px; padding: 10px 14px; font-size: 14px; line-height: 1.45; word-wrap: break-word;
+}
+.msg-user { background: var(--teal); color: #fff; border-bottom-right-radius: 4px; }
+.msg-assistant { background: var(--white); color: var(--dark); border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.msg-cursor { color: var(--teal); opacity: 0.6; }
+.msg-sources { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+.source-pill {
+  background: var(--light); padding: 2px 8px; border-radius: 8px;
+  font-size: 10px; color: var(--teal); font-weight: 500; cursor: pointer;
+}
+.general-pill { font-size: 10px; color: var(--mid); font-style: italic; padding: 2px 8px; background: var(--light); border-radius: 8px; }
+.msg-actions { display: flex; gap: 4px; margin-top: 4px; }
+.msg-action-btn {
+  font-size: 10px; padding: 3px 8px; border-radius: 8px; border: 1px solid var(--teal);
+  background: #E6F7F5; color: var(--teal); cursor: pointer; font-weight: 500; font-family: inherit;
+}
+
+/* Chat Input */
+.chat-input-bar {
+  display: flex; gap: 8px; padding: 8px 16px; background: var(--white);
+  border-top: 1px solid var(--border); flex-shrink: 0; align-items: flex-end;
+}
+.chat-input {
+  flex: 1; background: var(--light); border-radius: 20px; padding: 10px 16px;
+  border: none; font-size: 14px; font-family: inherit; color: var(--dark); resize: none;
+  max-height: 80px; min-height: 40px;
+}
+.chat-input:focus { outline: none; }
+.chat-send {
+  width: 40px; height: 40px; border-radius: 20px; background: var(--teal);
+  border: none; color: #fff; font-size: 18px; font-weight: 700; cursor: pointer;
+}
+.chat-send:disabled { background: var(--border); }
+.chat-send:active { opacity: 0.8; }
+
+/* Suggestions */
+.suggestions { padding: 20px; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.suggestions-emoji { font-size: 48px; margin-bottom: 12px; }
+.suggestions-title { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.suggestions-subtitle { font-size: 13px; color: var(--mid); text-align: center; line-height: 1.5; margin-bottom: 20px; }
+.suggestion-chip {
+  width: 100%; background: var(--white); border-radius: 10px; padding: 12px 14px;
+  margin-bottom: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 13px;
+  color: var(--teal); text-align: left; font-family: inherit; line-height: 1.3;
+}
+.suggestion-chip:hover { border-color: var(--teal); }
+
+/* Scrollable content */
+.scroll-content { padding: 16px 20px 24px; flex: 1; overflow-y: auto; }
+
+/* Filter pills */
+.filter-row {
+  display: flex; gap: 6px; padding: 8px 20px; background: var(--white);
+  border-bottom: 1px solid var(--border); overflow-x: auto; flex-shrink: 0;
+}
+.filter-pill {
+  padding: 4px 10px; border-radius: 12px; font-size: 11px; white-space: nowrap;
+  background: var(--light); color: var(--dark); border: none; cursor: pointer; font-weight: 500; font-family: inherit;
+}
+.filter-pill.active { background: var(--teal); color: #fff; }
+
+/* Add button */
+.add-btn {
+  width: 36px; height: 36px; border-radius: 18px; background: var(--teal);
+  border: none; color: #fff; font-size: 20px; font-weight: 700; cursor: pointer;
+}
+
+/* Empty state */
+.empty-state { display: flex; flex-direction: column; align-items: center; padding-top: 60px; text-align: center; }
+.empty-emoji { font-size: 48px; margin-bottom: 12px; }
+.empty-title { font-size: 16px; font-weight: 700; color: var(--navy); }
+.empty-sub { font-size: 13px; color: var(--mid); margin-top: 6px; }
+
+/* Modal */
+.modal-overlay {
+  display: none; position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 50; justify-content: flex-end; align-items: stretch;
+}
+.modal-overlay.show { display: flex; }
+.modal-content {
+  background: var(--white); border-radius: 20px 20px 0 0; padding: 20px;
+  max-height: 70%; overflow-y: auto;
+}
+.modal-title { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+.modal-label { font-size: 11px; color: var(--mid); font-weight: 500; margin-bottom: 4px; margin-top: 10px; }
+.modal-input {
+  width: 100%; padding: 10px 14px; border-radius: 10px; border: none;
+  background: var(--light); font-size: 14px; font-family: inherit; color: var(--dark);
+}
+.modal-input:focus { outline: none; }
+.modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+.modal-cancel {
+  padding: 8px 16px; border-radius: 10px; border: 1px solid var(--border);
+  background: none; font-size: 14px; color: var(--mid); cursor: pointer; font-family: inherit;
+}
+.modal-save {
+  padding: 8px 16px; border-radius: 10px; border: none; background: var(--teal);
+  font-size: 14px; color: #fff; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+
+/* Quick actions grid */
+.quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+.quick-card {
+  background: var(--white); border-radius: 12px; padding: 14px 8px; text-align: center;
+  cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.quick-card:active { opacity: 0.7; }
+.quick-emoji { font-size: 24px; margin-bottom: 4px; }
+.quick-label { font-size: 11px; font-weight: 500; color: var(--dark); }
+
+/* Status badges */
+.status-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 500;
+}
+
+/* Progress ring */
+.progress-ring { position: relative; width: 80px; height: 80px; }
+.progress-ring svg { transform: rotate(-90deg); }
+.progress-ring .track { fill: none; stroke: var(--border); stroke-width: 6; }
+.progress-ring .fill { fill: none; stroke: var(--teal); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.5s; }
+.progress-pct { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: var(--navy); }
+
+/* Disclaimer */
+.disclaimer {
+  font-size: 10px; color: var(--mid); line-height: 1.4; padding: 8px 14px;
+  background: #FEF3C7; border-radius: 8px; margin: 8px 0;
+}
+
+/* Loading */
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Config banner */
+.config-banner {
+  background: #FEF3C7; padding: 12px 20px; text-align: center; font-size: 12px; color: #92400E;
+  flex-shrink: 0; cursor: pointer;
+}
+.config-form { padding: 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: center; }
+.config-title { font-size: 18px; font-weight: 700; color: var(--navy); margin-bottom: 8px; text-align: center; }
+.config-sub { font-size: 12px; color: var(--mid); text-align: center; margin-bottom: 12px; }
+
+@media (max-width: 430px) {
+  body { padding: 0; }
+  .phone-frame { width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
+  .notch { display: none; }
+  .status-bar { height: 44px; }
+}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="notch"></div>
+  <div class="status-bar">
+    <span id="status-time"></span>
+    <span>Waypoint</span>
+  </div>
+
+  <!-- ─── Config Screen ─── -->
+  <div class="screen active" id="screen-config">
+    <div class="config-form">
+      <div style="font-size:48px;text-align:center;margin-bottom:12px">🧭</div>
+      <div class="config-title">Connect to Supabase</div>
+      <div class="config-sub">Enter your Supabase project details to enable real data</div>
+      <label class="modal-label">Supabase URL</label>
+      <input class="modal-input" id="cfg-url" placeholder="https://xxxxx.supabase.co" value="https://pltcmpephjkcncxmwbyw.supabase.co">
+      <label class="modal-label">Anon Key</label>
+      <input class="modal-input" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIs..." value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsdGNtcGVwaGprY25jeG13Ynl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2NDEzMTYsImV4cCI6MjA4NzIxNzMxNn0.yZGQyzGRBiKtUzHxfzFCBHnSFwB8Ixfx-9J5tyd8EPA">
+      <div style="margin-top:16px">
+        <button class="welcome-btn btn-email" onclick="saveConfig()" style="max-width:100%">Connect</button>
+      </div>
+      <button class="auth-toggle" onclick="skipConfig()" style="text-align:center;width:100%">Skip — use demo mode</button>
+    </div>
+  </div>
+
+  <!-- ─── Welcome Screen ─── -->
+  <div class="screen" id="screen-welcome">
+    <div class="welcome-screen">
+      <div class="welcome-logo">🧭</div>
+      <div class="welcome-title">Waypoint</div>
+      <div class="welcome-subtitle">Your GPS for navigating disability services in California</div>
+      <div id="auth-area">
+        <div class="auth-form">
+          <input class="auth-input" id="auth-email" type="email" placeholder="Email address">
+          <input class="auth-input" id="auth-password" type="password" placeholder="Password">
+          <div class="auth-error" id="auth-error"></div>
+          <button class="welcome-btn btn-email" id="auth-submit" onclick="handleAuth()">
+            Sign In
+          </button>
+          <button class="auth-toggle" id="auth-mode-toggle" onclick="toggleAuthMode()">
+            Don't have an account? Sign Up
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Onboarding Screen ─── -->
+  <div class="screen" id="screen-onboarding">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title" id="onboard-title">Tell us about your family</div>
+        <div class="screen-subtitle" id="onboard-step">Step 1 of 6</div>
+      </div>
+    </div>
+    <div class="scroll-content" id="onboard-content">
+      <!-- Steps injected by JS -->
+    </div>
+    <div style="padding:12px 20px;display:flex;gap:8px;background:var(--white);border-top:1px solid var(--border);flex-shrink:0">
+      <button class="modal-cancel" id="onboard-back" onclick="onboardBack()" style="flex:1;display:none">Back</button>
+      <button class="modal-save" id="onboard-next" onclick="onboardNext()" style="flex:2">Next</button>
+    </div>
+  </div>
+
+  <!-- ─── Home Screen ─── -->
+  <div class="screen" id="screen-home">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title" id="home-greeting">Good morning 👋</div>
+        <div class="screen-subtitle" id="home-name">Welcome</div>
+      </div>
+    </div>
+    <div class="scroll-content">
+      <div class="card" style="background:linear-gradient(135deg,#E6F7F5,#F0FDFA);text-align:center;padding:20px">
+        <div style="font-size:13px;color:var(--mid);margin-bottom:8px" id="home-empathy">You're doing an incredible job advocating for your child.</div>
+      </div>
+
+      <!-- Suggested Actions (diagnosis-driven) -->
+      <div style="font-size:14px;font-weight:700;color:var(--navy);margin:16px 0 8px">Suggested Next Steps</div>
+      <div id="home-suggestions"></div>
+
+      <!-- Timeline / Upcoming Deadlines -->
+      <div style="font-size:14px;font-weight:700;color:var(--navy);margin:16px 0 8px">Key Deadlines</div>
+      <div id="home-timeline"></div>
+
+      <div style="font-size:14px;font-weight:700;color:var(--navy);margin:16px 0 8px">Financial Snapshot</div>
+      <div class="card" style="display:flex;justify-content:space-around;text-align:center">
+        <div><div style="font-size:18px;font-weight:700;color:var(--navy)" id="home-monthly">$0</div><div style="font-size:10px;color:var(--mid)">This Month</div></div>
+        <div><div style="font-size:18px;font-weight:700;color:#F59E0B" id="home-pending">$0</div><div style="font-size:10px;color:var(--mid)">Pending</div></div>
+        <div><div style="font-size:18px;font-weight:700;color:#10B981" id="home-ytd">$0</div><div style="font-size:10px;color:var(--mid)">YTD</div></div>
+      </div>
+
+      <div style="font-size:14px;font-weight:700;color:var(--navy);margin:16px 0 8px">Quick Actions</div>
+      <div class="quick-grid">
+        <div class="quick-card" onclick="switchTab('navigator')"><div class="quick-emoji">🧭</div><div class="quick-label">Ask AI</div></div>
+        <div class="quick-card" onclick="switchTab('actions')"><div class="quick-emoji">📋</div><div class="quick-label">Actions</div></div>
+        <div class="quick-card" onclick="switchTab('calendar')"><div class="quick-emoji">📅</div><div class="quick-label">Calendar</div></div>
+        <div class="quick-card" onclick="switchTab('expenses')"><div class="quick-emoji">💰</div><div class="quick-label">Expenses</div></div>
+        <div class="quick-card" onclick="switchTab('home')"><div class="quick-emoji">👥</div><div class="quick-label">Forum</div></div>
+        <div class="quick-card" onclick="handleSignOut()"><div class="quick-emoji">⚙️</div><div class="quick-label">Sign Out</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Navigator Screen ─── -->
+  <div class="screen" id="screen-navigator">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title">AI Navigator</div>
+        <div class="screen-subtitle">Your disability services guide</div>
+      </div>
+      <button class="add-btn" onclick="startNewChat()" title="New conversation">+</button>
+    </div>
+    <div class="tone-bar">
+      <span class="tone-label">Tone:</span>
+      <button class="tone-pill tone-collaborative active" onclick="setTone('collaborative',this)">🤝 Collaborative</button>
+      <button class="tone-pill tone-assertive" onclick="setTone('assertive',this)">💪 Assertive</button>
+      <button class="tone-pill tone-adversarial" onclick="setTone('adversarial',this)">⚖️ Advocacy</button>
+    </div>
+    <div id="chat-suggestions" class="suggestions">
+      <div class="suggestions-emoji">🧭</div>
+      <div class="suggestions-title">Hi! I'm your AI Navigator.</div>
+      <div class="suggestions-subtitle">I can help you understand your rights, navigate Regional Centers, prepare for IEP meetings, and more.</div>
+      <button class="suggestion-chip" onclick="sendChat(this.textContent)">How do I get my child evaluated for services?</button>
+      <button class="suggestion-chip" onclick="sendChat(this.textContent)">My Regional Center denied our request. What can I do?</button>
+      <button class="suggestion-chip" onclick="sendChat(this.textContent)">What should I know before my child's IEP meeting?</button>
+      <button class="suggestion-chip" onclick="sendChat(this.textContent)">What is the Lanterman Act and how does it help us?</button>
+    </div>
+    <div id="chat-messages" class="chat-messages" style="display:none"></div>
+    <div class="chat-input-bar">
+      <textarea class="chat-input" id="chat-input" rows="1" placeholder="Ask about your child's services..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"></textarea>
+      <button class="chat-send" id="chat-send-btn" onclick="sendChat()">↑</button>
+    </div>
+  </div>
+
+  <!-- ─── Actions Screen ─── -->
+  <div class="screen" id="screen-actions">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title">Action Plan</div>
+        <div class="screen-subtitle" id="actions-subtitle">0 actions</div>
+      </div>
+      <button class="add-btn" onclick="showActionModal()">+</button>
+    </div>
+    <div class="filter-row" id="action-filters">
+      <button class="filter-pill active" onclick="filterActions('all',this)">All</button>
+      <button class="filter-pill" onclick="filterActions('not_started',this)">To Do</button>
+      <button class="filter-pill" onclick="filterActions('in_progress',this)">In Progress</button>
+      <button class="filter-pill" onclick="filterActions('completed',this)">Done</button>
+    </div>
+    <div class="scroll-content" id="actions-list"></div>
+  </div>
+
+  <!-- ─── Calendar Screen ─── -->
+  <div class="screen" id="screen-calendar">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title">Calendar</div>
+        <div class="screen-subtitle" id="cal-subtitle">Appointments & Deadlines</div>
+      </div>
+      <button class="add-btn" onclick="showApptModal()">+</button>
+    </div>
+    <div class="scroll-content" id="calendar-list"></div>
+  </div>
+
+  <!-- ─── Expenses Screen ─── -->
+  <div class="screen" id="screen-expenses">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title">Expenses</div>
+        <div class="screen-subtitle" id="expenses-subtitle">This month: $0</div>
+      </div>
+      <button class="add-btn" onclick="showExpenseModal()">+</button>
+    </div>
+    <div class="filter-row" id="expense-filters">
+      <button class="filter-pill active" onclick="filterExpenses('all',this)">All</button>
+      <button class="filter-pill" onclick="filterExpenses('therapy',this)">🧠 Therapy</button>
+      <button class="filter-pill" onclick="filterExpenses('copay',this)">💊 Copay</button>
+      <button class="filter-pill" onclick="filterExpenses('equipment',this)">🦽 Equipment</button>
+      <button class="filter-pill" onclick="filterExpenses('transportation',this)">🚗 Transport</button>
+    </div>
+    <div class="scroll-content" id="expenses-list"></div>
+  </div>
+
+  <!-- ─── IEP Analysis Screen ─── -->
+  <div class="screen" id="screen-iep">
+    <div class="screen-header">
+      <div>
+        <div class="screen-title">IEP Analysis</div>
+        <div class="screen-subtitle">Paste or upload IEP text for AI review</div>
+      </div>
+    </div>
+    <div class="scroll-content" id="iep-content">
+      <!-- Upload/Input Area -->
+      <div class="card" style="padding:20px;border:2px dashed var(--border)">
+        <div style="text-align:center;margin-bottom:12px">
+          <div style="font-size:40px;margin-bottom:4px">📄</div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy)">IEP Goal Analysis</div>
+          <div style="font-size:11px;color:var(--mid);margin-top:4px">Powered by Waypoint AI + IDEA compliance rules</div>
+        </div>
+        <textarea class="modal-input" id="iep-text" rows="8" style="height:140px;text-align:left;resize:vertical;font-size:12px;line-height:1.6;border:1.5px solid var(--border)" placeholder="Paste IEP goals here...&#10;&#10;Example:&#10;Goal 1: By 06/2027, given a visual prompt, Maya will identify 8/10 sight words with 80% accuracy as measured by teacher-made assessments.&#10;&#10;Goal 2: Teddy will improve his communication skills as measured by teacher observation during classroom activities."></textarea>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="modal-save" onclick="analyzeIEP('full')" id="iep-analyze-btn" style="flex:1;font-size:13px;padding:12px;border-radius:12px">
+            ✨ Analyze IEP Goals
+          </button>
+        </div>
+        <div style="font-size:10px;color:var(--mid);text-align:center;margin-top:8px;line-height:1.4">
+          Your IEP text is analyzed locally in demo mode. Connect Supabase for AI-powered analysis with Claude.
+        </div>
+      </div>
+      <div id="iep-results"></div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar hidden" id="tab-bar">
+    <button class="tab active" onclick="switchTab('home')"><div class="tab-icon">🏠</div><div class="tab-label">Home</div></button>
+    <button class="tab" onclick="switchTab('navigator')"><div class="tab-icon">🧭</div><div class="tab-label">Navigator</div></button>
+    <button class="tab" onclick="switchTab('actions')"><div class="tab-icon">📋</div><div class="tab-label">Actions</div></button>
+    <button class="tab" onclick="switchTab('iep')"><div class="tab-icon">📄</div><div class="tab-label">IEP</div></button>
+    <button class="tab" onclick="switchTab('expenses')"><div class="tab-icon">💰</div><div class="tab-label">Expenses</div></button>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal-overlay" id="action-modal">
+    <div class="modal-content">
+      <div class="modal-title">Add Action</div>
+      <label class="modal-label">Title *</label>
+      <input class="modal-input" id="action-title" placeholder="e.g., Request IEP meeting">
+      <label class="modal-label">Category</label>
+      <select class="modal-input" id="action-category">
+        <option value="general">General</option><option value="iep">IEP</option>
+        <option value="regional_center">Regional Center</option><option value="insurance">Insurance</option>
+        <option value="benefits">Benefits</option><option value="medical">Medical</option><option value="legal">Legal</option>
+      </select>
+      <label class="modal-label">Priority</label>
+      <select class="modal-input" id="action-priority">
+        <option value="medium">Medium</option><option value="urgent">Urgent</option>
+        <option value="high">High</option><option value="low">Low</option>
+      </select>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeModal('action-modal')">Cancel</button>
+        <button class="modal-save" onclick="createAction()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="appt-modal">
+    <div class="modal-content">
+      <div class="modal-title">Add Appointment</div>
+      <label class="modal-label">Title *</label>
+      <input class="modal-input" id="appt-title" placeholder="e.g., ABA therapy session">
+      <label class="modal-label">Date & Time</label>
+      <input class="modal-input" id="appt-datetime" type="datetime-local">
+      <label class="modal-label">Location</label>
+      <input class="modal-input" id="appt-location" placeholder="Office address">
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeModal('appt-modal')">Cancel</button>
+        <button class="modal-save" onclick="createAppointment()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="expense-modal">
+    <div class="modal-content">
+      <div class="modal-title">Add Expense</div>
+      <label class="modal-label">Amount *</label>
+      <input class="modal-input" id="expense-amount" type="number" step="0.01" placeholder="0.00">
+      <label class="modal-label">Category</label>
+      <select class="modal-input" id="expense-category">
+        <option value="therapy">Therapy</option><option value="copay">Copay</option>
+        <option value="equipment">Equipment</option><option value="medication">Medication</option>
+        <option value="transportation">Transportation</option><option value="other">Other</option>
+      </select>
+      <label class="modal-label">Description</label>
+      <input class="modal-input" id="expense-desc" placeholder="e.g., ABA therapy session">
+      <label class="modal-label">Date</label>
+      <input class="modal-input" id="expense-date" type="date">
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+        <input type="checkbox" id="expense-tax"> <label for="expense-tax" style="font-size:13px;color:var(--dark)">Tax deductible</label>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeModal('expense-modal')">Cancel</button>
+        <button class="modal-save" onclick="createExpense()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+let sb = null; // Supabase client
+let demoMode = false;
+let currentUser = null;
+let familyId = null;
+let authMode = 'signin';
+let currentTone = 'collaborative';
+let chatMessages = [];
+let currentFilter = { actions: 'all', expenses: 'all' };
+
+// ─── Onboarding State ──────────────────────────────────────────────────────
+let onboardStep = 0;
+let onboardData = { parentName: '', childName: '', diagnoses: [], rcStatus: '', iepStatus: '', insurance: '' };
+
+const DIAGNOSIS_OPTIONS = [
+  'Autism Spectrum Disorder', 'Down Syndrome', 'Cerebral Palsy', 'ADHD',
+  'Intellectual Disability', 'Speech/Language Delay', 'Epilepsy',
+  'Sensory Processing', 'Developmental Delay', 'Other'
+];
+
+const ONBOARD_STEPS = [
+  { title: "What's your name?", field: 'parentName', type: 'text', placeholder: 'Your first name' },
+  { title: "What's your child's name?", field: 'childName', type: 'text', placeholder: "Child's first name" },
+  { title: 'Select diagnoses', field: 'diagnoses', type: 'diagnoses' },
+  { title: 'Regional Center status', field: 'rcStatus', type: 'select', options: [
+    { value: 'unknown', label: "I don't know", emoji: '❓' },
+    { value: 'known', label: 'I know my RC', emoji: '📍' },
+    { value: 'applied', label: 'Applied / In process', emoji: '📝' },
+    { value: 'active', label: 'Active client', emoji: '✅' },
+  ]},
+  { title: 'IEP status', field: 'iepStatus', type: 'select', options: [
+    { value: 'no', label: 'No IEP', emoji: '📭' },
+    { value: 'unknown', label: "Don't know", emoji: '❓' },
+    { value: 'active', label: 'Active IEP', emoji: '✅' },
+    { value: 'na', label: 'Not applicable', emoji: '➖' },
+  ]},
+  { title: 'Insurance type', field: 'insurance', type: 'select', options: [
+    { value: 'private', label: 'Private insurance', emoji: '🏥' },
+    { value: 'medicaid', label: 'Medi-Cal', emoji: '🏛️' },
+    { value: 'both', label: 'Both', emoji: '🔄' },
+    { value: 'none', label: 'None / Unsure', emoji: '❓' },
+  ]},
+];
+
+function renderOnboardStep() {
+  const step = ONBOARD_STEPS[onboardStep];
+  document.getElementById('onboard-title').textContent = step.title;
+  document.getElementById('onboard-step').textContent = `Step ${onboardStep + 1} of ${ONBOARD_STEPS.length}`;
+  document.getElementById('onboard-back').style.display = onboardStep > 0 ? 'block' : 'none';
+  document.getElementById('onboard-next').textContent = onboardStep === ONBOARD_STEPS.length - 1 ? 'Get Started' : 'Next';
+
+  const container = document.getElementById('onboard-content');
+  if (step.type === 'text') {
+    container.innerHTML = `<div style="padding-top:40px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">${onboardStep === 0 ? '👋' : '👶'}</div>
+      <input class="auth-input" id="onboard-input" value="${onboardData[step.field] || ''}" placeholder="${step.placeholder}"
+        style="text-align:center;font-size:18px;max-width:280px;margin:0 auto" oninput="onboardData['${step.field}']=this.value">
+    </div>`;
+    setTimeout(() => document.getElementById('onboard-input')?.focus(), 100);
+  } else if (step.type === 'diagnoses') {
+    container.innerHTML = `<div style="padding-top:20px">
+      <div style="font-size:13px;color:var(--mid);margin-bottom:12px;text-align:center">Select all that apply</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+        ${DIAGNOSIS_OPTIONS.map(d => {
+          const selected = onboardData.diagnoses.includes(d);
+          return `<button class="filter-pill ${selected ? 'active' : ''}" onclick="toggleDiagnosis('${d}',this)"
+            style="padding:8px 14px;font-size:13px">${d}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  } else if (step.type === 'select') {
+    container.innerHTML = `<div style="padding-top:20px;display:flex;flex-direction:column;gap:8px">
+      ${step.options.map(o => {
+        const selected = onboardData[step.field] === o.value;
+        return `<button class="card" onclick="onboardData['${step.field}']='${o.value}';renderOnboardStep()"
+          style="display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left;border:2px solid ${selected ? 'var(--teal)' : 'transparent'}">
+          <span style="font-size:24px">${o.emoji}</span>
+          <span style="font-size:14px;font-weight:${selected ? '600' : '400'};color:${selected ? 'var(--teal)' : 'var(--dark)'}">${o.label}</span>
+        </button>`;
+      }).join('')}
+    </div>`;
+  }
+}
+
+function toggleDiagnosis(name, el) {
+  const idx = onboardData.diagnoses.indexOf(name);
+  if (idx >= 0) { onboardData.diagnoses.splice(idx, 1); el.classList.remove('active'); }
+  else { onboardData.diagnoses.push(name); el.classList.add('active'); }
+}
+
+function onboardNext() {
+  const step = ONBOARD_STEPS[onboardStep];
+  if (step.type === 'text' && !onboardData[step.field]) return;
+  if (onboardStep < ONBOARD_STEPS.length - 1) {
+    onboardStep++;
+    renderOnboardStep();
+  } else {
+    completeOnboarding();
+  }
+}
+
+function onboardBack() {
+  if (onboardStep > 0) { onboardStep--; renderOnboardStep(); }
+}
+
+async function completeOnboarding() {
+  localStorage.setItem('wp_onboard', JSON.stringify(onboardData));
+  if (!demoMode && sb && currentUser) {
+    // Update family with onboarding data
+    await sb.from('families').update({
+      parent_first_name: onboardData.parentName,
+      state: 'California',
+    }).eq('user_id', currentUser.id);
+
+    // Get family id
+    const { data: fam } = await sb.from('families').select('id').eq('user_id', currentUser.id).maybeSingle();
+    if (fam) {
+      familyId = fam.id;
+      // Create child
+      const { data: child } = await sb.from('children').insert({
+        family_id: familyId, first_name: onboardData.childName, is_primary: true,
+      }).select('id').single();
+      // Create diagnoses
+      if (child && onboardData.diagnoses.length > 0) {
+        await sb.from('diagnoses').insert(
+          onboardData.diagnoses.map(name => ({ child_id: child.id, name }))
+        );
+      }
+    }
+  }
+  onAuthSuccess();
+}
+
+// ─── Keyword Responses (demo mode) ─────────────────────────────────────────
+const KEYWORD_RESPONSES = [
+  { keywords: ['denied', 'denial', 'reject', 'refused'], extraKeywords: ['regional', 'rc', 'center'],
+    sources: [{ source: 'regional_center', similarity: 0.91 }, { source: 'fair_hearing', similarity: 0.78 }],
+    response: `I understand how frustrating a denial can be. You have strong rights here. Under the Lanterman Act:\n\n**Your Options:**\n\n1. **Request a written Notice of Action (NOA)** — triggers your appeal rights\n2. **Informal Meeting** — ask to meet with the supervisor\n3. **Fair Hearing** — request within 30 days of NOA\n4. **Contact OCRA** — free legal advocacy: 1-800-390-7032\n\n**Key fact:** The burden of proof is on the Regional Center, not you.\n\n**Immediate steps:**\n1. Get the denial in writing (NOA)\n2. Document why the service is needed\n3. Gather supporting evidence\n\n---\n*This information is for educational purposes only. Contact DRC at 1-800-776-5746 for legal guidance.*` },
+  { keywords: ['iep', 'school', 'special education'],
+    sources: [{ source: 'iep', similarity: 0.94 }, { source: 'idea', similarity: 0.82 }],
+    response: `Here are key things to know about the IEP process:\n\n**Your Rights (under IDEA):**\n- You are an **equal member** of the IEP team\n- You can bring anyone to support you\n- You can request an IEP meeting **at any time**\n- You can audio-record (give 24hr notice in CA)\n\n**Preparation Checklist:**\n- Review current IEP and progress reports\n- Write down your concerns and goals\n- Gather any private evaluations\n- Prepare a parent concerns letter\n\n**If you disagree:**\n- Write "I disagree" on the signature page\n- You can file for mediation or due process\n\n---\n*This information is for educational purposes only. Contact DRC at 1-800-776-5746 for legal guidance.*` },
+  { keywords: ['ipp', 'individual program plan', 'program plan'],
+    sources: [{ source: 'regional_center', similarity: 0.88 }],
+    response: `The Individual Program Plan (IPP) is your family's roadmap for Regional Center services.\n\n**The Process:**\n1. **Assessment** — RC evaluates your child's needs\n2. **Planning Meeting** — discuss goals with your coordinator\n3. **Services Identified** — determine what's needed\n4. **IPP Written** — documented and signed\n5. **Services Begin** — RC authorizes funding\n\n**Your Rights:**\n- Services based on **individual needs** (not budget)\n- You can request services not currently offered\n- You can disagree and appeal any decision\n- Request an IPP meeting at any time\n\n---\n*This information is for educational purposes only. Contact DRC at 1-800-776-5746 for legal guidance.*` },
+  { keywords: ['insurance', 'aba', 'therapy', 'coverage', 'appeal'],
+    sources: [{ source: 'insurance', similarity: 0.89 }],
+    response: `Here's what you need to know about insurance coverage in California:\n\n**SB 855 (Mental Health Parity)** requires health plans to cover medically necessary treatments — including ABA therapy for autism.\n\n**If your claim was denied:**\n1. Get the denial in writing\n2. File a formal appeal within 180 days\n3. Include supporting documentation\n4. If appeal denied: request **Independent Medical Review (IMR)** through DMHC\n\n**Key contacts:**\n- DMHC: 1-888-466-2219\n- CA Dept of Insurance: 1-800-927-4357\n\n---\n*This information is for educational purposes only. Contact DRC at 1-800-776-5746 for legal guidance.*` },
+  { keywords: ['ssi', 'benefits', 'social security', 'supplemental'],
+    sources: [{ source: 'ssi', similarity: 0.86 }],
+    response: `Here's an overview of SSI for children with disabilities:\n\n**Eligibility:**\n- Medical condition with "marked and severe functional limitations"\n- Family income below SSI limits\n- Child under 18\n\n**How to Apply:**\n1. Call SSA at 1-800-772-1213\n2. Gather documentation: medical records, IEP, evaluations\n3. Complete the application\n\n**Important:**\n- Initial decisions take 3-5 months\n- About 60% initially denied — **don't give up**\n- Appeal within 60 days\n- 2026 max benefit: ~$943/month\n\n---\n*This information is for educational purposes only. Contact DRC at 1-800-776-5746 for legal guidance.*` },
+  { keywords: ['lanterman', 'act', 'rights', 'law'],
+    sources: [{ source: 'lanterman_act', similarity: 0.95 }],
+    response: `The **Lanterman Act** is the foundation of California's disability services:\n\n**What it guarantees:**\n- Right to services and supports for developmental disabilities\n- Services must be **individualized** — not one-size-fits-all\n- State funds through Regional Centers\n\n**Who qualifies:** Intellectual disability, cerebral palsy, epilepsy, autism, and conditions requiring similar services. Must originate before age 18.\n\n**Key rights:**\n- Assessment within 120 days\n- Individual Program Plan (IPP)\n- Choose your providers\n- Appeal any decision\n- Fair hearing\n\n**Knowing your rights is your superpower.**\n\n---\n*This information is for educational purposes only. Contact DRC at 1-800-776-5746 for legal guidance.*` },
+  { keywords: ['evaluated', 'evaluation', 'assessed', 'assessment', 'get services'],
+    sources: [{ source: 'regional_center', similarity: 0.85 }, { source: 'navigation', similarity: 0.71 }],
+    response: `Great question! Here's how to get your child evaluated for services:\n\n**Regional Center Route:**\n1. Contact your local Regional Center and request an **intake assessment**\n2. Put your request **in writing** and keep a copy\n3. They have **15 business days** to respond\n4. Assessment must be completed within **120 days**\n\n**School Route (IEP):**\n1. Write a letter to the school requesting a **special education evaluation**\n2. The school has **15 days** to respond with an assessment plan\n3. Assessment must be completed within **60 days** of consent\n\n**Both paths can run simultaneously!**\n\nWould you like me to draft a request letter?\n\n---\n*This information is for educational purposes only. Contact DRC at 1-800-776-5746 for legal guidance.*` },
+];
+
+const DEFAULT_RESPONSE_TEMPLATE = (childName) => `That's a great question. Based on California disability law and ${childName}'s situation, here's what I'd recommend:\n\n**Key points:**\n- Under the Lanterman Act, ${childName} has the right to services meeting their individual needs\n- All requests should be made in writing\n- You have the right to appeal any decision\n\n**I can help you with:**\n1. Drafting emails or letters\n2. Explaining your rights\n3. Creating action plans\n4. Preparing for meetings\n\nTry being specific — for example:\n- "What are my options if insurance denies ABA therapy?"\n- "Help me prepare for our IEP meeting"\n\n---\n*This information is for educational purposes only. Contact DRC at 1-800-776-5746 for legal guidance.*`;
+
+function findBestResponse(text) {
+  const lower = text.toLowerCase();
+  for (const entry of KEYWORD_RESPONSES) {
+    if (entry.extraKeywords) {
+      if (entry.keywords.some(k => lower.includes(k)) && entry.extraKeywords.some(k => lower.includes(k)))
+        return entry;
+    }
+  }
+  for (const entry of KEYWORD_RESPONSES) {
+    if (entry.extraKeywords) continue;
+    if (entry.keywords.some(k => lower.includes(k))) return entry;
+  }
+  return null;
+}
+
+// ─── Config ─────────────────────────────────────────────────────────────────
+function saveConfig() {
+  const url = document.getElementById('cfg-url').value.trim();
+  const key = document.getElementById('cfg-key').value.trim();
+  if (!url || !key) return;
+  localStorage.setItem('wp_sb_url', url);
+  localStorage.setItem('wp_sb_key', key);
+  initSupabase(url, key);
+}
+
+function skipConfig() {
+  demoMode = true;
+  const saved = localStorage.getItem('wp_onboard');
+  if (saved) {
+    onboardData = JSON.parse(saved);
+    onAuthSuccess();
+    document.getElementById('tab-bar').classList.remove('hidden');
+  } else {
+    showScreen('welcome');
+  }
+}
+
+function initSupabase(url, key) {
+  sb = supabase.createClient(url, key);
+  // Check existing session
+  sb.auth.getSession().then(({ data }) => {
+    if (data.session) {
+      currentUser = data.session.user;
+      onAuthSuccess();
+    } else {
+      showScreen('welcome');
+    }
+  });
+}
+
+// Check saved config on load
+(function() {
+  updateClock();
+  setInterval(updateClock, 60000);
+  const url = localStorage.getItem('wp_sb_url');
+  const key = localStorage.getItem('wp_sb_key');
+  if (url && key) {
+    document.getElementById('cfg-url').value = url;
+    document.getElementById('cfg-key').value = key;
+    initSupabase(url, key);
+  }
+})();
+
+function updateClock() {
+  const d = new Date();
+  document.getElementById('status-time').textContent = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+function toggleAuthMode() {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  document.getElementById('auth-submit').textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+  document.getElementById('auth-mode-toggle').textContent = authMode === 'signin'
+    ? "Don't have an account? Sign Up"
+    : "Already have an account? Sign In";
+  document.getElementById('auth-error').textContent = '';
+}
+
+async function handleAuth() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.textContent = '';
+
+  if (!email || !password) { errEl.textContent = 'Email and password required'; return; }
+  if (password.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
+
+  if (demoMode) {
+    const saved = localStorage.getItem('wp_onboard');
+    if (saved) { onboardData = JSON.parse(saved); onAuthSuccess(); }
+    else { onboardStep = 0; showScreen('onboarding'); renderOnboardStep(); }
+    return;
+  }
+
+  const btn = document.getElementById('auth-submit');
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+
+  let result;
+  if (authMode === 'signup') {
+    result = await sb.auth.signUp({ email, password });
+  } else {
+    result = await sb.auth.signInWithPassword({ email, password });
+  }
+
+  btn.disabled = false;
+  btn.textContent = authMode === 'signin' ? 'Sign In' : 'Sign Up';
+
+  if (result.error) {
+    errEl.textContent = result.error.message;
+    return;
+  }
+
+  currentUser = result.data.user ?? result.data.session?.user;
+  if (authMode === 'signup') {
+    await sb.from('families').insert({ user_id: currentUser.id, state: 'California', parent_first_name: email.split('@')[0] });
+    // New user: show onboarding
+    onboardStep = 0;
+    showScreen('onboarding');
+    renderOnboardStep();
+    return;
+  }
+  onAuthSuccess();
+}
+
+async function onAuthSuccess() {
+  // Load saved onboarding data
+  const saved = localStorage.getItem('wp_onboard');
+  if (saved && !onboardData.parentName) onboardData = JSON.parse(saved);
+
+  // Fetch family
+  if (!demoMode && sb) {
+    const { data } = await sb.from('families').select('*').eq('user_id', currentUser.id).maybeSingle();
+    if (data) {
+      familyId = data.id;
+      document.getElementById('home-name').textContent = data.parent_first_name || onboardData.parentName || 'Welcome';
+    }
+  } else {
+    document.getElementById('home-name').textContent = onboardData.parentName || 'Welcome';
+  }
+
+  const h = new Date().getHours();
+  document.getElementById('home-greeting').textContent =
+    (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ' 👋';
+
+  const empathies = [
+    "You're doing an incredible job advocating for your child.",
+    "Every step you take makes a difference for your family.",
+    "Remember: knowing your rights is your superpower.",
+  ];
+  document.getElementById('home-empathy').textContent = empathies[Math.floor(Math.random() * empathies.length)];
+
+  document.getElementById('tab-bar').classList.remove('hidden');
+  showScreen('home');
+  loadActions();
+  loadAppointments();
+  loadExpenses();
+  renderSuggestedActions();
+  renderTimeline();
+}
+
+// ─── Diagnosis Journey Maps (from GAS MVP Entity Navigation Matrix) ────────
+const JOURNEY_MAPS = {
+  'Autism Spectrum Disorder': {
+    icon: '🧩', phases: [
+      { age: '0-3', label: 'Early Intervention', entities: [
+        { name: 'Regional Center', action: 'Self-refer → intake → assessment → IFSP', time: '45 days', emoji: '🏛️' },
+        { name: 'Pediatrician', action: 'M-CHAT screening, referral to dev. pediatrician', time: 'Immediate', emoji: '⚕️' },
+        { name: 'Insurance', action: 'ABA therapy authorization', time: 'Prior auth', emoji: '🏥' },
+      ]},
+      { age: '3-13', label: 'School Years', entities: [
+        { name: 'School District', action: 'IEP with autism-specific goals', time: 'Annual', emoji: '🏫' },
+        { name: 'Regional Center', action: 'Respite, social skills, behavioral services', time: 'Annual IPP', emoji: '🏛️' },
+        { name: 'SSI', action: 'Income support if severe limitations', time: '3-6 months', emoji: '💰' },
+      ]},
+      { age: '14+', label: 'Transition', entities: [
+        { name: 'DOR', action: 'Supported employment, vocational rehab', time: 'Apply at 16', emoji: '🎓' },
+        { name: 'Regional Center', action: 'Adult services — SLS, day programs', time: 'Lifelong', emoji: '🏛️' },
+      ]},
+    ]
+  },
+  'Down Syndrome': {
+    icon: '💛', phases: [
+      { age: '0-3', label: 'Early Intervention', entities: [
+        { name: 'Hospital', action: 'Cardiac screening, genetic confirmation', time: 'At birth', emoji: '🏥' },
+        { name: 'Regional Center', action: 'Early Start (established risk)', time: '45 days', emoji: '🏛️' },
+        { name: 'CCS', action: 'Cardiac and specialty care', time: '30 days', emoji: '⚕️' },
+      ]},
+      { age: '3-13', label: 'School Years', entities: [
+        { name: 'School District', action: 'IEP with inclusion goals', time: 'Annual', emoji: '🏫' },
+        { name: 'IHSS / SSI', action: 'In-home support + income', time: 'Ongoing', emoji: '💰' },
+      ]},
+    ]
+  },
+  'Cerebral Palsy': {
+    icon: '💪', phases: [
+      { age: '0-3', label: 'Early Intervention', entities: [
+        { name: 'CCS', action: 'Medical Therapy Program — PT, OT', time: '30 days', emoji: '⚕️' },
+        { name: 'Regional Center', action: 'Early Start → IFSP', time: '45 days', emoji: '🏛️' },
+        { name: 'Insurance', action: 'DME — wheelchair, stander, orthotics', time: 'Prior auth', emoji: '🏥' },
+      ]},
+      { age: '3-13', label: 'School Years', entities: [
+        { name: 'School District', action: 'IEP with accessibility, adaptive PE', time: 'Annual', emoji: '🏫' },
+        { name: 'IHSS', action: 'High hours — bathing, feeding, mobility', time: 'Yearly', emoji: '💰' },
+      ]},
+    ]
+  },
+  'ADHD': {
+    icon: '⚡', phases: [
+      { age: '0-5', label: 'Early Recognition', entities: [
+        { name: 'Pediatrician', action: 'Screening, referral to specialist', time: 'Immediate', emoji: '⚕️' },
+        { name: 'Dev. Pediatrician', action: 'Comprehensive evaluation', time: '3-12 mo wait', emoji: '⚕️' },
+      ]},
+      { age: '5-13', label: 'School Support', entities: [
+        { name: 'School District', action: 'Request evaluation → IEP or 504', time: '60 days', emoji: '🏫' },
+        { name: 'Insurance', action: 'Medication management, therapy', time: 'Ongoing', emoji: '🏥' },
+      ]},
+    ]
+  },
+  'Speech/Language Delay': {
+    icon: '🗣️', phases: [
+      { age: '0-3', label: 'Early Intervention', entities: [
+        { name: 'Regional Center', action: 'Speech therapy via Early Start', time: '45 days', emoji: '🏛️' },
+        { name: 'Pediatrician', action: 'Hearing test, developmental screen', time: 'Immediate', emoji: '⚕️' },
+      ]},
+      { age: '3-13', label: 'School Years', entities: [
+        { name: 'School District', action: 'IEP with speech-language goals', time: '60 days', emoji: '🏫' },
+      ]},
+    ]
+  },
+};
+
+function getSuggestedActions() {
+  const actions = [];
+  const rc = onboardData.rcStatus;
+  const iep = onboardData.iepStatus;
+  const diagnoses = onboardData.diagnoses || [];
+  const child = onboardData.childName || 'your child';
+
+  // RC-based suggestions
+  if (rc === 'unknown' || rc === '') {
+    actions.push({ title: `Find your Regional Center`, desc: 'Look up which of the 21 RCs serves your area', category: '🏛️ Regional Center', priority: 'urgent', color: '#DC2626' });
+    actions.push({ title: `Request RC intake assessment`, desc: `Self-refer ${child} for evaluation — they must respond in 15 business days`, category: '🏛️ Regional Center', priority: 'high', color: '#EA580C' });
+  } else if (rc === 'known') {
+    actions.push({ title: `Contact your Regional Center`, desc: `Call to request an intake — put it in writing and keep a copy`, category: '🏛️ Regional Center', priority: 'urgent', color: '#DC2626' });
+  } else if (rc === 'applied') {
+    actions.push({ title: `Follow up on RC intake`, desc: 'Assessment must be completed within 120 days of referral', category: '🏛️ Regional Center', priority: 'high', color: '#EA580C' });
+  } else if (rc === 'active') {
+    actions.push({ title: `Review your IPP`, desc: 'Request an IPP meeting to ensure services match current needs', category: '🏛️ Regional Center', priority: 'medium', color: '#2563EB' });
+  }
+
+  // IEP-based suggestions
+  if (iep === 'no' || iep === 'unknown') {
+    actions.push({ title: `Request special education evaluation`, desc: `Write to ${child}'s school requesting an assessment — starts the 60-day legal clock`, category: '🏫 IEP / School', priority: 'high', color: '#EA580C' });
+  } else if (iep === 'active') {
+    actions.push({ title: `Prepare for next IEP meeting`, desc: 'Review current goals, draft parent concerns letter', category: '🏫 IEP / School', priority: 'medium', color: '#2563EB' });
+  }
+
+  // Diagnosis-based suggestions
+  if (diagnoses.some(d => d.includes('Autism'))) {
+    actions.push({ title: 'Explore ABA therapy options', desc: 'Insurance must cover ABA under SB 855 Mental Health Parity', category: '🏥 Insurance', priority: 'high', color: '#EA580C' });
+  }
+  if (diagnoses.length > 0) {
+    actions.push({ title: `Apply for SSI benefits`, desc: `${child} may qualify for ~$943/month if disability causes marked limitations`, category: '💰 Benefits', priority: 'medium', color: '#2563EB' });
+  }
+
+  // Universal suggestions
+  actions.push({ title: 'Learn your rights under the Lanterman Act', desc: 'The foundation of CA disability services — know what you are entitled to', category: '⚖️ Legal Rights', priority: 'medium', color: '#2563EB' });
+
+  return actions;
+}
+
+function renderSuggestedActions() {
+  const container = document.getElementById('home-suggestions');
+  const actions = getSuggestedActions();
+  if (actions.length === 0) { container.innerHTML = ''; return; }
+
+  container.innerHTML = actions.map(a => `
+    <div class="card" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer" onclick="switchTab('navigator')">
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:600;color:var(--navy)">${a.title}</span>
+          <span style="font-size:10px;padding:2px 8px;border-radius:6px;font-weight:600;background:${a.color}15;color:${a.color}">${a.priority}</span>
+        </div>
+        <div style="font-size:11px;color:var(--mid);line-height:1.4">${a.desc}</div>
+        <div style="font-size:10px;color:var(--teal);margin-top:4px">${a.category}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTimeline() {
+  const container = document.getElementById('home-timeline');
+  const diagnoses = onboardData.diagnoses || [];
+  if (diagnoses.length === 0) {
+    container.innerHTML = '<div class="card" style="text-align:center;color:var(--mid);font-size:12px;padding:16px">Complete onboarding to see your personalized timeline</div>';
+    return;
+  }
+
+  // Find matching journey maps and show current phase entities
+  let timelineItems = [];
+  for (const dx of diagnoses) {
+    const journey = JOURNEY_MAPS[dx];
+    if (!journey) continue;
+    // Show first phase as default (would use child age in production)
+    const phase = journey.phases[0];
+    for (const entity of phase.entities) {
+      timelineItems.push({ ...entity, diagnosis: dx, phase: phase.label, icon: journey.icon });
+    }
+  }
+
+  if (timelineItems.length === 0) {
+    container.innerHTML = '<div class="card" style="text-align:center;color:var(--mid);font-size:12px;padding:16px">No timeline data for selected diagnoses</div>';
+    return;
+  }
+
+  // Deduplicate by entity name
+  const seen = new Set();
+  timelineItems = timelineItems.filter(item => {
+    const key = item.name + item.action;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  container.innerHTML = timelineItems.map(item => `
+    <div class="card" style="display:flex;gap:10px;align-items:center;padding:12px">
+      <div style="font-size:20px">${item.emoji}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--navy)">${item.name}</div>
+        <div style="font-size:11px;color:var(--dark);margin-top:2px">${item.action}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;font-weight:600;color:var(--teal)">${item.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function handleSignOut() {
+  if (sb) await sb.auth.signOut();
+  currentUser = null; familyId = null;
+  document.getElementById('tab-bar').classList.add('hidden');
+  showScreen('welcome');
+}
+
+// ─── Navigation ─────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const tabs = ['home', 'navigator', 'actions', 'iep', 'expenses'];
+    t.classList.toggle('active', tabs[i] === id);
+  });
+}
+
+function switchTab(id) { showScreen(id); }
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ─── AI Navigator Chat ─────────────────────────────────────────────────────
+function setTone(tone, el) {
+  currentTone = tone;
+  document.querySelectorAll('.tone-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function startNewChat() {
+  chatMessages = [];
+  document.getElementById('chat-messages').innerHTML = '';
+  document.getElementById('chat-messages').style.display = 'none';
+  document.getElementById('chat-suggestions').style.display = 'flex';
+}
+
+async function sendChat(text) {
+  text = text || document.getElementById('chat-input').value.trim();
+  if (!text) return;
+  document.getElementById('chat-input').value = '';
+
+  // Hide suggestions, show messages
+  document.getElementById('chat-suggestions').style.display = 'none';
+  const msgContainer = document.getElementById('chat-messages');
+  msgContainer.style.display = 'block';
+
+  // Add user message
+  chatMessages.push({ role: 'user', content: text });
+  appendMessage('user', text);
+
+  // Add placeholder assistant message
+  const assistantEl = appendMessage('assistant', '');
+  const bubbleEl = assistantEl.querySelector('.msg-bubble');
+  bubbleEl.innerHTML = '<span class="msg-cursor">▊</span>';
+
+  if (demoMode || !sb) {
+    // Demo mode: use keyword-matched responses
+    setTimeout(() => {
+      const match = findBestResponse(text);
+      const childName = onboardData.childName || 'your child';
+      const responseText = match ? match.response : DEFAULT_RESPONSE_TEMPLATE(childName);
+      const sources = match ? match.sources : [];
+      bubbleEl.textContent = responseText;
+      chatMessages.push({ role: 'assistant', content: responseText });
+      addSourcePills(assistantEl, sources);
+      addMessageActions(assistantEl, responseText);
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    }, 800 + Math.random() * 700);
+    return;
+  }
+
+  // Real mode: call Edge Function
+  const btn = document.getElementById('chat-send-btn');
+  btn.disabled = true;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const token = session?.access_token;
+
+    // Build system prompt (simplified version)
+    const systemPrompt = buildSystemPrompt();
+
+    const response = await fetch(localStorage.getItem('wp_sb_url') + '/functions/v1/ai-proxy', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'chat',
+        system: systemPrompt,
+        messages: chatMessages.map(m => ({ role: m.role, content: m.content })),
+      }),
+    });
+
+    if (!response.ok) throw new Error('AI proxy error: ' + response.status);
+
+    // Stream SSE
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    bubbleEl.textContent = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const event = JSON.parse(data);
+          if (event.type === 'content_block_delta' && event.delta?.text) {
+            fullText += event.delta.text;
+            bubbleEl.textContent = fullText;
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+
+    chatMessages.push({ role: 'assistant', content: fullText });
+    addSourcePills(assistantEl, []);
+    addMessageActions(assistantEl, fullText);
+  } catch (err) {
+    bubbleEl.textContent = 'Sorry, I encountered an error: ' + err.message;
+  } finally {
+    btn.disabled = false;
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
+}
+
+function buildSystemPrompt() {
+  const toneInstructions = {
+    collaborative: 'Use a warm, supportive, collaborative tone. Focus on partnership language.',
+    assertive: 'Use a firm but professional assertive tone. Help the parent assert their legal rights.',
+    adversarial: 'Use a direct, advocacy-oriented tone. Guide through formal dispute resolution.',
+  };
+
+  return `You are Waypoint, an AI navigator helping California parents of children with disabilities understand their rights and navigate complex systems including Regional Centers, school districts (IEP), insurance, Medi-Cal, SSI, and other services.
+
+## Communication Style
+${toneInstructions[currentTone]}
+
+## Critical Rules
+1. ALWAYS cite specific code sections when referencing laws
+2. NEVER provide specific legal advice — frame as "you may have the right to..."
+3. Always provide concrete next steps
+4. Be warm and empathetic
+
+## Legal Disclaimer
+You are NOT an attorney. All guidance is educational only.
+
+## Response Footer
+End EVERY response with:
+---
+*This information is for educational purposes only and is not legal advice. For specific legal guidance, consult a disability rights attorney or contact Disability Rights California at 1-800-776-5746.*`;
+}
+
+function appendMessage(role, content) {
+  const container = document.getElementById('chat-messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row' + (role === 'user' ? ' user' : '');
+  row.innerHTML = role === 'user'
+    ? `<div class="msg-wrapper"><div class="msg-bubble msg-user">${escapeHtml(content)}</div></div>`
+    : `<div class="msg-avatar">🧭</div><div class="msg-wrapper"><div class="msg-bubble msg-assistant">${escapeHtml(content)}</div></div>`;
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+  return row;
+}
+
+function addSourcePills(msgEl, sources) {
+  const wrapper = msgEl.querySelector('.msg-wrapper');
+  const div = document.createElement('div');
+  div.className = 'msg-sources';
+  if (sources.length > 0) {
+    sources.forEach(s => {
+      const label = s.source.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      div.innerHTML += `<span class="source-pill">${label} ${Math.round(s.similarity * 100)}%</span>`;
+    });
+  } else {
+    div.innerHTML = '<span class="general-pill">General knowledge</span>';
+  }
+  wrapper.appendChild(div);
+}
+
+function addMessageActions(msgEl, content) {
+  const wrapper = msgEl.querySelector('.msg-wrapper');
+  const div = document.createElement('div');
+  div.className = 'msg-actions';
+  div.innerHTML = `<button class="msg-action-btn" onclick="saveAsAction(this, '${escapeHtml(content.slice(0, 100))}')">Save as Action</button>`;
+  wrapper.appendChild(div);
+}
+
+async function saveAsAction(btn, title) {
+  btn.textContent = 'Saved!';
+  btn.style.background = '#D1FAE5';
+  btn.style.borderColor = '#10B981';
+  btn.style.color = '#10B981';
+  if (!demoMode && sb && familyId) {
+    await sb.from('actions').insert({
+      family_id: familyId, title: title.slice(0, 100), source: 'ai_navigator',
+      category: 'general', priority: 'medium', status: 'not_started',
+    });
+    loadActions();
+  }
+}
+
+// ─── Actions ────────────────────────────────────────────────────────────────
+let allActions = [];
+
+async function loadActions() {
+  if (demoMode || !sb || !familyId) {
+    renderActions([]);
+    return;
+  }
+  const { data } = await sb.from('actions').select('*').eq('family_id', familyId).order('created_at', { ascending: false });
+  allActions = data || [];
+  renderActions(allActions);
+}
+
+function filterActions(status, el) {
+  currentFilter.actions = status;
+  document.querySelectorAll('#action-filters .filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = status === 'all' ? allActions : allActions.filter(a => a.status === status);
+  renderActions(filtered);
+}
+
+function renderActions(actions) {
+  const list = document.getElementById('actions-list');
+  document.getElementById('actions-subtitle').textContent = `${allActions.length} actions`;
+
+  if (actions.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-emoji">📋</div><div class="empty-title">No actions yet</div><div class="empty-sub">Save actions from the AI Navigator or add manually</div></div>';
+    return;
+  }
+
+  const statusColors = { not_started: '#94A3B8', in_progress: '#F59E0B', completed: '#10B981', dismissed: '#EF4444' };
+  const statusLabels = { not_started: 'To Do', in_progress: 'In Progress', completed: 'Done', dismissed: 'Dismissed' };
+  const catEmojis = { general: '📋', iep: '🏫', regional_center: '🏛️', insurance: '🏥', benefits: '💰', medical: '⚕️', legal: '⚖️' };
+
+  list.innerHTML = actions.map(a => `
+    <div class="card" style="display:flex;gap:10px;align-items:center;cursor:pointer" onclick="cycleActionStatus('${a.id}')">
+      <div style="font-size:20px">${catEmojis[a.category] || '📋'}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${escapeHtml(a.title)}</div>
+        <div style="font-size:11px;color:var(--mid);margin-top:2px">${a.priority} priority</div>
+      </div>
+      <span class="status-badge" style="background:${statusColors[a.status]}20;color:${statusColors[a.status]}">${statusLabels[a.status]}</span>
+    </div>
+  `).join('');
+}
+
+async function cycleActionStatus(id) {
+  const order = ['not_started', 'in_progress', 'completed'];
+  const action = allActions.find(a => a.id === id);
+  if (!action) return;
+  const idx = order.indexOf(action.status);
+  const next = order[(idx + 1) % order.length];
+  action.status = next;
+  if (sb && familyId) await sb.from('actions').update({ status: next }).eq('id', id);
+  renderActions(currentFilter.actions === 'all' ? allActions : allActions.filter(a => a.status === currentFilter.actions));
+}
+
+function showActionModal() { document.getElementById('action-modal').classList.add('show'); }
+
+async function createAction() {
+  const title = document.getElementById('action-title').value.trim();
+  if (!title) return;
+  const cat = document.getElementById('action-category').value;
+  const pri = document.getElementById('action-priority').value;
+
+  if (!demoMode && sb && familyId) {
+    await sb.from('actions').insert({ family_id: familyId, title, category: cat, priority: pri, status: 'not_started', source: 'manual' });
+  }
+  document.getElementById('action-title').value = '';
+  closeModal('action-modal');
+  loadActions();
+}
+
+// ─── Calendar ───────────────────────────────────────────────────────────────
+async function loadAppointments() {
+  const list = document.getElementById('calendar-list');
+  if (demoMode || !sb || !familyId) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-emoji">📅</div><div class="empty-title">No appointments yet</div><div class="empty-sub">Add therapy sessions, IEP meetings, and more</div></div>';
+    return;
+  }
+  const { data } = await sb.from('appointments').select('*').eq('family_id', familyId).order('start_time', { ascending: true }).limit(20);
+  const appts = data || [];
+  if (appts.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-emoji">📅</div><div class="empty-title">No appointments yet</div><div class="empty-sub">Add therapy sessions, IEP meetings, and more</div></div>';
+    return;
+  }
+  const typeEmojis = { therapy: '🧠', iep_meeting: '🏫', ipp_meeting: '🏛️', medical: '⚕️', evaluation: '📋', other: '📌' };
+  list.innerHTML = appts.map(a => {
+    const d = new Date(a.start_time);
+    const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return `<div class="card" style="display:flex;gap:10px;align-items:center">
+      <div style="font-size:20px">${typeEmojis[a.appointment_type] || '📌'}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${escapeHtml(a.title)}</div>
+        <div style="font-size:11px;color:var(--mid);margin-top:2px">${dateStr} at ${timeStr}</div>
+        ${a.location ? `<div style="font-size:11px;color:var(--teal);margin-top:1px">${escapeHtml(a.location)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showApptModal() {
+  document.getElementById('appt-datetime').value = new Date().toISOString().slice(0, 16);
+  document.getElementById('appt-modal').classList.add('show');
+}
+
+async function createAppointment() {
+  const title = document.getElementById('appt-title').value.trim();
+  const dt = document.getElementById('appt-datetime').value;
+  if (!title || !dt) return;
+  const location = document.getElementById('appt-location').value.trim();
+
+  if (!demoMode && sb && familyId) {
+    await sb.from('appointments').insert({
+      family_id: familyId, title, start_time: new Date(dt).toISOString(),
+      location: location || null, status: 'scheduled',
+    });
+  }
+  document.getElementById('appt-title').value = '';
+  document.getElementById('appt-location').value = '';
+  closeModal('appt-modal');
+  loadAppointments();
+}
+
+// ─── Expenses ───────────────────────────────────────────────────────────────
+let allExpenses = [];
+
+async function loadExpenses() {
+  if (demoMode || !sb || !familyId) {
+    renderExpenses([]);
+    return;
+  }
+  const { data } = await sb.from('expenses').select('*').eq('family_id', familyId).order('expense_date', { ascending: false });
+  allExpenses = data || [];
+  renderExpenses(allExpenses);
+  updateExpenseSummary();
+}
+
+function filterExpenses(cat, el) {
+  currentFilter.expenses = cat;
+  document.querySelectorAll('#expense-filters .filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const filtered = cat === 'all' ? allExpenses : allExpenses.filter(e => e.category === cat);
+  renderExpenses(filtered);
+}
+
+function renderExpenses(expenses) {
+  const list = document.getElementById('expenses-list');
+  if (expenses.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-emoji">💰</div><div class="empty-title">No expenses yet</div><div class="empty-sub">Track therapy costs, copays, equipment, and more</div></div>';
+    return;
+  }
+  const catEmojis = { therapy: '🧠', equipment: '🦽', transportation: '🚗', copay: '💊', medication: '💉', other: '📋' };
+  list.innerHTML = expenses.map(e => {
+    const d = new Date(e.expense_date + 'T00:00:00');
+    const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `<div class="card" style="display:flex;gap:10px;align-items:center">
+      <div style="font-size:20px">${catEmojis[e.category] || '📋'}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--navy)">${escapeHtml(e.description || e.category)}</div>
+        <div style="font-size:11px;color:var(--mid);margin-top:2px">${dateStr}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:700;color:var(--navy)">$${Number(e.amount).toFixed(2)}</div>
+        ${e.is_tax_deductible ? '<div style="font-size:9px;color:#10B981">Tax deductible</div>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateExpenseSummary() {
+  const now = new Date();
+  const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  let monthly = 0, total = 0, pending = 0;
+  allExpenses.forEach(e => {
+    total += Number(e.amount);
+    if (e.expense_date.startsWith(month)) monthly += Number(e.amount);
+    if (e.reimbursement_status === 'submitted') pending += Number(e.reimbursement_amount || e.amount);
+  });
+  document.getElementById('expenses-subtitle').textContent = `This month: $${monthly.toFixed(2)}`;
+  document.getElementById('home-monthly').textContent = '$' + monthly.toFixed(0);
+  document.getElementById('home-pending').textContent = '$' + pending.toFixed(0);
+  document.getElementById('home-ytd').textContent = '$' + total.toFixed(0);
+}
+
+function showExpenseModal() {
+  document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('expense-modal').classList.add('show');
+}
+
+async function createExpense() {
+  const amount = parseFloat(document.getElementById('expense-amount').value);
+  if (isNaN(amount) || amount <= 0) return;
+  const cat = document.getElementById('expense-category').value;
+  const desc = document.getElementById('expense-desc').value.trim();
+  const date = document.getElementById('expense-date').value;
+  const tax = document.getElementById('expense-tax').checked;
+
+  if (!demoMode && sb && familyId) {
+    await sb.from('expenses').insert({
+      family_id: familyId, amount, category: cat, description: desc || null,
+      expense_date: date, is_tax_deductible: tax, reimbursement_status: 'none',
+    });
+  }
+  document.getElementById('expense-amount').value = '';
+  document.getElementById('expense-desc').value = '';
+  document.getElementById('expense-tax').checked = false;
+  closeModal('expense-modal');
+  loadExpenses();
+}
+
+// ─── Utils ──────────────────────────────────────────────────────────────────
+// ─── IEP Analysis ───────────────────────────────────────────────────────────
+async function analyzeIEP(mode) {
+  const text = document.getElementById('iep-text').value.trim();
+  if (!text) return;
+  const results = document.getElementById('iep-results');
+  results.innerHTML = '<div style="text-align:center;padding:30px"><div class="spinner" style="border-color:var(--teal);border-top-color:transparent;width:24px;height:24px"></div><div style="font-size:12px;color:var(--mid);margin-top:8px">Analyzing IEP goals...</div></div>';
+
+  // If connected to Supabase, use real AI
+  if (!demoMode && sb) {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const response = await fetch(localStorage.getItem('wp_sb_url') + '/functions/v1/ai-proxy', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'analyze-iep', extractedText: text, analysisType: mode }),
+      });
+      if (!response.ok) throw new Error('Analysis failed');
+      const analysis = await response.json();
+      if (analysis.goals) { renderIEPAnalysis(analysis); return; }
+    } catch (err) {
+      results.innerHTML = `<div class="card" style="color:var(--error)">Error: ${err.message}. Falling back to demo analysis.</div>`;
+    }
+  }
+
+  // Demo mode: generate mock analysis from the text
+  setTimeout(() => {
+    const mockGoals = parseGoalsFromText(text);
+    renderIEPAnalysis({ goals: mockGoals, summary: {
+      totalGoals: mockGoals.length,
+      strongCount: mockGoals.filter(g => g.strength === 'strong').length,
+      adequateCount: mockGoals.filter(g => g.strength === 'adequate').length,
+      weakCount: mockGoals.filter(g => g.strength === 'weak').length,
+      criticalIssues: mockGoals.flatMap(g => g.weaknesses).filter(w => w.severity === 'critical').length,
+      overallAssessment: `Found ${mockGoals.length} goal(s). Review the analysis below for IDEA compliance details.`,
+    }});
+  }, 1200);
+}
+
+function parseGoalsFromText(text) {
+  // Simple parser: split by "Goal" or numbered items
+  const chunks = text.split(/(?:Goal\s*\d*\s*:|^\d+[\.\)]\s)/im).filter(c => c.trim().length > 20);
+  if (chunks.length === 0) chunks.push(text);
+
+  return chunks.map(chunk => {
+    const goalText = chunk.trim().slice(0, 300);
+    const hasBaseline = /current|baseline|presently|at this time/i.test(chunk);
+    const hasTarget = /will\s+(be able|demonstrate|achieve|identify|complete)/i.test(chunk);
+    const hasMeasure = /measured|assessment|data|probe|observation/i.test(chunk);
+    const hasTimeline = /by\s+(june|january|\d{1,2}\/\d{2,4}|end of|annual)/i.test(chunk);
+    const hasCriterion = /\d+\s*%|(\d+)\s*out\s*of\s*(\d+)/i.test(chunk);
+
+    const weaknesses = [];
+    if (!hasBaseline) weaknesses.push({ severity: 'critical', issue: 'Missing baseline', explanation: 'IDEA 300.320(a)(2) requires present levels of performance. Without a baseline, progress cannot be measured.' });
+    if (!hasCriterion) weaknesses.push({ severity: 'major', issue: 'No measurable criterion', explanation: 'Goal lacks specific success criteria (percentage, frequency, or ratio). This makes it unenforceable.' });
+    if (!hasTimeline) weaknesses.push({ severity: 'major', issue: 'Missing timeline', explanation: 'No clear timeframe specified. Annual goals should state when mastery is expected.' });
+    if (!hasMeasure) weaknesses.push({ severity: 'minor', issue: 'Measurement method unclear', explanation: 'How progress will be tracked is not specified (teacher assessment, data collection, observation).' });
+
+    const score = [hasBaseline, hasTarget, hasMeasure, hasTimeline, hasCriterion].filter(Boolean).length;
+    const strength = score >= 4 ? 'strong' : score >= 2 ? 'adequate' : 'weak';
+
+    const domain = /math/i.test(chunk) ? 'Math' : /read/i.test(chunk) ? 'Reading' :
+      /speech|language|articulation/i.test(chunk) ? 'Speech/Language' :
+      /behav|social|emotional/i.test(chunk) ? 'Behavior' :
+      /motor|OT|fine|gross/i.test(chunk) ? 'Motor Skills' : 'Academic';
+
+    return {
+      domain, goalText, strength, weaknesses,
+      baseline: hasBaseline ? 'Present' : null,
+      target: hasTarget ? 'Specified' : null,
+      measurement: hasMeasure ? 'Specified' : null,
+      timeline: hasTimeline ? 'Specified' : null,
+      improvedGoal: weaknesses.length > 0
+        ? `By [DATE], given [CONDITION], ${onboardData.childName || 'the student'} will ${goalText.slice(0, 80).toLowerCase()}... with [CRITERION]% accuracy as measured by [METHOD], from a baseline of [CURRENT LEVEL].`
+        : '',
+      legalCitation: weaknesses.some(w => w.severity === 'critical') ? 'IDEA Section 300.320(a) — IEP must include measurable annual goals with present levels of performance' : null,
+    };
+  });
+}
+
+function renderIEPAnalysis(analysis) {
+  const results = document.getElementById('iep-results');
+  const s = analysis.summary;
+
+  const sevBorders = { critical: '#EF4444', major: '#F59E0B', minor: '#3B82F6' };
+  const sevBgs = { critical: '#FFF1F2', major: '#FFFBEB', minor: '#EFF6FF' };
+  const sevLabels = { critical: 'CRITICAL', major: 'WARNING', minor: 'INFO' };
+
+  // AI Summary card (IEPClarity style)
+  let html = `
+    <div style="background:linear-gradient(135deg,#0f766e,#115e59);border-radius:16px;padding:18px;color:white;margin:12px 0;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:rgba(255,255,255,0.05);border-radius:50%"></div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;opacity:0.8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">
+        <span>✨</span> Waypoint AI Analysis
+      </div>
+      <div style="font-size:13px;line-height:1.6;opacity:0.95">${s.overallAssessment}</div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <div style="flex:1;background:white;border-radius:10px;padding:12px;border:1.5px solid #e5e7eb;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#DC2626">${s.criticalIssues}</div>
+        <div style="font-size:10px;font-weight:600;color:var(--mid)">Critical</div>
+      </div>
+      <div style="flex:1;background:white;border-radius:10px;padding:12px;border:1.5px solid #e5e7eb;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#D97706">${s.adequateCount}</div>
+        <div style="font-size:10px;font-weight:600;color:var(--mid)">Warnings</div>
+      </div>
+      <div style="flex:1;background:white;border-radius:10px;padding:12px;border:1.5px solid #e5e7eb;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#059669">${s.strongCount}</div>
+        <div style="font-size:10px;font-weight:600;color:var(--mid)">Strong</div>
+      </div>
+    </div>
+
+    <div style="font-weight:700;font-size:14px;color:var(--navy);margin-bottom:10px">Issues & Suggestions</div>
+  `;
+
+  for (const goal of analysis.goals) {
+    // Render each weakness as an IEPClarity-style flag card
+    if (goal.weaknesses.length > 0) {
+      for (const w of goal.weaknesses) {
+        const bc = sevBorders[w.severity] || sevBorders.minor;
+        const bg = sevBgs[w.severity] || sevBgs.minor;
+        html += `
+          <div style="background:white;border-radius:10px;padding:14px;margin-bottom:10px;border-left:4px solid ${bc};border-top:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px;border-radius:999px;background:${bg};color:${bc}">${sevLabels[w.severity]}</span>
+              <span style="font-size:10px;color:var(--mid)">${goal.domain}</span>
+            </div>
+            <div style="font-weight:700;font-size:13px;margin-bottom:4px;color:var(--navy)">${w.issue}</div>
+            <div style="font-size:12px;color:var(--mid);line-height:1.5;margin-bottom:8px">${w.explanation}</div>
+            ${goal.improvedGoal ? `
+              <div style="background:#f5f5f4;border-radius:8px;padding:10px;font-size:11px;line-height:1.5;color:var(--dark)">
+                <strong style="color:#0f766e">Suggested revision:</strong> "${escapeHtml(goal.improvedGoal)}"
+              </div>
+            ` : ''}
+            ${goal.legalCitation ? `<div style="font-size:11px;color:#0d9488;font-weight:600;margin-top:6px;cursor:pointer">📖 ${goal.legalCitation}</div>` : ''}
+          </div>
+        `;
+      }
+    } else {
+      // Strong goal — show as green card
+      html += `
+        <div style="background:white;border-radius:10px;padding:14px;margin-bottom:10px;border-left:4px solid #22c55e;border-top:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:2px 8px;border-radius:999px;background:#f0fdf4;color:#16a34a">STRONG</span>
+            <span style="font-size:10px;color:var(--mid)">${goal.domain}</span>
+          </div>
+          <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:4px">Goal meets IDEA requirements</div>
+          <div style="font-size:11px;color:var(--mid);line-height:1.4">${escapeHtml(goal.goalText.slice(0, 120))}${goal.goalText.length > 120 ? '...' : ''}</div>
+        </div>
+      `;
+    }
+  }
+
+  // Disclaimer
+  html += `
+    <div style="background:#f5f5f4;border-radius:10px;padding:12px;margin-top:12px;font-size:11px;color:var(--mid);line-height:1.5;display:flex;gap:8px">
+      <span style="font-size:16px;flex-shrink:0">⚖️</span>
+      <span>This analysis is for educational purposes only. It does not constitute legal advice. Consult with a special education advocate or attorney for specific guidance. Contact DRC at 1-800-776-5746.</span>
+    </div>
+  `;
+
+  results.innerHTML = html;
+}
+
+// ─── Tab switching update ───────────────────────────────────────────────────
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>
