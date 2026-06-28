@@ -22,6 +22,7 @@ import OnboardingFlow from './src/screens/onboarding/OnboardingFlow';
 import MainTabs from './src/navigation/MainTabs';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import NetworkBanner from './src/components/NetworkBanner';
+import WebFrame from './src/components/WebFrame';
 import { ToastProvider } from './src/components/Toast';
 import { I18nProvider } from './src/i18n';
 import { colors } from './src/lib/theme';
@@ -105,24 +106,26 @@ export default function App() {
       <I18nProvider>
         <ToastProvider>
           <SafeAreaProvider>
-            <NetworkBanner />
-            <NavigationContainer>
-              <Stack.Navigator screenOptions={{ headerShown: false }}>
-                {!session ? (
-                  // Not authenticated → Welcome / Sign-In
-                  <Stack.Screen name="Welcome" component={WelcomeScreen} />
-                ) : !onboardingComplete ? (
-                  // Authenticated but hasn't completed onboarding
-                  <Stack.Screen name="Onboarding">
-                    {() => <OnboardingFlow onComplete={handleOnboardingComplete} />}
-                  </Stack.Screen>
-                ) : (
-                  // Authenticated + onboarded → Main app
-                  <Stack.Screen name="Main" component={MainTabs} />
-                )}
-              </Stack.Navigator>
-            </NavigationContainer>
-            <StatusBar style="dark" />
+            <WebFrame>
+              <NetworkBanner />
+              <NavigationContainer>
+                <Stack.Navigator screenOptions={{ headerShown: false }}>
+                  {!session ? (
+                    // Not authenticated → Welcome / Sign-In
+                    <Stack.Screen name="Welcome" component={WelcomeScreen} />
+                  ) : !onboardingComplete ? (
+                    // Authenticated but hasn't completed onboarding
+                    <Stack.Screen name="Onboarding">
+                      {() => <OnboardingFlow onComplete={handleOnboardingComplete} />}
+                    </Stack.Screen>
+                  ) : (
+                    // Authenticated + onboarded → Main app
+                    <Stack.Screen name="Main" component={MainTabs} />
+                  )}
+                </Stack.Navigator>
+              </NavigationContainer>
+              <StatusBar style="dark" />
+            </WebFrame>
           </SafeAreaProvider>
         </ToastProvider>
       </I18nProvider>
