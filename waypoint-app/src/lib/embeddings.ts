@@ -42,6 +42,11 @@ export async function generateEmbedding(
     }
 
     const result = await response.json();
+    if (!Array.isArray(result?.data) || !result.data[0]?.embedding) {
+      throw new Error(
+        result?.error?.message ?? result?.error ?? 'Embedding response missing data'
+      );
+    }
     return result.data[0].embedding;
   } catch (error) {
     throw new Error(
@@ -73,6 +78,11 @@ export async function generateBatchEmbeddings(
     }
 
     const result = await response.json();
+    if (!Array.isArray(result?.data)) {
+      throw new Error(
+        result?.error?.message ?? result?.error ?? 'Embedding response missing data'
+      );
+    }
     return result.data
       .sort((a: { index: number }, b: { index: number }) => a.index - b.index)
       .map((d: { embedding: number[] }) => d.embedding);
