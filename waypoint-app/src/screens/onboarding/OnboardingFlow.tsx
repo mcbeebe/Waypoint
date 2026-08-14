@@ -51,6 +51,16 @@ const INSURANCE_OPTIONS = [
   { value: 'none', label: 'None / Unsure', emoji: '❓' },
 ];
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Format a Date as YYYY-MM-DD in local time (for the web date input). */
+function toDateInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface OnboardingData {
@@ -295,6 +305,35 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               This helps us give age-appropriate guidance
             </Text>
 
+            {Platform.OS === 'web' &&
+              // Native DateTimePicker has no web implementation — use the
+              // browser's built-in date input, styled to match the theme.
+              React.createElement('input', {
+                type: 'date',
+                'aria-label': "Child's birthday",
+                value: data.birthday ? toDateInputValue(data.birthday) : '',
+                max: toDateInputValue(new Date()),
+                min: '2000-01-01',
+                onChange: (e: { target: { value: string } }) => {
+                  const v = e.target.value;
+                  if (v) {
+                    const [y, m, d] = v.split('-').map(Number);
+                    updateField('birthday', new Date(y, m - 1, d));
+                  }
+                },
+                style: {
+                  backgroundColor: colors.light,
+                  border: `1px solid ${colors.border}`,
+                  borderRadius: radii.md,
+                  padding: `${spacing.lg}px ${spacing.md}px`,
+                  fontSize: fonts.sizes.base,
+                  color: colors.dark,
+                  fontFamily: 'inherit',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                },
+              })}
+
             {Platform.OS === 'android' && !showDatePicker && (
               <TouchableOpacity
                 style={styles.dateButton}
@@ -308,7 +347,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               </TouchableOpacity>
             )}
 
-            {showDatePicker && (
+            {Platform.OS !== 'web' && showDatePicker && (
               <DateTimePicker
                 value={data.birthday || new Date(2020, 0, 1)}
                 mode="date"
