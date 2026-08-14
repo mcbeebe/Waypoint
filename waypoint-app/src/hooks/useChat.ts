@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { retrieveMultiSourceContext } from '@/lib/rag';
+import { retrieveMultiSourceContext, type RAGResult } from '@/lib/rag';
 import { streamNavigatorResponse, classifyIntent } from '@/lib/ai';
 import type { ChatContext, ChatMessage, ToneLevel } from '@/types/database';
 
@@ -121,10 +121,19 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       // Step 1: Classify intent (fast, uses Haiku)
       const classification = await classifyIntent(text);
 
-      // Step 2: Retrieve relevant KB articles via RAG (multi-source for cross-topic queries)
-      const ragResult = await retrieveMultiSourceContext(text, classification.sources, {
-        matchCount: 5,
-      });
+      // Step 2: Retrieve relevant KB articles via RAG (multi-source for
+      // cross-topic queries). Retrieval is optional: if it fails (e.g. no
+      // embedding provider configured), answer from general knowledge
+      // instead of failing the whole message.
+      let ragResult: RAGResult;
+      try {
+        ragResult = await retrieveMultiSourceContext(text, classification.sources, {
+          matchCount: 5,
+        });
+      } catch (ragError) {
+        console.warn('[useChat] KB retrieval unavailable, continuing without it:', ragError);
+        ragResult = { context: '', sources: [], queryTimeMs: 0, confidence: 'none' };
+      }
 
       // Step 3: Build conversation history for API
       const apiMessages = messages
