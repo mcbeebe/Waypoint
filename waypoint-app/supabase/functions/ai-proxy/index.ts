@@ -30,6 +30,14 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/** JSON error response with a real HTTP status (never a fake 200). */
+function jsonError(message: string, status: number): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  });
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -60,6 +68,20 @@ serve(async (req: Request) => {
     const body = await req.json();
     const { action } = body;
 
+    // Fail fast with a clear message if the needed API key secret isn't set
+    if (action === 'embed' && !OPENAI_API_KEY) {
+      return jsonError(
+        'OPENAI_API_KEY secret is not set in Supabase Edge Function secrets',
+        500,
+      );
+    }
+    if (action !== 'embed' && !ANTHROPIC_API_KEY) {
+      return jsonError(
+        'ANTHROPIC_API_KEY secret is not set in Supabase Edge Function secrets',
+        500,
+      );
+    }
+
     // ─── Chat (streaming + prompt caching) ──────────────────────────
     if (action === 'chat') {
       const { messages, system, model } = body;
@@ -83,13 +105,23 @@ serve(async (req: Request) => {
           'anthropic-beta': 'prompt-caching-2024-07-31',
         },
         body: JSON.stringify({
-          model: model ?? 'claude-opus-4-6-20250514',
+          model: model ?? 'claude-opus-5',
           max_tokens: 4096,
           system: systemBlocks,
           messages,
           stream: true,
         }),
       });
+
+      // Surface Anthropic errors as errors instead of streaming them as a
+      // fake-success SSE body the client can't parse
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => null);
+        return jsonError(
+          errBody?.error?.message ?? `Anthropic API error (${response.status})`,
+          response.status,
+        );
+      }
 
       // Stream the response through
       return new Response(response.body, {
@@ -122,6 +154,12 @@ serve(async (req: Request) => {
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        return jsonError(
+          data?.error?.message ?? `Anthropic API error (${response.status})`,
+          response.status,
+        );
+      }
       return new Response(JSON.stringify(data), {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
@@ -144,6 +182,12 @@ serve(async (req: Request) => {
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        return jsonError(
+          data?.error?.message ?? `OpenAI API error (${response.status})`,
+          response.status,
+        );
+      }
       return new Response(JSON.stringify(data), {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
@@ -161,7 +205,7 @@ serve(async (req: Request) => {
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-5',
           max_tokens: 8192,
           messages: [
             {
@@ -285,7 +329,7 @@ ${extractedText}`;
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-opus-4-6-20250514',
+          model: 'claude-opus-5',
           max_tokens: 8192,
           system: systemPrompt,
           messages: [{ role: 'user', content: userPrompt }],
