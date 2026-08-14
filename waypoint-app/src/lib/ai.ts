@@ -280,7 +280,14 @@ Respond with JSON only:
   "tone": "collaborative|assertive|adversarial"
 }
 
-Source IDs: regional_center, lanterman_act, iep, idea, medi_cal, ssi, insurance, ccs, fair_hearing, rights, transitions, navigation
+Source IDs (pick the ones that match the question's topics):
+- regional_center — Lanterman Act, Regional Center intake, IPP, purchase of service, RC fair hearings
+- iep — school services, IDEA/FAPE, CA Ed Code, IEP meetings, disputes, IEEs
+- benefits — Medi-Cal, SSI, IHSS, CalABLE, funding waterfall
+- insurance — private insurance appeals, medical necessity, denials/EOBs
+- rights — fair hearings, complaints, timelines, due process
+- navigation — finding providers, waitlists, coordinating systems
+- transitions — Early Start (0-3), transition to adulthood
 
 Rules:
 - If about rights violations, denials, or appeals → tone: "adversarial"
