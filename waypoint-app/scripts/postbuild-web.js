@@ -33,6 +33,24 @@ for (const file of assets) {
   }
 }
 
+// 1b. Stamp the service worker cache version with this build's bundle hash
+// so every deploy activates a fresh SW and purges stale cached JS.
+const jsDir = path.join(dist, '_expo', 'static', 'js', 'web');
+const entryFile = fs.existsSync(jsDir)
+  ? fs.readdirSync(jsDir).find((f) => f.startsWith('AppEntry-'))
+  : null;
+const buildTag = entryFile
+  ? entryFile.replace(/^AppEntry-|\.js$/g, '').slice(0, 12)
+  : Date.now().toString(36);
+const swPath = path.join(dist, 'sw.js');
+if (fs.existsSync(swPath)) {
+  fs.writeFileSync(
+    swPath,
+    fs.readFileSync(swPath, 'utf8').replace("'waypoint-v1'", `'waypoint-${buildTag}'`)
+  );
+  console.log(`[postbuild-web] SW cache version: waypoint-${buildTag}`);
+}
+
 // 2. Inject head tags + SW registration
 let html = fs.readFileSync(indexPath, 'utf8');
 
