@@ -20,6 +20,12 @@ export interface Family {
   updated_at: string;
 }
 
+/** Regional Center status collected during onboarding (012_children_intake_status.sql) */
+export type RcStatus = 'unknown' | 'known' | 'applied' | 'active';
+
+/** IEP status collected during onboarding (012_children_intake_status.sql) */
+export type IepStatus = 'no' | 'unknown' | 'eval_done' | 'active' | 'na';
+
 export interface Child {
   id: string;
   family_id: string;
@@ -28,6 +34,8 @@ export interface Child {
   date_of_birth: string | null;
   gender: string | null;
   is_primary: boolean;
+  rc_status: RcStatus | null;
+  iep_status: IepStatus | null;
   created_at: string;
   updated_at: string;
 }
