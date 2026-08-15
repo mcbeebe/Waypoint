@@ -1,0 +1,7 @@
+# Minimal Supabase CLI config — enables `supabase functions deploy`
+# (used by .github/workflows/deploy-edge-functions.yml).
+project_id = "waypoint-app"
+
+[functions.ai-proxy]
+# Callers must present a Supabase JWT (the app sends the user's session token)
+verify_jwt = true
