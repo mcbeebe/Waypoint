@@ -92,6 +92,8 @@ export interface TranslationStrings {
     thinking: string;
     errorGeneric: string;
     newChat: string;
+    disclaimer: string;
+    followUpsHint: string;
   };
 
   // ─── Actions ─────────────────────────────────────────────

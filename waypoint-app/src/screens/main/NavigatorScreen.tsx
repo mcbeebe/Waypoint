@@ -27,8 +27,11 @@ import { useChat, type UIMessage } from '@/hooks/useChat';
 import { useActions } from '@/hooks/useActions';
 import { useDiagnoses } from '@/hooks/useFamily';
 import { useToast } from '@/components/Toast';
+import RichText, { stripInlineMarkdown } from '@/components/RichText';
+import { hideStreamingTrailer } from '@/lib/followups';
 import { sendEmail } from '@/lib/gmail';
 import { getGoogleAccessToken } from '@/lib/auth';
+import { useI18n } from '@/i18n';
 import type { ChatContext, ToneLevel } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -83,6 +86,7 @@ export default function NavigatorScreen() {
 
   const { createAction } = useActions({ familyId: family?.id ?? '' });
   const { showToast } = useToast();
+  const { t } = useI18n();
 
   const [inputText, setInputText] = useState('');
   const [showTonePicker, setShowTonePicker] = useState(false);
@@ -100,14 +104,15 @@ export default function NavigatorScreen() {
 
     try {
       // Extract a title from the first line/sentence of the message (max 100 chars)
-      const firstLine = message.content.split('\n')[0].trim();
+      const plainContent = stripInlineMarkdown(message.content);
+      const firstLine = plainContent.split('\n')[0].trim();
       const title = firstLine.length > 100
         ? firstLine.slice(0, 97) + '...'
         : firstLine;
 
       const action = await createAction({
         title,
-        description: message.content.slice(0, 500),
+        description: plainContent.slice(0, 500),
         source: 'ai_navigator',
         source_message_id: message.id,
         chat_session_id: sessionId ?? undefined,
@@ -144,7 +149,7 @@ export default function NavigatorScreen() {
     if (!emailTo.trim() || !emailComposeMessage) return;
     setIsSendingEmail(true);
     try {
-      await sendEmail(emailTo.trim(), emailSubject, emailComposeMessage.content);
+      await sendEmail(emailTo.trim(), emailSubject, stripInlineMarkdown(emailComposeMessage.content));
       showToast('Email sent!', 'success');
       setEmailComposeMessage(null);
       setEmailTo('');
@@ -237,13 +242,25 @@ export default function NavigatorScreen() {
             ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <MessageBubble
-                message={item}
-                onSaveAction={handleSaveAsAction}
-                onEmailThis={handleEmailThis}
-                isSaving={savingMessageId === item.id}
-              />
+            renderItem={({ item, index }) => (
+              <>
+                <MessageBubble
+                  message={item}
+                  onSaveAction={handleSaveAsAction}
+                  onEmailThis={handleEmailThis}
+                  isSaving={savingMessageId === item.id}
+                />
+                {index === messages.length - 1 &&
+                  item.role === 'assistant' &&
+                  !isLoading &&
+                  (item.followUps?.length ?? 0) > 0 && (
+                    <FollowUpChips
+                      followUps={item.followUps!}
+                      hint={t.navigator.followUpsHint}
+                      onPress={handleSuggestion}
+                    />
+                  )}
+              </>
             )}
             contentContainerStyle={styles.messageList}
             showsVerticalScrollIndicator={false}
@@ -288,6 +305,9 @@ export default function NavigatorScreen() {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Static legal disclaimer (replaces per-message AI-written footer) */}
+        <Text style={styles.disclaimer}>{t.navigator.disclaimer}</Text>
       </KeyboardAvoidingView>
 
       {/* Email Compose Modal */}
@@ -369,6 +389,33 @@ function WelcomeView({ onSuggestion }: { onSuggestion: (text: string) => void })
 }
 
 /** Individual message bubble with optional save-to-action button */
+/** Tappable follow-up suggestions under the latest assistant message */
+function FollowUpChips({
+  followUps,
+  hint,
+  onPress,
+}: {
+  followUps: string[];
+  hint: string;
+  onPress: (text: string) => void;
+}) {
+  return (
+    <View style={styles.followUpRow}>
+      {followUps.map((text, i) => (
+        <TouchableOpacity
+          key={`fu-${i}`}
+          style={styles.followUpChip}
+          onPress={() => onPress(text)}
+          accessibilityRole="button"
+          accessibilityLabel={`${hint}: ${text}`}
+        >
+          <Text style={styles.followUpChipText}>{text}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
 function MessageBubble({
   message,
   onSaveAction,
@@ -398,15 +445,25 @@ function MessageBubble({
             isUser ? styles.bubbleUser : styles.bubbleAssistant,
           ]}
         >
-          <Text
-            style={[
-              styles.bubbleText,
-              isUser ? styles.bubbleTextUser : styles.bubbleTextAssistant,
-            ]}
-          >
-            {message.content}
-            {message.isStreaming && <Text style={styles.cursor}>▊</Text>}
-          </Text>
+          {isUser ? (
+            <Text style={[styles.bubbleText, styles.bubbleTextUser]}>
+              {message.content}
+            </Text>
+          ) : (
+            <>
+              <RichText
+                text={
+                  message.isStreaming
+                    ? hideStreamingTrailer(message.content)
+                    : message.content
+                }
+                style={[styles.bubbleText, styles.bubbleTextAssistant]}
+              />
+              {message.isStreaming && (
+                <Text style={[styles.bubbleText, styles.cursor]}>▊</Text>
+              )}
+            </>
+          )}
         </View>
         {showSources && <SourceAttribution sources={message.sources} />}
         {showSaveButton && onSaveAction && (
@@ -738,6 +795,36 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  followUpRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginLeft: 44,
+    marginTop: 2,
+    marginBottom: spacing.md,
+    paddingRight: spacing.lg,
+  },
+  followUpChip: {
+    backgroundColor: colors.white,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.teal,
+  },
+  followUpChipText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium,
+  },
+  disclaimer: {
+    fontSize: 10,
+    color: colors.mid,
+    textAlign: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
+    paddingTop: 2,
   },
   suggestionText: {
     fontSize: fonts.sizes.sm,

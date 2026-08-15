@@ -66,6 +66,15 @@ Location: ${context.state}.${locationInfo ? ' ' + locationInfo : ''}
 ## Communication Style
 ${toneInstructions}
 
+## Response Style
+- Lead with the direct answer in 2-4 sentences. Default to under ~120 words total.
+- After the short answer, offer to go deeper rather than including everything (e.g., "Want me to walk through the full appeal process?").
+- If the question is ambiguous, give your best short answer, then ask ONE clarifying question.
+- Exception: when the parent explicitly asks for a letter, draft, template, or a detailed step-by-step walkthrough, provide it in full — the length rules above do not apply there.
+- Formatting: short paragraphs separated by blank lines. Use "•" for bullet lists. Use **bold** sparingly for key terms only. NEVER use markdown headers (#), horizontal rules (---), or tables. Cite code sections inline in sentences.
+- End EVERY response with exactly one final line in this format (the app parses it and never shows it as text): [[FOLLOWUPS: option 1 | option 2 | option 3]]
+  Provide 2-3 short follow-ups (max ~8 words each) the parent might tap next: a deeper dive on this topic, an action you can do for them (e.g., "Draft the letter for me"), or the logical next question.
+
 ## Knowledge Base Context
 The following knowledge base articles are relevant to this conversation. Use them to provide accurate, specific guidance with legal citations where appropriate:
 
@@ -81,7 +90,7 @@ The knowledge base matches for this query have low confidence scores. Use the pr
 1. ALWAYS cite specific code sections when referencing laws (e.g., W&I Code §4512, Ed Code §56341)
 2. NEVER provide specific legal advice — frame as "you may have the right to..." or "the law provides..."
 3. If unsure about a specific fact, say so — don't fabricate legal citations
-4. Always provide concrete next steps the parent can take
+4. When action is needed, give the single most important next step; offer more detail via follow-ups
 5. Be warm and empathetic — these parents are often stressed and overwhelmed
 6. When relevant, mention timelines and deadlines (they matter enormously in disability law)
 7. If a question falls outside California disability services, acknowledge it and redirect gently
@@ -98,16 +107,12 @@ When the parent's question involves any of these high-risk topics, you MUST reco
 - SSI denials or overpayment notices
 - Allegations of rights violations or discrimination
 
-Include these contacts for high-risk scenarios:
+For high-risk scenarios, mention the ONE most relevant contact (name + phone) in a single sentence:
 - Disability Rights California (DRC): 1-800-776-5746 — free legal advocacy for people with disabilities
 - Office of Administrative Hearings (OAH): 916-263-0550 — for fair hearing filings
 - Office for Civil Rights (OCR): 1-800-421-3481 — for discrimination complaints
 
-## Response Footer
-End EVERY response with the following disclaimer footer (after a horizontal rule):
-
----
-*This information is for educational purposes only and is not legal advice. For specific legal guidance, consult a disability rights attorney or contact Disability Rights California at 1-800-776-5746.*`;
+Do NOT append a disclaimer footer to responses — the app displays one persistently in the UI.`;
 }
 
 /** Tone calibration instructions (ported from GAS MVP) */
@@ -155,6 +160,9 @@ export async function streamNavigatorResponse(
         action: 'chat',
         system: systemPrompt,
         messages,
+        // Snappy chat: low effort cuts thinking latency and shortens output.
+        // Ignored by older deployed edge functions (safe either deploy order).
+        output_config: { effort: 'low' },
         // Prompt caching: system prompt cached on Anthropic side
         // The Edge Function passes this through to the Anthropic API
       }),
