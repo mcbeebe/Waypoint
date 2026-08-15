@@ -1,5 +1,14 @@
 /**
- * Generates supabase/seed/kb_seed.sql from the curated KB articles JSON.
+ * Generates supabase/seed/kb_seed.sql — the full Waypoint knowledge base:
+ *
+ *   1. The 26 curated "Lite" articles from
+ *      Waypoint-Lite-KB-Articles-ENHANCED-AI-SCHEMA-Feb2026.json
+ *   2. The Entity Navigation Matrix v9.4 embedded in gas-mvp/Code.gs
+ *      (seedEntityKB + seedJourneyKB: entity guides, diagnosis journeys,
+ *      age timeline, equity analysis, resource directories) — extracted by
+ *      executing those functions in Node with a stubbed Sheets API, so the
+ *      content is never transcribed by hand.
+ *
  * The output is a paste-ready SQL script for the Supabase SQL editor —
  * no embeddings required (retrieval uses full-text search, migration 011).
  *
@@ -7,41 +16,102 @@
  */
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
-const KB_FILE = path.resolve(
-  __dirname,
-  '../../Waypoint-Lite-KB-Articles-ENHANCED-AI-SCHEMA-Feb2026.json'
-);
+const ROOT = path.resolve(__dirname, '../..');
+const KB_JSON = path.join(ROOT, 'Waypoint-Lite-KB-Articles-ENHANCED-AI-SCHEMA-Feb2026.json');
+const GAS_CODE = path.join(ROOT, 'gas-mvp/Code.gs');
 const OUT_FILE = path.resolve(__dirname, '../supabase/seed/kb_seed.sql');
 
-// Same parsing rules as scripts/ingest-kb.ts
-function parseArticle(article) {
+// ─── 1. Lite KB articles (same parsing rules as scripts/ingest-kb.ts) ───────
+
+function parseLiteArticle(article) {
   const titleMatch = article.code_title.match(/^([A-Z]+-\d+):\s*(.+)$/);
   const code = titleMatch?.[1] ?? article.code_title;
   const title = titleMatch?.[2] ?? article.code_title;
 
   const lines = article.body.split('\n');
-  const metaLine = lines[0] ?? '';
-  const metaMatch = metaLine.match(
+  const metaMatch = (lines[0] ?? '').match(
     /Category:\s*([^|]+)\|\s*Subcategory:\s*([^|]+)\|\s*Source:\s*(.+)/
   );
-
   const category = metaMatch?.[1]?.trim() ?? 'unknown';
   const subcategory = metaMatch?.[2]?.trim() ?? 'unknown';
   const sourceRef = metaMatch?.[3]?.trim() ?? '';
-  const contentStart = metaMatch ? 2 : 0;
-  const content = lines.slice(contentStart).join('\n').trim();
+  const content = lines.slice(metaMatch ? 2 : 0).join('\n').trim();
 
   return {
-    code,
-    title,
-    category,
-    subcategory,
-    sourceRef,
-    content,
-    lastReviewed: article.last_reviewed,
+    content: `${title}\n\n${content}`,
+    source: category.replace(/-/g, '_'),
+    section: code,
+    metadata: {
+      code,
+      title,
+      category,
+      subcategory,
+      source_ref: sourceRef,
+      last_reviewed: article.last_reviewed,
+      origin: 'lite-kb-feb2026',
+    },
   };
 }
+
+// ─── 2. Entity Matrix v9.4 — execute the GAS seeders with stubbed APIs ──────
+
+function extractGasRows() {
+  const code = fs.readFileSync(GAS_CODE, 'utf-8');
+  const captured = [];
+
+  const sheetStub = {
+    getLastRow: () => 0,
+    getRange: () => ({ setValues: (rows) => captured.push(...rows) }),
+    appendRow: (row) => captured.push(row),
+    // Header row only — the seeders read existing rows to dedupe
+    getDataRange: () => ({
+      getValues: () => [
+        ['id', 'category', 'subcategory', 'title', 'content', 'source', 'active', 'createdAt'],
+      ],
+    }),
+    deleteRow: () => {},
+  };
+  const sandbox = {
+    SpreadsheetApp: {
+      getActiveSpreadsheet: () => ({ getSheetByName: () => sheetStub }),
+    },
+    Logger: { log: () => {} },
+    Utilities: {},
+    PropertiesService: {
+      getScriptProperties: () => ({ getProperty: () => '', setProperty: () => {} }),
+    },
+    UrlFetchApp: {},
+    HtmlService: {},
+    Session: {},
+    console,
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(code, sandbox, { filename: 'Code.gs' });
+
+  vm.runInContext('seedEntityKB();', sandbox);
+  vm.runInContext('seedJourneyKB();', sandbox);
+
+  // Row schema: [id, category, subcategory, title, content, source, active, createdAt]
+  return captured
+    .filter((r) => Array.isArray(r) && r.length >= 7 && r[6] === 'TRUE')
+    .map(([id, category, subcategory, title, content, sourceRef]) => ({
+      content: `${title}\n\n${content}`.trim(),
+      source: category.replace(/-/g, '_'),
+      section: id,
+      metadata: {
+        code: id,
+        title,
+        category,
+        subcategory,
+        source_ref: sourceRef,
+        origin: 'entity-matrix-v9.4',
+      },
+    }));
+}
+
+// ─── SQL emission ───────────────────────────────────────────────────────────
 
 // Dollar-quote a string, picking a tag that never appears in the content
 function dollarQuote(text) {
@@ -50,25 +120,21 @@ function dollarQuote(text) {
   return `$${tag}$${text}$${tag}$`;
 }
 
-const kb = JSON.parse(fs.readFileSync(KB_FILE, 'utf-8'));
-const rows = kb.articles.map((a) => {
-  const p = parseArticle(a);
-  const content = `${p.title}\n\n${p.content}`;
-  const source = p.category.replace(/-/g, '_');
-  const metadata = {
-    code: p.code,
-    title: p.title,
-    category: p.category,
-    subcategory: p.subcategory,
-    source_ref: p.sourceRef,
-    last_reviewed: p.lastReviewed,
-  };
-  return `insert into public.knowledge_embeddings (content, source, section, metadata) values (${dollarQuote(content)}, ${dollarQuote(source)}, ${dollarQuote(p.code)}, ${dollarQuote(JSON.stringify(metadata))}::jsonb);`;
-});
+function toInsert(row) {
+  return `insert into public.knowledge_embeddings (content, source, section, metadata) values (${dollarQuote(row.content)}, ${dollarQuote(row.source)}, ${dollarQuote(row.section)}, ${dollarQuote(JSON.stringify(row.metadata))}::jsonb);`;
+}
+
+const lite = JSON.parse(fs.readFileSync(KB_JSON, 'utf-8')).articles.map(parseLiteArticle);
+const matrix = extractGasRows();
+const rows = [...lite, ...matrix];
+
+const bySource = {};
+for (const r of rows) bySource[r.source] = (bySource[r.source] ?? 0) + 1;
 
 const sql = [
   '-- Waypoint KB seed — generated by scripts/generate-kb-seed.js',
-  `-- ${rows.length} curated articles from ${path.basename(KB_FILE)}`,
+  `-- ${lite.length} Lite KB articles + ${matrix.length} Entity Matrix v9.4 entries = ${rows.length} total`,
+  `-- Sources: ${Object.entries(bySource).map(([s, n]) => `${s}(${n})`).join(', ')}`,
   '-- Paste into the Supabase SQL editor AFTER running migration 011.',
   '',
   'begin;',
@@ -76,7 +142,7 @@ const sql = [
   '-- Replace any previous seed (idempotent re-runs)',
   'delete from public.knowledge_embeddings;',
   '',
-  ...rows,
+  ...rows.map(toInsert),
   '',
   'commit;',
   '',
@@ -84,4 +150,6 @@ const sql = [
 
 fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
 fs.writeFileSync(OUT_FILE, sql);
-console.log(`Wrote ${OUT_FILE} (${rows.length} articles, ${(sql.length / 1024).toFixed(0)} KB)`);
+console.log(`Wrote ${OUT_FILE}`);
+console.log(`  ${lite.length} Lite articles + ${matrix.length} Entity Matrix entries = ${rows.length} rows (${(sql.length / 1024).toFixed(0)} KB)`);
+console.log('  Sources:', Object.entries(bySource).map(([s, n]) => `${s}=${n}`).join(' '));

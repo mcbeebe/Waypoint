@@ -282,12 +282,17 @@ Respond with JSON only:
 
 Source IDs (pick the ones that match the question's topics):
 - regional_center — Lanterman Act, Regional Center intake, IPP, purchase of service, RC fair hearings
-- iep — school services, IDEA/FAPE, CA Ed Code, IEP meetings, disputes, IEEs
-- benefits — Medi-Cal, SSI, IHSS, CalABLE, funding waterfall
-- insurance — private insurance appeals, medical necessity, denials/EOBs
-- rights — fair hearings, complaints, timelines, due process
-- navigation — finding providers, waitlists, coordinating systems
-- transitions — Early Start (0-3), transition to adulthood
+- iep — school services, IDEA/FAPE, CA Ed Code, IEP meetings, disputes, IEEs, 504 plans, SELPA
+- benefits — Medi-Cal, SSI, IHSS, CCS, CalABLE, special needs trusts, funding waterfall
+- insurance — private insurance appeals, medical necessity, denials/EOBs, DMHC
+- rights — fair hearings, complaints, timelines, due process, DRC, OAH, conservatorship
+- navigation — finding providers, waitlists, coordinating systems, assessments, therapies
+- transitions — Early Start (0-3), age 3 transition, transition to adulthood, DOR
+- journey_autism / journey_pda / journey_adhd / journey_id / journey_sld / journey_sli — step-by-step guides for a specific diagnosis (autism, PDA, ADHD, intellectual disability, specific learning disability, speech-language). Include when the question names or implies one of these diagnoses.
+- cross_reference — which services/programs a specific diagnosis qualifies for
+- age_timeline — what to do at the child's current age, what's coming next
+- equity — discrimination, spending disparities, language access, rural access
+- resources — parent organizations, support groups, PTIs, national resources
 
 Rules:
 - If about rights violations, denials, or appeals → tone: "adversarial"
