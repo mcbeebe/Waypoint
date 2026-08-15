@@ -459,7 +459,6 @@ function SourceAttribution({
         {hasSources ? (
           sources.map((s, i) => {
             const label = s.source.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-            const pct = Math.round(s.similarity * 100);
             const key = `${s.source}-${i}`;
             return (
               <TouchableOpacity
@@ -467,9 +466,9 @@ function SourceAttribution({
                 style={styles.sourcePill}
                 onPress={() => setExpandedSource(expandedSource === key ? null : key)}
                 accessibilityRole="button"
-                accessibilityLabel={`Source: ${label}, ${pct}% relevance`}
+                accessibilityLabel={`Source: ${label}`}
               >
-                <Text style={styles.sourcePillText}>{label} {pct}%</Text>
+                <Text style={styles.sourcePillText}>{label}</Text>
               </TouchableOpacity>
             );
           })
@@ -488,7 +487,6 @@ function SourceAttribution({
           <View style={styles.sourceExpanded}>
             <Text style={styles.sourceExpandedText}>Source: {label}</Text>
             {s.section && <Text style={styles.sourceExpandedText}>Section: {s.section}</Text>}
-            <Text style={styles.sourceExpandedText}>Relevance: {Math.round(s.similarity * 100)}%</Text>
           </View>
         );
       })()}
