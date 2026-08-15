@@ -69,6 +69,9 @@ const vi: TranslationStrings = {
     thinking: 'Đang suy nghĩ…',
     errorGeneric: 'Tôi gặp khó khăn khi tạo phản hồi. Vui lòng thử lại.',
     newChat: 'Cuộc Trò Chuyện Mới',
+    disclaimer:
+      'Chỉ là thông tin giáo dục — không phải tư vấn pháp lý. Disability Rights California: 1-800-776-5746',
+    followUpsHint: 'Câu hỏi gợi ý tiếp theo',
   },
 
   actions: {

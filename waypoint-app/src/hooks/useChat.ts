@@ -7,6 +7,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { retrieveMultiSourceContext, type RAGResult } from '@/lib/rag';
 import { streamNavigatorResponse, classifyIntent } from '@/lib/ai';
+import { parseFollowups } from '@/lib/followups';
 import type { ChatContext, ChatMessage, ToneLevel } from '@/types/database';
 
 /** Runtime message type (includes streaming state) */
@@ -16,6 +17,8 @@ export interface UIMessage {
   content: string;
   isStreaming?: boolean;
   sources?: Array<{ source: string; section?: string | null; similarity: number }>;
+  /** Tappable follow-up suggestions parsed from the response trailer */
+  followUps?: string[];
   createdAt: string;
 }
 
@@ -119,6 +122,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       await persistMessage(sid, 'user', text.trim());
 
       // Step 1: Classify intent (fast, uses Haiku)
+      // Note: classification.suggestedTone is intentionally unused — auto-
+      // switching tone would silently override the user's tone-bar choice.
       const classification = await classifyIntent(text);
 
       // Step 2: Retrieve relevant KB articles via RAG (multi-source for
@@ -159,13 +164,18 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             );
           },
           onComplete: async (fullText) => {
+            // Strip the [[FOLLOWUPS: ...]] trailer BEFORE display/persistence
+            // so the DB, Save-as-Action, and Email never see it.
+            const { content, followUps } = parseFollowups(fullText);
+
             // Finalize the message
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId
                   ? {
                       ...m,
-                      content: fullText,
+                      content,
+                      followUps,
                       isStreaming: false,
                       sources: ragResult.sources.map((s) => ({
                         source: s.source,
@@ -178,7 +188,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             );
 
             // Persist assistant response
-            await persistMessage(sid!, 'assistant', fullText, ragResult.sources as unknown as Record<string, unknown>[]);
+            await persistMessage(sid!, 'assistant', content, ragResult.sources as unknown as Record<string, unknown>[]);
             setIsLoading(false);
           },
           onError: (err) => {

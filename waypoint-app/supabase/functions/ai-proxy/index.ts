@@ -84,7 +84,7 @@ serve(async (req: Request) => {
 
     // ─── Chat (streaming + prompt caching) ──────────────────────────
     if (action === 'chat') {
-      const { messages, system, model } = body;
+      const { messages, system, model, output_config } = body;
 
       // Use prompt caching: wrap system prompt in cache_control blocks
       // so the static instructions + KB context are cached across turns
@@ -110,6 +110,8 @@ serve(async (req: Request) => {
           system: systemBlocks,
           messages,
           stream: true,
+          // Client-controlled effort (e.g. {effort: 'low'} for snappy chat)
+          ...(output_config ? { output_config } : {}),
         }),
       });
 

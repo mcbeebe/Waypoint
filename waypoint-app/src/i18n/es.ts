@@ -69,6 +69,9 @@ const es: TranslationStrings = {
     thinking: 'Pensando…',
     errorGeneric: 'Tuve problemas generando una respuesta. Por favor intenta de nuevo.',
     newChat: 'Nueva Conversación',
+    disclaimer:
+      'Información educativa solamente — no es asesoría legal. Disability Rights California: 1-800-776-5746',
+    followUpsHint: 'Sugerencia de seguimiento',
   },
 
   actions: {

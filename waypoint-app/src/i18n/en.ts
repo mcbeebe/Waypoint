@@ -69,6 +69,9 @@ const en: TranslationStrings = {
     thinking: 'Thinking…',
     errorGeneric: 'I had trouble generating a response. Please try again.',
     newChat: 'New Chat',
+    disclaimer:
+      'Educational information only — not legal advice. Disability Rights California: 1-800-776-5746',
+    followUpsHint: 'Suggested follow-up',
   },
 
   actions: {
