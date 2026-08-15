@@ -29,7 +29,7 @@ jobs:
       # Project ref from the project URL (https://<ref>.supabase.co) — not a secret
       SUPABASE_PROJECT_ID: pltcmpephjkcncxmwbyw
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Check for access token
         id: token
@@ -37,6 +37,9 @@ jobs:
           if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
             echo "::warning::SUPABASE_ACCESS_TOKEN secret is not set — skipping deploy. See the comment at the top of .github/workflows/deploy-edge-functions.yml for the one-time setup."
             echo "present=false" >> "$GITHUB_OUTPUT"
+          elif [[ "$SUPABASE_ACCESS_TOKEN" != sbp_* ]]; then
+            echo "::error::SUPABASE_ACCESS_TOKEN doesn't look like a personal access token (it should start with 'sbp_'). A project API key (anon/service_role, 'eyJ...') will NOT work here. Generate one at Supabase → avatar (bottom-left) → Account Settings → Access Tokens, then update the GitHub secret."
+            exit 1
           else
             echo "present=true" >> "$GITHUB_OUTPUT"
           fi
