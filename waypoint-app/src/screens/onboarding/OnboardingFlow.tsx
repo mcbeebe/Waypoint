@@ -25,6 +25,7 @@ import DiagnosisSelector from '@/components/DiagnosisSelector';
 import SelectGrid from '@/components/SelectGrid';
 import Button from '@/components/Button';
 import { supabase } from '@/lib/supabase';
+import { generateStarterPlan } from '@/lib/planGenerator';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 // ─── Step option data (ported from GAS MVP ONBOARD_STEPS) ────────────────────
@@ -188,6 +189,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           first_name: data.childName.trim(),
           date_of_birth: data.birthday?.toISOString().split('T')[0] || null,
           is_primary: true,
+          rc_status: data.rcStatus,
+          iep_status: data.iepStatus,
         })
         .select()
         .single();
@@ -205,6 +208,34 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           .insert(diagnosisRows);
 
         if (dxError) throw dxError;
+      }
+
+      // 4. Seed the personalized starter plan (ported from GAS generateRichPlan).
+      // Non-critical: onboarding still completes if seeding fails — the user can
+      // add actions manually or via the AI Navigator.
+      try {
+        const starterActions = generateStarterPlan({
+          diagnoses: data.diagnoses,
+          birthday: data.birthday,
+          rcStatus: data.rcStatus,
+          iepStatus: data.iepStatus,
+          insurance: data.insurance,
+          childName: data.childName.trim(),
+          parentName: data.parentFirstName.trim(),
+          zipCode: data.zipCode.trim() || undefined,
+        });
+        if (starterActions.length > 0) {
+          const rows = starterActions.map(action => ({
+            ...action,
+            family_id: family.id,
+            child_id: child.id,
+            source: 'system' as const,
+          }));
+          const { error: planError } = await supabase.from('actions').insert(rows);
+          if (planError) console.warn('Starter plan seeding failed:', planError.message);
+        }
+      } catch (planErr) {
+        console.warn('Starter plan generation failed:', planErr);
       }
 
       onComplete();
