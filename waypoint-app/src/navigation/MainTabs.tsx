@@ -1,21 +1,189 @@
 /**
- * Bottom tab navigator — 5 main tabs
- * Ported from GAS MVP nav bar (Home, Ask AI, Actions, Calendar, Profile)
+ * Main navigation — 5 bottom tabs, each wrapping a stack navigator.
+ * Tab roots keep their custom in-screen headers (headerShown: false);
+ * pushed detail screens get a standard titled header with back.
+ *
+ * Roadmap 0.1: registers the previously orphaned screens. Community routes
+ * (Forum/Thread/Messages) are gated behind FLAGS.community until moderation
+ * tooling ships (roadmap 6.1).
  */
 
 import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+
 import HomeScreen from '@/screens/main/HomeScreen';
 import NavigatorScreen from '@/screens/main/NavigatorScreen';
 import ActionsScreen from '@/screens/main/ActionsScreen';
 import CalendarScreen from '@/screens/main/CalendarScreen';
 import ProfileScreen from '@/screens/main/ProfileScreen';
+import ActionDetailScreen from '@/screens/main/ActionDetailScreen';
+import InsightsScreen from '@/screens/main/InsightsScreen';
+import DocumentsScreen from '@/screens/main/DocumentsScreen';
+import DocumentAnalysisScreen from '@/screens/main/DocumentAnalysisScreen';
+import ProvidersScreen from '@/screens/main/ProvidersScreen';
+import ServicesScreen from '@/screens/main/ServicesScreen';
+import HealthRecordsScreen from '@/screens/main/HealthRecordsScreen';
+import FamilySharingScreen from '@/screens/main/FamilySharingScreen';
+import ProviderPortalScreen from '@/screens/main/ProviderPortalScreen';
+import ForumScreen from '@/screens/main/ForumScreen';
+import ThreadScreen from '@/screens/main/ThreadScreen';
+import MessagesScreen from '@/screens/main/MessagesScreen';
+import ResourcesScreen from '@/screens/main/ResourcesScreen';
+import BlogScreen from '@/screens/main/BlogScreen';
+import ExpensesScreen from '@/screens/main/ExpensesScreen';
+import TaxReportScreen from '@/screens/main/TaxReportScreen';
+
+import { useFamily } from '@/hooks/useFamily';
+import { useActions } from '@/hooks/useActions';
 import { useI18n } from '@/i18n';
+import { FLAGS } from '@/lib/flags';
 import { colors, fonts } from '@/lib/theme';
-import type { MainTabParamList } from '@/types/navigation';
+import type {
+  HomeStackParamList,
+  NavigatorStackParamList,
+  TrackerStackParamList,
+  CalendarStackParamList,
+  ProfileStackParamList,
+} from '@/types/navigation';
 
 const Tab = createBottomTabNavigator();
+const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
+const NavigatorStackNav = createNativeStackNavigator<NavigatorStackParamList>();
+const TrackerStackNav = createNativeStackNavigator<TrackerStackParamList>();
+const CalendarStackNav = createNativeStackNavigator<CalendarStackParamList>();
+const ProfileStackNav = createNativeStackNavigator<ProfileStackParamList>();
+
+// Shared header treatment for pushed detail screens
+const detailHeaderOptions: NativeStackNavigationOptions = {
+  headerShown: true,
+  headerTintColor: colors.teal,
+  headerTitleStyle: {
+    color: colors.navy,
+    fontWeight: fonts.weights.bold as '700',
+  },
+  headerStyle: { backgroundColor: colors.white },
+  headerBackButtonDisplayMode: 'minimal',
+};
+
+// ─── Route wrappers for prop-based screens ──────────────────────────────────
+
+/** Loads an action by id and binds useActions mutations to ActionDetailScreen. */
+function ActionDetailRoute({ route, navigation }: any) {
+  const { actionId } = route.params as { actionId: string };
+  const { family } = useFamily();
+  const { actions, loading, updateStatus, toggleStep, updateAction } = useActions({
+    familyId: family?.id ?? '',
+  });
+
+  const action = actions.find(a => a.id === actionId);
+
+  if (loading && !action) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={colors.teal} />
+      </View>
+    );
+  }
+  if (!action) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.notFound}>This action is no longer available.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ActionDetailScreen
+      action={action}
+      onUpdateStatus={(status, reason) => updateStatus(action.id, status, reason)}
+      onToggleStep={stepIndex => toggleStep(action.id, stepIndex)}
+      onUpdate={data => updateAction(action.id, data)}
+      onBack={() => navigation.goBack()}
+    />
+  );
+}
+
+function DocumentAnalysisRoute({ route, navigation }: any) {
+  return (
+    <DocumentAnalysisScreen
+      analysis={route.params.analysis}
+      onBack={() => navigation.goBack()}
+    />
+  );
+}
+
+function ForumRoute({ navigation }: any) {
+  return <ForumScreen onOpenThread={thread => navigation.navigate('Thread', { thread })} />;
+}
+
+function ThreadRoute({ route, navigation }: any) {
+  return <ThreadScreen thread={route.params.thread} onBack={() => navigation.goBack()} />;
+}
+
+// ─── Per-tab stacks ─────────────────────────────────────────────────────────
+
+function HomeStack() {
+  return (
+    <HomeStackNav.Navigator screenOptions={detailHeaderOptions}>
+      <HomeStackNav.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
+      <HomeStackNav.Screen name="Insights" component={InsightsScreen} options={{ title: 'Insights' }} />
+      <HomeStackNav.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Documents' }} />
+      <HomeStackNav.Screen name="DocumentAnalysis" component={DocumentAnalysisRoute} options={{ title: 'IEP Review' }} />
+      <HomeStackNav.Screen name="Providers" component={ProvidersScreen} options={{ title: 'Providers' }} />
+      <HomeStackNav.Screen name="Services" component={ServicesScreen} options={{ title: 'Services' }} />
+      <HomeStackNav.Screen name="HealthRecords" component={HealthRecordsScreen} options={{ title: 'Health Records' }} />
+      <HomeStackNav.Screen name="FamilySharing" component={FamilySharingScreen} options={{ title: 'Family Sharing' }} />
+      <HomeStackNav.Screen name="ProviderPortal" component={ProviderPortalScreen} options={{ title: 'Provider Portal' }} />
+      {FLAGS.community && (
+        <>
+          <HomeStackNav.Screen name="Forum" component={ForumRoute} options={{ title: 'Community' }} />
+          <HomeStackNav.Screen name="Thread" component={ThreadRoute} options={{ title: 'Discussion' }} />
+          <HomeStackNav.Screen name="Messages" component={MessagesScreen} options={{ title: 'Messages' }} />
+        </>
+      )}
+    </HomeStackNav.Navigator>
+  );
+}
+
+function NavigatorStack() {
+  return (
+    <NavigatorStackNav.Navigator screenOptions={detailHeaderOptions}>
+      <NavigatorStackNav.Screen name="NavigatorMain" component={NavigatorScreen} options={{ headerShown: false }} />
+      <NavigatorStackNav.Screen name="Resources" component={ResourcesScreen} options={{ title: 'Resources' }} />
+      <NavigatorStackNav.Screen name="Blog" component={BlogScreen} options={{ title: 'Blog' }} />
+    </NavigatorStackNav.Navigator>
+  );
+}
+
+function TrackerStack() {
+  return (
+    <TrackerStackNav.Navigator screenOptions={detailHeaderOptions}>
+      <TrackerStackNav.Screen name="TrackerList" component={ActionsScreen} options={{ headerShown: false }} />
+      <TrackerStackNav.Screen name="ActionDetail" component={ActionDetailRoute} options={{ title: 'Action' }} />
+    </TrackerStackNav.Navigator>
+  );
+}
+
+function CalendarStack() {
+  return (
+    <CalendarStackNav.Navigator screenOptions={detailHeaderOptions}>
+      <CalendarStackNav.Screen name="CalendarMain" component={CalendarScreen} options={{ headerShown: false }} />
+      <CalendarStackNav.Screen name="Expenses" component={ExpensesScreen} options={{ title: 'Expenses' }} />
+      <CalendarStackNav.Screen name="TaxReport" component={TaxReportScreen} options={{ title: 'Tax Report' }} />
+    </CalendarStackNav.Navigator>
+  );
+}
+
+function ProfileStack() {
+  return (
+    <ProfileStackNav.Navigator screenOptions={detailHeaderOptions}>
+      <ProfileStackNav.Screen name="ProfileMain" component={ProfileScreen} options={{ headerShown: false }} />
+    </ProfileStackNav.Navigator>
+  );
+}
 
 // ─── Tab Icons (simple text-based until we add an icon library) ─────────────
 
@@ -52,7 +220,7 @@ export default function MainTabs() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeStack}
         options={{
           tabBarLabel: t.tabs.home,
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="🏠" focused={focused} />,
@@ -61,7 +229,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="Navigator"
-        component={NavigatorScreen}
+        component={NavigatorStack}
         options={{
           tabBarLabel: t.tabs.askAi,
           tabBarIcon: ({ focused }: { focused: boolean }) => (
@@ -72,7 +240,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="Tracker"
-        component={ActionsScreen}
+        component={TrackerStack}
         options={{
           tabBarLabel: t.tabs.actions,
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="📋" focused={focused} />,
@@ -81,7 +249,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="Calendar"
-        component={CalendarScreen}
+        component={CalendarStack}
         options={{
           tabBarLabel: t.tabs.calendar,
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="📅" focused={focused} />,
@@ -90,7 +258,7 @@ export default function MainTabs() {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={ProfileStack}
         options={{
           tabBarLabel: t.tabs.profile,
           tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="👤" focused={focused} />,
@@ -110,5 +278,15 @@ const styles = StyleSheet.create({
   },
   tabIconFocused: {
     opacity: 1,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.light,
+  },
+  notFound: {
+    color: colors.mid,
+    fontSize: fonts.sizes.md,
   },
 });

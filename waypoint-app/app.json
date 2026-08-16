@@ -47,7 +47,10 @@
     "plugins": [
       "expo-apple-authentication",
       "expo-secure-store",
-      "expo-asset"
+      "expo-asset",
+      "expo-notifications",
+      "expo-document-picker",
+      "@react-native-google-signin/google-signin"
     ],
     "web": {
       "favicon": "./assets/favicon.png",
@@ -55,14 +58,6 @@
       "output": "single"
     },
     "scheme": "waypoint",
-    "extra": {
-      "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
-      }
-    },
-    "updates": {
-      "url": "https://u.expo.dev/YOUR_EAS_PROJECT_ID"
-    },
     "locales": {
       "en": "./assets/locales/en.json",
       "es": "./assets/locales/es.json",

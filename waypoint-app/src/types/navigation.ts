@@ -1,25 +1,56 @@
 // Navigation type definitions
+import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { ForumThread, IEPAnalysisResult } from '@/types/database';
+
 export type RootStackParamList = {
   Welcome: undefined;
-  SignIn: undefined;
-  SignUp: undefined;
   Onboarding: undefined;
-  Main: undefined;
-};
-
-export type OnboardingStackParamList = {
-  OnboardWelcome: undefined;
-  AddChild: undefined;
-  Diagnosis: undefined;
-  StateAndRC: undefined;
-  Insurance: undefined;
-  Complete: undefined;
+  Main: NavigatorScreenParams<MainTabParamList> | undefined;
+  Terms: undefined;
+  Privacy: undefined;
 };
 
 export type MainTabParamList = {
-  Home: undefined;
-  Navigator: undefined;
-  Tracker: undefined;
-  Calendar: undefined;
-  Profile: undefined;
+  Home: NavigatorScreenParams<HomeStackParamList> | undefined;
+  Navigator: NavigatorScreenParams<NavigatorStackParamList> | undefined;
+  Tracker: NavigatorScreenParams<TrackerStackParamList> | undefined;
+  Calendar: NavigatorScreenParams<CalendarStackParamList> | undefined;
+  Profile: NavigatorScreenParams<ProfileStackParamList> | undefined;
+};
+
+export type HomeStackParamList = {
+  HomeMain: undefined;
+  Insights: undefined;
+  Documents: undefined;
+  DocumentAnalysis: { analysis: IEPAnalysisResult };
+  Providers: undefined;
+  Services: undefined;
+  HealthRecords: undefined;
+  FamilySharing: undefined;
+  ProviderPortal: undefined;
+  // Community — registered only when FLAGS.community is true
+  Forum: undefined;
+  Thread: { thread: ForumThread };
+  Messages: undefined;
+};
+
+export type NavigatorStackParamList = {
+  NavigatorMain: undefined;
+  Resources: undefined;
+  Blog: undefined;
+};
+
+export type TrackerStackParamList = {
+  TrackerList: undefined;
+  ActionDetail: { actionId: string };
+};
+
+export type CalendarStackParamList = {
+  CalendarMain: undefined;
+  Expenses: undefined;
+  TaxReport: undefined;
+};
+
+export type ProfileStackParamList = {
+  ProfileMain: undefined;
 };

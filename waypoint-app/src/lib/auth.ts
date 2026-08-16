@@ -76,7 +76,7 @@ export async function signInWithGoogle(): Promise<{ success: boolean; error?: st
 
     GoogleSignin.configure({
       scopes: GOOGLE_SCOPES,
-      // TODO: Replace with actual client IDs from Google Cloud Console
+      // Client IDs come from env (.env.example documents the Cloud Console setup)
       webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
       iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '',
       offlineAccess: true, // Request refresh token for Calendar/Gmail

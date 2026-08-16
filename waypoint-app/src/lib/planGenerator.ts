@@ -16,6 +16,7 @@
  * - smsReminder                          → follow_up_note
  */
 
+import { supabase } from '@/lib/supabase';
 import type { ActionCategory, ActionPriority, ActionStep } from '@/types/database';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -149,6 +150,57 @@ const DX_NAMES: Record<string, string> = {
   sensory: 'sensory processing disorder',
   genetic: 'genetic condition',
 };
+
+// ─── Reseed after profile changes ────────────────────────────────────────────
+
+/**
+ * Regenerate the system starter plan after intake answers change (RC status,
+ * IEP status, diagnoses, insurance) — mirrors the GAS MVP, which rebuilt the
+ * plan on every profile save. Untouched system actions (still not_started)
+ * are replaced by the fresh plan; anything the family has started, completed,
+ * or dismissed is preserved, and fresh duplicates of preserved titles are
+ * skipped.
+ *
+ * Returns the number of actions inserted, or -1 on failure (non-fatal).
+ */
+export async function reseedStarterPlan(
+  familyId: string,
+  childId: string,
+  intake: PlanIntake
+): Promise<number> {
+  try {
+    const fresh = generateStarterPlan(intake);
+
+    const { data: existing, error: fetchError } = await supabase
+      .from('actions')
+      .select('id, title, status')
+      .eq('family_id', familyId)
+      .eq('source', 'system');
+    if (fetchError) throw fetchError;
+
+    const rows = existing ?? [];
+    const keepTitles = new Set(rows.filter(a => a.status !== 'not_started').map(a => a.title));
+    const removeIds = rows.filter(a => a.status === 'not_started').map(a => a.id);
+
+    if (removeIds.length > 0) {
+      const { error: deleteError } = await supabase.from('actions').delete().in('id', removeIds);
+      if (deleteError) throw deleteError;
+    }
+
+    const inserts = fresh
+      .filter(a => !keepTitles.has(a.title))
+      .map(a => ({ ...a, family_id: familyId, child_id: childId, source: 'system' as const }));
+
+    if (inserts.length > 0) {
+      const { error: insertError } = await supabase.from('actions').insert(inserts);
+      if (insertError) throw insertError;
+    }
+    return inserts.length;
+  } catch (err) {
+    console.warn('Starter plan reseed failed:', err);
+    return -1;
+  }
+}
 
 // ─── Generator ───────────────────────────────────────────────────────────────
 

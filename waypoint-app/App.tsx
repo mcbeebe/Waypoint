@@ -19,6 +19,8 @@ import { supabase } from './src/lib/supabase';
 import { initSentry, setSentryUser, clearSentryUser } from './src/lib/sentry';
 import WelcomeScreen from './src/screens/auth/WelcomeScreen';
 import OnboardingFlow from './src/screens/onboarding/OnboardingFlow';
+import TermsOfService from './src/screens/legal/TermsOfService';
+import PrivacyPolicy from './src/screens/legal/PrivacyPolicy';
 import MainTabs from './src/navigation/MainTabs';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import NetworkBanner from './src/components/NetworkBanner';
@@ -122,6 +124,17 @@ export default function App() {
                     // Authenticated + onboarded → Main app
                     <Stack.Screen name="Main" component={MainTabs} />
                   )}
+                  {/* Legal pages — reachable signed-in or signed-out */}
+                  <Stack.Screen
+                    name="Terms"
+                    component={TermsOfService}
+                    options={{ headerShown: true, title: 'Terms of Service', headerTintColor: '#0891B2' }}
+                  />
+                  <Stack.Screen
+                    name="Privacy"
+                    component={PrivacyPolicy}
+                    options={{ headerShown: true, title: 'Privacy Policy', headerTintColor: '#0891B2' }}
+                  />
                 </Stack.Navigator>
               </NavigationContainer>
               <StatusBar style="dark" />

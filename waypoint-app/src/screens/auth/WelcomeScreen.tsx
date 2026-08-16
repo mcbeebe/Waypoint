@@ -14,6 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import Button from '@/components/Button';
 import { signInWithApple, signInWithGoogle, signInWithEmail, signUpWithEmail } from '@/lib/auth';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -25,6 +26,7 @@ const GOOGLE_SIGNIN_ENABLED = !!(
 );
 
 export default function WelcomeScreen() {
+  const navigation = useNavigation();
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
@@ -164,7 +166,22 @@ export default function WelcomeScreen() {
           )}
 
           <Text style={styles.terms}>
-            By continuing, you agree to our Terms of Service and Privacy Policy
+            By continuing, you agree to our{' '}
+            <Text
+              style={styles.termsLink}
+              onPress={() => (navigation as any).navigate('Terms')}
+              accessibilityRole="link"
+            >
+              Terms of Service
+            </Text>
+            {' '}and{' '}
+            <Text
+              style={styles.termsLink}
+              onPress={() => (navigation as any).navigate('Privacy')}
+              accessibilityRole="link"
+            >
+              Privacy Policy
+            </Text>
           </Text>
         </View>
       </KeyboardAvoidingView>
@@ -226,5 +243,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 14,
+  },
+  termsLink: {
+    color: colors.teal,
+    textDecorationLine: 'underline',
   },
 });
