@@ -48,6 +48,20 @@ Auth (Apple/email), 6-step onboarding, seeded starter action plan (PR #10, inclu
 
 ---
 
+## Phase 0.5 — UX Foundation `(S · days)` *(added Aug 16 — pulled forward from the UX plan)*
+
+**Goal:** the design foundation every later screen composes from, built before Phase 1 adds five new screens. Sweep-style UX work (i18n, audits, consent screens, persona validation) stays in its original phases.
+
+| # | Workstream | Type | Detail |
+|---|-----------|------|--------|
+| 0.5a | Component kit + tokens + icons | NEW | `src/components/ui/` (Card, SectionTitle, Chip, Skeleton), semantic state colors in `theme.ts`, Ionicons replacing emoji in the tab bar and Home tiles (UX 1). |
+| 0.5b | Web URLs per screen | NEW | React Navigation linking config — browser back/forward and shareable/bookmarkable URLs on the PWA; `waypoint://` deep links on native (UX 2). |
+| 0.5c | Four-states + text scale | WIRE | Shared `EmptyState`/`LoadingScreen` deduped (local copies removed), skeleton loading on Tracker, empty states get next-step CTAs; `TextScaleProvider` (Aa control, 100–150%, persisted) adopted on reading-heavy screens (UX 3/UX 5). |
+
+**Gate 0.5:** New screens can be built entirely from kit components · every screen has a URL · Tracker shows skeletons/empty-CTA/error states · text size persists across sessions.
+
+---
+
 ## Phase 1 — California Navigation Core `(M · ~1–2 wks)`
 
 **Goal:** the product's moat — the California-specific knowledge layer no competitor has. Mostly data transcription from GAS.

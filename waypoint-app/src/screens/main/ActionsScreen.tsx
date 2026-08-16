@@ -23,6 +23,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
+import EmptyState from '@/components/EmptyState';
+import { SkeletonCard } from '@/components/ui';
+import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -179,13 +182,21 @@ export default function ActionsScreen() {
           <RefreshControl refreshing={loading} onRefresh={refetch} tintColor={colors.teal} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>📋</Text>
-            <Text style={styles.emptyTitle}>No actions yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Ask the AI Navigator a question — it will suggest concrete next steps you can save here.
-            </Text>
-          </View>
+          loading ? (
+            <View>
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </View>
+          ) : (
+            <EmptyState
+              emoji="📋"
+              title="No actions yet"
+              subtitle="Ask the AI Navigator a question — it will suggest concrete next steps you can save here."
+              actionLabel="Ask AI Navigator"
+              onAction={() => (navigation as any).navigate('Navigator')}
+            />
+          )
         }
         showsVerticalScrollIndicator={false}
       />
@@ -210,6 +221,7 @@ function ActionCard({
   onStatusPress: () => void;
   onOpenDetail: () => void;
 }) {
+  const { scale } = useTextScale();
   const statusConfig = STATUS_CONFIG[action.status];
   const priorityConfig = PRIORITY_CONFIG[action.priority];
   const categoryConfig = CATEGORY_CONFIG[action.category];
@@ -246,6 +258,7 @@ function ActionCard({
               styles.cardTitle,
               action.status === 'completed' && styles.cardTitleDone,
               action.status === 'dismissed' && styles.cardTitleDismissed,
+              { fontSize: Math.round(15 * scale), lineHeight: Math.round(20 * scale) },
             ]}
             numberOfLines={2}
           >

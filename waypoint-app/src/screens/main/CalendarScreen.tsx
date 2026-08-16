@@ -28,6 +28,7 @@ import { useFamily } from '@/hooks/useFamily';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useCalendarSync } from '@/hooks/useCalendarSync';
+import EmptyState from '@/components/EmptyState';
 import type {
   Appointment,
   AppointmentType,
@@ -553,18 +554,6 @@ function AddModal({ visible, onClose, onAddAppointment, onAddDeadline }: AddModa
         </View>
       </View>
     </Modal>
-  );
-}
-
-// ─── Empty State ────────────────────────────────────────────────────────────
-
-function EmptyState({ emoji, title, subtitle }: { emoji: string; title: string; subtitle: string }) {
-  return (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyEmoji}>{emoji}</Text>
-      <Text style={styles.emptyTitle}>{title}</Text>
-      <Text style={styles.emptySubtitle}>{subtitle}</Text>
-    </View>
   );
 }
 

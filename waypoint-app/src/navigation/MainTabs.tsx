@@ -10,6 +10,7 @@
 
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
@@ -185,13 +186,13 @@ function ProfileStack() {
   );
 }
 
-// ─── Tab Icons (simple text-based until we add an icon library) ─────────────
+// ─── Tab Icons (Ionicons — UX kit, roadmap 0.5) ─────────────────────────────
 
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
-  return (
-    <Text style={[styles.tabIcon, focused && styles.tabIconFocused]}>
-      {emoji}
-    </Text>
+type IoniconName = keyof typeof Ionicons.glyphMap;
+
+function tabIcon(outline: IoniconName, filled: IoniconName) {
+  return ({ focused, color }: { focused: boolean; color: string }) => (
+    <Ionicons name={focused ? filled : outline} size={22} color={color} />
   );
 }
 
@@ -223,7 +224,7 @@ export default function MainTabs() {
         component={HomeStack}
         options={{
           tabBarLabel: t.tabs.home,
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="🏠" focused={focused} />,
+          tabBarIcon: tabIcon('home-outline', 'home'),
           tabBarAccessibilityLabel: t.tabs.home,
         }}
       />
@@ -232,9 +233,7 @@ export default function MainTabs() {
         component={NavigatorStack}
         options={{
           tabBarLabel: t.tabs.askAi,
-          tabBarIcon: ({ focused }: { focused: boolean }) => (
-            <TabIcon emoji="🧭" focused={focused} />
-          ),
+          tabBarIcon: tabIcon('compass-outline', 'compass'),
           tabBarAccessibilityLabel: t.tabs.askAi,
         }}
       />
@@ -243,7 +242,7 @@ export default function MainTabs() {
         component={TrackerStack}
         options={{
           tabBarLabel: t.tabs.actions,
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="📋" focused={focused} />,
+          tabBarIcon: tabIcon('checkbox-outline', 'checkbox'),
           tabBarAccessibilityLabel: t.tabs.actions,
         }}
       />
@@ -252,7 +251,7 @@ export default function MainTabs() {
         component={CalendarStack}
         options={{
           tabBarLabel: t.tabs.calendar,
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="📅" focused={focused} />,
+          tabBarIcon: tabIcon('calendar-outline', 'calendar'),
           tabBarAccessibilityLabel: t.tabs.calendar,
         }}
       />
@@ -261,7 +260,7 @@ export default function MainTabs() {
         component={ProfileStack}
         options={{
           tabBarLabel: t.tabs.profile,
-          tabBarIcon: ({ focused }: { focused: boolean }) => <TabIcon emoji="👤" focused={focused} />,
+          tabBarIcon: tabIcon('person-outline', 'person'),
           tabBarAccessibilityLabel: t.tabs.profile,
         }}
       />
@@ -272,13 +271,6 @@ export default function MainTabs() {
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  tabIcon: {
-    fontSize: 22,
-    opacity: 0.5,
-  },
-  tabIconFocused: {
-    opacity: 1,
-  },
   centered: {
     flex: 1,
     alignItems: 'center',

@@ -14,6 +14,22 @@ export const colors = {
   border: '#E2E8F0',
 } as const;
 
+/**
+ * Semantic state colors (UX kit) — separate from the brand accent so
+ * good/warning/critical states read consistently across every screen.
+ * Each state has a foreground and a tinted background.
+ */
+export const semantic = {
+  success: '#0E9F6E',
+  successBg: '#E6F7F1',
+  warning: '#B45309',
+  warningBg: '#FDF3E3',
+  danger: '#DC2626',
+  dangerBg: '#FEE2E2',
+  info: '#2563EB',
+  infoBg: '#EFF6FF',
+} as const;
+
 export const fonts = {
   sizes: {
     xs: 10,
