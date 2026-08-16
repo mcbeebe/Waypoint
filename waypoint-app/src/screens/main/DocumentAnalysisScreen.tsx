@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import { useDocumentAnalysis, type MeetingPrepContext, type IEPComparisonResult } from '@/hooks/useDocumentAnalysis';
 import { useToast } from '@/components/Toast';
+import { showAlert } from '@/lib/dialogs';
 import type { IEPAnalysisResult, IEPGoal, GoalStrength, WeaknessSeverity } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -69,7 +70,7 @@ export default function DocumentAnalysisScreen({
 
   const handleCompare = useCallback(() => {
     if (!comparisonAnalysis) {
-      Alert.alert('Select Two IEPs', 'Upload and analyze a second IEP to compare.');
+      showAlert('Select Two IEPs', 'Upload and analyze a second IEP to compare.');
       return;
     }
     const result = compareIEPs(comparisonAnalysis, analysis);
@@ -79,7 +80,7 @@ export default function DocumentAnalysisScreen({
 
   const handleGeneratePrep = useCallback(async () => {
     if (!meetingPrepContext) {
-      Alert.alert('Missing Context', 'Family profile information is needed for meeting prep.');
+      showAlert('Missing Context', 'Family profile information is needed for meeting prep.');
       return;
     }
     const prep = await generateMeetingPrep(analysis, meetingPrepContext);

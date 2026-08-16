@@ -23,6 +23,7 @@ import { reseedStarterPlan } from '@/lib/planGenerator';
 import { lookupRC } from '@/data/regionalCenters';
 import { signOut } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { showAlert, showConfirm } from '@/lib/dialogs';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
 import type { Child } from '@/types/database';
@@ -193,76 +194,64 @@ export default function ProfileScreen() {
 
   const handleToggleAIConsent = useCallback(async () => {
     if (family?.ai_consent_at) {
-      Alert.alert(
+      const ok = await showConfirm(
         'Turn off AI features?',
         'The AI Navigator and document analysis will stop working until you turn this back on. Everything you have saved stays yours.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Turn off',
-            style: 'destructive',
-            onPress: () => updateFamily({ ai_consent_at: null }),
-          },
-        ]
+        'Turn off',
+        true
       );
+      if (!ok) return;
+      const saved = await updateFamily({ ai_consent_at: null });
+      if (!saved) showAlert('Could not save', 'Please try again in a moment.');
     } else {
-      await updateFamily({ ai_consent_at: new Date().toISOString() });
-      Alert.alert('AI features enabled', 'You can turn this off here any time.');
+      const saved = await updateFamily({ ai_consent_at: new Date().toISOString() });
+      if (saved) {
+        showAlert('AI features enabled', 'You can turn this off here any time.');
+      } else {
+        showAlert(
+          'Could not enable AI features',
+          'The server rejected the change — if this keeps happening, the latest database migration may not be applied yet.'
+        );
+      }
     }
   }, [family?.ai_consent_at, updateFamily]);
 
-  const handleDeleteAccount = useCallback(() => {
-    Alert.alert(
+  const handleDeleteAccount = useCallback(async () => {
+    const first = await showConfirm(
       'Delete your account?',
       'This permanently deletes your account and ALL data — children, action plans, documents, chats. This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete everything',
-          style: 'destructive',
-          onPress: () => {
-            Alert.alert('Are you absolutely sure?', 'There is no way to recover your data after this.', [
-              { text: 'Keep my account', style: 'cancel' },
-              {
-                text: 'Yes, delete permanently',
-                style: 'destructive',
-                onPress: async () => {
-                  try {
-                    const { data } = await supabase.auth.getSession();
-                    const token = data.session?.access_token ?? '';
-                    const res = await fetch(
-                      `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`,
-                      { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
-                    );
-                    if (!res.ok) {
-                      const err = await res.json().catch(() => null);
-                      Alert.alert('Deletion failed', err?.error ?? 'Please try again or email support.');
-                      return;
-                    }
-                    await signOut();
-                  } catch {
-                    Alert.alert('Deletion failed', 'Please check your connection and try again.');
-                  }
-                },
-              },
-            ]);
-          },
-        },
-      ]
+      'Delete everything',
+      true
     );
+    if (!first) return;
+    const second = await showConfirm(
+      'Are you absolutely sure?',
+      'There is no way to recover your data after this.',
+      'Yes, delete permanently',
+      true
+    );
+    if (!second) return;
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token ?? '';
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`,
+        { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        showAlert('Deletion failed', err?.error ?? 'Please try again or email support.');
+        return;
+      }
+      await signOut();
+    } catch {
+      showAlert('Deletion failed', 'Please check your connection and try again.');
+    }
   }, []);
 
   const handleSignOut = useCallback(async () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          await signOut();
-        },
-      },
-    ]);
+    const ok = await showConfirm('Sign Out', 'Are you sure you want to sign out?', 'Sign Out');
+    if (ok) await signOut();
   }, []);
 
   if (familyLoading) {
