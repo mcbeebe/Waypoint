@@ -36,6 +36,9 @@ import ResourcesScreen from '@/screens/main/ResourcesScreen';
 import BlogScreen from '@/screens/main/BlogScreen';
 import ExpensesScreen from '@/screens/main/ExpensesScreen';
 import TaxReportScreen from '@/screens/main/TaxReportScreen';
+import AgenciesScreen from '@/screens/main/AgenciesScreen';
+import ReimbursablesScreen from '@/screens/main/ReimbursablesScreen';
+import JourneyScreen from '@/screens/main/JourneyScreen';
 
 import { useFamily } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
@@ -130,6 +133,9 @@ function HomeStack() {
   return (
     <HomeStackNav.Navigator screenOptions={detailHeaderOptions}>
       <HomeStackNav.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
+      <HomeStackNav.Screen name="Journey" component={JourneyScreen} options={{ title: 'Journey Map' }} />
+      <HomeStackNav.Screen name="Agencies" component={AgenciesScreen} options={{ title: 'Agency Directory' }} />
+      <HomeStackNav.Screen name="Reimbursables" component={ReimbursablesScreen} options={{ title: 'RC Funding Guide' }} />
       <HomeStackNav.Screen name="Insights" component={InsightsScreen} options={{ title: 'Insights' }} />
       <HomeStackNav.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Documents' }} />
       <HomeStackNav.Screen name="DocumentAnalysis" component={DocumentAnalysisRoute} options={{ title: 'IEP Review' }} />

@@ -51,6 +51,9 @@ const linking: LinkingOptions<RootStackParamList> = {
           Home: {
             screens: {
               HomeMain: '',
+              Journey: 'journey',
+              Agencies: 'agencies',
+              Reimbursables: 'rc-funding',
               Insights: 'insights',
               Documents: 'documents',
               Providers: 'providers',

@@ -24,6 +24,7 @@ import type {
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { useTextScale } from '@/lib/textSize';
 import { parseActionDescription, extractLinks } from '@/lib/actionContent';
+import LearnMoreSheet, { LEARN_MORE_BY_ACTION_TITLE } from '@/components/LearnMoreSheet';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -66,6 +67,8 @@ export default function ActionDetailScreen({
 }: ActionDetailScreenProps) {
   const [dismissReason, setDismissReason] = useState('');
   const [showDismissInput, setShowDismissInput] = useState(false);
+  const [learnKey, setLearnKey] = useState<string | null>(null);
+  const learnMoreKey = LEARN_MORE_BY_ACTION_TITLE[action.title];
   const { scale, cycleScale } = useTextScale();
   /** Scaled font size — applied to all reading-heavy text */
   const sz = (n: number) => Math.round(n * scale);
@@ -227,6 +230,20 @@ export default function ActionDetailScreen({
           </View>
         )}
 
+        {/* Learn more explainer */}
+        {learnMoreKey && (
+          <TouchableOpacity
+            style={styles.learnMoreButton}
+            onPress={() => setLearnKey(learnMoreKey)}
+            accessibilityRole="button"
+            accessibilityLabel={`Learn more about ${learnMoreKey}`}
+          >
+            <Text style={[styles.learnMoreText, { fontSize: sz(14) }]}>
+              📖 What is {learnMoreKey}? Learn more
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Status Selector */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Status</Text>
@@ -347,6 +364,8 @@ export default function ActionDetailScreen({
           </Text>
         </View>
       </ScrollView>
+
+      <LearnMoreSheet learnKey={learnKey} onClose={() => setLearnKey(null)} />
     </SafeAreaView>
   );
 }
@@ -521,6 +540,21 @@ const styles = StyleSheet.create({
   },
   cardBody: {
     color: colors.dark,
+  },
+  learnMoreButton: {
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.teal,
+    borderRadius: radii.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  learnMoreText: {
+    color: colors.teal,
+    fontWeight: fonts.weights.bold as '700',
   },
   backButton: {
     paddingVertical: 4,

@@ -24,9 +24,14 @@ import StepIndicator from '@/components/StepIndicator';
 import DiagnosisSelector from '@/components/DiagnosisSelector';
 import SelectGrid from '@/components/SelectGrid';
 import Button from '@/components/Button';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { generateStarterPlan } from '@/lib/planGenerator';
+import { lookupRC, rcByCounty, ALL_COUNTIES } from '@/data/regionalCenters';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
+
+/** Set at onboarding completion; Home reads it once to reveal the Journey Map */
+export const SHOW_JOURNEY_FLAG = '@waypoint_show_journey';
 
 // ─── Step option data (ported from GAS MVP ONBOARD_STEPS) ────────────────────
 
@@ -88,6 +93,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios');
+  const [showCountyPicker, setShowCountyPicker] = useState(false);
+  const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
 
   const [data, setData] = useState<OnboardingData>({
     parentFirstName: '',
@@ -162,6 +169,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
       const age = getAge();
 
+      // Resolve the family's Regional Center from ZIP (or county fallback)
+      const rc = data.zipCode.trim()
+        ? lookupRC(data.zipCode.trim())
+        : selectedCounty
+          ? rcByCounty(selectedCounty)
+          : null;
+
       // 1. Create or update family record
       const { data: family, error: familyError } = await supabase
         .from('families')
@@ -171,8 +185,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           email: data.email.trim() || user.email || '',
           zip_code: data.zipCode.trim() || null,
           state: 'CA',
-          county: null,
-          regional_center: null,
+          county: selectedCounty,
+          regional_center: rc?.name ?? null,
           insurance_carrier: data.insurance,
           onboarding_completed: true,
         }, { onConflict: 'user_id' })
@@ -238,6 +252,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         console.warn('Starter plan generation failed:', planErr);
       }
 
+      // The Journey Map is the post-onboarding reveal — Home reads this once
+      try { await AsyncStorage.setItem(SHOW_JOURNEY_FLAG, '1'); } catch {}
+
       onComplete();
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -302,6 +319,17 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               keyboardType="number-pad"
               maxLength={5}
             />
+            <TouchableOpacity
+              onPress={() => setShowCountyPicker(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Find your Regional Center by county instead"
+            >
+              <Text style={styles.countyLink}>
+                {selectedCounty
+                  ? `County: ${selectedCounty} ✓ (tap to change)`
+                  : "Don't know your ZIP? Find by county →"}
+              </Text>
+            </TouchableOpacity>
 
             <Text style={styles.inputLabel}>Email (optional)</Text>
             <TextInput
@@ -474,6 +502,40 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           {renderStep()}
         </ScrollView>
 
+        {/* County fallback picker — resolves the Regional Center without a ZIP */}
+        {showCountyPicker && (
+          <View style={styles.countyOverlay}>
+            <View style={styles.countySheet}>
+              <Text style={styles.countyTitle}>Choose your county</Text>
+              <ScrollView style={styles.countyList}>
+                {ALL_COUNTIES.map(({ county }) => (
+                  <TouchableOpacity
+                    key={county}
+                    style={styles.countyRow}
+                    onPress={() => {
+                      setSelectedCounty(county);
+                      setShowCountyPicker(false);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={county}
+                  >
+                    <Text style={styles.countyName}>{county}</Text>
+                    <Text style={styles.countyRc}>{rcByCounty(county)?.name ?? ''}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+              <TouchableOpacity
+                style={styles.countyCancel}
+                onPress={() => setShowCountyPicker(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel"
+              >
+                <Text style={styles.countyCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         <View style={styles.footer}>
           {step > 0 && (
             <TouchableOpacity
@@ -545,6 +607,63 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.base,
     fontSize: fonts.sizes.md,
     color: colors.dark,
+  },
+  countyLink: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    marginTop: spacing.sm,
+    textDecorationLine: 'underline',
+  },
+  countyOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(15,23,42,0.5)',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  countySheet: {
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
+    maxHeight: '80%',
+  },
+  countyTitle: {
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.bold as '700',
+    color: colors.navy,
+    marginBottom: spacing.md,
+  },
+  countyList: {
+    flexGrow: 0,
+  },
+  countyRow: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  countyName: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold as '600',
+    color: colors.dark,
+  },
+  countyRc: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+    marginTop: 1,
+  },
+  countyCancel: {
+    marginTop: spacing.md,
+    alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  countyCancelText: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold as '600',
+    color: colors.mid,
   },
   dateButton: {
     backgroundColor: colors.light,

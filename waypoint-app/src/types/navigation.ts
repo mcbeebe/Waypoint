@@ -20,6 +20,9 @@ export type MainTabParamList = {
 
 export type HomeStackParamList = {
   HomeMain: undefined;
+  Journey: undefined;
+  Agencies: undefined;
+  Reimbursables: undefined;
   Insights: undefined;
   Documents: undefined;
   DocumentAnalysis: { analysis: IEPAnalysisResult };

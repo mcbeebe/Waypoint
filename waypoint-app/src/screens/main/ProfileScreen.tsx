@@ -19,6 +19,7 @@ import DiagnosisSelector from '@/components/DiagnosisSelector';
 import SelectGrid from '@/components/SelectGrid';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { reseedStarterPlan } from '@/lib/planGenerator';
+import { lookupRC } from '@/data/regionalCenters';
 import { signOut } from '@/lib/auth';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
@@ -120,11 +121,14 @@ export default function ProfileScreen() {
           (family?.insurance_carrier || '') !== insurance ||
           diagnoses.map(d => d.name).sort().join(',') !== [...selectedDiagnoses].sort().join(','));
 
-      // Update family
+      // Update family — re-resolve the Regional Center from the (new) ZIP,
+      // mirroring the GAS MVP's re-lookup on every profile save
+      const rc = zipCode.trim() ? lookupRC(zipCode.trim()) : null;
       await updateFamily({
         parent_first_name: parentName.trim(),
         email: email.trim(),
         zip_code: zipCode.trim() || null,
+        regional_center: rc?.name ?? family?.regional_center ?? null,
         insurance_carrier: insurance,
       });
 
