@@ -14,8 +14,8 @@ export const RC_DATABASE: RegionalCenter[] = [
   { code: 'NBRC', name: 'North Bay Regional Center', phone: '(707) 256-1100', website: 'nbrc.net', counties: ['Napa', 'Solano', 'Sonoma'] },
   { code: 'RCRC', name: 'Redwood Coast Regional Center', phone: '(707) 445-0893', website: 'redwoodcoastrc.org', counties: ['Del Norte', 'Humboldt', 'Lake', 'Mendocino'] },
   { code: 'FNRC', name: 'Far Northern Regional Center', phone: '(530) 222-4791', website: 'farnorthernrc.org', counties: ['Butte', 'Glenn', 'Lassen', 'Modoc', 'Plumas', 'Shasta', 'Siskiyou', 'Tehama', 'Trinity'] },
-  { code: 'VMRC', name: 'Valley Mountain Regional Center', phone: '(209) 473-0951', website: 'vmrc.net', counties: ['San Joaquin', 'Stanislaus', 'Amador', 'Calaveras', 'Tuolumne', 'Mariposa'] },
-  { code: 'CVRC', name: 'Central Valley Regional Center', phone: '(559) 276-4300', website: 'cvrc.org', counties: ['Fresno', 'Kings', 'Madera', 'Merced', 'Tulare'] },
+  { code: 'VMRC', name: 'Valley Mountain Regional Center', phone: '(209) 473-0951', website: 'vmrc.net', counties: ['San Joaquin', 'Stanislaus', 'Amador', 'Calaveras', 'Tuolumne'] },
+  { code: 'CVRC', name: 'Central Valley Regional Center', phone: '(559) 276-4300', website: 'cvrc.org', counties: ['Fresno', 'Kings', 'Madera', 'Mariposa', 'Merced', 'Tulare'] },
   { code: 'TCRC', name: 'Tri-Counties Regional Center', phone: '(805) 962-7881', website: 'tri-counties.org', counties: ['San Luis Obispo', 'Santa Barbara', 'Ventura'] },
   { code: 'KRC', name: 'Kern Regional Center', phone: '(661) 327-8531', website: 'kernrc.org', counties: ['Kern', 'Inyo', 'Mono'] },
   { code: 'SCLARC', name: 'South Central LA Regional Center', phone: '(213) 744-7000', website: 'sclarc.org', counties: ['Los Angeles (south central)'] },
@@ -32,28 +32,15 @@ export const RC_DATABASE: RegionalCenter[] = [
 ];
 
 /** 3-digit ZIP prefix → Regional Center code. */
+// NOTE: Los Angeles County prefixes ('900'-'918') and the Kern/LA-mixed '935'
+// are deliberately ABSENT: LA's 7 Regional Center catchments follow health
+// districts, not ZIP prefixes, so a prefix guess misroutes families. Those
+// ZIPs return null from lookupRC and the UI falls back to the county/area
+// picker. High-confidence city-level exceptions live in ZIP_5_OVERRIDES.
 export const ZIP_TO_RC: Record<string, string> = {
-  '900': 'SCLARC',
-  '901': 'SCLARC',
-  '902': 'HRC',
-  '903': 'SGPRC',
-  '904': 'NLACRC',
-  '905': 'WRC',
-  '906': 'WRC',
-  '907': 'NLACRC',
-  '908': 'SGPRC',
-  '910': 'ELARC',
-  '911': 'ELARC',
-  '912': 'FRC',
-  '913': 'NLACRC',
-  '914': 'NLACRC',
-  '915': 'NLACRC',
-  '916': 'NLACRC',
-  '917': 'ELARC',
-  '918': 'FRC',
   '919': 'SDRC',
   '920': 'SDRC',
-  '921': 'IRC',
+  '921': 'SDRC',
   '922': 'IRC',
   '923': 'IRC',
   '924': 'IRC',
@@ -66,7 +53,6 @@ export const ZIP_TO_RC: Record<string, string> = {
   '932': 'KRC',
   '933': 'KRC',
   '934': 'TCRC',
-  '935': 'TCRC',
   '936': 'CVRC',
   '937': 'CVRC',
   '938': 'SARC',
@@ -113,6 +99,14 @@ export const ZIP_5_OVERRIDES: Record<string, string> = {
   '95024': 'SARC',
   '95361': 'VMRC',
   '95363': 'VMRC',
+  // Antelope Valley (LA County high desert) — North LA County RC
+  '93534': 'NLACRC', '93535': 'NLACRC', '93536': 'NLACRC',
+  '93543': 'NLACRC', '93544': 'NLACRC', '93550': 'NLACRC',
+  '93551': 'NLACRC', '93552': 'NLACRC', '93553': 'NLACRC', '93591': 'NLACRC',
+  // East Kern County — Kern RC (has a Ridgecrest office)
+  '93501': 'KRC', '93505': 'KRC', '93516': 'KRC', '93518': 'KRC',
+  '93519': 'KRC', '93531': 'KRC', '93555': 'KRC', '93556': 'KRC',
+  '93560': 'KRC', '93561': 'KRC',
 };
 
 /** Find a Regional Center by its code (e.g. 'RCEB'). */

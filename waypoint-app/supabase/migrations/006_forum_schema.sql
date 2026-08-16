@@ -2,7 +2,7 @@
 -- Categories, threads, posts, reactions, reports, and direct messages
 
 -- ─── Forum Categories ───────────────────────────────────────────────────────
-create table public.forum_categories (
+create table if not exists public.forum_categories (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   description text,
@@ -14,7 +14,7 @@ create table public.forum_categories (
 );
 
 -- ─── Forum Threads ──────────────────────────────────────────────────────────
-create table public.forum_threads (
+create table if not exists public.forum_threads (
   id uuid primary key default gen_random_uuid(),
   category_id uuid references public.forum_categories(id) on delete cascade not null,
   author_id uuid references auth.users(id) on delete cascade not null,
@@ -32,7 +32,7 @@ create table public.forum_threads (
 );
 
 -- ─── Forum Posts (replies) ──────────────────────────────────────────────────
-create table public.forum_posts (
+create table if not exists public.forum_posts (
   id uuid primary key default gen_random_uuid(),
   thread_id uuid references public.forum_threads(id) on delete cascade not null,
   parent_post_id uuid references public.forum_posts(id) on delete cascade,
@@ -46,7 +46,7 @@ create table public.forum_posts (
 );
 
 -- ─── Reactions ──────────────────────────────────────────────────────────────
-create table public.forum_reactions (
+create table if not exists public.forum_reactions (
   id uuid primary key default gen_random_uuid(),
   post_id uuid references public.forum_posts(id) on delete cascade not null,
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -56,7 +56,7 @@ create table public.forum_reactions (
 );
 
 -- ─── Reports ────────────────────────────────────────────────────────────────
-create table public.forum_reports (
+create table if not exists public.forum_reports (
   id uuid primary key default gen_random_uuid(),
   reporter_id uuid references auth.users(id) on delete cascade not null,
   thread_id uuid references public.forum_threads(id) on delete cascade,
@@ -69,7 +69,7 @@ create table public.forum_reports (
 );
 
 -- ─── Direct Messages ────────────────────────────────────────────────────────
-create table public.direct_messages (
+create table if not exists public.direct_messages (
   id uuid primary key default gen_random_uuid(),
   sender_id uuid references auth.users(id) on delete cascade not null,
   recipient_id uuid references auth.users(id) on delete cascade not null,
@@ -79,7 +79,7 @@ create table public.direct_messages (
 );
 
 -- ─── User Blocks ────────────────────────────────────────────────────────────
-create table public.user_blocks (
+create table if not exists public.user_blocks (
   id uuid primary key default gen_random_uuid(),
   blocker_id uuid references auth.users(id) on delete cascade not null,
   blocked_id uuid references auth.users(id) on delete cascade not null,
@@ -88,15 +88,15 @@ create table public.user_blocks (
 );
 
 -- ─── Indexes ────────────────────────────────────────────────────────────────
-create index idx_threads_category on public.forum_threads(category_id);
-create index idx_threads_author on public.forum_threads(author_id);
-create index idx_threads_last_post on public.forum_threads(last_post_at desc);
-create index idx_posts_thread on public.forum_posts(thread_id);
-create index idx_posts_author on public.forum_posts(author_id);
-create index idx_reactions_post on public.forum_reactions(post_id);
-create index idx_reports_status on public.forum_reports(status) where status = 'pending';
-create index idx_dm_recipient on public.direct_messages(recipient_id, is_read);
-create index idx_dm_conversation on public.direct_messages(sender_id, recipient_id);
+create index if not exists idx_threads_category on public.forum_threads(category_id);
+create index if not exists idx_threads_author on public.forum_threads(author_id);
+create index if not exists idx_threads_last_post on public.forum_threads(last_post_at desc);
+create index if not exists idx_posts_thread on public.forum_posts(thread_id);
+create index if not exists idx_posts_author on public.forum_posts(author_id);
+create index if not exists idx_reactions_post on public.forum_reactions(post_id);
+create index if not exists idx_reports_status on public.forum_reports(status) where status = 'pending';
+create index if not exists idx_dm_recipient on public.direct_messages(recipient_id, is_read);
+create index if not exists idx_dm_conversation on public.direct_messages(sender_id, recipient_id);
 
 -- ─── RLS Policies ───────────────────────────────────────────────────────────
 alter table public.forum_categories enable row level security;
@@ -108,45 +108,63 @@ alter table public.direct_messages enable row level security;
 alter table public.user_blocks enable row level security;
 
 -- Categories: anyone can read
+drop policy if exists "Anyone can read categories" on forum_categories;
 create policy "Anyone can read categories" on forum_categories for select using (true);
 
 -- Threads: anyone can read non-hidden, authors can manage own
+drop policy if exists "Anyone can read visible threads" on forum_threads;
 create policy "Anyone can read visible threads" on forum_threads for select using (is_hidden = false);
+drop policy if exists "Auth users can create threads" on forum_threads;
 create policy "Auth users can create threads" on forum_threads for insert with check (auth.uid() = author_id);
+drop policy if exists "Authors can update own threads" on forum_threads;
 create policy "Authors can update own threads" on forum_threads for update using (auth.uid() = author_id);
 
 -- Posts: anyone can read non-hidden, authors can manage own
+drop policy if exists "Anyone can read visible posts" on forum_posts;
 create policy "Anyone can read visible posts" on forum_posts for select using (is_hidden = false);
+drop policy if exists "Auth users can create posts" on forum_posts;
 create policy "Auth users can create posts" on forum_posts for insert with check (auth.uid() = author_id);
+drop policy if exists "Authors can update own posts" on forum_posts;
 create policy "Authors can update own posts" on forum_posts for update using (auth.uid() = author_id);
 
 -- Reactions: users manage own
+drop policy if exists "Anyone can read reactions" on forum_reactions;
 create policy "Anyone can read reactions" on forum_reactions for select using (true);
+drop policy if exists "Users can add reactions" on forum_reactions;
 create policy "Users can add reactions" on forum_reactions for insert with check (auth.uid() = user_id);
+drop policy if exists "Users can remove own reactions" on forum_reactions;
 create policy "Users can remove own reactions" on forum_reactions for delete using (auth.uid() = user_id);
 
 -- Reports: users can create, only see own
+drop policy if exists "Users can report content" on forum_reports;
 create policy "Users can report content" on forum_reports for insert with check (auth.uid() = reporter_id);
+drop policy if exists "Users can see own reports" on forum_reports;
 create policy "Users can see own reports" on forum_reports for select using (auth.uid() = reporter_id);
 
 -- DMs: participants only
+drop policy if exists "Users can read own DMs" on direct_messages;
 create policy "Users can read own DMs" on direct_messages for select
   using (auth.uid() = sender_id or auth.uid() = recipient_id);
+drop policy if exists "Users can send DMs" on direct_messages;
 create policy "Users can send DMs" on direct_messages for insert
   with check (auth.uid() = sender_id);
+drop policy if exists "Recipients can mark read" on direct_messages;
 create policy "Recipients can mark read" on direct_messages for update
   using (auth.uid() = recipient_id);
 
 -- Blocks: users manage own
+drop policy if exists "Users can manage blocks" on user_blocks;
 create policy "Users can manage blocks" on user_blocks for all
   using (auth.uid() = blocker_id);
 
 -- ─── Triggers ───────────────────────────────────────────────────────────────
+drop trigger if exists set_forum_threads_updated_at on public.forum_threads;
 create trigger set_forum_threads_updated_at before update on public.forum_threads
-  for each row execute function public.set_updated_at();
+  for each row execute function public.handle_updated_at();
 
+drop trigger if exists set_forum_posts_updated_at on public.forum_posts;
 create trigger set_forum_posts_updated_at before update on public.forum_posts
-  for each row execute function public.set_updated_at();
+  for each row execute function public.handle_updated_at();
 
 -- ─── Seed default categories ────────────────────────────────────────────────
 insert into public.forum_categories (name, description, emoji, sort_order, is_diagnosis_specific) values
