@@ -1,0 +1,461 @@
+<title>Waypoint Implementation Plan</title>
+<style>
+  :root {
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --ink: #0F172A;
+    --ink-soft: #334155;
+    --muted: #5D6B80;
+    --border: #E2E8F0;
+    --teal: #0891B2;
+    --teal-soft: #E0F4F8;
+    --ok: #0E9F6E;
+    --ok-bg: #E6F7F1;
+    --warn: #B45309;
+    --warn-bg: #FDF3E3;
+    --new: #7C3AED;
+    --new-bg: #F1EBFD;
+    --code-bg: #EEF2F7;
+    --hero-ink: #F1F6FA;
+    --shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F172A;
+      --surface: #16213A;
+      --ink: #E8EDF4;
+      --ink-soft: #C4CEDC;
+      --muted: #8B98AC;
+      --border: #2A3A57;
+      --teal: #2FB6D4;
+      --teal-soft: #123A4A;
+      --ok: #34D399;
+      --ok-bg: #113429;
+      --warn: #FBBF24;
+      --warn-bg: #3A2E10;
+      --new: #A78BFA;
+      --new-bg: #2A2050;
+      --code-bg: #1E2B47;
+      --hero-ink: #F1F6FA;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F172A;
+    --surface: #16213A;
+    --ink: #E8EDF4;
+    --ink-soft: #C4CEDC;
+    --muted: #8B98AC;
+    --border: #2A3A57;
+    --teal: #2FB6D4;
+    --teal-soft: #123A4A;
+    --ok: #34D399;
+    --ok-bg: #113429;
+    --warn: #FBBF24;
+    --warn-bg: #3A2E10;
+    --new: #A78BFA;
+    --new-bg: #2A2050;
+    --code-bg: #1E2B47;
+    --hero-ink: #F1F6FA;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.6;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px 80px; }
+
+  .hero {
+    background: linear-gradient(135deg, #1B2A4A 0%, #0F2847 55%, #0E3A52 100%);
+    color: var(--hero-ink);
+    border-radius: 0 0 18px 18px;
+    padding: 44px 36px 36px;
+    margin: 0 -2px 34px;
+  }
+  .eyebrow {
+    font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #7DD3E8; font-weight: 600; margin-bottom: 10px;
+  }
+  h1 {
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    font-size: clamp(30px, 5vw, 42px);
+    line-height: 1.12; margin: 0 0 14px; font-weight: 700; text-wrap: balance;
+  }
+  .hero p { max-width: 64ch; margin: 0; color: #C6D4E2; font-size: 16px; }
+  .hero p strong { color: #FFFFFF; }
+  .hero .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .hero .meta span {
+    font-size: 12.5px; background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 999px; padding: 4px 13px; color: #C6D4E2;
+  }
+
+  h2 {
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    font-size: 25px; line-height: 1.2; margin: 50px 0 6px; text-wrap: balance;
+  }
+  .h2-sub { color: var(--muted); margin: 0 0 18px; max-width: 70ch; }
+  p { max-width: 72ch; }
+  code {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.86em; background: var(--code-bg); border-radius: 5px;
+    padding: 1px 5px; color: var(--ink-soft);
+  }
+
+  .chip {
+    display: inline-block; font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.05em; padding: 2px 8px; border-radius: 999px;
+    white-space: nowrap; vertical-align: middle; text-transform: uppercase;
+  }
+  .c-wire { background: var(--warn-bg); color: var(--warn); }
+  .c-port { background: var(--teal-soft); color: var(--teal); }
+  .c-new  { background: var(--new-bg);  color: var(--new); }
+  .c-done { background: var(--ok-bg);   color: var(--ok); }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px 22px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 13px 18px; margin: 22px 0 4px;
+    font-size: 13px; color: var(--muted); box-shadow: var(--shadow);
+  }
+  .legend span { display: flex; align-items: center; gap: 7px; }
+
+  /* Phase cards */
+  .phase {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; box-shadow: var(--shadow);
+    margin: 22px 0; overflow: hidden;
+  }
+  .phase-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px;
+    padding: 18px 22px 4px;
+  }
+  .phase-num {
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    font-size: 15px; font-weight: 700; color: var(--teal);
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .phase-head h3 {
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    font-size: 21px; margin: 0; font-weight: 700; flex: 1 1 auto;
+  }
+  .effort {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; border-radius: 5px; padding: 2.5px 8px;
+    background: var(--code-bg); color: var(--muted); white-space: nowrap;
+  }
+  .phase-goal { padding: 0 22px; margin: 4px 0 10px; color: var(--muted); font-size: 14px; max-width: none; }
+  .phase-goal strong { color: var(--ink-soft); }
+
+  .ws { border-top: 1px solid var(--border); padding: 13px 22px; }
+  .ws-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+  .ws-id {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px; font-weight: 700; color: var(--teal);
+  }
+  .ws-head b { font-size: 14.5px; }
+  .ws p { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-soft); max-width: none; }
+  .ws .prd { color: var(--muted); font-size: 12px; margin-left: auto; white-space: nowrap; }
+
+  .gate {
+    border-top: 1px solid var(--border);
+    background: var(--ok-bg);
+    padding: 11px 22px; font-size: 13.5px; color: var(--ok);
+  }
+  .gate b { letter-spacing: 0.05em; text-transform: uppercase; font-size: 11px; margin-right: 8px; }
+
+  /* Matrix table */
+  .tablewrap {
+    overflow-x: auto; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow); margin: 18px 0 8px;
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th {
+    text-align: left; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--muted); font-weight: 600;
+    padding: 12px 14px 8px; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.45; }
+  tr:last-child td { border-bottom: none; }
+  td.name { font-weight: 600; white-space: nowrap; }
+  td.ph { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  .callout {
+    border-left: 3px solid var(--teal);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left-width: 3px; border-left-color: var(--teal);
+    border-radius: 0 12px 12px 0;
+    padding: 15px 20px; margin: 22px 0; box-shadow: var(--shadow);
+  }
+  .callout p { margin: 0; max-width: none; font-size: 14px; }
+  .callout p + p { margin-top: 8px; }
+  .kicker {
+    display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--teal); margin-bottom: 4px;
+  }
+
+  ul.decisions { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  ul.decisions li {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 13px 18px; box-shadow: var(--shadow); font-size: 14px;
+  }
+  ul.decisions b { display: block; margin-bottom: 2px; }
+  ul.decisions span { color: var(--ink-soft); }
+
+  .foot {
+    margin-top: 54px; padding-top: 16px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 13px;
+  }
+  .foot p { margin: 4px 0; max-width: none; }
+</style>
+
+<div class="hero">
+  <div class="wrap" style="padding:0">
+    <div class="eyebrow">Waypoint · Roadmap · August 16, 2026 · Decisions locked — v1.1</div>
+    <h1>Waypoint Implementation Plan</h1>
+    <p>One consolidated plan covering every gap in the audit plus all of PRD v2.0 (F1–F15). Eight phases, ordered by leverage: <strong>unlock what's already built, then port the proven GAS features, then build what's never existed.</strong> Each phase ends at a shippable state with an explicit review gate.</p>
+    <div class="meta">
+      <span>8 phases · 38 workstreams</span>
+      <span>~60% wiring &amp; porting, ~40% new build</span>
+      <span>Companion: Waypoint Gap Report</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="legend">
+    <span><span class="chip c-wire">Wire</span> register / connect existing code</span>
+    <span><span class="chip c-port">Port</span> translate from GAS MVP / prototypes</span>
+    <span><span class="chip c-new">New</span> build from scratch (PRD)</span>
+    <span><span class="chip c-done">Done</span> already shipped</span>
+  </div>
+
+  <h2>Already shipped</h2>
+  <p class="h2-sub">Foundation in place before this plan starts — not on the roadmap.</p>
+  <div class="tablewrap"><table>
+    <tr>
+      <td class="name"><span class="chip c-done">Done</span></td>
+      <td>Auth (Apple/email), 6-step onboarding, <strong>seeded starter action plan</strong> (PR #10), Tracker list with status cycling, AI Navigator (streaming chat, tone bar, RAG over 226 KB articles, follow-up chips, save-as-action), Calendar CRUD, Home dashboard, basic Profile, PWA web build, <code>ai-proxy</code> edge function, 12 migrations.</td>
+    </tr>
+  </table></div>
+
+  <!-- ─────────────────────────── PHASE 0 ─────────────────────────── -->
+  <h2>The phases</h2>
+  <p class="h2-sub">Effort tags are relative t-shirt sizes for one developer working with Claude Code. Phases 2–4 can partially overlap; 0 and 1 are strictly first.</p>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">Phase 0</span><h3>Unblock &amp; Unbreak</h3><span class="effort">S · days</span></div>
+    <p class="phase-goal"><strong>Goal:</strong> every finished screen reachable, every silent bug fixed, every config wall removed. Highest leverage in the plan.</p>
+    <div class="ws"><div class="ws-head"><span class="ws-id">0.1</span><b>Stack navigation</b> <span class="chip c-wire">Wire</span><span class="prd">unlocks ~6,500 lines</span></div>
+      <p>Wrap each tab in a stack navigator. Register: ActionDetail (Tracker cards open it — makes the starter plan's scripts/steps/documents visible), Documents, DocumentAnalysis, Resources, Blog, Expenses, TaxReport, Insights, Forum/Thread, Messages, Providers, Services, FamilySharing, HealthRecords, ProviderPortal, Terms/Privacy (tappable from Welcome — App Store requirement).</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">0.2</span><b>Profile save fixes</b> <span class="chip c-wire">Wire</span></div>
+      <p>Load + persist child name, RC status, IEP status (migration-012 columns); regenerate starter plan on change, mirroring GAS behavior. Add add-child flow (<code>useFamily.addChild</code> exists, zero callers).</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">0.3</span><b>Google OAuth setup</b> <span class="chip c-wire">Wire</span><span class="prd">F5 · F8</span></div>
+      <p>Create OAuth client IDs, add env vars + google-signin config plugin. One task unblocks Gmail send and Calendar sync, both already coded.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">0.4</span><b>Config hygiene</b> <span class="chip c-wire">Wire</span></div>
+      <p>Move Sentry to dependencies; remove dead <code>expo-router</code>; fill EAS placeholders; delete duplicate <code>ALL_REMAINING_MIGRATIONS.sql</code>; align version strings; add missing expo plugin entries (notifications, document picker).</p></div>
+    <div class="gate"><b>Gate 0</b> Every screen reachable on web + dev build · profile edits persist · Google account connects · starter-plan detail visible in Tracker.</div>
+  </div>
+
+  <!-- ─────────────────────────── PHASE 1 ─────────────────────────── -->
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">Phase 1</span><h3>California Navigation Core</h3><span class="effort">M · ~1–2 wks</span></div>
+    <p class="phase-goal"><strong>Goal:</strong> the product's moat — the California-specific knowledge layer that no competitor has. Mostly data transcription from GAS.</p>
+    <div class="ws"><div class="ws-head"><span class="ws-id">1.1</span><b>RC data layer</b> <span class="chip c-port">Port</span><span class="prd">F4</span></div>
+      <p>21-Regional-Center database, ZIP-prefix lookup + boundary overrides + county fallback picker. Fixes <code>regional_center: null</code> at onboarding; personalizes Home and agency content.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">1.2</span><b>Agency Directory</b> <span class="chip c-port">Port</span><span class="prd">F4</span></div>
+      <p>8 agencies with phone, services, statutory rights, watch-outs; RC entries personalized from 1.1.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">1.3</span><b>RC Reimbursables guide</b> <span class="chip c-port">Port</span></div>
+      <p>11 fundable categories with POS codes, cost ranges, insider notes (+ 2 extra categories from the richer prototype data).</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">1.4</span><b>Journey Map</b> <span class="chip c-port">Port</span><span class="prd">F2</span></div>
+      <p>9 diagnosis journeys as a phased timeline with "You are here," milestones, alerts; shown at onboarding completion + linked from Home. Use the finer 5–6-phase data from <code>Waypoint-Journey-Maps.jsx</code>.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">1.5</span><b>Learn More &amp; eligibility explainers</b> <span class="chip c-port">Port</span><span class="prd">F3</span></div>
+      <p>15 explainer modals (SSI, IHSS, Lanterman, SB 946…) + 3 "Do I qualify?" checkers, linked from ActionDetail and agency pages.</p></div>
+    <div class="gate"><b>Gate 1</b> New user onboards → sees their journey map → lands on a dashboard naming their actual Regional Center, with a browsable CA knowledge layer.</div>
+  </div>
+
+  <!-- ─────────────────────────── PHASE 2 ─────────────────────────── -->
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">Phase 2</span><h3>Documents &amp; IEP Intelligence</h3><span class="effort">L · ~2–3 wks</span></div>
+    <p class="phase-goal"><strong>Goal:</strong> the file keeper and the IEP Clarity reader, end to end — PRD F6 + F7 complete.</p>
+    <div class="ws"><div class="ws-head"><span class="ws-id">2.1</span><b>Document upload &amp; library</b> <span class="chip c-wire">Wire</span><span class="prd">F6</span></div>
+      <p>Configure document picker + camera scan; connect DocumentsScreen to the real <code>pickAndUploadDocument</code>; Supabase Storage bucket + folder structure (child → category → date); auto-categorization suggestions.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">2.2</span><b>IEP Clarity reader</b> <span class="chip c-wire">Wire</span><span class="prd">F7</span></div>
+      <p>Route uploads into the existing OCR → <code>analyze-iep</code> pipeline; render flags, citations, and suggestions in DocumentAnalysisScreen; add the required legal disclaimer.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">2.3</span><b>IEP goal tracker</b> <span class="chip c-new">New</span><span class="prd">F7</span></div>
+      <p>Goals table (AI-extracted from 2.2 or manual), baselines/targets, parent progress logs, trajectory chart, PDF progress report for meetings.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">2.4</span><b>IEP timeline reminders</b> <span class="chip c-new">New</span><span class="prd">F7 · F9</span></div>
+      <p>Annual review, triennial, 15-day assessment-plan and 60-day completion clocks computed from IEP dates, feeding the deadlines system.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">2.5</span><b>Sharing &amp; versions</b> <span class="chip c-new">New</span><span class="prd">F6</span></div>
+      <p>Secure share links (expiry, optional password), access logging (the <code>document_access_logs</code> table already exists), version history per document. Annotation is deferred to Phase 7 as a stretch.</p></div>
+    <div class="gate"><b>Gate 2</b> Upload an IEP from phone → AI review with flags &amp; citations → goals tracked → share link sent to an advocate.</div>
+  </div>
+
+  <!-- ─────────────────────────── PHASE 3 ─────────────────────────── -->
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">Phase 3</span><h3>Communication Suite</h3><span class="effort">M · ~2 wks</span></div>
+    <p class="phase-goal"><strong>Goal:</strong> PRD F8 complete — Waypoint writes the hard letters and keeps the paper trail.</p>
+    <div class="ws"><div class="ws-head"><span class="ws-id">3.1</span><b>Letter &amp; template generator</b> <span class="chip c-port">Port</span><span class="prd">F8</span></div>
+      <p>12 legally-grounded templates × 3 tones as a new <code>ai-proxy</code> action; template library screen; editable draft view with placeholder highlighting; profile-aware pre-fill.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">3.2</span><b>Gmail depth</b> <span class="chip c-wire">Wire</span><span class="prd">F8</span></div>
+      <p>Send with document attachments; save-to-Gmail-drafts (client functions already exist); compose from templates or free-form.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">3.3</span><b>Communication log</b> <span class="chip c-new">New</span><span class="prd">F8</span></div>
+      <p>Auto-log sent emails; manual entries for calls/meetings; filter by contact/date/category; export PDF/CSV. The GAS communication-log advice becomes a real feature.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">3.4</span><b>Email analyzer</b> <span class="chip c-port">Port</span></div>
+      <p>Paste an agency thread → promises, timeline violations, red flags, applicable law, drafted response. Port the AI version (<code>analyzeEmailAI</code>), which was never wired even in GAS.</p></div>
+    <div class="gate"><b>Gate 3</b> Pick "IEE request" → strong tone → edit → send via Gmail with the assessment attached → it appears in the communication log.</div>
+  </div>
+
+  <!-- ─────────────────────────── PHASE 4 ─────────────────────────── -->
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">Phase 4</span><h3>Adaptive Advocacy Layer</h3><span class="effort">M · ~2 wks</span></div>
+    <p class="phase-goal"><strong>Goal:</strong> what made the MVP feel like an advocate, not a tracker — the app reacts to what happens.</p>
+    <div class="ws"><div class="ws-head"><span class="ws-id">4.1</span><b>Follow-up prompts</b> <span class="chip c-port">Port</span></div>
+      <p>Completing key actions asks "How did it go?" and injects the right next action (voicemail → call again tomorrow; refused → appeal/complaint with draft).</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">4.2</span><b>Check-ins &amp; frustration flows</b> <span class="chip c-port">Port</span></div>
+      <p>Home/Tracker check-ins branch into decision trees (RC slow → what → how long) that detect Lanterman timeline violations and inject statute-citing escalation actions (4731, CDE, IMR) with drafts. Consolidate GAS's two duplicate implementations into one.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">4.3</span><b>Chat completeness</b> <span class="chip c-wire">Wire</span> <span class="chip c-port">Port</span></div>
+      <p>Session history list (<code>loadSession</code> exists, uncalled); 👍/👎/⚠️ feedback writing to an interactions log; graceful AI-failure fallback showing top pending actions + RC phone number.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">4.4</span><b>Notifications &amp; reminders</b> <span class="chip c-wire">Wire</span><span class="prd">F9</span></div>
+      <p><em>Web-first note:</em> in-app reminder surfaces + email reminders ship first; native push (expo-notifications config, <code>useNotifications</code> scheduler, 30/14/7/1-day) activates when the TestFlight build lands. Notification preferences in Settings; "Text myself" <code>sms:</code> links from each action's <code>follow_up_note</code> work on web today.</p></div>
+    <div class="gate"><b>Gate 4</b> Mark "Call RC" complete → "left a voicemail" → tomorrow-morning action appears with a push reminder scheduled.</div>
+  </div>
+
+  <!-- ─────────────────────────── PHASE 5 ─────────────────────────── -->
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">Phase 5</span><h3>Calendar, Money &amp; Insurance</h3><span class="effort">L · ~2–3 wks</span></div>
+    <p class="phase-goal"><strong>Goal:</strong> PRD F5 depth + F12, the one major feature with no code anywhere.</p>
+    <div class="ws"><div class="ws-head"><span class="ws-id">5.1</span><b>Calendar depth</b> <span class="chip c-new">New</span><span class="prd">F5</span></div>
+      <p>Recurring appointments; true two-way Google sync (fix the one-shot pull so Google-side edits propagate; use the existing update/delete client functions); overlap warnings.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">5.2</span><b>Expenses &amp; tax</b> <span class="chip c-wire">Wire</span></div>
+      <p>Polish the newly-wired Expenses entry + TaxReport; receipt photo attach (reuses Phase 2 upload); mileage; category totals feeding Home.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">5.3</span><b>Insurance &amp; authorization tracker — slim v1</b> <span class="chip c-new">New</span><span class="prd">F12</span></div>
+      <p><em>Decided: slim scope.</em> v1 = plan/card details (photo capture reuses 2.1), authorization records with expiration countdowns + renewal reminders through F9, and denial → appeal handoff into the Phase 3 letter generator. Units-used-vs-approved tracking deferred to a later cycle.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">5.4</span><b>Family sharing</b> <span class="chip c-wire">Wire</span><span class="prd">F5</span></div>
+      <p>Finish invitations/permissions (tables + screen exist); co-parent sees shared calendar, actions, and documents per permission level.</p></div>
+    <div class="gate"><b>Gate 5</b> An ABA authorization shows 32/40 units used, expiring in 21 days, with a renewal reminder set and an appeal letter one tap away.</div>
+  </div>
+
+  <!-- ─────────────────────────── PHASE 6 ─────────────────────────── -->
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">Phase 6</span><h3>Community &amp; Ecosystem</h3><span class="effort">L · ~3 wks</span></div>
+    <p class="phase-goal"><strong>Goal:</strong> PRD Phase-3/4 surface area — people and providers around the family.</p>
+    <div class="ws"><div class="ws-head"><span class="ws-id">6.1</span><b>Community hardening</b> <span class="chip c-wire">Wire</span><span class="prd">F10</span></div>
+      <p><em>Decided: feature-flagged off until this workstream completes.</em> Forum, threads, DMs are wired in Phase 0 but hidden behind a flag. This workstream makes them production-ready: moderation UI (<code>useModeration</code> has zero callers), reporting flow, anonymous posting, blocking, community guidelines — then the flag opens.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">6.2</span><b>Care team &amp; provider portal</b> <span class="chip c-wire">Wire</span><span class="prd">F15</span></div>
+      <p>Providers/Services registries polished; provider-side registration, document-share inbox, and messaging on the existing 4-table schema.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">6.3</span><b>Health records (FHIR)</b> <span class="chip c-wire">Wire</span><span class="prd">F11</span></div>
+      <p>The Epic/MyChart OAuth + FHIR R4 client is fully written. <em>Decided: Epic developer registration is filed during Phase 1</em> (steps documented separately) so the external lead time runs in parallel; the wiring work lands here.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">6.4</span><b>Legal support resources</b> <span class="chip c-new">New</span><span class="prd">F13</span></div>
+      <p>Legal guide library (seed from the 50 Entity-Matrix rights articles already in the KB) + attorney/advocate directory with CA legal-aid orgs.</p></div>
+    <div class="gate"><b>Gate 6</b> A parent asks the forum about their RC, shares an IEP with their advocate through the portal, and pulls visit notes from MyChart.</div>
+  </div>
+
+  <!-- ─────────────────────────── PHASE 7 ─────────────────────────── -->
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">Phase 7</span><h3>Quality, Language &amp; Scale</h3><span class="effort">M · ongoing</span></div>
+    <p class="phase-goal"><strong>Goal:</strong> the debt that decides real-world reliability — runs partly in parallel with 5–6.</p>
+    <div class="ws"><div class="ws-head"><span class="ws-id">7.1</span><b>i18n sweep</b> <span class="chip c-wire">Wire</span></div>
+      <p><em>Decided: English + Spanish only for now.</em> Move all screens onto the translation system; complete and review the Spanish string set; translate seeded starter-plan content. Vietnamese strings stay in the repo but unlisted; Tagalog/Mandarin deferred.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">7.2</span><b>Offline &amp; sync</b> <span class="chip c-wire">Wire</span></div>
+      <p>Consolidate the two ad-hoc queues onto <code>offlineSync.ts</code>; replay on reconnect; conflict policy.</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">7.3</span><b>Analytics &amp; insights</b> <span class="chip c-wire">Wire</span><span class="prd">F14</span></div>
+      <p>Call <code>trackEvent</code> from key flows so <code>analytics_events</code> actually populates; Insights screen becomes real; enhanced Home widgets (weekly summary, multi-child toggle).</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">7.4</span><b>AI quality harness</b> <span class="chip c-port">Port</span></div>
+      <p>Port the QA Lab's 39 regression tests as an automated prompt-eval suite against <code>ai-proxy</code> (CI job, not a user-facing screen).</p></div>
+    <div class="ws"><div class="ws-head"><span class="ws-id">7.5</span><b>Accessibility &amp; account</b> <span class="chip c-wire">Wire</span> <span class="chip c-new">New</span></div>
+      <p>Wire the unused a11y helpers (announcements, labels, touch targets, reduced motion); account deletion + data export (required for App Store); document annotation stretch goal from F6.</p></div>
+    <div class="gate"><b>Gate 7</b> A Spanish-speaking parent uses the full app offline on BART, and their data survives; deleting the account removes everything.</div>
+  </div>
+
+  <!-- ─────────────────────────── MATRIX ─────────────────────────── -->
+  <h2>PRD v2.0 coverage matrix</h2>
+  <p class="h2-sub">Every PRD feature area mapped to the phases that complete it.</p>
+  <div class="tablewrap"><table>
+    <tr><th>PRD</th><th>Feature area</th><th>Today</th><th>Completed by</th></tr>
+    <tr><td class="name">F1</td><td>Onboarding &amp; Family Profile</td><td>Mostly done; profile bugs</td><td class="ph">0.2</td></tr>
+    <tr><td class="name">F2</td><td>Personalized Action Plans / Journey Maps</td><td>Starter plan shipped; no journey view</td><td class="ph">1.4 · 4.1–4.2</td></tr>
+    <tr><td class="name">F3</td><td>Resource Discovery &amp; Library</td><td>Built, unreachable</td><td class="ph">0.1 · 1.5 · 6.4</td></tr>
+    <tr><td class="name">F4</td><td>Regional Center Integration</td><td>Absent (null at onboarding)</td><td class="ph">1.1–1.3</td></tr>
+    <tr><td class="name">F5</td><td>Appointments &amp; Calendar</td><td>CRUD works; sync blocked, shallow</td><td class="ph">0.3 · 5.1 · 5.4</td></tr>
+    <tr><td class="name">F6</td><td>Document Management</td><td>Stub screen, unreachable</td><td class="ph">2.1 · 2.5 (annotation 7.5)</td></tr>
+    <tr><td class="name">F7</td><td>IEP Review &amp; Support</td><td>AI pipeline built, zero callers</td><td class="ph">2.2–2.4</td></tr>
+    <tr><td class="name">F8</td><td>Email Integration &amp; Templates</td><td>Send wired but OAuth-blocked</td><td class="ph">0.3 · 3.1–3.4</td></tr>
+    <tr><td class="name">F9</td><td>Notifications &amp; Reminders</td><td>Hook orphaned, no config</td><td class="ph">0.4 · 2.4 · 4.4</td></tr>
+    <tr><td class="name">F10</td><td>Peer Community</td><td>Built, unreachable, unmoderated</td><td class="ph">0.1 · 6.1</td></tr>
+    <tr><td class="name">F11</td><td>Healthcare Integration (FHIR)</td><td>Client built, unreachable</td><td class="ph">6.3</td></tr>
+    <tr><td class="name">F12</td><td>Insurance &amp; Authorization Tracking</td><td><strong>No code anywhere</strong></td><td class="ph">5.3</td></tr>
+    <tr><td class="name">F13</td><td>Legal Support Resources</td><td>KB articles only</td><td class="ph">6.4</td></tr>
+    <tr><td class="name">F14</td><td>Analytics &amp; Family Dashboard</td><td>Write side dead</td><td class="ph">7.3</td></tr>
+    <tr><td class="name">F15</td><td>Provider / Advocate Portal</td><td>Built, unreachable</td><td class="ph">0.1 · 6.2</td></tr>
+  </table></div>
+
+  <div class="callout">
+    <span class="kicker">Sequencing logic</span>
+    <p>Phases 0–1 are strictly first: 0 multiplies the value of everything after it, and 1 is the differentiator users feel immediately. 2→3→4 build on each other (documents feed letters; letters feed follow-ups) but 3 and 4 can start while 2's tail finishes. 5 and 6 are independent of each other and could swap based on what traction demands — insurance pain (5) vs. community growth (6). 7 threads through everything and should claim ~20% of each week rather than waiting until the end.</p>
+  </div>
+
+  <h2>Decisions — locked August 16, 2026</h2>
+  <ul class="decisions">
+    <li><b>1 · Platform: web/PWA first ✓</b><span>OAuth uses the web client ID first; native configs land with the TestFlight build. Reminders ship in-app + email first, native push later (see 4.4).</span></li>
+    <li><b>2 · Community: flagged off ✓</b><span>Routes registered in Phase 0 but hidden behind a feature flag until 6.1's moderation tooling is production-ready.</span></li>
+    <li><b>3 · Insurance tracker: slim v1 ✓</b><span>Card details + expiration reminders + appeal handoff. Units-used tracking deferred (see 5.3).</span></li>
+    <li><b>4 · FHIR: register early ✓</b><span>Epic developer application filed during Phase 1; build work stays in 6.3.</span></li>
+    <li><b>5 · Languages: English + Spanish ✓</b><span>Full es coverage in 7.1; vi kept in repo but unlisted; tl/zh deferred.</span></li>
+    <li><b>6 · GAS MVP: retires at parity ✓</b><span>It's just the MVP — no interim GAS fixes; deployment sunsets once the app clears Gate 4.</span></li>
+  </ul>
+
+  <h2>UX plan — standards &amp; practices</h2>
+  <p class="h2-sub">How every workstream above gets built: a design contract applied to each phase, reviewed at each gate. Grounded in WCAG 2.2 AA, Nielsen's heuristics, Apple HIG / Material patterns, and the trauma-informed plain-language standards this audience deserves.</p>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">UX 1</span><h3>Design system before screens</h3></div>
+    <div class="ws"><p><code>theme.ts</code> tokens (navy/teal/coral/sage, spacing, radii) become the single source of truth, extended with semantic roles (success/warning/danger/info), a fixed type scale, and an 8-pt spacing grid. A documented component kit — buttons, cards, chips, list rows, sheets, form fields, banners — is built once in Phase 0–1 and every later screen composes from it. The 16 WayPoint 2.0 HTML mockups (<code>01_Onboarding</code> … <code>16_ProviderPortal</code>) are the reference designs: new screens match their layout intent before inventing anything.</p></div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">UX 2</span><h3>Navigation &amp; information architecture</h3></div>
+    <div class="ws"><p>Standard tab + stack pattern (Phase 0): five tabs, detail screens push with a titled header and back affordance, modals only for interruptions (confirmations, pickers). On web, React Navigation's linking config gives every screen a real URL — browser back/forward works, and any screen can be shared or bookmarked. Maximum three taps from Home to any core task. One primary action per screen.</p></div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">UX 3</span><h3>Accessibility — WCAG 2.2 AA</h3></div>
+    <div class="ws"><p>4.5:1 text contrast (validated against both themes), 44-pt minimum touch targets, visible focus states, screen-reader labels and state announcements on every interactive element (wire the existing <code>lib/accessibility.ts</code> helpers), reduced-motion respected, text scaling to 200% without breakage. Audited per-gate with axe/Lighthouse on the web build — not saved for Phase 7; 7.5 is the sweep that certifies it.</p></div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">UX 4</span><h3>Content design for stressed parents</h3></div>
+    <div class="ws"><p>The GAS MVP's voice — "a friend who happens to be a disability rights attorney" — becomes a written style guide: 6th–8th-grade reading level, empathy before instruction, jargon always paired with a tap-to-explain (Learn More system, 1.5), progress celebrated, deadlines framed as support not threat ("You have until March 12 — plenty of time" vs. "DEADLINE"). Errors say what happened and what to do next; nothing dead-ends. Spanish is written by translation review, not machine passthrough.</p></div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">UX 5</span><h3>State completeness — the four states rule</h3></div>
+    <div class="ws"><p>No screen ships without all four states designed: loading (skeletons, not spinners, for lists), empty (the shared <code>EmptyState</code> component with a next-step CTA — currently orphaned and shadowed by a local copy), error (retry + explanation), and offline (cached data visible, actions queued with visible "will sync" status via 7.2). Optimistic updates with undo where the pattern already exists (actions, expenses).</p></div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">UX 6</span><h3>Forms, trust &amp; PWA mechanics</h3></div>
+    <div class="ws"><p><b>Forms:</b> single column, inline validation on blur, input never lost on navigation or crash (draft autosave), sensible keyboards and autofill hints. <b>Trust:</b> explicit consent screens before Google or Epic connections stating exactly what's read and why; privacy, data export, and delete-account visible in Settings, not buried. <b>PWA:</b> installable with a correct manifest, offline app shell, &lt;100 ms tap feedback, safe-area insets, and the existing per-build cache-busting service worker kept honest.</p></div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-head"><span class="phase-num">UX 7</span><h3>Validation loop</h3></div>
+    <div class="ws"><p>Each phase gate includes a usability pass: persona walkthroughs (the PRD's four personas — first-diagnosis Maria, veteran Sarah, transition David, multi-system Priya) against the gate's scenario, plus 3–5 real parent sessions when available. Analytics funnels (7.3) instrument the same scenarios so post-launch data confirms what testing suggested. Findings feed the next phase's backlog — the plan bends to evidence.</p></div>
+  </div>
+
+  <div class="foot">
+    <p><strong>Companion document:</strong> Waypoint Gap Report (full audit evidence behind every workstream).</p>
+    <p>v1.1 · August 16, 2026 · Decisions locked; UX standards adopted. Development begins with Phase 0 on approval.</p>
+  </div>
+
+</div>

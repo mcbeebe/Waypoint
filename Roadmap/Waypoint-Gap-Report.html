@@ -1,0 +1,488 @@
+<title>Waypoint Gap Report</title>
+<style>
+  :root {
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --ink: #0F172A;
+    --ink-soft: #334155;
+    --muted: #5D6B80;
+    --border: #E2E8F0;
+    --navy: #1B2A4A;
+    --teal: #0891B2;
+    --teal-soft: #E0F4F8;
+    --ok: #0E9F6E;
+    --ok-bg: #E6F7F1;
+    --warn: #B45309;
+    --warn-bg: #FDF3E3;
+    --block: #C2410C;
+    --block-bg: #FEEEE2;
+    --gone: #B91C1C;
+    --gone-bg: #FBEAEA;
+    --code-bg: #EEF2F7;
+    --hero-ink: #F1F6FA;
+    --shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F172A;
+      --surface: #16213A;
+      --ink: #E8EDF4;
+      --ink-soft: #C4CEDC;
+      --muted: #8B98AC;
+      --border: #2A3A57;
+      --navy: #16213A;
+      --teal: #2FB6D4;
+      --teal-soft: #123A4A;
+      --ok: #34D399;
+      --ok-bg: #113429;
+      --warn: #FBBF24;
+      --warn-bg: #3A2E10;
+      --block: #FB923C;
+      --block-bg: #3D2413;
+      --gone: #F87171;
+      --gone-bg: #3D1717;
+      --code-bg: #1E2B47;
+      --hero-ink: #F1F6FA;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F172A;
+    --surface: #16213A;
+    --ink: #E8EDF4;
+    --ink-soft: #C4CEDC;
+    --muted: #8B98AC;
+    --border: #2A3A57;
+    --navy: #16213A;
+    --teal: #2FB6D4;
+    --teal-soft: #123A4A;
+    --ok: #34D399;
+    --ok-bg: #113429;
+    --warn: #FBBF24;
+    --warn-bg: #3A2E10;
+    --block: #FB923C;
+    --block-bg: #3D2413;
+    --gone: #F87171;
+    --gone-bg: #3D1717;
+    --code-bg: #1E2B47;
+    --hero-ink: #F1F6FA;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.62;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ── Header ─────────────────────────────── */
+  .hero {
+    background: linear-gradient(135deg, #1B2A4A 0%, #0F2847 60%, #0E3A52 100%);
+    color: var(--hero-ink);
+    border-radius: 0 0 18px 18px;
+    padding: 44px 36px 38px;
+    margin: 0 -2px 36px;
+  }
+  .eyebrow {
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #7DD3E8;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    font-size: clamp(30px, 5vw, 42px);
+    line-height: 1.12;
+    margin: 0 0 14px;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  .hero p { max-width: 62ch; margin: 0; color: #C6D4E2; font-size: 16px; }
+  .hero p strong { color: #FFFFFF; }
+
+  .statrow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .stat {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .stat .n {
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    font-size: 27px;
+    font-weight: 700;
+    color: #FFFFFF;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .stat .l { font-size: 12px; color: #9FB3C8; margin-top: 4px; line-height: 1.35; }
+
+  /* ── Type & sections ────────────────────── */
+  h2 {
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    font-size: 26px;
+    line-height: 1.2;
+    margin: 52px 0 6px;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .h2-sub { color: var(--muted); margin: 0 0 20px; max-width: 68ch; }
+  h3 {
+    font-size: 16.5px;
+    font-weight: 700;
+    margin: 30px 0 8px;
+    color: var(--ink);
+  }
+  p { max-width: 70ch; }
+  .kicker {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 2px;
+  }
+  code {
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.86em;
+    background: var(--code-bg);
+    border-radius: 5px;
+    padding: 1px 5px;
+    color: var(--ink-soft);
+  }
+
+  /* ── Chips ──────────────────────────────── */
+  .chip {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2.5px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .c-ok    { background: var(--ok-bg);    color: var(--ok); }
+  .c-wire  { background: var(--warn-bg);  color: var(--warn); }
+  .c-block { background: var(--block-bg); color: var(--block); }
+  .c-gone  { background: var(--gone-bg);  color: var(--gone); }
+  .c-part  { background: var(--teal-soft); color: var(--teal); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 24px 0 8px;
+    font-size: 13px;
+    color: var(--muted);
+    box-shadow: var(--shadow);
+  }
+  .legend span { display: flex; align-items: center; gap: 7px; }
+
+  /* ── Tables ─────────────────────────────── */
+  .tablewrap {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin: 18px 0 8px;
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th {
+    text-align: left;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.name { font-weight: 600; white-space: nowrap; color: var(--ink); }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td .sub { color: var(--muted); font-size: 13px; display: block; margin-top: 2px; font-weight: 400; white-space: normal; }
+
+  /* ── Callouts ───────────────────────────── */
+  .callout {
+    border-left: 3px solid var(--teal);
+    background: var(--surface);
+    border-radius: 0 12px 12px 0;
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    margin: 22px 0;
+    box-shadow: var(--shadow);
+  }
+  .callout.warn { border-left-color: var(--block); }
+  .callout p { margin: 0; max-width: none; }
+  .callout p + p { margin-top: 10px; }
+  .callout .kicker { color: inherit; }
+  .callout.warn .kicker { color: var(--block); }
+
+  /* ── Sequence list ──────────────────────── */
+  .seq { list-style: none; margin: 20px 0 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .seq li {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px 16px 18px;
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 14px;
+    box-shadow: var(--shadow);
+  }
+  .seq .step {
+    font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--teal);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.3;
+  }
+  .seq h4 { margin: 0 0 4px; font-size: 15.5px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .seq p { margin: 0; color: var(--ink-soft); font-size: 14px; max-width: none; }
+  .effort {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 5px;
+    padding: 2px 7px;
+    background: var(--code-bg);
+    color: var(--muted);
+  }
+
+  .foot {
+    margin-top: 56px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .foot p { margin: 4px 0; }
+</style>
+
+<div class="hero">
+  <div class="wrap" style="padding:0">
+    <div class="eyebrow">Waypoint · Codebase Audit · August 16, 2026</div>
+    <h1>Waypoint Gap Report</h1>
+    <p>What's meaningfully missing from the Supabase app versus the GAS MVP and the v2.0 PRD. The headline: <strong>most "missing" features are already built — they're just unreachable.</strong> The app ships a flat five-tab bar with no stack navigator, so 18 of 23 screens, three of five AI backend actions, and 20 of 32 database tables have no path a user can follow to them.</p>
+    <div class="statrow">
+      <div class="stat"><div class="n">5 / 23</div><div class="l">screens reachable by a user</div></div>
+      <div class="stat"><div class="n">~6,500</div><div class="l">lines of finished feature code with no entry point</div></div>
+      <div class="stat"><div class="n">20 / 32</div><div class="l">database tables with no UI that can reach them</div></div>
+      <div class="stat"><div class="n">2 / 5</div><div class="l">AI edge-function actions actually callable from the app</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="legend">
+    <span><span class="chip c-ok">Wired</span> works end-to-end</span>
+    <span><span class="chip c-wire">Built, not wired</span> code exists, no navigation path</span>
+    <span><span class="chip c-block">Blocked</span> wired but a config gap stops it working</span>
+    <span><span class="chip c-part">Partial</span> some of it works, some silently doesn't</span>
+    <span><span class="chip c-gone">Absent</span> exists only in the old codebase</span>
+  </div>
+
+  <h2>1 · The root cause: no stack navigator</h2>
+  <p class="h2-sub">One structural gap explains most of the others.</p>
+  <p>The entire navigation surface is <code>App.tsx</code> (Welcome → Onboarding → Main) plus a five-tab bar in <code>MainTabs.tsx</code>: <strong>Home, Ask AI, Tracker, Calendar, Profile</strong>. There are no <code>Stack.Screen</code> registrations beyond that, no modal routes, and no headers (so no header buttons either). Every <code>navigation.navigate()</code> call in the app targets a sibling tab. Nothing can open a detail screen, and no tab links to any of the 18 orphaned screens sitting in <code>src/screens/main/</code>.</p>
+  <div class="callout warn">
+    <span class="kicker">Directly affects the starter plan we just shipped</span>
+    <p>The seeded onboarding actions carry call scripts, step-by-step checklists, document lists, and draft letters — but the Tracker has <strong>no detail view</strong>. Tapping a card just cycles its status (<code>ActionsScreen.tsx:215</code>). A finished 448-line <code>ActionDetailScreen</code> exists to display all of that content and is orphaned. Until it's registered on a stack, the richest content in the app is invisible.</p>
+  </div>
+
+  <h2>2 · The features you asked about</h2>
+  <p class="h2-sub">Status of each named expectation. Four of six need wiring or configuration, not building.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Feature</th><th>Status</th><th>What's actually there</th></tr>
+    <tr>
+      <td class="name">IEP Clarity reader</td>
+      <td><span class="chip c-wire">Built, not wired</span></td>
+      <td>The full pipeline exists: <code>ocr</code> (Claude vision text extraction) and <code>analyze-iep</code> (goal parsing, weakness flags, legal citations) actions in the <code>ai-proxy</code> edge function, a <code>useDocumentAnalysis</code> hook, and a 423-line <code>DocumentAnalysisScreen</code> — ~1,100 lines total with <strong>zero callers</strong>. Nothing in the app ever invokes <code>extractText</code> or <code>analyzeIEP</code>. (The separate <code>IEP INTAKE/iepclarity</code> folder is planning material only — deck, GTM doc, empty code dir.)</td>
+    </tr>
+    <tr>
+      <td class="name">File keeper</td>
+      <td><span class="chip c-wire">Built, not wired</span> <span class="chip c-part">Partial</span></td>
+      <td><code>DocumentsScreen</code> + <code>useDocuments</code> + the <code>documents</code> table exist but are unreachable — and the screen's upload button is a placeholder <code>Alert</code> that never calls the hook's real <code>pickAndUploadDocument</code>. <code>expo-document-picker</code> is installed but has no config plugin in <code>app.json</code>. The iOS camera/photo permission strings already promise a "Document Vault" no code delivers.</td>
+    </tr>
+    <tr>
+      <td class="name">Settings</td>
+      <td><span class="chip c-part">Partial</span></td>
+      <td>ProfileScreen is the only settings surface. Working: parent info, diagnoses, language (en/es/vi), sign out. Silently broken: <strong>child name, RC status, and IEP status render as editable but are never loaded from or saved to the database</strong> — edits are discarded (the migration-012 columns we added are written only at onboarding). Absent entirely: notification preferences, add/remove child (<code>useFamily.addChild</code> has zero callers), account deletion, data export.</td>
+    </tr>
+    <tr>
+      <td class="name">Blog / Resources</td>
+      <td><span class="chip c-wire">Built, not wired</span></td>
+      <td><code>BlogScreen</code>, <code>ResourcesScreen</code>, <code>useBlog</code>, <code>useResources</code>, and migration 010's <code>blog_posts</code> + <code>resources</code> tables all exist. No navigation path reaches either screen.</td>
+    </tr>
+    <tr>
+      <td class="name">Gmail integration</td>
+      <td><span class="chip c-block">Blocked</span></td>
+      <td><code>lib/gmail.ts</code> is a real Gmail REST client (send, drafts, inbox). "Email This Response" in the Navigator is wired to it — but Google sign-in can't complete: <code>auth.ts</code> still has <code>// TODO: Replace with actual client IDs</code>, the env vars aren't in <code>.env.example</code>, and <code>@react-native-google-signin</code> has no config plugin in <code>app.json</code>. So the token is always null and the feature permanently toasts "Sign in with Google." The draft/inbox functions have no UI at all.</td>
+    </tr>
+    <tr>
+      <td class="name">Google Calendar</td>
+      <td><span class="chip c-block">Blocked</span></td>
+      <td>Same OAuth wall. <code>lib/googleCalendar.ts</code> is a proper API client with refresh/backoff, and <code>useCalendarSync</code> wires a two-way sync into the Calendar tab — but the sync button is permanently disabled without a Google token. Also: the pull path skips any event it has seen before, so Google-side edits would never propagate (one-shot import), and <code>update</code>/<code>delete</code> functions are never called.</td>
+    </tr>
+  </table></div>
+
+  <h2>3 · Also built, also unreachable</h2>
+  <p class="h2-sub">The rest of the orphaned inventory, grouped by product area. All of it needs routes, not rewrites.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Area</th><th>Orphaned pieces</th><th>Size</th></tr>
+    <tr><td class="name">Action detail</td><td><code>ActionDetailScreen</code> — scripts, steps, documents, status controls for a single action</td><td class="num">~450 lines</td></tr>
+    <tr><td class="name">Community</td><td><code>ForumScreen</code>, <code>ThreadScreen</code>, <code>MessagesScreen</code>, <code>useModeration</code> + 7 forum/DM tables (migration 006)</td><td class="num">~1,000 lines</td></tr>
+    <tr><td class="name">Care team</td><td><code>ProvidersScreen</code>, <code>ServicesScreen</code> + <code>providers</code>/<code>services</code> tables</td><td class="num">~1,300 lines</td></tr>
+    <tr><td class="name">Money</td><td><code>ExpensesScreen</code>, <code>TaxReportScreen</code> — Home shows expense totals, but there is no way to <em>add</em> an expense</td><td class="num">~790 lines</td></tr>
+    <tr><td class="name">Provider portal</td><td><code>ProviderPortalScreen</code> + 4 tables (migration 008)</td><td class="num">~710 lines</td></tr>
+    <tr><td class="name">Health records</td><td><code>HealthRecordsScreen</code> + <code>lib/fhir.ts</code> — a complete Epic/MyChart OAuth + FHIR R4 client</td><td class="num">~640 lines</td></tr>
+    <tr><td class="name">Family sharing</td><td><code>FamilySharingScreen</code> + invitations/members/activity tables (migration 007)</td><td class="num">~500 lines</td></tr>
+    <tr><td class="name">Insights</td><td><code>InsightsScreen</code> + migration 009 — doubly dead: <code>trackEvent</code> has zero callers, so <code>analytics_events</code> is always empty and the screen could never populate</td><td class="num">~180 lines + lib</td></tr>
+    <tr><td class="name">Legal</td><td><code>TermsOfService</code>, <code>PrivacyPolicy</code> — the Welcome screen's "you agree to our Terms" sentence is plain text, not tappable. An App Store review risk.</td><td class="num">~480 lines</td></tr>
+    <tr><td class="name">Chat history</td><td>Conversations are saved to <code>chat_sessions</code>/<code>chat_messages</code>, and <code>useChat.loadSession</code> exists — but the Navigator never calls it and there is no session list. Past chats are write-only.</td><td class="num">hook only</td></tr>
+  </table></div>
+
+  <h2>4 · In the GAS MVP, with no counterpart at all</h2>
+  <p class="h2-sub">These have to be ported, not wired. Ordered roughly by product impact.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Feature</th><th>Status</th><th>What the GAS MVP does</th></tr>
+    <tr>
+      <td class="name">Journey Map</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>The emotional centerpiece: 9 diagnosis-specific journeys (autism, Down syndrome, CP, ADHD, ID, epilepsy…) rendered as a phased timeline with agency/deadline chips per phase, milestones, alerts, and an animated "📍 You are here" badge matched to the child's age. It's the reveal moment after onboarding — the new app goes straight to tabs.</td>
+    </tr>
+    <tr>
+      <td class="name">RC lookup + Agency Directory</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>A database of all 21 California Regional Centers with a ZIP-prefix lookup (plus boundary-ZIP overrides and a county fallback picker), feeding a directory of 8 agencies — each with phone, services, statutory rights, and a "watch out" pitfall, personalized to the family's actual RC. The new app collects ZIP at onboarding and then writes <code>regional_center: null</code> — the lookup data was never ported.</td>
+    </tr>
+    <tr>
+      <td class="name">Letter &amp; draft generator</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>12 legally-grounded templates (assessment request, records request, PWN request, CDE complaint, DDS 4731 complaint, IHSS appeal, insurance appeal, IEE…) × 3 user-selectable tones (friendly ≤100 words / professional / strong with citations), an editable draft modal with placeholder highlighting, and a Gmail-compose handoff. The new app can email a chat response but has no template system. PRD F8 expects this plus a communication log.</td>
+    </tr>
+    <tr>
+      <td class="name">RC Reimbursables guide</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>A dedicated screen listing 11 fundable service categories with POS billing codes, typical costs, and insider notes ("physician note required — most families don't know this exists"). One of the most differentiated pieces of content in the product.</td>
+    </tr>
+    <tr>
+      <td class="name">Frustration flows &amp; escalation engine</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>"How are things going?" check-ins branch into decision trees (RC slow → what → how long) that inject statute-aware escalation actions — detecting timeline violations against Lanterman deadlines (§4642/§4643/§4646) and chaining 4731 / CDE / IMR complaint actions with pre-written drafts. This is the product's adaptive advocacy layer.</td>
+    </tr>
+    <tr>
+      <td class="name">Follow-up prompts</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>Completing key actions asks "How did it go?" (intake scheduled / voicemail / refused) and injects the right next action — including appeal and complaint paths. The new app's follow-ups are chat suggestion chips, a different thing.</td>
+    </tr>
+    <tr>
+      <td class="name">Learn More + eligibility explainers</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>15 in-app explainer modals (SSI, IHSS, IEP, IPP, Lanterman, Fair Hearing, SB 946…) and 3 "Do I qualify?" eligibility checkers linked from action cards. Some of this text survives inside our ported action descriptions, but the linkable explainer system doesn't exist.</td>
+    </tr>
+    <tr>
+      <td class="name">Email analyzer</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>Paste an agency email thread → extract promises, timeline violations, red flags (budget excuses, soft denials), applicable law, and a ready-to-send response letter. Notably it was unreachable in the GAS UI too — but both a regex and a full AI implementation exist to port.</td>
+    </tr>
+    <tr>
+      <td class="name">Chat feedback + graceful fallback</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>👍/👎/⚠️ feedback buttons that back-fill an interaction log, and an AI-failure fallback that shows the user's top pending actions and their RC's tappable phone number instead of an error.</td>
+    </tr>
+    <tr>
+      <td class="name">QA Testing Lab</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>39 seeded prompt-regression tests with category/tone accuracy scoring and a metrics dashboard. Internal tooling, but it's how prompt quality was maintained across 12 sprints.</td>
+    </tr>
+    <tr>
+      <td class="name">SMS "text myself" reminders</td>
+      <td><span class="chip c-gone">Absent</span></td>
+      <td>Every action's reminder line opens the native SMS composer pre-filled via an <code>sms:</code> deep link — a zero-infrastructure reminder channel. (We preserved the reminder text in <code>follow_up_note</code>, so the data is ready.)</td>
+    </tr>
+  </table></div>
+
+  <h2>5 · Cross-cutting quality gaps</h2>
+  <p class="h2-sub">Not features, but they decide whether the features above actually function.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Gap</th><th>Detail</th></tr>
+    <tr><td class="name">Notifications</td><td>A complete 254-line <code>useNotifications</code> deadline-reminder hook has <strong>zero importers</strong>, and <code>expo-notifications</code> has no plugin config or permission strings. PRD F9 (Phase 1!) is unmet. The GAS email-reminder system was also never user-facing — reminders have never actually shipped in either codebase.</td></tr>
+    <tr><td class="name">i18n coverage</td><td>The mechanism and a language switcher exist (en/es/vi), but only 3 files use translations — tab labels and a few Navigator/Profile strings. Home, Tracker, Calendar, and every orphaned screen are hardcoded English. (The GAS MVP had the same disease: Spanish covered ~22 landing-page strings, and its backend supported es/vi/tl/zh that the UI couldn't select.)</td></tr>
+    <tr><td class="name">Offline sync</td><td><code>lib/offlineSync.ts</code> is orphaned; <code>useActions</code> and <code>useExpenses</code> each hand-roll their own queue, and nothing replays queues on reconnect — <code>NetworkBanner</code> only displays a message.</td></tr>
+    <tr><td class="name">Crash reporting</td><td><code>@sentry/react-native</code> sits in <em>dev</em>Dependencies while <code>App.tsx</code> imports it at runtime — a production build with a DSN set would fail to resolve it.</td></tr>
+    <tr><td class="name">Config debt</td><td><code>expo-router</code> is a dead dependency (React Navigation is used); EAS project ID and updates URL are <code>"YOUR_EAS_PROJECT_ID"</code> placeholders; <code>ALL_REMAINING_MIGRATIONS.sql</code> duplicates the migrations directory as a second source of schema truth; the version string on Profile says v2.0.0 while <code>app.json</code> says 1.0.0.</td></tr>
+    <tr><td class="name">Accessibility</td><td><code>lib/accessibility.ts</code> exists but only one helper is used once; screen-reader announcements, labels, and touch-target constants have no callers. (The GAS MVP's a11y was also thinner than documented.)</td></tr>
+  </table></div>
+
+  <h2>6 · Suggested sequence</h2>
+  <p class="h2-sub">Ordered by leverage — wiring before porting, porting before building new.</p>
+  <ol class="seq">
+    <li><span class="step">1</span><div>
+      <h4>Add a stack navigator and register the orphaned screens <span class="effort">days, not weeks</span></h4>
+      <p>Wrap each tab in a stack; register ActionDetail, Documents, DocumentAnalysis, Resources, Blog, Expenses, and the legal pages; make Tracker cards open the detail view. This single change unlocks ~6,500 lines of finished work — including making the starter-plan scripts and checklists visible.</p>
+    </div></li>
+    <li><span class="step">2</span><div>
+      <h4>Fix the ProfileScreen save stubs <span class="effort">small</span></h4>
+      <p>Load and persist child name, RC status, and IEP status (the migration-012 columns exist now); regenerate the starter plan when they change, mirroring the GAS profile-save behavior.</p>
+    </div></li>
+    <li><span class="step">3</span><div>
+      <h4>Configure Google OAuth <span class="effort">config + console work</span></h4>
+      <p>Create the OAuth client IDs, add the env vars and the google-signin config plugin. This one setup unblocks both Gmail send and Calendar sync, which are otherwise finished.</p>
+    </div></li>
+    <li><span class="step">4</span><div>
+      <h4>Port the California data layer <span class="effort">mostly data transcription</span></h4>
+      <p>RC database + ZIP lookup (fixes <code>regional_center: null</code> at onboarding), the 8-agency directory, and the 11-category reimbursables guide. All three are structured data in the GAS files, ready to lift.</p>
+    </div></li>
+    <li><span class="step">5</span><div>
+      <h4>Port the Journey Map <span class="effort">medium</span></h4>
+      <p><code>JOURNEY_MAP_DATA</code> transcribes directly; build one timeline screen and show it at onboarding completion. Consider the richer 5–6-phase versions from <code>Waypoint-Journey-Maps.jsx</code>, which the GAS port had coarsened.</p>
+    </div></li>
+    <li><span class="step">6</span><div>
+      <h4>Finish the document pipeline <span class="effort">medium</span></h4>
+      <p>Configure <code>expo-document-picker</code>, connect DocumentsScreen to the real upload hook, then route uploads into the OCR → IEP-analysis pipeline. This delivers both "file keeper" and "IEP Clarity reader" from parts that already exist.</p>
+    </div></li>
+    <li><span class="step">7</span><div>
+      <h4>Then the adaptive layer <span class="effort">larger</span></h4>
+      <p>Follow-up prompts, frustration flows with statute-aware escalations, the letter/template generator, chat history UI, notifications config, and analytics writes — the pieces that made the MVP feel like an advocate rather than a tracker.</p>
+    </div></li>
+  </ol>
+
+  <div class="foot">
+    <p><strong>Sources:</strong> full wiring audit of <code>waypoint-app/</code> (App.tsx, MainTabs, 23 screens, 23 hooks, 16 libs, 12 migrations, ai-proxy edge function), feature inventory of <code>gas-mvp/Code.gs</code> + <code>Index.html</code>, root prototypes, and <code>WayPoint 2.0/Waypoint_PRD_v2.0.md</code> (F1–F15).</p>
+    <p>Prepared August 16, 2026 · Line counts approximate · KB content (226 Entity Navigation Matrix articles) is already seeded in Supabase and is not a gap.</p>
+  </div>
+
+</div>
