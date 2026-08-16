@@ -7,7 +7,16 @@
  * - Annual review: last annual review + 1 year
  * - Triennial evaluation: last triennial + 3 years
  * - Assessment plan due: written request + 15 calendar days (CA Ed Code §56321)
- * - Evaluation complete due: signed consent + 60 calendar days
+ * - Evaluation complete due: signed consent + 60 calendar days (§56344)
+ *
+ * IMPORTANT LIMITATION (Wave 1.5): both §56321 and §56344 EXCLUDE days
+ * between regular school sessions/terms and school vacations longer than
+ * 5 schooldays from the count, with special rules near year-end. This
+ * module counts plain calendar days, so dates that span a school break
+ * (especially summer) are EARLIER than the law allows. The user-facing
+ * copy below presents these as estimates and tells parents to confirm the
+ * count with their district before treating a deadline as missed. A
+ * school-calendar-aware counter is the planned full fix.
  */
 
 import { supabase } from '@/lib/supabase';
@@ -83,20 +92,20 @@ export async function syncIEPDeadlines(
       rows.push({
         family_id: familyId,
         child_id: childId,
-        title: 'School assessment plan due (15-day clock)',
+        title: 'School assessment plan due (est. 15-day clock)',
         deadline_type: 'iep_assessment_plan',
         due_date: addDays(dates.assessmentPlanRequested, 15),
-        notes: 'CA Ed Code §56321: the district has 15 calendar days from your written request to provide an assessment plan. If missed, file a CDE compliance complaint (916-319-0800).',
+        notes: 'CA Ed Code §56321: the district has 15 days from your written request to provide an assessment plan — but days during school breaks longer than 5 schooldays do NOT count, so the real deadline may be later (especially over summer). If this date passes, confirm the schoolday count with your district first; if it is genuinely overdue, a CDE compliance complaint (916-319-0800) is your remedy.',
       });
     }
     if (dates.assessmentConsentSigned) {
       rows.push({
         family_id: familyId,
         child_id: childId,
-        title: 'Evaluation completion due (60-day clock)',
+        title: 'Evaluation & IEP meeting due (est. 60-day clock)',
         deadline_type: 'iep_assessment_complete',
         due_date: addDays(dates.assessmentConsentSigned, 60),
-        notes: 'The district has 60 calendar days from signed consent to complete the evaluation and hold the IEP meeting.',
+        notes: 'CA Ed Code §56344: the district has 60 days from your signed consent to complete the evaluation AND hold the IEP meeting — one combined window. Days during school breaks longer than 5 schooldays do not count, so the real deadline may be later across a break. Confirm the count with your district before treating it as missed.',
       });
     }
 

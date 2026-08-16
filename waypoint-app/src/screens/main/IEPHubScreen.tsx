@@ -184,8 +184,8 @@ export default function IEPHubScreen() {
           </Text>
           <DateField label="Last annual IEP review" value={annual} onChange={setAnnual} hint="Next review is due 1 year later" />
           <DateField label="Last triennial evaluation" value={triennial} onChange={setTriennial} hint="Re-evaluation is due every 3 years" />
-          <DateField label="Assessment request sent (if waiting)" value={planRequested} onChange={setPlanRequested} hint="School owes an assessment plan in 15 calendar days" />
-          <DateField label="Assessment consent signed (if waiting)" value={consentSigned} onChange={setConsentSigned} hint="Evaluation must complete within 60 days" />
+          <DateField label="Assessment request sent (if waiting)" value={planRequested} onChange={setPlanRequested} hint="School owes an assessment plan in 15 days (school breaks pause the clock)" />
+          <DateField label="Assessment consent signed (if waiting)" value={consentSigned} onChange={setConsentSigned} hint="Evaluation + IEP meeting due within 60 days (school breaks pause the clock)" />
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={saveDates}

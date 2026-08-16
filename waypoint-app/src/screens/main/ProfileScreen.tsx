@@ -8,6 +8,7 @@ import {
   View,
   Text,
   TextInput,
+  TouchableOpacity,
   ScrollView,
   StyleSheet,
   Alert,
@@ -21,6 +22,7 @@ import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { reseedStarterPlan } from '@/lib/planGenerator';
 import { lookupRC } from '@/data/regionalCenters';
 import { signOut } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
 import type { Child } from '@/types/database';
@@ -188,6 +190,67 @@ export default function ProfileScreen() {
       setAddingChild(false);
     }
   }, [newChildName, addChild]);
+
+  const handleToggleAIConsent = useCallback(async () => {
+    if (family?.ai_consent_at) {
+      Alert.alert(
+        'Turn off AI features?',
+        'The AI Navigator and document analysis will stop working until you turn this back on. Everything you have saved stays yours.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Turn off',
+            style: 'destructive',
+            onPress: () => updateFamily({ ai_consent_at: null }),
+          },
+        ]
+      );
+    } else {
+      await updateFamily({ ai_consent_at: new Date().toISOString() });
+      Alert.alert('AI features enabled', 'You can turn this off here any time.');
+    }
+  }, [family?.ai_consent_at, updateFamily]);
+
+  const handleDeleteAccount = useCallback(() => {
+    Alert.alert(
+      'Delete your account?',
+      'This permanently deletes your account and ALL data — children, action plans, documents, chats. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete everything',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('Are you absolutely sure?', 'There is no way to recover your data after this.', [
+              { text: 'Keep my account', style: 'cancel' },
+              {
+                text: 'Yes, delete permanently',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    const { data } = await supabase.auth.getSession();
+                    const token = data.session?.access_token ?? '';
+                    const res = await fetch(
+                      `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`,
+                      { method: 'POST', headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    if (!res.ok) {
+                      const err = await res.json().catch(() => null);
+                      Alert.alert('Deletion failed', err?.error ?? 'Please try again or email support.');
+                      return;
+                    }
+                    await signOut();
+                  } catch {
+                    Alert.alert('Deletion failed', 'Please check your connection and try again.');
+                  }
+                },
+              },
+            ]);
+          },
+        },
+      ]
+    );
+  }, []);
 
   const handleSignOut = useCallback(async () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -371,6 +434,23 @@ export default function ProfileScreen() {
           />
         </View>
 
+        {/* Privacy & AI */}
+        <Text style={styles.sectionTitle}>Privacy & AI</Text>
+        <View style={styles.card}>
+          <Text style={styles.privacyStatus}>
+            AI features (Navigator, document analysis) are{' '}
+            <Text style={{ fontWeight: '700' }}>{family?.ai_consent_at ? 'ON' : 'OFF'}</Text>.
+            {family?.ai_consent_at
+              ? ' Your questions, your child’s age/diagnoses, and documents you analyze are processed by Anthropic to generate guidance.'
+              : ' Nothing is sent to the AI provider while this is off.'}
+          </Text>
+          <Button
+            title={family?.ai_consent_at ? 'Turn off AI features' : 'Enable AI features'}
+            onPress={handleToggleAIConsent}
+            variant="outline"
+          />
+        </View>
+
         <View style={styles.signOutRow}>
           <Button
             title={t.profile.signOut}
@@ -378,6 +458,16 @@ export default function ProfileScreen() {
             variant="outline"
           />
         </View>
+
+        {/* Danger zone */}
+        <TouchableOpacity
+          onPress={handleDeleteAccount}
+          style={styles.deleteRow}
+          accessibilityRole="button"
+          accessibilityLabel="Delete account and all data"
+        >
+          <Text style={styles.deleteText}>Delete account & all data</Text>
+        </TouchableOpacity>
 
         <Text style={styles.version}>Waypoint v1.0.0</Text>
       </ScrollView>
@@ -466,6 +556,23 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     marginTop: spacing.xl,
+  },
+  privacyStatus: {
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+    lineHeight: 20,
+    marginBottom: spacing.md,
+  },
+  deleteRow: {
+    alignItems: 'center',
+    marginTop: spacing.lg,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  deleteText: {
+    color: '#DC2626',
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold as '600',
   },
   signOutRow: {
     marginTop: spacing.md,

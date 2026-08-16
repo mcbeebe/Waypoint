@@ -3,8 +3,7 @@
  * Manages action plan items stored in Supabase `actions` table
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type {
   Action,
@@ -14,17 +13,6 @@ import type {
   ActionStep,
   ActionStats,
 } from '@/types/database';
-
-const OFFLINE_QUEUE_KEY = 'waypoint_action_queue';
-
-// ─── Offline Queue Types ────────────────────────────────────────────────────
-
-interface QueuedOperation {
-  id: string;
-  type: 'create' | 'update' | 'status_change';
-  payload: Partial<Action>;
-  timestamp: number;
-}
 
 // ─── Hook: useActions ───────────────────────────────────────────────────────
 
@@ -43,7 +31,6 @@ interface UseActionsReturn {
   updateAction: (actionId: string, data: Partial<Action>) => Promise<void>;
   updateStatus: (actionId: string, status: ActionStatus, reason?: string) => Promise<void>;
   toggleStep: (actionId: string, stepIndex: number) => Promise<void>;
-  syncOfflineQueue: () => Promise<number>;
   refetch: () => Promise<void>;
 }
 
@@ -71,7 +58,6 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<ActionStats | null>(null);
-  const queueRef = useRef<QueuedOperation[]>([]);
 
   // ─── Fetch Actions ──────────────────────────────────────────────────────
 
@@ -171,34 +157,13 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
 
       return action;
     } catch (err) {
-      // Queue for offline sync
-      const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-      const offlineAction: Action = {
-        ...newAction,
-        id: localId,
-        local_id: localId,
-        synced_at: null,
-        version: 1,
-        reminder_sent: false,
-        completed_at: null,
-        dismissed_at: null,
-        dismissed_reason: null,
-        deadline_warning_days: 7,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      } as Action;
-
-      setActions((prev) => [offlineAction, ...prev]);
-
-      await enqueueOperation({
-        id: localId,
-        type: 'create',
-        payload: newAction,
-        timestamp: Date.now(),
-      });
-
-      setError(`Saved offline — will sync when connected`);
-      return offlineAction;
+      // Honest failure (Wave 1.6): the old path faked an "offline save" for
+      // ANY error (including permission/validation failures), showed success,
+      // and the action then evaporated. Surface the real error instead; a
+      // true offline queue with replay is roadmap 7.2.
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Couldn't save this action: ${message}`);
+      return null;
     }
   }, [familyId, fetchStats]);
 
@@ -220,15 +185,11 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
 
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      await enqueueOperation({
-        id: actionId,
-        type: 'update',
-        payload: { id: actionId, ...data },
-        timestamp: Date.now(),
-      });
-      setError('Update queued — will sync when connected');
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Couldn't save this change: ${message}`);
+      fetchActions(); // roll back the optimistic update
     }
-  }, []);
+  }, [fetchActions]);
 
   // ─── Status Change ──────────────────────────────────────────────────────
 
@@ -263,60 +224,6 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
     await updateAction(actionId, { steps: updatedSteps });
   }, [actions, updateAction]);
 
-  // ─── Offline Queue ──────────────────────────────────────────────────────
-
-  async function enqueueOperation(op: QueuedOperation) {
-    queueRef.current.push(op);
-    try {
-      await AsyncStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queueRef.current));
-    } catch {
-      console.warn('Failed to persist offline queue');
-    }
-  }
-
-  const syncOfflineQueue = useCallback(async (): Promise<number> => {
-    try {
-      const raw = await AsyncStorage.getItem(OFFLINE_QUEUE_KEY);
-      if (!raw) return 0;
-
-      const queue: QueuedOperation[] = JSON.parse(raw);
-      if (queue.length === 0) return 0;
-
-      let synced = 0;
-
-      for (const op of queue) {
-        try {
-          if (op.type === 'create') {
-            const { local_id, ...rest } = op.payload;
-            await supabase.from('actions').insert({ ...rest, local_id: op.id });
-            synced++;
-          } else if (op.type === 'update' || op.type === 'status_change') {
-            const { id, ...rest } = op.payload;
-            if (id) {
-              await supabase.from('actions').update(rest).eq('id', id);
-              synced++;
-            }
-          }
-        } catch {
-          // Keep failed operations in queue for next attempt
-          continue;
-        }
-      }
-
-      // Clear synced operations
-      await AsyncStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify([]));
-      queueRef.current = [];
-
-      // Refresh data from server
-      await fetchActions();
-      await fetchStats();
-
-      return synced;
-    } catch {
-      return 0;
-    }
-  }, [fetchActions, fetchStats]);
-
   // ─── Refetch ────────────────────────────────────────────────────────────
 
   const refetch = useCallback(async () => {
@@ -334,7 +241,6 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
     updateAction,
     updateStatus,
     toggleStep,
-    syncOfflineQueue,
     refetch,
   };
 }
