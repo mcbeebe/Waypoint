@@ -28,6 +28,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { generateStarterPlan } from '@/lib/planGenerator';
 import { lookupRC, rcByCounty, ALL_COUNTIES } from '@/data/regionalCenters';
+import { showAlert } from '@/lib/dialogs';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 /** Set at onboarding completion; Home reads it once to reveal the Journey Map */
@@ -258,7 +259,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       onComplete();
     } catch (err: unknown) {
       const e = err as { message?: string };
-      Alert.alert('Error', e.message || 'Failed to save. Please try again.');
+      showAlert('Could not finish setup', e.message || 'Failed to save. Please try again.');
     } finally {
       setSaving(false);
     }

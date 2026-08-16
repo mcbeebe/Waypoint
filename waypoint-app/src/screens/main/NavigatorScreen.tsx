@@ -65,7 +65,12 @@ export default function NavigatorScreen() {
 
   const acceptConsent = async () => {
     setShowConsent(false);
-    await updateFamily({ ai_consent_at: new Date().toISOString() });
+    const saved = await updateFamily({ ai_consent_at: new Date().toISOString() });
+    if (!saved) {
+      setPendingText(null);
+      showToast("Couldn't save your consent — please try again in a moment.", 'error');
+      return;
+    }
     if (pendingText) {
       const text = pendingText;
       setPendingText(null);
