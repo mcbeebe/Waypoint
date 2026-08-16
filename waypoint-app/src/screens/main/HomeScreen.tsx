@@ -3,7 +3,8 @@
  * Shows: greeting, child age badge, progress summary, quick actions
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -22,6 +23,8 @@ import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/componen
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { percentageLabel } from '@/lib/accessibility';
 import { FLAGS } from '@/lib/flags';
+import { lookupRC } from '@/data/regionalCenters';
+import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
 
 /** Get time-based greeting (ported from GAS MVP) */
 function getGreeting(): string {
@@ -100,6 +103,23 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
   useEffect(() => {
     setEmpathyIndex(Math.floor(Math.random() * EMPATHY_MESSAGES.length));
   }, []);
+
+  const rc = useMemo(
+    () => (family?.zip_code ? lookupRC(family.zip_code) : null),
+    [family?.zip_code]
+  );
+
+  // Post-onboarding reveal: open the Journey Map once, then clear the flag
+  useEffect(() => {
+    AsyncStorage.getItem(SHOW_JOURNEY_FLAG)
+      .then(v => {
+        if (v) {
+          AsyncStorage.removeItem(SHOW_JOURNEY_FLAG).catch(() => {});
+          (navigation as any).navigate('Journey');
+        }
+      })
+      .catch(() => {});
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -250,6 +270,35 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           </View>
         </View>
 
+        {/* Journey Map link */}
+        <TouchableOpacity
+          style={styles.journeyCard}
+          onPress={() => (navigation as any).navigate('Journey')}
+          accessibilityRole="button"
+          accessibilityLabel="Open your journey map"
+        >
+          <Ionicons name="map-outline" size={22} color={colors.white} style={styles.journeyIcon} />
+          <View style={styles.journeyText}>
+            <Text style={styles.journeyTitle}>Your Journey Map</Text>
+            <Text style={styles.journeySubtitle}>See where you are and what comes next</Text>
+          </View>
+          <Text style={styles.journeyChevron}>›</Text>
+        </TouchableOpacity>
+
+        {/* Regional Center card */}
+        {rc && (
+          <TouchableOpacity
+            style={styles.rcCard}
+            onPress={() => (navigation as any).navigate('Agencies')}
+            accessibilityRole="button"
+            accessibilityLabel={`Your Regional Center: ${rc.name}. Open agency directory.`}
+          >
+            <Text style={styles.rcLabel}>YOUR REGIONAL CENTER</Text>
+            <Text style={styles.rcName}>{rc.name}</Text>
+            <Text style={styles.rcPhone}>📞 {rc.phone}</Text>
+          </TouchableOpacity>
+        )}
+
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.quickActions}>
@@ -276,6 +325,9 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
         <Text style={styles.sectionTitle}>Tools</Text>
         <View style={styles.toolsGrid}>
           {[
+            { icon: 'business-outline', label: 'Agencies', go: () => (navigation as any).navigate('Agencies') },
+            { icon: 'wallet-outline', label: 'RC Funding', go: () => (navigation as any).navigate('Reimbursables') },
+            { icon: 'map-outline', label: 'Journey', go: () => (navigation as any).navigate('Journey') },
             { icon: 'folder-open-outline', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
             { icon: 'book-outline', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources' }) },
             { icon: 'newspaper-outline', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog' }) },
@@ -615,6 +667,66 @@ const styles = StyleSheet.create({
   },
   tileIcon: {
     marginBottom: 4,
+  },
+  journeyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.navy,
+    borderRadius: radii.lg,
+    padding: spacing.base,
+    marginBottom: spacing.md,
+  },
+  journeyIcon: {
+    marginRight: spacing.md,
+  },
+  journeyText: {
+    flex: 1,
+  },
+  journeyTitle: {
+    color: colors.white,
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.bold as '700',
+  },
+  journeySubtitle: {
+    color: '#9FB3C8',
+    fontSize: fonts.sizes.sm,
+    marginTop: 1,
+  },
+  journeyChevron: {
+    color: colors.white,
+    fontSize: 22,
+    marginLeft: spacing.sm,
+  },
+  rcCard: {
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    padding: spacing.base,
+    marginBottom: spacing.md,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.teal,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  rcLabel: {
+    fontSize: 10,
+    fontWeight: fonts.weights.bold as '700',
+    color: colors.mid,
+    letterSpacing: 0.6,
+    marginBottom: 2,
+  },
+  rcName: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.bold as '700',
+    color: colors.navy,
+  },
+  rcPhone: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
+    marginTop: 2,
   },
   quickActionLabel: {
     fontSize: fonts.sizes.xs,
