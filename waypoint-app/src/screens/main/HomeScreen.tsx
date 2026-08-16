@@ -273,7 +273,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
 
         {/* Tools — entry points to the full feature set */}
         <Text style={styles.sectionTitle}>Tools</Text>
-        <View style={styles.quickActions}>
+        <View style={styles.toolsGrid}>
           {[
             { emoji: '📁', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
             { emoji: '📚', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources' }) },
@@ -295,13 +295,13 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           ].map(tool => (
             <TouchableOpacity
               key={tool.label}
-              style={styles.quickAction}
+              style={styles.toolTile}
               onPress={tool.go}
               accessibilityRole="button"
               accessibilityLabel={tool.label}
             >
               <Text style={styles.quickActionEmoji}>{tool.emoji}</Text>
-              <Text style={styles.quickActionLabel}>{tool.label}</Text>
+              <Text style={styles.toolLabel} numberOfLines={2}>{tool.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -570,6 +570,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: spacing.sm,
+  },
+  toolsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  toolTile: {
+    // 4 tiles per row: 4 × 23% + 3 gaps ≈ 100%
+    flexBasis: '23%',
+    flexGrow: 1,
+    maxWidth: '24%',
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  toolLabel: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.medium as '500',
+    color: colors.dark,
+    textAlign: 'center',
+    lineHeight: 13,
+    marginTop: 2,
   },
   quickAction: {
     flex: 1,
