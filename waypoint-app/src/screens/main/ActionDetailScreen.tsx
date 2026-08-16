@@ -3,7 +3,7 @@
  * Sprint 3: S3-03
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   TextInput,
   StyleSheet,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type {
@@ -21,6 +22,8 @@ import type {
   ActionPriority,
 } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { useTextScale } from '@/lib/textSize';
+import { parseActionDescription, extractLinks } from '@/lib/actionContent';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -63,9 +66,26 @@ export default function ActionDetailScreen({
 }: ActionDetailScreenProps) {
   const [dismissReason, setDismissReason] = useState('');
   const [showDismissInput, setShowDismissInput] = useState(false);
+  const { scale, cycleScale } = useTextScale();
+  /** Scaled font size — applied to all reading-heavy text */
+  const sz = (n: number) => Math.round(n * scale);
 
   const stepsDone = action.steps?.filter((s) => s.done).length ?? 0;
   const stepsTotal = action.steps?.length ?? 0;
+
+  const content = useMemo(
+    () => parseActionDescription(action.description ?? ''),
+    [action.description]
+  );
+  const { links, phones } = useMemo(
+    () =>
+      extractLinks([
+        action.description,
+        action.script,
+        ...(action.steps?.map((s) => s.step) ?? []),
+      ]),
+    [action.description, action.script, action.steps]
+  );
 
   const handleStatusChange = (status: ActionStatus) => {
     if (status === 'dismissed') {
@@ -87,6 +107,14 @@ export default function ActionDetailScreen({
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          onPress={cycleScale}
+          style={styles.textSizeButton}
+          accessibilityRole="button"
+          accessibilityLabel={`Text size ${Math.round(scale * 100)} percent. Tap to change.`}
+        >
+          <Text style={styles.textSizeButtonText}>Aa {Math.round(scale * 100)}%</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -102,8 +130,101 @@ export default function ActionDetailScreen({
           </Text>
         </View>
 
-        {action.description && (
-          <Text style={styles.description}>{action.description}</Text>
+        {/* At-a-glance chips: when, how big a lift, how many steps */}
+        <View style={styles.chipRow}>
+          {action.due_date && (
+            <View style={[styles.chip, styles.chipDue]}>
+              <Text style={[styles.chipText, { fontSize: sz(12) }]}>📅 Due {formatDate(action.due_date)}</Text>
+            </View>
+          )}
+          {content.timeline && (
+            <View style={styles.chip}>
+              <Text style={[styles.chipText, { fontSize: sz(12) }]}>⏰ {content.timeline}</Text>
+            </View>
+          )}
+          {stepsTotal > 0 && (
+            <View style={styles.chip}>
+              <Text style={[styles.chipText, { fontSize: sz(12) }]}>✅ {stepsTotal} steps</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Effort — the honest "how big is this lift" */}
+        {content.effort && (
+          <View style={styles.effortCard}>
+            <Text style={[styles.effortLabel, { fontSize: sz(11) }]}>🕒 YOUR TIME</Text>
+            <Text style={[styles.effortText, { fontSize: sz(14) }]}>{content.effort}</Text>
+          </View>
+        )}
+
+        {/* One-tap links: apply online or call directly */}
+        {(links.length > 0 || phones.length > 0) && (
+          <View style={styles.linkSection}>
+            {links.map((link) => (
+              <TouchableOpacity
+                key={link.url}
+                style={styles.linkButton}
+                onPress={() => Linking.openURL(link.url)}
+                accessibilityRole="link"
+                accessibilityLabel={link.label}
+              >
+                <Text style={[styles.linkButtonText, { fontSize: sz(14) }]}>🌐 {link.label}</Text>
+              </TouchableOpacity>
+            ))}
+            {phones.map((phone) => (
+              <TouchableOpacity
+                key={phone.number}
+                style={[styles.linkButton, styles.phoneButton]}
+                onPress={() => Linking.openURL(`tel:${phone.number}`)}
+                accessibilityRole="link"
+                accessibilityLabel={phone.label}
+              >
+                <Text style={[styles.linkButtonText, styles.phoneButtonText, { fontSize: sz(14) }]}>📞 {phone.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* What this is */}
+        {content.summary ? (
+          <Text style={[styles.description, { fontSize: sz(15), lineHeight: sz(23) }]}>{content.summary}</Text>
+        ) : null}
+
+        {/* Why this matters — the benefit, front and center */}
+        {content.why && (
+          <View style={styles.whyCard}>
+            <Text style={[styles.cardLabel, styles.whyLabel, { fontSize: sz(11) }]}>⭐ WHY THIS MATTERS</Text>
+            <Text style={[styles.cardBody, { fontSize: sz(14.5), lineHeight: sz(22) }]}>{content.why}</Text>
+          </View>
+        )}
+
+        {/* Do I qualify? */}
+        {content.eligibility && (
+          <View style={styles.qualifyCard}>
+            <Text style={[styles.cardLabel, styles.qualifyLabel, { fontSize: sz(11) }]}>✅ DO I QUALIFY?</Text>
+            <Text style={[styles.cardBody, { fontSize: sz(14.5), lineHeight: sz(22) }]}>{content.eligibility}</Text>
+          </View>
+        )}
+
+        {/* Documents to gather */}
+        {content.documents.length > 0 && (
+          <View style={styles.docsCard}>
+            <Text style={[styles.cardLabel, { fontSize: sz(11) }]}>📄 DOCUMENTS TO GATHER</Text>
+            {content.documents.map((doc, i) => (
+              <View key={i} style={styles.docRow}>
+                <Text style={[styles.docBullet, { fontSize: sz(14) }]}>•</Text>
+                <Text style={[styles.cardBody, styles.docText, { fontSize: sz(14), lineHeight: sz(21) }]}>{doc}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Insider tip */}
+        {content.tip && (
+          <View style={styles.tipCard}>
+            <Text style={[styles.cardLabel, styles.tipLabel, { fontSize: sz(11) }]}>💡 INSIDER TIP</Text>
+            <Text style={[styles.cardBody, { fontSize: sz(14.5), lineHeight: sz(22) }]}>{content.tip}</Text>
+          </View>
         )}
 
         {/* Status Selector */}
@@ -152,7 +273,7 @@ export default function ActionDetailScreen({
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>📝 Suggested Script</Text>
             <View style={styles.scriptBox}>
-              <Text style={styles.scriptText}>{action.script}</Text>
+              <Text style={[styles.scriptText, { fontSize: sz(14), lineHeight: sz(22) }]}>{action.script}</Text>
             </View>
             <Text style={styles.scriptHint}>
               You can read this when calling your Regional Center or school district.
@@ -177,7 +298,7 @@ export default function ActionDetailScreen({
                 <View style={[styles.checkbox, step.done && styles.checkboxDone]}>
                   {step.done && <Text style={styles.checkmark}>✓</Text>}
                 </View>
-                <Text style={[styles.stepText, step.done && styles.stepTextDone]}>
+                <Text style={[styles.stepText, step.done && styles.stepTextDone, { fontSize: sz(14), lineHeight: sz(21) }]}>
                   {step.step}
                 </Text>
               </TouchableOpacity>
@@ -257,6 +378,149 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  textSizeButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  textSizeButtonText: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold as '600',
+    color: colors.teal,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  chip: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+  },
+  chipDue: {
+    backgroundColor: '#FFF7ED',
+    borderColor: '#FDBA74',
+  },
+  chipText: {
+    color: colors.dark,
+    fontWeight: fonts.weights.medium as '500',
+  },
+  effortCard: {
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  effortLabel: {
+    fontWeight: fonts.weights.bold as '700',
+    color: '#2563EB',
+    letterSpacing: 0.6,
+    marginBottom: 3,
+  },
+  effortText: {
+    color: colors.dark,
+    fontWeight: fonts.weights.medium as '500',
+  },
+  linkSection: {
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  linkButton: {
+    backgroundColor: colors.teal,
+    borderRadius: radii.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  linkButtonText: {
+    color: colors.white,
+    fontWeight: fonts.weights.bold as '700',
+  },
+  phoneButton: {
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.teal,
+  },
+  phoneButtonText: {
+    color: colors.teal,
+  },
+  whyCard: {
+    backgroundColor: '#FFFBEB',
+    borderLeftWidth: 3,
+    borderLeftColor: '#F59E0B',
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  whyLabel: {
+    color: '#B45309',
+  },
+  qualifyCard: {
+    backgroundColor: '#ECFDF5',
+    borderLeftWidth: 3,
+    borderLeftColor: '#10B981',
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  qualifyLabel: {
+    color: '#047857',
+  },
+  docsCard: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  docRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  docBullet: {
+    color: colors.teal,
+    marginRight: 6,
+  },
+  docText: {
+    flex: 1,
+  },
+  tipCard: {
+    backgroundColor: '#F5F3FF',
+    borderLeftWidth: 3,
+    borderLeftColor: '#7C3AED',
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  tipLabel: {
+    color: '#6D28D9',
+  },
+  cardLabel: {
+    fontWeight: fonts.weights.bold as '700',
+    color: colors.mid,
+    letterSpacing: 0.6,
+    marginBottom: 4,
+  },
+  cardBody: {
+    color: colors.dark,
   },
   backButton: {
     paddingVertical: 4,

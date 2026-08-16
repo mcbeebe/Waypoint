@@ -98,9 +98,39 @@ function isoDateInDays(days: number): string {
   return `${y}-${m}-${day}`;
 }
 
+/**
+ * Honest parent-effort estimates per action, surfaced in the detail view so
+ * families know the size of the lift before they start (UX 4).
+ */
+const EFFORT_BY_TITLE: Record<string, string> = {
+  'Call Regional Center for Early Start referral': 'One 15–20 min phone call to start; intake visit comes later',
+  'Call Regional Center to start your referral': 'One 15–20 min phone call, plus ~1 hour gathering documents',
+  'Follow up on RC application status': 'One 10–15 min phone call',
+  'Get a formal evaluation for your child': '~1 hour total: one letter and two phone calls',
+  'Send written request for IEP meeting': '~30 min to personalize and send the letter',
+  'Request school district evaluation (in writing)': '~30 min to personalize and send the letter',
+  'Get pediatrician referral for therapy': "One 10–15 min call to your pediatrician's office",
+  'Call insurance to verify therapy coverage': 'One 30–45 min phone call (have your insurance card ready)',
+  'Apply for Medi-Cal': '~45–60 min online application at BenefitsCal.com',
+  'Start SSI application': 'The biggest lift: 2–4 hours spread over several days (call + forms)',
+  'Apply for IHSS (In-Home Supportive Services)': '~1 hour application, then one in-home assessment visit',
+  'Request 504 Plan or IEP evaluation': '~30 min to personalize and send the letter',
+  "Apply for California Children's Services (CCS)": '~30 min: one call to your doctor for the referral',
+  'Apply for CCS and connect with Down syndrome resources': '~30–45 min of calls to RC and your pediatrician',
+  'Connect with Deaf/HoH specialized services': '~30 min: written request plus a call to the school',
+  'Connect with vision impairment services': '~30 min: written request plus a call to the school',
+  'Coordinate TBI-specific services across systems': '~45 min of calls across school and RC',
+  'Request ERMHS (mental health services) through school': '~30 min: written request to the school',
+  'Request speech/language IEP evaluation': '~30 min: written request to the school',
+  'Apply to Department of Rehabilitation (DOR)': '~45 min application at dor.ca.gov',
+  'Set up a CalABLE savings account': '~30 min online at CalABLE.ca.gov',
+};
+
 function buildAction(content: ActionContent, priority: ActionPriority): StarterAction {
   const parts: string[] = [content.subtitle];
   if (content.deadlineLabel) parts.push(`⏰ Timeline: ${content.deadlineLabel}`);
+  const effort = EFFORT_BY_TITLE[content.title];
+  if (effort) parts.push(`🕒 Effort: ${effort}`);
   parts.push(`Why this matters: ${content.whyMatters}`);
   if (content.documents && content.documents.length > 0) {
     parts.push('Documents to gather:\n' + content.documents.map(d => `• ${d}`).join('\n'));

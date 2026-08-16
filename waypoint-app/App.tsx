@@ -27,6 +27,7 @@ import NetworkBanner from './src/components/NetworkBanner';
 import WebFrame from './src/components/WebFrame';
 import { ToastProvider } from './src/components/Toast';
 import { I18nProvider } from './src/i18n';
+import { TextScaleProvider } from './src/lib/textSize';
 import { colors } from './src/lib/theme';
 
 // Initialize Sentry crash reporting (no-op if DSN not configured)
@@ -106,6 +107,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <I18nProvider>
+        <TextScaleProvider>
         <ToastProvider>
           <SafeAreaProvider>
             <WebFrame>
@@ -141,6 +143,7 @@ export default function App() {
             </WebFrame>
           </SafeAreaProvider>
         </ToastProvider>
+        </TextScaleProvider>
       </I18nProvider>
     </ErrorBoundary>
   );
