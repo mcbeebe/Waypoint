@@ -1,18 +1,23 @@
 /**
  * Regional Center reimbursable service categories (POS codes).
- * Transcribed VERBATIM from gas-mvp/Index.html (RC_REIMBURSABLE ~lines 929-941),
  * merged with the richer descriptions/notes from waypoint-frustration-data.js
  * (RC_REIMBURSABLE.categories) where that file's text is a superset of the
  * gas-mvp text. 'Supported Living Services' (POS 896) exists only in the
  * frustration-data list and is appended at the end.
- * Content is authored domain knowledge — do not edit strings.
+  *
+ * NOTE ON ACCURACY (added after the Aug 2026 content audit): this file contains
+ * dated legal figures and statutory timelines. It is NOT frozen — when a law,
+ * rate, or deadline changes, UPDATE IT, and verify edits against current
+ * primary sources (DDS, SSA, CA Ed Code). Dollar amounts and ages are marked
+ * with their year where possible. src/data/contentFacts.test.ts guards against
+ * known-stale values reappearing.
  */
 import type { Reimbursable } from './types';
 
 export const RC_REIMBURSABLES: Reimbursable[] = [
   {
     name: 'Respite Care',
-    code: '862/864',
+    code: '862/868',
     description: 'In-home or out-of-home respite. Parent relief. Most-used RC service statewide.',
     cost: '$15-40/hr',
     note: 'Must be in IPP. Parent CANNOT be respite provider for own child.',
@@ -33,14 +38,14 @@ export const RC_REIMBURSABLES: Reimbursable[] = [
   },
   {
     name: 'Speech Therapy',
-    code: '110/115',
+    code: 'varies',
     description: "Speech-language pathology. RC covers when insurance and school don't provide enough.",
     cost: '$100-200/session',
     note: 'Insurance → School → RC. Keep records of all denials.',
   },
   {
     name: 'OT',
-    code: '116',
+    code: 'varies',
     description: 'OT for sensory, fine motor, daily living skills.',
     cost: '$100-200/session',
     note: 'Same hierarchy: insurance → school → RC is payer of last resort.',

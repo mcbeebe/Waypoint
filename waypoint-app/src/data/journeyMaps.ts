@@ -1,12 +1,18 @@
 /**
  * Diagnosis-specific journey maps for California disability services.
  *
- * Transcribed VERBATIM from two sources (content is authored guidance — do not edit copy):
  *  - gas-mvp/Index.html — JOURNEY_MAP_DATA / JOURNEY_MAP_DEFAULT (~lines 1708–1913),
  *    getJourneyForDiagnosis() (~1917–1929), getJourneyPhaseForAge() (~1035–1061)
  *  - Waypoint-Journey-Maps.jsx — richer ancestor; its finer-grained phases win where
  *    it has more phases than gas-mvp (autism, down, cp, adhd, id). The JSX `trigger`
  *    field is intentionally dropped.
+  *
+ * NOTE ON ACCURACY (added after the Aug 2026 content audit): this file contains
+ * dated legal figures and statutory timelines. It is NOT frozen — when a law,
+ * rate, or deadline changes, UPDATE IT, and verify edits against current
+ * primary sources (DDS, SSA, CA Ed Code). Dollar amounts and ages are marked
+ * with their year where possible. src/data/contentFacts.test.ts guards against
+ * known-stale values reappearing.
  */
 
 import type { Journey } from './types';
@@ -36,7 +42,7 @@ export const JOURNEY_MAP_DATA: Record<string, Journey> = {
         age: '3–5', label: 'Transition to School', color: '#0891B2', bg: '#F0FDFA', icon: '🎒',
         description: 'Your child is growing, and so is the system around them. At age 3, responsibility shifts from the Regional Center\'s Early Start program to your local school district — and that transition can feel like starting over. New people, new acronyms, new meetings. It\'s normal to feel overwhelmed. But here\'s what matters: your child has a legal right to a Free Appropriate Public Education, and you have a seat at that IEP table as an equal member of the team. Your voice matters more than anyone else\'s in that room.',
         entities: [
-          { name: 'School District', action: 'Assessment → first IEP within 60 + 30 days', time: '90 days' },
+          { name: 'School District', action: 'Assessment plan (15 days) → eval + first IEP within 60 days of consent', time: '~75 days' },
           { name: 'Regional Center', action: 'Lanterman eligibility determination', time: '120 days' },
           { name: 'IHSS', action: 'Apply for paid in-home support hours', time: '30–60 days' },
           { name: 'SSI', action: 'Apply if income-eligible', time: '3–6 months' },
@@ -124,7 +130,7 @@ export const JOURNEY_MAP_DATA: Record<string, Journey> = {
         age: '3–5', label: 'Transition to School', color: '#0891B2', bg: '#F0FDFA', icon: '🎒',
         description: 'The shift to school can feel bittersweet — you\'ve built relationships with your Early Start team, and now it\'s time to start over with new people. But your child\'s rights are strong. Children with Down syndrome typically qualify under the Intellectual Disability or Multiple Disabilities categories for an IEP, and inclusive education is the starting presumption under the law. Don\'t let anyone tell you your child \'can\'t\' be in a general education classroom without the IEP team considering it first. This is also the right time to apply for IHSS and SSI — your child has strong eligibility for both.',
         entities: [
-          { name: 'School District', action: 'Assessment → IEP with inclusion plan', time: '90 days' },
+          { name: 'School District', action: 'Assessment → IEP with inclusion plan', time: '~75 days' },
           { name: 'Regional Center', action: 'Transition from Early Start to Lanterman services', time: '120 days' },
           { name: 'IHSS', action: 'Apply for in-home support hours', time: '30–60 days' },
           { name: 'SSI', action: 'Strong eligibility — apply now', time: '3–6 months' },
@@ -199,7 +205,7 @@ export const JOURNEY_MAP_DATA: Record<string, Journey> = {
         age: '3–5', label: 'Transition to School', color: '#0891B2', bg: '#F0FDFA', icon: '🎒',
         description: 'The transition to school introduces a new set of challenges — and they\'re not just educational. Your child\'s school needs to be physically accessible. Adaptive equipment needs to be in the classroom. Aides may need to be trained on transfers and feeding. It\'s a lot to coordinate, and you have every right to insist that it\'s done properly. The IEP should address not just academics but mobility, communication, self-care, and socialization. CCS continues providing medical therapy in many schools through the Medical Therapy Program (MTP), which operates right on campus. This is also the time to apply for IHSS — children with CP often qualify for high hours due to physical care needs.',
         entities: [
-          { name: 'School District', action: 'IEP with physical accessibility, adaptive PE', time: '90 days' },
+          { name: 'School District', action: 'IEP with physical accessibility, adaptive PE', time: '~75 days' },
           { name: 'CCS MTP', action: 'School-based physical and occupational therapy', time: 'Continues' },
           { name: 'Regional Center', action: 'Lanterman services — respite, adaptive equipment', time: '120 days' },
           { name: 'IHSS', action: 'High hours likely — bathing, feeding, mobility', time: '30–60 days' },
@@ -331,7 +337,7 @@ export const JOURNEY_MAP_DATA: Record<string, Journey> = {
         age: '3–5', label: 'Transition to School', color: '#0891B2', bg: '#F0FDFA', icon: '🎒',
         description: 'School is a new world — and for a child with intellectual disability, the IEP is the document that shapes their entire educational experience. Insist on meaningful inclusion whenever possible. Your child has the right to be educated alongside their peers to the maximum extent appropriate. The IEP should include functional skills, communication goals, and social skills — not just academics. Apply for IHSS now if you haven\'t already. SSI eligibility is strong for children with ID. The Regional Center continues providing services alongside the school system — they complement each other, and you deserve both.',
         entities: [
-          { name: 'School District', action: 'Assessment → IEP with functional goals', time: '90 days' },
+          { name: 'School District', action: 'Assessment → IEP with functional goals', time: '~75 days' },
           { name: 'Regional Center', action: 'Lanterman eligibility — strong case for ID', time: '120 days' },
           { name: 'IHSS', action: 'In-home support hours', time: '30–60 days' },
           { name: 'SSI', action: 'Strong eligibility — apply now', time: '3–6 months' },
@@ -487,7 +493,7 @@ export const JOURNEY_MAP_DATA: Record<string, Journey> = {
         age: '3–5', label: 'School Transition', color: '#0891B2', bg: '#F0FDFA', icon: '🎒',
         description: 'At age 3, your child transitions from Early Start to the school district. This is also when a more specific diagnosis may emerge. Either way, your child has the right to an IEP.',
         entities: [
-          { name: 'School District', action: 'Assessment → IEP', time: '90 days' },
+          { name: 'School District', action: 'Assessment → IEP', time: '~75 days' },
           { name: 'Regional Center', action: 'Lanterman eligibility review', time: '120 days' },
           { name: 'IHSS / SSI', action: 'Apply based on functional needs', time: '30–180 days' },
         ],
@@ -534,7 +540,7 @@ export const JOURNEY_MAP_DATA: Record<string, Journey> = {
           { name: 'SSI', action: 'May qualify if severe impact', time: '3–6 months' },
         ],
         milestone: 'Speech services active, progress monitored',
-        alert: 'School must evaluate within 60 days of written request',
+        alert: 'School has 15 days to give you an assessment plan, then 60 days from your signed consent to evaluate',
       },
       {
         age: '14+', label: 'Transition', color: '#D97706', bg: '#FFFBEB', icon: '🎓',
@@ -604,7 +610,7 @@ export const JOURNEY_MAP_DEFAULT: Journey = {
       age: '3–17', label: 'School Years', color: '#0EA5E9', bg: '#F0F9FF', icon: '📚',
       description: 'Your child has the right to a Free Appropriate Public Education. An IEP or 504 Plan ensures they get the support they need at school. You are an equal member of the IEP team.',
       entities: [
-        { name: 'School District', action: 'Evaluation → IEP or 504 Plan', time: '60–90 days' },
+        { name: 'School District', action: 'Evaluation → IEP or 504 Plan', time: '~60–75 days' },
         { name: 'Regional Center', action: 'Ongoing services if eligible', time: 'Annual' },
         { name: 'IHSS / SSI', action: 'Apply based on functional needs', time: 'Varies' },
       ],

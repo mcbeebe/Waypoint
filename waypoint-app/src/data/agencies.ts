@@ -1,9 +1,14 @@
 /**
  * Agency directory and "Learn More" explainer entries.
- * Transcribed VERBATIM from gas-mvp/Index.html (AGENCIES ~lines 854-903,
  * LEARN_MORE ~lines 906-926). LEARN_MORE bodies converted from inline HTML
  * (<br>/<strong>/<em>) to plain text with \n newlines; wording unchanged.
- * Content is authored domain knowledge — do not edit strings.
+  *
+ * NOTE ON ACCURACY (added after the Aug 2026 content audit): this file contains
+ * dated legal figures and statutory timelines. It is NOT frozen — when a law,
+ * rate, or deadline changes, UPDATE IT, and verify edits against current
+ * primary sources (DDS, SSA, CA Ed Code). Dollar amounts and ages are marked
+ * with their year where possible. src/data/contentFacts.test.ts guards against
+ * known-stale values reappearing.
  */
 import type { Agency, LearnMoreEntry } from './types';
 
@@ -18,7 +23,7 @@ export const AGENCIES: Agency[] = [
     what: 'One of 21 Regional Centers in CA. Primary gateway to developmental disability services under the Lanterman Act: ABA, respite, speech, OT, and a Service Coordinator.',
     whyMatters: 'RC is often the single most important connection. Your SC becomes your guide. RC funds services insurance won\'t cover.',
     services: ['Eligibility evaluation (free)', 'Service Coordinator assignment', 'ABA therapy funding', 'Respite care', 'Speech, OT, PT funding', 'Adaptive equipment', 'Diapers/incontinence (3+)', 'Transportation', 'Self-Determination Program'],
-    rights: ['Self-refer — no doctor needed', '15-day intake (W&I §4642)', '120-day eligibility (W&I §4643)', 'Right to appeal (Fair Hearing / 4731)', 'All communication in your language'],
+    rights: ['Self-refer — no doctor needed', '15-working-day intake (W&I §4642)', '120-day eligibility (W&I §4643)', 'Right to appeal (Fair Hearing / 4731)', 'All communication in your language'],
     watchOut: 'POS spending disparities: White families receive ~2x more than Latino families. Know what\'s available and request it specifically.',
     dynamic: true,
   },
@@ -65,9 +70,9 @@ export const AGENCIES: Agency[] = [
     type: 'Federal',
     phone: '1-800-772-1213',
     website: 'ssa.gov',
-    what: 'SSI ~$943/month for children with disabilities. Auto-enrolls in Medi-Cal.',
+    what: 'SSI ~$994/month (2026) for children with disabilities. Auto-enrolls in Medi-Cal.',
     whyMatters: 'Real money + Medi-Cal. The Function Report is key — describe WORST days.',
-    services: ['SSI ~$943/mo in CA', 'Automatic Medi-Cal', 'CalABLE eligibility'],
+    services: ['SSI ~$994/mo (2026, adjusted annually)', 'Automatic Medi-Cal', 'CalABLE eligibility'],
     rights: ['Appeal any denial', 'Continuing benefits during appeal', 'Back pay from application date'],
     watchOut: 'Function Report: describe WORST days. Be painfully specific about limitations.',
   },
@@ -114,7 +119,7 @@ export const LEARN_MORE: Record<string, LearnMoreEntry> = {
   'SSI': {
     key: 'SSI',
     title: 'Supplemental Security Income (SSI)',
-    body: 'What it is: A federal monthly cash benefit for people with disabilities who have limited income and resources. Administered by the Social Security Administration (SSA).\n\nAmount: Up to ~$943/month in CA (federal + state supplement). Adjusted annually for cost of living.\n\nFor children: A child under 18 qualifies if they have a medically determinable physical or mental impairment that results in \'marked and severe functional limitations\' expected to last 12+ months or result in death. Family income and resources are considered (under $2,000 countable resources).\n\nKey benefits beyond cash: Automatic Medi-Cal enrollment in CA (no separate application), eligibility for CalABLE savings account, pathway to IHSS.\n\nHow to apply: Call SSA at 1-800-772-1213, visit ssa.gov, or go to your local SSA office. Child applications cannot be fully completed online — you\'ll need an appointment.\n\nTimeline: 3-6 months for initial decision. If denied, appeal within 60 days — approval rates improve significantly on appeal.\n\nThe Function Report (SSA-3375-BK): This is the most important document in your application. It asks how your child\'s disability affects daily life. Describe your child\'s WORST days in vivid, specific detail. Never minimize.',
+    body: 'What it is: A federal monthly cash benefit for people with disabilities who have limited income and resources. Administered by the Social Security Administration (SSA).\n\nAmount: Up to ~$994 (2026 federal rate, adjusted annually; CA adds a state supplement)/month in CA (federal + state supplement). Adjusted annually for cost of living.\n\nFor children: A child under 18 qualifies if they have a medically determinable physical or mental impairment that results in \'marked and severe functional limitations\' expected to last 12+ months or result in death. Family income and resources are considered (under $2,000 countable resources).\n\nKey benefits beyond cash: Automatic Medi-Cal enrollment in CA (no separate application), eligibility for CalABLE savings account, pathway to IHSS.\n\nHow to apply: Call SSA at 1-800-772-1213, visit ssa.gov, or go to your local SSA office. Child applications cannot be fully completed online — you\'ll need an appointment.\n\nTimeline: 3-6 months for initial decision. If denied, appeal within 60 days — approval rates improve significantly on appeal.\n\nThe Function Report (SSA-3375-BK): This is the most important document in your application. It asks how your child\'s disability affects daily life. Describe your child\'s WORST days in vivid, specific detail. Never minimize.',
     tip: 'The #1 mistake: writing the Function Report on a good day. Describe the worst days. \'Cannot dress independently — puts clothes on backwards, cannot button or zip, requires full physical help for 30+ minutes.\' Get letters from every provider. If denied, appeal — don\'t re-apply. Consider a disability attorney (they work on contingency).',
   },
   'IHSS': {
@@ -126,7 +131,7 @@ export const LEARN_MORE: Record<string, LearnMoreEntry> = {
   'IEP': {
     key: 'IEP',
     title: 'Individualized Education Program (IEP)',
-    body: 'What it is: A legally binding document under IDEA (Individuals with Disabilities Education Act) that guarantees your child with a disability receives specific special education services and accommodations at school. Unlike a 504 plan, the IEP is enforceable by law — the school MUST provide every service listed.\n\nWhat\'s in an IEP: Present levels of performance, measurable annual goals, special education services (speech, OT, counseling, aide support), accommodations (extra time, modified assignments), placement (general ed, special day class, resource room), related services, transition plan (at age 16).\n\nYour rights as a parent: You are an EQUAL member of the IEP team. You can request a meeting anytime. You can bring anyone to the meeting (advocate, attorney, therapist). You do NOT have to sign the same day — take it home. You can consent to parts and reject others. You can request an audio recording of the meeting (CA Ed Code §56341.1).\n\nKey timelines: School has 15 days to respond to evaluation request with an assessment plan. 60 days from your consent to complete evaluation. 30 days from evaluation to hold IEP meeting. IEP reviewed annually, re-evaluation every 3 years.\n\nIf the school violates the IEP: File a CDE compliance complaint ((916) 319-0800), request compensatory services, or file for due process hearing. Free legal help: Disability Rights CA 1-800-776-5746.',
+    body: 'What it is: A legally binding document under IDEA (Individuals with Disabilities Education Act) that guarantees your child with a disability receives specific special education services and accommodations at school. Unlike a 504 plan, the IEP is enforceable by law — the school MUST provide every service listed.\n\nWhat\'s in an IEP: Present levels of performance, measurable annual goals, special education services (speech, OT, counseling, aide support), accommodations (extra time, modified assignments), placement (general ed, special day class, resource room), related services, transition plan (at age 16).\n\nYour rights as a parent: You are an EQUAL member of the IEP team. You can request a meeting anytime. You can bring anyone to the meeting (advocate, attorney, therapist). You do NOT have to sign the same day — take it home. You can consent to parts and reject others. You can request an audio recording of the meeting (CA Ed Code §56341.1).\n\nKey timelines: School has 15 days to respond to evaluation request with an assessment plan. 60 days from your signed consent to complete the evaluation AND hold the IEP meeting — one combined 60-day window (CA Ed Code §56344). School breaks longer than 5 schooldays pause the clock. IEP reviewed annually, re-evaluation every 3 years.\n\nIf the school violates the IEP: File a CDE compliance complaint ((916) 319-0800), request compensatory services, or file for due process hearing. Free legal help: Disability Rights CA 1-800-776-5746.',
     tip: 'NEVER sign the IEP at the meeting. Always say \'I\'d like to take this home to review.\' Once you sign, changes are much harder. Request all evaluation reports 5 days BEFORE the meeting. Record the meeting. If the school says \'we don\'t have the budget,\' that is NOT a legal reason to deny services.',
   },
   'IPP': {
@@ -150,7 +155,7 @@ export const LEARN_MORE: Record<string, LearnMoreEntry> = {
   'CalABLE': {
     key: 'CalABLE',
     title: 'What is CalABLE?',
-    body: 'What it is: A tax-advantaged savings account created under the federal ABLE Act, allowing individuals with disabilities to save money without losing SSI, Medi-Cal, or other means-tested benefits.\n\nKey features:\n• Save up to $100,000 without affecting SSI ($2,000 normal resource limit)\n• Annual contribution limit: ~$18,000/year (adjusted annually). Anyone can contribute.\n• Earnings grow tax-free (like a 529 plan)\n• Funds can be used for \'Qualified Disability Expenses\': education, housing, transportation, employment training, assistive technology, health/wellness, financial management, legal fees, oversight, and more\n\nEligibility: Disability onset before age 26, AND either receiving SSI/SSDI or able to self-certify the disability meets SSA criteria.\n\nHow to open: Go to CalABLE.ca.gov. Account is in the beneficiary\'s name; a parent/guardian can be the authorized signer. Choose from savings or investment options.\n\nWhy it matters: Without CalABLE, any savings over $2,000 disqualifies your child from SSI and Medi-Cal. CalABLE lets you build a financial safety net.',
+    body: 'What it is: A tax-advantaged savings account created under the federal ABLE Act, allowing individuals with disabilities to save money without losing SSI, Medi-Cal, or other means-tested benefits.\n\nKey features:\n• Save up to $100,000 without affecting SSI ($2,000 normal resource limit)\n• Annual contribution limit: $20,000/year (2026 limit, adjusted annually). Anyone can contribute.\n• Earnings grow tax-free (like a 529 plan)\n• Funds can be used for \'Qualified Disability Expenses\': education, housing, transportation, employment training, assistive technology, health/wellness, financial management, legal fees, oversight, and more\n\nEligibility: Disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026), AND either receiving SSI/SSDI or able to self-certify the disability meets SSA criteria.\n\nHow to open: Go to CalABLE.ca.gov. Account is in the beneficiary\'s name; a parent/guardian can be the authorized signer. Choose from savings or investment options.\n\nWhy it matters: Without CalABLE, any savings over $2,000 disqualifies your child from SSI and Medi-Cal. CalABLE lets you build a financial safety net.',
     tip: 'Open a CalABLE account as soon as SSI is approved. Tell grandparents, relatives, and friends — contributions make great gifts that don\'t jeopardize benefits. If your child ever earns money (even small amounts), deposit it into CalABLE to stay under the SSI resource limit.',
   },
   'DOR': {
@@ -163,7 +168,7 @@ export const LEARN_MORE: Record<string, LearnMoreEntry> = {
     key: 'Fair Hearing',
     title: 'What is a Fair Hearing?',
     body: 'What it is: A formal administrative appeal where an independent Administrative Law Judge (ALJ) reviews your case. Available when you disagree with decisions from Regional Center, SSA, IHSS, or Medi-Cal.\n\nFor Regional Center (§4710.5): You have 60 days to request a Fair Hearing after receiving a written Notice of Action. The ALJ hearing must be held within 50 days. Decision within 80 days. Aid Paid Pending: If you file within 10 days of the notice, existing services CONTINUE while you appeal.\n\nFor SSI: Request \'reconsideration\' first, then hearing before an ALJ. File within 60 days of denial. Consider a disability attorney (contingency — no upfront cost).\n\nFor IHSS: Request a State Hearing within 90 days of your Notice of Action. You can request Aid Paid Pending to keep current hours during appeal.\n\nFree legal help: Disability Rights CA: 1-800-776-5746. They provide free advocacy and representation for people with disabilities in California.',
-    tip: 'ALWAYS appeal a denial — approval rates improve significantly on appeal. For RC: file within 10 days to keep services during appeal (Aid Paid Pending). For SSI: never re-apply — always appeal the denial. Free legal help from Disability Rights CA: 1-800-776-5746.',
+    tip: 'ALWAYS appeal a denial — approval rates improve significantly on appeal. For RC: file within 30 days to keep services during appeal (Aid Paid Pending). For SSI: never re-apply — always appeal the denial. Free legal help from Disability Rights CA: 1-800-776-5746.',
   },
   '4731 Complaint': {
     key: '4731 Complaint',
