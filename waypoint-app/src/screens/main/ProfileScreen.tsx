@@ -18,9 +18,11 @@ import Button from '@/components/Button';
 import DiagnosisSelector from '@/components/DiagnosisSelector';
 import SelectGrid from '@/components/SelectGrid';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
+import { reseedStarterPlan } from '@/lib/planGenerator';
 import { signOut } from '@/lib/auth';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
+import type { Child } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 // ─── Options (same as onboarding) ────────────────────────────────────────────
@@ -57,7 +59,7 @@ const LANGUAGE_OPTIONS = [
 
 export default function ProfileScreen() {
   const { family, updateFamily, loading: familyLoading } = useFamily();
-  const { children } = useChildren(family?.id);
+  const { children, addChild, updateChild } = useChildren(family?.id);
   const primaryChild = children.find(c => c.is_primary) || children[0];
   const { diagnoses, setDiagnoses } = useDiagnoses(primaryChild?.id);
   const { t, locale, setLocale } = useI18n();
@@ -71,6 +73,9 @@ export default function ProfileScreen() {
   const [rcStatus, setRcStatus] = useState('');
   const [iepStatus, setIepStatus] = useState('');
   const [insurance, setInsurance] = useState('');
+  const [showAddChild, setShowAddChild] = useState(false);
+  const [newChildName, setNewChildName] = useState('');
+  const [addingChild, setAddingChild] = useState(false);
 
   // Populate form from database
   useEffect(() => {
@@ -85,6 +90,8 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (primaryChild) {
       setChildName(primaryChild.first_name || '');
+      setRcStatus(primaryChild.rc_status || '');
+      setIepStatus(primaryChild.iep_status || '');
     }
   }, [primaryChild]);
 
@@ -105,6 +112,14 @@ export default function ProfileScreen() {
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
+      // Detect intake changes BEFORE writing — they trigger a plan reseed
+      const intakeChanged =
+        primaryChild != null &&
+        ((primaryChild.rc_status || '') !== rcStatus ||
+          (primaryChild.iep_status || '') !== iepStatus ||
+          (family?.insurance_carrier || '') !== insurance ||
+          diagnoses.map(d => d.name).sort().join(',') !== [...selectedDiagnoses].sort().join(','));
+
       // Update family
       await updateFamily({
         parent_first_name: parentName.trim(),
@@ -113,19 +128,62 @@ export default function ProfileScreen() {
         insurance_carrier: insurance,
       });
 
-      // Update diagnoses
+      // Update child record — name + intake statuses (migration 012 columns)
       if (primaryChild) {
+        await updateChild(primaryChild.id, {
+          first_name: childName.trim() || primaryChild.first_name,
+          rc_status: (rcStatus || null) as Child['rc_status'],
+          iep_status: (iepStatus || null) as Child['iep_status'],
+        });
         await setDiagnoses(primaryChild.id, selectedDiagnoses);
       }
 
-      Alert.alert('Saved', 'Your profile has been updated.');
+      // Mirror the GAS MVP: intake changes regenerate the starter plan
+      // (untouched system actions replaced; started/completed work preserved)
+      if (intakeChanged && family && primaryChild) {
+        await reseedStarterPlan(family.id, primaryChild.id, {
+          diagnoses: selectedDiagnoses,
+          birthday: primaryChild.date_of_birth ? new Date(primaryChild.date_of_birth + 'T00:00:00') : null,
+          rcStatus,
+          iepStatus,
+          insurance,
+          childName: childName.trim(),
+          parentName: parentName.trim(),
+          zipCode: zipCode.trim() || undefined,
+        });
+      }
+
+      Alert.alert('Saved', intakeChanged
+        ? 'Profile updated — your action plan has been refreshed to match.'
+        : 'Your profile has been updated.');
     } catch (err: unknown) {
       const e = err as { message?: string };
       Alert.alert('Error', e.message || 'Failed to save profile');
     } finally {
       setSaving(false);
     }
-  }, [parentName, email, insurance, selectedDiagnoses, primaryChild, updateFamily, setDiagnoses]);
+  }, [parentName, email, zipCode, insurance, selectedDiagnoses, rcStatus, iepStatus, childName, primaryChild, family, diagnoses, updateFamily, updateChild, setDiagnoses]);
+
+  const handleAddChild = useCallback(async () => {
+    const name = newChildName.trim();
+    if (!name) {
+      Alert.alert('Name needed', "Please enter the child's first name.");
+      return;
+    }
+    setAddingChild(true);
+    try {
+      const created = await addChild({ first_name: name, is_primary: false });
+      if (created) {
+        setNewChildName('');
+        setShowAddChild(false);
+        Alert.alert('Added', `${name} has been added to your family.`);
+      } else {
+        Alert.alert('Error', 'Could not add child. Please try again.');
+      }
+    } finally {
+      setAddingChild(false);
+    }
+  }, [newChildName, addChild]);
 
   const handleSignOut = useCallback(async () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -209,6 +267,42 @@ export default function ProfileScreen() {
           />
         </View>
 
+        {/* Children */}
+        <Text style={styles.sectionTitle}>Children</Text>
+        <View style={styles.card}>
+          {children.map(c => (
+            <View key={c.id} style={styles.childRow}>
+              <Text style={styles.childName}>
+                {c.first_name}
+                {c.is_primary ? '  ⭐' : ''}
+              </Text>
+              {c.date_of_birth ? (
+                <Text style={styles.childDob}>Born {c.date_of_birth}</Text>
+              ) : null}
+            </View>
+          ))}
+          {showAddChild ? (
+            <View>
+              <Text style={styles.inputLabel}>New child's first name</Text>
+              <TextInput
+                style={styles.input}
+                value={newChildName}
+                onChangeText={setNewChildName}
+                placeholder="e.g., Leo"
+                placeholderTextColor={colors.mid}
+                autoCapitalize="words"
+                accessibilityLabel="New child's first name"
+              />
+              <View style={styles.addChildButtons}>
+                <Button title="Add" onPress={handleAddChild} loading={addingChild} disabled={addingChild} variant="primary" />
+                <Button title="Cancel" onPress={() => { setShowAddChild(false); setNewChildName(''); }} variant="outline" />
+              </View>
+            </View>
+          ) : (
+            <Button title="＋ Add a child" onPress={() => setShowAddChild(true)} variant="outline" />
+          )}
+        </View>
+
         {/* Diagnosis Section */}
         <Text style={styles.sectionTitle}>Diagnosis</Text>
         <View style={styles.card}>
@@ -281,7 +375,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        <Text style={styles.version}>Waypoint v2.0.0 (Sprint 6)</Text>
+        <Text style={styles.version}>Waypoint v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -342,6 +436,29 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.base,
     fontSize: fonts.sizes.md,
     color: colors.dark,
+  },
+  childRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    marginBottom: spacing.sm,
+  },
+  childName: {
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold as '600',
+    color: colors.dark,
+  },
+  childDob: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+  },
+  addChildButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
   buttonRow: {
     marginTop: spacing.xl,

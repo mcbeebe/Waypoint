@@ -20,6 +20,7 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { percentageLabel } from '@/lib/accessibility';
+import { FLAGS } from '@/lib/flags';
 
 /** Get time-based greeting (ported from GAS MVP) */
 function getGreeting(): string {
@@ -266,6 +267,41 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             >
               <Text style={styles.quickActionEmoji}>{action.emoji}</Text>
               <Text style={styles.quickActionLabel}>{action.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Tools — entry points to the full feature set */}
+        <Text style={styles.sectionTitle}>Tools</Text>
+        <View style={styles.quickActions}>
+          {[
+            { emoji: '📁', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
+            { emoji: '📚', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources' }) },
+            { emoji: '📰', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog' }) },
+            { emoji: '💵', label: 'Expenses', go: () => (navigation as any).navigate('Calendar', { screen: 'Expenses' }) },
+            { emoji: '🧾', label: 'Tax Report', go: () => (navigation as any).navigate('Calendar', { screen: 'TaxReport' }) },
+            { emoji: '🩺', label: 'Providers', go: () => (navigation as any).navigate('Providers') },
+            { emoji: '🗂️', label: 'Services', go: () => (navigation as any).navigate('Services') },
+            { emoji: '📊', label: 'Insights', go: () => (navigation as any).navigate('Insights') },
+            { emoji: '👨‍👩‍👧', label: 'Family', go: () => (navigation as any).navigate('FamilySharing') },
+            { emoji: '🏥', label: 'Health Records', go: () => (navigation as any).navigate('HealthRecords') },
+            { emoji: '🤝', label: 'Provider Portal', go: () => (navigation as any).navigate('ProviderPortal') },
+            ...(FLAGS.community
+              ? [
+                  { emoji: '💬', label: 'Community', go: () => (navigation as any).navigate('Forum') },
+                  { emoji: '✉️', label: 'Messages', go: () => (navigation as any).navigate('Messages') },
+                ]
+              : []),
+          ].map(tool => (
+            <TouchableOpacity
+              key={tool.label}
+              style={styles.quickAction}
+              onPress={tool.go}
+              accessibilityRole="button"
+              accessibilityLabel={tool.label}
+            >
+              <Text style={styles.quickActionEmoji}>{tool.emoji}</Text>
+              <Text style={styles.quickActionLabel}>{tool.label}</Text>
             </TouchableOpacity>
           ))}
         </View>

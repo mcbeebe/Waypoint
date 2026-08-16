@@ -10,7 +10,8 @@
  * - Deadline indicators with color-coded urgency
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -57,6 +58,7 @@ const STATUS_FILTERS: ActionStatus[] = ['not_started', 'in_progress', 'completed
 
 export default function ActionsScreen() {
   const { family } = useFamily();
+  const navigation = useNavigation();
   const [activeFilter, setActiveFilter] = useState<ActionStatus | 'all'>('all');
 
   const statusFilter = activeFilter === 'all'
@@ -74,6 +76,14 @@ export default function ActionsScreen() {
     familyId: family?.id ?? '',
     statusFilter,
   });
+
+  // Refresh when returning from ActionDetail so status/step changes show
+  useFocusEffect(
+    useCallback(() => {
+      if (family?.id) refetch();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [family?.id])
+  );
 
   // Sort: urgent first, then by due date, then by created date
   const sortedActions = useMemo(() => {
@@ -161,6 +171,7 @@ export default function ActionsScreen() {
           <ActionCard
             action={item}
             onStatusPress={() => handleCycleStatus(item)}
+            onOpenDetail={() => (navigation as any).navigate('ActionDetail', { actionId: item.id })}
           />
         )}
         contentContainerStyle={styles.listContent}
@@ -193,9 +204,11 @@ export default function ActionsScreen() {
 function ActionCard({
   action,
   onStatusPress,
+  onOpenDetail,
 }: {
   action: Action;
   onStatusPress: () => void;
+  onOpenDetail: () => void;
 }) {
   const statusConfig = STATUS_CONFIG[action.status];
   const priorityConfig = PRIORITY_CONFIG[action.priority];
@@ -221,8 +234,13 @@ function ActionCard({
           </Text>
         </TouchableOpacity>
 
-        {/* Title + meta */}
-        <View style={styles.cardContent}>
+        {/* Title + meta — tap to open full detail (scripts, steps, documents) */}
+        <TouchableOpacity
+          style={styles.cardContent}
+          onPress={onOpenDetail}
+          accessibilityRole="button"
+          accessibilityLabel={`Open details for ${action.title}`}
+        >
           <Text
             style={[
               styles.cardTitle,
@@ -243,8 +261,9 @@ function ActionCard({
                 {priorityConfig.label}
               </Text>
             </View>
+            <Text style={styles.detailHint}>Details ›</Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* Steps progress bar */}
@@ -517,6 +536,12 @@ const styles = StyleSheet.create({
   categoryTag: {
     fontSize: 10,
     color: colors.mid,
+  },
+  detailHint: {
+    fontSize: 11,
+    color: colors.teal,
+    fontWeight: fonts.weights.semibold as '600',
+    marginLeft: 'auto',
   },
   priorityBadge: {
     paddingHorizontal: 6,
