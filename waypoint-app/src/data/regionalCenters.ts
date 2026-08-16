@@ -1,8 +1,13 @@
 /**
  * California Regional Center directory, ZIP → RC mapping, and lookup helpers.
- * Transcribed VERBATIM from gas-mvp/Index.html (RC_DATABASE ~lines 762-784,
  * ZIP_TO_RC ~lines 786-803, ZIP_5_OVERRIDES + lookupRC ~lines 805-821).
- * Content is authored domain knowledge — do not edit strings.
+  *
+ * NOTE ON ACCURACY (added after the Aug 2026 content audit): this file contains
+ * dated legal figures and statutory timelines. It is NOT frozen — when a law,
+ * rate, or deadline changes, UPDATE IT, and verify edits against current
+ * primary sources (DDS, SSA, CA Ed Code). Dollar amounts and ages are marked
+ * with their year where possible. src/data/contentFacts.test.ts guards against
+ * known-stale values reappearing.
  */
 import type { RegionalCenter } from './types';
 

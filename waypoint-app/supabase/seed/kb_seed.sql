@@ -109,7 +109,7 @@ Key Procedural Safeguards
 IDEA includes extensive procedural protections: Prior Written Notice (PWN) — the school must notify you in writing before proposing or refusing any change to your child’s identification, evaluation, placement, or services. Informed Consent — the school cannot evaluate or place your child without your written consent. Access to Records — you have the right to inspect and copy all educational records. Parent Participation — you are an equal member of the IEP team and must be included in all decisions. Independent Educational Evaluation (IEE) — if you disagree with the school’s evaluation, you can request an IEE at public expense.
 
 Evaluation Timelines
-When you request an evaluation, the school has 15 calendar days to respond with an assessment plan. Once you consent to the plan, the school has 60 calendar days to complete the evaluation. The IEP meeting must be held within 30 calendar days of the evaluation being completed. These timelines are legally enforceable — if the school misses them, document the violation and reference it in any dispute.
+When you request an evaluation, the school has 15 calendar days to respond with an assessment plan. Once you consent to the plan, the school has 60 calendar days to complete the evaluation. The IEP meeting must be held within that same 60-day window — the evaluation and the meeting share one combined clock under Ed Code §56344. These timelines are legally enforceable — if the school misses them, document the violation and reference it in any dispute.
 
 What to Say If the School Resists
 "Under IDEA, my child has the right to a Free Appropriate Public Education. I am making a formal request for [evaluation/service/meeting] in writing. Please provide Prior Written Notice if you intend to refuse this request, including the specific reasons and the data you relied upon."$kb$, $kb$iep$kb$, $kb$IEP-001$kb$, $kb${"code":"IEP-001","title":"IDEA Procedural Safeguards & FAPE","category":"iep","subcategory":"idea-fape","source_ref":"IDEA §300.1-300.818, 20 U.S.C. §1400","last_reviewed":"February 23, 2026","origin":"lite-kb-feb2026"}$kb$::jsonb);
@@ -190,7 +190,7 @@ BENEFITS (5 Articles)
 Task 41 from the Lite Project Plan. Covering SSI, IHSS, funding waterfall, Medi-Cal, and CalABLE.$kb$, $kb$iep$kb$, $kb$IEP-005$kb$, $kb${"code":"IEP-005","title":"Independent Educational Evaluations (IEE)","category":"iep","subcategory":"iee","source_ref":"IDEA §300.502, CA Ed Code §56329","last_reviewed":"February 23, 2026","origin":"lite-kb-feb2026"}$kb$::jsonb);
 insert into public.knowledge_embeddings (content, source, section, metadata) values ($kb$SSI for Children with Disabilities
 
-Supplemental Security Income (SSI) provides monthly cash payments to children with disabilities from low-income families. In California, the combined federal and state SSI payment for a child is approximately $943 per month (2024 rates). SSI also automatically enrolls your child in Medi-Cal, which covers medical services with no premiums or copays.
+Supplemental Security Income (SSI) provides monthly cash payments to children with disabilities from low-income families. In California, the combined federal and state SSI payment for a child is approximately $994 per month (2026 federal rate, adjusted annually). SSI also automatically enrolls your child in Medi-Cal, which covers medical services with no premiums or copays.
 
 Eligibility Requirements
 Your child must have a physical or mental condition that results in "marked and severe functional limitations" and is expected to last at least 12 months or result in death. Family income and resources are considered: generally, a family of 4 earning less than roughly $45,000-55,000 annually may qualify, though the calculation is complex and depends on household composition. The resource limit is $2,000 for an individual or $3,000 for a couple (not counting your home or one vehicle). A critical exception for RC clients: "institutional deeming" means only the child’s income and resources count, not the parents’ — ask your RC service coordinator about this.
@@ -253,13 +253,13 @@ insert into public.knowledge_embeddings (content, source, section, metadata) val
 CalABLE (Achieving a Better Life Experience) accounts allow people with disabilities to save money without losing eligibility for SSI, Medi-Cal, IHSS, and other means-tested benefits. This solves one of the biggest problems families face: the $2,000 SSI resource limit that penalizes saving.
 
 How CalABLE Works
-You can contribute up to $18,000 per year (2024 limit, adjusts annually) into a CalABLE account. The account can hold up to $100,000 before it affects SSI eligibility (SSI payments are suspended, not terminated, while the balance exceeds $100K, and resume when it drops below). The full balance is exempt from Medi-Cal asset limits with no cap. Funds grow tax-free and withdrawals are tax-free when used for qualified disability expenses.
+You can contribute up to $20,000 per year (2026 limit, adjusts annually) into a CalABLE account. The account can hold up to $100,000 before it affects SSI eligibility (SSI payments are suspended, not terminated, while the balance exceeds $100K, and resume when it drops below). The full balance is exempt from Medi-Cal asset limits with no cap. Funds grow tax-free and withdrawals are tax-free when used for qualified disability expenses.
 
 Qualified Disability Expenses
 CalABLE funds can be used for a broad range of expenses related to the beneficiary’s disability: education (tuition, books, tutoring), housing (rent, mortgage, utilities, home modifications), transportation (vehicle purchase, rideshare, public transit), employment support (job training, assistive technology), health and wellness (medical expenses, therapies, dental, vision, fitness), assistive technology (communication devices, adaptive equipment), personal support (caregiver expenses, supervision), and financial management and legal fees. The definition is intentionally broad — most expenses that maintain or improve quality of life qualify.
 
 Who Can Open an Account
-The beneficiary must have had a qualifying disability onset before age 26. The account is in the beneficiary’s name, but a parent or legal representative can manage it. Open an account at CalABLE.ca.gov. There are no income restrictions for opening an account, and anyone (family, friends, employers) can contribute.
+The beneficiary must have had a qualifying disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). The account is in the beneficiary’s name, but a parent or legal representative can manage it. Open an account at CalABLE.ca.gov. There are no income restrictions for opening an account, and anyone (family, friends, employers) can contribute.
 
 CalABLE vs. Special Needs Trust
 CalABLE is simpler and cheaper to set up (no attorney needed), but has lower contribution limits. A Special Needs Trust has no contribution cap and can hold unlimited assets, but requires an attorney to establish and a trustee to manage. Many families use both: CalABLE for day-to-day savings and accessible funds, and a Special Needs Trust for larger assets like inheritances or lawsuit settlements. Both protect benefit eligibility.
@@ -325,13 +325,13 @@ SSI Fair Hearings
 If SSI is denied or reduced, you have 60 days to request a hearing. Request "continuation of benefits" (similar to Aid Paid Pending) if filing within 10 days of a benefit reduction. The hearing is before a federal ALJ. You can request the hearing online at ssa.gov, by phone (1-800-772-1213), or at your local SS office.
 
 IHSS Fair Hearings
-Request within 90 days of the notice of change. Aid Paid Pending if filed within 10 days. Hearing through the California Department of Social Services (CDSS). The hearing evaluates whether the assessed hours accurately reflect your child’s care needs.
+Request within 90 days of the notice of change. Aid Paid Pending if filed within 30 days (file as soon as possible). Hearing through the California Department of Social Services (CDSS). The hearing evaluates whether the assessed hours accurately reflect your child’s care needs.
 
 Medi-Cal Fair Hearings
-Request within 90 days of the denial. Aid Paid Pending if filed within 10 days. File through DHCS or your county Medi-Cal office. For managed care plans, you must first exhaust the plan’s internal grievance process.
+Request within 90 days of the denial. Aid Paid Pending if filed within 30 days (file as soon as possible). File through DHCS or your county Medi-Cal office. For managed care plans, you must first exhaust the plan’s internal grievance process.
 
 Universal Tips for All Hearings
-Always file in writing and keep a copy. Always request Aid Paid Pending (or continuation of benefits) within 10 days. Bring organized documentation: the denial letter, relevant evaluations, provider letters, and the applicable law. You can bring an advocate or attorney. Practice your testimony: be clear, factual, and focused on your child’s needs. The judge’s decision is based on evidence, not emotion, but showing your child’s real daily challenges is powerful evidence.$kb$, $kb$rights$kb$, $kb$RGT-001$kb$, $kb${"code":"RGT-001","title":"Fair Hearing Rights Across Systems","category":"rights","subcategory":"fair-hearings","source_ref":"W&I Code §4710.5, IDEA §300.507, 42 CFR §431.200","last_reviewed":"February 23, 2026","origin":"lite-kb-feb2026"}$kb$::jsonb);
+Always file in writing and keep a copy. Always request Aid Paid Pending (or continuation of benefits) within 30 days — file as soon as possible. Bring organized documentation: the denial letter, relevant evaluations, provider letters, and the applicable law. You can bring an advocate or attorney. Practice your testimony: be clear, factual, and focused on your child’s needs. The judge’s decision is based on evidence, not emotion, but showing your child’s real daily challenges is powerful evidence.$kb$, $kb$rights$kb$, $kb$RGT-001$kb$, $kb${"code":"RGT-001","title":"Fair Hearing Rights Across Systems","category":"rights","subcategory":"fair-hearings","source_ref":"W&I Code §4710.5, IDEA §300.507, 42 CFR §431.200","last_reviewed":"February 23, 2026","origin":"lite-kb-feb2026"}$kb$::jsonb);
 insert into public.knowledge_embeddings (content, source, section, metadata) values ($kb$Filing Complaints — 4731, CDE, and OCR
 
 Complaints are different from fair hearings. While fair hearings challenge specific decisions about your child’s services, complaints address systemic violations: when an agency breaks the rules. California has several complaint mechanisms depending on which agency is involved.
@@ -460,7 +460,7 @@ ELIGIBILITY: Five qualifying conditions: Intellectual Disability (ID), Cerebral 
 
 HOW TO APPLY: Self-referral or physician referral accepted. Once referred, the Regional Center must respond within 120 days and complete an assessment. An Individualized Program Plan (IPP) is developed at intake and reviewed annually.
 
-APPEALS: Families can request a Fair Hearing through the Office of Administrative Hearings (OAH) if they disagree with RC decisions. File the appeal within 30 days of denial. Mediation is also available.
+APPEALS: Families can request a Fair Hearing through the Office of Administrative Hearings (OAH) if they disagree with RC decisions. File the appeal within 60 days of the Notice of Action. Mediation is also available.
 
 EQUITY CONCERNS: White children receive approximately 2x more spending than Latino children at 17 of 21 Regional Centers. This reflects systemic barriers and differences in service utilization.$kb$, $kb$benefits$kb$, $kb$ent-rc$kb$, $kb${"code":"ent-rc","title":"Regional Center (RC) — Complete Guide","category":"benefits","subcategory":"rc-guide","source_ref":"Lanterman Act, DDS, Undivided, DRC","origin":"entity-matrix-v9.4"}$kb$::jsonb);
 insert into public.knowledge_embeddings (content, source, section, metadata) values ($kb$In-Home Supportive Services (IHSS) — Complete Guide
@@ -565,7 +565,7 @@ IDEA is the federal law guaranteeing FAPE (Free Appropriate Public Education) fo
 PART C: Ages 0-3 (Early Intervention through Regional Centers).
 PART B: Ages 3-21 (School district IEP services).
 
-CA TIMELINES: 15 days to respond to assessment request. 60 days to complete assessment. 30 days to hold IEP meeting. Annual IEP review. Triennial re-evaluation.
+CA TIMELINES: 15 days to respond to assessment request. 60 days from signed consent to complete the assessment AND hold the IEP meeting (one combined clock, Ed Code §56344). Annual IEP review. Triennial re-evaluation.
 
 FREE REGARDLESS OF STATUS: FAPE is free regardless of income or immigration status.
 
@@ -651,7 +651,7 @@ An IEP is a legal document specifying a student's present levels, annual goals, 
 
 ELIGIBILITY: Must qualify under one of 13 IDEA disability categories AND disability must adversely affect educational performance.
 
-TIMELINE: IEP meeting within 30 days of eligibility. Annual review required. Triennial re-evaluation. Parent can request IEP meeting at any time.
+TIMELINE: evaluation and initial IEP meeting within 60 days of signed assessment consent (Ed Code §56344). Annual review required. Triennial re-evaluation. Parent can request IEP meeting at any time.
 
 YOUR RIGHTS: Right to meaningful participation. Right to disagree and request IEE at public expense. Right to Prior Written Notice for any proposed change. Right to interpreter at all meetings. Can record with 24-hour notice in CA. Can bring anyone to meeting.
 
@@ -671,7 +671,7 @@ COMMON ACCOMMODATIONS: Extended time, preferential seating, modified assignments
 WHEN 504 MAY NOT BE ENOUGH: If your child needs specialized instruction (not just accommodations), push for IEP evaluation.$kb$, $kb$iep$kb$, $kb$ent-504$kb$, $kb${"code":"ent-504","title":"504 Plan — Accommodations Guide","category":"iep","subcategory":"504-plan-guide","source_ref":"Section 504, OCR, ADA","origin":"entity-matrix-v9.4"}$kb$::jsonb);
 insert into public.knowledge_embeddings (content, source, section, metadata) values ($kb$IEP Assessments & IEE — Evaluation Guide
 
-Parents can request evaluation at any time. The district has 15 days to respond with an assessment plan, 60 days to complete, IEP within 30 days.
+Parents can request evaluation at any time. The district has 15 days to respond with an assessment plan, then 60 days from signed consent to complete the evaluation and hold the IEP meeting (one combined clock, Ed Code §56344).
 
 COMPREHENSIVE ASSESSMENT: District MUST assess in ALL areas of suspected disability. If you suspect reading AND writing AND social-emotional issues, request assessment in all areas. Don't let district limit the scope.
 
@@ -747,7 +747,7 @@ COMPENSATORY EDUCATION: If school failed to provide IEP services, request comp e
 SCHOOLS RARELY OFFER COMP ED VOLUNTARILY: DRC's tracking log is essential evidence. File state complaint or due process if school refuses.$kb$, $kb$iep$kb$, $kb$ent-progress$kb$, $kb${"code":"ent-progress","title":"IEP Progress Monitoring & Compensatory Education","category":"iep","subcategory":"progress-monitoring-comp-ed-guide","source_ref":"IDEA, DRC Tracking Log","origin":"entity-matrix-v9.4"}$kb$::jsonb);
 insert into public.knowledge_embeddings (content, source, section, metadata) values ($kb$SpEd Reference — Timelines, Terms, Procedural Safeguards
 
-CA TIMELINES: 15 days to respond to assessment request. 60 days to complete assessments. 30 days to hold IEP meeting. Annual IEP review. Triennial re-evaluation every 3 years. Districts frequently miss timelines without consequence unless parents track and enforce.
+CA TIMELINES: 15 days to respond to assessment request. 60 days from signed consent to complete assessments AND hold the IEP meeting (one combined clock, Ed Code §56344). Annual IEP review. Triennial re-evaluation every 3 years. Districts frequently miss timelines without consequence unless parents track and enforce.
 
 COMMON DISTRICT STATEMENTS (per DRC): "We don't do that here" — likely wrong. "Your child doesn't qualify" — request assessment anyway. "We need to wait and see" — you have right to request evaluation now. "We don't have the budget" — FAPE is not budget-dependent. "We don't provide mental health services" — ERMHS is required when needed.
 
@@ -906,9 +906,9 @@ insert into public.knowledge_embeddings (content, source, section, metadata) val
 
 CalABLE is a tax-advantaged savings account for people with disabilities. Simpler and cheaper than a Special Needs Trust.
 
-ELIGIBILITY: Disability onset before age 26. Must be SSI/SSDI recipient OR have written diagnosis from licensed physician.
+ELIGIBILITY: Disability onset before age 46 (raised from 26 effective Jan 1, 2026). Must be SSI/SSDI recipient OR have written diagnosis from licensed physician.
 
-HOW IT WORKS: Enroll online at CalABLE.ca.gov. Choose investment options. Contribute up to ~$18K/year.
+HOW IT WORKS: Enroll online at CalABLE.ca.gov. Choose investment options. Contribute up to $20,000/year (2026 limit).
 
 SSI INTERACTION: First $100K excluded from SSI resource limit. Over $100K: SSI suspended (NOT Medi-Cal — Medi-Cal protected regardless).
 
@@ -1440,7 +1440,7 @@ HOW TO ACT: STEP 1: 2 weeks before eligibility meeting, call your RC contact: 'I
 STEP 2: Review all reports. Highlight anything you disagree with. Note your questions.
 STEP 3: At the meeting, take notes (or bring someone to take notes). Ask: 'Based on these evaluations, is my child eligible for Regional Center services under the autism category?'
 STEP 4: IF ELIGIBLE: Ask: 'Who is my Service Coordinator? When will we schedule the IPP meeting? Can we begin receiving services immediately?' (RC must develop IPP within 60 days.)
-STEP 5: IF DENIED: Say: 'I disagree with this determination. Please provide me with a written notice of denial with the specific reasons, and information about my fair hearing rights.' You have 30 days to request a fair hearing.
+STEP 5: IF DENIED: Say: 'I disagree with this determination. Please provide me with a written notice of denial with the specific reasons, and information about my fair hearing rights.' You have 60 days to request a fair hearing.
 
 CONTACT: REGIONAL CENTER: Your assigned intake coordinator or service coordinator.
 IF DENIED — APPEAL HELP:
@@ -1537,7 +1537,7 @@ insert into public.knowledge_embeddings (content, source, section, metadata) val
 
 Autism — Step 3.2: Apply for Medi-Cal, SSI, IHSS, CalABLE (Full Benefits Package)
 
-WHAT TO DO: APPLY FOR ALL FOUR BENEFITS SIMULTANEOUSLY: (1) MEDI-CAL: RC eligibility often opens HCBS-DD waiver pathway — only child's income counts (institutional deeming). Apply at coveredca.com or county social services office. (2) SSI: Apply at ssa.gov or local SSA office. For autism, the Function Report is CRITICAL — describe WORST day, not average day. High initial denial rate — plan to appeal. (3) IHSS: Apply at county IHSS office. Requires Medi-Cal. County worker does in-home assessment. Parent CAN be paid provider. Request protective supervision if applicable. (4) CalABLE: Open account at calable.ca.gov — no minimum age, $19K/year, doesn't affect SSI under $100K.
+WHAT TO DO: APPLY FOR ALL FOUR BENEFITS SIMULTANEOUSLY: (1) MEDI-CAL: RC eligibility often opens HCBS-DD waiver pathway — only child's income counts (institutional deeming). Apply at coveredca.com or county social services office. (2) SSI: Apply at ssa.gov or local SSA office. For autism, the Function Report is CRITICAL — describe WORST day, not average day. High initial denial rate — plan to appeal. (3) IHSS: Apply at county IHSS office. Requires Medi-Cal. County worker does in-home assessment. Parent CAN be paid provider. Request protective supervision if applicable. (4) CalABLE: Open account at calable.ca.gov — no minimum age, $20,000/year (2026 limit), doesn't affect SSI under $100K.
 
 HOW TO ACT: MEDI-CAL: Apply online at coveredca.com or call (800) 300-1506. Contact your county social services office.
 SSI: Apply at ssa.gov/benefits/disability or call (800) 772-1213. Bring: birth certificate, medical records, evaluation reports, school records.
@@ -1879,7 +1879,7 @@ insert into public.knowledge_embeddings (content, source, section, metadata) val
 
 Autism — Step 6.1: CalABLE, SNT & Age-18 Planning
 
-WHAT TO DO: LONG-TERM FINANCIAL AND LEGAL PLANNING: (1) CalABLE: Open account at calable.ca.gov immediately — no minimum age. Save up to $19K/year. Balances under $100K don't affect SSI. Tax-advantaged growth. (2) Special Needs Trust (SNT): If your child will receive inheritances or large gifts, SNT protects SSI/Medi-Cal eligibility. Consult an SNT attorney ($2K-$5K to establish). (3) AT AGE 18: (a) SSI re-evaluation (child → adult criteria — PREPARE), (b) Conservatorship vs Supported Decision-Making decision, (c) Transition to adult RC services. (4) Start planning for age 18 by age 16. (5) Consider: Letter of Intent (non-legal document describing your child's daily life, preferences, needs — for future caregivers).
+WHAT TO DO: LONG-TERM FINANCIAL AND LEGAL PLANNING: (1) CalABLE: Open account at calable.ca.gov immediately — no minimum age. Save up to $20,000/year (2026 limit). Balances under $100K don't affect SSI. Tax-advantaged growth. (2) Special Needs Trust (SNT): If your child will receive inheritances or large gifts, SNT protects SSI/Medi-Cal eligibility. Consult an SNT attorney ($2K-$5K to establish). (3) AT AGE 18: (a) SSI re-evaluation (child → adult criteria — PREPARE), (b) Conservatorship vs Supported Decision-Making decision, (c) Transition to adult RC services. (4) Start planning for age 18 by age 16. (5) Consider: Letter of Intent (non-legal document describing your child's daily life, preferences, needs — for future caregivers).
 
 HOW TO ACT: STEP 1: CalABLE — go to calable.ca.gov TODAY. Click 'Open an Account.' Takes 15 minutes. Fund with even $25/month.
 STEP 2: By age 14, consult an SNT attorney. Ask your RC Service Coordinator or DRC for referrals to disability-focused estate planning attorneys.
@@ -5746,12 +5746,12 @@ insert into public.knowledge_embeddings (content, source, section, metadata) val
 CalABLE DETAILS: calable.ca.g
 
 SLI — Step 7.4: CalABLE Account & Financial Planning
-CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 26. Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
+CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
 
-WHAT TO DO: For children with persistent communication disabilities: CalABLE account available at any age (no minimum age). Allows saving up to $19K/year without affecting SSI/Medi-Cal eligibility ($100K SSI threshold). Tax-advantaged savings for disability-related expenses including therapy, assistive technology, AAC devices. SSI may be available if speech/language impairment is severe enough to significantly limit functioning. Most children with SLI alone do NOT qualify for SSI, but SLI + co-occurring conditions (autism, intellectual disability) may qualify.
+WHAT TO DO: For children with persistent communication disabilities: CalABLE account available at any age (no minimum age). Allows saving up to $20,000/year (2026 limit) without affecting SSI/Medi-Cal eligibility ($100K SSI threshold). Tax-advantaged savings for disability-related expenses including therapy, assistive technology, AAC devices. SSI may be available if speech/language impairment is severe enough to significantly limit functioning. Most children with SLI alone do NOT qualify for SSI, but SLI + co-occurring conditions (autism, intellectual disability) may qualify.
 
 HOW TO ACT: STEP 1: For children with persistent communication disabilities: CalABLE account available at any age (no minimum age).
-STEP 2: Allows saving up to $19K/year without affecting SSI/Medi-Cal eligibility ($100K SSI threshold).
+STEP 2: Allows saving up to $20,000/year (2026 limit) without affecting SSI/Medi-Cal eligibility ($100K SSI threshold).
 STEP 3: Tax-advantaged savings for disability-related expenses including therapy, assistive technology, AAC devices.
 STEP 4: SSI may be available if speech/language impairment is severe enough to significantly limit functioning.
 STEP 5: Most children with SLI alone do NOT qualify for SSI, but SLI + co-occurring conditions (autism, intellectual disability) may qualify.
@@ -5765,7 +5765,7 @@ REGIONAL CENTER (if eligible): Self-Determination Program and community-based se
 
 DOCUMENTS: CALABLE DOCUMENTS:
 • CalABLE enrollment: calable.ca.gov
-• Proof of disability onset before age 26 (evaluation report with diagnosis date)
+• Proof of disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026) (evaluation report with diagnosis date)
 • OR: SSI/SSDI eligibility letter
 • OR: Disability certification from licensed professional
 
@@ -5776,20 +5776,20 @@ SSI DOCUMENTS (if applicable):
 • School records (IEP, evaluations)
 
 FINANCIAL PLANNING:
-• CalABLE contribution records ($19K/year limit, $100K SSI-safe)
+• CalABLE contribution records ($20,000/year limit (2026), $100K SSI-safe)
 • Special Needs Trust (if applicable) — attorney consultation documentation
 • Benefits coordination plan (CalABLE + SSI + Medi-Cal)
 • Annual review of financial plan
 
 TIMELINE: CalABLE: enroll anytime. SSI: 3-6 months for determination.
-CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 26. Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
+CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
 
 AVOID: DO NOT: Most children with SLI alone do NOT qualify for SSI, but SLI + co-occurring conditions (autism, intellectual disability) may qualify
 
 AVOID THESE COMMON PITFALLS: Parents don't know about CalABLE. SSI denied for SLI alone. AAC device costs not covered by school — family pays out of pocket. Private therapy costs accumulate.
 
 RISKS: Parents don't know about CalABLE. SSI denied for SLI alone. AAC device costs not covered by school — family pays out of pocket. Private therapy costs accumulate.
-CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 26. Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
+CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
 
 RESOURCES: ASHA PARENT RESOURCES: asha.org/public — milestones, FAQs, parent toolkits
 HANEN CENTRE: hanen.org — evidence-based parent programs for language development
@@ -5802,7 +5802,7 @@ CA PTI NETWORK: parentcenterhub.org
 BOOKS: 'It Takes Two to Talk' (Hanen), 'More Than Words' (Hanen)
 
 PRIMARY AGENCY: CalABLE / SSA
-CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 26. Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
+CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
 OTHER AGENCIES: Regional Center (if eligible)
 Financial planner$kb$, $kb$journey_sli$kb$, $kb$jrn-sli-s74$kb$, $kb${"code":"jrn-sli-s74","title":"SLI Step 7.4: CalABLE Account & Financial Planning\nCalABLE DETAILS: calable.ca.g","category":"journey-sli","subcategory":"step-74","source_ref":"Entity Matrix v9.4","origin":"entity-matrix-v9.4"}$kb$::jsonb);
 insert into public.knowledge_embeddings (content, source, section, metadata) values ($kb$SLD Journey Map — Overview
@@ -7259,9 +7259,9 @@ insert into public.knowledge_embeddings (content, source, section, metadata) val
 CalABLE DETAILS: calable.ca.
 
 ID — Step 5.2: Apply for Medi-Cal, SSI, IHSS, CalABLE
-CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 26. Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
+CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
 
-WHAT TO DO: BENEFITS PACKAGE for ID: (1) MEDI-CAL: HCBS waiver, 45-day determination, covers medical + therapy. ID with RC eligibility = automatic Medi-Cal eligibility in many cases. (2) SSI: Supplemental Security Income for children with disabilities. ID is one of the highest-approval-rate conditions for SSI. Function report critical — describe daily challenges in detail. (3) IHSS: In-Home Supportive Services — personal care, domestic services, protective supervision. Many children with moderate-severe ID qualify for protective supervision. (4) CalABLE: No minimum age. $19K/year tax-advantaged savings. SSI $100K threshold. For ID, CalABLE is essential for long-term financial planning since ID is lifelong.
+WHAT TO DO: BENEFITS PACKAGE for ID: (1) MEDI-CAL: HCBS waiver, 45-day determination, covers medical + therapy. ID with RC eligibility = automatic Medi-Cal eligibility in many cases. (2) SSI: Supplemental Security Income for children with disabilities. ID is one of the highest-approval-rate conditions for SSI. Function report critical — describe daily challenges in detail. (3) IHSS: In-Home Supportive Services — personal care, domestic services, protective supervision. Many children with moderate-severe ID qualify for protective supervision. (4) CalABLE: No minimum age. $20,000/year (2026 limit) tax-advantaged savings. SSI $100K threshold. For ID, CalABLE is essential for long-term financial planning since ID is lifelong.
 
 HOW TO ACT: STEP 1: BENEFITS PACKAGE for ID: (1) MEDI-CAL: HCBS waiver, 45-day determination, covers medical + therapy.
 STEP 2: ID with RC eligibility = automatic Medi-Cal eligibility in many cases.
@@ -7292,8 +7292,8 @@ IHSS APPLICATION:
 
 CALABLE:
 • Enroll at calable.ca.gov
-• Proof of disability onset before age 26
-• $19K/year contribution limit, $100K SSI-safe
+• Proof of disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026)
+• $20,000/year (2026) contribution limit, $100K SSI-safe
 
 MEDI-CAL:
 • Automatic with SSI in CA
@@ -7301,7 +7301,7 @@ MEDI-CAL:
 • Annual renewal required
 
 TIMELINE: Medi-Cal: 45 days. SSI: 3-6 months. IHSS: 30-60 days. CalABLE: immediate.
-CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 26. Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
+CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
 
 AVOID: AVOID THESE COMMON PITFALLS: SSI denied despite qualifying ID diagnosis — appeal is critical (high overturn rate). IHSS protective supervision denied — requires strong documentation. Medi-Cal HCBS waiver not offered. CalABLE not opened early. Benefits coordination complex — SSI and IHSS amounts interact. Self-direction options for IHSS not explained.
 
@@ -7321,7 +7321,7 @@ PRIMARY AGENCY: SSA (SSI)
 DSS (IHSS)
 Medi-Cal
 CalABLE
-CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 26. Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
+CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
 OTHER AGENCIES: Regional Center
 Parent$kb$, $kb$journey_id$kb$, $kb$jrn-id-s52$kb$, $kb${"code":"jrn-id-s52","title":"ID Step 5.2: Apply for Medi-Cal, SSI, IHSS, CalABLE\nCalABLE DETAILS: calable.ca.","category":"journey-id","subcategory":"step-52","source_ref":"Entity Matrix v9.4","origin":"entity-matrix-v9.4"}$kb$::jsonb);
 insert into public.knowledge_embeddings (content, source, section, metadata) values ($kb$ID Step 6.1: Coordinate Medical & Therapeutic Care
@@ -7490,7 +7490,7 @@ OTHER AGENCIES: DOR
 SSA
 IHSS
 CalABLE
-CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 26. Funds usable for housing, education, health, employment, assistive technology, transportation, and more.$kb$, $kb$journey_id$kb$, $kb$jrn-id-s71$kb$, $kb${"code":"jrn-id-s71","title":"ID Step 7.1: Begin Transition Planning — ITP Required","category":"journey-id","subcategory":"step-71","source_ref":"Entity Matrix v9.4","origin":"entity-matrix-v9.4"}$kb$::jsonb);
+CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). Funds usable for housing, education, health, employment, assistive technology, transportation, and more.$kb$, $kb$journey_id$kb$, $kb$jrn-id-s71$kb$, $kb${"code":"jrn-id-s71","title":"ID Step 7.1: Begin Transition Planning — ITP Required","category":"journey-id","subcategory":"step-71","source_ref":"Entity Matrix v9.4","origin":"entity-matrix-v9.4"}$kb$::jsonb);
 insert into public.knowledge_embeddings (content, source, section, metadata) values ($kb$ID Step 7.2: Conservatorship / Alternatives at Age 18
 
 ID — Step 7.2: Conservatorship / Alternatives at Age 18
@@ -7628,7 +7628,7 @@ STEP 5: SNT (Special Needs Trust) if assets exceed SSI/Medi-Cal limits.
 CONTACT: SSA: ssa.gov — (800) 772-1213 — SSI CDR (Continuing Disability Review) every 1-7 years. Report changes.
 IHSS: Your county IHSS office — annual reassessment. CA DSS: cdss.ca.gov/in-home-supportive-services
 MEDI-CAL: Annual renewal through your county human services agency.
-CALABLE: calable.ca.gov — monitor contribution limits ($19K/year, $100K SSI-safe threshold).
+CALABLE: calable.ca.gov — monitor contribution limits ($20,000/year in 2026, $100K SSI-safe threshold).
 DRC: (800) 776-5746 — benefits counseling, appeal denied benefits.
 HEALTH CONSUMER ALLIANCE: healthconsumer.org — help with Medi-Cal issues.
 YOUR RC SERVICE COORDINATOR: Annual IPP review, service authorization renewals.
@@ -7637,7 +7637,7 @@ DOCUMENTS: BENEFITS TRACKING DOCUMENTS:
 • SSI CDR (Continuing Disability Review) — every 1-7 years depending on category
 • IHSS annual reassessment
 • Medi-Cal annual renewal
-• CalABLE contribution and balance tracking ($19K/year limit, $100K SSI-safe)
+• CalABLE contribution and balance tracking ($20,000/year limit (2026), $100K SSI-safe)
 • SNT annual accounting (if applicable)
 • RC IPP annual review
 • Insurance authorization renewals
@@ -7668,7 +7668,7 @@ CA PTI NETWORK: parentcenterhub.org
 BOOKS: 'The Complete Guide to Special Education' (Wilmshurst/Brue)
 
 PRIMARY AGENCY: SSA / IHSS / Medi-Cal / CalABLE
-CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 26. Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
+CalABLE DETAILS: calable.ca.gov — tax-advantaged savings account (up to $100K without affecting SSI/Medi-Cal). Eligible if disability onset before age 46 (raised from 26 by the ABLE Age Adjustment Act, effective Jan 1, 2026). Funds usable for housing, education, health, employment, assistive technology, transportation, and more.
 OTHER AGENCIES: Regional Center
 Financial planner
 SNT trustee$kb$, $kb$journey_id$kb$, $kb$jrn-id-s81$kb$, $kb${"code":"jrn-id-s81","title":"ID Step 8.1: Ongoing Benefits Management & Monitoring","category":"journey-id","subcategory":"step-81","source_ref":"Entity Matrix v9.4","origin":"entity-matrix-v9.4"}$kb$::jsonb);
@@ -8036,7 +8036,7 @@ ACTIONS: • Refer to RC immediately if developmental concerns
 • IFSP review every 6 months
 • Begin transition planning at 2.5 years
 • Refer to school district for Part B evaluation
-• Open CalABLE account (no minimum age — $19K/year tax-advantaged savings for disability expenses without affecting SSI/Medi-Cal)
+• Open CalABLE account (no minimum age — $20,000/year (2026 limit) tax-advantaged savings for disability expenses without affecting SSI/Medi-Cal)
 
 TRANSITIONS: • Hospital → Home (NICU follow-up)
 • Diagnosis → RC intake
@@ -8056,7 +8056,7 @@ ACTIONS: • IEP must be in place by 3rd birthday
 • Choose preschool (Undivided: school tour checklist)
 • Apply for SSI if eligible
 • Apply for IHSS if eligible
-• Open CalABLE account (no minimum age — $19K/year tax-advantaged savings for disability expenses without affecting SSI/Medi-Cal)
+• Open CalABLE account (no minimum age — $20,000/year (2026 limit) tax-advantaged savings for disability expenses without affecting SSI/Medi-Cal)
 
 TRANSITIONS: • RC → School District (IFSP → IEP)
 • Home → Preschool
@@ -8076,7 +8076,7 @@ ACTIONS: • Annual IEP review
 • Monitor progress reports
 • Address behavioral needs (BIP, ERMHS)
 • Request IEE if disagree with assessments
-• Open CalABLE account (no minimum age — $19K/year tax-advantaged savings for disability expenses without affecting SSI/Medi-Cal)
+• Open CalABLE account (no minimum age — $20,000/year (2026 limit) tax-advantaged savings for disability expenses without affecting SSI/Medi-Cal)
 
 TRANSITIONS: • Kindergarten entry
 • Grade-level transitions
@@ -8095,7 +8095,7 @@ ACTIONS: • Transition IEP for middle school entry
 • May need ERMHS services
 • Prepare for ITP discussion (starts at 16 but plan earlier)
 • Consider puberty-related support needs
-• Open CalABLE account (no minimum age — $19K/year tax-advantaged savings for disability expenses without affecting SSI/Medi-Cal)
+• Open CalABLE account (no minimum age — $20,000/year (2026 limit) tax-advantaged savings for disability expenses without affecting SSI/Medi-Cal)
 
 TRANSITIONS: • Elementary → Middle School
 • Increased academic demands

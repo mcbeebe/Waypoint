@@ -316,7 +316,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       dueInDays: 7,
       talkingPoints: [
         `Hi, I'd like to make a referral for my child who ${needsDx ? 'I believe has developmental delays' : `was diagnosed with ${dxName}`}.`,
-        "I'd like to schedule an intake appointment. I understand it should happen within 15 days.",
+        "I'd like to schedule an intake appointment. I understand it should happen within 15 working days.",
         'What documents should I bring to intake?',
         'How long does the eligibility determination take? I understand the Lanterman Act allows up to 120 days.',
         'Will my child be assigned a Service Coordinator at intake?',
@@ -334,14 +334,14 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       documents: needsDx
         ? ['Birth certificate', 'CA residency proof (utility bill, lease)', 'Medical records', 'Written list of your concerns', 'Insurance card']
         : ['Diagnosis report (most important document)', 'Birth certificate', 'CA residency proof (utility bill, lease)', 'Medical records', 'School records / IEP if available', 'Insurance card'],
-      smsReminder: 'Tomorrow 9am: Call RC. Have documents ready. 15-day intake deadline.',
+      smsReminder: 'Tomorrow 9am: Call RC. Have documents ready. 15-working-day intake deadline.',
       insiderTip: "You can self-refer — no doctor needed. If RC says there's a 'waitlist,' push back: under Lanterman, there are NO waitlists for intake. If they miss the 15-day timeline, document it and file a 4731 complaint. Ask for your SC's supervisor's name upfront — you may need it later.",
     }, 'urgent'));
   } else if (rcStatus === 'applied') {
     actions.push(buildAction({
       category: 'regional_center',
       title: 'Follow up on RC application status',
-      subtitle: 'Check where you are in the process. The Lanterman Act sets firm timelines: intake within 15 days, eligibility within 120 days, IPP within 60 days of eligibility.',
+      subtitle: 'Check where you are in the process. The Lanterman Act sets firm timelines: intake within 15 working days, eligibility within 120 days, IPP within 60 days of eligibility.',
       whyMatters: 'These timelines are statutory — not suggestions. If RC is slow, you have the legal right to escalate. Many families wait quietly, not realizing the law is on their side. A simple follow-up call showing you know the timelines often speeds things up dramatically.',
       deadlineLabel: 'Call this week',
       dueInDays: 7,
@@ -385,7 +385,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       steps: [
         "Start ALL three tracks simultaneously — don't wait for one to finish.",
         'SCHOOL: Send a written request (email + certified mail) to the Special Ed Director. School has 15 days to respond with an assessment plan.',
-        'REGIONAL CENTER: Call and self-refer. RC intake must happen within 15 days.',
+        'REGIONAL CENTER: Call and self-refer. RC intake must happen within 15 working days.',
         'PRIVATE: Ask pediatrician for a referral to a developmental pediatrician, child neurologist, or licensed psychologist. Call insurance to confirm coverage.',
         'Whichever evaluation completes first, use that report to accelerate the others.',
         "Keep copies of EVERY evaluation — you'll need them for IEP, RC, insurance, and SSI.",
@@ -408,11 +408,11 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       actions.push(buildAction({
         category: 'iep',
         title: 'Send written request for IEP meeting',
-        subtitle: 'Your child has been evaluated — now the school owes you an IEP meeting within 30 calendar days. The IEP is a legally binding document that guarantees services.',
+        subtitle: 'Your child has been evaluated — the evaluation and IEP meeting share one 60-day clock that started when you signed the assessment consent (CA Ed Code §56344) — the meeting should already be scheduled. The IEP is a legally binding document that guarantees services.',
         whyMatters: "The IEP is the most powerful document in your child's education. Unlike a 504 plan, it's backed by federal law (IDEA) and is legally enforceable. Once services are written into the IEP, the school district MUST provide them — or they're in violation. This meeting is where you lock in speech therapy hours, aide support, behavioral services, accommodations, and modifications.",
-        deadlineLabel: '30 days from eval',
+        deadlineLabel: 'Within the 60-day clock from signed consent',
         dueInDays: 30,
-        draftMessage: `Dear [Principal/Special Ed Director],\n\nI formally request an IEP meeting for ${childName}, who was recently evaluated and found to have ${dxName}.\n\nPer IDEA and CA Ed Code §56344, I request this meeting be held within 30 calendar days.\n\nPlease confirm the meeting date in writing. I would also like to receive a copy of all assessment reports at least 5 days before the meeting, per my right under CA Ed Code §56329.\n\nSincerely,\n${parentName}`,
+        draftMessage: `Dear [Principal/Special Ed Director],\n\nI formally request an IEP meeting for ${childName}, who was recently evaluated and found to have ${dxName}.\n\nPer CA Ed Code §56344, the evaluation and IEP meeting must be completed within 60 days of my signed consent to the assessment plan. I request the meeting be scheduled promptly within that window.\n\nPlease confirm the meeting date in writing. I would also like to receive a copy of all assessment reports at least 5 days before the meeting, per my right under CA Ed Code §56329.\n\nSincerely,\n${parentName}`,
         steps: [
           'Send your written IEP meeting request via BOTH email and certified mail to the Special Ed Director.',
           'Request all evaluation reports 5 days BEFORE the meeting (your legal right — CA Ed Code §56329).',
@@ -448,7 +448,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
           'Review the Assessment Plan carefully. Make sure it covers ALL areas of concern, not just academics.',
           "Sign the Assessment Plan (this gives consent to evaluate — it doesn't commit you to anything).",
           'School then has 60 calendar days from your consent to complete the evaluation.',
-          'After evaluation, school has 30 days to hold an IEP meeting.',
+          'The IEP meeting must happen within that same 60-day window — the evaluation and the meeting share one clock (§56344).',
         ],
         documents: [
           'Your written request letter (keep a dated copy)',
@@ -589,7 +589,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
     actions.push(buildAction({
       category: 'benefits',
       title: 'Start SSI application',
-      subtitle: `SSI provides ~$943/month in cash benefits plus automatic Medi-Cal enrollment. ${hasDx('autism') ? 'Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.' : "Your child's diagnosis may qualify based on functional limitations."} This is real income for your family.`,
+      subtitle: `SSI provides ~$994/month (2026 rate, adjusted annually) in cash benefits plus automatic Medi-Cal enrollment. ${hasDx('autism') ? 'Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.' : "Your child's diagnosis may qualify based on functional limitations."} This is real income for your family.`,
       whyMatters: "SSI puts nearly $1,000/month directly into your family's hands — that's over $11,000/year. It also automatically enrolls your child in Medi-Cal (which unlocks IHSS, EPSDT, and more). The application is lengthy and many families give up, but the approval rate for children with well-documented developmental disabilities is significant. The key is the Function Report: describe your child's WORST days, not their best.",
       deadlineLabel: 'Within 30 days',
       dueInDays: 30,
@@ -935,9 +935,9 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       steps: [
         "Go to CalABLE.ca.gov and click 'Open an Account.'",
         "The account is in your CHILD's name (they are the beneficiary). You can be the authorized signer.",
-        'Eligibility: disability onset before age 26, AND either receiving SSI/SSDI OR can self-certify the disability.',
+        'Eligibility: disability onset before age 46 (raised from 26 effective Jan 1, 2026), AND either receiving SSI/SSDI OR can self-certify the disability.',
         'Choose your investment option: savings (safe) or investment portfolios (growth potential).',
-        'Contribute up to $18,000/year (2024 limit, adjusted annually). Anyone can contribute — grandparents, family, friends.',
+        'Contribute up to $20,000/year (2026 limit, adjusted annually). Anyone can contribute — grandparents, family, friends.',
         "Use the funds for 'Qualified Disability Expenses': housing, education, transportation, assistive technology, health, financial management, job training, legal fees, and more.",
         'Keep receipts for all withdrawals — they must be for qualified expenses.',
         "Funds up to $100,000 are excluded from SSI's $2,000 resource limit.",
