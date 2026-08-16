@@ -31,7 +31,7 @@ BUILT FOR CALIFORNIA FAMILIES:
 Waypoint knows the Lanterman Act, IDEA, Section 504, Medi-Cal, CCS, and SSI. It understands all 21 Regional Centers and their processes. Whether you're just starting your journey or fighting an insurance denial, Waypoint meets you where you are.
 
 PRIVACY FIRST:
-Your family's data is encrypted and never shared. We use industry-standard security (Supabase with row-level security) and never sell your information.
+Your family's data is encrypted and never sold. AI features are optional and consent-based: when you enable them, your questions and the documents you choose to analyze are processed by Anthropic (our AI provider) to generate guidance — and nothing more. We use industry-standard security (Supabase with row-level security), and you can turn AI features off or delete your account and all data at any time in Profile.
 
 ## Keywords (100 chars max)
 disability,IEP,autism,special needs,advocacy,regional center,California,insurance,appeal,Medi-Cal

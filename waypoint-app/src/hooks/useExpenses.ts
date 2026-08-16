@@ -1,14 +1,12 @@
 /**
- * Expenses hook — CRUD with filtering, summaries, and offline queue
+ * Expenses hook — CRUD with filtering and summaries
  * Follows the useActions pattern with optimistic updates
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import type { Expense, ExpenseCategory, ReimbursementStatus } from '@/types/database';
 
-const OFFLINE_QUEUE_KEY = 'waypoint_expense_offline_queue';
 
 interface UseExpensesOptions {
   familyId: string;
@@ -151,14 +149,10 @@ export function useExpenses(options: UseExpensesOptions): UseExpensesReturn {
       setExpenses((prev) => [expense, ...prev]);
       return expense;
     } catch (err) {
-      // Queue offline
-      const offlineExpense = { ...data, _offlineId: `offline-${Date.now()}` };
-      try {
-        const queue = JSON.parse((await AsyncStorage.getItem(OFFLINE_QUEUE_KEY)) ?? '[]');
-        queue.push(offlineExpense);
-        await AsyncStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
-      } catch {}
-      setError(err instanceof Error ? err.message : String(err));
+      // Honest failure (Wave 1.6): the old path wrote to a queue nothing
+      // ever drained. Surface the real error; true offline sync is 7.2.
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Couldn't save this expense: ${message}`);
       return null;
     }
   }, [familyId]);

@@ -16,6 +16,8 @@ export interface Family {
   insurance_plan: string | null;
   income_bracket: string | null;
   onboarding_completed: boolean;
+  /** Set when the family affirmatively consented to AI features (015) */
+  ai_consent_at: string | null;
   created_at: string;
   updated_at: string;
 }

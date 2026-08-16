@@ -27,6 +27,7 @@ import { useChat, type UIMessage } from '@/hooks/useChat';
 import { useActions } from '@/hooks/useActions';
 import { useDiagnoses } from '@/hooks/useFamily';
 import { useToast } from '@/components/Toast';
+import AIConsentModal from '@/components/AIConsentModal';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
 import { hideStreamingTrailer } from '@/lib/followups';
 import { sendEmail } from '@/lib/gmail';
@@ -52,10 +53,25 @@ const SUGGESTIONS = [
 ];
 
 export default function NavigatorScreen() {
-  const { family } = useFamily();
+  const { family, updateFamily } = useFamily();
   const { children } = useChildren(family?.id);
   const primaryChild = children.find((c) => c.is_primary) || children[0];
   const { diagnoses: childDiagnoses } = useDiagnoses(primaryChild?.id);
+
+  // AI consent gate (Wave 1.4): affirmative consent before anything is sent
+  const hasAIConsent = !!family?.ai_consent_at;
+  const [showConsent, setShowConsent] = useState(false);
+  const [pendingText, setPendingText] = useState<string | null>(null);
+
+  const acceptConsent = async () => {
+    setShowConsent(false);
+    await updateFamily({ ai_consent_at: new Date().toISOString() });
+    if (pendingText) {
+      const text = pendingText;
+      setPendingText(null);
+      sendMessage(text);
+    }
+  };
 
   // Build context for AI
   const chatContext: ChatContext = {
@@ -170,16 +186,35 @@ export default function NavigatorScreen() {
 
   const handleSend = () => {
     if (!inputText.trim()) return;
+    if (!hasAIConsent) {
+      setPendingText(inputText.trim());
+      setShowConsent(true);
+      setInputText('');
+      return;
+    }
     sendMessage(inputText.trim());
     setInputText('');
   };
 
   const handleSuggestion = (text: string) => {
+    if (!hasAIConsent) {
+      setPendingText(text);
+      setShowConsent(true);
+      return;
+    }
     sendMessage(text);
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <AIConsentModal
+        visible={showConsent}
+        onAccept={acceptConsent}
+        onDecline={() => {
+          setShowConsent(false);
+          setPendingText(null);
+        }}
+      />
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>

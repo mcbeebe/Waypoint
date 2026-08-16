@@ -22,6 +22,7 @@ import { useFamily } from '@/hooks/useFamily';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useDocumentAnalysis } from '@/hooks/useDocumentAnalysis';
 import { useToast } from '@/components/Toast';
+import AIConsentModal from '@/components/AIConsentModal';
 import { Card, Chip, SkeletonCard } from '@/components/ui';
 import EmptyState from '@/components/EmptyState';
 import { useTextScale } from '@/lib/textSize';
@@ -58,8 +59,13 @@ function blobToBase64(blob: Blob): Promise<string> {
 
 export default function DocumentsScreen() {
   const navigation = useNavigation();
-  const { family } = useFamily();
+  const { family, updateFamily } = useFamily();
   const familyId = family?.id ?? '';
+
+  // AI consent gate (Wave 1.4) — document analysis sends the full IEP text
+  const hasAIConsent = !!family?.ai_consent_at;
+  const [showConsent, setShowConsent] = useState(false);
+  const [pendingAnalyzeDoc, setPendingAnalyzeDoc] = useState<Document | null>(null);
   const { showToast } = useToast();
   const { scale } = useTextScale();
   const sz = (n: number) => Math.round(n * scale);
@@ -130,6 +136,11 @@ export default function DocumentsScreen() {
 
   /** The IEP Clarity reader: OCR (if needed) → AI analysis → results screen */
   const handleAnalyze = async (doc: Document) => {
+    if (!hasAIConsent) {
+      setPendingAnalyzeDoc(doc);
+      setShowConsent(true);
+      return;
+    }
     setAnalyzingDocId(doc.id);
     try {
       let text = doc.extracted_text;
@@ -181,6 +192,20 @@ export default function DocumentsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
+      <AIConsentModal
+        visible={showConsent}
+        onAccept={async () => {
+          setShowConsent(false);
+          await updateFamily({ ai_consent_at: new Date().toISOString() });
+          const doc = pendingAnalyzeDoc;
+          setPendingAnalyzeDoc(null);
+          if (doc) handleAnalyze(doc);
+        }}
+        onDecline={() => {
+          setShowConsent(false);
+          setPendingAnalyzeDoc(null);
+        }}
+      />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Upload */}
         {showTypePicker ? (
