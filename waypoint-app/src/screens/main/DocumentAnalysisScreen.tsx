@@ -50,11 +50,14 @@ export default function DocumentAnalysisScreen({
   comparisonAnalysis,
   meetingPrepContext,
   onBack,
+  onSaveGoals,
 }: {
   analysis: IEPAnalysisResult;
   comparisonAnalysis?: IEPAnalysisResult;
   meetingPrepContext?: MeetingPrepContext;
   onBack?: () => void;
+  /** Save the analyzed goals into the IEP goal tracker */
+  onSaveGoals?: (goals: IEPAnalysisResult['goals']) => void;
 }) {
   const { showToast } = useToast();
   const { generateMeetingPrep, compareIEPs, isAnalyzing } = useDocumentAnalysis();
@@ -102,6 +105,27 @@ export default function DocumentAnalysisScreen({
         )}
         <Text style={styles.headerTitle}>IEP Analysis</Text>
       </View>
+
+      {/* Legal disclaimer (required by roadmap 2.2 / PRD F7) */}
+      <View style={styles.disclaimerBar}>
+        <Text style={styles.disclaimerText}>
+          AI suggestions are informational, not legal advice. Consult an advocate or attorney for
+          decisions about your child's IEP.
+        </Text>
+      </View>
+
+      {onSaveGoals && analysis.goals.length > 0 && (
+        <TouchableOpacity
+          style={styles.saveGoalsButton}
+          onPress={() => onSaveGoals(analysis.goals)}
+          accessibilityRole="button"
+          accessibilityLabel="Save these goals to your tracker"
+        >
+          <Text style={styles.saveGoalsText}>
+            🎯 Track these {analysis.goals.length} goals in your IEP Hub
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Summary Bar */}
       <View style={styles.summaryBar}>
@@ -341,6 +365,25 @@ function ComparisonView({ comparison }: { comparison: IEPComparisonResult }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFB' },
+  disclaimerBar: {
+    backgroundColor: '#FFFBEB',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FDE68A',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  disclaimerText: { fontSize: fonts.sizes.xs, color: '#92400E', lineHeight: 16 },
+  saveGoalsButton: {
+    backgroundColor: colors.teal,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    borderRadius: radii.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  saveGoalsText: { color: colors.white, fontWeight: fonts.weights.bold as '700', fontSize: fonts.sizes.md },
   header: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: spacing.lg, paddingVertical: spacing.md,

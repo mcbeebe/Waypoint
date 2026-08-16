@@ -56,6 +56,7 @@ const linking: LinkingOptions<RootStackParamList> = {
               Reimbursables: 'rc-funding',
               Insights: 'insights',
               Documents: 'documents',
+              IEPHub: 'iep',
               Providers: 'providers',
               Services: 'services',
               HealthRecords: 'health-records',

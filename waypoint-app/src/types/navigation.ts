@@ -25,7 +25,8 @@ export type HomeStackParamList = {
   Reimbursables: undefined;
   Insights: undefined;
   Documents: undefined;
-  DocumentAnalysis: { analysis: IEPAnalysisResult };
+  DocumentAnalysis: { analysis: IEPAnalysisResult; documentId?: string; childId?: string | null };
+  IEPHub: undefined;
   Providers: undefined;
   Services: undefined;
   HealthRecords: undefined;

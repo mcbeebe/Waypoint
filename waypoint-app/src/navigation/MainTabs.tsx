@@ -39,6 +39,9 @@ import TaxReportScreen from '@/screens/main/TaxReportScreen';
 import AgenciesScreen from '@/screens/main/AgenciesScreen';
 import ReimbursablesScreen from '@/screens/main/ReimbursablesScreen';
 import JourneyScreen from '@/screens/main/JourneyScreen';
+import IEPHubScreen from '@/screens/main/IEPHubScreen';
+import { useIEPGoals } from '@/hooks/useIEPGoals';
+import { useToast } from '@/components/Toast';
 
 import { useFamily } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
@@ -111,10 +114,34 @@ function ActionDetailRoute({ route, navigation }: any) {
 }
 
 function DocumentAnalysisRoute({ route, navigation }: any) {
+  const { family } = useFamily();
+  const { createGoals } = useIEPGoals(family?.id ?? '');
+  const { showToast } = useToast();
+  const { analysis, documentId, childId } = route.params;
+
   return (
     <DocumentAnalysisScreen
-      analysis={route.params.analysis}
+      analysis={analysis}
       onBack={() => navigation.goBack()}
+      onSaveGoals={async goals => {
+        const count = await createGoals(
+          goals.map((g: any) => ({
+            domain: g.domain,
+            goal_text: g.goalText,
+            baseline: g.baseline ?? undefined,
+            target: g.target ?? undefined,
+            measurement: g.measurement ?? undefined,
+            child_id: childId ?? undefined,
+            document_id: documentId ?? undefined,
+          }))
+        );
+        if (count > 0) {
+          showToast(`${count} goals saved to your IEP Hub. 🎯`, 'success');
+          navigation.navigate('IEPHub');
+        } else {
+          showToast('Could not save goals — please try again.', 'error');
+        }
+      }}
     />
   );
 }
@@ -139,6 +166,7 @@ function HomeStack() {
       <HomeStackNav.Screen name="Insights" component={InsightsScreen} options={{ title: 'Insights' }} />
       <HomeStackNav.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Documents' }} />
       <HomeStackNav.Screen name="DocumentAnalysis" component={DocumentAnalysisRoute} options={{ title: 'IEP Review' }} />
+      <HomeStackNav.Screen name="IEPHub" component={IEPHubScreen} options={{ title: 'IEP Goals & Timeline' }} />
       <HomeStackNav.Screen name="Providers" component={ProvidersScreen} options={{ title: 'Providers' }} />
       <HomeStackNav.Screen name="Services" component={ServicesScreen} options={{ title: 'Services' }} />
       <HomeStackNav.Screen name="HealthRecords" component={HealthRecordsScreen} options={{ title: 'Health Records' }} />

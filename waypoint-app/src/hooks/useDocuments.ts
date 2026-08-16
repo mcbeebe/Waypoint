@@ -29,6 +29,8 @@ interface UploadDocumentInput {
   };
   tags?: string[];
   key_dates?: Record<string, string>;
+  version?: number;
+  version_group_id?: string;
 }
 
 interface CreateDocumentInput {
@@ -83,18 +85,18 @@ export function useDocuments(options: UseDocumentsOptions) {
     setUploading(true);
 
     try {
-      // Generate a unique storage path
-      const ext = input.file.name.split('.').pop() ?? 'pdf';
+      // Generate a unique storage path (first folder segment MUST be the
+      // family id — the storage RLS policy keys on it)
       const storagePath = `${familyId}/${Date.now()}_${input.file.name}`;
 
-      // Upload file to Supabase Storage
+      // Fetch the picker URI into a Blob — works on web (blob:/data: URIs)
+      // and native (file:// URIs) alike
+      const fileResponse = await fetch(input.file.uri);
+      const blob = await fileResponse.blob();
+
       const { error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .upload(storagePath, {
-          uri: input.file.uri,
-          name: input.file.name,
-          type: input.file.type,
-        } as unknown as File);
+        .upload(storagePath, blob, { contentType: input.file.type, upsert: false });
 
       if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
 
@@ -107,10 +109,12 @@ export function useDocuments(options: UseDocumentsOptions) {
           title: input.title,
           document_type: input.document_type,
           file_path: storagePath,
-          file_size: input.file.size,
+          file_size: input.file.size || blob.size,
           mime_type: input.file.type,
           tags: input.tags ?? null,
           key_dates: input.key_dates ?? null,
+          version: input.version ?? 1,
+          version_group_id: input.version_group_id ?? null,
         })
         .select()
         .single();
@@ -235,6 +239,84 @@ export function useDocuments(options: UseDocumentsOptions) {
     }
   }, [uploadDocument, childId]);
 
+  /**
+   * Pick a file and upload it as a NEW VERSION of an existing document.
+   * Versions share a version_group_id (the original document's id).
+   */
+  const pickAndUploadVersion = useCallback(async (original: Document): Promise<Document | null> => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf', 'image/*', 'application/msword',
+               'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled || !result.assets?.[0]) return null;
+
+      const groupId = original.version_group_id ?? original.id;
+      const groupVersions = documents.filter(
+        (d) => d.id === groupId || d.version_group_id === groupId
+      );
+      const nextVersion = Math.max(1, ...groupVersions.map((d) => d.version)) + 1;
+
+      // Backfill the group id on the original so the family is queryable
+      if (!original.version_group_id) {
+        await updateDocument(original.id, { version_group_id: groupId });
+      }
+
+      const asset = result.assets[0];
+      return await uploadDocument({
+        title: original.title,
+        document_type: original.document_type,
+        child_id: original.child_id ?? undefined,
+        version: nextVersion,
+        version_group_id: groupId,
+        file: {
+          uri: asset.uri,
+          name: asset.name ?? 'document',
+          type: asset.mimeType ?? 'application/octet-stream',
+          size: asset.size ?? 0,
+        },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      return null;
+    }
+  }, [documents, uploadDocument, updateDocument]);
+
+  /**
+   * Create a share link: a signed URL with the chosen expiry, recorded in
+   * document_shares so the family has an audit trail of what was shared.
+   */
+  const createShareLink = useCallback(async (
+    doc: Document,
+    expiresInSeconds: number,
+    note?: string
+  ): Promise<string | null> => {
+    if (!doc.file_path) {
+      setError('This document has no file to share.');
+      return null;
+    }
+    try {
+      const { data, error: urlError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .createSignedUrl(doc.file_path, expiresInSeconds);
+      if (urlError) throw new Error(urlError.message);
+
+      const { error: logError } = await supabase.from('document_shares').insert({
+        document_id: doc.id,
+        family_id: familyId,
+        expires_at: new Date(Date.now() + expiresInSeconds * 1000).toISOString(),
+        note: note ?? null,
+      });
+      if (logError) console.warn('Share log failed:', logError.message);
+
+      return data.signedUrl;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      return null;
+    }
+  }, [familyId]);
+
   return {
     documents,
     loading,
@@ -244,6 +326,8 @@ export function useDocuments(options: UseDocumentsOptions) {
     uploadDocument,
     createDocument,
     pickAndUpload,
+    pickAndUploadVersion,
+    createShareLink,
     getDownloadUrl,
     updateDocument,
     refetch,

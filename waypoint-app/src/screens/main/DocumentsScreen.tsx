@@ -1,308 +1,406 @@
 /**
- * Document Vault screen — organized storage for IEPs, evaluations, appeals, etc.
- * Sprint 5: Document management with type filtering, upload, and metadata
- *
- * Features:
- * - Document list grouped by type with count badges
- * - Type filter pills (IEP, Evaluation, Insurance, IPP, etc.)
- * - Upload placeholder (hooks into native document picker)
- * - File size and date display
- * - Tag display for document organization
+ * Document Vault (roadmap 2.1 / 2.2 / 2.5) — upload, organize, view, share,
+ * version, and AI-analyze the family's documents. IEP-type documents can be
+ * run through the OCR → analyze-iep pipeline (the "IEP Clarity reader").
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
-  RefreshControl,
-  Alert,
+  Linking,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import * as Clipboard from 'expo-clipboard';
 import { useFamily } from '@/hooks/useFamily';
 import { useDocuments } from '@/hooks/useDocuments';
+import { useDocumentAnalysis } from '@/hooks/useDocumentAnalysis';
+import { useToast } from '@/components/Toast';
+import { Card, Chip, SkeletonCard } from '@/components/ui';
+import EmptyState from '@/components/EmptyState';
+import { useTextScale } from '@/lib/textSize';
 import type { Document, DocumentType } from '@/types/database';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
 
-// ─── Config ─────────────────────────────────────────────────────────────────
-
-const DOC_TYPE_CONFIG: Record<string, { label: string; emoji: string; color: string }> = {
-  iep: { label: 'IEP', emoji: '🏫', color: '#2563EB' },
-  evaluation: { label: 'Evaluation', emoji: '📋', color: '#7C3AED' },
-  insurance_denial: { label: 'Denial', emoji: '🚫', color: '#DC2626' },
-  appeal: { label: 'Appeal', emoji: '⚖️', color: '#EA580C' },
-  medical_record: { label: 'Medical', emoji: '⚕️', color: '#059669' },
-  ipp: { label: 'IPP', emoji: '🏛️', color: '#0891B2' },
-  other: { label: 'Other', emoji: '📄', color: '#64748B' },
-};
-
-const TYPE_FILTERS: Array<{ key: 'all' | DocumentType; label: string }> = [
-  { key: 'all', label: 'All' },
-  { key: 'iep', label: 'IEP' },
-  { key: 'evaluation', label: 'Evaluations' },
-  { key: 'insurance_denial', label: 'Denials' },
-  { key: 'appeal', label: 'Appeals' },
-  { key: 'medical_record', label: 'Medical' },
-  { key: 'ipp', label: 'IPP' },
-  { key: 'other', label: 'Other' },
+const TYPE_OPTIONS: Array<{ key: DocumentType; label: string; emoji: string }> = [
+  { key: 'iep', label: 'IEP', emoji: '🏫' },
+  { key: 'evaluation', label: 'Evaluation', emoji: '🔍' },
+  { key: 'insurance_denial', label: 'Denial', emoji: '🚫' },
+  { key: 'appeal', label: 'Appeal', emoji: '⚖️' },
+  { key: 'medical_record', label: 'Medical', emoji: '⚕️' },
+  { key: 'ipp', label: 'IPP', emoji: '🏛️' },
+  { key: 'other', label: 'Other', emoji: '📄' },
 ];
 
-// ─── Main Screen ────────────────────────────────────────────────────────────
+const SHARE_EXPIRY_OPTIONS = [
+  { label: '24 hours', seconds: 86400 },
+  { label: '7 days', seconds: 604800 },
+  { label: '30 days', seconds: 2592000 },
+];
+
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      resolve(dataUrl.split(',')[1] ?? '');
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 
 export default function DocumentsScreen() {
+  const navigation = useNavigation();
   const { family } = useFamily();
   const familyId = family?.id ?? '';
-  const [typeFilter, setTypeFilter] = useState<'all' | DocumentType>('all');
+  const { showToast } = useToast();
+  const { scale } = useTextScale();
+  const sz = (n: number) => Math.round(n * scale);
 
   const {
     documents,
     loading,
     error,
     uploading,
-    countByType,
+    pickAndUpload,
+    pickAndUploadVersion,
+    createShareLink,
     getDownloadUrl,
+    updateDocument,
     refetch,
-  } = useDocuments({
-    familyId,
-    typeFilter: typeFilter === 'all' ? undefined : typeFilter,
+  } = useDocuments({ familyId });
+
+  const { extractText, analyzeIEP, isExtracting, isAnalyzing } = useDocumentAnalysis();
+
+  const [showTypePicker, setShowTypePicker] = useState(false);
+  const [shareDocId, setShareDocId] = useState<string | null>(null);
+  const [analyzingDocId, setAnalyzingDocId] = useState<string | null>(null);
+
+  // Group versions: show only the latest of each version group
+  const latestDocs = documents.filter(doc => {
+    const groupId = doc.version_group_id ?? doc.id;
+    const groupDocs = documents.filter(d => (d.version_group_id ?? d.id) === groupId);
+    return doc.version === Math.max(...groupDocs.map(d => d.version));
   });
+  const versionCount = (doc: Document) => {
+    const groupId = doc.version_group_id ?? doc.id;
+    return documents.filter(d => (d.version_group_id ?? d.id) === groupId).length;
+  };
 
-  // Summary stats
-  const totalDocs = documents.length;
+  const handleUpload = async (type: DocumentType) => {
+    setShowTypePicker(false);
+    const doc = await pickAndUpload(type);
+    if (doc) showToast(`"${doc.title}" uploaded. 📁`, 'success');
+  };
 
-  const handleDocPress = async (doc: Document) => {
-    if (doc.file_path) {
-      const url = await getDownloadUrl(doc.file_path);
-      if (url) {
-        // In production, use Linking.openURL(url) or a document viewer
-        Alert.alert('Document Ready', `${doc.title} is ready to view.`);
-      }
+  const handleView = async (doc: Document) => {
+    if (!doc.file_path) {
+      showToast('This entry has no attached file.', 'info');
+      return;
+    }
+    const url = await getDownloadUrl(doc.file_path);
+    if (url) Linking.openURL(url);
+  };
+
+  const handleShare = async (doc: Document, seconds: number, label: string) => {
+    setShareDocId(null);
+    const link = await createShareLink(doc, seconds);
+    if (link) {
+      await Clipboard.setStringAsync(link);
+      showToast(`Share link copied — expires in ${label}. Anyone with the link can view until then.`, 'success');
     } else {
-      Alert.alert(doc.title, doc.extracted_text ?? 'No content available.');
+      showToast('Could not create a share link.', 'error');
     }
   };
 
-  const handleUpload = () => {
-    // In production, this would open DocumentPicker from expo-document-picker
-    Alert.alert(
-      'Upload Document',
-      'Document upload will use your device\'s file picker. This feature requires expo-document-picker to be configured.',
-      [{ text: 'OK' }]
-    );
+  const handleNewVersion = async (doc: Document) => {
+    const updated = await pickAndUploadVersion(doc);
+    if (updated) {
+      showToast(`Version ${updated.version} of "${doc.title}" uploaded.`, 'success');
+      refetch();
+    }
   };
 
+  /** The IEP Clarity reader: OCR (if needed) → AI analysis → results screen */
+  const handleAnalyze = async (doc: Document) => {
+    setAnalyzingDocId(doc.id);
+    try {
+      let text = doc.extracted_text;
+
+      if (!text) {
+        if (!doc.file_path) {
+          showToast('No file to analyze.', 'error');
+          return;
+        }
+        const url = await getDownloadUrl(doc.file_path);
+        if (!url) {
+          showToast('Could not open the file.', 'error');
+          return;
+        }
+        const blob = await (await fetch(url)).blob();
+        if (blob.size > 8 * 1024 * 1024) {
+          showToast('File is too large to analyze (8MB max). Try photos of individual pages.', 'error');
+          return;
+        }
+        const base64 = await blobToBase64(blob);
+        text = await extractText(doc, base64);
+        if (text) {
+          // Cache the OCR so re-analysis is instant
+          updateDocument(doc.id, { extracted_text: text });
+        }
+      }
+
+      if (!text) {
+        showToast('Could not read text from this document. PDFs work best; photos should be clear and well-lit.', 'error');
+        return;
+      }
+
+      const analysis = await analyzeIEP(text, 'full');
+      if (analysis) {
+        (navigation as any).navigate('DocumentAnalysis', {
+          analysis,
+          documentId: doc.id,
+          childId: doc.child_id,
+        });
+      } else {
+        showToast('Analysis failed — please try again.', 'error');
+      }
+    } finally {
+      setAnalyzingDocId(null);
+    }
+  };
+
+  const busy = uploading || isExtracting || isAnalyzing;
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>Document Vault</Text>
-          <Text style={styles.headerSubtitle}>{totalDocs} document{totalDocs !== 1 ? 's' : ''}</Text>
-        </View>
-        <TouchableOpacity style={styles.uploadButton} onPress={handleUpload}>
-          <Text style={styles.uploadButtonText}>+ Upload</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Type Summary */}
-      <View style={styles.summaryRow}>
-        {Object.entries(countByType)
-          .sort(([, a], [, b]) => b - a)
-          .slice(0, 4)
-          .map(([type, count]) => {
-            const config = DOC_TYPE_CONFIG[type] ?? DOC_TYPE_CONFIG.other;
-            return (
-              <View key={type} style={styles.summaryPill}>
-                <Text style={styles.summaryEmoji}>{config.emoji}</Text>
-                <Text style={styles.summaryCount}>{count}</Text>
-                <Text style={styles.summaryLabel}>{config.label}</Text>
-              </View>
-            );
-          })}
-      </View>
-
-      {/* Type Filters */}
-      <View style={styles.filterRow}>
-        {TYPE_FILTERS.map((f) => (
+    <SafeAreaView style={styles.container} edges={[]}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Upload */}
+        {showTypePicker ? (
+          <Card>
+            <Text style={[styles.pickerTitle, { fontSize: sz(14) }]}>What kind of document is this?</Text>
+            <View style={styles.typeGrid}>
+              {TYPE_OPTIONS.map(t => (
+                <TouchableOpacity
+                  key={t.key}
+                  style={styles.typeOption}
+                  onPress={() => handleUpload(t.key)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.label}
+                >
+                  <Text style={styles.typeEmoji}>{t.emoji}</Text>
+                  <Text style={[styles.typeLabel, { fontSize: sz(12) }]}>{t.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity onPress={() => setShowTypePicker(false)} style={styles.cancelLink}>
+              <Text style={[styles.cancelText, { fontSize: sz(13) }]}>Cancel</Text>
+            </TouchableOpacity>
+          </Card>
+        ) : (
           <TouchableOpacity
-            key={f.key}
-            style={[styles.filterPill, typeFilter === f.key && styles.filterPillActive]}
-            onPress={() => setTypeFilter(f.key)}
+            style={[styles.uploadButton, busy && styles.uploadButtonDisabled]}
+            onPress={() => setShowTypePicker(true)}
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel="Upload a document"
           >
-            <Text style={[styles.filterText, typeFilter === f.key && styles.filterTextActive]}>
-              {f.label}
+            <Ionicons name="cloud-upload-outline" size={20} color={colors.white} />
+            <Text style={[styles.uploadButtonText, { fontSize: sz(15) }]}>
+              {uploading ? 'Uploading…' : 'Upload a document'}
             </Text>
           </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Document List */}
-      <FlatList
-        data={documents}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <DocumentCard document={item} onPress={() => handleDocPress(item)} />
         )}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refetch} tintColor={colors.teal} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>📁</Text>
-            <Text style={styles.emptyTitle}>No documents yet</Text>
-            <Text style={styles.emptySubtitle}>
-              Upload IEPs, evaluations, insurance letters, and other important documents to keep them organized and accessible.
-            </Text>
-            <TouchableOpacity style={styles.emptyUploadButton} onPress={handleUpload}>
-              <Text style={styles.emptyUploadText}>Upload First Document</Text>
-            </TouchableOpacity>
-          </View>
-        }
-        showsVerticalScrollIndicator={false}
-      />
 
-      {error && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
+        {(isExtracting || isAnalyzing) && (
+          <Card tone="info">
+            <Text style={[styles.analyzingText, { fontSize: sz(13) }]}>
+              {isExtracting ? '🔍 Reading your document…' : '🧠 Analyzing the IEP — this takes about a minute…'}
+            </Text>
+          </Card>
+        )}
+
+        {error && (
+          <Card tone="danger">
+            <Text style={[styles.errorText, { fontSize: sz(13) }]}>{error}</Text>
+          </Card>
+        )}
+
+        {/* Document list */}
+        {loading ? (
+          <View>
+            <SkeletonCard />
+            <SkeletonCard />
+          </View>
+        ) : latestDocs.length === 0 ? (
+          <EmptyState
+            emoji="📁"
+            title="Your document vault is empty"
+            subtitle="Keep IEPs, evaluations, denials, and medical records in one safe place — and let the AI review your IEP."
+            actionLabel="Upload your first document"
+            onAction={() => setShowTypePicker(true)}
+          />
+        ) : (
+          latestDocs.map(doc => {
+            const typeInfo = TYPE_OPTIONS.find(t => t.key === doc.document_type);
+            const versions = versionCount(doc);
+            return (
+              <Card key={doc.id}>
+                <TouchableOpacity onPress={() => handleView(doc)} accessibilityRole="button" accessibilityLabel={`View ${doc.title}`}>
+                  <View style={styles.docHead}>
+                    <Text style={styles.docEmoji}>{typeInfo?.emoji ?? '📄'}</Text>
+                    <View style={styles.docHeadText}>
+                      <Text style={[styles.docTitle, { fontSize: sz(15) }]} numberOfLines={2}>{doc.title}</Text>
+                      <View style={styles.docMeta}>
+                        <Chip label={typeInfo?.label ?? doc.document_type} textSize={sz(10)} />
+                        {versions > 1 && <Chip label={`v${doc.version} · ${versions} versions`} tone="info" textSize={sz(10)} />}
+                        <Text style={[styles.docDate, { fontSize: sz(11) }]}>
+                          {new Date(doc.uploaded_at).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    </View>
+                    <Ionicons name="open-outline" size={18} color={colors.mid} />
+                  </View>
+                </TouchableOpacity>
+
+                {/* Actions */}
+                <View style={styles.actionRow}>
+                  {(doc.document_type === 'iep' || doc.document_type === 'evaluation') && (
+                    <TouchableOpacity
+                      style={[styles.actionButton, styles.analyzeButton]}
+                      onPress={() => handleAnalyze(doc)}
+                      disabled={busy}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Analyze ${doc.title} with AI`}
+                    >
+                      <Text style={[styles.analyzeButtonText, { fontSize: sz(12.5) }]}>
+                        {analyzingDocId === doc.id ? '⏳ Analyzing…' : '🧠 AI Review'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => setShareDocId(shareDocId === doc.id ? null : doc.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Share ${doc.title}`}
+                  >
+                    <Text style={[styles.actionButtonText, { fontSize: sz(12.5) }]}>🔗 Share</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.actionButton}
+                    onPress={() => handleNewVersion(doc)}
+                    disabled={busy}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Upload a new version of ${doc.title}`}
+                  >
+                    <Text style={[styles.actionButtonText, { fontSize: sz(12.5) }]}>⬆️ New version</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Share expiry picker */}
+                {shareDocId === doc.id && (
+                  <View style={styles.shareRow}>
+                    <Text style={[styles.shareLabel, { fontSize: sz(12) }]}>Link expires in:</Text>
+                    {SHARE_EXPIRY_OPTIONS.map(opt => (
+                      <TouchableOpacity
+                        key={opt.label}
+                        style={styles.shareOption}
+                        onPress={() => handleShare(doc, opt.seconds, opt.label)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Share link expiring in ${opt.label}`}
+                      >
+                        <Text style={[styles.shareOptionText, { fontSize: sz(12) }]}>{opt.label}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </Card>
+            );
+          })
+        )}
+
+        {/* IEP hub pointer */}
+        <TouchableOpacity
+          style={styles.hubLink}
+          onPress={() => (navigation as any).navigate('IEPHub')}
+          accessibilityRole="button"
+          accessibilityLabel="Open IEP goals and timeline"
+        >
+          <Text style={[styles.hubLinkText, { fontSize: sz(14) }]}>🎯 IEP Goals & Timeline →</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-// ─── Document Card ──────────────────────────────────────────────────────────
-
-function DocumentCard({ document, onPress }: { document: Document; onPress: () => void }) {
-  const config = DOC_TYPE_CONFIG[document.document_type] ?? DOC_TYPE_CONFIG.other;
-  const fileSize = document.file_size ? formatFileSize(document.file_size) : null;
-  const uploadDate = formatDate(document.uploaded_at);
-
-  return (
-    <TouchableOpacity style={styles.docCard} onPress={onPress} activeOpacity={0.7}>
-      {/* Type icon */}
-      <View style={[styles.docIcon, { backgroundColor: config.color + '15' }]}>
-        <Text style={styles.docIconEmoji}>{config.emoji}</Text>
-      </View>
-
-      {/* Content */}
-      <View style={styles.docContent}>
-        <Text style={styles.docTitle} numberOfLines={2}>{document.title}</Text>
-        <View style={styles.docMeta}>
-          <View style={[styles.docTypeBadge, { backgroundColor: config.color + '20' }]}>
-            <Text style={[styles.docTypeText, { color: config.color }]}>{config.label}</Text>
-          </View>
-          <Text style={styles.docDate}>{uploadDate}</Text>
-          {fileSize && <Text style={styles.docSize}>{fileSize}</Text>}
-        </View>
-
-        {/* Tags */}
-        {document.tags && document.tags.length > 0 && (
-          <View style={styles.tagRow}>
-            {document.tags.slice(0, 3).map((tag) => (
-              <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
-              </View>
-            ))}
-            {document.tags.length > 3 && (
-              <Text style={styles.tagMore}>+{document.tags.length - 3}</Text>
-            )}
-          </View>
-        )}
-
-        {/* Key dates indicator */}
-        {document.key_dates && Object.keys(document.key_dates).length > 0 && (
-          <Text style={styles.keyDatesHint}>
-            📅 {Object.keys(document.key_dates).length} key date{Object.keys(document.key_dates).length !== 1 ? 's' : ''} tracked
-          </Text>
-        )}
-      </View>
-
-      {/* Chevron */}
-      <Text style={styles.chevron}>›</Text>
-    </TouchableOpacity>
-  );
-}
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatDate(isoStr: string): string {
-  const d = new Date(isoStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-// ─── Styles ─────────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFB' },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.border,
-  },
-  headerLeft: { flex: 1 },
-  headerTitle: { fontSize: fonts.sizes.xl, fontWeight: fonts.weights.bold, color: colors.navy },
-  headerSubtitle: { fontSize: fonts.sizes.xs, color: colors.mid, marginTop: 2 },
+  container: { flex: 1, backgroundColor: colors.light },
+  content: { padding: spacing.lg, paddingBottom: spacing['2xl'] },
   uploadButton: {
-    backgroundColor: colors.teal, borderRadius: radii.md,
-    paddingHorizontal: spacing.md, paddingVertical: 8,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    backgroundColor: colors.teal,
+    borderRadius: radii.md,
+    paddingVertical: spacing.base,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+    marginBottom: spacing.md,
   },
-  uploadButtonText: { fontSize: fonts.sizes.xs, fontWeight: fonts.weights.semibold, color: colors.white },
-  summaryRow: {
-    flexDirection: 'row', justifyContent: 'space-around', paddingVertical: spacing.sm,
-    backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.border,
+  uploadButtonDisabled: { opacity: 0.6 },
+  uploadButtonText: { color: colors.white, fontWeight: fonts.weights.bold as '700' },
+  pickerTitle: { fontWeight: fonts.weights.bold as '700', color: colors.navy, marginBottom: spacing.sm },
+  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  typeOption: {
+    flexBasis: '22%',
+    flexGrow: 1,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    paddingVertical: spacing.md,
   },
-  summaryPill: { alignItems: 'center' },
-  summaryEmoji: { fontSize: 18 },
-  summaryCount: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.bold, color: colors.dark, marginTop: 2 },
-  summaryLabel: { fontSize: 9, color: colors.mid },
-  filterRow: {
-    flexDirection: 'row', paddingHorizontal: spacing.sm, paddingVertical: spacing.sm,
-    backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.border,
-    flexWrap: 'wrap', gap: 4,
+  typeEmoji: { fontSize: 22, marginBottom: 2 },
+  typeLabel: { color: colors.dark, fontWeight: fonts.weights.medium as '500' },
+  cancelLink: { alignItems: 'center', marginTop: spacing.md, minHeight: 44, justifyContent: 'center' },
+  cancelText: { color: colors.mid, fontWeight: fonts.weights.semibold as '600' },
+  analyzingText: { color: semantic.info, fontWeight: fonts.weights.medium as '500' },
+  errorText: { color: semantic.danger },
+  docHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  docEmoji: { fontSize: 24 },
+  docHeadText: { flex: 1 },
+  docTitle: { fontWeight: fonts.weights.bold as '700', color: colors.navy },
+  docMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 4, flexWrap: 'wrap' },
+  docDate: { color: colors.mid },
+  actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
+  actionButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    minHeight: 38,
+    justifyContent: 'center',
   },
-  filterPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, backgroundColor: colors.light },
-  filterPillActive: { backgroundColor: colors.teal },
-  filterText: { fontSize: 10, color: colors.dark, fontWeight: fonts.weights.medium },
-  filterTextActive: { color: colors.white },
-  listContent: { padding: spacing.md, paddingBottom: spacing['2xl'] },
-  docCard: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.white,
-    borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.sm,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 3, elevation: 1,
+  actionButtonText: { color: colors.dark, fontWeight: fonts.weights.medium as '500' },
+  analyzeButton: { backgroundColor: colors.navy, borderColor: colors.navy },
+  analyzeButtonText: { color: colors.white, fontWeight: fonts.weights.bold as '700' },
+  shareRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
+  shareLabel: { color: colors.mid },
+  shareOption: {
+    backgroundColor: semantic.infoBg,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
   },
-  docIcon: { width: 44, height: 44, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: spacing.sm },
-  docIconEmoji: { fontSize: 20 },
-  docContent: { flex: 1 },
-  docTitle: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold, color: colors.dark, lineHeight: 18 },
-  docMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
-  docTypeBadge: { paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
-  docTypeText: { fontSize: 9, fontWeight: fonts.weights.semibold },
-  docDate: { fontSize: 10, color: colors.mid },
-  docSize: { fontSize: 10, color: colors.mid },
-  tagRow: { flexDirection: 'row', gap: 4, marginTop: 6 },
-  tag: { backgroundColor: colors.light, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
-  tagText: { fontSize: 9, color: colors.mid },
-  tagMore: { fontSize: 9, color: colors.mid, alignSelf: 'center' },
-  keyDatesHint: { fontSize: 9, color: colors.teal, marginTop: 4 },
-  chevron: { fontSize: 20, color: colors.border, marginLeft: 4 },
-  emptyState: { alignItems: 'center', paddingTop: 60, paddingHorizontal: spacing.xl },
-  emptyEmoji: { fontSize: 48, marginBottom: spacing.md },
-  emptyTitle: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold, color: colors.navy, marginBottom: spacing.sm },
-  emptySubtitle: { fontSize: fonts.sizes.sm, color: colors.mid, textAlign: 'center', lineHeight: 20, marginBottom: spacing.lg },
-  emptyUploadButton: { backgroundColor: colors.teal, borderRadius: radii.md, paddingHorizontal: spacing.xl, paddingVertical: 10 },
-  emptyUploadText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold, color: colors.white },
-  errorBanner: {
-    position: 'absolute', bottom: 80, left: spacing.md, right: spacing.md,
-    backgroundColor: '#FEE2E2', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radii.md,
-  },
-  errorText: { fontSize: fonts.sizes.xs, color: '#DC2626' },
+  shareOptionText: { color: semantic.info, fontWeight: fonts.weights.semibold as '600' },
+  hubLink: { alignItems: 'center', marginTop: spacing.md, minHeight: 44, justifyContent: 'center' },
+  hubLinkText: { color: colors.teal, fontWeight: fonts.weights.bold as '700' },
 });

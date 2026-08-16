@@ -36,6 +36,10 @@ export interface Child {
   is_primary: boolean;
   rc_status: RcStatus | null;
   iep_status: IepStatus | null;
+  iep_last_annual_review: string | null;
+  iep_last_triennial: string | null;
+  iep_assessment_plan_requested: string | null;
+  iep_assessment_consent_signed: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -105,8 +109,45 @@ export interface Document {
   extracted_text: string | null;
   key_dates: Record<string, string> | null;
   tags: string[] | null;
+  version: number;
+  version_group_id: string | null;
   uploaded_at: string;
   created_at: string;
+}
+
+/** Record of a share link created for a document (migration 013) */
+export interface DocumentShare {
+  id: string;
+  document_id: string;
+  family_id: string;
+  expires_at: string;
+  note: string | null;
+  created_at: string;
+}
+
+/** Tracked IEP goal (migration 013) — distinct from the AI-analysis IEPGoal */
+export interface IEPGoalRecord {
+  id: string;
+  family_id: string;
+  child_id: string | null;
+  document_id: string | null;
+  domain: string;
+  goal_text: string;
+  baseline: string | null;
+  target: string | null;
+  measurement: string | null;
+  status: 'active' | 'met' | 'discontinued';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IEPGoalLog {
+  id: string;
+  goal_id: string;
+  family_id: string;
+  note: string;
+  progress_pct: number | null;
+  logged_at: string;
 }
 
 // ─── IEP Document Intelligence (Phase 4) ────────────────────────────────────
