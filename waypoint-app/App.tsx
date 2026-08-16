@@ -11,7 +11,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
+import type { LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as ExpoLinking from 'expo-linking';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 import { useAuth } from './src/hooks/useAuth';
@@ -23,25 +25,65 @@ import TermsOfService from './src/screens/legal/TermsOfService';
 import PrivacyPolicy from './src/screens/legal/PrivacyPolicy';
 import MainTabs from './src/navigation/MainTabs';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import LoadingScreen from './src/components/LoadingScreen';
 import NetworkBanner from './src/components/NetworkBanner';
 import WebFrame from './src/components/WebFrame';
 import { ToastProvider } from './src/components/Toast';
 import { I18nProvider } from './src/i18n';
 import { TextScaleProvider } from './src/lib/textSize';
 import { colors } from './src/lib/theme';
+import type { RootStackParamList } from './src/types/navigation';
+
+// URL-per-screen linking (roadmap 0.5 / UX 2): on web this makes browser
+// back/forward work and every screen shareable/bookmarkable; on native it
+// enables waypoint:// deep links. Screens with non-serializable params
+// (Thread, DocumentAnalysis) are deliberately not given paths.
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: [ExpoLinking.createURL('/')],
+  config: {
+    screens: {
+      Welcome: 'welcome',
+      Onboarding: 'onboarding',
+      Terms: 'terms',
+      Privacy: 'privacy',
+      Main: {
+        screens: {
+          Home: {
+            screens: {
+              HomeMain: '',
+              Insights: 'insights',
+              Documents: 'documents',
+              Providers: 'providers',
+              Services: 'services',
+              HealthRecords: 'health-records',
+              FamilySharing: 'family',
+              ProviderPortal: 'provider-portal',
+              Forum: 'community',
+              Messages: 'messages',
+            },
+          },
+          Navigator: {
+            screens: { NavigatorMain: 'ask', Resources: 'resources', Blog: 'blog' },
+          },
+          Tracker: {
+            screens: { TrackerList: 'actions', ActionDetail: 'actions/:actionId' },
+          },
+          Calendar: {
+            screens: { CalendarMain: 'calendar', Expenses: 'expenses', TaxReport: 'tax-report' },
+          },
+          Profile: {
+            screens: { ProfileMain: 'profile' },
+          },
+        },
+      },
+    },
+  },
+};
 
 // Initialize Sentry crash reporting (no-op if DSN not configured)
 initSentry();
 
 const Stack = createNativeStackNavigator();
-
-function LoadingScreen() {
-  return (
-    <View style={styles.loading}>
-      <ActivityIndicator size="large" color={colors.teal} />
-    </View>
-  );
-}
 
 export default function App() {
   const { session, loading: authLoading } = useAuth();
@@ -112,7 +154,7 @@ export default function App() {
           <SafeAreaProvider>
             <WebFrame>
               <NetworkBanner />
-              <NavigationContainer>
+              <NavigationContainer linking={linking}>
                 <Stack.Navigator screenOptions={{ headerShown: false }}>
                   {!session ? (
                     // Not authenticated → Welcome / Sign-In

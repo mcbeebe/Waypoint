@@ -12,6 +12,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
@@ -253,10 +254,10 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.quickActions}>
           {[
-            { emoji: '🧭', label: 'Ask AI', screen: 'Navigator' },
-            { emoji: '📋', label: 'Actions', screen: 'Tracker' },
-            { emoji: '📅', label: 'Calendar', screen: 'Calendar' },
-            { emoji: '👤', label: 'Profile', screen: 'Profile' },
+            { icon: 'compass-outline', label: 'Ask AI', screen: 'Navigator' },
+            { icon: 'checkbox-outline', label: 'Actions', screen: 'Tracker' },
+            { icon: 'calendar-outline', label: 'Calendar', screen: 'Calendar' },
+            { icon: 'person-outline', label: 'Profile', screen: 'Profile' },
           ].map(action => (
             <TouchableOpacity
               key={action.screen}
@@ -265,7 +266,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
               accessibilityRole="button"
               accessibilityLabel={action.label}
             >
-              <Text style={styles.quickActionEmoji}>{action.emoji}</Text>
+              <Ionicons name={action.icon as never} size={24} color={colors.teal} style={styles.tileIcon} />
               <Text style={styles.quickActionLabel}>{action.label}</Text>
             </TouchableOpacity>
           ))}
@@ -275,21 +276,21 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
         <Text style={styles.sectionTitle}>Tools</Text>
         <View style={styles.toolsGrid}>
           {[
-            { emoji: '📁', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
-            { emoji: '📚', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources' }) },
-            { emoji: '📰', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog' }) },
-            { emoji: '💵', label: 'Expenses', go: () => (navigation as any).navigate('Calendar', { screen: 'Expenses' }) },
-            { emoji: '🧾', label: 'Tax Report', go: () => (navigation as any).navigate('Calendar', { screen: 'TaxReport' }) },
-            { emoji: '🩺', label: 'Providers', go: () => (navigation as any).navigate('Providers') },
-            { emoji: '🗂️', label: 'Services', go: () => (navigation as any).navigate('Services') },
-            { emoji: '📊', label: 'Insights', go: () => (navigation as any).navigate('Insights') },
-            { emoji: '👨‍👩‍👧', label: 'Family', go: () => (navigation as any).navigate('FamilySharing') },
-            { emoji: '🏥', label: 'Health Records', go: () => (navigation as any).navigate('HealthRecords') },
-            { emoji: '🤝', label: 'Provider Portal', go: () => (navigation as any).navigate('ProviderPortal') },
+            { icon: 'folder-open-outline', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
+            { icon: 'book-outline', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources' }) },
+            { icon: 'newspaper-outline', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog' }) },
+            { icon: 'cash-outline', label: 'Expenses', go: () => (navigation as any).navigate('Calendar', { screen: 'Expenses' }) },
+            { icon: 'receipt-outline', label: 'Tax Report', go: () => (navigation as any).navigate('Calendar', { screen: 'TaxReport' }) },
+            { icon: 'medkit-outline', label: 'Providers', go: () => (navigation as any).navigate('Providers') },
+            { icon: 'layers-outline', label: 'Services', go: () => (navigation as any).navigate('Services') },
+            { icon: 'bar-chart-outline', label: 'Insights', go: () => (navigation as any).navigate('Insights') },
+            { icon: 'people-outline', label: 'Family', go: () => (navigation as any).navigate('FamilySharing') },
+            { icon: 'fitness-outline', label: 'Health Records', go: () => (navigation as any).navigate('HealthRecords') },
+            { icon: 'briefcase-outline', label: 'Provider Portal', go: () => (navigation as any).navigate('ProviderPortal') },
             ...(FLAGS.community
               ? [
-                  { emoji: '💬', label: 'Community', go: () => (navigation as any).navigate('Forum') },
-                  { emoji: '✉️', label: 'Messages', go: () => (navigation as any).navigate('Messages') },
+                  { icon: 'chatbubbles-outline', label: 'Community', go: () => (navigation as any).navigate('Forum') },
+                  { icon: 'mail-outline', label: 'Messages', go: () => (navigation as any).navigate('Messages') },
                 ]
               : []),
           ].map(tool => (
@@ -300,7 +301,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
               accessibilityRole="button"
               accessibilityLabel={tool.label}
             >
-              <Text style={styles.quickActionEmoji}>{tool.emoji}</Text>
+              <Ionicons name={tool.icon as never} size={22} color={colors.teal} style={styles.tileIcon} />
               <Text style={styles.toolLabel} numberOfLines={2}>{tool.label}</Text>
             </TouchableOpacity>
           ))}
@@ -612,8 +613,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  quickActionEmoji: {
-    fontSize: 24,
+  tileIcon: {
     marginBottom: 4,
   },
   quickActionLabel: {
