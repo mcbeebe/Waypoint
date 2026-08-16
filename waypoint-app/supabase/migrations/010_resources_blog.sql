@@ -1,7 +1,7 @@
 -- Phase 10: Resources, Guides & Blog schema
 
 -- ─── Resources / Guides ─────────────────────────────────────────────────────
-create table public.resources (
+create table if not exists public.resources (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   body text not null,
@@ -17,7 +17,7 @@ create table public.resources (
 );
 
 -- ─── Blog Posts ─────────────────────────────────────────────────────────────
-create table public.blog_posts (
+create table if not exists public.blog_posts (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   excerpt text,
@@ -34,24 +34,28 @@ create table public.blog_posts (
 );
 
 -- ─── Indexes ────────────────────────────────────────────────────────────────
-create index idx_resources_category on public.resources(category);
-create index idx_resources_published on public.resources(is_published, published_at desc);
-create index idx_blog_category on public.blog_posts(category);
-create index idx_blog_published on public.blog_posts(is_published, published_at desc);
-create index idx_blog_featured on public.blog_posts(is_featured) where is_featured = true;
+create index if not exists idx_resources_category on public.resources(category);
+create index if not exists idx_resources_published on public.resources(is_published, published_at desc);
+create index if not exists idx_blog_category on public.blog_posts(category);
+create index if not exists idx_blog_published on public.blog_posts(is_published, published_at desc);
+create index if not exists idx_blog_featured on public.blog_posts(is_featured) where is_featured = true;
 
 -- ─── RLS ────────────────────────────────────────────────────────────────────
 alter table public.resources enable row level security;
 alter table public.blog_posts enable row level security;
 
 -- All authenticated users can read published content
+drop policy if exists "Anyone can read published resources" on resources;
 create policy "Anyone can read published resources" on resources for select
   using (is_published = true);
+drop policy if exists "Anyone can read published blog posts" on blog_posts;
 create policy "Anyone can read published blog posts" on blog_posts for select
   using (is_published = true);
 
 -- ─── Triggers ───────────────────────────────────────────────────────────────
+drop trigger if exists set_resources_updated_at on public.resources;
 create trigger set_resources_updated_at before update on public.resources
-  for each row execute function public.set_updated_at();
+  for each row execute function public.handle_updated_at();
+drop trigger if exists set_blog_posts_updated_at on public.blog_posts;
 create trigger set_blog_posts_updated_at before update on public.blog_posts
-  for each row execute function public.set_updated_at();
+  for each row execute function public.handle_updated_at();

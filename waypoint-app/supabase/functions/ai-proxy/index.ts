@@ -199,6 +199,27 @@ serve(async (req: Request) => {
     if (action === 'ocr') {
       const { documentId, imageBase64, mimeType } = body;
 
+      // Ownership check (Wave 0.3): the write below must only ever touch a
+      // document the CALLER can see. A client scoped to the caller's JWT
+      // enforces RLS; the service-role client must never write client-named
+      // rows directly.
+      const userClient = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
+        global: { headers: { Authorization: authHeader } },
+      });
+      if (documentId) {
+        const { data: ownedDoc } = await userClient
+          .from('documents')
+          .select('id')
+          .eq('id', documentId)
+          .maybeSingle();
+        if (!ownedDoc) {
+          return new Response(JSON.stringify({ error: 'Document not found' }), {
+            status: 404,
+            headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
       const ocrResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -234,9 +255,10 @@ serve(async (req: Request) => {
       const ocrData = await ocrResponse.json();
       const extractedText = ocrData.content?.[0]?.text ?? '';
 
-      // Update document record with extracted text if documentId provided
+      // Update document record with extracted text — through the caller's
+      // RLS-scoped client, never service-role
       if (documentId && extractedText) {
-        await supabase
+        await userClient
           .from('documents')
           .update({ extracted_text: extractedText })
           .eq('id', documentId);

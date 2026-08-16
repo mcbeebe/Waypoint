@@ -2,7 +2,7 @@
 -- Provider profiles, family connections, messaging, and document access logging
 
 -- ─── Provider Profiles ──────────────────────────────────────────────────────
-create table public.provider_profiles (
+create table if not exists public.provider_profiles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null unique,
   name text not null,
@@ -23,7 +23,7 @@ create table public.provider_profiles (
 );
 
 -- ─── Provider-Family Connections ────────────────────────────────────────────
-create table public.provider_family_connections (
+create table if not exists public.provider_family_connections (
   id uuid primary key default gen_random_uuid(),
   provider_profile_id uuid references public.provider_profiles(id) on delete cascade not null,
   family_id uuid references public.families(id) on delete cascade not null,
@@ -35,7 +35,7 @@ create table public.provider_family_connections (
 );
 
 -- ─── Provider-Family Messages ───────────────────────────────────────────────
-create table public.provider_messages (
+create table if not exists public.provider_messages (
   id uuid primary key default gen_random_uuid(),
   connection_id uuid references public.provider_family_connections(id) on delete cascade not null,
   sender_type text not null, -- 'provider' or 'family'
@@ -46,7 +46,7 @@ create table public.provider_messages (
 );
 
 -- ─── Document Access Log (audit trail) ──────────────────────────────────────
-create table public.document_access_logs (
+create table if not exists public.document_access_logs (
   id uuid primary key default gen_random_uuid(),
   document_id uuid references public.documents(id) on delete cascade not null,
   provider_profile_id uuid references public.provider_profiles(id) on delete cascade not null,
@@ -54,12 +54,12 @@ create table public.document_access_logs (
 );
 
 -- ─── Indexes ────────────────────────────────────────────────────────────────
-create index idx_provider_profiles_type on public.provider_profiles(provider_type);
-create index idx_provider_profiles_org on public.provider_profiles(organization);
-create index idx_provider_connections_provider on public.provider_family_connections(provider_profile_id);
-create index idx_provider_connections_family on public.provider_family_connections(family_id);
-create index idx_provider_messages_connection on public.provider_messages(connection_id);
-create index idx_doc_access_doc on public.document_access_logs(document_id);
+create index if not exists idx_provider_profiles_type on public.provider_profiles(provider_type);
+create index if not exists idx_provider_profiles_org on public.provider_profiles(organization);
+create index if not exists idx_provider_connections_provider on public.provider_family_connections(provider_profile_id);
+create index if not exists idx_provider_connections_family on public.provider_family_connections(family_id);
+create index if not exists idx_provider_messages_connection on public.provider_messages(connection_id);
+create index if not exists idx_doc_access_doc on public.document_access_logs(document_id);
 
 -- ─── RLS ────────────────────────────────────────────────────────────────────
 alter table public.provider_profiles enable row level security;
@@ -68,21 +68,26 @@ alter table public.provider_messages enable row level security;
 alter table public.document_access_logs enable row level security;
 
 -- Provider profiles: owners manage own, anyone can read for directory
+drop policy if exists "Providers manage own profile" on provider_profiles;
 create policy "Providers manage own profile" on provider_profiles for all
   using (user_id = auth.uid());
+drop policy if exists "Anyone can read provider profiles" on provider_profiles;
 create policy "Anyone can read provider profiles" on provider_profiles for select using (true);
 
 -- Connections: both parties can see
+drop policy if exists "Connection participants can view" on provider_family_connections;
 create policy "Connection participants can view" on provider_family_connections for select
   using (
     provider_profile_id in (select id from provider_profiles where user_id = auth.uid())
     or family_id in (select id from families where user_id = auth.uid())
   );
+drop policy if exists "Either party can create connection" on provider_family_connections;
 create policy "Either party can create connection" on provider_family_connections for insert
   with check (
     provider_profile_id in (select id from provider_profiles where user_id = auth.uid())
     or family_id in (select id from families where user_id = auth.uid())
   );
+drop policy if exists "Either party can update connection" on provider_family_connections;
 create policy "Either party can update connection" on provider_family_connections for update
   using (
     provider_profile_id in (select id from provider_profiles where user_id = auth.uid())
@@ -90,21 +95,26 @@ create policy "Either party can update connection" on provider_family_connection
   );
 
 -- Messages: connection participants only
+drop policy if exists "Connection participants can read messages" on provider_messages;
 create policy "Connection participants can read messages" on provider_messages for select
   using (connection_id in (
     select id from provider_family_connections where
       provider_profile_id in (select id from provider_profiles where user_id = auth.uid())
       or family_id in (select id from families where user_id = auth.uid())
   ));
+drop policy if exists "Connection participants can send messages" on provider_messages;
 create policy "Connection participants can send messages" on provider_messages for insert
   with check (sender_id = auth.uid());
 
 -- Document access logs: providers and document owners
+drop policy if exists "Providers can log access" on document_access_logs;
 create policy "Providers can log access" on document_access_logs for insert
   with check (provider_profile_id in (select id from provider_profiles where user_id = auth.uid()));
+drop policy if exists "Document owners can view access logs" on document_access_logs;
 create policy "Document owners can view access logs" on document_access_logs for select
   using (document_id in (select id from documents where family_id in (select id from families where user_id = auth.uid())));
 
 -- ─── Triggers ───────────────────────────────────────────────────────────────
+drop trigger if exists set_provider_profiles_updated_at on public.provider_profiles;
 create trigger set_provider_profiles_updated_at before update on public.provider_profiles
-  for each row execute function public.set_updated_at();
+  for each row execute function public.handle_updated_at();
