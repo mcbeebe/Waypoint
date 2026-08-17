@@ -1,6 +1,12 @@
 -- 003: Add similarity search RPC function for RAG retrieval
 -- Requires pgvector extension (enabled in 001_schema_v1.sql)
 
+-- Enable trigram extension before the index that uses its operator class.
+-- Supabase installs extensions into the `extensions` schema, so objects
+-- from pg_trgm/pgvector must be schema-qualified below (the functions pin
+-- search_path = '').
+create extension if not exists pg_trgm with schema extensions;
+
 -- Similarity search function using cosine distance
 -- Returns top-k most similar KB articles given a query embedding
 create or replace function public.match_knowledge(
@@ -29,12 +35,12 @@ begin
     ke.source,
     ke.section,
     ke.metadata,
-    1 - (ke.embedding <=> query_embedding) as similarity
+    1 - (ke.embedding operator(extensions.<=>) query_embedding) as similarity
   from public.knowledge_embeddings ke
   where
     (filter_source is null or ke.source = filter_source)
-    and 1 - (ke.embedding <=> query_embedding) > match_threshold
-  order by ke.embedding <=> query_embedding
+    and 1 - (ke.embedding operator(extensions.<=>) query_embedding) > match_threshold
+  order by ke.embedding operator(extensions.<=>) query_embedding
   limit match_count;
 end;
 $$;
@@ -45,10 +51,7 @@ grant execute on function public.match_knowledge to authenticated;
 -- Add a text search index for hybrid search (keyword + semantic)
 create index if not exists idx_knowledge_content_trgm
   on public.knowledge_embeddings
-  using gin (content gin_trgm_ops);
-
--- Enable trigram extension for fuzzy text search
-create extension if not exists pg_trgm;
+  using gin (content extensions.gin_trgm_ops);
 
 -- Hybrid search: combines semantic similarity with keyword matching
 create or replace function public.hybrid_search_knowledge(
@@ -81,11 +84,11 @@ begin
     ke.source,
     ke.section,
     ke.metadata,
-    1 - (ke.embedding <=> query_embedding) as similarity,
-    similarity(ke.content, query_text) as keyword_rank,
+    1 - (ke.embedding operator(extensions.<=>) query_embedding) as similarity,
+    extensions.similarity(ke.content, query_text) as keyword_rank,
     (
-      semantic_weight * (1 - (ke.embedding <=> query_embedding))
-      + keyword_weight * similarity(ke.content, query_text)
+      semantic_weight * (1 - (ke.embedding operator(extensions.<=>) query_embedding))
+      + keyword_weight * extensions.similarity(ke.content, query_text)
     ) as combined_score
   from public.knowledge_embeddings ke
   where
