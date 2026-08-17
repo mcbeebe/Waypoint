@@ -140,6 +140,14 @@ export default function WelcomeScreen() {
           <Text style={styles.tagline}>
             Your child's unexpected journey.{'\n'}Every step, mapped.
           </Text>
+          {/* Value props (wave 4) — why sign up, in three lines */}
+          {!showEmailForm && (
+            <View style={styles.valueProps}>
+              <Text style={styles.valueProp}>🧭 Answers that cite California law — with the exact words to say</Text>
+              <Text style={styles.valueProp}>📋 A personalized action plan for Regional Center, IEP & benefits</Text>
+              <Text style={styles.valueProp}>✉️ Ready-to-send letters, appeals & records requests — free</Text>
+            </View>
+          )}
         </View>
 
         {/* Auth Buttons */}
@@ -284,6 +292,17 @@ const styles = StyleSheet.create({
     color: colors.mid,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  valueProps: {
+    marginTop: spacing.lg,
+    gap: spacing.sm,
+    alignSelf: 'stretch',
+    paddingHorizontal: spacing.md,
+  },
+  valueProp: {
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+    lineHeight: 19,
   },
   actions: {
     gap: 12,

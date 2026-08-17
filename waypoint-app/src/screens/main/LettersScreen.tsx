@@ -218,6 +218,37 @@ export default function LettersScreen() {
               <Text style={styles.backLink}>‹ Change tone or details</Text>
             </TouchableOpacity>
             <Text style={styles.stepTitle}>Your draft — edit anything, then send</Text>
+            {(() => {
+              // [BRACKET] highlighting (wave 4): surface the blanks the
+              // parent still needs to fill before this is sendable
+              const blanks = Array.from(
+                new Set((draft.match(/\[[^\]\n]{1,40}\]/g) ?? []).map((b) => b.trim()))
+              );
+              if (blanks.length === 0) {
+                return (
+                  <View style={styles.blanksDone}>
+                    <Text style={styles.blanksDoneText}>✅ No blanks left — ready to send</Text>
+                  </View>
+                );
+              }
+              return (
+                <View style={styles.blanksCard}>
+                  <Text style={styles.blanksTitle}>
+                    Fill in {blanks.length} blank{blanks.length === 1 ? '' : 's'} before sending:
+                  </Text>
+                  <View style={styles.blanksRow}>
+                    {blanks.slice(0, 8).map((b) => (
+                      <View key={b} style={styles.blankChip}>
+                        <Text style={styles.blankChipText}>{b}</Text>
+                      </View>
+                    ))}
+                    {blanks.length > 8 && (
+                      <Text style={styles.blanksMore}>+{blanks.length - 8} more</Text>
+                    )}
+                  </View>
+                </View>
+              );
+            })()}
             <TextInput
               style={styles.draftBox}
               value={draft}
@@ -315,6 +346,52 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     color: colors.mid,
     textAlign: 'center',
+  },
+  blanksCard: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: radii.md,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  blanksTitle: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.semibold as '600',
+    color: '#B45309',
+    marginBottom: 4,
+  },
+  blanksRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    alignItems: 'center',
+  },
+  blankChip: {
+    backgroundColor: colors.white,
+    borderRadius: radii.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  blankChipText: {
+    fontSize: fonts.sizes.xs,
+    color: '#B45309',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  blanksMore: {
+    fontSize: fonts.sizes.xs,
+    color: '#B45309',
+  },
+  blanksDone: {
+    backgroundColor: '#DCFCE7',
+    borderRadius: radii.md,
+    padding: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  blanksDoneText: {
+    fontSize: fonts.sizes.xs,
+    color: '#15803D',
+    fontWeight: fonts.weights.medium as '500',
   },
   draftBox: {
     backgroundColor: colors.white,
