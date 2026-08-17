@@ -9,14 +9,19 @@ import {
   Text,
   TextInput,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Button from '@/components/Button';
-import { signInWithApple, signInWithGoogle, signInWithEmail, signUpWithEmail } from '@/lib/auth';
+import {
+  signInWithApple,
+  signInWithGoogle,
+  signInWithEmail,
+  signUpWithEmail,
+  requestPasswordReset,
+} from '@/lib/auth';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 /** Google Sign-In is deferred until OAuth client IDs are configured */
@@ -31,33 +36,45 @@ export default function WelcomeScreen() {
   const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState<'apple' | 'google' | 'email' | null>(null);
+  const [loading, setLoading] = useState<'apple' | 'google' | 'email' | 'reset' | null>(null);
+  // Inline messages instead of Alert.alert — Alert is a NO-OP on
+  // react-native-web, which made wrong-password failures silent.
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+
+  const clearMessages = () => {
+    setError(null);
+    setInfo(null);
+  };
 
   const handleApple = async () => {
+    clearMessages();
     setLoading('apple');
     const result = await signInWithApple();
     setLoading(null);
     if (!result.success && result.error !== 'Sign-in cancelled') {
-      Alert.alert('Sign-In Failed', result.error);
+      setError(result.error ?? 'Apple Sign-In failed.');
     }
   };
 
   const handleGoogle = async () => {
+    clearMessages();
     setLoading('google');
     const result = await signInWithGoogle();
     setLoading(null);
     if (!result.success && result.error !== 'Sign-in cancelled') {
-      Alert.alert('Sign-In Failed', result.error);
+      setError(result.error ?? 'Google Sign-In failed.');
     }
   };
 
   const handleEmail = async () => {
+    clearMessages();
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Missing Info', 'Please enter your email and password.');
+      setError('Please enter your email and password.');
       return;
     }
     if (password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters.');
+      setError('Password must be at least 6 characters.');
       return;
     }
 
@@ -68,8 +85,40 @@ export default function WelcomeScreen() {
     setLoading(null);
 
     if (!result.success) {
-      Alert.alert(isSignUp ? 'Sign-Up Failed' : 'Sign-In Failed', result.error);
+      const message = result.error ?? 'Something went wrong. Please try again.';
+      // Supabase's raw message for a bad login is terse — make it friendly
+      setError(
+        /invalid login credentials/i.test(message)
+          ? 'Incorrect email or password. Double-check both, or tap "Forgot password?" below.'
+          : message
+      );
+      return;
     }
+    if (isSignUp && 'needsConfirmation' in result && result.needsConfirmation) {
+      setInfo(
+        `Almost there! We sent a confirmation link to ${email.trim()}. ` +
+          'Open it to activate your account, then come back and sign in.'
+      );
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    clearMessages();
+    if (!email.trim()) {
+      setError('Enter your email above first, then tap "Forgot password?" again.');
+      return;
+    }
+    setLoading('reset');
+    const result = await requestPasswordReset(email.trim());
+    setLoading(null);
+    if (!result.success) {
+      setError(result.error ?? 'Could not send the reset email. Please try again.');
+      return;
+    }
+    setInfo(
+      `Password reset link sent to ${email.trim()}. ` +
+        'Open the email and follow the link to choose a new password.'
+    );
   };
 
   return (
@@ -124,7 +173,7 @@ export default function WelcomeScreen() {
               <TextInput
                 style={styles.input}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(v) => { setEmail(v); setError(null); }}
                 placeholder="Email address"
                 placeholderTextColor={colors.mid}
                 keyboardType="email-address"
@@ -135,11 +184,14 @@ export default function WelcomeScreen() {
               <TextInput
                 style={styles.input}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(v) => { setPassword(v); setError(null); }}
                 placeholder="Password (6+ characters)"
                 placeholderTextColor={colors.mid}
                 secureTextEntry
               />
+
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              {info ? <Text style={styles.infoText}>{info}</Text> : null}
 
               <Button
                 title={isSignUp ? 'Create Account' : 'Sign In'}
@@ -149,9 +201,19 @@ export default function WelcomeScreen() {
                 disabled={loading !== null}
               />
 
+              {!isSignUp && (
+                <Text
+                  style={styles.forgotLink}
+                  onPress={loading === null ? handleForgotPassword : undefined}
+                  accessibilityRole="link"
+                >
+                  {loading === 'reset' ? 'Sending reset email…' : 'Forgot password?'}
+                </Text>
+              )}
+
               <Button
                 title={isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-                onPress={() => setIsSignUp(!isSignUp)}
+                onPress={() => { setIsSignUp(!isSignUp); clearMessages(); }}
                 variant="outline"
                 disabled={loading !== null}
               />
@@ -236,6 +298,25 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.base,
     fontSize: fonts.sizes.md,
     color: colors.dark,
+  },
+  errorText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.error,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  infoText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  forgotLink: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    paddingVertical: 4,
   },
   terms: {
     fontSize: fonts.sizes.xs,

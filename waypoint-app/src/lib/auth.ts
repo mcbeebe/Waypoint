@@ -144,16 +144,72 @@ export async function signInWithEmail(
 export async function signUpWithEmail(
   email: string,
   password: string
+): Promise<{ success: boolean; needsConfirmation?: boolean; error?: string }> {
+  try {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    // When "Confirm email" is on in Supabase Auth, signUp creates the user
+    // but returns no session — the account activates via the emailed link.
+    // Supabase also anti-enumerates: signing up an EXISTING confirmed email
+    // returns a user with empty identities and no session.
+    if (!data.session) {
+      const isExisting = (data.user?.identities?.length ?? 0) === 0;
+      if (isExisting) {
+        return {
+          success: false,
+          error: 'An account with this email already exists. Try signing in instead.',
+        };
+      }
+      return { success: true, needsConfirmation: true };
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    const error = err as { message?: string };
+    return { success: false, error: error.message || 'Sign-up failed' };
+  }
+}
+
+/**
+ * Send a password-reset email. The link signs the user in with a recovery
+ * session (PASSWORD_RECOVERY auth event) and the app then shows the
+ * set-new-password screen.
+ */
+export async function requestPasswordReset(
+  email: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const redirectTo =
+      typeof window !== 'undefined' && window.location?.origin
+        ? window.location.origin
+        : undefined;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) {
       return { success: false, error: error.message };
     }
     return { success: true };
   } catch (err: unknown) {
     const error = err as { message?: string };
-    return { success: false, error: error.message || 'Sign-up failed' };
+    return { success: false, error: error.message || 'Could not send reset email' };
+  }
+}
+
+/**
+ * Set a new password for the signed-in user (used after a recovery link).
+ */
+export async function updatePassword(
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    const error = err as { message?: string };
+    return { success: false, error: error.message || 'Could not update password' };
   }
 }
 

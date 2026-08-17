@@ -4,6 +4,7 @@ import type { ForumThread, IEPAnalysisResult } from '@/types/database';
 
 export type RootStackParamList = {
   Welcome: undefined;
+  ResetPassword: undefined;
   Onboarding: undefined;
   Main: NavigatorScreenParams<MainTabParamList> | undefined;
   Terms: undefined;
