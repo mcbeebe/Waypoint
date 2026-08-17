@@ -7,7 +7,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { retrieveMultiSourceContext, type RAGResult } from '@/lib/rag';
 import { streamNavigatorResponse, classifyIntent } from '@/lib/ai';
-import { parseFollowups } from '@/lib/followups';
+import { parseTrailers, type ChatMeta } from '@/lib/followups';
 import type { ChatContext, ChatMessage, ToneLevel } from '@/types/database';
 
 /** Runtime message type (includes streaming state) */
@@ -19,6 +19,8 @@ export interface UIMessage {
   sources?: Array<{ source: string; section?: string | null; similarity: number }>;
   /** Tappable follow-up suggestions parsed from the response trailer */
   followUps?: string[];
+  /** Structured card metadata (steps, rights, resources…) parsed from trailers */
+  meta?: ChatMeta;
   createdAt: string;
 }
 
@@ -164,9 +166,10 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             );
           },
           onComplete: async (fullText) => {
-            // Strip the [[FOLLOWUPS: ...]] trailer BEFORE display/persistence
-            // so the DB, Save-as-Action, and Email never see it.
-            const { content, followUps } = parseFollowups(fullText);
+            // Strip ALL [[...]] trailers BEFORE display/persistence so the
+            // DB, Save-as-Action, and Email never see them; keep the parsed
+            // metadata for card rendering.
+            const { content, meta } = parseTrailers(fullText);
 
             // Finalize the message
             setMessages((prev) =>
@@ -175,7 +178,8 @@ export function useChat(options: UseChatOptions): UseChatReturn {
                   ? {
                       ...m,
                       content,
-                      followUps,
+                      followUps: meta.followUps,
+                      meta,
                       isStreaming: false,
                       sources: ragResult.sources.map((s) => ({
                         source: s.source,
