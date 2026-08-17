@@ -12,6 +12,7 @@ import {
   TextInput,
   StyleSheet,
   Linking,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type {
@@ -354,6 +355,25 @@ export default function ActionDetailScreen({
           </View>
           {action.follow_up_note && (
             <Text style={styles.followUpNote}>Note: {action.follow_up_note}</Text>
+          )}
+          {/* Text-myself reminder (wave 3, ported from GAS smsReminder) —
+              native only; the web has no SMS handler */}
+          {Platform.OS !== 'web' && action.status !== 'completed' && (
+            <TouchableOpacity
+              style={styles.smsButton}
+              onPress={() => {
+                const body = action.follow_up_note || `Waypoint reminder: ${action.title}`;
+                const url =
+                  Platform.OS === 'ios'
+                    ? `sms:&body=${encodeURIComponent(body)}`
+                    : `sms:?body=${encodeURIComponent(body)}`;
+                Linking.openURL(url).catch(() => {});
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Text this reminder to yourself"
+            >
+              <Text style={styles.smsButtonText}>📱 Text me this reminder</Text>
+            </TouchableOpacity>
           )}
         </View>
 
@@ -733,6 +753,23 @@ const styles = StyleSheet.create({
     color: colors.mid,
     marginTop: spacing.sm,
     fontStyle: 'italic',
+  },
+  smsButton: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.md,
+    backgroundColor: '#E6F7F5',
+    borderWidth: 1,
+    borderColor: colors.teal,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  smsButtonText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
   },
   sourceRow: {
     paddingTop: spacing.md,

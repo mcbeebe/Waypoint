@@ -23,6 +23,7 @@ import {
   type GeneratedAction,
   type AdaptiveContext,
 } from '@/lib/adaptiveEngine';
+import { trackEvent } from '@/lib/analytics';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 type Mode =
@@ -108,6 +109,12 @@ export default function CheckInCard({
         count === 1 ? 'Escalation step added to your plan' : `${count} escalation steps added to your plan`,
         'success'
       );
+      trackEvent({
+        familyId,
+        eventType: 'feature_used',
+        eventData: { feature: 'frustration_wizard', steps: count },
+        regionalCenter: regionalCenterName ?? undefined,
+      });
       setMode({ kind: 'idle' });
       onActionsAdded?.();
     } else {

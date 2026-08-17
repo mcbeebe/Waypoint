@@ -10,7 +10,7 @@
  * - Type-based icons and color coding
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import DateInput from '@/components/DateInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,6 +30,7 @@ import { useFamily } from '@/hooks/useFamily';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useCalendarSync } from '@/hooks/useCalendarSync';
+import { useNotifications } from '@/hooks/useNotifications';
 import EmptyState from '@/components/EmptyState';
 import type {
   Appointment,
@@ -99,6 +101,24 @@ export default function CalendarScreen() {
   } = useDeadlines({ familyId });
 
   const { isSyncing, syncNow, isGoogleConnected } = useCalendarSync({ familyId });
+
+  // Deadline push reminders (wave 3 retention) — native only; local
+  // notifications aren't reliable on web
+  const notificationsSupported = Platform.OS !== 'web';
+  const { hasPermission, requestPermission, scheduleAllReminders } = useNotifications();
+
+  useEffect(() => {
+    if (!notificationsSupported || !hasPermission || deadlines.length === 0) return;
+    scheduleAllReminders(deadlines.filter((d) => d.status !== 'completed')).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPermission, deadlines]);
+
+  const handleEnableReminders = useCallback(async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      await scheduleAllReminders(deadlines.filter((d) => d.status !== 'completed')).catch(() => {});
+    }
+  }, [requestPermission, scheduleAllReminders, deadlines]);
 
   const loading = loadingAppts || loadingDeadlines;
 
@@ -269,6 +289,24 @@ export default function CalendarScreen() {
           renderItem={({ item }) => (
             <DeadlineCard deadline={item} onComplete={() => markComplete(item.id)} />
           )}
+          ListHeaderComponent={
+            notificationsSupported && !hasPermission && sortedDeadlines.length > 0 ? (
+              <TouchableOpacity
+                style={styles.reminderBanner}
+                onPress={handleEnableReminders}
+                accessibilityRole="button"
+                accessibilityLabel="Enable deadline reminder notifications"
+              >
+                <Text style={styles.reminderBannerEmoji}>🔔</Text>
+                <View style={styles.reminderBannerBody}>
+                  <Text style={styles.reminderBannerTitle}>Never miss a deadline</Text>
+                  <Text style={styles.reminderBannerText}>
+                    Tap to get reminders before IEP, insurance, and benefit deadlines.
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ) : null
+          }
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={loading} onRefresh={handleRefresh} tintColor={colors.teal} />
@@ -653,6 +691,27 @@ const styles = StyleSheet.create({
   dayNumToday: { color: colors.teal },
   dayDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.teal, marginTop: 2 },
   listContent: { padding: spacing.md, paddingBottom: spacing['2xl'] },
+  reminderBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: '#FEF3C7',
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  reminderBannerEmoji: { fontSize: 22 },
+  reminderBannerBody: { flex: 1 },
+  reminderBannerTitle: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold as '600',
+    color: colors.navy,
+  },
+  reminderBannerText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    marginTop: 1,
+  },
   dayGroup: { marginBottom: spacing.lg },
   dayGroupHeader: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
