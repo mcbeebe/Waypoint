@@ -47,6 +47,99 @@ const TONE_INSTRUCTIONS: Record<string, string> = {
   adversarial: `Use a direct, advocacy-oriented adversarial tone. The parent is likely facing denials, delays, or rights violations. Guide them through formal dispute resolution: fair hearings, compliance complaints, OAH filings, OCR complaints. Reference specific legal protections and remedies. Help them document everything. Mention when an attorney consultation may be warranted. Be their fiercest advocate while remaining factual and legally grounded.`,
 };
 
+// ─── Letter generator (Phase 3 — ported from GAS generateDraft WP-012/WP-035) ─
+
+const DRAFT_TONE_INSTRUCTIONS: Record<string, string> = {
+  warm: `CRITICAL TONE OVERRIDE — THE USER SELECTED "FRIENDLY & WARM". THIS IS THE #1 PRIORITY:
+
+HARD RULES — VIOLATING ANY OF THESE IS A FAILURE:
+1. MAX 100 WORDS TOTAL. Count them. If over 100, delete sentences until under.
+2. ZERO legal citations — no § symbols, no "Section 1374.73", no "Health & Safety Code", no "Insurance Code", no "Lanterman Act", no "IDEA", no law names AT ALL.
+3. ZERO formal language — no "pursuant to", "in accordance with", "I am writing to", "please be advised", "entitled to", "obligation", "mandate", "compliance"
+4. Start with "Hi [Name]," — NEVER "Dear"
+5. Write like you're texting a friend. Short sentences. Contractions always (we're, we'd, it's, don't).
+6. Structure: greeting (1 sentence) → what you need (2-3 sentences) → warm close (1 sentence). THAT'S IT.
+7. End with "Thanks so much!" or "Really appreciate your help!" — NOT "Sincerely" or "Respectfully"
+
+IF YOUR DRAFT CONTAINS ANY LAW NAMES, SECTION NUMBERS, OR IS OVER 100 WORDS, YOU HAVE FAILED.`,
+  professional: `CRITICAL TONE OVERRIDE — THE USER SELECTED "PROFESSIONAL & CLEAR":
+LENGTH: The ENTIRE draft MUST be under 250 words. Be concise — every sentence must earn its place.
+Write in a clear, professional but human tone. This overrides any other tone instructions below.
+- Be specific and organized but keep it accessible and brief
+- Use phrases like: "We are requesting...", "We would appreciate...", "We'd like to discuss..."
+- Mention relevant timelines without being threatening
+- Minimal legal citations — only if directly helpful, not to intimidate
+- Max 3-4 short paragraphs. No walls of text.`,
+  strong: `CRITICAL TONE OVERRIDE — THE USER SELECTED "STRONG & DIRECT":
+LENGTH: The ENTIRE draft MUST be under 350 words. Be precise — legal language should be surgical, not verbose.
+Write in a firm, direct tone. This overrides any other tone instructions below.
+- Be specific about rights and expectations
+- Include relevant legal citations and deadlines — but only the ones that matter most
+- Frame requests as expectations: "We expect...", "As required by...", "Please respond in writing by..."
+- Be respectful but leave no ambiguity about what is being requested
+- Max 4-5 paragraphs. Every paragraph must have a clear purpose.`,
+};
+
+const DRAFT_PROMPTS: Record<string, string> = {
+  appeal_letter: `Draft a formal insurance appeal letter for a parent of a child with disabilities in California. Include: today's date, policy/member info placeholders, the denial reason being appealed, a strong medical necessity argument citing specific functional limitations, legal citations (SB 946 if autism-related, Mental Health Parity Act, EPSDT if Medi-Cal), and a clear request for reversal. Address to the insurance company appeals department. Tone: firm, professional, factual — this IS an adversarial situation so legal citations are appropriate. Use [BRACKETS] for information the parent needs to fill in.`,
+  iep_email: `Draft a professional email to a school district special education department. Match the assertiveness to the selected tone: warm = cooperative, no legal codes; professional = firm, reference IDEA timelines and the right to Prior Written Notice; strong = cite specific Education Code sections and make clear the parent expects compliance. Use [BRACKETS] for information the parent needs to fill in.`,
+  rc_request: `Draft a request letter to the family's Regional Center Service Coordinator. Match escalation to tone: warm = a collaborative request framed as "We believe [child] would benefit from...", no legal citations; professional = firm, mention that services are based on individual need and request a written response within a reasonable timeline; strong = reference the Lanterman Act entitlement principle with relevant W&I Code sections, be specific about the service, the assessed need, response timeline, and fair hearing rights if denied. Use [BRACKETS] for information the parent needs to fill in.`,
+  iep_prep: `Create a comprehensive IEP meeting preparation document. Include: 1) Agenda items to raise, 2) Specific questions to ask the team, 3) Practical reminders (recording option, taking IEP home to review, bringing an advocate or support person), 4) Suggested goals or areas to discuss based on the child's profile, 5) Things to watch for during the meeting. Keep the tone practical and empowering — this is about preparation, not confrontation. Format as a practical checklist the parent can print and bring.`,
+  complaint: `Draft a formal complaint document. Determine the correct mechanism (4731 complaint for RC rights violations, CDE compliance complaint for school violations, DMHC complaint for insurance issues) based on the context. Include: specific rights or laws violated, dates and incidents, requested resolution, and the correct filing address/contact. This IS an adversarial document — legal precision and specific citations are appropriate here. Use [BRACKETS] for information the parent needs to fill in.`,
+  assessment_request: `Draft a formal written request for a psychoeducational or developmental assessment. This letter is from a parent to a school district requesting an initial evaluation or re-evaluation of their child for special education eligibility under IDEA.
+Include:
+- Parent's right to request evaluation under IDEA 34 CFR §300.301
+- CA Education Code §56321: District must provide an assessment plan within 15 calendar days of receiving the written request
+- CA Education Code §56344: Assessment must be completed and the IEP meeting held within 60 calendar days of signed consent (school breaks over 5 days pause the clock)
+- Specific areas of concern (based on child's diagnosis/profile)
+- Request for assessment in ALL areas of suspected disability
+- Statement that parent does NOT consent to RTI/MTSS as a substitute for evaluation
+Tone: firm but cooperative. This is a rights-based request, not a demand.
+Use [BRACKETS] for information the parent needs to fill in.`,
+  records_request: `Draft a formal request for educational or developmental records. This letter invokes the parent's right to inspect and obtain copies of all records under:
+- FERPA (34 CFR §99.10): Right to inspect within 45 days
+- CA Education Code §49069: Copies within 5 business days
+- IDEA (34 CFR §300.613): Access to educational records
+- Lanterman Act (W&I §4725): Access to Regional Center records
+Include request for: all evaluations, IEP/IFSP documents, correspondence, service logs, behavior records, progress reports, teacher notes, assessments, Prior Written Notices.
+Note: First copy must be free of charge under CA law.
+Use [BRACKETS] for information the parent needs to fill in.`,
+  pwn_request: `Draft a formal request for Prior Written Notice (PWN) from a school district. PWN is required under IDEA 34 CFR §300.503 whenever the school proposes or refuses to initiate or change identification, evaluation, placement, or FAPE.
+The PWN must include: 1. Description of the action proposed or refused 2. Explanation of why 3. Description of each evaluation procedure, assessment, record, or report used as basis 4. Other options considered and why rejected 5. Other relevant factors 6. Statement of procedural safeguards.
+Tone: professional and rights-aware. Cite 34 CFR §300.503 specifically. This is commonly needed when schools verbally refuse services or changes without documentation.
+Use [BRACKETS] for information the parent needs to fill in.`,
+  cde_complaint: `Draft a formal compliance complaint to the California Department of Education (CDE), filed under the Uniform Complaint Procedures and/or direct state complaint.
+Reference: 34 CFR §300.151-153 (state complaint procedures), CA Education Code §56500.2 (complaint rights), 5 CCR §4600-4671 (UCP procedures).
+The complaint must include: 1. Specific IDEA/state law violation(s) with citations 2. Facts supporting each violation 3. Dates of each violation (must be within 1 year) 4. Name and address of school district 5. Child's name and contact information 6. Proposed resolution 7. Signature and date.
+Address to: CDE Special Education Division, Procedural Safeguards Referral Service, (916) 319-0800. CDE must resolve within 60 calendar days.
+Use [BRACKETS] for information the parent needs to fill in.`,
+  dds_4731_complaint: `Draft a formal 4731 complaint (rights violation complaint) against a Regional Center, filed under Welfare & Institutions Code §4731.
+Reference: W&I §4731 (right to file), W&I §4502 (Bill of Rights for persons with developmental disabilities), W&I §4646-4648 (IPP requirements and service delivery obligations), Title 17 CCR §50510 (complaint procedures).
+The complaint must include: 1. Specific right(s) violated under W&I §4502 2. Detailed description of what happened, with dates 3. What the Regional Center did or failed to do 4. Harm caused to the consumer/family 5. Requested resolution 6. Prior attempts to resolve with the RC.
+Note: the complaint is filed with the Regional Center director, who must respond within 20 working days; it can be escalated to DDS. Office of Clients' Rights Advocacy (OCRA) at Disability Rights California, 1-800-776-5746, can help.
+Use [BRACKETS] for information the parent needs to fill in.`,
+  ihss_appeal: `Draft a formal appeal for In-Home Supportive Services (IHSS) denial or insufficient hours, filed as a State Hearing request through the Department of Social Services.
+Reference: W&I §12300-12317 (IHSS program), MPP §30-700 (state hearing procedures), W&I §10950 (right to state hearing within 90 days of adverse action), Aid Paid Pending (request continuation of benefits during appeal — submit the hearing request before the action's effective date or within the notice period).
+Include: 1. Notice of Action (NOA) date and what was denied/reduced 2. Why the assessment underestimates the child's needs 3. Specific functional limitations requiring assistance 4. Medical documentation supporting hours requested 5. Request for Aid Paid Pending if currently receiving services 6. Request for in-person hearing. Parent provider information if applicable (W&I §12300.4).
+Use [BRACKETS] for information the parent needs to fill in.`,
+  general: `Draft a clear, professional letter or document based on the context provided. Match the tone selected: warm = practical communication with no legal positioning; professional/strong = cite relevant California laws as appropriate for the level of conflict, with clear action items. Use [BRACKETS] for information the parent needs to fill in.`,
+};
+
+const DRAFT_OUTPUT_RULES = `
+
+Return the complete draft as plain text (not JSON). Use clear formatting with line breaks.
+CRITICAL LENGTH RULE: Shorter is ALWAYS better. Parents are overwhelmed — they need drafts they can actually read, edit, and send in 2 minutes. Cut every sentence that doesn't directly serve the ask. No padding, no filler, no "thank you for your attention to this matter" boilerplate. The user will open this in Gmail and hit send — make it sendable as-is.
+
+NO COMMENTS OR TIPS IN THE DRAFT: Output ONLY the actual letter/email text that the user would send. Do NOT add any helper comments, tips, notes, or instructions like "Remember to attach...", "Tips for sending...", "Note: You may want to...", or "---" dividers followed by advice. Those belong in the app, not the draft. The draft output must be copy-paste-send ready with ZERO meta-commentary.
+
+CRITICAL — WHO IS THE DRAFT FROM AND TO:
+- The draft is written FROM the parent (user) TO the agency/school/insurance/Regional Center.
+- The parent's name goes at the bottom as the signature, NOT at the top as the recipient.
+- Address the letter TO the appropriate person at the organization (e.g., "Dear Service Coordinator", "Hi Claims Department", "To Whom It May Concern").
+- Do NOT write a message from Waypoint to the parent. The output IS the letter itself — the exact text the parent would send. Nothing else.`;
+
+const DRAFT_LANG_NAMES: Record<string, string> = { es: 'Spanish', vi: 'Vietnamese' };
+
 function buildNavigatorSystemPrompt(opts: {
   childInfo: string;
   diagnosisInfo: string;
@@ -185,7 +278,7 @@ serve(async (req: Request) => {
 
     // ─── AI gate: consent + daily quota (Wave 1) ─────────────────────
     // Applies to every action that sends family data to Anthropic.
-    const AI_ACTIONS = ['chat', 'classify', 'ocr', 'analyze-iep'];
+    const AI_ACTIONS = ['chat', 'classify', 'ocr', 'analyze-iep', 'draft', 'analyze-email'];
     let family: {
       id: string;
       ai_consent_at: string | null;
@@ -590,6 +683,155 @@ ${extractedText}`;
       }
 
       return new Response(JSON.stringify(analysis), {
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ─── Draft: letter/email generator (Phase 3, from GAS generateDraft) ─
+    if (action === 'draft') {
+      const { draftType, tone, question, guidance, language } = body;
+
+      const template = DRAFT_PROMPTS[draftType] ?? DRAFT_PROMPTS.general;
+      const tonePrefix =
+        DRAFT_TONE_INSTRUCTIONS[tone] ?? DRAFT_TONE_INSTRUCTIONS.professional;
+      let systemPrompt = `${tonePrefix}\n\n${template}${DRAFT_OUTPUT_RULES}`;
+
+      const langName = DRAFT_LANG_NAMES[language];
+      if (langName) {
+        systemPrompt += `\n\nLANGUAGE: Write the ENTIRE draft in ${langName}. All letter content and placeholder labels must be in ${langName}. Legal citations may remain in English.`;
+      }
+
+      // Family context from the caller's own rows — drafts NEED real names
+      // (unlike chat): the letter is signed by the parent.
+      const { data: fam } = await userClient
+        .from('families')
+        .select('parent_first_name, parent_last_name, email, regional_center, school_district, insurance_carrier')
+        .maybeSingle();
+      const { data: children } = await userClient
+        .from('children')
+        .select('id, first_name, date_of_birth, is_primary')
+        .order('is_primary', { ascending: false });
+      const child = children?.[0];
+      let childAge = '';
+      if (child?.date_of_birth) {
+        const birth = new Date(child.date_of_birth);
+        const now = new Date();
+        let years = now.getFullYear() - birth.getFullYear();
+        if (now.getMonth() < birth.getMonth()) years--;
+        childAge = `${years} years old`;
+      }
+      let diagnosis = '';
+      if (child) {
+        const { data: dx } = await userClient
+          .from('diagnoses')
+          .select('name')
+          .eq('child_id', child.id);
+        if (dx?.length) diagnosis = dx.map((d: { name: string }) => d.name).join(', ');
+      }
+      const parentName = [fam?.parent_first_name, fam?.parent_last_name]
+        .filter(Boolean)
+        .join(' ');
+
+      const userMsg =
+        'FAMILY CONTEXT (use these REAL values in the draft — only use [BRACKETS] for info that is blank below):\n' +
+        `Parent name: ${parentName || '[Your Name]'}\n` +
+        `Child name: ${child?.first_name || '[Child Name]'}\n` +
+        `Email: ${fam?.email || '[Your Email]'}\n` +
+        `Child age: ${childAge || '[Child Age]'}\n` +
+        `Diagnosis: ${diagnosis || '[Diagnosis]'}\n` +
+        `Insurance: ${fam?.insurance_carrier || '[Insurance Provider]'}\n` +
+        `Regional Center: ${fam?.regional_center || '[Regional Center]'}\n` +
+        `School District: ${fam?.school_district || '[School District]'}\n\n` +
+        'IMPORTANT: If a value above is filled in (not in brackets), use it directly in the draft — do NOT put brackets around real data.\n\n' +
+        `WHAT THE PARENT NEEDS:\n${typeof question === 'string' && question ? question : 'Not provided'}\n\n` +
+        `RELEVANT GUIDANCE ALREADY GIVEN:\n${typeof guidance === 'string' && guidance ? guidance.slice(0, 4000) : 'None'}`;
+
+      const draftResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-5',
+          max_tokens: 2048,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMsg }],
+        }),
+      });
+      const draftData = await draftResponse.json();
+      if (!draftResponse.ok) {
+        console.error('[ai-proxy] draft error:', JSON.stringify(draftData?.error ?? draftData));
+        return jsonError('Draft generation failed', 502);
+      }
+      const draft =
+        draftData.content?.find((b: { type: string }) => b.type === 'text')?.text ?? '';
+      return new Response(JSON.stringify({ draft, draftType }), {
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ─── Analyze email: paste-in analyzer (Phase 3, from GAS analyzeEmailAI) ─
+    if (action === 'analyze-email') {
+      const { emailText, language } = body;
+      if (typeof emailText !== 'string' || !emailText.trim()) {
+        return jsonError('emailText is required', 400);
+      }
+
+      let systemPrompt =
+        "You are Waypoint's Email Analyzer — an expert in California disability law who reviews emails " +
+        'from Regional Centers, school districts, and insurance companies on behalf of parents.\n\n' +
+        'Analyze the email and return ONLY valid JSON:\n' +
+        '{\n' +
+        '  "summary": "1-2 sentence plain-English summary of what this email is saying",\n' +
+        '  "sender_type": "regional_center|school|insurance|government|unknown",\n' +
+        '  "tone_assessment": "How the sender\'s tone reads (cooperative, bureaucratic, dismissive, threatening, etc.)",\n' +
+        '  "red_flags": [\n' +
+        '    { "flag": "Description of the issue", "severity": "high|medium|low", "law_cited": "Relevant statute" }\n' +
+        '  ],\n' +
+        '  "action_items": [\n' +
+        '    { "action": "What to do", "deadline": "When", "urgency": "high|medium|low" }\n' +
+        '  ],\n' +
+        '  "rights_at_stake": ["List of specific rights that may be affected"],\n' +
+        '  "suggested_response": "Brief description of how to respond",\n' +
+        '  "offer_to_draft": "What Waypoint can draft in response (or null)"\n' +
+        '}';
+      const langName = DRAFT_LANG_NAMES[language];
+      if (langName) {
+        systemPrompt += `\n\nLANGUAGE: Respond in ${langName}. All text in the JSON must be in ${langName}. Legal citations may remain in English.`;
+      }
+
+      const analyzeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-5',
+          max_tokens: 2048,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: `EMAIL TO ANALYZE:\n\n${emailText.slice(0, 20000)}` }],
+        }),
+      });
+      const analyzeData = await analyzeResponse.json();
+      if (!analyzeResponse.ok) {
+        console.error('[ai-proxy] analyze-email error:', JSON.stringify(analyzeData?.error ?? analyzeData));
+        return jsonError('Email analysis failed', 502);
+      }
+      const analysisText =
+        analyzeData.content?.find((b: { type: string }) => b.type === 'text')?.text ?? '';
+      let analysis: unknown;
+      try {
+        const jsonMatch =
+          analysisText.match(/```json\s*([\s\S]*?)\s*```/) ?? analysisText.match(/\{[\s\S]*\}/);
+        analysis = JSON.parse(jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : analysisText);
+      } catch {
+        return jsonError('Could not parse analysis', 502);
+      }
+      return new Response(JSON.stringify({ analysis }), {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }

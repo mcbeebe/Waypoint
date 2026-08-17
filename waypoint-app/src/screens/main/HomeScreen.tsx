@@ -330,6 +330,8 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             { icon: 'map-outline', label: 'Journey', go: () => (navigation as any).navigate('Journey') },
             { icon: 'folder-open-outline', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
             { icon: 'school-outline', label: 'IEP Hub', go: () => (navigation as any).navigate('IEPHub') },
+            { icon: 'mail-outline', label: 'Letters', go: () => (navigation as any).navigate('Letters') },
+            { icon: 'search-outline', label: 'Email Check', go: () => (navigation as any).navigate('EmailAnalyzer') },
             { icon: 'book-outline', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources' }) },
             { icon: 'newspaper-outline', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog' }) },
             { icon: 'cash-outline', label: 'Expenses', go: () => (navigation as any).navigate('Calendar', { screen: 'Expenses' }) },
