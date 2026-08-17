@@ -32,6 +32,8 @@ import ProviderPortalScreen from '@/screens/main/ProviderPortalScreen';
 import ForumScreen from '@/screens/main/ForumScreen';
 import ThreadScreen from '@/screens/main/ThreadScreen';
 import MessagesScreen from '@/screens/main/MessagesScreen';
+import LettersScreen from '@/screens/main/LettersScreen';
+import EmailAnalyzerScreen from '@/screens/main/EmailAnalyzerScreen';
 import ResourcesScreen from '@/screens/main/ResourcesScreen';
 import BlogScreen from '@/screens/main/BlogScreen';
 import ExpensesScreen from '@/screens/main/ExpensesScreen';
@@ -167,6 +169,8 @@ function HomeStack() {
       <HomeStackNav.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Documents' }} />
       <HomeStackNav.Screen name="DocumentAnalysis" component={DocumentAnalysisRoute} options={{ title: 'IEP Review' }} />
       <HomeStackNav.Screen name="IEPHub" component={IEPHubScreen} options={{ title: 'IEP Goals & Timeline' }} />
+      <HomeStackNav.Screen name="Letters" component={LettersScreen} options={{ title: 'Letters & Drafts' }} />
+      <HomeStackNav.Screen name="EmailAnalyzer" component={EmailAnalyzerScreen} options={{ title: 'Email Analyzer' }} />
       <HomeStackNav.Screen name="Providers" component={ProvidersScreen} options={{ title: 'Providers' }} />
       <HomeStackNav.Screen name="Services" component={ServicesScreen} options={{ title: 'Services' }} />
       <HomeStackNav.Screen name="HealthRecords" component={HealthRecordsScreen} options={{ title: 'Health Records' }} />

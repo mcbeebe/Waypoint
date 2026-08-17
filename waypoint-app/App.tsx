@@ -58,6 +58,8 @@ const linking: LinkingOptions<RootStackParamList> = {
               Insights: 'insights',
               Documents: 'documents',
               IEPHub: 'iep',
+              Letters: 'letters',
+              EmailAnalyzer: 'email-analyzer',
               Providers: 'providers',
               Services: 'services',
               HealthRecords: 'health-records',
