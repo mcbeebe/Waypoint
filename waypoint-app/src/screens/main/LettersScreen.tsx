@@ -5,7 +5,7 @@
  * copy-paste-sendable draft with the family's real details filled in.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,15 +32,30 @@ import {
   type LetterTemplate,
 } from '@/lib/letters';
 import { useI18n } from '@/i18n';
+import { useRoute, type RouteProp } from '@react-navigation/native';
+import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 export default function LettersScreen() {
   const { family, updateFamily } = useFamily();
   const { showToast } = useToast();
   const { locale } = useI18n();
+  const route = useRoute<RouteProp<HomeStackParamList, 'Letters'>>();
   const hasAIConsent = !!family?.ai_consent_at;
 
   const [template, setTemplate] = useState<LetterTemplate | null>(null);
+
+  // Chat → Letters handoff: the Navigator's "draft this letter" card passes
+  // the template key so the parent lands one tap from generating.
+  useEffect(() => {
+    const key = route.params?.template;
+    if (!key) return;
+    const match = LETTER_TEMPLATES.find((t) => t.key === key);
+    if (match) {
+      setTemplate(match);
+      setDraft(null);
+    }
+  }, [route.params?.template]);
   const [tone, setTone] = useState<DraftTone>('professional');
   const [question, setQuestion] = useState('');
   const [draft, setDraft] = useState<string | null>(null);

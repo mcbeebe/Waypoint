@@ -20,6 +20,7 @@ import {
   Modal,
   StyleSheet,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily, useChildren } from '@/hooks/useFamily';
@@ -27,13 +28,18 @@ import { useChat, type UIMessage } from '@/hooks/useChat';
 import { useActions } from '@/hooks/useActions';
 import { useDiagnoses } from '@/hooks/useFamily';
 import { useToast } from '@/components/Toast';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '@/lib/supabase';
+import { RC_DATABASE } from '@/data/regionalCenters';
 import AIConsentModal from '@/components/AIConsentModal';
+import ChatMetaCards from '@/components/ChatMetaCards';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
-import { hideStreamingTrailer } from '@/lib/followups';
+import { hideStreamingTrailer, hasRichMeta, type ChatStep } from '@/lib/followups';
 import { sendEmail } from '@/lib/gmail';
 import { getGoogleAccessToken } from '@/lib/auth';
 import { useI18n } from '@/i18n';
-import type { ChatContext, ToneLevel } from '@/types/database';
+import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 /** Tone display labels */
@@ -41,6 +47,17 @@ const TONE_LABELS: Record<ToneLevel, { label: string; emoji: string; color: stri
   collaborative: { label: 'Collaborative', emoji: '🤝', color: '#2E9E8F' },
   assertive: { label: 'Assertive', emoji: '💪', color: '#E8913A' },
   adversarial: { label: 'Advocacy', emoji: '⚖️', color: '#D94B4B' },
+};
+
+/** Map a response META category to an action plan category */
+const META_CATEGORY_TO_ACTION: Record<string, ActionCategory> = {
+  'regional-center': 'regional_center',
+  iep: 'iep',
+  insurance: 'insurance',
+  benefits: 'benefits',
+  rights: 'legal',
+  navigation: 'general',
+  transitions: 'general',
 };
 
 /** Quick-start suggestions shown before first message */
@@ -105,13 +122,20 @@ export default function NavigatorScreen() {
     context: chatContext,
   });
 
-  const { createAction } = useActions({ familyId: family?.id ?? '' });
+  const { createAction, actions } = useActions({ familyId: family?.id ?? '' });
   const { showToast } = useToast();
   const { t } = useI18n();
 
+  const navigation = useNavigation<any>();
   const [inputText, setInputText] = useState('');
   const [showTonePicker, setShowTonePicker] = useState(false);
   const [savingMessageId, setSavingMessageId] = useState<string | null>(null);
+  // Step-save tracking, keyed "messageId|action" so the same step text in
+  // two answers doesn't collide
+  const [savingStepKeys, setSavingStepKeys] = useState<Set<string>>(new Set());
+  const [savedStepKeys, setSavedStepKeys] = useState<Set<string>>(new Set());
+  // Thumbs feedback already given, keyed by message id
+  const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 'up' | 'down'>>({});
   const [emailComposeMessage, setEmailComposeMessage] = useState<UIMessage | null>(null);
   const [emailTo, setEmailTo] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
@@ -152,6 +176,84 @@ export default function NavigatorScreen() {
       setSavingMessageId(null);
     }
   }, [savingMessageId, createAction, sessionId, showToast]);
+
+  /** Save one structured step from a steps card to the action plan */
+  const handleSaveStep = useCallback(async (message: UIMessage, step: ChatStep) => {
+    const key = `${message.id}|${step.action}`;
+    if (savingStepKeys.has(key) || savedStepKeys.has(key)) return;
+    setSavingStepKeys((prev) => new Set(prev).add(key));
+
+    try {
+      const descParts = [
+        step.who && `Who: ${step.who}`,
+        step.timeline && `When: ${step.timeline}`,
+      ].filter(Boolean);
+      const action = await createAction({
+        title: step.action.length > 100 ? step.action.slice(0, 97) + '...' : step.action,
+        description: descParts.join('\n') || undefined,
+        script: step.script,
+        source: 'ai_navigator',
+        source_message_id: message.id,
+        chat_session_id: sessionId ?? undefined,
+        category: META_CATEGORY_TO_ACTION[message.meta?.category ?? ''] ?? 'general',
+        priority: message.meta?.urgency === 'high' ? 'high' : 'medium',
+      });
+      if (action) {
+        setSavedStepKeys((prev) => new Set(prev).add(key));
+        showToast('Step added to your Action Plan', 'success');
+      } else {
+        showToast('Saved offline — will sync when connected', 'info');
+      }
+    } catch {
+      showToast('Failed to save step', 'error');
+    } finally {
+      setSavingStepKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+  }, [savingStepKeys, savedStepKeys, createAction, sessionId, showToast]);
+
+  /** Save every step from a steps card */
+  const handleSaveAllSteps = useCallback(async (message: UIMessage, steps: ChatStep[]) => {
+    for (const step of steps) {
+      // sequential to keep toasts sane and avoid hammering the API
+      // eslint-disable-next-line no-await-in-loop
+      await handleSaveStep(message, step);
+    }
+  }, [handleSaveStep]);
+
+  /** Record a thumbs up/down on an AI answer */
+  const handleFeedback = useCallback(async (message: UIMessage, rating: 'up' | 'down') => {
+    if (feedbackGiven[message.id]) return;
+    // Optimistic — a rating tap should feel instant
+    setFeedbackGiven((prev) => ({ ...prev, [message.id]: rating }));
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.from('ai_feedback').insert({
+        user_id: user.id,
+        session_id: sessionId,
+        message_id: message.id,
+        rating,
+        content_preview: message.content.slice(0, 300),
+      });
+      if (rating === 'down') {
+        showToast("Thanks — we'll use this to improve answers.", 'info');
+      }
+    } catch {
+      // Feedback is best-effort; never surface an error for it
+    }
+  }, [feedbackGiven, sessionId, showToast]);
+
+  /** Chat → Letters handoff: open the letter generator with the template preselected */
+  const handleOpenDraft = useCallback((draftKey: string) => {
+    navigation.navigate('Home', {
+      screen: 'Letters',
+      params: { template: draftKey },
+    });
+  }, [navigation]);
 
   /** Open email compose modal with AI response pre-filled */
   const handleEmailThis = useCallback(async (message: UIMessage) => {
@@ -282,36 +384,58 @@ export default function NavigatorScreen() {
             ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item.id}
-            renderItem={({ item, index }) => (
-              <>
-                <MessageBubble
-                  message={item}
-                  onSaveAction={handleSaveAsAction}
-                  onEmailThis={handleEmailThis}
-                  isSaving={savingMessageId === item.id}
-                />
-                {index === messages.length - 1 &&
-                  item.role === 'assistant' &&
-                  !isLoading &&
-                  (item.followUps?.length ?? 0) > 0 && (
+            renderItem={({ item, index }) => {
+              const isLast = index === messages.length - 1;
+              const showChips = isLast && item.role === 'assistant' && !isLoading;
+              const quickReplies = item.meta?.quickReplies ?? [];
+              return (
+                <>
+                  <MessageBubble
+                    message={item}
+                    onSaveAction={handleSaveAsAction}
+                    onEmailThis={handleEmailThis}
+                    isSaving={savingMessageId === item.id}
+                    onSaveStep={handleSaveStep}
+                    onSaveAllSteps={handleSaveAllSteps}
+                    onOpenDraft={handleOpenDraft}
+                    savingStepKeys={savingStepKeys}
+                    savedStepKeys={savedStepKeys}
+                    onFeedback={handleFeedback}
+                    feedback={feedbackGiven[item.id]}
+                  />
+                  {showChips && quickReplies.length > 0 && (
+                    <FollowUpChips
+                      followUps={quickReplies}
+                      hint="Quick answer"
+                      onPress={handleSuggestion}
+                    />
+                  )}
+                  {showChips && (item.followUps?.length ?? 0) > 0 && (
                     <FollowUpChips
                       followUps={item.followUps!}
                       hint={t.navigator.followUpsHint}
                       onPress={handleSuggestion}
                     />
                   )}
-              </>
-            )}
+                </>
+              );
+            }}
             contentContainerStyle={styles.messageList}
             showsVerticalScrollIndicator={false}
           />
         )}
 
-        {/* Error banner */}
+        {/* Error banner + offline fallback (ported from GAS chatHandleError) */}
         {error && (
           <View style={styles.errorBanner}>
             <Text style={styles.errorText}>{error}</Text>
           </View>
+        )}
+        {error && (
+          <AIDownFallback
+            actions={actions}
+            regionalCenter={family?.regional_center ?? null}
+          />
         )}
 
         {/* Input Bar */}
@@ -456,20 +580,96 @@ function FollowUpChips({
   );
 }
 
+/**
+ * Shown when the AI request fails: the parent still gets something useful —
+ * their top pending plan items and a direct line to their Regional Center.
+ */
+function AIDownFallback({
+  actions,
+  regionalCenter,
+}: {
+  actions: Action[];
+  regionalCenter: string | null;
+}) {
+  const pending = actions
+    .filter((a) => a.status === 'not_started' || a.status === 'in_progress')
+    .slice(0, 3);
+
+  const rc = regionalCenter
+    ? RC_DATABASE.find(
+        (r) =>
+          r.name.toLowerCase() === regionalCenter.toLowerCase() ||
+          r.code.toLowerCase() === regionalCenter.toLowerCase()
+      ) ?? null
+    : null;
+
+  if (pending.length === 0 && !rc) return null;
+
+  return (
+    <View style={styles.fallbackCard}>
+      <Text style={styles.fallbackTitle}>While I reconnect, you can still make progress:</Text>
+      {pending.map((a) => (
+        <View key={a.id} style={styles.fallbackItem}>
+          <Ionicons name="ellipse-outline" size={12} color={colors.teal} />
+          <Text style={styles.fallbackItemText} numberOfLines={2}>{a.title}</Text>
+        </View>
+      ))}
+      {rc && (
+        <TouchableOpacity
+          style={styles.fallbackCall}
+          onPress={() => Linking.openURL(`tel:${rc.phone.replace(/[^\d+]/g, '')}`)}
+          accessibilityRole="button"
+          accessibilityLabel={`Call ${rc.name} at ${rc.phone}`}
+        >
+          <Ionicons name="call-outline" size={14} color={colors.teal} />
+          <Text style={styles.fallbackCallText}>
+            Call {rc.name}: {rc.phone}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
 function MessageBubble({
   message,
   onSaveAction,
   onEmailThis,
   isSaving,
+  onSaveStep,
+  onSaveAllSteps,
+  onOpenDraft,
+  savingStepKeys,
+  savedStepKeys,
+  onFeedback,
+  feedback,
 }: {
   message: UIMessage;
   onSaveAction?: (msg: UIMessage) => void;
   onEmailThis?: (msg: UIMessage) => void;
   isSaving?: boolean;
+  onSaveStep?: (msg: UIMessage, step: ChatStep) => void;
+  onSaveAllSteps?: (msg: UIMessage, steps: ChatStep[]) => void;
+  onOpenDraft?: (draftKey: string) => void;
+  savingStepKeys?: Set<string>;
+  savedStepKeys?: Set<string>;
+  onFeedback?: (msg: UIMessage, rating: 'up' | 'down') => void;
+  feedback?: 'up' | 'down';
 }) {
   const isUser = message.role === 'user';
   const showSaveButton = !isUser && !message.isStreaming && message.content.length > 0;
   const showSources = !isUser && !message.isStreaming && message.content.length > 0;
+  const showCards = !isUser && !message.isStreaming && hasRichMeta(message.meta);
+
+  // Scope the global "messageId|action" step-save keys to this message
+  const scopeKeys = (keys?: Set<string>): Set<string> => {
+    const prefix = `${message.id}|`;
+    const scoped = new Set<string>();
+    keys?.forEach((k) => {
+      if (k.startsWith(prefix)) scoped.add(k.slice(prefix.length));
+    });
+    return scoped;
+  };
 
   return (
     <View style={[styles.bubbleRow, isUser && styles.bubbleRowUser]}>
@@ -505,6 +705,16 @@ function MessageBubble({
             </>
           )}
         </View>
+        {showCards && message.meta && (
+          <ChatMetaCards
+            meta={message.meta}
+            onSaveStep={onSaveStep ? (step) => onSaveStep(message, step) : undefined}
+            onSaveAllSteps={onSaveAllSteps ? (steps) => onSaveAllSteps(message, steps) : undefined}
+            onOpenDraft={onOpenDraft}
+            savingSteps={scopeKeys(savingStepKeys)}
+            savedSteps={scopeKeys(savedStepKeys)}
+          />
+        )}
         {showSources && <SourceAttribution sources={message.sources} />}
         {showSaveButton && onSaveAction && (
           <TouchableOpacity
@@ -530,6 +740,39 @@ function MessageBubble({
           >
             <Text style={styles.emailThisText}>Email This</Text>
           </TouchableOpacity>
+        )}
+        {showSaveButton && onFeedback && (
+          <View style={styles.feedbackRow}>
+            <Text style={styles.feedbackLabel}>
+              {feedback ? 'Thanks for the feedback' : 'Was this helpful?'}
+            </Text>
+            <TouchableOpacity
+              style={[styles.feedbackBtn, feedback === 'up' && styles.feedbackBtnActive]}
+              onPress={() => onFeedback(message, 'up')}
+              disabled={!!feedback}
+              accessibilityRole="button"
+              accessibilityLabel="This answer was helpful"
+            >
+              <Ionicons
+                name={feedback === 'up' ? 'thumbs-up' : 'thumbs-up-outline'}
+                size={14}
+                color={feedback === 'up' ? colors.teal : colors.mid}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.feedbackBtn, feedback === 'down' && styles.feedbackBtnActive]}
+              onPress={() => onFeedback(message, 'down')}
+              disabled={!!feedback}
+              accessibilityRole="button"
+              accessibilityLabel="This answer was not helpful"
+            >
+              <Ionicons
+                name={feedback === 'down' ? 'thumbs-down' : 'thumbs-down-outline'}
+                size={14}
+                color={feedback === 'down' ? '#DC2626' : colors.mid}
+              />
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </View>
@@ -945,6 +1188,67 @@ const styles = StyleSheet.create({
   emailThisText: {
     fontSize: 10,
     color: '#6366F1',
+    fontWeight: fonts.weights.medium as '500',
+  },
+  feedbackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+  },
+  feedbackLabel: {
+    fontSize: 10,
+    color: colors.mid,
+  },
+  feedbackBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.light,
+  },
+  feedbackBtnActive: {
+    backgroundColor: '#E6F7F5',
+  },
+  fallbackCard: {
+    backgroundColor: colors.white,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    padding: spacing.md,
+  },
+  fallbackTitle: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.semibold as '600',
+    color: colors.navy,
+    marginBottom: 6,
+  },
+  fallbackItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 3,
+  },
+  fallbackItemText: {
+    flex: 1,
+    fontSize: fonts.sizes.xs,
+    color: colors.dark,
+  },
+  fallbackCall: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.light,
+  },
+  fallbackCallText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.teal,
     fontWeight: fonts.weights.medium as '500',
   },
   emailModalOverlay: {
