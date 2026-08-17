@@ -13,6 +13,7 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/Button';
@@ -22,6 +23,11 @@ import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { reseedStarterPlan } from '@/lib/planGenerator';
 import { lookupRC } from '@/data/regionalCenters';
 import { signOut } from '@/lib/auth';
+import {
+  connectGoogleWeb,
+  disconnectGoogleWeb,
+  isGoogleConnectedWeb,
+} from '@/lib/googleAuth';
 import { supabase } from '@/lib/supabase';
 import { showAlert, showConfirm } from '@/lib/dialogs';
 import { useI18n } from '@/i18n';
@@ -191,6 +197,51 @@ export default function ProfileScreen() {
       setAddingChild(false);
     }
   }, [newChildName, addChild]);
+
+  // ─── Google account (web) ─────────────────────────────────────────
+  const [googleStatus, setGoogleStatus] = useState<{ connected: boolean; email: string | null }>({
+    connected: false,
+    email: null,
+  });
+  const [googleBusy, setGoogleBusy] = useState(false);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    isGoogleConnectedWeb().then(setGoogleStatus);
+  }, []);
+
+  const handleConnectGoogle = useCallback(async () => {
+    setGoogleBusy(true);
+    const result = await connectGoogleWeb();
+    // On success the browser redirects to Google — this code only runs on failure.
+    setGoogleBusy(false);
+    if (!result.success) {
+      showAlert(
+        'Could not connect Google',
+        result.error?.includes('not enabled')
+          ? 'Google sign-in is not configured yet — check the Supabase Google provider setup.'
+          : result.error ?? 'Please try again.'
+      );
+    }
+  }, []);
+
+  const handleDisconnectGoogle = useCallback(async () => {
+    const ok = await showConfirm(
+      'Disconnect Google?',
+      'Calendar sync and email sending will stop working until you reconnect.',
+      'Disconnect',
+      true
+    );
+    if (!ok) return;
+    setGoogleBusy(true);
+    const result = await disconnectGoogleWeb();
+    setGoogleBusy(false);
+    if (result.success) {
+      setGoogleStatus({ connected: false, email: null });
+    } else {
+      showAlert('Could not disconnect', result.error ?? 'Please try again.');
+    }
+  }, []);
 
   const handleToggleAIConsent = useCallback(async () => {
     if (family?.ai_consent_at) {
@@ -439,6 +490,32 @@ export default function ProfileScreen() {
             variant="outline"
           />
         </View>
+
+        {/* Google account (Calendar sync + Gmail — Phase 3) */}
+        {Platform.OS === 'web' && (
+          <>
+            <Text style={styles.sectionTitle}>Google Account</Text>
+            <View style={styles.card}>
+              <Text style={styles.privacyStatus}>
+                {googleStatus.connected
+                  ? `Connected as ${googleStatus.email ?? 'your Google account'}. Waypoint can sync your calendar and send emails you approve.`
+                  : 'Connect Google to sync appointments to your calendar and send emails to schools and agencies from Waypoint.'}
+              </Text>
+              <Button
+                title={
+                  googleBusy
+                    ? 'Working…'
+                    : googleStatus.connected
+                      ? 'Disconnect Google'
+                      : 'Connect Google'
+                }
+                onPress={googleStatus.connected ? handleDisconnectGoogle : handleConnectGoogle}
+                variant="outline"
+                disabled={googleBusy}
+              />
+            </View>
+          </>
+        )}
 
         <View style={styles.signOutRow}>
           <Button
