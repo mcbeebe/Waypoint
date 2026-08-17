@@ -20,6 +20,7 @@ import { useAuth } from './src/hooks/useAuth';
 import { supabase } from './src/lib/supabase';
 import { initSentry, setSentryUser, clearSentryUser } from './src/lib/sentry';
 import WelcomeScreen from './src/screens/auth/WelcomeScreen';
+import ResetPasswordScreen from './src/screens/auth/ResetPasswordScreen';
 import OnboardingFlow from './src/screens/onboarding/OnboardingFlow';
 import TermsOfService from './src/screens/legal/TermsOfService';
 import PrivacyPolicy from './src/screens/legal/PrivacyPolicy';
@@ -90,7 +91,7 @@ initSentry();
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const { session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading, passwordRecovery, clearPasswordRecovery } = useAuth();
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const [checkingOnboarding, setCheckingOnboarding] = useState(false);
 
@@ -163,6 +164,11 @@ export default function App() {
                   {!session ? (
                     // Not authenticated → Welcome / Sign-In
                     <Stack.Screen name="Welcome" component={WelcomeScreen} />
+                  ) : passwordRecovery ? (
+                    // Arrived via a password-reset email link → set new password
+                    <Stack.Screen name="ResetPassword">
+                      {() => <ResetPasswordScreen onDone={clearPasswordRecovery} />}
+                    </Stack.Screen>
                   ) : !onboardingComplete ? (
                     // Authenticated but hasn't completed onboarding
                     <Stack.Screen name="Onboarding">

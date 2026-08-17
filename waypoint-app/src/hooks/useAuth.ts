@@ -1,8 +1,10 @@
 /**
  * Auth hook — manages Supabase session state
- * Listens for auth state changes and provides current user
+ * Listens for auth state changes and provides current user.
+ * Also tracks password-recovery sessions (user arrived via a reset-password
+ * email link) so the app can show the set-new-password screen.
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 /** Infer Session type from Supabase auth client */
@@ -11,6 +13,7 @@ type Session = Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['ses
 export function useAuth() {
   const [session, setSession] = useState<Session>(null);
   const [loading, setLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -19,7 +22,10 @@ export function useAuth() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setPasswordRecovery(true);
+        }
         setSession(session);
       }
     );
@@ -27,5 +33,13 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  return { session, loading, user: session?.user ?? null };
+  const clearPasswordRecovery = useCallback(() => setPasswordRecovery(false), []);
+
+  return {
+    session,
+    loading,
+    user: session?.user ?? null,
+    passwordRecovery,
+    clearPasswordRecovery,
+  };
 }

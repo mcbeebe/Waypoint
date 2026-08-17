@@ -16,6 +16,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // On web, auth links from email (password recovery, invites, confirmations)
+    // land with tokens in the URL that the client must exchange for a session.
+    detectSessionInUrl: Platform.OS === 'web',
   },
 });
