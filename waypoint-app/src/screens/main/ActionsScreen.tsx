@@ -21,9 +21,13 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFamily } from '@/hooks/useFamily';
+import { Ionicons } from '@expo/vector-icons';
+import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
+import { useToast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
+import CompletionCheckIn from '@/components/CompletionCheckIn';
+import { FOLLOWUPS } from '@/lib/adaptiveEngine';
 import { SkeletonCard } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
@@ -62,7 +66,9 @@ const STATUS_FILTERS: ActionStatus[] = ['not_started', 'in_progress', 'completed
 export default function ActionsScreen() {
   const { family } = useFamily();
   const navigation = useNavigation();
+  const { showToast } = useToast();
   const [activeFilter, setActiveFilter] = useState<ActionStatus | 'all'>('all');
+  const [checkInAction, setCheckInAction] = useState<Action | null>(null);
 
   const statusFilter = activeFilter === 'all'
     ? undefined
@@ -79,6 +85,27 @@ export default function ActionsScreen() {
     familyId: family?.id ?? '',
     statusFilter,
   });
+
+  // Unfiltered copy just for dependency locking — a filtered list may not
+  // contain the action another one depends on
+  const { actions: allActions, refetch: refetchAll } = useActions({ familyId: family?.id ?? '' });
+  const completedIds = useMemo(
+    () => new Set(allActions.filter((a) => a.status === 'completed').map((a) => a.id)),
+    [allActions]
+  );
+  const titleById = useMemo(
+    () => new Map(allActions.map((a) => [a.id, a.title])),
+    [allActions]
+  );
+  const isLocked = useCallback(
+    (a: Action) => !!a.depends_on && !completedIds.has(a.depends_on),
+    [completedIds]
+  );
+
+  // Context for follow-up action generation (completion check-ins)
+  const { children } = useChildren(family?.id);
+  const primaryChild = children.find((c) => c.is_primary) || children[0];
+  const { diagnoses } = useDiagnoses(primaryChild?.id);
 
   // Refresh when returning from ActionDetail so status/step changes show
   useFocusEffect(
@@ -105,13 +132,26 @@ export default function ActionsScreen() {
   }, [actions]);
 
   const handleCycleStatus = (action: Action) => {
+    if (isLocked(action) && action.status !== 'completed') {
+      const depTitle = action.depends_on ? titleById.get(action.depends_on) : undefined;
+      showToast(
+        depTitle ? `Complete "${depTitle}" first — this step builds on it.` : 'This step unlocks after its previous step.',
+        'info'
+      );
+      return;
+    }
     const nextStatus: Record<ActionStatus, ActionStatus> = {
       not_started: 'in_progress',
       in_progress: 'completed',
       completed: 'not_started',
       dismissed: 'not_started',
     };
-    updateStatus(action.id, nextStatus[action.status]);
+    const next = nextStatus[action.status];
+    updateStatus(action.id, next);
+    // Completion check-in: ask how it went; blockers generate the next steps
+    if (next === 'completed' && action.follow_up_key && FOLLOWUPS[action.follow_up_key]) {
+      setCheckInAction(action);
+    }
   };
 
   return (
@@ -173,6 +213,7 @@ export default function ActionsScreen() {
         renderItem={({ item }) => (
           <ActionCard
             action={item}
+            locked={isLocked(item)}
             onStatusPress={() => handleCycleStatus(item)}
             onOpenDetail={() => (navigation as any).navigate('ActionDetail', { actionId: item.id })}
           />
@@ -206,6 +247,23 @@ export default function ActionsScreen() {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
+
+      {/* Completion check-in — shown after completing an action with follow_up_key */}
+      <CompletionCheckIn
+        action={checkInAction}
+        familyId={family?.id ?? ''}
+        ctx={{
+          childName: primaryChild?.first_name,
+          parentName: family?.parent_first_name,
+          regionalCenterName: family?.regional_center,
+          diagnoses: diagnoses.map((d) => d.name),
+        }}
+        onClose={() => setCheckInAction(null)}
+        onActionsAdded={() => {
+          refetch();
+          refetchAll();
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -214,10 +272,12 @@ export default function ActionsScreen() {
 
 function ActionCard({
   action,
+  locked,
   onStatusPress,
   onOpenDetail,
 }: {
   action: Action;
+  locked?: boolean;
   onStatusPress: () => void;
   onOpenDetail: () => void;
 }) {
@@ -232,18 +292,30 @@ function ActionCard({
   const stepsTotal = action.steps?.length ?? 0;
 
   return (
-    <View style={[styles.card, action.status === 'dismissed' && styles.cardDismissed]}>
+    <View
+      style={[
+        styles.card,
+        action.status === 'dismissed' && styles.cardDismissed,
+        locked && styles.cardLocked,
+      ]}
+    >
       <View style={styles.cardTop}>
-        {/* Status toggle button */}
+        {/* Status toggle button (padlock while a dependency is incomplete) */}
         <TouchableOpacity
-          style={[styles.statusCircle, { borderColor: statusConfig.color }]}
+          style={[styles.statusCircle, { borderColor: locked ? colors.border : statusConfig.color }]}
           onPress={onStatusPress}
           accessibilityRole="button"
-          accessibilityLabel={`Change status from ${statusConfig.label}`}
+          accessibilityLabel={
+            locked ? 'Locked — complete the previous step first' : `Change status from ${statusConfig.label}`
+          }
         >
-          <Text style={[styles.statusIcon, { color: statusConfig.color }]}>
-            {statusConfig.emoji}
-          </Text>
+          {locked ? (
+            <Ionicons name="lock-closed" size={13} color={colors.mid} />
+          ) : (
+            <Text style={[styles.statusIcon, { color: statusConfig.color }]}>
+              {statusConfig.emoji}
+            </Text>
+          )}
         </TouchableOpacity>
 
         {/* Title + meta — tap to open full detail (scripts, steps, documents) */}
@@ -504,6 +576,9 @@ const styles = StyleSheet.create({
   },
   cardDismissed: {
     opacity: 0.5,
+  },
+  cardLocked: {
+    opacity: 0.65,
   },
   cardTop: {
     flexDirection: 'row',

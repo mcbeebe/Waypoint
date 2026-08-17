@@ -46,6 +46,8 @@ export interface StarterAction {
   steps: ActionStep[] | null;
   due_date: string | null;
   follow_up_note: string | null;
+  /** FOLLOWUPS check-in set (adaptiveEngine) shown when this action completes */
+  follow_up_key: string | null;
 }
 
 type AgeBand = '0-2' | '3-5' | '6-12' | '13-17';
@@ -126,6 +128,20 @@ const EFFORT_BY_TITLE: Record<string, string> = {
   'Set up a CalABLE savings account': '~30 min online at CalABLE.ca.gov',
 };
 
+/**
+ * Completion check-in sets by action title (GAS followUpKey). When one of
+ * these actions is completed, the Tracker asks "how did it go?" and blocker
+ * answers generate the next escalation steps (see lib/adaptiveEngine.ts).
+ */
+const FOLLOW_UP_KEY_BY_TITLE: Record<string, string> = {
+  'Call Regional Center for Early Start referral': 'rc_done',
+  'Call Regional Center to start your referral': 'rc_done',
+  'Send written request for IEP meeting': 'iep_done',
+  'Request school district evaluation (in writing)': 'school_eval_done',
+  'Get pediatrician referral for therapy': 'ped_done',
+  'Call insurance to verify therapy coverage': 'ins_done',
+};
+
 function buildAction(content: ActionContent, priority: ActionPriority): StarterAction {
   const parts: string[] = [content.subtitle];
   if (content.deadlineLabel) parts.push(`⏰ Timeline: ${content.deadlineLabel}`);
@@ -155,6 +171,7 @@ function buildAction(content: ActionContent, priority: ActionPriority): StarterA
     steps: content.steps ? content.steps.map(s => ({ step: s, done: false })) : null,
     due_date: content.dueInDays != null ? isoDateInDays(content.dueInDays) : null,
     follow_up_note: content.smsReminder ?? null,
+    follow_up_key: FOLLOW_UP_KEY_BY_TITLE[content.title] ?? null,
   };
 }
 
