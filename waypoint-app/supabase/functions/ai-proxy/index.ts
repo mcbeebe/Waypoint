@@ -411,6 +411,28 @@ serve(async (req: Request) => {
         }
       }
 
+      // PDFs must go to the API as a `document` content block — sending
+      // application/pdf inside an `image` block is rejected (image blocks
+      // only accept jpeg/png/gif/webp).
+      const isPdf = (mimeType ?? '').toLowerCase().includes('pdf');
+      const fileBlock = isPdf
+        ? {
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: 'application/pdf',
+              data: imageBase64,
+            },
+          }
+        : {
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: mimeType || 'image/png',
+              data: imageBase64,
+            },
+          };
+
       const ocrResponse = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -425,17 +447,10 @@ serve(async (req: Request) => {
             {
               role: 'user',
               content: [
-                {
-                  type: 'image',
-                  source: {
-                    type: 'base64',
-                    media_type: mimeType || 'image/png',
-                    data: imageBase64,
-                  },
-                },
+                fileBlock,
                 {
                   type: 'text',
-                  text: 'Extract ALL text from this document image. Preserve the structure, headings, and formatting as closely as possible. If this is an IEP or educational document, pay special attention to goals, objectives, baselines, and dates. Return only the extracted text.',
+                  text: 'Extract ALL text from this document. Preserve the structure, headings, and formatting as closely as possible. If this is an IEP or educational document, pay special attention to goals, objectives, baselines, and dates. Return only the extracted text.',
                 },
               ],
             },
@@ -444,7 +459,17 @@ serve(async (req: Request) => {
       });
 
       const ocrData = await ocrResponse.json();
-      const extractedText = ocrData.content?.[0]?.text ?? '';
+      if (!ocrResponse.ok) {
+        console.error('OCR upstream error:', JSON.stringify(ocrData?.error ?? ocrData));
+        return new Response(
+          JSON.stringify({
+            error: 'ocr_failed',
+            detail: ocrData?.error?.message ?? 'The AI service rejected the document.',
+          }),
+          { status: 502, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+        );
+      }
+      const extractedText = ocrData.content?.find((b: { type: string }) => b.type === 'text')?.text ?? '';
 
       // Update document record with extracted text — through the caller's
       // RLS-scoped client, never service-role

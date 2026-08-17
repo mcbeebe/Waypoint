@@ -18,6 +18,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import DateInput from '@/components/DateInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily } from '@/hooks/useFamily';
 import { useExpenses } from '@/hooks/useExpenses';
@@ -423,12 +424,11 @@ function ExpenseModal({
 
             {/* Date */}
             <Text style={styles.fieldLabel}>Date *</Text>
-            <TextInput
+            <DateInput
               style={styles.modalInput}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={colors.mid}
               value={date}
-              onChangeText={setDate}
+              onChange={setDate}
+              accessibilityLabel="Expense date"
             />
 
             {/* Funding Source */}

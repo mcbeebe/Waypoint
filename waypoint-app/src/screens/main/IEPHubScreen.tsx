@@ -21,6 +21,7 @@ import { syncIEPDeadlines } from '@/lib/iepDeadlines';
 import { useToast } from '@/components/Toast';
 import { Card, SectionTitle, Chip, SkeletonCard } from '@/components/ui';
 import EmptyState from '@/components/EmptyState';
+import DateInput from '@/components/DateInput';
 import { useTextScale } from '@/lib/textSize';
 import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
 
@@ -42,13 +43,10 @@ function DateField({
   return (
     <View style={styles.dateField}>
       <Text style={styles.dateLabel}>{label}</Text>
-      <TextInput
+      <DateInput
         style={styles.dateInput}
         value={value}
-        onChangeText={onChange}
-        placeholder="YYYY-MM-DD"
-        placeholderTextColor={colors.mid}
-        autoCapitalize="none"
+        onChange={onChange}
         accessibilityLabel={label}
       />
       {hint ? <Text style={styles.dateHint}>{hint}</Text> : null}

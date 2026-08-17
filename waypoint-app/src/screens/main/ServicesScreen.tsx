@@ -19,6 +19,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import DateInput from '@/components/DateInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useServices, type ServiceWithMeta } from '@/hooks/useServices';
@@ -397,10 +398,10 @@ function ServiceFormModal({
             <TextInput style={styles.formInput} placeholder="e.g., 2x/week" placeholderTextColor={colors.mid} value={frequency} onChangeText={setFrequency} />
 
             <Text style={styles.fieldLabel}>Start Date</Text>
-            <TextInput style={styles.formInput} placeholder="YYYY-MM-DD" placeholderTextColor={colors.mid} value={startDate} onChangeText={setStartDate} />
+            <DateInput style={styles.formInput} value={startDate} onChange={setStartDate} accessibilityLabel="Start date" />
 
             <Text style={styles.fieldLabel}>End Date</Text>
-            <TextInput style={styles.formInput} placeholder="YYYY-MM-DD" placeholderTextColor={colors.mid} value={endDate} onChangeText={setEndDate} />
+            <DateInput style={styles.formInput} value={endDate} onChange={setEndDate} accessibilityLabel="End date" />
 
             <Text style={styles.fieldLabel}>Authorization #</Text>
             <TextInput style={styles.formInput} placeholder="Auth number" placeholderTextColor={colors.mid} value={authNumber} onChangeText={setAuthNumber} />
