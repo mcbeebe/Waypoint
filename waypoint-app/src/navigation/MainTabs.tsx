@@ -45,8 +45,11 @@ import IEPHubScreen from '@/screens/main/IEPHubScreen';
 import { useIEPGoals } from '@/hooks/useIEPGoals';
 import { useToast } from '@/components/Toast';
 
-import { useFamily } from '@/hooks/useFamily';
+import { useFamily, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
+import CompletionCheckIn from '@/components/CompletionCheckIn';
+import { FOLLOWUPS } from '@/lib/adaptiveEngine';
+import type { Action } from '@/types/database';
 import { useI18n } from '@/i18n';
 import { FLAGS } from '@/lib/flags';
 import { colors, fonts } from '@/lib/theme';
@@ -83,11 +86,15 @@ const detailHeaderOptions: NativeStackNavigationOptions = {
 function ActionDetailRoute({ route, navigation }: any) {
   const { actionId } = route.params as { actionId: string };
   const { family } = useFamily();
-  const { actions, loading, updateStatus, toggleStep, updateAction } = useActions({
+  const { showToast } = useToast();
+  const { actions, loading, updateStatus, toggleStep, updateAction, refetch } = useActions({
     familyId: family?.id ?? '',
   });
+  const [checkInAction, setCheckInAction] = React.useState<Action | null>(null);
 
   const action = actions.find(a => a.id === actionId);
+  const dependency = action?.depends_on ? actions.find(a => a.id === action.depends_on) : undefined;
+  const { diagnoses } = useDiagnoses(action?.child_id ?? undefined);
 
   if (loading && !action) {
     return (
@@ -105,13 +112,40 @@ function ActionDetailRoute({ route, navigation }: any) {
   }
 
   return (
-    <ActionDetailScreen
-      action={action}
-      onUpdateStatus={(status, reason) => updateStatus(action.id, status, reason)}
-      onToggleStep={stepIndex => toggleStep(action.id, stepIndex)}
-      onUpdate={data => updateAction(action.id, data)}
-      onBack={() => navigation.goBack()}
-    />
+    <>
+      <ActionDetailScreen
+        action={action}
+        onUpdateStatus={(status, reason) => {
+          // Dependency lock: this step builds on another that isn't done yet
+          if (
+            (status === 'completed' || status === 'in_progress') &&
+            dependency &&
+            dependency.status !== 'completed'
+          ) {
+            showToast(`Complete "${dependency.title}" first — this step builds on it.`, 'info');
+            return;
+          }
+          updateStatus(action.id, status, reason);
+          if (status === 'completed' && action.follow_up_key && FOLLOWUPS[action.follow_up_key]) {
+            setCheckInAction(action);
+          }
+        }}
+        onToggleStep={stepIndex => toggleStep(action.id, stepIndex)}
+        onUpdate={data => updateAction(action.id, data)}
+        onBack={() => navigation.goBack()}
+      />
+      <CompletionCheckIn
+        action={checkInAction}
+        familyId={family?.id ?? ''}
+        ctx={{
+          parentName: family?.parent_first_name,
+          regionalCenterName: family?.regional_center,
+          diagnoses: diagnoses.map(d => d.name),
+        }}
+        onClose={() => setCheckInAction(null)}
+        onActionsAdded={refetch}
+      />
+    </>
   );
 }
 

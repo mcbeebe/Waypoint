@@ -475,6 +475,10 @@ export interface Action {
   source_message_id: string | null;
   follow_up_date: string | null;
   follow_up_note: string | null;
+  /** Actions with a dependency stay locked until that action completes (019) */
+  depends_on: string | null;
+  /** FOLLOWUPS check-in set shown when this action is completed (019) */
+  follow_up_key: string | null;
   reminder_sent: boolean;
   local_id: string | null;
   synced_at: string | null;

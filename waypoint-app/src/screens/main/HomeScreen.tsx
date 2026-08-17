@@ -15,8 +15,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useFamily, useChildren } from '@/hooks/useFamily';
+import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
+import CheckInCard from '@/components/CheckInCard';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
@@ -85,7 +86,8 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
   const age = primaryChild ? getAgeDisplay(primaryChild.date_of_birth) : null;
 
   // Live data from actions + deadlines + expenses
-  const { actions, stats } = useActions({ familyId: family?.id ?? '' });
+  const { actions, stats, refetch: refetchActions } = useActions({ familyId: family?.id ?? '' });
+  const { diagnoses } = useDiagnoses(primaryChild?.id);
   const { deadlines } = useDeadlines({ familyId: family?.id ?? '' });
   const { summary: expenseSummary } = useExpenses({ familyId: family?.id ?? '' });
 
@@ -172,6 +174,19 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             {EMPATHY_MESSAGES[empathyIndex]}
           </Text>
         </View>
+
+        {/* Check-in + frustration deep-dive (wave 2 adaptive engine) */}
+        {family?.id && (
+          <CheckInCard
+            familyId={family.id}
+            childId={primaryChild?.id ?? null}
+            childName={primaryChild?.first_name}
+            parentName={family.parent_first_name}
+            regionalCenterName={family.regional_center}
+            diagnoses={diagnoses.map((d) => d.name)}
+            onActionsAdded={refetchActions}
+          />
+        )}
 
         {/* Deadline Alerts */}
         {urgentDeadlines.length > 0 && (
