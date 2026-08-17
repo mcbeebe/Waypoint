@@ -24,11 +24,18 @@ import {
 } from '@/lib/auth';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
-/** Google Sign-In is deferred until OAuth client IDs are configured */
-const GOOGLE_SIGNIN_ENABLED = !!(
-  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
-  process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
-);
+/**
+ * Google Sign-In gate. Web goes through Supabase OAuth and needs only the
+ * provider configured — the web client ID env var doubles as the feature
+ * flag. Native additionally needs the iOS client ID.
+ */
+const GOOGLE_SIGNIN_ENABLED =
+  Platform.OS === 'web'
+    ? !!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+    : !!(
+        process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
+        process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
+      );
 
 export default function WelcomeScreen() {
   const navigation = useNavigation();

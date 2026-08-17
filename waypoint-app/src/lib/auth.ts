@@ -3,6 +3,7 @@
  * Supports Apple Sign-In, Google Sign-In (with Calendar/Gmail scopes), and Email/Password
  */
 
+import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { supabase } from './supabase';
@@ -68,6 +69,11 @@ export async function signInWithApple(): Promise<{ success: boolean; error?: str
  *   - Gmail API enabled
  */
 export async function signInWithGoogle(): Promise<{ success: boolean; error?: string }> {
+  // Web: Supabase-hosted OAuth redirect (native GoogleSignin has no web support)
+  if (Platform.OS === 'web') {
+    const { signInWithGoogleWeb } = await import('./googleAuth');
+    return signInWithGoogleWeb();
+  }
   try {
     // Dynamic import to avoid crash if package not installed yet
     const { GoogleSignin, statusCodes } = await import(
@@ -241,6 +247,10 @@ export async function signOut(): Promise<void> {
  * Used in Sprint 4 (Calendar) and Sprint 5 (Gmail)
  */
 export async function getGoogleAccessToken(): Promise<string | null> {
+  if (Platform.OS === 'web') {
+    const { getWebGoogleAccessToken } = await import('./googleAuth');
+    return getWebGoogleAccessToken();
+  }
   try {
     return await SecureStore.getItemAsync(GOOGLE_TOKEN_KEY);
   } catch {
@@ -252,6 +262,10 @@ export async function getGoogleAccessToken(): Promise<string | null> {
  * Refresh Google access token if expired
  */
 export async function refreshGoogleToken(): Promise<string | null> {
+  if (Platform.OS === 'web') {
+    const { getWebGoogleAccessToken } = await import('./googleAuth');
+    return getWebGoogleAccessToken(true);
+  }
   try {
     const { GoogleSignin } = await import('@react-native-google-signin/google-signin');
     const tokens = await GoogleSignin.getTokens();

@@ -27,6 +27,13 @@ export function useAuth() {
           setPasswordRecovery(true);
         }
         setSession(session);
+        // After a Google OAuth redirect the session carries provider
+        // tokens — persist them for Calendar/Gmail (fire-and-forget).
+        if (session?.provider_token || session?.provider_refresh_token) {
+          import('../lib/googleAuth').then(({ captureGoogleTokens }) =>
+            captureGoogleTokens(session)
+          );
+        }
       }
     );
 

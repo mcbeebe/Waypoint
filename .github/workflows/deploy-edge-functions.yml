@@ -56,3 +56,7 @@ jobs:
       - name: Deploy delete-account
         if: steps.token.outputs.present == 'true'
         run: supabase functions deploy delete-account --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Deploy google-auth
+        if: steps.token.outputs.present == 'true'
+        run: supabase functions deploy google-auth --project-ref "$SUPABASE_PROJECT_ID"
