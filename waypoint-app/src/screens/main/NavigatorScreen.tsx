@@ -117,6 +117,7 @@ export default function NavigatorScreen() {
     sendMessage,
     setToneLevel,
     startNewSession,
+    loadSession,
   } = useChat({
     familyId: family?.id ?? '',
     context: chatContext,
@@ -140,7 +141,37 @@ export default function NavigatorScreen() {
   const [emailTo, setEmailTo] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  // Chat history (wave 3 retention): list past sessions, tap to resume
+  const [showHistory, setShowHistory] = useState(false);
+  const [historySessions, setHistorySessions] = useState<
+    Array<{ id: string; title: string | null; created_at: string }>
+  >([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+
+  /** Open the history sheet and fetch past sessions */
+  const handleOpenHistory = useCallback(async () => {
+    setShowHistory(true);
+    setHistoryLoading(true);
+    try {
+      const { data } = await supabase
+        .from('chat_sessions')
+        .select('id, title, created_at')
+        .eq('family_id', family?.id ?? '')
+        .order('created_at', { ascending: false })
+        .limit(30);
+      setHistorySessions(data ?? []);
+    } catch {
+      setHistorySessions([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [family?.id]);
+
+  const handleResumeSession = useCallback((sid: string) => {
+    setShowHistory(false);
+    loadSession(sid);
+  }, [loadSession]);
 
   /** Save an AI response as an action plan item */
   const handleSaveAsAction = useCallback(async (message: UIMessage) => {
@@ -330,6 +361,14 @@ export default function NavigatorScreen() {
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity
+            style={styles.historyButton}
+            onPress={handleOpenHistory}
+            accessibilityRole="button"
+            accessibilityLabel="Chat history"
+          >
+            <Ionicons name="time-outline" size={18} color={colors.teal} />
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.newChatButton}
             onPress={startNewSession}
             accessibilityRole="button"
@@ -473,6 +512,54 @@ export default function NavigatorScreen() {
         {/* Static legal disclaimer (replaces per-message AI-written footer) */}
         <Text style={styles.disclaimer}>{t.navigator.disclaimer}</Text>
       </KeyboardAvoidingView>
+
+      {/* Chat History Modal */}
+      <Modal visible={showHistory} animationType="slide" transparent onRequestClose={() => setShowHistory(false)}>
+        <View style={styles.emailModalOverlay}>
+          <View style={styles.historySheet}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.emailModalTitle}>Past conversations</Text>
+              <TouchableOpacity
+                onPress={() => setShowHistory(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Close history"
+              >
+                <Ionicons name="close" size={22} color={colors.mid} />
+              </TouchableOpacity>
+            </View>
+            {historyLoading ? (
+              <ActivityIndicator size="small" color={colors.teal} style={styles.historySpinner} />
+            ) : historySessions.length === 0 ? (
+              <Text style={styles.historyEmpty}>
+                No past conversations yet — your chats will appear here.
+              </Text>
+            ) : (
+              <ScrollView style={styles.historyList}>
+                {historySessions.map((s) => (
+                  <TouchableOpacity
+                    key={s.id}
+                    style={[styles.historyItem, s.id === sessionId && styles.historyItemActive]}
+                    onPress={() => handleResumeSession(s.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Resume conversation: ${s.title ?? 'Untitled'}`}
+                  >
+                    <Text style={styles.historyItemTitle} numberOfLines={1}>
+                      {s.title ?? 'Untitled conversation'}
+                    </Text>
+                    <Text style={styles.historyItemDate}>
+                      {new Date(s.created_at).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* Email Compose Modal */}
       <Modal visible={!!emailComposeMessage} animationType="slide" transparent>
@@ -892,6 +979,61 @@ const styles = StyleSheet.create({
     backgroundColor: colors.teal,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  historyButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#E6F7F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  historySheet: {
+    backgroundColor: colors.white,
+    borderTopLeftRadius: radii.xl,
+    borderTopRightRadius: radii.xl,
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
+    maxHeight: '70%',
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  historySpinner: {
+    paddingVertical: spacing.lg,
+  },
+  historyEmpty: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+    paddingVertical: spacing.lg,
+    textAlign: 'center',
+  },
+  historyList: {
+    marginTop: spacing.sm,
+  },
+  historyItem: {
+    paddingVertical: spacing.base,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.light,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  historyItemActive: {
+    backgroundColor: '#E6F7F5',
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+  },
+  historyItemTitle: {
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+    fontWeight: fonts.weights.medium as '500',
+  },
+  historyItemDate: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    marginTop: 1,
   },
   newChatIcon: {
     fontSize: 20,

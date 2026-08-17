@@ -28,6 +28,7 @@ import { useToast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
 import CompletionCheckIn from '@/components/CompletionCheckIn';
 import { FOLLOWUPS } from '@/lib/adaptiveEngine';
+import { trackActionOutcome } from '@/lib/analytics';
 import { SkeletonCard } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
@@ -148,6 +149,10 @@ export default function ActionsScreen() {
     };
     const next = nextStatus[action.status];
     updateStatus(action.id, next);
+    if (next === 'completed' && family?.id) {
+      // Anonymous outcome analytics (fire-and-forget)
+      trackActionOutcome(family.id, action.category, 'completed', family.regional_center ?? undefined);
+    }
     // Completion check-in: ask how it went; blockers generate the next steps
     if (next === 'completed' && action.follow_up_key && FOLLOWUPS[action.follow_up_key]) {
       setCheckInAction(action);

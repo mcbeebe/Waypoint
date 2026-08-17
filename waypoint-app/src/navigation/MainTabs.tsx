@@ -49,6 +49,7 @@ import { useFamily, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import CompletionCheckIn from '@/components/CompletionCheckIn';
 import { FOLLOWUPS } from '@/lib/adaptiveEngine';
+import { trackActionOutcome } from '@/lib/analytics';
 import type { Action } from '@/types/database';
 import { useI18n } from '@/i18n';
 import { FLAGS } from '@/lib/flags';
@@ -126,6 +127,9 @@ function ActionDetailRoute({ route, navigation }: any) {
             return;
           }
           updateStatus(action.id, status, reason);
+          if (status === 'completed' && family?.id) {
+            trackActionOutcome(family.id, action.category, 'completed', family.regional_center ?? undefined);
+          }
           if (status === 'completed' && action.follow_up_key && FOLLOWUPS[action.follow_up_key]) {
             setCheckInAction(action);
           }

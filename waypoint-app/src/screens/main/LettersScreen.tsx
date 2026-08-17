@@ -32,6 +32,7 @@ import {
   type LetterTemplate,
 } from '@/lib/letters';
 import { useI18n } from '@/i18n';
+import { trackDraftUsed } from '@/lib/analytics';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -89,7 +90,11 @@ export default function LettersScreen() {
       return;
     }
     setDraft(result.draft);
-  }, [template, tone, question, hasAIConsent, locale, showToast]);
+    if (family?.id) {
+      // Anonymous usage analytics (fire-and-forget)
+      trackDraftUsed(family.id, template.key, family.regional_center ?? undefined);
+    }
+  }, [template, tone, question, hasAIConsent, locale, showToast, family]);
 
   const handleCopy = useCallback(async () => {
     if (!draft) return;
