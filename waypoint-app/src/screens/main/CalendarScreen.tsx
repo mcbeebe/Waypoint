@@ -23,6 +23,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import DateInput from '@/components/DateInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily } from '@/hooks/useFamily';
 import { useAppointments } from '@/hooks/useAppointments';
@@ -516,12 +517,12 @@ function AddModal({ visible, onClose, onAddAppointment, onAddDeadline }: AddModa
             value={title}
             onChangeText={setTitle}
           />
-          <TextInput
+          <DateInput
             style={styles.modalInput}
-            placeholder={mode === 'appointment' ? 'Date & time (YYYY-MM-DD HH:MM)' : 'Due date (YYYY-MM-DD)'}
-            placeholderTextColor={colors.mid}
+            mode={mode === 'appointment' ? 'datetime' : 'date'}
             value={dateStr}
-            onChangeText={setDateStr}
+            onChange={setDateStr}
+            accessibilityLabel={mode === 'appointment' ? 'Appointment date and time' : 'Due date'}
           />
           {mode === 'appointment' ? (
             <TextInput

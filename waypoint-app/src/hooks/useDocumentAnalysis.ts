@@ -77,7 +77,15 @@ export function useDocumentAnalysis(): UseDocumentAnalysisReturn {
         }),
       });
 
-      if (!response.ok) throw new Error(`OCR failed (${response.status})`);
+      if (!response.ok) {
+        let detail = '';
+        try {
+          detail = (await response.json())?.detail ?? '';
+        } catch {
+          // non-JSON error body — fall through to the status message
+        }
+        throw new Error(detail || `OCR failed (${response.status})`);
+      }
       const data = await response.json();
       return data.extractedText ?? null;
     } catch (err) {
