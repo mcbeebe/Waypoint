@@ -110,6 +110,7 @@ interface UseChildrenReturn {
   error: string | null;
   addChild: (data: Partial<Child>) => Promise<Child | null>;
   updateChild: (childId: string, data: Partial<Child>) => Promise<boolean>;
+  deleteChild: (childId: string) => Promise<boolean>;
   refetch: () => Promise<void>;
 }
 
@@ -184,7 +185,24 @@ export function useChildren(familyId: string | undefined): UseChildrenReturn {
     }
   }, []);
 
-  return { children, loading, error, addChild, updateChild, refetch: fetchChildren };
+  const deleteChild = useCallback(async (childId: string): Promise<boolean> => {
+    try {
+      const { error: deleteError } = await supabase
+        .from('children')
+        .delete()
+        .eq('id', childId);
+
+      if (deleteError) throw deleteError;
+      setChildren(prev => prev.filter(c => c.id !== childId));
+      return true;
+    } catch (err: unknown) {
+      const e = err as { message?: string };
+      setError(e.message || 'Failed to delete child');
+      return false;
+    }
+  }, []);
+
+  return { children, loading, error, addChild, updateChild, deleteChild, refetch: fetchChildren };
 }
 
 // ─── useDiagnoses ────────────────────────────────────────────────────────────

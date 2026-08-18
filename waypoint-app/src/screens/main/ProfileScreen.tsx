@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/Button';
 import DiagnosisSelector from '@/components/DiagnosisSelector';
+import DateInput from '@/components/DateInput';
 import SelectGrid from '@/components/SelectGrid';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { reseedStarterPlan } from '@/lib/planGenerator';
@@ -30,6 +31,9 @@ import {
 } from '@/lib/googleAuth';
 import { supabase } from '@/lib/supabase';
 import { showAlert, showConfirm } from '@/lib/dialogs';
+import { useToast } from '@/components/Toast';
+import { useTextScale } from '@/lib/textSize';
+import { resetTutorial } from '@/components/OnboardingTutorial';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
 import type { Child } from '@/types/database';
@@ -69,16 +73,25 @@ const LANGUAGE_OPTIONS = [
 
 export default function ProfileScreen() {
   const { family, updateFamily, loading: familyLoading } = useFamily();
-  const { children, addChild, updateChild } = useChildren(family?.id);
+  const { children, addChild, updateChild, deleteChild } = useChildren(family?.id);
   const primaryChild = children.find(c => c.is_primary) || children[0];
   const { diagnoses, setDiagnoses } = useDiagnoses(primaryChild?.id);
   const { t, locale, setLocale } = useI18n();
+  const { scale, cycleScale } = useTextScale();
+  const { showToast } = useToast();
 
   const [saving, setSaving] = useState(false);
   const [parentName, setParentName] = useState('');
+  const [parentLastName, setParentLastName] = useState('');
   const [email, setEmail] = useState('');
   const [childName, setChildName] = useState('');
   const [zipCode, setZipCode] = useState('');
+  const [schoolDistrict, setSchoolDistrict] = useState('');
+  // Child editing (P1): inline edit per child row
+  const [editingChildId, setEditingChildId] = useState<string | null>(null);
+  const [editChildName, setEditChildName] = useState('');
+  const [editChildDob, setEditChildDob] = useState('');
+  const [newChildDob, setNewChildDob] = useState('');
   const [selectedDiagnoses, setSelectedDiagnoses] = useState<string[]>([]);
   const [rcStatus, setRcStatus] = useState('');
   const [iepStatus, setIepStatus] = useState('');
@@ -91,8 +104,10 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (family) {
       setParentName(family.parent_first_name || '');
+      setParentLastName(family.parent_last_name || '');
       setEmail(family.email || '');
       setZipCode(family.zip_code || '');
+      setSchoolDistrict(family.school_district || '');
       setInsurance(family.insurance_carrier || '');
     }
   }, [family]);
@@ -135,8 +150,10 @@ export default function ProfileScreen() {
       const rc = zipCode.trim() ? lookupRC(zipCode.trim()) : null;
       await updateFamily({
         parent_first_name: parentName.trim(),
+        parent_last_name: parentLastName.trim() || null,
         email: email.trim(),
         zip_code: zipCode.trim() || null,
+        school_district: schoolDistrict.trim() || null,
         regional_center: rc?.name ?? family?.regional_center ?? null,
         insurance_carrier: insurance,
       });
@@ -185,7 +202,11 @@ export default function ProfileScreen() {
     }
     setAddingChild(true);
     try {
-      const created = await addChild({ first_name: name, is_primary: false });
+      const created = await addChild({
+        first_name: name,
+        is_primary: false,
+        date_of_birth: /^\d{4}-\d{2}-\d{2}$/.test(newChildDob) ? newChildDob : null,
+      });
       if (created) {
         setNewChildName('');
         setShowAddChild(false);
@@ -338,6 +359,17 @@ export default function ProfileScreen() {
             accessibilityLabel="Your first name"
           />
 
+          <Text style={styles.inputLabel} nativeID="label-parent-last-name">Your last name</Text>
+          <TextInput
+            style={styles.input}
+            value={parentLastName}
+            onChangeText={setParentLastName}
+            placeholder="Used to sign generated letters"
+            placeholderTextColor={colors.mid}
+            autoCapitalize="words"
+            accessibilityLabel="Your last name"
+          />
+
           <Text style={styles.inputLabel} nativeID="label-email">Email</Text>
           <TextInput
             style={styles.input}
@@ -372,6 +404,17 @@ export default function ProfileScreen() {
             maxLength={5}
             accessibilityLabel="ZIP code"
           />
+
+          <Text style={styles.inputLabel} nativeID="label-school-district">School district</Text>
+          <TextInput
+            style={styles.input}
+            value={schoolDistrict}
+            onChangeText={setSchoolDistrict}
+            placeholder="e.g., Oakland Unified"
+            placeholderTextColor={colors.mid}
+            autoCapitalize="words"
+            accessibilityLabel="School district"
+          />
         </View>
 
         {/* Children */}
@@ -379,13 +422,96 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           {children.map(c => (
             <View key={c.id} style={styles.childRow}>
-              <Text style={styles.childName}>
-                {c.first_name}
-                {c.is_primary ? '  ⭐' : ''}
-              </Text>
-              {c.date_of_birth ? (
-                <Text style={styles.childDob}>Born {c.date_of_birth}</Text>
-              ) : null}
+              {editingChildId === c.id ? (
+                <View>
+                  <Text style={styles.inputLabel}>First name</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={editChildName}
+                    onChangeText={setEditChildName}
+                    autoCapitalize="words"
+                    accessibilityLabel="Child's first name"
+                  />
+                  <Text style={styles.inputLabel}>Birthday</Text>
+                  <DateInput value={editChildDob} onChange={setEditChildDob} />
+                  <View style={styles.addChildButtons}>
+                    <Button
+                      title="Save"
+                      variant="primary"
+                      onPress={async () => {
+                        if (!editChildName.trim()) return;
+                        const ok = await updateChild(c.id, {
+                          first_name: editChildName.trim(),
+                          date_of_birth: /^\d{4}-\d{2}-\d{2}$/.test(editChildDob) ? editChildDob : null,
+                        });
+                        showToast(ok ? 'Child updated' : "Couldn't save — try again.", ok ? 'success' : 'error');
+                        if (ok) setEditingChildId(null);
+                      }}
+                    />
+                    <Button title="Cancel" variant="outline" onPress={() => setEditingChildId(null)} />
+                  </View>
+                  <View style={styles.childManageRow}>
+                    {!c.is_primary && (
+                      <TouchableOpacity
+                        onPress={async () => {
+                          // One primary at a time: demote others, promote this one
+                          for (const other of children.filter(o => o.is_primary && o.id !== c.id)) {
+                            await updateChild(other.id, { is_primary: false });
+                          }
+                          const ok = await updateChild(c.id, { is_primary: true });
+                          showToast(ok ? `${c.first_name} is now the primary child` : "Couldn't update.", ok ? 'success' : 'error');
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Make ${c.first_name} the primary child`}
+                      >
+                        <Text style={styles.childManageLink}>⭐ Make primary</Text>
+                      </TouchableOpacity>
+                    )}
+                    {children.length > 1 && (
+                      <TouchableOpacity
+                        onPress={async () => {
+                          const confirmed = await showConfirm(
+                            `Remove ${c.first_name}?`,
+                            'Their profile and diagnoses will be removed. Actions and documents stay but lose the child link.',
+                            'Remove',
+                            true
+                          );
+                          if (!confirmed) return;
+                          const ok = await deleteChild(c.id);
+                          showToast(ok ? `${c.first_name} removed` : "Couldn't remove — try again.", ok ? 'success' : 'error');
+                          if (ok) setEditingChildId(null);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Remove ${c.first_name}`}
+                      >
+                        <Text style={[styles.childManageLink, styles.childManageDanger]}>Remove child</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.childRowTap}
+                  onPress={() => {
+                    setEditingChildId(c.id);
+                    setEditChildName(c.first_name ?? '');
+                    setEditChildDob(c.date_of_birth ?? '');
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit ${c.first_name}`}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.childName}>
+                      {c.first_name}
+                      {c.is_primary ? '  ⭐' : ''}
+                    </Text>
+                    {c.date_of_birth ? (
+                      <Text style={styles.childDob}>Born {c.date_of_birth}</Text>
+                    ) : null}
+                  </View>
+                  <Text style={styles.childEditHint}>Edit ›</Text>
+                </TouchableOpacity>
+              )}
             </View>
           ))}
           {showAddChild ? (
@@ -400,9 +526,11 @@ export default function ProfileScreen() {
                 autoCapitalize="words"
                 accessibilityLabel="New child's first name"
               />
+              <Text style={styles.inputLabel}>Birthday (optional)</Text>
+              <DateInput value={newChildDob} onChange={setNewChildDob} />
               <View style={styles.addChildButtons}>
                 <Button title="Add" onPress={handleAddChild} loading={addingChild} disabled={addingChild} variant="primary" />
-                <Button title="Cancel" onPress={() => { setShowAddChild(false); setNewChildName(''); }} variant="outline" />
+                <Button title="Cancel" onPress={() => { setShowAddChild(false); setNewChildName(''); setNewChildDob(''); }} variant="outline" />
               </View>
             </View>
           ) : (
@@ -472,6 +600,42 @@ export default function ProfileScreen() {
             disabled={saving}
             variant="primary"
           />
+        </View>
+
+        {/* Accessibility & display */}
+        <Text style={styles.sectionTitle}>Display & Accessibility</Text>
+        <View style={styles.card}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>Text size</Text>
+              <Text style={styles.settingHint}>Applies to reading-heavy screens like actions and analyses.</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.textSizePill}
+              onPress={cycleScale}
+              accessibilityRole="button"
+              accessibilityLabel={`Text size ${Math.round(scale * 100)} percent. Tap to change.`}
+            >
+              <Text style={styles.textSizePillText}>Aa {Math.round(scale * 100)}%</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>App tour</Text>
+              <Text style={styles.settingHint}>Replay the 4-step feature intro on the Home screen.</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.textSizePill}
+              onPress={async () => {
+                await resetTutorial();
+                showToast('Tour will replay next time you open Home.', 'success');
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Replay the app tour"
+            >
+              <Text style={styles.textSizePillText}>Replay</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Privacy & AI */}
@@ -570,6 +734,41 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     marginTop: spacing.md,
   },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  settingBody: {
+    flex: 1,
+  },
+  settingLabel: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.medium as '500',
+    color: colors.dark,
+  },
+  settingHint: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    marginTop: 1,
+  },
+  textSizePill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.full,
+    backgroundColor: '#E6F7F5',
+    borderWidth: 1,
+    borderColor: colors.teal,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  textSizePillText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    fontWeight: fonts.weights.semibold as '600',
+  },
   card: {
     backgroundColor: colors.white,
     borderRadius: radii.lg,
@@ -596,6 +795,31 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.base,
     fontSize: fonts.sizes.md,
     color: colors.dark,
+  },
+  childRowTap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    minHeight: 44,
+  },
+  childEditHint: {
+    fontSize: fonts.sizes.xs,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
+  },
+  childManageRow: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+    marginTop: spacing.sm,
+  },
+  childManageLink: {
+    fontSize: fonts.sizes.xs,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
+    paddingVertical: 6,
+  },
+  childManageDanger: {
+    color: '#DC2626',
   },
   childRow: {
     flexDirection: 'row',

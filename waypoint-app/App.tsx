@@ -60,6 +60,7 @@ const linking: LinkingOptions<RootStackParamList> = {
               IEPHub: 'iep',
               Letters: 'letters',
               EmailAnalyzer: 'email-analyzer',
+              CommunicationLog: 'paper-trail',
               Providers: 'providers',
               Services: 'services',
               HealthRecords: 'health-records',

@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { retrieveMultiSourceContext, type RAGResult } from '@/lib/rag';
 import { streamNavigatorResponse, classifyIntent } from '@/lib/ai';
 import { parseTrailers, type ChatMeta } from '@/lib/followups';
+import { trackEvent } from '@/lib/analytics';
 import type { ChatContext, ChatMessage, ToneLevel } from '@/types/database';
 
 /** Runtime message type (includes streaming state) */
@@ -193,6 +194,17 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
             // Persist assistant response
             await persistMessage(sid!, 'assistant', content, ragResult.sources as unknown as Record<string, unknown>[]);
+
+            // Anonymous exchange analytics (topic + urgency only, no text)
+            trackEvent({
+              familyId,
+              eventType: 'chat_exchange',
+              eventData: {
+                category: meta.category ?? 'unknown',
+                urgency: meta.urgency ?? 'low',
+              },
+              regionalCenter: context.regionalCenter ?? undefined,
+            });
             setIsLoading(false);
           },
           onError: (err) => {
