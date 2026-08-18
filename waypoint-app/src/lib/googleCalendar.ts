@@ -96,66 +96,70 @@ export async function fetchCalendarEvents(
   return allEvents;
 }
 
-/**
- * Create a new event on the user's primary Google Calendar.
- * Returns the created event (with Google-assigned ID).
- */
-export async function createCalendarEvent(
-  event: GoogleCalendarEventInput
-): Promise<GoogleCalendarEvent> {
-  const response = await calendarFetch(CALENDAR_API, {
-    method: 'POST',
-    body: JSON.stringify(event),
-  });
-
-  const data = await response.json();
+/** Map a raw API item to our event shape */
+function toEvent(data: Record<string, unknown>): GoogleCalendarEvent {
   return {
-    id: data.id,
-    summary: data.summary ?? '(No title)',
-    description: data.description ?? null,
-    location: data.location ?? null,
-    start: data.start,
-    end: data.end,
-    htmlLink: data.htmlLink ?? '',
-    status: data.status ?? 'confirmed',
-    created: data.created ?? '',
-    updated: data.updated ?? '',
+    id: data.id as string,
+    summary: (data.summary as string) ?? '(No title)',
+    description: (data.description as string) ?? null,
+    location: (data.location as string) ?? null,
+    start: data.start as GoogleCalendarEvent['start'],
+    end: data.end as GoogleCalendarEvent['end'],
+    htmlLink: (data.htmlLink as string) ?? '',
+    status: (data.status as string) ?? 'confirmed',
+    created: (data.created as string) ?? '',
+    updated: (data.updated as string) ?? '',
+    attendees: (data.attendees as GoogleCalendarEvent['attendees']) ?? undefined,
   };
 }
 
 /**
- * Update an existing Google Calendar event.
- * Uses PATCH for partial updates.
+ * Create a new event on the user's primary Google Calendar.
+ * When the event has attendees, `notify` (default true) makes Google email
+ * them an invitation. Returns the created event (with Google-assigned ID).
+ */
+export async function createCalendarEvent(
+  event: GoogleCalendarEventInput,
+  notify = true
+): Promise<GoogleCalendarEvent> {
+  const url = `${CALENDAR_API}?sendUpdates=${notify ? 'all' : 'none'}`;
+  const response = await calendarFetch(url, {
+    method: 'POST',
+    body: JSON.stringify(event),
+  });
+  return toEvent(await response.json());
+}
+
+/** Fetch one event by id (used to prefill the edit form) */
+export async function getCalendarEvent(eventId: string): Promise<GoogleCalendarEvent> {
+  const response = await calendarFetch(`${CALENDAR_API}/${eventId}`);
+  return toEvent(await response.json());
+}
+
+/**
+ * Update an existing Google Calendar event (PATCH, partial).
+ * `notify` (default true) emails attendees about the change.
+ * Note: an `attendees` array in updates REPLACES the whole list.
  */
 export async function updateCalendarEvent(
   eventId: string,
-  updates: Partial<GoogleCalendarEventInput>
+  updates: Partial<GoogleCalendarEventInput>,
+  notify = true
 ): Promise<GoogleCalendarEvent> {
-  const response = await calendarFetch(`${CALENDAR_API}/${eventId}`, {
+  const url = `${CALENDAR_API}/${eventId}?sendUpdates=${notify ? 'all' : 'none'}`;
+  const response = await calendarFetch(url, {
     method: 'PATCH',
     body: JSON.stringify(updates),
   });
-
-  const data = await response.json();
-  return {
-    id: data.id,
-    summary: data.summary ?? '(No title)',
-    description: data.description ?? null,
-    location: data.location ?? null,
-    start: data.start,
-    end: data.end,
-    htmlLink: data.htmlLink ?? '',
-    status: data.status ?? 'confirmed',
-    created: data.created ?? '',
-    updated: data.updated ?? '',
-  };
+  return toEvent(await response.json());
 }
 
 /**
  * Delete an event from the user's primary Google Calendar.
+ * `notify` (default true) emails attendees a cancellation.
  */
-export async function deleteCalendarEvent(eventId: string): Promise<void> {
-  await calendarFetch(`${CALENDAR_API}/${eventId}`, {
+export async function deleteCalendarEvent(eventId: string, notify = true): Promise<void> {
+  await calendarFetch(`${CALENDAR_API}/${eventId}?sendUpdates=${notify ? 'all' : 'none'}`, {
     method: 'DELETE',
   });
 }
