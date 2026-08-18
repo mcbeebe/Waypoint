@@ -837,6 +837,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     fontStyle: 'italic',
   },
+<<<<<<< HEAD
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -850,6 +851,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+=======
+>>>>>>> origin/main
   calendarStatus: {
     fontSize: fonts.sizes.sm,
     color: colors.dark,
