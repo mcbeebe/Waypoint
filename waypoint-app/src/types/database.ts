@@ -479,6 +479,8 @@ export interface Action {
   depends_on: string | null;
   /** FOLLOWUPS check-in set shown when this action is completed (019) */
   follow_up_key: string | null;
+  /** Google Calendar event created from this action, if any (021) */
+  google_event_id: string | null;
   reminder_sent: boolean;
   local_id: string | null;
   synced_at: string | null;
@@ -556,6 +558,13 @@ export interface GoogleCalendarEvent {
   status: string;
   created: string;
   updated: string;
+  attendees?: GoogleCalendarAttendee[];
+}
+
+export interface GoogleCalendarAttendee {
+  email: string;
+  responseStatus?: 'needsAction' | 'declined' | 'tentative' | 'accepted';
+  optional?: boolean;
 }
 
 export interface GoogleCalendarEventInput {
@@ -564,6 +573,8 @@ export interface GoogleCalendarEventInput {
   location?: string;
   start: { dateTime: string; timeZone?: string };
   end: { dateTime: string; timeZone?: string };
+  /** Invitees — Google emails them an invitation when sendUpdates=all */
+  attendees?: GoogleCalendarAttendee[];
 }
 
 // ─── Gmail (Phase 1) ────────────────────────────────────────────────────────

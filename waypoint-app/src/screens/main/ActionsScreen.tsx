@@ -351,6 +351,14 @@ function ActionCard({
                 {priorityConfig.label}
               </Text>
             </View>
+            {action.google_event_id && (
+              <Text
+                style={styles.calendarBadge}
+                accessibilityLabel="On your Google Calendar"
+              >
+                🗓️
+              </Text>
+            )}
             <Text style={styles.detailHint}>Details ›</Text>
           </View>
         </TouchableOpacity>
@@ -584,6 +592,9 @@ const styles = StyleSheet.create({
   },
   cardLocked: {
     opacity: 0.65,
+  },
+  calendarBadge: {
+    fontSize: 11,
   },
   cardTop: {
     flexDirection: 'row',

@@ -26,6 +26,7 @@ import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { useTextScale } from '@/lib/textSize';
 import { parseActionDescription, extractLinks } from '@/lib/actionContent';
 import LearnMoreSheet, { LEARN_MORE_BY_ACTION_TITLE } from '@/components/LearnMoreSheet';
+import ActionEventModal from '@/components/ActionEventModal';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -69,6 +70,7 @@ export default function ActionDetailScreen({
   const [dismissReason, setDismissReason] = useState('');
   const [showDismissInput, setShowDismissInput] = useState(false);
   const [learnKey, setLearnKey] = useState<string | null>(null);
+  const [showEventModal, setShowEventModal] = useState(false);
   const learnMoreKey = LEARN_MORE_BY_ACTION_TITLE[action.title];
   const { scale, cycleScale } = useTextScale();
   /** Scaled font size — applied to all reading-heavy text */
@@ -377,6 +379,41 @@ export default function ActionDetailScreen({
           )}
         </View>
 
+        {/* Google Calendar (021): turn this action into a real event with invitees */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🗓️ Google Calendar</Text>
+          {action.google_event_id ? (
+            <>
+              <Text style={styles.calendarStatus}>
+                ✅ This action is on your Google Calendar.
+              </Text>
+              <TouchableOpacity
+                style={styles.calendarButton}
+                onPress={() => setShowEventModal(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Edit calendar event, time, or attendees"
+              >
+                <Text style={styles.calendarButtonText}>Edit event / attendees</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text style={styles.calendarStatus}>
+                Schedule this as a calendar event — and invite your spouse, advocate, or anyone
+                else who should be there.
+              </Text>
+              <TouchableOpacity
+                style={styles.calendarButton}
+                onPress={() => setShowEventModal(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Add this action to Google Calendar"
+              >
+                <Text style={styles.calendarButtonText}>Add to Google Calendar</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
         {/* Source */}
         <View style={styles.sourceRow}>
           <Text style={styles.sourceText}>
@@ -386,6 +423,13 @@ export default function ActionDetailScreen({
       </ScrollView>
 
       <LearnMoreSheet learnKey={learnKey} onClose={() => setLearnKey(null)} />
+
+      <ActionEventModal
+        visible={showEventModal}
+        action={action}
+        onClose={() => setShowEventModal(false)}
+        onSaved={(googleEventId) => onUpdate({ google_event_id: googleEventId })}
+      />
     </SafeAreaView>
   );
 }
@@ -753,6 +797,26 @@ const styles = StyleSheet.create({
     color: colors.mid,
     marginTop: spacing.sm,
     fontStyle: 'italic',
+  },
+  calendarStatus: {
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+    lineHeight: 19,
+    marginBottom: spacing.sm,
+  },
+  calendarButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.md,
+    backgroundColor: colors.teal,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  calendarButtonText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.white,
+    fontWeight: fonts.weights.semibold as '600',
   },
   smsButton: {
     alignSelf: 'flex-start',
