@@ -123,3 +123,79 @@ export function extractLinks(texts: Array<string | null | undefined>): {
 
   return { links, phones };
 }
+
+// ─── Share formatting ───────────────────────────────────────────────────────
+
+/** The fields of an Action the share text is built from */
+export interface ShareableAction {
+  title: string;
+  description: string | null;
+  category: string;
+  priority: string;
+  status: string;
+  script: string | null;
+  steps: Array<{ step: string; done: boolean }> | null;
+  due_date: string | null;
+}
+
+const SHARE_CATEGORY_LABELS: Record<string, string> = {
+  regional_center: 'Regional Center',
+  iep: 'IEP / School',
+  insurance: 'Insurance',
+  benefits: 'Benefits',
+  medical: 'Medical',
+  legal: 'Legal',
+  general: 'General',
+};
+
+function shareDate(iso: string): string {
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00`);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+/**
+ * Render an action as clean plain text for sharing outside the app
+ * (text message, email, WhatsApp) — so a partner who doesn't use Waypoint
+ * gets everything needed to act: what, when, why, the exact words to say,
+ * and the checklist.
+ */
+export function formatActionForSharing(action: ShareableAction): string {
+  const lines: string[] = [];
+  const content = parseActionDescription(action.description ?? '');
+
+  lines.push(`📋 ${action.title}`);
+
+  const metaBits = [
+    SHARE_CATEGORY_LABELS[action.category] ?? action.category,
+    action.priority === 'urgent' || action.priority === 'high'
+      ? `${action.priority === 'urgent' ? 'Urgent' : 'High'} priority`
+      : null,
+    action.due_date ? `Due ${shareDate(action.due_date)}` : null,
+  ].filter(Boolean);
+  if (metaBits.length) lines.push(metaBits.join(' · '));
+
+  if (content.summary) lines.push('', content.summary);
+  if (content.timeline) lines.push('', `⏰ Timeline: ${content.timeline}`);
+  if (content.effort) lines.push('', `🕒 Time needed: ${content.effort}`);
+  if (content.why) lines.push('', `Why this matters: ${content.why}`);
+
+  if (action.steps && action.steps.length > 0) {
+    lines.push('', 'Steps:');
+    action.steps.forEach((s, i) => {
+      lines.push(`${s.done ? '✅' : '▢'} ${i + 1}. ${s.step}`);
+    });
+  }
+
+  if (action.script) lines.push('', action.script);
+
+  if (content.documents.length > 0) {
+    lines.push('', 'Documents to gather:');
+    content.documents.forEach((d) => lines.push(`• ${d}`));
+  }
+  if (content.eligibility) lines.push('', `Do we qualify?\n${content.eligibility}`);
+  if (content.tip) lines.push('', `💡 Tip: ${content.tip}`);
+
+  lines.push('', '— Shared from Waypoint · waypointchild.com');
+  return lines.join('\n');
+}
