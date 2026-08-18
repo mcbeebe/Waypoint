@@ -31,6 +31,8 @@ import { useTextScale } from '@/lib/textSize';
 import { parseActionDescription, extractLinks, formatActionForSharing } from '@/lib/actionContent';
 import LearnMoreSheet, { LEARN_MORE_BY_ACTION_TITLE } from '@/components/LearnMoreSheet';
 import ActionEventModal from '@/components/ActionEventModal';
+import DateInput from '@/components/DateInput';
+import { getCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -75,6 +77,10 @@ export default function ActionDetailScreen({
   const [showDismissInput, setShowDismissInput] = useState(false);
   const [learnKey, setLearnKey] = useState<string | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  // Deadline editing: the due date is system-suggested but user-editable
+  const [editingDue, setEditingDue] = useState(false);
+  const [dueDraft, setDueDraft] = useState('');
+  const [savingDue, setSavingDue] = useState(false);
   const { showToast } = useToast();
   const learnMoreKey = LEARN_MORE_BY_ACTION_TITLE[action.title];
   const { scale, cycleScale } = useTextScale();
@@ -97,6 +103,55 @@ export default function ActionDetailScreen({
       ]),
     [action.description, action.script, action.steps]
   );
+
+  const openDueEditor = () => {
+    setDueDraft(action.due_date ?? '');
+    setEditingDue(true);
+  };
+
+  /**
+   * Save an edited deadline. If the action is linked to a Google Calendar
+   * event, move that event to the new date too (keeping its time of day,
+   * duration, and attendees — Google notifies invitees of the change).
+   */
+  const handleSaveDueDate = async () => {
+    if (savingDue) return;
+    if (dueDraft && !/^\d{4}-\d{2}-\d{2}$/.test(dueDraft)) {
+      showToast('Enter a valid date (YYYY-MM-DD)', 'error');
+      return;
+    }
+    setSavingDue(true);
+    try {
+      onUpdate({ due_date: dueDraft || null });
+
+      if (action.google_event_id && dueDraft) {
+        try {
+          const ev = await getCalendarEvent(action.google_event_id);
+          if (ev.start.dateTime && ev.end.dateTime) {
+            const oldStart = new Date(ev.start.dateTime);
+            const durationMs = new Date(ev.end.dateTime).getTime() - oldStart.getTime();
+            const [y, m, d] = dueDraft.split('-').map(Number);
+            const start = new Date(oldStart);
+            start.setFullYear(y, m - 1, d);
+            const end = new Date(start.getTime() + durationMs);
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            await updateCalendarEvent(action.google_event_id, {
+              start: { dateTime: start.toISOString(), timeZone },
+              end: { dateTime: end.toISOString(), timeZone },
+            });
+          }
+          showToast('Deadline updated — Google Calendar event moved', 'success');
+        } catch {
+          showToast("Deadline saved, but the calendar event couldn't be moved — tap the calendar chip to fix it.", 'error');
+        }
+      } else {
+        showToast(dueDraft ? 'Deadline updated' : 'Deadline cleared', 'success');
+      }
+      setEditingDue(false);
+    } finally {
+      setSavingDue(false);
+    }
+  };
 
   const handleStatusChange = (status: ActionStatus) => {
     if (status === 'dismissed') {
@@ -175,13 +230,28 @@ export default function ActionDetailScreen({
           </Text>
         </View>
 
-        {/* At-a-glance chips: when, how big a lift, how many steps */}
+        {/* At-a-glance chips: when, calendar link, how big a lift, steps */}
         <View style={styles.chipRow}>
-          {action.due_date && (
-            <View style={[styles.chip, styles.chipDue]}>
-              <Text style={[styles.chipText, { fontSize: sz(12) }]}>📅 Due {formatDate(action.due_date)}</Text>
-            </View>
-          )}
+          <TouchableOpacity
+            style={[styles.chip, styles.chipDue]}
+            onPress={openDueEditor}
+            accessibilityRole="button"
+            accessibilityLabel={action.due_date ? `Deadline ${formatDate(action.due_date)}. Tap to change.` : 'Set a deadline'}
+          >
+            <Text style={[styles.chipText, { fontSize: sz(12) }]}>
+              📅 {action.due_date ? `Due ${formatDate(action.due_date)}` : 'Set deadline'}  ✏️
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.chip, styles.chipCalendar]}
+            onPress={() => setShowEventModal(true)}
+            accessibilityRole="button"
+            accessibilityLabel={action.google_event_id ? 'On your Google Calendar. Tap to edit the event or attendees.' : 'Add this action to Google Calendar'}
+          >
+            <Text style={[styles.chipText, styles.chipCalendarText, { fontSize: sz(12) }]}>
+              🗓️ {action.google_event_id ? 'On calendar · Edit' : 'Add to Calendar'}
+            </Text>
+          </TouchableOpacity>
           {content.timeline && (
             <View style={styles.chip}>
               <Text style={[styles.chipText, { fontSize: sz(12) }]}>⏰ {content.timeline}</Text>
@@ -193,6 +263,40 @@ export default function ActionDetailScreen({
             </View>
           )}
         </View>
+
+        {/* Inline deadline editor — suggested by Waypoint, yours to change */}
+        {editingDue && (
+          <View style={styles.dueEditor}>
+            <Text style={[styles.cardLabel, { fontSize: sz(11) }]}>
+              📅 DEADLINE — suggested by Waypoint, yours to change
+            </Text>
+            <DateInput value={dueDraft} onChange={setDueDraft} />
+            {action.google_event_id ? (
+              <Text style={[styles.dueEditorHint, { fontSize: sz(12) }]}>
+                Your linked Google Calendar event will move to the new date, and attendees will be notified.
+              </Text>
+            ) : null}
+            <View style={styles.dueEditorButtons}>
+              <TouchableOpacity
+                style={[styles.dueSaveBtn, savingDue && { opacity: 0.7 }]}
+                onPress={handleSaveDueDate}
+                disabled={savingDue}
+                accessibilityRole="button"
+                accessibilityLabel="Save deadline"
+              >
+                <Text style={styles.dueSaveText}>{savingDue ? 'Saving…' : 'Save deadline'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dueCancelBtn}
+                onPress={() => setEditingDue(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel deadline edit"
+              >
+                <Text style={styles.dueCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Effort — the honest "how big is this lift" */}
         {content.effort && (
@@ -535,6 +639,57 @@ const styles = StyleSheet.create({
   chipDue: {
     backgroundColor: '#FFF7ED',
     borderColor: '#FDBA74',
+  },
+  chipCalendar: {
+    backgroundColor: colors.teal,
+    borderColor: colors.teal,
+  },
+  chipCalendarText: {
+    color: colors.white,
+    fontWeight: fonts.weights.semibold as '600',
+  },
+  dueEditor: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#FDBA74',
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  dueEditorHint: {
+    color: colors.mid,
+    lineHeight: 17,
+  },
+  dueEditorButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  dueSaveBtn: {
+    backgroundColor: colors.teal,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  dueSaveText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.white,
+    fontWeight: fonts.weights.semibold as '600',
+  },
+  dueCancelBtn: {
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  dueCancelText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
   },
   chipText: {
     color: colors.dark,
