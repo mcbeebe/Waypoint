@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import CheckInCard from '@/components/CheckInCard';
+import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
@@ -125,6 +126,8 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* First-visit feature tour — self-hides after completion (AsyncStorage) */}
+      <OnboardingTutorial onComplete={() => {}} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -347,6 +350,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             { icon: 'school-outline', label: 'IEP Hub', go: () => (navigation as any).navigate('IEPHub') },
             { icon: 'mail-outline', label: 'Letters', go: () => (navigation as any).navigate('Letters') },
             { icon: 'search-outline', label: 'Email Check', go: () => (navigation as any).navigate('EmailAnalyzer') },
+            { icon: 'file-tray-full-outline', label: 'Paper Trail', go: () => (navigation as any).navigate('CommunicationLog') },
             { icon: 'book-outline', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources' }) },
             { icon: 'newspaper-outline', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog' }) },
             { icon: 'cash-outline', label: 'Expenses', go: () => (navigation as any).navigate('Calendar', { screen: 'Expenses' }) },

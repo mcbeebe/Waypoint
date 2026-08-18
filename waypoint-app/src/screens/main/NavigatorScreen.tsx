@@ -32,6 +32,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { RC_DATABASE } from '@/data/regionalCenters';
+import { logCommunication } from '@/hooks/useCommunications';
 import AIConsentModal from '@/components/AIConsentModal';
 import ChatMetaCards from '@/components/ChatMetaCards';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
@@ -333,6 +334,15 @@ export default function NavigatorScreen() {
           ? `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`
           : `mailto:${to}?subject=${subject}&body=${body}`;
       await Linking.openURL(url);
+      // Paper trail: record that this guidance went out by email
+      if (family?.id) {
+        logCommunication(family.id, {
+          kind: 'email',
+          subject: emailSubject || 'Waypoint guidance email',
+          contact: emailTo.trim() || undefined,
+          body: bodyText.slice(0, 4000),
+        });
+      }
       setEmailComposeMessage(null);
       setEmailTo('');
       setEmailSubject('');

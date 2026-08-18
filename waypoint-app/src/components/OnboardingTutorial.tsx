@@ -42,9 +42,9 @@ const STEPS: TutorialStep[] = [
     description: 'Never miss an IEP deadline or therapy appointment. Sync with Google Calendar and get reminders before key dates.',
   },
   {
-    emoji: '👥',
-    title: 'Community & Team',
-    description: 'Connect with other families, share strategies, and coordinate with co-parents and providers — all in one place.',
+    emoji: '✉️',
+    title: 'Letters & Documents',
+    description: 'Generate ready-to-send letters with the right legal backing, and upload IEPs for a plain-English AI review with next steps.',
   },
 ];
 

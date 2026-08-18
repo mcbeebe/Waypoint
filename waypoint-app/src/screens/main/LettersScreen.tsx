@@ -33,6 +33,8 @@ import {
 } from '@/lib/letters';
 import { useI18n } from '@/i18n';
 import { trackDraftUsed } from '@/lib/analytics';
+import { logCommunication } from '@/hooks/useCommunications';
+import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -103,11 +105,36 @@ export default function LettersScreen() {
     }
   }, [template, tone, question, hasAIConsent, locale, showToast, family]);
 
+  /** Which system this letter targets, for the paper-trail entry */
+  const ORG_BY_TEMPLATE: Partial<Record<string, CommunicationOrg>> = {
+    appeal_letter: 'insurance', ihss_appeal: 'other',
+    rc_request: 'regional_center', dds_4731_complaint: 'regional_center',
+    iep_email: 'school', iep_prep: 'school', assessment_request: 'school',
+    records_request: 'school', pwn_request: 'school', cde_complaint: 'school',
+    complaint: 'other', general: 'other',
+  };
+
+  // Auto-log each draft to the paper trail once, on first copy/open
+  const loggedDraftRef = React.useRef<string | null>(null);
+  const logDraftOnce = useCallback(() => {
+    if (!draft || !template || !family?.id || loggedDraftRef.current === draft) return;
+    loggedDraftRef.current = draft;
+    logCommunication(family.id, {
+      kind: 'letter',
+      subject: template.title,
+      body: draft,
+      template_key: template.key,
+      organization: ORG_BY_TEMPLATE[template.key] ?? 'other',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, template, family?.id]);
+
   const handleCopy = useCallback(async () => {
     if (!draft) return;
     await Clipboard.setStringAsync(draft);
-    showToast('Draft copied to clipboard.', 'success');
-  }, [draft, showToast]);
+    logDraftOnce();
+    showToast('Draft copied — logged to your paper trail.', 'success');
+  }, [draft, showToast, logDraftOnce]);
 
   const handleGmail = useCallback(() => {
     if (!draft || !template) return;
@@ -116,8 +143,9 @@ export default function LettersScreen() {
       Platform.OS === 'web'
         ? openInGmail(subject, draft)
         : `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(draft)}`;
+    logDraftOnce();
     Linking.openURL(url).catch(() => showToast('Could not open your email app.', 'error'));
-  }, [draft, template, family, showToast]);
+  }, [draft, template, family, showToast, logDraftOnce]);
 
   const reset = () => {
     setDraft(null);

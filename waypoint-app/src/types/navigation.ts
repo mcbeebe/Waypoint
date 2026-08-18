@@ -30,6 +30,7 @@ export type HomeStackParamList = {
   IEPHub: undefined;
   Letters: { template?: string; question?: string } | undefined;
   EmailAnalyzer: undefined;
+  CommunicationLog: undefined;
   Providers: undefined;
   Services: undefined;
   HealthRecords: undefined;

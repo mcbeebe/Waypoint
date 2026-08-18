@@ -30,6 +30,9 @@ import {
 } from '@/lib/googleAuth';
 import { supabase } from '@/lib/supabase';
 import { showAlert, showConfirm } from '@/lib/dialogs';
+import { useToast } from '@/components/Toast';
+import { useTextScale } from '@/lib/textSize';
+import { resetTutorial } from '@/components/OnboardingTutorial';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
 import type { Child } from '@/types/database';
@@ -73,6 +76,8 @@ export default function ProfileScreen() {
   const primaryChild = children.find(c => c.is_primary) || children[0];
   const { diagnoses, setDiagnoses } = useDiagnoses(primaryChild?.id);
   const { t, locale, setLocale } = useI18n();
+  const { scale, cycleScale } = useTextScale();
+  const { showToast } = useToast();
 
   const [saving, setSaving] = useState(false);
   const [parentName, setParentName] = useState('');
@@ -474,6 +479,42 @@ export default function ProfileScreen() {
           />
         </View>
 
+        {/* Accessibility & display */}
+        <Text style={styles.sectionTitle}>Display & Accessibility</Text>
+        <View style={styles.card}>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>Text size</Text>
+              <Text style={styles.settingHint}>Applies to reading-heavy screens like actions and analyses.</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.textSizePill}
+              onPress={cycleScale}
+              accessibilityRole="button"
+              accessibilityLabel={`Text size ${Math.round(scale * 100)} percent. Tap to change.`}
+            >
+              <Text style={styles.textSizePillText}>Aa {Math.round(scale * 100)}%</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>App tour</Text>
+              <Text style={styles.settingHint}>Replay the 4-step feature intro on the Home screen.</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.textSizePill}
+              onPress={async () => {
+                await resetTutorial();
+                showToast('Tour will replay next time you open Home.', 'success');
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Replay the app tour"
+            >
+              <Text style={styles.textSizePillText}>Replay</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Privacy & AI */}
         <Text style={styles.sectionTitle}>Privacy & AI</Text>
         <View style={styles.card}>
@@ -569,6 +610,41 @@ const styles = StyleSheet.create({
     color: colors.navy,
     marginBottom: spacing.sm,
     marginTop: spacing.md,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  settingBody: {
+    flex: 1,
+  },
+  settingLabel: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.medium as '500',
+    color: colors.dark,
+  },
+  settingHint: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    marginTop: 1,
+  },
+  textSizePill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.full,
+    backgroundColor: '#E6F7F5',
+    borderWidth: 1,
+    borderColor: colors.teal,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  textSizePillText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    fontWeight: fonts.weights.semibold as '600',
   },
   card: {
     backgroundColor: colors.white,

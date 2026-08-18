@@ -9,6 +9,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { View, Text, Animated, StyleSheet } from 'react-native';
+import { announce } from '@/lib/accessibility';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -42,6 +43,8 @@ export function ToastProvider({ children }: ToastProviderProps) {
     setMessage(msg);
     setType(toastType);
     setVisible(true);
+    // Screen readers hear every toast, not just sighted users seeing it
+    announce(msg);
 
     Animated.timing(fadeAnim, {
       toValue: 1,
