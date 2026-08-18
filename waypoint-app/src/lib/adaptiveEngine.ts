@@ -454,7 +454,7 @@ export function generateDeepInsuranceActions(issueType: string, ctx: AdaptiveCon
   const actions: GeneratedAction[] = [];
   const childName = ctx.childName || '[Child Name]';
   const parentName = ctx.parentName || '[Your Name]';
-  const hasAutism = (ctx.diagnoses ?? []).some((d) => /autism|asd/i.test(d));
+  const hasAutism = (ctx.diagnoses ?? []).some((d) => /autism|asd|pda/i.test(d));
 
   if (issueType === 'auth_denied') {
     actions.push(build({
@@ -520,7 +520,7 @@ export function getFollowUpActions(key: string, answer: string, ctx: AdaptiveCon
   const parentName = ctx.parentName || '[Your Name]';
   const dxName = (ctx.diagnoses ?? []).join(', ');
   const suspectedOnly = (ctx.diagnoses ?? []).every((d) => /suspected/i.test(d)) || (ctx.diagnoses ?? []).length === 0;
-  const hasAutism = (ctx.diagnoses ?? []).some((d) => /autism|asd/i.test(d));
+  const hasAutism = (ctx.diagnoses ?? []).some((d) => /autism|asd|pda/i.test(d));
 
   if (key === 'rc_done' && answer === 'voicemail') {
     a.push(build({

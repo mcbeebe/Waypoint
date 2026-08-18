@@ -35,7 +35,8 @@ export interface GapInput {
 export function detectGaps(input: GapInput): GapPrompt[] {
   const gaps: GapPrompt[] = [];
   const { childAgeYears: age, diagnoses, rcStatus, iepStatus, insurance } = input;
-  const hasAutism = diagnoses.some((d) => /autism|asd/i.test(d));
+  // PDA is an autism-spectrum profile — autism-linked supports apply
+  const hasAutism = diagnoses.some((d) => /autism|asd|pda/i.test(d));
 
   // AI-noticed gaps come first — they're specific to this family
   input.memoryGaps.slice(0, 2).forEach((content, i) => {

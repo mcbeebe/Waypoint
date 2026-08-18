@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   Platform,
 } from 'react-native';
@@ -136,12 +135,61 @@ export default function ProfileScreen() {
     }
   }, [diagnoses]);
 
+  /**
+   * Auto-save intake selections (RC/IEP status, insurance, diagnoses) the
+   * moment they're tapped. Tap-grids read as instant toggles — nobody
+   * scrolls to a Save button for them — and RN's Alert is a no-op on web,
+   * so failures used to vanish silently. Text fields still use Save Changes.
+   */
+  const persistIntake = useCallback(async (
+    patch: { rcStatus?: string; iepStatus?: string; insurance?: string; diagnoses?: string[] }
+  ) => {
+    const nextRc = patch.rcStatus ?? rcStatus;
+    const nextIep = patch.iepStatus ?? iepStatus;
+    const nextIns = patch.insurance ?? insurance;
+    const nextDx = patch.diagnoses ?? selectedDiagnoses;
+
+    let ok = true;
+    if (primaryChild && (patch.rcStatus !== undefined || patch.iepStatus !== undefined)) {
+      ok = await updateChild(primaryChild.id, {
+        rc_status: (nextRc || null) as Child['rc_status'],
+        iep_status: (nextIep || null) as Child['iep_status'],
+      });
+    }
+    if (patch.insurance !== undefined) {
+      ok = (await updateFamily({ insurance_carrier: nextIns })) && ok;
+    }
+    if (primaryChild && patch.diagnoses !== undefined) {
+      ok = (await setDiagnoses(primaryChild.id, nextDx)) && ok;
+    }
+    if (!ok) {
+      showToast("Couldn't save that change — please try again", 'error');
+      return;
+    }
+    showToast('Saved', 'success');
+
+    // Intake changes refresh the starter plan, same as a full profile save.
+    // Best-effort: the selection itself is already stored.
+    if (family && primaryChild) {
+      reseedStarterPlan(family.id, primaryChild.id, {
+        diagnoses: nextDx,
+        birthday: primaryChild.date_of_birth ? new Date(primaryChild.date_of_birth + 'T00:00:00') : null,
+        rcStatus: nextRc,
+        iepStatus: nextIep,
+        insurance: nextIns,
+        childName: childName.trim() || primaryChild.first_name,
+        parentName: parentName.trim(),
+        zipCode: zipCode.trim() || undefined,
+      }).catch(() => {});
+    }
+  }, [rcStatus, iepStatus, insurance, selectedDiagnoses, primaryChild, family, childName, parentName, zipCode, updateChild, updateFamily, setDiagnoses, showToast]);
+
   const toggleDiagnosis = (value: string) => {
-    setSelectedDiagnoses(prev =>
-      prev.includes(value)
-        ? prev.filter(d => d !== value)
-        : [...prev, value]
-    );
+    const next = selectedDiagnoses.includes(value)
+      ? selectedDiagnoses.filter(d => d !== value)
+      : [...selectedDiagnoses, value];
+    setSelectedDiagnoses(next);
+    void persistIntake({ diagnoses: next });
   };
 
   const handleSave = useCallback(async () => {
@@ -158,7 +206,7 @@ export default function ProfileScreen() {
       // Update family — re-resolve the Regional Center from the (new) ZIP,
       // mirroring the GAS MVP's re-lookup on every profile save
       const rc = zipCode.trim() ? lookupRC(zipCode.trim()) : null;
-      await updateFamily({
+      const okFamily = await updateFamily({
         parent_first_name: parentName.trim(),
         parent_last_name: parentLastName.trim() || null,
         email: email.trim(),
@@ -169,13 +217,22 @@ export default function ProfileScreen() {
       });
 
       // Update child record — name + intake statuses (migration 012 columns)
+      let okChild = true;
+      let okDx = true;
       if (primaryChild) {
-        await updateChild(primaryChild.id, {
+        okChild = await updateChild(primaryChild.id, {
           first_name: childName.trim() || primaryChild.first_name,
           rc_status: (rcStatus || null) as Child['rc_status'],
           iep_status: (iepStatus || null) as Child['iep_status'],
         });
-        await setDiagnoses(primaryChild.id, selectedDiagnoses);
+        okDx = await setDiagnoses(primaryChild.id, selectedDiagnoses);
+      }
+
+      // The hooks swallow DB errors into a return value — surface them,
+      // visibly on web too (RN Alert is a no-op in the browser)
+      if (!okFamily || !okChild || !okDx) {
+        showToast("Some changes couldn't be saved — please try again", 'error');
+        return;
       }
 
       // Mirror the GAS MVP: intake changes regenerate the starter plan
@@ -193,21 +250,21 @@ export default function ProfileScreen() {
         });
       }
 
-      Alert.alert('Saved', intakeChanged
-        ? 'Profile updated — your action plan has been refreshed to match.'
-        : 'Your profile has been updated.');
+      showToast(intakeChanged
+        ? 'Profile updated — action plan refreshed to match'
+        : 'Profile updated', 'success');
     } catch (err: unknown) {
       const e = err as { message?: string };
-      Alert.alert('Error', e.message || 'Failed to save profile');
+      showToast(e.message || 'Failed to save profile', 'error');
     } finally {
       setSaving(false);
     }
-  }, [parentName, email, zipCode, insurance, selectedDiagnoses, rcStatus, iepStatus, childName, primaryChild, family, diagnoses, updateFamily, updateChild, setDiagnoses]);
+  }, [parentName, parentLastName, email, zipCode, schoolDistrict, insurance, selectedDiagnoses, rcStatus, iepStatus, childName, primaryChild, family, diagnoses, updateFamily, updateChild, setDiagnoses, showToast]);
 
   const handleAddChild = useCallback(async () => {
     const name = newChildName.trim();
     if (!name) {
-      Alert.alert('Name needed', "Please enter the child's first name.");
+      showToast("Please enter the child's first name", 'error');
       return;
     }
     setAddingChild(true);
@@ -220,9 +277,9 @@ export default function ProfileScreen() {
       if (created) {
         setNewChildName('');
         setShowAddChild(false);
-        Alert.alert('Added', `${name} has been added to your family.`);
+        showToast(`${name} has been added to your family`, 'success');
       } else {
-        Alert.alert('Error', 'Could not add child. Please try again.');
+        showToast('Could not add child — please try again', 'error');
       }
     } finally {
       setAddingChild(false);
@@ -571,7 +628,7 @@ export default function ProfileScreen() {
           <SelectGrid
             options={RC_STATUS_OPTIONS}
             selected={rcStatus}
-            onSelect={setRcStatus}
+            onSelect={(v: string) => { setRcStatus(v); void persistIntake({ rcStatus: v }); }}
             columns={2}
           />
         </View>
@@ -582,7 +639,7 @@ export default function ProfileScreen() {
           <SelectGrid
             options={IEP_STATUS_OPTIONS}
             selected={iepStatus}
-            onSelect={setIepStatus}
+            onSelect={(v: string) => { setIepStatus(v); void persistIntake({ iepStatus: v }); }}
             columns={2}
           />
         </View>
@@ -593,7 +650,7 @@ export default function ProfileScreen() {
           <SelectGrid
             options={INSURANCE_OPTIONS}
             selected={insurance}
-            onSelect={setInsurance}
+            onSelect={(v: string) => { setInsurance(v); void persistIntake({ insurance: v }); }}
             columns={2}
           />
         </View>

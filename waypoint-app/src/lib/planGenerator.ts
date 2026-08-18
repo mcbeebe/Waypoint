@@ -177,6 +177,8 @@ function buildAction(content: ActionContent, priority: ActionPriority): StarterA
 
 const DX_NAMES: Record<string, string> = {
   autism: 'autism (ASD)',
+  pda: 'PDA (pathological demand avoidance)',
+  ptsd: 'PTSD / trauma',
   delay: 'developmental delays',
   id: 'intellectual disability',
   cp: 'cerebral palsy',
@@ -263,7 +265,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
   const age: AgeBand | '' = intake.birthday ? ageBandFromBirthday(intake.birthday) : '';
   const ageYears = intake.birthday ? String(ageYearsFromBirthday(intake.birthday)) : '[age]';
 
-  const hasDx = (v: string) => diagnosisArr.includes(v);
+  // PDA is an autism-spectrum profile — asking for 'autism' also matches 'pda'
+  // so PDA families get the autism plan content (SB 946, ABA referrals, etc.)
+  const hasDx = (v: string) =>
+    diagnosisArr.includes(v) || (v === 'autism' && diagnosisArr.includes('pda'));
 
   // RC eligibility: YES for the Lanterman qualifying conditions + related dx;
   // CONDITIONAL for others. 'genetic' (new in the app's selector) is treated as
