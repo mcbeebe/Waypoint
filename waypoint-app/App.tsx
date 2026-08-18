@@ -39,6 +39,9 @@ import type { RootStackParamList } from './src/types/navigation';
 // back/forward work and every screen shareable/bookmarkable; on native it
 // enables waypoint:// deep links. Screens with non-serializable params
 // (Thread, DocumentAnalysis) are deliberately not given paths.
+// The nested config is cast because RootStackParamList doesn't embed the
+// per-tab stack param lists (NavigatorScreenParams), so TS can't validate
+// nested initialRouteName/screen names — they're checked at runtime instead.
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [ExpoLinking.createURL('/')],
   config: {
@@ -50,6 +53,10 @@ const linking: LinkingOptions<RootStackParamList> = {
       Main: {
         screens: {
           Home: {
+            // Deep links to nested screens get the list/root screen placed
+            // beneath them, so Back always has somewhere to go (e.g. opening
+            // /actions/:id directly no longer strands the user).
+            initialRouteName: 'HomeMain',
             screens: {
               HomeMain: '',
               Journey: 'journey',
@@ -70,13 +77,19 @@ const linking: LinkingOptions<RootStackParamList> = {
               Messages: 'messages',
             },
           },
+          JourneyTab: {
+            screens: { JourneyMain: 'journey-map' },
+          },
           Navigator: {
+            initialRouteName: 'NavigatorMain',
             screens: { NavigatorMain: 'ask', Resources: 'resources', Blog: 'blog' },
           },
           Tracker: {
+            initialRouteName: 'TrackerList',
             screens: { TrackerList: 'actions', ActionDetail: 'actions/:actionId' },
           },
           Calendar: {
+            initialRouteName: 'CalendarMain',
             screens: { CalendarMain: 'calendar', Expenses: 'expenses', TaxReport: 'tax-report' },
           },
           Profile: {
@@ -85,7 +98,7 @@ const linking: LinkingOptions<RootStackParamList> = {
         },
       },
     },
-  },
+  } as unknown as LinkingOptions<RootStackParamList>['config'],
 };
 
 // Initialize Sentry crash reporting (no-op if DSN not configured)

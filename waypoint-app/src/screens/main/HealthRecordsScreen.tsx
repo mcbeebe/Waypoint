@@ -74,7 +74,13 @@ export default function HealthRecordsScreen() {
       showToast('MyChart connected!', 'success');
       await checkAndLoad();
     } else {
-      showToast(result.error ?? 'Connection failed', 'error');
+      // Expected until Waypoint's production Epic registration is approved:
+      // the app currently points at Epic's sandbox, so real MyChart accounts
+      // fail with an OAuth error. Explain instead of surfacing raw failures.
+      showToast(
+        "MyChart isn't available yet — we're completing Epic's approval process. We'll turn this on the moment it clears.",
+        'info'
+      );
     }
     setConnecting(false);
   }, [showToast, checkAndLoad]);
@@ -109,6 +115,11 @@ export default function HealthRecordsScreen() {
           </Text>
           <Text style={styles.privacyNote}>
             Your health data stays private. Waypoint only reads data you authorize. You can disconnect at any time.
+          </Text>
+          <Text style={styles.earlyAccessNote}>
+            🚧 Early access — MyChart sync is going through Epic's approval process for production
+            hospital systems. Connections to real MyChart accounts won't work until that's complete;
+            we'll enable it automatically once approved.
           </Text>
           <TouchableOpacity
             style={[styles.connectButton, connecting && styles.connectButtonDisabled]}
@@ -245,7 +256,8 @@ const styles = StyleSheet.create({
   connectEmoji: { fontSize: 56, marginBottom: spacing.md },
   connectTitle: { fontSize: fonts.sizes.xl, fontWeight: fonts.weights.bold as '700', color: colors.navy, marginBottom: spacing.sm },
   connectSubtitle: { fontSize: fonts.sizes.sm, color: colors.mid, textAlign: 'center', lineHeight: 22, marginBottom: spacing.md },
-  privacyNote: { fontSize: fonts.sizes.xs, color: '#1E40AF', backgroundColor: '#EFF6FF', padding: spacing.md, borderRadius: radii.md, lineHeight: 16, marginBottom: spacing.lg, textAlign: 'center' },
+  privacyNote: { fontSize: fonts.sizes.xs, color: '#1E40AF', backgroundColor: '#EFF6FF', padding: spacing.md, borderRadius: radii.md, lineHeight: 16, marginBottom: spacing.md, textAlign: 'center' },
+  earlyAccessNote: { fontSize: fonts.sizes.xs, color: '#92400E', backgroundColor: '#FEF3C7', padding: spacing.md, borderRadius: radii.md, lineHeight: 16, marginBottom: spacing.lg, textAlign: 'center' },
   connectButton: { backgroundColor: '#2563EB', paddingHorizontal: spacing.xl, paddingVertical: spacing.md, borderRadius: radii.md },
   connectButtonDisabled: { backgroundColor: colors.border },
   connectButtonText: { fontSize: fonts.sizes.md, color: colors.white, fontWeight: fonts.weights.bold as '700' },

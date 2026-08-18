@@ -7,7 +7,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { retrieveMultiSourceContext, type RAGResult } from '@/lib/rag';
 import { streamNavigatorResponse, classifyIntent } from '@/lib/ai';
-import { parseTrailers, type ChatMeta } from '@/lib/followups';
+import { parseTrailers, hasRichMeta, type ChatMeta } from '@/lib/followups';
 import { trackEvent } from '@/lib/analytics';
 import { extractMemoriesFromExchange } from '@/hooks/useMemories';
 import type { ChatContext, ChatMessage, ToneLevel } from '@/types/database';
@@ -66,12 +66,13 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     return data.id;
   }, [familyId]);
 
-  /** Persist a message to Supabase */
+  /** Persist a message to Supabase (meta keeps the rich answer cards on reload) */
   const persistMessage = useCallback(async (
     sid: string,
     role: 'user' | 'assistant',
     content: string,
-    sources?: Record<string, unknown>[]
+    sources?: Record<string, unknown>[],
+    meta?: ChatMeta
   ) => {
     const { error: dbError } = await supabase
       .from('chat_messages')
@@ -80,6 +81,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         role,
         content,
         sources: sources ?? null,
+        meta: meta && (hasRichMeta(meta) || meta.followUps.length > 0) ? meta : null,
       });
 
     if (dbError) {
@@ -193,8 +195,9 @@ export function useChat(options: UseChatOptions): UseChatReturn {
               )
             );
 
-            // Persist assistant response
-            await persistMessage(sid!, 'assistant', content, ragResult.sources as unknown as Record<string, unknown>[]);
+            // Persist assistant response (with card meta, so saved chats
+            // reload with the same rich formatting)
+            await persistMessage(sid!, 'assistant', content, ragResult.sources as unknown as Record<string, unknown>[], meta);
 
             // Memory extraction (P2): learn durable insights from this
             // exchange in the background so the AI knows the family better
@@ -257,13 +260,18 @@ export function useChat(options: UseChatOptions): UseChatReturn {
 
       if (dbError) throw new Error(dbError.message);
 
-      const loaded: UIMessage[] = (data ?? []).map((msg: ChatMessage) => ({
-        id: msg.id,
-        role: msg.role,
-        content: msg.content,
-        sources: msg.sources as UIMessage['sources'],
-        createdAt: msg.created_at,
-      }));
+      const loaded: UIMessage[] = (data ?? []).map((msg: ChatMessage) => {
+        const meta = (msg.meta as unknown as ChatMeta) ?? undefined;
+        return {
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          sources: msg.sources as UIMessage['sources'],
+          meta,
+          followUps: meta?.followUps,
+          createdAt: msg.created_at,
+        };
+      });
 
       setMessages(loaded);
       setSessionId(sid);

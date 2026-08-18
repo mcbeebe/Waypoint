@@ -2,10 +2,11 @@
  * WebFrame — responsive shell for the web build.
  *
  * On native (iOS/Android) this is a transparent pass-through.
- * On web, when the viewport is wider than a phone, it centers the app
- * inside a fixed-width "device" column on a soft backdrop — so the
- * mobile-first screens read as an intentional app rather than a
- * full-bleed stretched layout. On narrow/mobile web it fills the screen.
+ * On web:
+ *   <600px  — phone-sized browser, fill the screen (pass-through).
+ *   600–899 — tablet band, centered phone column on a soft backdrop.
+ *   ≥900px  — desktop: full-screen web app (no frame). MainTabs renders a
+ *             left nav rail and screens fill the viewport edge-to-edge.
  */
 
 import React from 'react';
@@ -18,8 +19,6 @@ const PHONE_BREAKPOINT = 600;
 const DESKTOP_BREAKPOINT = 900;
 // Width of the centered app column on tablet (matches common phone width).
 const FRAME_WIDTH = 440;
-// Max width of the desktop app window — reads as a web app, not a phone demo.
-const DESKTOP_MAX_WIDTH = 1200;
 
 /** Breakpoint shared with MainTabs (left nav rail on desktop). */
 export function useIsDesktopWeb(): boolean {
@@ -34,14 +33,10 @@ export default function WebFrame({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // Desktop: a full-height app window with a left nav rail (see MainTabs) —
-  // adaptive website, not a phone preview
+  // Desktop: full-screen web app — no frame, no backdrop. The left nav
+  // rail (see MainTabs) anchors the layout at the viewport edge.
   if (width >= DESKTOP_BREAKPOINT) {
-    return (
-      <View style={styles.desktopBackdrop}>
-        <View style={styles.desktopFrame}>{children}</View>
-      </View>
-    );
+    return <View style={styles.desktopRoot}>{children}</View>;
   }
 
   return (
@@ -52,26 +47,9 @@ export default function WebFrame({ children }: { children: React.ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  desktopBackdrop: {
-    flex: 1,
-    alignItems: 'center',
-    backgroundColor: colors.navy,
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  desktopFrame: {
-    width: '100%',
-    maxWidth: DESKTOP_MAX_WIDTH,
+  desktopRoot: {
     flex: 1,
     backgroundColor: colors.white,
-    borderRadius: 16,
-    overflow: 'hidden',
-    ...Platform.select({
-      web: {
-        boxShadow: '0 16px 48px rgba(0,0,0,0.3)',
-      },
-      default: {},
-    }),
   },
   backdrop: {
     flex: 1,

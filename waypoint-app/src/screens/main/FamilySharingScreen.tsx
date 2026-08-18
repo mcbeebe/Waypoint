@@ -160,6 +160,11 @@ export default function FamilySharingScreen() {
               <Text style={styles.emptyEmoji}>👨‍👩‍👧</Text>
               <Text style={styles.emptyTitle}>Just you so far</Text>
               <Text style={styles.emptySubtitle}>Invite a co-parent or caregiver to collaborate</Text>
+              {isAdmin && (
+                <TouchableOpacity style={styles.emptyInviteButton} onPress={() => setShowInviteModal(true)}>
+                  <Text style={styles.emptyInviteText}>+ Invite a Family Member</Text>
+                </TouchableOpacity>
+              )}
             </View>
           }
         />
@@ -303,6 +308,11 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 48, marginBottom: spacing.md },
   emptyTitle: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold as '700', color: colors.navy },
   emptySubtitle: { fontSize: fonts.sizes.sm, color: colors.mid, marginTop: spacing.sm, textAlign: 'center' },
+  emptyInviteButton: {
+    marginTop: spacing.lg, backgroundColor: colors.teal, borderRadius: radii.md,
+    paddingHorizontal: spacing.xl, paddingVertical: spacing.md,
+  },
+  emptyInviteText: { fontSize: fonts.sizes.sm, color: colors.white, fontWeight: fonts.weights.bold as '700' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: colors.white, borderTopLeftRadius: radii.xl, borderTopRightRadius: radii.xl, padding: spacing.lg, paddingBottom: spacing.xl },
   modalTitle: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold as '700', color: colors.navy, marginBottom: spacing.md },
