@@ -8,7 +8,13 @@
 
 import { supabase } from './supabase';
 
-type EventType = 'action_outcome' | 'draft_used' | 'kb_helpful' | 'kb_unhelpful' | 'feature_used';
+type EventType =
+  | 'action_outcome'
+  | 'draft_used'
+  | 'kb_helpful'
+  | 'kb_unhelpful'
+  | 'feature_used'
+  | 'chat_exchange';
 
 interface TrackEventOptions {
   familyId: string;
@@ -100,15 +106,27 @@ export interface AggregateInsight {
  */
 export async function getInsightsForRC(regionalCenter: string): Promise<AggregateInsight[]> {
   try {
-    const { data, error } = await supabase
-      .from('aggregate_insights')
-      .select('*')
-      .eq('dimension', regionalCenter)
-      .gte('sample_size', MIN_SAMPLE_SIZE)
-      .order('period_end', { ascending: false })
-      .limit(20);
+    // Two shapes: rc_success_rate keys the RC in `dimension`;
+    // action_type_success keys the category in `dimension` and carries the
+    // RC in metadata (so the bar labels can show the category).
+    const [byDimension, byMetadata] = await Promise.all([
+      supabase
+        .from('aggregate_insights')
+        .select('*')
+        .eq('dimension', regionalCenter)
+        .gte('sample_size', MIN_SAMPLE_SIZE)
+        .order('period_end', { ascending: false })
+        .limit(20),
+      supabase
+        .from('aggregate_insights')
+        .select('*')
+        .eq('metadata->>regional_center', regionalCenter)
+        .gte('sample_size', MIN_SAMPLE_SIZE)
+        .order('period_end', { ascending: false })
+        .limit(20),
+    ]);
 
-    if (error) return [];
+    const data = [...(byDimension.data ?? []), ...(byMetadata.data ?? [])];
     return (data ?? []).map((row: Record<string, unknown>) => ({
       insightType: row.insight_type as string,
       dimension: row.dimension as string,
