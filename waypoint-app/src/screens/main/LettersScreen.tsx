@@ -47,6 +47,7 @@ export default function LettersScreen() {
   const hasAIConsent = !!family?.ai_consent_at;
 
   const [template, setTemplate] = useState<LetterTemplate | null>(null);
+  const [chatGuidance, setChatGuidance] = useState<string | null>(null);
 
   // Chat → Letters handoff: the Navigator's "draft this letter" card passes
   // the template key (and the specific ask) so the parent lands one tap from
@@ -65,7 +66,10 @@ export default function LettersScreen() {
     if (route.params?.question) {
       setQuestion(route.params.question);
     }
-  }, [route.params?.template, route.params?.question]);
+    // The Navigator conversation's substance rides along so the draft
+    // reflects what was actually discussed
+    setChatGuidance(route.params?.guidance ?? null);
+  }, [route.params?.template, route.params?.question, route.params?.guidance]);
   const [tone, setTone] = useState<DraftTone>('professional');
   const [question, setQuestion] = useState('');
   const [draft, setDraft] = useState<string | null>(null);
@@ -87,6 +91,7 @@ export default function LettersScreen() {
       draftType: template.key,
       tone,
       question: question.trim(),
+      guidance: chatGuidance ?? undefined,
       language: locale !== 'en' ? locale : undefined,
     });
     setGenerating(false);
@@ -103,7 +108,7 @@ export default function LettersScreen() {
       // Anonymous usage analytics (fire-and-forget)
       trackDraftUsed(family.id, template.key, family.regional_center ?? undefined);
     }
-  }, [template, tone, question, hasAIConsent, locale, showToast, family]);
+  }, [template, tone, question, chatGuidance, hasAIConsent, locale, showToast, family]);
 
   /** Which system this letter targets, for the paper-trail entry */
   const ORG_BY_TEMPLATE: Partial<Record<string, CommunicationOrg>> = {
@@ -151,6 +156,7 @@ export default function LettersScreen() {
     setDraft(null);
     setTemplate(null);
     setQuestion('');
+    setChatGuidance(null);
   };
 
   return (
@@ -197,6 +203,13 @@ export default function LettersScreen() {
               {template.emoji} {template.title}
             </Text>
             <Text style={styles.templateDesc}>{template.description}</Text>
+            {chatGuidance && (
+              <View style={styles.guidanceChip}>
+                <Text style={styles.guidanceChipText}>
+                  ✓ Using the context from your AI chat — the draft will reflect what you discussed.
+                </Text>
+              </View>
+            )}
 
             <Text style={styles.fieldLabel}>How should it sound?</Text>
             {TONE_OPTIONS.map((t) => (
@@ -381,6 +394,17 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     color: colors.mid,
     textAlign: 'center',
+  },
+  guidanceChip: {
+    backgroundColor: '#DCFCE7',
+    borderRadius: radii.md,
+    padding: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  guidanceChipText: {
+    fontSize: fonts.sizes.xs,
+    color: '#15803D',
+    fontWeight: fonts.weights.medium as '500',
   },
   blanksCard: {
     backgroundColor: '#FEF3C7',

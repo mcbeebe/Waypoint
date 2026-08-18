@@ -34,6 +34,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { RC_DATABASE } from '@/data/regionalCenters';
 import { logCommunication } from '@/hooks/useCommunications';
+import { useContacts } from '@/hooks/useContacts';
 import AIConsentModal from '@/components/AIConsentModal';
 import ChatMetaCards from '@/components/ChatMetaCards';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
@@ -132,6 +133,8 @@ export default function NavigatorScreen() {
   });
 
   const { createAction, actions } = useActions({ familyId: family?.id ?? '' });
+  const { contacts } = useContacts(family?.id);
+  const emailableContacts = contacts.filter((c) => c.email);
   const { showToast } = useToast();
   const { t } = useI18n();
 
@@ -212,7 +215,8 @@ export default function NavigatorScreen() {
 
       const action = await createAction({
         title,
-        description: plainContent.slice(0, 500),
+        // Full answer — the old 500-char cap cut advice off mid-sentence
+        description: plainContent,
         source: 'ai_navigator',
         source_message_id: asMessageUuid(message.id),
         chat_session_id: sessionId ?? undefined,
@@ -309,7 +313,7 @@ export default function NavigatorScreen() {
    * coordinator requesting waiver enrollment?" → question box prefilled
    * with "the email to my RCEB coordinator requesting waiver enrollment").
    */
-  const handleOpenDraft = useCallback((draftKey: string, offerText?: string) => {
+  const handleOpenDraft = useCallback((draftKey: string, offerText?: string, message?: UIMessage) => {
     let question: string | undefined;
     if (offerText) {
       question = offerText
@@ -320,9 +324,30 @@ export default function NavigatorScreen() {
         .trim();
       if (question) question = question[0].toUpperCase() + question.slice(1);
     }
+
+    // Carry the conversation's substance into the draft: the answer's prose
+    // plus its key cards, so the letter reflects what was actually discussed
+    // (attendees by role, deadlines, the specific situation) instead of a
+    // generic template fill.
+    let guidance: string | undefined;
+    if (message) {
+      const parts: string[] = [message.content.slice(0, 2200)];
+      const meta = message.meta;
+      if (meta?.context) parts.push(`Key context: ${meta.context}`);
+      if (meta?.rights) parts.push(`Relevant right: ${meta.rights}`);
+      if (meta?.watchOut) parts.push(`Watch out: ${meta.watchOut}`);
+      if (meta?.steps?.length) {
+        parts.push(
+          'Recommended steps:\n' +
+            meta.steps.map((s, i) => `${i + 1}. ${s.action}${s.who ? ` (${s.who})` : ''}`).join('\n')
+        );
+      }
+      guidance = parts.join('\n\n').slice(0, 3500);
+    }
+
     navigation.navigate('Home', {
       screen: 'Letters',
-      params: { template: draftKey, question },
+      params: { template: draftKey, question, guidance },
     });
   }, [navigation]);
 
@@ -630,6 +655,28 @@ export default function NavigatorScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
             />
+            {emailableContacts.length > 0 && (
+              <View style={styles.contactChipRow}>
+                {emailableContacts.slice(0, 4).map((c) => (
+                  <TouchableOpacity
+                    key={c.id}
+                    style={[styles.contactChip, emailTo === c.email && styles.contactChipActive]}
+                    onPress={() => setEmailTo(c.email!)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Send to ${c.name}`}
+                  >
+                    <Text
+                      style={[
+                        styles.contactChipText,
+                        emailTo === c.email && styles.contactChipTextActive,
+                      ]}
+                    >
+                      {c.name}{c.role ? ` · ${c.role}` : ''}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
             <TextInput
               style={styles.emailInput}
               placeholder="Subject"
@@ -794,7 +841,7 @@ function MessageBubble({
   isSaving?: boolean;
   onSaveStep?: (msg: UIMessage, step: ChatStep) => void;
   onSaveAllSteps?: (msg: UIMessage, steps: ChatStep[]) => void;
-  onOpenDraft?: (draftKey: string) => void;
+  onOpenDraft?: (draftKey: string, offerText?: string, msg?: UIMessage) => void;
   savingStepKeys?: Set<string>;
   savedStepKeys?: Set<string>;
   onFeedback?: (msg: UIMessage, rating: 'up' | 'down') => void;
@@ -854,7 +901,9 @@ function MessageBubble({
             meta={message.meta}
             onSaveStep={onSaveStep ? (step) => onSaveStep(message, step) : undefined}
             onSaveAllSteps={onSaveAllSteps ? (steps) => onSaveAllSteps(message, steps) : undefined}
-            onOpenDraft={onOpenDraft}
+            onOpenDraft={
+              onOpenDraft ? (key, offer) => onOpenDraft(key, offer, message) : undefined
+            }
             savingSteps={scopeKeys(savingStepKeys)}
             savedSteps={scopeKeys(savedStepKeys)}
           />
@@ -1512,6 +1561,30 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     color: colors.dark,
     marginBottom: spacing.sm,
+  },
+  contactChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: spacing.sm,
+  },
+  contactChip: {
+    backgroundColor: colors.light,
+    borderRadius: radii.full,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    minHeight: 28,
+    justifyContent: 'center',
+  },
+  contactChipActive: {
+    backgroundColor: colors.teal,
+  },
+  contactChipText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.dark,
+  },
+  contactChipTextActive: {
+    color: colors.white,
   },
   emailPreview: {
     backgroundColor: colors.light,

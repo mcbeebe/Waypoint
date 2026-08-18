@@ -11,13 +11,12 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 const TUTORIAL_KEY = 'waypoint_tutorial_completed';
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 
 interface TutorialStep {
   emoji: string;
@@ -120,7 +119,10 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   card: {
-    width: SCREEN_WIDTH - 48,
+    // Responsive: fills phones (minus margin) but never outgrows a card on
+    // desktop, where the old SCREEN_WIDTH math produced a full-width band
+    width: '90%',
+    maxWidth: 400,
     backgroundColor: colors.white,
     borderRadius: radii.xl,
     padding: spacing.xl,
