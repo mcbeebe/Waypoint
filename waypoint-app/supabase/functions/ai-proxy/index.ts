@@ -150,10 +150,11 @@ function buildNavigatorSystemPrompt(opts: {
   ragConfidence: 'high' | 'low' | 'none';
   pacing: string;
   planContext: string;
+  memoryContext: string;
 }): string {
   const {
     childInfo, diagnosisInfo, state, locationInfo, tone, ragContext, ragConfidence,
-    pacing, planContext,
+    pacing, planContext, memoryContext,
   } = opts;
 
   return `You are Waypoint, an AI navigator helping California parents of children with disabilities understand their rights and navigate complex systems including Regional Centers, school districts (IEP), insurance, Medi-Cal, SSI, and other services.
@@ -165,7 +166,7 @@ You are like a knowledgeable friend who happens to be a disability rights advoca
 ${childInfo}
 ${diagnosisInfo}
 Location: ${state}.${locationInfo ? ' ' + locationInfo : ''}
-
+${memoryContext}
 ## Communication Style
 ${TONE_INSTRUCTIONS[tone] ?? TONE_INSTRUCTIONS.collaborative}
 
@@ -296,7 +297,7 @@ serve(async (req: Request) => {
 
     // ─── AI gate: consent + daily quota (Wave 1) ─────────────────────
     // Applies to every action that sends family data to Anthropic.
-    const AI_ACTIONS = ['chat', 'classify', 'ocr', 'analyze-iep', 'draft', 'analyze-email'];
+    const AI_ACTIONS = ['chat', 'classify', 'ocr', 'analyze-iep', 'draft', 'analyze-email', 'extract-memories'];
     let family: {
       id: string;
       ai_consent_at: string | null;
@@ -429,6 +430,29 @@ Use this to avoid suggesting steps already on their plan (reference them instead
         // Plan context is enhancement, not requirement — never block chat on it
       }
 
+      // ── Family memories (P2): durable insights from prior conversations ──
+      let memoryContext = '';
+      try {
+        const { data: memories } = await userClient
+          .from('family_memories')
+          .select('kind, content')
+          .eq('archived', false)
+          .order('updated_at', { ascending: false })
+          .limit(30);
+        if (memories && memories.length > 0) {
+          const lines = memories.map(
+            (m: { kind: string; content: string }) => `- [${m.kind}] ${m.content}`
+          );
+          memoryContext = `
+## What You Know About This Family (from prior conversations)
+These are durable memories saved from earlier sessions. Use them naturally: do NOT re-ask things you already know, reference relevant history ("last time you mentioned..."), and tailor advice to their situation. If something here seems outdated or contradicted by the current conversation, trust the current conversation.
+${lines.join('\n')}
+`;
+        }
+      } catch (_e) {
+        // Memory is enhancement, not requirement
+      }
+
       const systemPrompt = buildNavigatorSystemPrompt({
         childInfo,
         diagnosisInfo,
@@ -439,6 +463,7 @@ Use this to avoid suggesting steps already on their plan (reference them instead
         ragConfidence: ['high', 'low', 'none'].includes(ragConfidence) ? ragConfidence : 'none',
         pacing,
         planContext,
+        memoryContext,
       });
 
       const systemBlocks = [
@@ -991,6 +1016,113 @@ ${extractedText}`;
         return jsonError('Could not parse analysis', 502);
       }
       return new Response(JSON.stringify({ analysis }), {
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ─── Extract memories (P2): learn durable insights from a chat exchange ─
+    // Fire-and-forget from the client after each assistant reply. Haiku reads
+    // the exchange plus the existing memory file and returns only genuinely
+    // NEW durable memories (and ids of existing ones now obsolete).
+    if (action === 'extract-memories') {
+      const { exchange } = body;
+      if (!Array.isArray(exchange) || exchange.length === 0 || !family) {
+        return jsonError('No exchange provided', 400);
+      }
+
+      const { data: existing } = await userClient
+        .from('family_memories')
+        .select('id, kind, content')
+        .eq('archived', false)
+        .order('updated_at', { ascending: false })
+        .limit(40);
+
+      const existingList = (existing ?? [])
+        .map((m: { id: string; kind: string; content: string }) => `${m.id} | [${m.kind}] ${m.content}`)
+        .join('\n') || '(none yet)';
+
+      const exchangeText = exchange
+        .slice(-4)
+        .map((m: { role: string; content: string }) =>
+          `${m.role === 'user' ? 'PARENT' : 'NAVIGATOR'}: ${String(m.content).slice(0, 2500)}`)
+        .join('\n\n');
+
+      const memorySystem = `You maintain a long-term memory file about ONE family navigating California disability services, so their AI navigator remembers them between sessions. From the conversation exchange, extract only DURABLE insights worth remembering weeks from now.
+
+Memory kinds:
+- "fact": stable facts (child's school, services in place or denied, key dates, providers, case numbers mentioned)
+- "preference": how the parent wants to be helped (tone, level of detail, language, channel)
+- "situation": an in-progress effort with a state that will evolve (an appeal underway, waiting on intake, IEP scheduled)
+- "gap": something this family appears to be missing or unaware of that could help them (unclaimed benefit, unused right, missing document)
+
+Rules:
+- Each memory ONE sentence, under 200 characters, self-contained, in third person ("Teddy's IEP meeting is set for October").
+- Only genuinely NEW information not already covered by an existing memory. Return an empty list when nothing durable was said — most small exchanges contain nothing worth remembering.
+- If an existing memory is now obsolete or contradicted, list its id in "archive".
+- NEVER store: medical advice, transient chit-chat, anything the parent asked to keep private, or full names of third parties (role labels are fine).
+- At most 3 new memories per exchange.
+
+Return ONLY valid JSON: {"new": [{"kind": "fact|preference|situation|gap", "content": "..."}], "archive": ["id", ...]}`;
+
+      const memResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 800,
+          system: memorySystem,
+          messages: [{
+            role: 'user',
+            content: `EXISTING MEMORIES:\n${existingList}\n\nNEW EXCHANGE:\n${exchangeText}`,
+          }],
+        }),
+      });
+
+      if (!memResponse.ok) {
+        return jsonError(`Memory extraction failed (${memResponse.status})`, 502);
+      }
+      const memData = await memResponse.json();
+      const memText =
+        memData.content?.find((b: { type: string }) => b.type === 'text')?.text ?? '{}';
+
+      let parsed: { new?: Array<{ kind: string; content: string }>; archive?: string[] };
+      try {
+        const jsonMatch = memText.match(/```json\s*([\s\S]*?)\s*```/) ?? memText.match(/\{[\s\S]*\}/);
+        parsed = JSON.parse(jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : memText);
+      } catch {
+        parsed = {};
+      }
+
+      const VALID_KINDS = ['fact', 'preference', 'situation', 'gap'];
+      const newMemories = (Array.isArray(parsed.new) ? parsed.new : [])
+        .filter((m) => m && VALID_KINDS.includes(m.kind) && typeof m.content === 'string' && m.content.trim())
+        .slice(0, 3)
+        .map((m) => ({
+          family_id: family.id,
+          kind: m.kind,
+          content: m.content.trim().slice(0, 300),
+          source: 'chat',
+        }));
+
+      let saved = 0;
+      if (newMemories.length > 0) {
+        const { error: insErr } = await userClient.from('family_memories').insert(newMemories);
+        if (!insErr) saved = newMemories.length;
+      }
+
+      const validIds = new Set((existing ?? []).map((m: { id: string }) => m.id));
+      const toArchive = (Array.isArray(parsed.archive) ? parsed.archive : []).filter((id) =>
+        validIds.has(id)
+      );
+      if (toArchive.length > 0) {
+        await userClient.from('family_memories').update({ archived: true }).in('id', toArchive);
+      }
+
+      return new Response(JSON.stringify({ saved, archived: toArchive.length }), {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
       });
     }
