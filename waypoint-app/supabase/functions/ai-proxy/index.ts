@@ -453,6 +453,27 @@ ${lines.join('\n')}
         // Memory is enhancement, not requirement
       }
 
+      // Key contacts (D4): let the AI reference the child's actual team
+      try {
+        const { data: chatContacts } = await userClient
+          .from('family_contacts')
+          .select('name, role, organization')
+          .limit(15);
+        if (chatContacts && chatContacts.length > 0) {
+          const lines = chatContacts.map(
+            (c: { name: string; role: string | null; organization: string | null }) =>
+              `- ${c.name}${c.role ? ` (${c.role})` : ''}${c.organization ? `, ${c.organization.replace('_', ' ')}` : ''}`
+          );
+          memoryContext += `
+## The Family's Key Contacts
+Reference these people by name when relevant ("ask ${chatContacts[0].name}…" beats "ask your service coordinator…"):
+${lines.join('\n')}
+`;
+        }
+      } catch (_e) {
+        // Contacts are enhancement too
+      }
+
       const systemPrompt = buildNavigatorSystemPrompt({
         childInfo,
         diagnosisInfo,
@@ -916,6 +937,16 @@ ${extractedText}`;
         .filter(Boolean)
         .join(' ');
 
+      // Key contacts (D4): real recipient names beat [BRACKETS]
+      const { data: draftContacts } = await userClient
+        .from('family_contacts')
+        .select('name, role, organization, email, phone')
+        .limit(15);
+      const contactLines = (draftContacts ?? [])
+        .map((c: { name: string; role: string | null; organization: string | null; email: string | null; phone: string | null }) =>
+          `- ${c.name}${c.role ? ` (${c.role})` : ''}${c.organization ? ` — ${c.organization.replace('_', ' ')}` : ''}${c.email ? `, ${c.email}` : ''}${c.phone ? `, ${c.phone}` : ''}`)
+        .join('\n');
+
       const userMsg =
         'FAMILY CONTEXT (use these REAL values in the draft — only use [BRACKETS] for info that is blank below):\n' +
         `Parent name: ${parentName || '[Your Name]'}\n` +
@@ -925,7 +956,8 @@ ${extractedText}`;
         `Diagnosis: ${diagnosis || '[Diagnosis]'}\n` +
         `Insurance: ${fam?.insurance_carrier || '[Insurance Provider]'}\n` +
         `Regional Center: ${fam?.regional_center || '[Regional Center]'}\n` +
-        `School District: ${fam?.school_district || '[School District]'}\n\n` +
+        `School District: ${fam?.school_district || '[School District]'}\n` +
+        `Known contacts (when one matches this letter's recipient, address them BY NAME — e.g. "Dear Ms. Lopez" — instead of a generic greeting or [BRACKET]):\n${contactLines || '(none saved)'}\n\n` +
         'IMPORTANT: If a value above is filled in (not in brackets), use it directly in the draft — do NOT put brackets around real data.\n\n' +
         `WHAT THE PARENT NEEDS:\n${typeof question === 'string' && question ? question : 'Not provided'}\n\n` +
         `RELEVANT GUIDANCE ALREADY GIVEN:\n${typeof guidance === 'string' && guidance ? guidance.slice(0, 4000) : 'None'}`;

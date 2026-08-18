@@ -34,6 +34,7 @@ import { showAlert, showConfirm } from '@/lib/dialogs';
 import { useToast } from '@/components/Toast';
 import { useTextScale } from '@/lib/textSize';
 import { useMemories, type MemoryKind } from '@/hooks/useMemories';
+import ContactsCard from '@/components/ContactsCard';
 import { resetTutorial } from '@/components/OnboardingTutorial';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
@@ -425,6 +426,14 @@ export default function ProfileScreen() {
             accessibilityLabel="School district"
           />
         </View>
+
+        {/* Key contacts (D4): the child's team, auto-filled into letters/emails */}
+        {family?.id && (
+          <>
+            <Text style={styles.sectionTitle}>Key Contacts</Text>
+            <ContactsCard familyId={family.id} />
+          </>
+        )}
 
         {/* Children */}
         <Text style={styles.sectionTitle}>Children</Text>

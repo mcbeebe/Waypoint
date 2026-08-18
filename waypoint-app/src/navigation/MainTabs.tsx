@@ -47,6 +47,7 @@ import { useIEPGoals } from '@/hooks/useIEPGoals';
 import { useToast } from '@/components/Toast';
 
 import { useFamily, useDiagnoses } from '@/hooks/useFamily';
+import { useIsDesktopWeb } from '@/components/WebFrame';
 import { useActions } from '@/hooks/useActions';
 import CompletionCheckIn from '@/components/CompletionCheckIn';
 import { FOLLOWUPS } from '@/lib/adaptiveEngine';
@@ -278,6 +279,8 @@ function tabIcon(outline: IoniconName, filled: IoniconName) {
 
 export default function MainTabs() {
   const { t } = useI18n();
+  // Desktop web: tabs become a left nav rail so the app reads as a website
+  const isDesktop = useIsDesktopWeb();
 
   return (
     <Tab.Navigator
@@ -285,16 +288,35 @@ export default function MainTabs() {
         headerShown: false,
         tabBarActiveTintColor: colors.teal,
         tabBarInactiveTintColor: colors.mid,
-        tabBarLabelStyle: {
-          fontSize: fonts.sizes.xs,
-          fontWeight: fonts.weights.semibold as '600',
-        },
-        tabBarStyle: {
-          backgroundColor: colors.white,
-          borderTopColor: colors.border,
-          paddingBottom: 4,
-          height: 56,
-        },
+        ...(isDesktop
+          ? {
+              tabBarPosition: 'left' as const,
+              tabBarVariant: 'material' as const,
+              tabBarLabelPosition: 'beside-icon' as const,
+              tabBarLabelStyle: {
+                fontSize: fonts.sizes.sm,
+                fontWeight: fonts.weights.semibold as '600',
+              },
+              tabBarStyle: {
+                backgroundColor: colors.white,
+                borderRightColor: colors.border,
+                borderRightWidth: 1,
+                minWidth: 200,
+                paddingTop: 12,
+              },
+            }
+          : {
+              tabBarLabelStyle: {
+                fontSize: fonts.sizes.xs,
+                fontWeight: fonts.weights.semibold as '600',
+              },
+              tabBarStyle: {
+                backgroundColor: colors.white,
+                borderTopColor: colors.border,
+                paddingBottom: 4,
+                height: 56,
+              },
+            }),
       }}
     >
       <Tab.Screen
