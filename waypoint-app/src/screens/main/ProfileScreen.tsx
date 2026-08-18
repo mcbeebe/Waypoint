@@ -33,6 +33,7 @@ import { supabase } from '@/lib/supabase';
 import { showAlert, showConfirm } from '@/lib/dialogs';
 import { useToast } from '@/components/Toast';
 import { useTextScale } from '@/lib/textSize';
+import { useMemories, type MemoryKind } from '@/hooks/useMemories';
 import { resetTutorial } from '@/components/OnboardingTutorial';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
@@ -71,6 +72,13 @@ const LANGUAGE_OPTIONS = [
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
+const MEMORY_KIND_EMOJI: Record<MemoryKind, string> = {
+  fact: '📌',
+  preference: '💬',
+  situation: '🔄',
+  gap: '💡',
+};
+
 export default function ProfileScreen() {
   const { family, updateFamily, loading: familyLoading } = useFamily();
   const { children, addChild, updateChild, deleteChild } = useChildren(family?.id);
@@ -79,6 +87,7 @@ export default function ProfileScreen() {
   const { t, locale, setLocale } = useI18n();
   const { scale, cycleScale } = useTextScale();
   const { showToast } = useToast();
+  const { memories, forgetMemory, forgetAll } = useMemories(family?.id);
 
   const [saving, setSaving] = useState(false);
   const [parentName, setParentName] = useState('');
@@ -655,6 +664,64 @@ export default function ProfileScreen() {
           />
         </View>
 
+        {/* What Waypoint knows (P2): the AI's memory of this family, with
+            full parent control — every memory visible and deletable */}
+        {family?.ai_consent_at && (
+          <>
+            <Text style={styles.sectionTitle}>What Waypoint Knows</Text>
+            <View style={styles.card}>
+              <Text style={styles.privacyStatus}>
+                As you chat, Waypoint remembers durable details — services in place, things
+                in progress, preferences — so it understands your family better over time.
+                You control this list: tap ✕ to make it forget anything.
+              </Text>
+              {memories.length === 0 ? (
+                <Text style={styles.memoryEmpty}>
+                  Nothing saved yet — memories appear after your next AI Navigator chat.
+                </Text>
+              ) : (
+                <>
+                  {memories.map((m) => (
+                    <View key={m.id} style={styles.memoryRow}>
+                      <Text style={styles.memoryKind}>{MEMORY_KIND_EMOJI[m.kind]}</Text>
+                      <Text style={styles.memoryText}>{m.content}</Text>
+                      <TouchableOpacity
+                        style={styles.memoryForget}
+                        onPress={async () => {
+                          const ok = await forgetMemory(m.id);
+                          showToast(ok ? 'Forgotten' : "Couldn't remove — try again.", ok ? 'success' : 'error');
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Forget: ${m.content}`}
+                      >
+                        <Text style={styles.memoryForgetText}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                  <TouchableOpacity
+                    onPress={async () => {
+                      const confirmed = await showConfirm(
+                        'Forget everything?',
+                        'Waypoint will delete all saved memories and start fresh.',
+                        'Forget all',
+                        true
+                      );
+                      if (!confirmed) return;
+                      const ok = await forgetAll();
+                      showToast(ok ? 'All memories forgotten' : "Couldn't clear — try again.", ok ? 'success' : 'error');
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Forget all memories"
+                    style={styles.memoryForgetAll}
+                  >
+                    <Text style={styles.memoryForgetAllText}>Forget everything</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </>
+        )}
+
         {/* Google account (Calendar sync + Gmail — Phase 3) */}
         {Platform.OS === 'web' && (
           <>
@@ -733,6 +800,51 @@ const styles = StyleSheet.create({
     color: colors.navy,
     marginBottom: spacing.sm,
     marginTop: spacing.md,
+  },
+  memoryEmpty: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    fontStyle: 'italic',
+    marginTop: spacing.sm,
+  },
+  memoryRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.light,
+  },
+  memoryKind: {
+    fontSize: 14,
+  },
+  memoryText: {
+    flex: 1,
+    fontSize: fonts.sizes.xs,
+    color: colors.dark,
+    lineHeight: 17,
+  },
+  memoryForget: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.light,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  memoryForgetText: {
+    fontSize: 12,
+    color: colors.mid,
+  },
+  memoryForgetAll: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.sm,
+    minHeight: 24,
+    justifyContent: 'center',
+  },
+  memoryForgetAllText: {
+    fontSize: fonts.sizes.xs,
+    color: '#DC2626',
   },
   settingRow: {
     flexDirection: 'row',

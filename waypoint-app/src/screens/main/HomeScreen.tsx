@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import CheckInCard from '@/components/CheckInCard';
+import GapPromptsCard from '@/components/GapPromptsCard';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useExpenses } from '@/hooks/useExpenses';
@@ -177,6 +178,22 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             {EMPATHY_MESSAGES[empathyIndex]}
           </Text>
         </View>
+
+        {/* Proactive "Waypoint noticed" prompts (P3) */}
+        {family?.id && (
+          <GapPromptsCard
+            familyId={family.id}
+            childAgeYears={
+              primaryChild?.date_of_birth
+                ? (Date.now() - new Date(primaryChild.date_of_birth).getTime()) / 31557600000
+                : null
+            }
+            diagnoses={diagnoses.map((d) => d.name)}
+            rcStatus={primaryChild?.rc_status ?? null}
+            iepStatus={primaryChild?.iep_status ?? null}
+            insurance={family.insurance_carrier}
+          />
+        )}
 
         {/* Check-in + frustration deep-dive (wave 2 adaptive engine) */}
         {family?.id && (

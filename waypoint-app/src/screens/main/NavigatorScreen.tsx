@@ -28,7 +28,8 @@ import { useChat, type UIMessage } from '@/hooks/useChat';
 import { useActions } from '@/hooks/useActions';
 import { useDiagnoses } from '@/hooks/useFamily';
 import { useToast } from '@/components/Toast';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import type { NavigatorStackParamList } from '@/types/navigation';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { RC_DATABASE } from '@/data/regionalCenters';
@@ -135,7 +136,23 @@ export default function NavigatorScreen() {
   const { t } = useI18n();
 
   const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<NavigatorStackParamList, 'NavigatorMain'>>();
   const [inputText, setInputText] = useState('');
+
+  // Proactive prompt handoff (P3): a "Waypoint noticed" card passes its
+  // question here; send it once, gated by consent like any other message.
+  useEffect(() => {
+    const ask = route.params?.ask;
+    if (!ask || isLoading) return;
+    navigation.setParams({ ask: undefined });
+    if (!hasAIConsent) {
+      setPendingText(ask);
+      setShowConsent(true);
+      return;
+    }
+    sendMessage(ask);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route.params?.ask]);
   const [showTonePicker, setShowTonePicker] = useState(false);
   const [savingMessageId, setSavingMessageId] = useState<string | null>(null);
   // Step-save tracking, keyed "messageId|action" so the same step text in

@@ -43,7 +43,7 @@ export type HomeStackParamList = {
 };
 
 export type NavigatorStackParamList = {
-  NavigatorMain: undefined;
+  NavigatorMain: { ask?: string } | undefined;
   Resources: undefined;
   Blog: undefined;
 };
