@@ -8,9 +8,10 @@ import { View, Text, StyleSheet } from 'react-native';
 import SelectGrid from './SelectGrid';
 import { colors, fonts, spacing } from '@/lib/theme';
 
-/** All diagnosis options from GAS MVP — exact match */
+/** All diagnosis options from GAS MVP, plus PDA and PTSD */
 export const DIAGNOSIS_OPTIONS = [
   { value: 'autism', label: 'Autism (ASD)', emoji: '🧩' },
+  { value: 'pda', label: 'PDA (Demand Avoidance)', emoji: '🛡️' },
   { value: 'delay', label: 'Developmental delays', emoji: '🌱' },
   { value: 'id', label: 'Intellectual disability', emoji: '🧠' },
   { value: 'sld', label: 'Learning disability (SLD)', emoji: '📚' },
@@ -28,6 +29,7 @@ export const DIAGNOSIS_OPTIONS = [
   { value: 'multiple', label: 'Multiple disabilities', emoji: '🔗' },
   { value: 'ohi', label: 'Other health impairment', emoji: '💊' },
   { value: 'ed', label: 'Emotional disturbance', emoji: '🫂' },
+  { value: 'ptsd', label: 'PTSD / Trauma', emoji: '🎗️' },
   { value: 'suspected', label: 'Suspected (not yet dx)', emoji: '❓' },
 ];
 
