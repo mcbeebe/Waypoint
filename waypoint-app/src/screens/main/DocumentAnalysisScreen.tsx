@@ -25,7 +25,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useDocumentAnalysis, type MeetingPrepContext, type IEPComparisonResult } from '@/hooks/useDocumentAnalysis';
 import { useToast } from '@/components/Toast';
 import { showAlert } from '@/lib/dialogs';
-import type { IEPAnalysisResult, IEPGoal, GoalStrength, WeaknessSeverity } from '@/types/database';
+import type { IEPAnalysisResult, IEPGoal, IEPParentSummary, GoalStrength, WeaknessSeverity } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
@@ -43,6 +43,134 @@ const SEVERITY_CONFIG: Record<WeaknessSeverity, { label: string; color: string }
 };
 
 type ViewMode = 'analysis' | 'comparison' | 'prep';
+
+/** Plain-English summary cards — what the parent reads first */
+function PlainSummary({ summary }: { summary: IEPParentSummary }) {
+  return (
+    <View style={psStyles.container}>
+      <Text style={psStyles.whatIsThis}>📄 {summary.whatIsThis}</Text>
+
+      <View style={psStyles.headlineCard}>
+        <Text style={psStyles.headlineLabel}>THE BOTTOM LINE</Text>
+        <Text style={psStyles.headlineText}>{summary.headline}</Text>
+      </View>
+
+      {summary.goodNews.length > 0 && (
+        <View style={[psStyles.card, psStyles.cardGood]}>
+          <Text style={[psStyles.cardTitle, psStyles.titleGood]}>🟢 The good news</Text>
+          {summary.goodNews.map((item, i) => (
+            <View key={`g-${i}`} style={psStyles.bulletRow}>
+              <Text style={[psStyles.bulletDot, psStyles.titleGood]}>•</Text>
+              <Text style={psStyles.bulletText}>{item}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {summary.concerns.length > 0 && (
+        <View style={[psStyles.card, psStyles.cardConcern]}>
+          <Text style={[psStyles.cardTitle, psStyles.titleConcern]}>🟠 Worth paying attention to</Text>
+          {summary.concerns.map((item, i) => (
+            <View key={`c-${i}`} style={psStyles.bulletRow}>
+              <Text style={[psStyles.bulletDot, psStyles.titleConcern]}>•</Text>
+              <Text style={psStyles.bulletText}>{item}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {summary.nextSteps.length > 0 && (
+        <View style={[psStyles.card, psStyles.cardNext]}>
+          <Text style={[psStyles.cardTitle, psStyles.titleNext]}>➡️ What you can do next</Text>
+          {summary.nextSteps.map((item, i) => (
+            <View key={`n-${i}`} style={psStyles.bulletRow}>
+              <Text style={[psStyles.stepNum, psStyles.titleNext]}>{i + 1}.</Text>
+              <Text style={psStyles.bulletText}>{item}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+const psStyles = StyleSheet.create({
+  container: {
+    marginBottom: spacing.md,
+    gap: spacing.sm,
+  },
+  whatIsThis: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    fontStyle: 'italic',
+    lineHeight: 17,
+  },
+  headlineCard: {
+    backgroundColor: colors.navy,
+    borderRadius: radii.md,
+    padding: spacing.md,
+  },
+  headlineLabel: {
+    fontSize: 10,
+    color: '#7DD3C8',
+    fontWeight: fonts.weights.bold as '700',
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  headlineText: {
+    fontSize: fonts.sizes.base,
+    color: colors.white,
+    fontWeight: fonts.weights.semibold as '600',
+    lineHeight: 22,
+  },
+  card: {
+    borderRadius: radii.md,
+    padding: spacing.md,
+    borderLeftWidth: 4,
+  },
+  cardGood: {
+    backgroundColor: '#ECFDF5',
+    borderLeftColor: '#059669',
+  },
+  cardConcern: {
+    backgroundColor: '#FFFBEB',
+    borderLeftColor: '#D97706',
+  },
+  cardNext: {
+    backgroundColor: '#E6F7F5',
+    borderLeftColor: colors.teal,
+  },
+  cardTitle: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold as '700',
+    marginBottom: 6,
+  },
+  titleGood: { color: '#047857' },
+  titleConcern: { color: '#B45309' },
+  titleNext: { color: '#0F766E' },
+  bulletRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 5,
+  },
+  bulletDot: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold as '700',
+    lineHeight: 21,
+  },
+  stepNum: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold as '700',
+    lineHeight: 21,
+    minWidth: 16,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: fonts.sizes.sm,
+    color: '#1F2937',
+    lineHeight: 21,
+  },
+});
 
 // ─── Main Screen ────────────────────────────────────────────────────────────
 
@@ -65,6 +193,7 @@ export default function DocumentAnalysisScreen({
 
   const [viewMode, setViewMode] = useState<ViewMode>('analysis');
   const [expandedGoalIndex, setExpandedGoalIndex] = useState<number | null>(null);
+  const [showExpert, setShowExpert] = useState(false);
   const [meetingPrepText, setMeetingPrepText] = useState<string | null>(null);
   const [comparison, setComparison] = useState<IEPComparisonResult | null>(null);
 
@@ -128,7 +257,8 @@ export default function DocumentAnalysisScreen({
         </TouchableOpacity>
       )}
 
-      {/* Summary Bar */}
+      {/* Summary Bar — goal counts only make sense when goals were found */}
+      {analysis.summary.totalGoals > 0 && (
       <View style={styles.summaryBar}>
         <View style={[styles.summaryDot, { backgroundColor: '#D1FAE5' }]}>
           <Text style={styles.summaryCount}>{analysis.summary.strongCount}</Text>
@@ -147,6 +277,7 @@ export default function DocumentAnalysisScreen({
           <Text style={styles.summaryDotLabel}>Total</Text>
         </View>
       </View>
+      )}
 
       {/* View Toggle */}
       <View style={styles.toggleRow}>
@@ -178,7 +309,28 @@ export default function DocumentAnalysisScreen({
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {viewMode === 'analysis' && (
           <>
-            <Text style={styles.overallAssessment}>{analysis.summary.overallAssessment}</Text>
+            {analysis.parentSummary ? (
+              <>
+                <PlainSummary summary={analysis.parentSummary} />
+                {/* Expert layer behind a toggle — the dense full assessment */}
+                <TouchableOpacity
+                  style={styles.expertToggle}
+                  onPress={() => setShowExpert(!showExpert)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showExpert ? 'Hide detailed analysis' : 'Show detailed analysis'}
+                >
+                  <Text style={styles.expertToggleText}>
+                    {showExpert ? 'Hide detailed analysis ▲' : 'Show detailed analysis ▼'}
+                  </Text>
+                </TouchableOpacity>
+                {showExpert && (
+                  <Text style={styles.overallAssessment}>{analysis.summary.overallAssessment}</Text>
+                )}
+              </>
+            ) : (
+              // Analyses run before the plain-English upgrade
+              <Text style={styles.overallAssessment}>{analysis.summary.overallAssessment}</Text>
+            )}
             {analysis.goals.map((goal, i) => (
               <GoalCard
                 key={i}
@@ -413,6 +565,19 @@ const styles = StyleSheet.create({
   toggleText: { fontSize: 12, color: colors.dark, fontWeight: fonts.weights.medium as '500' },
   toggleTextActive: { color: colors.white },
   scrollContent: { padding: spacing.md, paddingBottom: spacing.xl },
+  expertToggle: {
+    alignSelf: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  expertToggleText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
+  },
   overallAssessment: {
     fontSize: fonts.sizes.sm, color: colors.dark, lineHeight: 20,
     backgroundColor: colors.white, borderRadius: radii.md, padding: spacing.md, marginBottom: spacing.md,

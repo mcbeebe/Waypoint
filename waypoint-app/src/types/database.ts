@@ -176,6 +176,20 @@ export interface IEPGoal {
   legalCitation: string | null;
 }
 
+/** Plain-English layer of the analysis, written for stressed parents */
+export interface IEPParentSummary {
+  /** One sentence: what kind of document this is */
+  whatIsThis: string;
+  /** The one-sentence bottom line */
+  headline: string;
+  /** Things going well / strengths found */
+  goodNews: string[];
+  /** Things worth paying attention to */
+  concerns: string[];
+  /** Concrete parent next steps */
+  nextSteps: string[];
+}
+
 export interface IEPAnalysisResult {
   goals: IEPGoal[];
   summary: {
@@ -186,6 +200,8 @@ export interface IEPAnalysisResult {
     criticalIssues: number;
     overallAssessment: string;
   };
+  /** Optional — present on analyses run after the plain-English upgrade */
+  parentSummary?: IEPParentSummary;
 }
 
 // ─── Community Forum (Phase 5) ──────────────────────────────────────────────

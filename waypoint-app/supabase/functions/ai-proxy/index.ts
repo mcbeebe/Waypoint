@@ -709,8 +709,26 @@ ${extractedText}`
 2. Identify weaknesses with severity (critical/major/minor) and explanation
 3. Provide an improved rewritten version citing IDEA 300.320 where applicable
 
+ALSO write a "parentSummary" — the plain-English layer for an overwhelmed parent:
+- 6th-grade reading level. Short sentences. Warm, direct, never condescending.
+- NO unexplained jargon or test acronyms: say "an IQ test (WISC-V)" not "WISC-V"; say "how your child is doing now" not "present levels".
+- Speak to the parent about THEIR child, using the child's name if it appears in the document.
+- whatIsThis: one sentence naming what kind of document this is (IEP, evaluation report, assessment plan...).
+- headline: the single most important takeaway, one sentence.
+- goodNews: 2-4 bullets of genuine strengths or positive findings (scores in the average range, services in place, strong goals). Each under 20 words.
+- concerns: 2-4 bullets worth the parent's attention (weak goals, missing pieces, low scores, things to question). Each under 20 words.
+- nextSteps: 2-3 concrete things the parent should do next. Each under 20 words, starting with a verb.
+- If the document is NOT an IEP (e.g. an evaluation report), still fill parentSummary with its key findings in plain words — that IS the value.
+
 Return valid JSON:
 {
+  "parentSummary": {
+    "whatIsThis": "string",
+    "headline": "string",
+    "goodNews": ["string"],
+    "concerns": ["string"],
+    "nextSteps": ["string"]
+  },
   "goals": [
     {
       "domain": "string",
@@ -736,6 +754,8 @@ Return valid JSON:
     "overallAssessment": "string"
   }
 }
+
+Note: "overallAssessment" is the EXPERT layer — thorough and technical is fine there (it renders behind a "detailed analysis" toggle). "parentSummary" is what the parent reads first.
 
 IEP TEXT:
 ${extractedText}`;
@@ -800,6 +820,26 @@ ${extractedText}`;
       // A valid analysis of a document with no parseable goals (e.g. an
       // assessment report rather than an IEP) still returns goals: []
       if (!Array.isArray(analysis.goals)) analysis.goals = [];
+
+      // Normalize the plain-English layer so a partially-filled response
+      // can't break the client's card rendering
+      if (analysis.parentSummary && typeof analysis.parentSummary === 'object') {
+        const ps = analysis.parentSummary;
+        const arr = (v: unknown) =>
+          Array.isArray(v) ? v.filter((x) => typeof x === 'string' && x.trim()) : [];
+        analysis.parentSummary = {
+          whatIsThis: typeof ps.whatIsThis === 'string' ? ps.whatIsThis : '',
+          headline: typeof ps.headline === 'string' ? ps.headline : '',
+          goodNews: arr(ps.goodNews),
+          concerns: arr(ps.concerns),
+          nextSteps: arr(ps.nextSteps),
+        };
+        if (!analysis.parentSummary.headline && !analysis.parentSummary.whatIsThis) {
+          delete analysis.parentSummary;
+        }
+      } else {
+        delete analysis.parentSummary;
+      }
 
       return new Response(JSON.stringify(analysis), {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
