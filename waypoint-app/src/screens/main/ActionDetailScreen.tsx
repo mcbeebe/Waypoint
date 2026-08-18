@@ -13,7 +13,11 @@ import {
   StyleSheet,
   Linking,
   Platform,
+  Share,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
+import { useToast } from '@/components/Toast';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type {
   Action,
@@ -24,7 +28,7 @@ import type {
 } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { useTextScale } from '@/lib/textSize';
-import { parseActionDescription, extractLinks } from '@/lib/actionContent';
+import { parseActionDescription, extractLinks, formatActionForSharing } from '@/lib/actionContent';
 import LearnMoreSheet, { LEARN_MORE_BY_ACTION_TITLE } from '@/components/LearnMoreSheet';
 import ActionEventModal from '@/components/ActionEventModal';
 
@@ -71,6 +75,7 @@ export default function ActionDetailScreen({
   const [showDismissInput, setShowDismissInput] = useState(false);
   const [learnKey, setLearnKey] = useState<string | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  const { showToast } = useToast();
   const learnMoreKey = LEARN_MORE_BY_ACTION_TITLE[action.title];
   const { scale, cycleScale } = useTextScale();
   /** Scaled font size — applied to all reading-heavy text */
@@ -106,6 +111,30 @@ export default function ActionDetailScreen({
     setShowDismissInput(false);
   };
 
+  /**
+   * Share the whole action as plain text with someone outside the app
+   * (partner, advocate, grandparent): native share sheet where available,
+   * clipboard fallback on desktop browsers.
+   */
+  const handleShare = async () => {
+    const text = formatActionForSharing(action);
+    try {
+      if (Platform.OS === 'web') {
+        const nav = typeof navigator !== 'undefined' ? (navigator as Navigator & { share?: (d: { title?: string; text?: string }) => Promise<void> }) : null;
+        if (nav?.share) {
+          await nav.share({ title: action.title, text });
+          return;
+        }
+        await Clipboard.setStringAsync(text);
+        showToast('Copied! Paste it into a text or email.', 'success');
+        return;
+      }
+      await Share.share({ message: text }, { dialogTitle: action.title });
+    } catch {
+      // Share sheet dismissed — not an error
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -113,14 +142,24 @@ export default function ActionDetailScreen({
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={cycleScale}
-          style={styles.textSizeButton}
-          accessibilityRole="button"
-          accessibilityLabel={`Text size ${Math.round(scale * 100)} percent. Tap to change.`}
-        >
-          <Text style={styles.textSizeButtonText}>Aa {Math.round(scale * 100)}%</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={handleShare}
+            style={styles.shareButton}
+            accessibilityRole="button"
+            accessibilityLabel="Share this action with someone"
+          >
+            <Ionicons name="share-outline" size={18} color={colors.teal} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={cycleScale}
+            style={styles.textSizeButton}
+            accessibilityRole="button"
+            accessibilityLabel={`Text size ${Math.round(scale * 100)} percent. Tap to change.`}
+          >
+            <Text style={styles.textSizeButtonText}>Aa {Math.round(scale * 100)}%</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -797,6 +836,19 @@ const styles = StyleSheet.create({
     color: colors.mid,
     marginTop: spacing.sm,
     fontStyle: 'italic',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  shareButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#E6F7F5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   calendarStatus: {
     fontSize: fonts.sizes.sm,
