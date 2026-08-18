@@ -654,8 +654,20 @@ Use this to avoid suggesting steps already on their plan (reference them instead
 
     // ─── Analyze IEP: Parse goals, weaknesses, suggestions ──────
     if (action === 'analyze-iep') {
-      const { extractedText, analysisType } = body;
+      const { extractedText: rawExtractedText, analysisType } = body;
       // analysisType: 'parse' | 'weaknesses' | 'full'
+
+      if (typeof rawExtractedText !== 'string' || rawExtractedText.trim().length < 40) {
+        return jsonError('No readable document text was provided for analysis.', 400);
+      }
+      // Cap very long documents (triennial evals etc.) so the prompt stays
+      // well inside limits; goals live in the body, not the last pages
+      const MAX_DOC_CHARS = 120_000;
+      const extractedText =
+        rawExtractedText.length > MAX_DOC_CHARS
+          ? rawExtractedText.slice(0, MAX_DOC_CHARS) +
+            '\n\n[Document truncated for analysis — it exceeded the length limit]'
+          : rawExtractedText;
 
       const systemPrompt = `You are an expert IEP (Individualized Education Program) analyst specializing in California special education law. You analyze IEP documents to identify goals, assess their quality, and suggest improvements.
 
@@ -737,14 +749,26 @@ ${extractedText}`;
         },
         body: JSON.stringify({
           model: 'claude-opus-5',
-          max_tokens: 8192,
+          max_tokens: 16384,
           system: systemPrompt,
           messages: [{ role: 'user', content: userPrompt }],
         }),
       });
 
+      // Surface Anthropic failures (overload, rate limit, bad request) as
+      // real errors — previously this fell through to a 200 with "{}" and
+      // the client showed a useless generic failure
+      if (!analysisResponse.ok) {
+        const errBody = await analysisResponse.json().catch(() => null);
+        return jsonError(
+          errBody?.error?.message ?? `AI analysis request failed (${analysisResponse.status})`,
+          analysisResponse.status === 429 ? 429 : 502,
+        );
+      }
+
       const analysisData = await analysisResponse.json();
-      const analysisText = analysisData.content?.[0]?.text ?? '{}';
+      const analysisText = analysisData.content?.[0]?.text ?? '';
+      const hitTokenLimit = analysisData.stop_reason === 'max_tokens';
 
       // Try to parse the JSON response
       let analysis;
@@ -753,8 +777,17 @@ ${extractedText}`;
         const jsonMatch = analysisText.match(/```json\s*([\s\S]*?)\s*```/) ?? analysisText.match(/\{[\s\S]*\}/);
         analysis = JSON.parse(jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : analysisText);
       } catch {
-        analysis = { error: 'Failed to parse analysis', raw: analysisText };
+        return jsonError(
+          hitTokenLimit
+            ? 'This document has too many goals for one pass — try uploading the goals pages separately.'
+            : 'The analysis came back malformed — please try again.',
+          502,
+        );
       }
+
+      // A valid analysis of a document with no parseable goals (e.g. an
+      // assessment report rather than an IEP) still returns goals: []
+      if (!Array.isArray(analysis.goals)) analysis.goals = [];
 
       return new Response(JSON.stringify(analysis), {
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },

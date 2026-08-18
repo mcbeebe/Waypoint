@@ -28,6 +28,8 @@ interface UseDocumentAnalysisReturn {
   getCachedAnalysis: (documentId: string) => IEPAnalysisResult | null;
   generateMeetingPrep: (analysis: IEPAnalysisResult, context: MeetingPrepContext) => Promise<string | null>;
   compareIEPs: (analysis1: IEPAnalysisResult, analysis2: IEPAnalysisResult) => IEPComparisonResult;
+  /** The specific reason the last analyzeIEP call failed (for immediate toasts) */
+  getLastError: () => string | null;
 }
 
 export interface MeetingPrepContext {
@@ -56,6 +58,9 @@ export function useDocumentAnalysis(): UseDocumentAnalysisReturn {
   const [isExtracting, setIsExtracting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef<Map<string, IEPAnalysisResult>>(new Map());
+  // Ref (not state) so callers can read the failure reason synchronously
+  // right after an await, for toasts — state would be stale in the closure
+  const lastErrorRef = useRef<string | null>(null);
 
   /** S31: Extract text from document image via OCR */
   const extractText = useCallback(async (
@@ -115,7 +120,18 @@ export function useDocumentAnalysis(): UseDocumentAnalysisReturn {
         }),
       });
 
-      if (!response.ok) throw new Error(`IEP analysis failed (${response.status})`);
+      if (!response.ok) {
+        // The edge function returns { error } (jsonError) with the real
+        // reason — rate limit, doc too long, malformed model output
+        let detail = '';
+        try {
+          const errBody = await response.json();
+          detail = errBody?.error ?? errBody?.detail ?? '';
+        } catch {
+          // non-JSON error body — fall through to the status message
+        }
+        throw new Error(detail || `IEP analysis failed (${response.status})`);
+      }
       const analysis = await response.json() as IEPAnalysisResult;
 
       if (analysis.goals) {
@@ -123,7 +139,9 @@ export function useDocumentAnalysis(): UseDocumentAnalysisReturn {
       }
       throw new Error('Invalid analysis response');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'IEP analysis failed');
+      const message = err instanceof Error ? err.message : 'IEP analysis failed';
+      setError(message);
+      lastErrorRef.current = message;
       return null;
     } finally {
       setIsAnalyzing(false);
@@ -271,5 +289,6 @@ Format as clean text the parent can print or share.`;
     getCachedAnalysis,
     generateMeetingPrep,
     compareIEPs,
+    getLastError: () => lastErrorRef.current,
   };
 }
