@@ -60,7 +60,18 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
 
       if (user) {
         const myMembership = (membersRes.data as FamilyMember[])?.find((m) => m.user_id === user.id);
-        setCurrentUserRole(myMembership?.role ?? null);
+        if (myMembership) {
+          setCurrentUserRole(myMembership.role);
+        } else {
+          // The family owner may predate membership rows (or the backfill) —
+          // they are always an admin of their own family.
+          const { data: fam } = await supabase
+            .from('families')
+            .select('user_id')
+            .eq('id', familyId)
+            .maybeSingle();
+          setCurrentUserRole(fam?.user_id === user.id ? 'admin' : null);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

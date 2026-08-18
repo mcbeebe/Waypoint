@@ -65,6 +65,7 @@ import type {
 } from '@/types/navigation';
 
 const Tab = createBottomTabNavigator();
+const JourneyStackNav = createNativeStackNavigator();
 const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
 const NavigatorStackNav = createNativeStackNavigator<NavigatorStackParamList>();
 const TrackerStackNav = createNativeStackNavigator<TrackerStackParamList>();
@@ -138,7 +139,11 @@ function ActionDetailRoute({ route, navigation }: any) {
         }}
         onToggleStep={stepIndex => toggleStep(action.id, stepIndex)}
         onUpdate={data => updateAction(action.id, data)}
-        onBack={() => navigation.goBack()}
+        // Deep links (waypointchild.com/actions/:id) can open this screen as
+        // the stack root — fall back to the list so Back always works.
+        onBack={() =>
+          navigation.canGoBack() ? navigation.goBack() : navigation.navigate('TrackerList')
+        }
       />
       <CompletionCheckIn
         action={checkInAction}
@@ -228,6 +233,24 @@ function HomeStack() {
   );
 }
 
+/**
+ * Journey gets its own tab on desktop web (left nav rail has room for it).
+ * On mobile the tab is registered but hidden, so the linking config and
+ * navigation state stay valid across window resizes; phones keep reaching
+ * Journey through Home → Journey.
+ */
+function JourneyStack() {
+  return (
+    <JourneyStackNav.Navigator screenOptions={detailHeaderOptions}>
+      <JourneyStackNav.Screen
+        name="JourneyMain"
+        component={JourneyScreen}
+        options={{ title: 'Journey Map', headerBackVisible: false }}
+      />
+    </JourneyStackNav.Navigator>
+  );
+}
+
 function NavigatorStack() {
   return (
     <NavigatorStackNav.Navigator screenOptions={detailHeaderOptions}>
@@ -301,7 +324,7 @@ export default function MainTabs() {
                 backgroundColor: colors.white,
                 borderRightColor: colors.border,
                 borderRightWidth: 1,
-                minWidth: 200,
+                minWidth: 220,
                 paddingTop: 12,
               },
             }
@@ -326,6 +349,17 @@ export default function MainTabs() {
           tabBarLabel: t.tabs.home,
           tabBarIcon: tabIcon('home-outline', 'home'),
           tabBarAccessibilityLabel: t.tabs.home,
+        }}
+      />
+      <Tab.Screen
+        name="JourneyTab"
+        component={JourneyStack}
+        options={{
+          tabBarLabel: 'Journey',
+          tabBarIcon: tabIcon('map-outline', 'map'),
+          tabBarAccessibilityLabel: 'Journey',
+          // Desktop-only entry: hide from the phone bottom bar
+          ...(isDesktop ? {} : { tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }),
         }}
       />
       <Tab.Screen

@@ -454,6 +454,8 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   sources: Record<string, unknown>[] | null;
+  /** Parsed ChatMeta trailer data (steps, rights, resources…) — assistant messages only */
+  meta: Record<string, unknown> | null;
   created_at: string;
 }
 
