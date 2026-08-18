@@ -60,6 +60,14 @@ const META_CATEGORY_TO_ACTION: Record<string, ActionCategory> = {
   transitions: 'general',
 };
 
+/**
+ * actions.source_message_id is a uuid column; streaming messages have
+ * client-generated string ids ("assistant-173…") that would fail the insert.
+ * Only persisted messages (loaded from history) carry real uuids.
+ */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const asMessageUuid = (id: string): string | undefined => (UUID_RE.test(id) ? id : undefined);
+
 /** Quick-start suggestions shown before first message */
 const SUGGESTIONS = [
   'How do I get my child evaluated for services?',
@@ -190,7 +198,7 @@ export default function NavigatorScreen() {
         title,
         description: plainContent.slice(0, 500),
         source: 'ai_navigator',
-        source_message_id: message.id,
+        source_message_id: asMessageUuid(message.id),
         chat_session_id: sessionId ?? undefined,
         category: 'general',
         priority: 'medium',
@@ -199,7 +207,7 @@ export default function NavigatorScreen() {
       if (action) {
         showToast('Saved to your Action Plan!', 'success');
       } else {
-        showToast('Saved offline — will sync when connected', 'info');
+        showToast("Couldn't save — please try again.", 'error');
       }
     } catch (err) {
       showToast('Failed to save action', 'error');
@@ -224,7 +232,7 @@ export default function NavigatorScreen() {
         description: descParts.join('\n') || undefined,
         script: step.script,
         source: 'ai_navigator',
-        source_message_id: message.id,
+        source_message_id: asMessageUuid(message.id),
         chat_session_id: sessionId ?? undefined,
         category: META_CATEGORY_TO_ACTION[message.meta?.category ?? ''] ?? 'general',
         priority: message.meta?.urgency === 'high' ? 'high' : 'medium',
@@ -233,7 +241,7 @@ export default function NavigatorScreen() {
         setSavedStepKeys((prev) => new Set(prev).add(key));
         showToast('Step added to your Action Plan', 'success');
       } else {
-        showToast('Saved offline — will sync when connected', 'info');
+        showToast("Couldn't save this step — please try again.", 'error');
       }
     } catch {
       showToast('Failed to save step', 'error');
@@ -278,11 +286,27 @@ export default function NavigatorScreen() {
     }
   }, [feedbackGiven, sessionId, showToast]);
 
-  /** Chat → Letters handoff: open the letter generator with the template preselected */
-  const handleOpenDraft = useCallback((draftKey: string) => {
+  /**
+   * Chat → Letters handoff: open the letter generator with the template
+   * preselected AND the specific ask prefilled, so the parent lands one tap
+   * from generating (e.g. "Want me to draft the email to your RCEB
+   * coordinator requesting waiver enrollment?" → question box prefilled
+   * with "the email to my RCEB coordinator requesting waiver enrollment").
+   */
+  const handleOpenDraft = useCallback((draftKey: string, offerText?: string) => {
+    let question: string | undefined;
+    if (offerText) {
+      question = offerText
+        .replace(/^\s*(want me to|should i|shall i|would you like (me )?to)\s+(help\s+)?(draft|write|prepare)\s*/i, '')
+        .replace(/\?+\s*$/, '')
+        .replace(/\byour\b/gi, 'my')
+        .replace(/\byou\b/gi, 'me')
+        .trim();
+      if (question) question = question[0].toUpperCase() + question.slice(1);
+    }
     navigation.navigate('Home', {
       screen: 'Letters',
-      params: { template: draftKey },
+      params: { template: draftKey, question },
     });
   }, [navigation]);
 

@@ -28,7 +28,7 @@ export type HomeStackParamList = {
   Documents: undefined;
   DocumentAnalysis: { analysis: IEPAnalysisResult; documentId?: string; childId?: string | null };
   IEPHub: undefined;
-  Letters: { template?: string } | undefined;
+  Letters: { template?: string; question?: string } | undefined;
   EmailAnalyzer: undefined;
   Providers: undefined;
   Services: undefined;

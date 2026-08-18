@@ -47,16 +47,23 @@ export default function LettersScreen() {
   const [template, setTemplate] = useState<LetterTemplate | null>(null);
 
   // Chat → Letters handoff: the Navigator's "draft this letter" card passes
-  // the template key so the parent lands one tap from generating.
+  // the template key (and the specific ask) so the parent lands one tap from
+  // generating. Unknown keys fall back to the General template rather than
+  // silently doing nothing.
   useEffect(() => {
     const key = route.params?.template;
     if (!key) return;
-    const match = LETTER_TEMPLATES.find((t) => t.key === key);
+    const match =
+      LETTER_TEMPLATES.find((t) => t.key === key) ??
+      LETTER_TEMPLATES.find((t) => t.key === 'general');
     if (match) {
       setTemplate(match);
       setDraft(null);
     }
-  }, [route.params?.template]);
+    if (route.params?.question) {
+      setQuestion(route.params.question);
+    }
+  }, [route.params?.template, route.params?.question]);
   const [tone, setTone] = useState<DraftTone>('professional');
   const [question, setQuestion] = useState('');
   const [draft, setDraft] = useState<string | null>(null);

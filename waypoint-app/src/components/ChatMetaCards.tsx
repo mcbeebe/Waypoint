@@ -27,7 +27,7 @@ interface ChatMetaCardsProps {
   meta: ChatMeta;
   onSaveStep?: (step: ChatStep) => void;
   onSaveAllSteps?: (steps: ChatStep[]) => void;
-  onOpenDraft?: (draftKey: string) => void;
+  onOpenDraft?: (draftKey: string, offerText?: string) => void;
   /** step keys currently being saved (action text used as key) */
   savingSteps?: Set<string>;
   /** step keys already saved this session */
@@ -85,7 +85,7 @@ export default function ChatMetaCards({
       {meta.draftKey && onOpenDraft && (
         <TouchableOpacity
           style={styles.draftOffer}
-          onPress={() => onOpenDraft(meta.draftKey!)}
+          onPress={() => onOpenDraft(meta.draftKey!, meta.draftOffer)}
           accessibilityRole="button"
           accessibilityLabel={meta.draftOffer ?? 'Draft this letter'}
         >
