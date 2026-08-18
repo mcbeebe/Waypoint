@@ -14,11 +14,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 
-/** Scopes for Calendar sync + Gmail read/send (Phase 3). */
+/**
+ * Calendar only — Gmail scopes removed so the OAuth app can be published
+ * without Google's restricted-scope (CASA) verification. Email features
+ * use Gmail compose URLs / mailto instead of the API.
+ */
 export const GOOGLE_API_SCOPES = [
   'https://www.googleapis.com/auth/calendar',
-  'https://www.googleapis.com/auth/gmail.send',
-  'https://www.googleapis.com/auth/gmail.readonly',
 ];
 
 const ACCESS_TOKEN_KEY = 'waypoint_google_web_access_token';

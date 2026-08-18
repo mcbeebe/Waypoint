@@ -12,9 +12,10 @@ import { supabase } from './supabase';
 const GOOGLE_SCOPES = [
   'profile',
   'email',
+  // Calendar only — Gmail scopes removed so the OAuth app can be published
+  // without Google's restricted-scope (CASA) verification. Email features
+  // use Gmail compose URLs / mailto instead of the API.
   'https://www.googleapis.com/auth/calendar',
-  'https://www.googleapis.com/auth/gmail.send',
-  'https://www.googleapis.com/auth/gmail.readonly',
 ];
 
 const GOOGLE_TOKEN_KEY = 'waypoint_google_token';

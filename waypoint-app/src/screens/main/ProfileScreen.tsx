@@ -228,7 +228,7 @@ export default function ProfileScreen() {
   const handleDisconnectGoogle = useCallback(async () => {
     const ok = await showConfirm(
       'Disconnect Google?',
-      'Calendar sync and email sending will stop working until you reconnect.',
+      'Calendar sync will stop working until you reconnect.',
       'Disconnect',
       true
     );
