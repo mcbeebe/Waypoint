@@ -1,7 +1,12 @@
 /**
- * Gmail API service
- * Read inbox, create drafts, and send emails via the Gmail REST API.
- * Auth tokens managed by auth.ts (stored in SecureStore).
+ * Gmail API service — CURRENTLY UNUSED.
+ *
+ * The gmail.send / gmail.readonly scopes were removed from the OAuth request
+ * (see lib/googleAuth.ts) so the app can publish to Production without
+ * Google's restricted-scope (CASA) verification. Email features now open
+ * Gmail compose URLs / mailto instead. These functions are kept for a
+ * possible future return of API-based email (they will fail with 403 until
+ * the scopes are re-added and verified).
  */
 
 import { getGoogleAccessToken, refreshGoogleToken } from './auth';

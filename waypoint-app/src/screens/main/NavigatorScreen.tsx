@@ -36,8 +36,6 @@ import AIConsentModal from '@/components/AIConsentModal';
 import ChatMetaCards from '@/components/ChatMetaCards';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
 import { hideStreamingTrailer, hasRichMeta, type ChatStep } from '@/lib/followups';
-import { sendEmail } from '@/lib/gmail';
-import { getGoogleAccessToken } from '@/lib/auth';
 import { useI18n } from '@/i18n';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -311,29 +309,35 @@ export default function NavigatorScreen() {
   }, [navigation]);
 
   /** Open email compose modal with AI response pre-filled */
-  const handleEmailThis = useCallback(async (message: UIMessage) => {
-    const token = await getGoogleAccessToken();
-    if (!token) {
-      showToast('Sign in with Google to send emails', 'error');
-      return;
-    }
+  const handleEmailThis = useCallback((message: UIMessage) => {
     setEmailComposeMessage(message);
     setEmailSubject('Waypoint: Disability Services Guidance');
     setEmailTo('');
-  }, [showToast]);
+  }, []);
 
-  /** Send the composed email */
+  /**
+   * Hand the drafted email to the user's own mail app: Gmail compose URL on
+   * web, mailto elsewhere. No Gmail API scope needed — the user reviews and
+   * hits send themselves.
+   */
   const handleSendEmail = useCallback(async () => {
-    if (!emailTo.trim() || !emailComposeMessage) return;
+    if (!emailComposeMessage) return;
     setIsSendingEmail(true);
     try {
-      await sendEmail(emailTo.trim(), emailSubject, stripInlineMarkdown(emailComposeMessage.content));
-      showToast('Email sent!', 'success');
+      const to = encodeURIComponent(emailTo.trim());
+      const subject = encodeURIComponent(emailSubject);
+      const bodyText = stripInlineMarkdown(emailComposeMessage.content);
+      const body = encodeURIComponent(bodyText);
+      const url =
+        Platform.OS === 'web'
+          ? `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`
+          : `mailto:${to}?subject=${subject}&body=${body}`;
+      await Linking.openURL(url);
       setEmailComposeMessage(null);
       setEmailTo('');
       setEmailSubject('');
-    } catch (err) {
-      showToast('Failed to send email', 'error');
+    } catch {
+      showToast("Couldn't open your email app.", 'error');
     } finally {
       setIsSendingEmail(false);
     }
@@ -620,14 +624,16 @@ export default function NavigatorScreen() {
                 <Text style={styles.emailCancelText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.emailSendButton, (!emailTo.trim() || isSendingEmail) && styles.sendButtonDisabled]}
+                style={[styles.emailSendButton, isSendingEmail && styles.sendButtonDisabled]}
                 onPress={handleSendEmail}
-                disabled={!emailTo.trim() || isSendingEmail}
+                disabled={isSendingEmail}
               >
                 {isSendingEmail ? (
                   <ActivityIndicator size="small" color={colors.white} />
                 ) : (
-                  <Text style={styles.emailSendText}>Send</Text>
+                  <Text style={styles.emailSendText}>
+                    {Platform.OS === 'web' ? 'Open in Gmail' : 'Open in Email'}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
