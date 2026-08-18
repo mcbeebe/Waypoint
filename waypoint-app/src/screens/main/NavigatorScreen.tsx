@@ -890,6 +890,34 @@ function MessageBubble({
   );
 }
 
+/** Friendly display names for KB source keys (raw keys read as "Journey Id") */
+const SOURCE_LABELS: Record<string, string> = {
+  regional_center: 'Regional Center',
+  iep: 'IEP / School',
+  benefits: 'Benefits',
+  insurance: 'Insurance',
+  rights: 'Your Rights',
+  navigation: 'Navigation',
+  transitions: 'Transitions',
+  journey_autism: 'Autism Journey',
+  journey_pda: 'PDA Journey',
+  journey_adhd: 'ADHD Journey',
+  journey_sli: 'Speech & Language Journey',
+  journey_sld: 'Learning Disability Journey',
+  journey_id: 'Intellectual Disability Journey',
+  cross_reference: 'Cross-System Guide',
+  age_timeline: 'Age Timeline',
+  equity: 'Equity & Access',
+  resources: 'Help Directory',
+};
+
+function sourceLabel(source: string): string {
+  return (
+    SOURCE_LABELS[source] ??
+    source.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+}
+
 /** Source attribution pills below AI responses */
 function SourceAttribution({
   sources,
@@ -898,7 +926,18 @@ function SourceAttribution({
 }) {
   const [expandedSource, setExpandedSource] = useState<string | null>(null);
 
-  const hasSources = sources && sources.length > 0;
+  // Dedupe by source key — multiple retrieved chunks from the same KB
+  // source were rendering as repeated pills ("Journey Id" twice)
+  const uniqueSources = React.useMemo(() => {
+    const seen = new Set<string>();
+    return (sources ?? []).filter((s) => {
+      if (seen.has(s.source)) return false;
+      seen.add(s.source);
+      return true;
+    });
+  }, [sources]);
+
+  const hasSources = uniqueSources.length > 0;
 
   return (
     <View style={styles.sourceContainer}>
@@ -908,14 +947,13 @@ function SourceAttribution({
         contentContainerStyle={styles.sourceRow}
       >
         {hasSources ? (
-          sources.map((s, i) => {
-            const label = s.source.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-            const key = `${s.source}-${i}`;
+          uniqueSources.map((s) => {
+            const label = sourceLabel(s.source);
             return (
               <TouchableOpacity
-                key={key}
+                key={s.source}
                 style={styles.sourcePill}
-                onPress={() => setExpandedSource(expandedSource === key ? null : key)}
+                onPress={() => setExpandedSource(expandedSource === s.source ? null : s.source)}
                 accessibilityRole="button"
                 accessibilityLabel={`Source: ${label}`}
               >
@@ -930,13 +968,11 @@ function SourceAttribution({
         )}
       </ScrollView>
       {expandedSource && hasSources && (() => {
-        const idx = sources.findIndex((_, i) => `${sources[i].source}-${i}` === expandedSource);
-        if (idx === -1) return null;
-        const s = sources[idx];
-        const label = s.source.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+        const s = uniqueSources.find((u) => u.source === expandedSource);
+        if (!s) return null;
         return (
           <View style={styles.sourceExpanded}>
-            <Text style={styles.sourceExpandedText}>Source: {label}</Text>
+            <Text style={styles.sourceExpandedText}>Source: {sourceLabel(s.source)}</Text>
             {s.section && <Text style={styles.sourceExpandedText}>Section: {s.section}</Text>}
           </View>
         );
