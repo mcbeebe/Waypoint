@@ -83,7 +83,7 @@ export default function DocumentsScreen() {
     refetch,
   } = useDocuments({ familyId });
 
-  const { extractText, analyzeIEP, isExtracting, isAnalyzing } = useDocumentAnalysis();
+  const { extractText, analyzeIEP, isExtracting, isAnalyzing, getLastError } = useDocumentAnalysis();
 
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [shareDocId, setShareDocId] = useState<string | null>(null);
@@ -181,7 +181,7 @@ export default function DocumentsScreen() {
           childId: doc.child_id,
         });
       } else {
-        showToast('Analysis failed — please try again.', 'error');
+        showToast(getLastError() ?? 'Analysis failed — please try again.', 'error');
       }
     } finally {
       setAnalyzingDocId(null);
