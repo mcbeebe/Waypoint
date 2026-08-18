@@ -767,8 +767,20 @@ ${extractedText}`;
       }
 
       const analysisData = await analysisResponse.json();
-      const analysisText = analysisData.content?.[0]?.text ?? '';
+      // The model may emit a thinking block before its answer on complex
+      // tasks, so find the text block — content[0] is NOT always the text
+      const analysisText =
+        analysisData.content?.find((b: { type: string }) => b.type === 'text')?.text ?? '';
       const hitTokenLimit = analysisData.stop_reason === 'max_tokens';
+
+      if (!analysisText.trim()) {
+        return jsonError(
+          hitTokenLimit
+            ? 'This document is too long for one pass — try uploading the goals pages separately.'
+            : 'The AI returned no analysis text — please try again.',
+          502,
+        );
+      }
 
       // Try to parse the JSON response
       let analysis;
