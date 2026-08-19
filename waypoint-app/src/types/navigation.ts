@@ -33,6 +33,7 @@ export type HomeStackParamList = {
   CommunicationLog: undefined;
   Providers: undefined;
   Services: undefined;
+  Insurance: undefined;
   HealthRecords: undefined;
   FamilySharing: undefined;
   ProviderPortal: undefined;

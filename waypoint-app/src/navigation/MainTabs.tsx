@@ -26,6 +26,7 @@ import DocumentsScreen from '@/screens/main/DocumentsScreen';
 import DocumentAnalysisScreen from '@/screens/main/DocumentAnalysisScreen';
 import ProvidersScreen from '@/screens/main/ProvidersScreen';
 import ServicesScreen from '@/screens/main/ServicesScreen';
+import InsuranceScreen from '@/screens/main/InsuranceScreen';
 import HealthRecordsScreen from '@/screens/main/HealthRecordsScreen';
 import FamilySharingScreen from '@/screens/main/FamilySharingScreen';
 import ProviderPortalScreen from '@/screens/main/ProviderPortalScreen';
@@ -219,6 +220,7 @@ function HomeStack() {
       <HomeStackNav.Screen name="CommunicationLog" component={CommunicationLogScreen} options={{ title: 'Paper Trail' }} />
       <HomeStackNav.Screen name="Providers" component={ProvidersScreen} options={{ title: 'Providers' }} />
       <HomeStackNav.Screen name="Services" component={ServicesScreen} options={{ title: 'Services' }} />
+      <HomeStackNav.Screen name="Insurance" component={InsuranceScreen} options={{ title: 'Insurance Tracker' }} />
       <HomeStackNav.Screen name="HealthRecords" component={HealthRecordsScreen} options={{ title: 'Health Records' }} />
       <HomeStackNav.Screen name="FamilySharing" component={FamilySharingScreen} options={{ title: 'Family Sharing' }} />
       <HomeStackNav.Screen name="ProviderPortal" component={ProviderPortalScreen} options={{ title: 'Provider Portal' }} />
