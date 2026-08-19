@@ -98,9 +98,12 @@ export default function ProfileScreen() {
   const [zipCode, setZipCode] = useState('');
   const [schoolDistrict, setSchoolDistrict] = useState('');
   // Child editing (P1): inline edit per child row
+  const [phone, setPhone] = useState('');
   const [editingChildId, setEditingChildId] = useState<string | null>(null);
   const [editChildName, setEditChildName] = useState('');
   const [editChildDob, setEditChildDob] = useState('');
+  const [editChildSchool, setEditChildSchool] = useState('');
+  const [editChildGrade, setEditChildGrade] = useState('');
   const [newChildDob, setNewChildDob] = useState('');
   const [selectedDiagnoses, setSelectedDiagnoses] = useState<string[]>([]);
   const [rcStatus, setRcStatus] = useState('');
@@ -131,6 +134,7 @@ export default function ProfileScreen() {
       setParentName(family.parent_first_name || '');
       setParentLastName(family.parent_last_name || '');
       setEmail(family.email || '');
+      setPhone(family.phone || '');
       setZipCode(family.zip_code || '');
       setSchoolDistrict(family.school_district || '');
       setInsurance(family.insurance_carrier || '');
@@ -226,6 +230,7 @@ export default function ProfileScreen() {
         parent_first_name: parentName.trim(),
         parent_last_name: parentLastName.trim() || null,
         email: email.trim(),
+        phone: phone.trim() || null,
         zip_code: zipCode.trim() || null,
         school_district: schoolDistrict.trim() || null,
         regional_center: rc?.name ?? family?.regional_center ?? null,
@@ -275,7 +280,7 @@ export default function ProfileScreen() {
     } finally {
       setSaving(false);
     }
-  }, [parentName, parentLastName, email, zipCode, schoolDistrict, insurance, selectedDiagnoses, rcStatus, iepStatus, childName, primaryChild, family, diagnoses, updateFamily, updateChild, setDiagnoses, showToast]);
+  }, [parentName, parentLastName, email, phone, zipCode, schoolDistrict, insurance, selectedDiagnoses, rcStatus, iepStatus, childName, primaryChild, family, diagnoses, updateFamily, updateChild, setDiagnoses, showToast]);
 
   const handleAddChild = useCallback(async () => {
     const name = newChildName.trim();
@@ -465,6 +470,17 @@ export default function ProfileScreen() {
             accessibilityLabel="Email address"
           />
 
+          <Text style={styles.inputLabel} nativeID="label-phone">Phone number</Text>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="Auto-fills into letters and emails"
+            placeholderTextColor={colors.mid}
+            keyboardType="phone-pad"
+            accessibilityLabel="Your phone number"
+          />
+
           <Text style={styles.inputLabel} nativeID="label-child-name">Child's first name</Text>
           <TextInput
             style={styles.input}
@@ -525,6 +541,25 @@ export default function ProfileScreen() {
                   />
                   <Text style={styles.inputLabel}>Birthday</Text>
                   <DateInput value={editChildDob} onChange={setEditChildDob} />
+                  <Text style={styles.inputLabel}>School</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={editChildSchool}
+                    onChangeText={setEditChildSchool}
+                    placeholder="e.g., Glenview Elementary"
+                    placeholderTextColor={colors.mid}
+                    autoCapitalize="words"
+                    accessibilityLabel="School name"
+                  />
+                  <Text style={styles.inputLabel}>Grade</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={editChildGrade}
+                    onChangeText={setEditChildGrade}
+                    placeholder="e.g., 3rd"
+                    placeholderTextColor={colors.mid}
+                    accessibilityLabel="Grade"
+                  />
                   <View style={styles.addChildButtons}>
                     <Button
                       title="Save"
@@ -534,6 +569,8 @@ export default function ProfileScreen() {
                         const ok = await updateChild(c.id, {
                           first_name: editChildName.trim(),
                           date_of_birth: /^\d{4}-\d{2}-\d{2}$/.test(editChildDob) ? editChildDob : null,
+                          school_name: editChildSchool.trim() || null,
+                          grade: editChildGrade.trim() || null,
                         });
                         showToast(ok ? 'Child updated' : "Couldn't save — try again.", ok ? 'success' : 'error');
                         if (ok) setEditingChildId(null);
@@ -587,6 +624,8 @@ export default function ProfileScreen() {
                     setEditingChildId(c.id);
                     setEditChildName(c.first_name ?? '');
                     setEditChildDob(c.date_of_birth ?? '');
+                    setEditChildSchool(c.school_name ?? '');
+                    setEditChildGrade(c.grade ?? '');
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={`Edit ${c.first_name}`}
@@ -598,6 +637,11 @@ export default function ProfileScreen() {
                     </Text>
                     {c.date_of_birth ? (
                       <Text style={styles.childDob}>Born {c.date_of_birth}</Text>
+                    ) : null}
+                    {c.school_name || c.grade ? (
+                      <Text style={styles.childDob}>
+                        {[c.school_name, c.grade ? `${c.grade} grade` : null].filter(Boolean).join(' · ')}
+                      </Text>
                     ) : null}
                   </View>
                   <Text style={styles.childEditHint}>Edit ›</Text>

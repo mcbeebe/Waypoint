@@ -910,11 +910,11 @@ ${extractedText}`;
       // (unlike chat): the letter is signed by the parent.
       const { data: fam } = await userClient
         .from('families')
-        .select('parent_first_name, parent_last_name, email, regional_center, school_district, insurance_carrier')
+        .select('parent_first_name, parent_last_name, email, phone, regional_center, school_district, insurance_carrier')
         .maybeSingle();
       const { data: children } = await userClient
         .from('children')
-        .select('id, first_name, date_of_birth, is_primary')
+        .select('id, first_name, last_name, date_of_birth, is_primary, school_name, grade')
         .order('is_primary', { ascending: false });
       const child = children?.[0];
       let childAge = '';
@@ -950,9 +950,13 @@ ${extractedText}`;
       const userMsg =
         'FAMILY CONTEXT (use these REAL values in the draft — only use [BRACKETS] for info that is blank below):\n' +
         `Parent name: ${parentName || '[Your Name]'}\n` +
-        `Child name: ${child?.first_name || '[Child Name]'}\n` +
+        `Family last name (use for the child's full name too, unless the child's own last name is given): ${fam?.parent_last_name || '[Last Name]'}\n` +
+        `Child name: ${child?.first_name || '[Child Name]'}${child?.last_name ? ` ${child.last_name}` : ''}\n` +
         `Email: ${fam?.email || '[Your Email]'}\n` +
+        `Phone: ${fam?.phone || '[Phone number]'}\n` +
         `Child age: ${childAge || '[Child Age]'}\n` +
+        `Child's school: ${child?.school_name || '[school name]'}\n` +
+        `Child's grade: ${child?.grade || '[grade]'}\n` +
         `Diagnosis: ${diagnosis || '[Diagnosis]'}\n` +
         `Insurance: ${fam?.insurance_carrier || '[Insurance Provider]'}\n` +
         `Regional Center: ${fam?.regional_center || '[Regional Center]'}\n` +

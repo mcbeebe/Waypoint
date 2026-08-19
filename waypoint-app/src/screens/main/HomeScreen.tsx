@@ -19,6 +19,7 @@ import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import CheckInCard from '@/components/CheckInCard';
 import GapPromptsCard from '@/components/GapPromptsCard';
+import ProfileCompletionCard from '@/components/ProfileCompletionCard';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useExpenses } from '@/hooks/useExpenses';
@@ -178,6 +179,19 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             {EMPATHY_MESSAGES[empathyIndex]}
           </Text>
         </View>
+
+        {/* Finish-your-profile nudge: the details letters keep bracketing */}
+        {family?.id && (
+          <ProfileCompletionCard
+            profile={{
+              parentLastName: family.parent_last_name,
+              phone: family.phone,
+              schoolName: primaryChild?.school_name,
+              childGrade: primaryChild?.grade,
+            }}
+            onOpenProfile={() => (navigation as never as { navigate: (n: string) => void }).navigate('Profile')}
+          />
+        )}
 
         {/* Proactive "Waypoint noticed" prompts (P3) */}
         {family?.id && (
