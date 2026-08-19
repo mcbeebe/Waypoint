@@ -26,6 +26,8 @@ interface CreateExpenseInput {
   reimbursement_status?: ReimbursementStatus;
   reimbursement_amount?: number;
   notes?: string;
+  /** Attached receipt (documents table id); null clears it on edit */
+  receipt_document_id?: string | null;
 }
 
 export interface ExpenseSummary {
@@ -140,6 +142,7 @@ export function useExpenses(options: UseExpensesOptions): UseExpensesReturn {
           reimbursement_status: data.reimbursement_status ?? 'none',
           reimbursement_amount: data.reimbursement_amount ?? null,
           notes: data.notes ?? null,
+          receipt_document_id: data.receipt_document_id ?? null,
         })
         .select()
         .single();

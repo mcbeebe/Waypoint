@@ -423,6 +423,10 @@ export interface Appointment {
   reminder_sent: boolean;
   status: AppointmentStatus;
   google_calendar_event_id: string | null;
+  /** Repeat rule (029) — expanded client-side; null = one-off */
+  recurrence: 'weekly' | 'biweekly' | 'monthly' | null;
+  /** Last date (inclusive) the series repeats; null = open-ended */
+  recurrence_until: string | null;
   created_at: string;
   updated_at: string;
 }

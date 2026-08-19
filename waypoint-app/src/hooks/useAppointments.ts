@@ -21,6 +21,9 @@ interface CreateAppointmentInput {
   provider_id?: string;
   location?: string;
   notes?: string;
+  /** Repeat rule (029) — the series is expanded client-side */
+  recurrence?: 'weekly' | 'biweekly' | 'monthly';
+  recurrence_until?: string;
 }
 
 export function useAppointments(options: UseAppointmentsOptions) {
@@ -39,9 +42,11 @@ export function useAppointments(options: UseAppointmentsOptions) {
         .order('start_time', { ascending: true });
 
       if (dateRange) {
-        query = query
-          .gte('start_time', dateRange.start)
-          .lte('start_time', dateRange.end);
+        // Recurring bases must load regardless of when their first
+        // occurrence was — their virtual occurrences may fall in range
+        query = query.or(
+          `and(start_time.gte.${dateRange.start},start_time.lte.${dateRange.end}),recurrence.not.is.null`
+        );
       }
 
       const { data, error: dbError } = await query;
@@ -73,6 +78,8 @@ export function useAppointments(options: UseAppointmentsOptions) {
           provider_id: data.provider_id ?? null,
           location: data.location ?? null,
           notes: data.notes ?? null,
+          recurrence: data.recurrence ?? null,
+          recurrence_until: data.recurrence_until ?? null,
         })
         .select()
         .single();

@@ -26,6 +26,9 @@ import {
 } from 'react-native';
 import DateInput from '@/components/DateInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '@/lib/supabase';
+import { expandOccurrences, findOverlaps, type RecurrenceRule } from '@/lib/recurrence';
+import { showConfirm } from '@/lib/dialogs';
 import { useFamily } from '@/hooks/useFamily';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useDeadlines } from '@/hooks/useDeadlines';
@@ -62,6 +65,16 @@ const DEADLINE_TYPE_CONFIG: Record<string, { label: string; emoji: string }> = {
 };
 
 type ViewMode = 'upcoming' | 'deadlines';
+
+/** An appointment as displayed: a real row or one expanded occurrence of a series */
+type DisplayAppointment = Appointment & { occurrenceId: string; isVirtual: boolean };
+
+const RECURRENCE_OPTIONS: Array<{ value: RecurrenceRule | null; label: string }> = [
+  { value: null, label: 'Once' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'biweekly', label: 'Every 2 wks' },
+  { value: 'monthly', label: 'Monthly' },
+];
 
 // ─── Main Screen ────────────────────────────────────────────────────────────
 
@@ -126,6 +139,50 @@ export default function CalendarScreen() {
     await Promise.all([refetchAppts(), refetchDeadlines()]);
   }, [refetchAppts, refetchDeadlines]);
 
+  /**
+   * Overlap warning: before adding an appointment, check the candidate's
+   * day (fetched fresh — the current week's list may not cover it, and
+   * recurring series expand into any day). Returns true to proceed.
+   */
+  const confirmNoOverlap = useCallback(async (startISO: string): Promise<boolean> => {
+    try {
+      const dayStart = new Date(startISO);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(startISO);
+      dayEnd.setHours(23, 59, 59, 999);
+      const { data } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('family_id', familyId)
+        .or(
+          `and(start_time.gte.${dayStart.toISOString()},start_time.lte.${dayEnd.toISOString()}),recurrence.not.is.null`
+        );
+      const dayEvents = ((data ?? []) as Appointment[])
+        .filter((a) => a.status !== 'cancelled')
+        .flatMap((a) =>
+          expandOccurrences(a, dayStart.toISOString(), dayEnd.toISOString()).map((occ) => ({
+            title: a.title,
+            start_time: occ.start_time,
+            end_time: occ.end_time,
+          }))
+        );
+      const hits = findOverlaps({ start_time: startISO }, dayEvents);
+      if (hits.length === 0) return true;
+      const first = hits[0];
+      const t = new Date(first.start_time).toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit',
+      });
+      return showConfirm(
+        'Schedule conflict',
+        `This overlaps "${first.title}" at ${t}. Add it anyway?`,
+        'Add anyway'
+      );
+    } catch {
+      // Can't check — don't block the save
+      return true;
+    }
+  }, [familyId]);
+
   // Navigate weeks
   const shiftWeek = (direction: number) => {
     const d = new Date(selectedDate);
@@ -133,16 +190,28 @@ export default function CalendarScreen() {
     setSelectedDate(d);
   };
 
-  // Group appointments by day
+  // Expand recurring series into this week's occurrences, then group by day
   const appointmentsByDay = useMemo(() => {
-    const groups: Record<string, Appointment[]> = {};
+    const groups: Record<string, DisplayAppointment[]> = {};
     for (const appt of appointments) {
-      const day = appt.start_time.split('T')[0];
-      if (!groups[day]) groups[day] = [];
-      groups[day].push(appt);
+      for (const occ of expandOccurrences(appt, weekRange.start, weekRange.end)) {
+        const display: DisplayAppointment = {
+          ...appt,
+          start_time: occ.start_time,
+          end_time: occ.end_time,
+          occurrenceId: occ.occurrenceId,
+          isVirtual: occ.isVirtual,
+        };
+        const day = occ.start_time.split('T')[0];
+        if (!groups[day]) groups[day] = [];
+        groups[day].push(display);
+      }
+    }
+    for (const day of Object.keys(groups)) {
+      groups[day].sort((a, b) => a.start_time.localeCompare(b.start_time));
     }
     return groups;
-  }, [appointments]);
+  }, [appointments, weekRange.start, weekRange.end]);
 
   // Week days for header
   const weekDays = useMemo(() => {
@@ -327,12 +396,16 @@ export default function CalendarScreen() {
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
         onAddAppointment={async (data) => {
+          const proceed = await confirmNoOverlap(data.start_time);
+          if (!proceed) return false;
           await createAppointment(data);
           setShowAddModal(false);
+          return true;
         }}
         onAddDeadline={async (data) => {
           await createDeadline(data);
           setShowAddModal(false);
+          return true;
         }}
       />
     </SafeAreaView>
@@ -347,7 +420,7 @@ function DayGroup({
   onStatusChange,
 }: {
   date: string;
-  appointments: Appointment[];
+  appointments: DisplayAppointment[];
   onStatusChange: (id: string, status: Appointment['status']) => void;
 }) {
   const d = new Date(date + 'T00:00:00');
@@ -362,7 +435,7 @@ function DayGroup({
         <Text style={styles.dayGroupCount}>{appointments.length} event{appointments.length !== 1 ? 's' : ''}</Text>
       </View>
       {appointments.map((appt) => (
-        <AppointmentCard key={appt.id} appointment={appt} onStatusChange={onStatusChange} />
+        <AppointmentCard key={appt.occurrenceId} appointment={appt} onStatusChange={onStatusChange} />
       ))}
     </View>
   );
@@ -374,13 +447,18 @@ function AppointmentCard({
   appointment,
   onStatusChange,
 }: {
-  appointment: Appointment;
+  appointment: DisplayAppointment;
   onStatusChange: (id: string, status: Appointment['status']) => void;
 }) {
   const config = APPOINTMENT_TYPE_CONFIG[appointment.appointment_type ?? 'other'] ?? APPOINTMENT_TYPE_CONFIG.other;
   const startTime = formatTime(appointment.start_time);
   const endTime = appointment.end_time ? formatTime(appointment.end_time) : null;
   const isCancelled = appointment.status === 'cancelled';
+  const recurrenceLabel =
+    appointment.recurrence === 'weekly' ? 'Weekly'
+    : appointment.recurrence === 'biweekly' ? 'Every 2 weeks'
+    : appointment.recurrence === 'monthly' ? 'Monthly'
+    : null;
 
   return (
     <TouchableOpacity
@@ -399,19 +477,26 @@ function AppointmentCard({
         {appointment.location && (
           <Text style={styles.apptLocation} numberOfLines={1}>📍 {appointment.location}</Text>
         )}
-        <Text style={styles.apptType}>{config.label}</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.statusBadge}
-        onPress={() => {
-          const next = appointment.status === 'scheduled' ? 'completed' : 'scheduled';
-          onStatusChange(appointment.id, next as Appointment['status']);
-        }}
-      >
-        <Text style={styles.statusBadgeText}>
-          {appointment.status === 'completed' ? '✓' : '○'}
+        <Text style={styles.apptType}>
+          {config.label}{recurrenceLabel ? ` · 🔁 ${recurrenceLabel}` : ''}
         </Text>
-      </TouchableOpacity>
+      </View>
+      {/* Virtual occurrences share the series row — status lives on the base */}
+      {!appointment.isVirtual && (
+        <TouchableOpacity
+          style={styles.statusBadge}
+          onPress={() => {
+            const next = appointment.status === 'scheduled' ? 'completed' : 'scheduled';
+            onStatusChange(appointment.id, next as Appointment['status']);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={appointment.status === 'completed' ? 'Mark as not done' : 'Mark as done'}
+        >
+          <Text style={styles.statusBadgeText}>
+            {appointment.status === 'completed' ? '✓' : '○'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 }
@@ -472,8 +557,9 @@ function DeadlineCard({
 interface AddModalProps {
   visible: boolean;
   onClose: () => void;
-  onAddAppointment: (data: { title: string; start_time: string; appointment_type?: AppointmentType; location?: string }) => Promise<void>;
-  onAddDeadline: (data: { title: string; deadline_type: DeadlineType; due_date: string; notes?: string }) => Promise<void>;
+  /** Resolve true when saved (modal resets); false = kept open (e.g. overlap declined) */
+  onAddAppointment: (data: { title: string; start_time: string; appointment_type?: AppointmentType; location?: string; recurrence?: RecurrenceRule; recurrence_until?: string }) => Promise<boolean>;
+  onAddDeadline: (data: { title: string; deadline_type: DeadlineType; due_date: string; notes?: string }) => Promise<boolean>;
 }
 
 function AddModal({ visible, onClose, onAddAppointment, onAddDeadline }: AddModalProps) {
@@ -482,6 +568,8 @@ function AddModal({ visible, onClose, onAddAppointment, onAddDeadline }: AddModa
   const [dateStr, setDateStr] = useState('');
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
+  const [recurrence, setRecurrence] = useState<RecurrenceRule | null>(null);
+  const [recurrenceUntil, setRecurrenceUntil] = useState('');
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
@@ -489,6 +577,8 @@ function AddModal({ visible, onClose, onAddAppointment, onAddDeadline }: AddModa
     setDateStr('');
     setLocation('');
     setNotes('');
+    setRecurrence(null);
+    setRecurrenceUntil('');
     setSaving(false);
   };
 
@@ -497,21 +587,26 @@ function AddModal({ visible, onClose, onAddAppointment, onAddDeadline }: AddModa
     setSaving(true);
 
     try {
+      let saved: boolean;
       if (mode === 'appointment') {
-        await onAddAppointment({
+        saved = await onAddAppointment({
           title: title.trim(),
           start_time: new Date(dateStr).toISOString(),
           location: location.trim() || undefined,
+          recurrence: recurrence ?? undefined,
+          recurrence_until:
+            recurrence && /^\d{4}-\d{2}-\d{2}$/.test(recurrenceUntil) ? recurrenceUntil : undefined,
         });
       } else {
-        await onAddDeadline({
+        saved = await onAddDeadline({
           title: title.trim(),
           deadline_type: 'other',
           due_date: dateStr.trim(),
           notes: notes.trim() || undefined,
         });
       }
-      reset();
+      if (saved) reset();
+      else setSaving(false);
     } catch {
       setSaving(false);
     }
@@ -563,13 +658,45 @@ function AddModal({ visible, onClose, onAddAppointment, onAddDeadline }: AddModa
             accessibilityLabel={mode === 'appointment' ? 'Appointment date and time' : 'Due date'}
           />
           {mode === 'appointment' ? (
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Location (optional)"
-              placeholderTextColor={colors.mid}
-              value={location}
-              onChangeText={setLocation}
-            />
+            <>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Location (optional)"
+                placeholderTextColor={colors.mid}
+                value={location}
+                onChangeText={setLocation}
+              />
+              {/* Repeats — series expands on the calendar automatically */}
+              <View style={styles.recurrenceRow}>
+                {RECURRENCE_OPTIONS.map((opt) => (
+                  <TouchableOpacity
+                    key={opt.label}
+                    style={[styles.recurrencePill, recurrence === opt.value && styles.recurrencePillActive]}
+                    onPress={() => setRecurrence(opt.value)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: recurrence === opt.value }}
+                    accessibilityLabel={`Repeats: ${opt.label}`}
+                  >
+                    <Text style={[styles.recurrenceText, recurrence === opt.value && styles.recurrenceTextActive]}>
+                      {opt.value ? '🔁 ' : ''}{opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {recurrence && (
+                <DateInput
+                  style={styles.modalInput}
+                  value={recurrenceUntil}
+                  onChange={setRecurrenceUntil}
+                  accessibilityLabel="Repeat until (optional)"
+                />
+              )}
+              {recurrence && !recurrenceUntil && (
+                <Text style={styles.recurrenceHint}>
+                  Repeats {recurrence === 'biweekly' ? 'every 2 weeks' : recurrence} — set an end date above, or leave blank to repeat indefinitely.
+                </Text>
+              )}
+            </>
           ) : (
             <TextInput
               style={[styles.modalInput, { height: 60 }]}
@@ -788,6 +915,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md, paddingVertical: spacing.sm,
     fontSize: fonts.sizes.sm, color: colors.dark, marginBottom: spacing.sm,
   },
+  recurrenceRow: { flexDirection: 'row', gap: 6, marginBottom: spacing.sm },
+  recurrencePill: {
+    flex: 1, paddingVertical: 7, borderRadius: 12, backgroundColor: colors.light,
+    alignItems: 'center', minHeight: 32, justifyContent: 'center',
+  },
+  recurrencePillActive: { backgroundColor: colors.teal },
+  recurrenceText: { fontSize: 11, color: colors.dark, fontWeight: fonts.weights.medium },
+  recurrenceTextActive: { color: colors.white },
+  recurrenceHint: { fontSize: 11, color: colors.mid, marginBottom: spacing.sm },
   modalSaveButton: {
     backgroundColor: colors.teal, borderRadius: radii.md,
     paddingVertical: 12, alignItems: 'center', marginTop: spacing.sm,

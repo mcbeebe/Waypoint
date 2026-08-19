@@ -22,9 +22,17 @@ import DateInput from '@/components/DateInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily } from '@/hooks/useFamily';
 import { useExpenses } from '@/hooks/useExpenses';
+import { useDocuments } from '@/hooks/useDocuments';
 import { useToast } from '@/components/Toast';
-import type { Expense, ExpenseCategory, ReimbursementStatus } from '@/types/database';
+import type { Expense, ExpenseCategory, ReimbursementStatus, Document } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
+
+/**
+ * IRS medical-mileage rate: driving to therapy, evaluations, and medical
+ * appointments is deductible at this rate ($/mile). 2025 rate — update
+ * annually when the IRS publishes the new one.
+ */
+export const MEDICAL_MILEAGE_RATE = 0.21;
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -69,6 +77,9 @@ export default function ExpensesScreen() {
     deleteExpense,
     refetch,
   } = useExpenses({ familyId, categoryFilter });
+
+  // Receipt photos ride the existing document pipeline (2.1)
+  const { pickAndUpload } = useDocuments({ familyId });
 
   /** Group expenses by month */
   const groupedExpenses = useMemo(() => {
@@ -268,6 +279,7 @@ export default function ExpensesScreen() {
         expense={editingExpense}
         onSave={handleSave}
         onClose={() => { setShowAddModal(false); setEditingExpense(null); }}
+        onPickReceipt={() => pickAndUpload('other', 'Receipt')}
       />
     </SafeAreaView>
   );
@@ -310,6 +322,9 @@ function ExpenseRow({
         {expense.is_tax_deductible && (
           <Text style={styles.taxBadge}>Tax</Text>
         )}
+        {expense.receipt_document_id && (
+          <Text style={styles.receiptBadge} accessibilityLabel="Receipt attached">📎</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -322,56 +337,90 @@ function ExpenseModal({
   expense,
   onSave,
   onClose,
+  onPickReceipt,
 }: {
   visible: boolean;
   expense: Expense | null;
   onSave: (data: Parameters<ReturnType<typeof useExpenses>['createExpense']>[0], existingId?: string) => void;
   onClose: () => void;
+  onPickReceipt: () => Promise<Document | null>;
 }) {
+  const [entryMode, setEntryMode] = useState<'amount' | 'mileage'>('amount');
   const [amount, setAmount] = useState('');
+  const [miles, setMiles] = useState('');
   const [category, setCategory] = useState<ExpenseCategory>('therapy');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [fundingSource, setFundingSource] = useState('');
   const [isTaxDeductible, setIsTaxDeductible] = useState(false);
   const [reimbStatus, setReimbStatus] = useState<ReimbursementStatus>('none');
+  const [receiptDocId, setReceiptDocId] = useState<string | null>(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   // Pre-fill on edit
   React.useEffect(() => {
     if (expense) {
+      setEntryMode('amount');
       setAmount(expense.amount.toString());
+      setMiles('');
       setCategory(expense.category);
       setDescription(expense.description ?? '');
       setDate(expense.expense_date);
       setFundingSource(expense.funding_source ?? '');
       setIsTaxDeductible(expense.is_tax_deductible);
       setReimbStatus(expense.reimbursement_status);
+      setReceiptDocId(expense.receipt_document_id);
     } else {
+      setEntryMode('amount');
       setAmount('');
+      setMiles('');
       setCategory('therapy');
       setDescription('');
       setDate(new Date().toISOString().split('T')[0]);
       setFundingSource('');
       setIsTaxDeductible(false);
       setReimbStatus('none');
+      setReceiptDocId(null);
     }
+    setUploadingReceipt(false);
   }, [expense, visible]);
 
+  const parsedMiles = parseFloat(miles);
+  const mileageAmount = !isNaN(parsedMiles) && parsedMiles > 0
+    ? Math.round(parsedMiles * MEDICAL_MILEAGE_RATE * 100) / 100
+    : 0;
+
+  const handlePickReceipt = async () => {
+    if (uploadingReceipt) return;
+    setUploadingReceipt(true);
+    try {
+      const doc = await onPickReceipt();
+      if (doc) setReceiptDocId(doc.id);
+    } finally {
+      setUploadingReceipt(false);
+    }
+  };
+
   const handleSubmit = async () => {
-    const parsedAmount = parseFloat(amount);
+    const isMileage = entryMode === 'mileage';
+    const parsedAmount = isMileage ? mileageAmount : parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) return;
 
     setIsSaving(true);
     await onSave(
       {
         amount: parsedAmount,
-        category,
-        description: description || undefined,
+        category: isMileage ? 'transportation' : category,
+        description: isMileage
+          ? `${description.trim() || 'Mileage'} — ${parsedMiles} mi @ $${MEDICAL_MILEAGE_RATE.toFixed(2)}/mi`
+          : description || undefined,
         expense_date: date,
         funding_source: fundingSource || undefined,
-        is_tax_deductible: isTaxDeductible,
+        // Medical mileage is deductible by definition
+        is_tax_deductible: isMileage ? true : isTaxDeductible,
         reimbursement_status: reimbStatus,
+        receipt_document_id: receiptDocId,
       },
       expense?.id
     );
@@ -385,42 +434,110 @@ function ExpenseModal({
           <Text style={styles.modalTitle}>{expense ? 'Edit Expense' : 'Add Expense'}</Text>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Amount */}
-            <Text style={styles.fieldLabel}>Amount *</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="0.00"
-              placeholderTextColor={colors.mid}
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-            />
-
-            {/* Category */}
-            <Text style={styles.fieldLabel}>Category</Text>
-            <View style={styles.categoryGrid}>
-              {(Object.keys(CATEGORY_CONFIG) as ExpenseCategory[]).map((cat) => (
+            {/* Entry mode: dollar amount vs. mileage (auto-priced at the IRS rate) */}
+            {!expense && (
+              <View style={styles.entryModeRow}>
                 <TouchableOpacity
-                  key={cat}
-                  style={[styles.categoryOption, category === cat && { backgroundColor: CATEGORY_CONFIG[cat].color + '20', borderColor: CATEGORY_CONFIG[cat].color }]}
-                  onPress={() => setCategory(cat)}
+                  style={[styles.entryModePill, entryMode === 'amount' && styles.entryModePillActive]}
+                  onPress={() => setEntryMode('amount')}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: entryMode === 'amount' }}
                 >
-                  <Text style={styles.categoryOptionText}>
-                    {CATEGORY_CONFIG[cat].emoji} {CATEGORY_CONFIG[cat].label}
-                  </Text>
+                  <Text style={[styles.entryModeText, entryMode === 'amount' && styles.entryModeTextActive]}>💵 Amount</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
+                <TouchableOpacity
+                  style={[styles.entryModePill, entryMode === 'mileage' && styles.entryModePillActive]}
+                  onPress={() => setEntryMode('mileage')}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: entryMode === 'mileage' }}
+                >
+                  <Text style={[styles.entryModeText, entryMode === 'mileage' && styles.entryModeTextActive]}>🚗 Mileage</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {entryMode === 'mileage' ? (
+              <>
+                <Text style={styles.fieldLabel}>Miles driven *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="e.g. 24"
+                  placeholderTextColor={colors.mid}
+                  value={miles}
+                  onChangeText={setMiles}
+                  keyboardType="decimal-pad"
+                />
+                <Text style={styles.mileageHint}>
+                  {mileageAmount > 0
+                    ? `= $${mileageAmount.toFixed(2)} at the IRS medical rate ($${MEDICAL_MILEAGE_RATE.toFixed(2)}/mi) — logged as Transport, tax-deductible.`
+                    : `Priced automatically at the IRS medical rate: $${MEDICAL_MILEAGE_RATE.toFixed(2)}/mile.`}
+                </Text>
+              </>
+            ) : (
+              <>
+                {/* Amount */}
+                <Text style={styles.fieldLabel}>Amount *</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="0.00"
+                  placeholderTextColor={colors.mid}
+                  value={amount}
+                  onChangeText={setAmount}
+                  keyboardType="decimal-pad"
+                />
+
+                {/* Category */}
+                <Text style={styles.fieldLabel}>Category</Text>
+                <View style={styles.categoryGrid}>
+                  {(Object.keys(CATEGORY_CONFIG) as ExpenseCategory[]).map((cat) => (
+                    <TouchableOpacity
+                      key={cat}
+                      style={[styles.categoryOption, category === cat && { backgroundColor: CATEGORY_CONFIG[cat].color + '20', borderColor: CATEGORY_CONFIG[cat].color }]}
+                      onPress={() => setCategory(cat)}
+                    >
+                      <Text style={styles.categoryOptionText}>
+                        {CATEGORY_CONFIG[cat].emoji} {CATEGORY_CONFIG[cat].label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
 
             {/* Description */}
             <Text style={styles.fieldLabel}>Description</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="e.g., ABA therapy session"
+              placeholder={entryMode === 'mileage' ? 'e.g., Drive to ABA clinic' : 'e.g., ABA therapy session'}
               placeholderTextColor={colors.mid}
               value={description}
               onChangeText={setDescription}
             />
+
+            {/* Receipt — rides the document pipeline; the photo lands in Documents too */}
+            <Text style={styles.fieldLabel}>Receipt</Text>
+            {receiptDocId ? (
+              <View style={styles.receiptRow}>
+                <Text style={styles.receiptAttached}>📎 Receipt attached</Text>
+                <TouchableOpacity onPress={() => setReceiptDocId(null)} accessibilityRole="button" accessibilityLabel="Remove attached receipt">
+                  <Text style={styles.receiptRemove}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.receiptButton}
+                onPress={handlePickReceipt}
+                disabled={uploadingReceipt}
+                accessibilityRole="button"
+                accessibilityLabel="Attach a receipt photo or PDF"
+              >
+                {uploadingReceipt ? (
+                  <ActivityIndicator size="small" color={colors.teal} />
+                ) : (
+                  <Text style={styles.receiptButtonText}>📷 Attach receipt (photo or PDF)</Text>
+                )}
+              </TouchableOpacity>
+            )}
 
             {/* Date */}
             <Text style={styles.fieldLabel}>Date *</Text>
@@ -470,7 +587,7 @@ function ExpenseModal({
             <TouchableOpacity
               style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
               onPress={handleSubmit}
-              disabled={isSaving || !amount}
+              disabled={isSaving || (entryMode === 'mileage' ? mileageAmount <= 0 : !amount)}
             >
               {isSaving ? (
                 <ActivityIndicator size="small" color={colors.white} />
@@ -560,6 +677,21 @@ const styles = StyleSheet.create({
   reimbBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: radii.sm },
   reimbBadgeText: { fontSize: 9, fontWeight: fonts.weights.medium as '500' },
   taxBadge: { fontSize: 9, color: '#10B981', fontWeight: fonts.weights.medium as '500' },
+  receiptBadge: { fontSize: 11, marginTop: 1 },
+  entryModeRow: { flexDirection: 'row', gap: 8, marginBottom: spacing.sm },
+  entryModePill: { flex: 1, paddingVertical: 8, borderRadius: 12, backgroundColor: colors.light, alignItems: 'center', minHeight: 36, justifyContent: 'center' },
+  entryModePillActive: { backgroundColor: colors.teal },
+  entryModeText: { fontSize: 13, color: colors.dark, fontWeight: fonts.weights.medium as '500' },
+  entryModeTextActive: { color: colors.white },
+  mileageHint: { fontSize: 11, color: '#047857', marginBottom: spacing.sm, lineHeight: 15 },
+  receiptRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
+  receiptAttached: { fontSize: fonts.sizes.sm, color: colors.dark },
+  receiptRemove: { fontSize: fonts.sizes.xs, color: '#DC2626' },
+  receiptButton: {
+    borderWidth: 1, borderColor: colors.teal, borderStyle: 'dashed', borderRadius: radii.md,
+    paddingVertical: spacing.sm, alignItems: 'center', minHeight: 40, justifyContent: 'center',
+  },
+  receiptButtonText: { fontSize: fonts.sizes.sm, color: colors.teal, fontWeight: fonts.weights.medium as '500' },
   emptyState: { alignItems: 'center', paddingTop: 80 },
   emptyEmoji: { fontSize: 48, marginBottom: spacing.md },
   emptyTitle: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold as '700', color: colors.navy },
