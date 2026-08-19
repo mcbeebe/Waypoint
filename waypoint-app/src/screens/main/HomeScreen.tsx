@@ -372,6 +372,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             { icon: 'newspaper-outline', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog' }) },
             { icon: 'cash-outline', label: 'Expenses', go: () => (navigation as any).navigate('Calendar', { screen: 'Expenses' }) },
             { icon: 'receipt-outline', label: 'Tax Report', go: () => (navigation as any).navigate('Calendar', { screen: 'TaxReport' }) },
+            { icon: 'shield-checkmark-outline', label: 'Insurance', go: () => (navigation as any).navigate('Insurance') },
             { icon: 'medkit-outline', label: 'Providers', go: () => (navigation as any).navigate('Providers') },
             { icon: 'layers-outline', label: 'Services', go: () => (navigation as any).navigate('Services') },
             { icon: 'bar-chart-outline', label: 'Insights', go: () => (navigation as any).navigate('Insights') },

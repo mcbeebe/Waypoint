@@ -14,6 +14,10 @@ export interface Family {
   school_district: string | null;
   insurance_carrier: string | null;
   insurance_plan: string | null;
+  /** Plan/card details for the insurance tracker (028) */
+  insurance_member_id: string | null;
+  insurance_group_number: string | null;
+  insurance_phone: string | null;
   income_bracket: string | null;
   onboarding_completed: boolean;
   /** Set when the family affirmatively consented to AI features (015) */
@@ -419,6 +423,30 @@ export interface Appointment {
   reminder_sent: boolean;
   status: AppointmentStatus;
   google_calendar_event_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Insurance tracker (028, roadmap 5.3 slim v1) ───────────────────────────
+
+export type AuthorizationStatus = 'pending' | 'active' | 'denied' | 'appealing' | 'expired';
+
+export interface InsuranceAuthorization {
+  id: string;
+  family_id: string;
+  child_id: string | null;
+  /** What was authorized/denied, e.g. 'ABA — 20 hrs/wk' */
+  service: string;
+  provider_name: string | null;
+  authorization_number: string | null;
+  status: AuthorizationStatus;
+  start_date: string | null;
+  end_date: string | null;
+  denial_date: string | null;
+  denial_reason: string | null;
+  notes: string | null;
+  /** Linked authorization_expiry deadline (renewal reminder) */
+  deadline_id: string | null;
   created_at: string;
   updated_at: string;
 }

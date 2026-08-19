@@ -70,6 +70,7 @@ const linking: LinkingOptions<RootStackParamList> = {
               CommunicationLog: 'paper-trail',
               Providers: 'providers',
               Services: 'services',
+              Insurance: 'insurance',
               HealthRecords: 'health-records',
               FamilySharing: 'family',
               ProviderPortal: 'provider-portal',
