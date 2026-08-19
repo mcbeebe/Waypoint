@@ -25,6 +25,7 @@ const vi: TranslationStrings = {
 
   tabs: {
     home: 'Trang chủ',
+    journey: 'Hành trình',
     askAi: 'Hỏi AI',
     actions: 'Hành động',
     calendar: 'Lịch',

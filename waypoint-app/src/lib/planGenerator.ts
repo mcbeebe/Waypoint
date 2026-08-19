@@ -16,7 +16,6 @@
  * - smsReminder                          → follow_up_note
  */
 
-import { supabase } from '@/lib/supabase';
 import type { ActionCategory, ActionPriority, ActionStep } from '@/types/database';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -219,6 +218,10 @@ export async function reseedStarterPlan(
 ): Promise<number> {
   try {
     const fresh = generateStarterPlan(intake);
+
+    // Deferred import keeps this module importable in vitest (the supabase
+    // client pulls in react-native, whose Flow syntax vitest can't parse)
+    const { supabase } = await import('@/lib/supabase');
 
     const { data: existing, error: fetchError } = await supabase
       .from('actions')

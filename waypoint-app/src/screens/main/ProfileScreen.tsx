@@ -21,6 +21,7 @@ import DateInput from '@/components/DateInput';
 import SelectGrid from '@/components/SelectGrid';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { reseedStarterPlan } from '@/lib/planGenerator';
+import { exportFamilyData } from '@/lib/dataExport';
 import { lookupRC } from '@/data/regionalCenters';
 import { signOut } from '@/lib/auth';
 import {
@@ -108,6 +109,21 @@ export default function ProfileScreen() {
   const [showAddChild, setShowAddChild] = useState(false);
   const [newChildName, setNewChildName] = useState('');
   const [addingChild, setAddingChild] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportData = useCallback(async () => {
+    if (!family?.id || exporting) return;
+    setExporting(true);
+    try {
+      const result = await exportFamilyData(family.id);
+      showToast(
+        result.ok ? 'Export ready — check your downloads' : result.error ?? 'Export failed',
+        result.ok ? 'success' : 'error'
+      );
+    } finally {
+      setExporting(false);
+    }
+  }, [family?.id, exporting, showToast]);
 
   // Populate form from database
   useEffect(() => {
@@ -727,6 +743,22 @@ export default function ProfileScreen() {
             title={family?.ai_consent_at ? 'Turn off AI features' : 'Enable AI features'}
             onPress={handleToggleAIConsent}
             variant="outline"
+          />
+        </View>
+
+        {/* Data export — everything the family owns, as one JSON file */}
+        <Text style={styles.sectionTitle}>Your Data</Text>
+        <View style={styles.card}>
+          <Text style={styles.privacyStatus}>
+            Download everything Waypoint stores for your family — profile, children, actions,
+            appointments, expenses, chats, contacts, and more — as a single JSON file.
+            Document files stay in Documents, where you can download them individually.
+          </Text>
+          <Button
+            title={exporting ? 'Preparing export…' : '⬇️ Export my data'}
+            onPress={handleExportData}
+            variant="outline"
+            disabled={exporting}
           />
         </View>
 

@@ -357,9 +357,9 @@ export default function MainTabs() {
         name="JourneyTab"
         component={JourneyStack}
         options={{
-          tabBarLabel: 'Journey',
+          tabBarLabel: t.tabs.journey,
           tabBarIcon: tabIcon('map-outline', 'map'),
-          tabBarAccessibilityLabel: 'Journey',
+          tabBarAccessibilityLabel: t.tabs.journey,
           // Desktop-only entry: hide from the phone bottom bar
           ...(isDesktop ? {} : { tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }),
         }}
