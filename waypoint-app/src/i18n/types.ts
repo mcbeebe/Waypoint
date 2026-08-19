@@ -46,6 +46,7 @@ export interface TranslationStrings {
   // ─── Tabs ────────────────────────────────────────────────
   tabs: {
     home: string;
+    journey: string;
     askAi: string;
     actions: string;
     calendar: string;

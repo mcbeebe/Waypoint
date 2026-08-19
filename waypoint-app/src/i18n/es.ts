@@ -25,6 +25,7 @@ const es: TranslationStrings = {
 
   tabs: {
     home: 'Inicio',
+    journey: 'Trayecto',
     askAi: 'Consultar IA',
     actions: 'Acciones',
     calendar: 'Calendario',
