@@ -40,6 +40,10 @@ export interface Child {
   date_of_birth: string | null;
   gender: string | null;
   is_primary: boolean;
+  /** School this child attends — preloads into letter drafts (030) */
+  school_name: string | null;
+  /** Current grade, free text e.g. "3rd", "TK" (030) */
+  grade: string | null;
   rc_status: RcStatus | null;
   iep_status: IepStatus | null;
   iep_last_annual_review: string | null;

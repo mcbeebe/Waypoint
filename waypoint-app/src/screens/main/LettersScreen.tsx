@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
-import { useFamily } from '@/hooks/useFamily';
+import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useToast } from '@/components/Toast';
 import AIConsentModal from '@/components/AIConsentModal';
 import Button from '@/components/Button';
@@ -27,10 +27,13 @@ import {
   LETTER_TEMPLATES,
   TONE_OPTIONS,
   generateLetter,
-  openInGmail,
   type DraftTone,
   type LetterTemplate,
 } from '@/lib/letters';
+import { fillKnownBlanks, analyzeBlanks, type LetterProfile } from '@/lib/draftBlanks';
+import { composeTarget, LONG_BODY_CHARS } from '@/lib/emailCompose';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useI18n } from '@/i18n';
 import { trackDraftUsed } from '@/lib/analytics';
 import { logCommunication } from '@/hooks/useCommunications';
@@ -41,10 +44,27 @@ import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 export default function LettersScreen() {
   const { family, updateFamily } = useFamily();
+  const { children } = useChildren(family?.id);
   const { showToast } = useToast();
   const { locale } = useI18n();
   const route = useRoute<RouteProp<HomeStackParamList, 'Letters'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const hasAIConsent = !!family?.ai_consent_at;
+
+  /** Everything the app already knows that letters routinely ask for */
+  const primaryChild = children.find((c) => c.is_primary) ?? children[0];
+  const letterProfile: LetterProfile = React.useMemo(() => ({
+    parentFirstName: family?.parent_first_name,
+    parentLastName: family?.parent_last_name,
+    email: family?.email,
+    phone: family?.phone,
+    childFirstName: primaryChild?.first_name,
+    childGrade: primaryChild?.grade,
+    schoolName: primaryChild?.school_name,
+    schoolDistrict: family?.school_district,
+    regionalCenter: family?.regional_center,
+    insurance: family?.insurance_carrier,
+  }), [family, primaryChild]);
 
   const [template, setTemplate] = useState<LetterTemplate | null>(null);
   const [chatGuidance, setChatGuidance] = useState<string | null>(null);
@@ -103,12 +123,18 @@ export default function LettersScreen() {
       showToast(result.error ?? 'Could not generate the draft — please try again.', 'error');
       return;
     }
-    setDraft(result.draft);
+    // Safety net: if the model bracketed something the profile already
+    // knows, fill it in rather than making the parent type it again.
+    const { text, filled } = fillKnownBlanks(result.draft, letterProfile);
+    setDraft(text);
+    if (filled.length > 0) {
+      showToast(`Filled in from your profile: ${filled.join(', ').toLowerCase()}`, 'success');
+    }
     if (family?.id) {
       // Anonymous usage analytics (fire-and-forget)
       trackDraftUsed(family.id, template.key, family.regional_center ?? undefined);
     }
-  }, [template, tone, question, chatGuidance, hasAIConsent, locale, showToast, family]);
+  }, [template, tone, question, chatGuidance, hasAIConsent, locale, showToast, family, letterProfile]);
 
   /** Which system this letter targets, for the paper-trail entry */
   const ORG_BY_TEMPLATE: Partial<Record<string, CommunicationOrg>> = {
@@ -141,16 +167,41 @@ export default function LettersScreen() {
     showToast('Draft copied — logged to your paper trail.', 'success');
   }, [draft, showToast, logDraftOnce]);
 
-  const handleGmail = useCallback(() => {
-    if (!draft || !template) return;
-    const subject = `${template.title} — ${family?.parent_first_name ?? ''}`.trim();
-    const url =
-      Platform.OS === 'web'
-        ? openInGmail(subject, draft)
-        : `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(draft)}`;
+  /**
+   * Where "send this" goes depends on the device: desktop browsers get
+   * Gmail's compose window, but phones get a mailto: link — Gmail's web
+   * compose URL is hijacked on mobile by a "Gmail is better on the app"
+   * interstitial that throws the draft away.
+   */
+  const composeEnv = {
+    platformOS: Platform.OS,
+    userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+    maxTouchPoints: typeof navigator !== 'undefined' ? navigator.maxTouchPoints : undefined,
+  };
+  const target = draft && template
+    ? composeTarget(
+        { subject: `${template.title} — ${family?.parent_first_name ?? ''}`.trim(), body: draft },
+        composeEnv
+      )
+    : null;
+
+  const handleSend = useCallback(async () => {
+    if (!draft || !target) return;
     logDraftOnce();
-    Linking.openURL(url).catch(() => showToast('Could not open your email app.', 'error'));
-  }, [draft, template, family, showToast, logDraftOnce]);
+    // Long drafts can get truncated by a mail app's URL handling — put the
+    // full text on the clipboard first so nothing is ever lost.
+    const long = draft.length > LONG_BODY_CHARS;
+    if (long) await Clipboard.setStringAsync(draft);
+    try {
+      await Linking.openURL(target.url);
+      if (long) {
+        showToast('Draft copied too — paste it if your email app cut it short.', 'info');
+      }
+    } catch {
+      await Clipboard.setStringAsync(draft);
+      showToast('Could not open your email app — the draft is copied, paste it there.', 'error');
+    }
+  }, [draft, target, showToast, logDraftOnce]);
 
   const reset = () => {
     setDraft(null);
@@ -267,12 +318,11 @@ export default function LettersScreen() {
             </TouchableOpacity>
             <Text style={styles.stepTitle}>Your draft — edit anything, then send</Text>
             {(() => {
-              // [BRACKET] highlighting (wave 4): surface the blanks the
-              // parent still needs to fill before this is sendable
-              const blanks = Array.from(
-                new Set((draft.match(/\[[^\]\n]{1,40}\]/g) ?? []).map((b) => b.trim()))
-              );
-              if (blanks.length === 0) {
+              // Blanks left after the profile fill: show what's still needed,
+              // and separate "we could remember this for you" from the ones
+              // only the parent can answer (dates, times, specifics).
+              const { remaining, fixableInProfile } = analyzeBlanks(draft, letterProfile);
+              if (remaining.length === 0) {
                 return (
                   <View style={styles.blanksDone}>
                     <Text style={styles.blanksDoneText}>✅ No blanks left — ready to send</Text>
@@ -282,18 +332,39 @@ export default function LettersScreen() {
               return (
                 <View style={styles.blanksCard}>
                   <Text style={styles.blanksTitle}>
-                    Fill in {blanks.length} blank{blanks.length === 1 ? '' : 's'} before sending:
+                    Fill in {remaining.length} blank{remaining.length === 1 ? '' : 's'} before sending:
                   </Text>
                   <View style={styles.blanksRow}>
-                    {blanks.slice(0, 8).map((b) => (
+                    {remaining.slice(0, 8).map((b) => (
                       <View key={b} style={styles.blankChip}>
                         <Text style={styles.blankChipText}>{b}</Text>
                       </View>
                     ))}
-                    {blanks.length > 8 && (
-                      <Text style={styles.blanksMore}>+{blanks.length - 8} more</Text>
+                    {remaining.length > 8 && (
+                      <Text style={styles.blanksMore}>+{remaining.length - 8} more</Text>
                     )}
                   </View>
+                  <Text style={styles.blanksHint}>
+                    Edit them right here in the draft, or in your email app before you send.
+                    {fixableInProfile.length > 0
+                      ? ` ${fixableInProfile.length} of these (${fixableInProfile
+                          .map((f) => f.label.toLowerCase())
+                          .join(', ')}) can live in your profile — save them once and every future
+                          draft fills itself in.`
+                      : ''}
+                  </Text>
+                  {fixableInProfile.length > 0 && (
+                    <TouchableOpacity
+                      style={styles.blanksProfileButton}
+                      onPress={() => (navigation as never as { navigate: (n: string) => void }).navigate('Profile')}
+                      accessibilityRole="button"
+                      accessibilityLabel="Save these details in your profile"
+                    >
+                      <Text style={styles.blanksProfileButtonText}>
+                        Save these in my profile →
+                      </Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               );
             })()}
@@ -306,11 +377,7 @@ export default function LettersScreen() {
             />
             <View style={styles.actionRow}>
               <Button title="Copy" onPress={handleCopy} variant="primary" />
-              <Button
-                title={Platform.OS === 'web' ? 'Open in Gmail' : 'Open in Email'}
-                onPress={handleGmail}
-                variant="outline"
-              />
+              <Button title={target?.label ?? 'Open in Mail app'} onPress={handleSend} variant="outline" />
             </View>
             <Button title="Start a new letter" onPress={reset} variant="outline" />
             <Text style={styles.disclaimer}>
@@ -440,6 +507,29 @@ const styles = StyleSheet.create({
   blanksMore: {
     fontSize: fonts.sizes.xs,
     color: '#B45309',
+  },
+  blanksHint: {
+    fontSize: fonts.sizes.xs,
+    color: '#92400E',
+    lineHeight: 16,
+    marginTop: 6,
+  },
+  blanksProfileButton: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.sm,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#B45309',
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  blanksProfileButtonText: {
+    fontSize: fonts.sizes.xs,
+    color: '#B45309',
+    fontWeight: fonts.weights.semibold as '600',
   },
   blanksDone: {
     backgroundColor: '#DCFCE7',

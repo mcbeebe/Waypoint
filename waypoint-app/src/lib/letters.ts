@@ -120,11 +120,6 @@ export async function analyzeEmail(
   }
 }
 
-/**
- * Open a prefilled Gmail compose window (web). Works without any OAuth —
- * it's just a URL. Falls back to mailto: elsewhere.
- */
-export function openInGmail(subject: string, body: string): string {
-  const params = new URLSearchParams({ view: 'cm', su: subject, body });
-  return `https://mail.google.com/mail/?${params.toString()}`;
-}
+// Compose-URL building moved to lib/emailCompose.ts, which routes phones to
+// mailto: — Gmail's web compose URL is intercepted on mobile by an
+// app-install interstitial that discards the prefilled draft.

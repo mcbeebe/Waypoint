@@ -39,6 +39,7 @@ import AIConsentModal from '@/components/AIConsentModal';
 import ChatMetaCards from '@/components/ChatMetaCards';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
 import { hideStreamingTrailer, hasRichMeta, type ChatStep } from '@/lib/followups';
+import { composeTarget } from '@/lib/emailCompose';
 import { useI18n } from '@/i18n';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -359,22 +360,24 @@ export default function NavigatorScreen() {
   }, []);
 
   /**
-   * Hand the drafted email to the user's own mail app: Gmail compose URL on
-   * web, mailto elsewhere. No Gmail API scope needed — the user reviews and
-   * hits send themselves.
+   * Hand the drafted email to the user's own mail app. Desktop browsers get
+   * Gmail's compose window; phones get mailto: — Gmail's web compose URL is
+   * intercepted on mobile by an app-install interstitial that discards the
+   * draft. No Gmail API scope needed either way: the user hits send.
    */
   const handleSendEmail = useCallback(async () => {
     if (!emailComposeMessage) return;
     setIsSendingEmail(true);
     try {
-      const to = encodeURIComponent(emailTo.trim());
-      const subject = encodeURIComponent(emailSubject);
       const bodyText = stripInlineMarkdown(emailComposeMessage.content);
-      const body = encodeURIComponent(bodyText);
-      const url =
-        Platform.OS === 'web'
-          ? `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`
-          : `mailto:${to}?subject=${subject}&body=${body}`;
+      const { url } = composeTarget(
+        { to: emailTo.trim() || undefined, subject: emailSubject, body: bodyText },
+        {
+          platformOS: Platform.OS,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+          maxTouchPoints: typeof navigator !== 'undefined' ? navigator.maxTouchPoints : undefined,
+        }
+      );
       await Linking.openURL(url);
       // Paper trail: record that this guidance went out by email
       if (family?.id) {
