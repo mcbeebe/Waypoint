@@ -7,6 +7,27 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Appointment, AppointmentType, AppointmentStatus } from '@/types/database';
 
+/**
+ * Recurrence (migration 029) may not be applied against this project yet.
+ * Without this guard a missing column fails EVERY appointment read and
+ * write, which surfaces as a permanently empty calendar — so detect it
+ * once and fall back to the pre-029 behaviour for the rest of the session.
+ */
+let recurrenceColumnAvailable = true;
+
+export function isRecurrenceSupported(): boolean {
+  return recurrenceColumnAvailable;
+}
+
+/** True (and latches the fallback) when an error is the missing column. */
+export function noteIfRecurrenceMissing(message: string | undefined): boolean {
+  if (!message) return false;
+  const missing =
+    /recurrence/i.test(message) && /does not exist|schema cache|could not find/i.test(message);
+  if (missing) recurrenceColumnAvailable = false;
+  return missing;
+}
+
 interface UseAppointmentsOptions {
   familyId: string;
   dateRange?: { start: string; end: string };
@@ -34,7 +55,7 @@ export function useAppointments(options: UseAppointmentsOptions) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchAppointments = useCallback(async () => {
-    try {
+    const runQuery = (withRecurrence: boolean) => {
       let query = supabase
         .from('appointments')
         .select('*')
@@ -42,15 +63,30 @@ export function useAppointments(options: UseAppointmentsOptions) {
         .order('start_time', { ascending: true });
 
       if (dateRange) {
-        // Recurring bases must load regardless of when their first
-        // occurrence was — their virtual occurrences may fall in range
-        query = query.or(
-          `and(start_time.gte.${dateRange.start},start_time.lte.${dateRange.end}),recurrence.not.is.null`
-        );
+        if (withRecurrence) {
+          // Recurring bases must load regardless of when their first
+          // occurrence was — their virtual occurrences may fall in range
+          query = query.or(
+            `and(start_time.gte.${dateRange.start},start_time.lte.${dateRange.end}),recurrence.not.is.null`
+          );
+        } else {
+          query = query.gte('start_time', dateRange.start).lte('start_time', dateRange.end);
+        }
+      }
+      return query;
+    };
+
+    try {
+      let { data, error: dbError } = await runQuery(recurrenceColumnAvailable);
+
+      // Pre-029 database: retry without the recurrence filter so the
+      // calendar still shows this week's appointments
+      if (dbError && noteIfRecurrenceMissing(dbError.message)) {
+        ({ data, error: dbError } = await runQuery(false));
       }
 
-      const { data, error: dbError } = await query;
       if (dbError) throw new Error(dbError.message);
+      setError(null);
       setAppointments((data as Appointment[]) ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -65,24 +101,40 @@ export function useAppointments(options: UseAppointmentsOptions) {
 
   const createAppointment = useCallback(async (data: CreateAppointmentInput): Promise<Appointment | null> => {
     setError(null);
-    try {
-      const { data: created, error: dbError } = await supabase
+    const baseRow = {
+      family_id: familyId,
+      title: data.title,
+      appointment_type: data.appointment_type ?? null,
+      start_time: data.start_time,
+      end_time: data.end_time ?? null,
+      child_id: data.child_id ?? null,
+      provider_id: data.provider_id ?? null,
+      location: data.location ?? null,
+      notes: data.notes ?? null,
+    };
+    const insert = (withRecurrence: boolean) =>
+      supabase
         .from('appointments')
-        .insert({
-          family_id: familyId,
-          title: data.title,
-          appointment_type: data.appointment_type ?? null,
-          start_time: data.start_time,
-          end_time: data.end_time ?? null,
-          child_id: data.child_id ?? null,
-          provider_id: data.provider_id ?? null,
-          location: data.location ?? null,
-          notes: data.notes ?? null,
-          recurrence: data.recurrence ?? null,
-          recurrence_until: data.recurrence_until ?? null,
-        })
+        .insert(
+          withRecurrence
+            ? {
+                ...baseRow,
+                recurrence: data.recurrence ?? null,
+                recurrence_until: data.recurrence_until ?? null,
+              }
+            : baseRow
+        )
         .select()
         .single();
+
+    try {
+      let { data: created, error: dbError } = await insert(recurrenceColumnAvailable);
+
+      // Pre-029 database: save the appointment without its repeat rule
+      // rather than losing it entirely
+      if (dbError && noteIfRecurrenceMissing(dbError.message)) {
+        ({ data: created, error: dbError } = await insert(false));
+      }
 
       if (dbError) throw new Error(dbError.message);
       const appointment = created as Appointment;
