@@ -690,7 +690,9 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
   }
 
   // ── ADHD-specific ─────────────────────────────────────────────────────────
-  if (hasDx('adhd')) {
+  // Gated on needsIEP: a child who already HAS an active IEP doesn't need to
+  // be told to request an evaluation — that step is behind them.
+  if (hasDx('adhd') && needsIEP && iepStatus !== 'na') {
     actions.push(buildAction({
       category: 'iep',
       title: 'Request 504 Plan or IEP evaluation',
@@ -888,7 +890,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
   }
 
   // ── Speech/Language Impairment-specific ───────────────────────────────────
-  if (hasDx('sli') && !hasDx('autism')) {
+  if (hasDx('sli') && !hasDx('autism') && needsIEP && iepStatus !== 'na') {
     actions.push(buildAction({
       category: 'iep',
       title: 'Request speech/language IEP evaluation',

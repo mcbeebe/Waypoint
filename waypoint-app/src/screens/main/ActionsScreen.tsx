@@ -27,6 +27,8 @@ import { useActions } from '@/hooks/useActions';
 import { useToast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
 import CompletionCheckIn from '@/components/CompletionCheckIn';
+import SwipeableRow, { type SwipeAction } from '@/components/SwipeableRow';
+import ActionFormModal, { type ActionFormValues } from '@/components/ActionFormModal';
 import { FOLLOWUPS } from '@/lib/adaptiveEngine';
 import { trackActionOutcome } from '@/lib/analytics';
 import { SkeletonCard } from '@/components/ui';
@@ -70,6 +72,7 @@ export default function ActionsScreen() {
   const { showToast } = useToast();
   const [activeFilter, setActiveFilter] = useState<ActionStatus | 'all'>('all');
   const [checkInAction, setCheckInAction] = useState<Action | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const statusFilter = activeFilter === 'all'
     ? undefined
@@ -81,6 +84,7 @@ export default function ActionsScreen() {
     error,
     stats,
     updateStatus,
+    createAction,
     refetch,
   } = useActions({
     familyId: family?.id ?? '',
@@ -159,12 +163,88 @@ export default function ActionsScreen() {
     }
   };
 
+  /** Direct status set (swipe buttons), with the same check-in + analytics */
+  const setStatus = useCallback(
+    (action: Action, next: ActionStatus) => {
+      updateStatus(action.id, next);
+      if (next === 'completed' && family?.id) {
+        trackActionOutcome(family.id, action.category, 'completed', family.regional_center ?? undefined);
+      }
+      if (next === 'completed' && action.follow_up_key && FOLLOWUPS[action.follow_up_key]) {
+        setCheckInAction(action);
+      }
+      const said: Record<ActionStatus, string> = {
+        not_started: 'Moved back to To Do',
+        in_progress: 'Marked in progress',
+        completed: 'Nice — marked done',
+        dismissed: 'Cancelled',
+      };
+      showToast(said[next], 'success');
+    },
+    [updateStatus, family?.id, family?.regional_center, showToast]
+  );
+
+  /** What a swipe reveals depends on where the action currently stands */
+  const swipeActionsFor = useCallback(
+    (action: Action): SwipeAction[] => {
+      switch (action.status) {
+        case 'not_started':
+          return [
+            { label: 'Start', icon: '◐', color: colors.teal, onPress: () => setStatus(action, 'in_progress') },
+            { label: 'Done', icon: '✓', color: '#10B981', onPress: () => setStatus(action, 'completed') },
+            { label: 'Cancel', icon: '✕', color: '#94A3B8', onPress: () => setStatus(action, 'dismissed') },
+          ];
+        case 'in_progress':
+          return [
+            { label: 'Done', icon: '✓', color: '#10B981', onPress: () => setStatus(action, 'completed') },
+            { label: 'To Do', icon: '○', color: '#94A3B8', onPress: () => setStatus(action, 'not_started') },
+            { label: 'Cancel', icon: '✕', color: '#CBD5E1', onPress: () => setStatus(action, 'dismissed') },
+          ];
+        default:
+          return [
+            { label: 'Reopen', icon: '↺', color: colors.teal, onPress: () => setStatus(action, 'not_started') },
+          ];
+      }
+    },
+    [setStatus]
+  );
+
+  const handleCreate = useCallback(
+    async (values: ActionFormValues): Promise<boolean> => {
+      const created = await createAction({
+        title: values.title,
+        description: values.description ?? undefined,
+        category: values.category,
+        priority: values.priority,
+        due_date: values.due_date ?? undefined,
+        script: values.script ?? undefined,
+        steps: values.steps ?? undefined,
+        child_id: primaryChild?.id,
+        source: 'manual',
+      });
+      showToast(created ? 'Added to your plan' : "Couldn't add that — please try again.", created ? 'success' : 'error');
+      if (created) refetchAll();
+      return !!created;
+    },
+    [createAction, primaryChild?.id, showToast, refetchAll]
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Action Plan</Text>
-        <Text style={styles.headerSubtitle}>Your personalized next steps</Text>
+        <View style={styles.headerTextCol}>
+          <Text style={styles.headerTitle}>Action Plan</Text>
+          <Text style={styles.headerSubtitle}>Your personalized next steps</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setShowCreate(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Add your own action"
+        >
+          <Text style={styles.addButtonText}>＋</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Progress Dashboard */}
@@ -216,12 +296,14 @@ export default function ActionsScreen() {
         data={sortedActions}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ActionCard
-            action={item}
-            locked={isLocked(item)}
-            onStatusPress={() => handleCycleStatus(item)}
-            onOpenDetail={() => (navigation as any).navigate('ActionDetail', { actionId: item.id })}
-          />
+          <SwipeableRow actions={swipeActionsFor(item)} enabled={!isLocked(item)} style={styles.swipeRow}>
+            <ActionCard
+              action={item}
+              locked={isLocked(item)}
+              onStatusPress={() => handleCycleStatus(item)}
+              onOpenDetail={() => (navigation as any).navigate('ActionDetail', { actionId: item.id })}
+            />
+          </SwipeableRow>
         )}
         contentContainerStyle={styles.listContent}
         refreshControl={
@@ -238,7 +320,7 @@ export default function ActionsScreen() {
             <EmptyState
               emoji="📋"
               title="No actions yet"
-              subtitle="Ask the AI Navigator a question — it will suggest concrete next steps you can save here."
+              subtitle="Ask the AI Navigator a question and save the steps it suggests — or tap ＋ above to write your own."
               actionLabel="Ask AI Navigator"
               onAction={() => (navigation as any).navigate('Navigator')}
             />
@@ -268,6 +350,13 @@ export default function ActionsScreen() {
           refetch();
           refetchAll();
         }}
+      />
+
+      {/* Write your own action — no AI chat required */}
+      <ActionFormModal
+        visible={showCreate}
+        onClose={() => setShowCreate(false)}
+        onSubmit={handleCreate}
       />
     </SafeAreaView>
   );
@@ -487,6 +576,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFB',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
@@ -494,6 +586,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  headerTextCol: { flex: 1 },
+  addButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: colors.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonText: { fontSize: 20, color: colors.white, fontWeight: '700', lineHeight: 24 },
   headerTitle: {
     fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold,
@@ -576,11 +678,11 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: spacing['2xl'],
   },
+  swipeRow: { marginBottom: spacing.sm },
   card: {
     backgroundColor: colors.white,
     borderRadius: radii.md,
     padding: spacing.md,
-    marginBottom: spacing.sm,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
