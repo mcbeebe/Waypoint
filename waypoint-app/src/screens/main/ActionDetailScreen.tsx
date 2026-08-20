@@ -31,6 +31,7 @@ import { useTextScale } from '@/lib/textSize';
 import { parseActionDescription, extractLinks, formatActionForSharing } from '@/lib/actionContent';
 import LearnMoreSheet, { LEARN_MORE_BY_ACTION_TITLE } from '@/components/LearnMoreSheet';
 import ActionEventModal from '@/components/ActionEventModal';
+import ActionFormModal, { type ActionFormValues } from '@/components/ActionFormModal';
 import DateInput from '@/components/DateInput';
 import { getCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
 
@@ -77,6 +78,7 @@ export default function ActionDetailScreen({
   const [showDismissInput, setShowDismissInput] = useState(false);
   const [learnKey, setLearnKey] = useState<string | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   // Deadline editing: the due date is system-suggested but user-editable
   const [editingDue, setEditingDue] = useState(false);
   const [dueDraft, setDueDraft] = useState('');
@@ -198,6 +200,14 @@ export default function ActionDetailScreen({
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
         <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => setShowEditModal(true)}
+            style={styles.editButton}
+            accessibilityRole="button"
+            accessibilityLabel="Edit this action"
+          >
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={handleShare}
             style={styles.shareButton}
@@ -566,6 +576,19 @@ export default function ActionDetailScreen({
       </ScrollView>
 
       <LearnMoreSheet learnKey={learnKey} onClose={() => setLearnKey(null)} />
+
+      {/* Every field is the parent's to override — including on plans
+          Waypoint generated */}
+      <ActionFormModal
+        visible={showEditModal}
+        action={action}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={async (values: ActionFormValues) => {
+          onUpdate(values);
+          showToast('Action updated', 'success');
+          return true;
+        }}
+      />
 
       <ActionEventModal
         visible={showEventModal}
@@ -996,6 +1019,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
+  },
+  editButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    borderColor: colors.teal,
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  editButtonText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    fontWeight: fonts.weights.semibold as '600',
   },
   shareButton: {
     width: 34,

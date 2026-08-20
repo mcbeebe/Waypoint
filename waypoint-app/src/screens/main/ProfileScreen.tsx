@@ -22,6 +22,7 @@ import SelectGrid from '@/components/SelectGrid';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { reseedStarterPlan } from '@/lib/planGenerator';
 import { exportFamilyData } from '@/lib/dataExport';
+import { closeObsoleteActions } from '@/lib/actionReconcile';
 import { lookupRC } from '@/data/regionalCenters';
 import { signOut } from '@/lib/auth';
 import {
@@ -188,8 +189,9 @@ export default function ProfileScreen() {
     }
     showToast('Saved', 'success');
 
-    // Intake changes refresh the starter plan, same as a full profile save.
-    // Best-effort: the selection itself is already stored.
+    // Intake changes refresh the starter plan and retire the steps these
+    // answers just made obsolete. Best-effort and in the background: the
+    // selection itself is already stored.
     if (family && primaryChild) {
       reseedStarterPlan(family.id, primaryChild.id, {
         diagnoses: nextDx,
@@ -200,7 +202,23 @@ export default function ProfileScreen() {
         childName: childName.trim() || primaryChild.first_name,
         parentName: parentName.trim(),
         zipCode: zipCode.trim() || undefined,
-      }).catch(() => {});
+      })
+        .then(() =>
+          closeObsoleteActions(family.id, {
+            rcStatus: nextRc,
+            iepStatus: nextIep,
+            insurance: nextIns,
+          })
+        )
+        .then((closed) => {
+          if (closed.length > 0) {
+            showToast(
+              `${closed.length} action${closed.length === 1 ? '' : 's'} closed — no longer needed`,
+              'success'
+            );
+          }
+        })
+        .catch(() => {});
     }
   }, [rcStatus, iepStatus, insurance, selectedDiagnoses, primaryChild, family, childName, parentName, zipCode, updateChild, updateFamily, setDiagnoses, showToast]);
 
@@ -271,9 +289,26 @@ export default function ProfileScreen() {
         });
       }
 
-      showToast(intakeChanged
-        ? 'Profile updated — action plan refreshed to match'
-        : 'Profile updated', 'success');
+      // Retire the steps these answers just made obsolete (visible in the
+      // Dismissed filter with the reason, never silently deleted)
+      let closedCount = 0;
+      if (intakeChanged && family) {
+        const closed = await closeObsoleteActions(family.id, {
+          rcStatus,
+          iepStatus,
+          insurance,
+        });
+        closedCount = closed.length;
+      }
+
+      showToast(
+        !intakeChanged
+          ? 'Profile updated'
+          : closedCount > 0
+            ? `Profile updated — plan refreshed, ${closedCount} action${closedCount === 1 ? '' : 's'} closed as no longer needed`
+            : 'Profile updated — action plan refreshed to match',
+        'success'
+      );
     } catch (err: unknown) {
       const e = err as { message?: string };
       showToast(e.message || 'Failed to save profile', 'error');

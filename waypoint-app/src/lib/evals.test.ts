@@ -140,6 +140,21 @@ describe('eval: starter plan goldens', () => {
     expect(blob).toMatch(/ABA|SB 946/i);
   });
 
+  it('an active IEP retires the "request an evaluation" steps (all diagnoses)', () => {
+    const titles = generateStarterPlan({
+      diagnoses: ['adhd', 'sli'],
+      birthday: age(8),
+      rcStatus: 'active',
+      iepStatus: 'active',
+      insurance: 'private',
+      childName: 'Teddy',
+      parentName: 'Sam',
+    }).map((a) => a.title);
+
+    expect(titles.some((t) => /request .*(504|iep).*(evaluation|plan)/i.test(t))).toBe(false);
+    expect(titles.some((t) => /request speech\/language iep evaluation/i.test(t))).toBe(false);
+  });
+
   it('active RC + active IEP produces a smaller plan than a cold start', () => {
     const cold = generateStarterPlan({
       diagnoses: ['autism'], birthday: age(4), rcStatus: 'unknown',
