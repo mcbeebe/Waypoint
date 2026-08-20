@@ -31,7 +31,7 @@ import { supabase } from '@/lib/supabase';
 import { expandOccurrences, findOverlaps, type RecurrenceRule } from '@/lib/recurrence';
 import { showConfirm } from '@/lib/dialogs';
 import { useFamily } from '@/hooks/useFamily';
-import { useAppointments } from '@/hooks/useAppointments';
+import { useAppointments, isRecurrenceSupported } from '@/hooks/useAppointments';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useCalendarSync } from '@/hooks/useCalendarSync';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -103,6 +103,7 @@ export default function CalendarScreen() {
   const {
     appointments,
     loading: loadingAppts,
+    error: apptError,
     createAppointment,
     updateStatus: updateApptStatus,
     refetch: refetchAppts,
@@ -175,13 +176,12 @@ export default function CalendarScreen() {
       dayStart.setHours(0, 0, 0, 0);
       const dayEnd = new Date(startISO);
       dayEnd.setHours(23, 59, 59, 999);
-      const { data } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('family_id', familyId)
-        .or(
-          `and(start_time.gte.${dayStart.toISOString()},start_time.lte.${dayEnd.toISOString()}),recurrence.not.is.null`
-        );
+      const base = supabase.from('appointments').select('*').eq('family_id', familyId);
+      const { data } = isRecurrenceSupported()
+        ? await base.or(
+            `and(start_time.gte.${dayStart.toISOString()},start_time.lte.${dayEnd.toISOString()}),recurrence.not.is.null`
+          )
+        : await base.gte('start_time', dayStart.toISOString()).lte('start_time', dayEnd.toISOString());
       const dayEvents = ((data ?? []) as Appointment[])
         .filter((a) => a.status !== 'cancelled')
         .flatMap((a) =>
@@ -328,6 +328,14 @@ export default function CalendarScreen() {
             </Text>
           </View>
         </TouchableOpacity>
+      )}
+
+      {/* A failed load must never masquerade as an empty week */}
+      {apptError && (
+        <View style={styles.loadErrorBanner}>
+          <Text style={styles.loadErrorTitle}>Couldn't load your appointments</Text>
+          <Text style={styles.loadErrorText}>{apptError}</Text>
+        </View>
       )}
 
       {viewMode === 'upcoming' ? (
@@ -862,6 +870,19 @@ const styles = StyleSheet.create({
   dayNumToday: { color: colors.teal },
   dayDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.teal, marginTop: 2 },
   listContent: { padding: spacing.md, paddingBottom: spacing['2xl'] },
+  loadErrorBanner: {
+    backgroundColor: '#FEE2E2',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FECACA',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  loadErrorTitle: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold as '600',
+    color: '#991B1B',
+  },
+  loadErrorText: { fontSize: fonts.sizes.xs, color: '#B91C1C', marginTop: 2, lineHeight: 16 },
   reconnectBanner: {
     flexDirection: 'row',
     alignItems: 'center',
