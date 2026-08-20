@@ -26,6 +26,7 @@ import {
 } from 'react-native';
 import DateInput from '@/components/DateInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
 import { expandOccurrences, findOverlaps, type RecurrenceRule } from '@/lib/recurrence';
 import { showConfirm } from '@/lib/dialogs';
@@ -34,6 +35,7 @@ import { useAppointments } from '@/hooks/useAppointments';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useCalendarSync } from '@/hooks/useCalendarSync';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useToast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
 import type {
   Appointment,
@@ -81,6 +83,7 @@ const RECURRENCE_OPTIONS: Array<{ value: RecurrenceRule | null; label: string }>
 export default function CalendarScreen() {
   const { family } = useFamily();
   const familyId = family?.id ?? '';
+  const navigation = useNavigation();
 
   const [viewMode, setViewMode] = useState<ViewMode>('upcoming');
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -113,7 +116,8 @@ export default function CalendarScreen() {
     refetch: refetchDeadlines,
   } = useDeadlines({ familyId });
 
-  const { isSyncing, syncNow, isGoogleConnected } = useCalendarSync({ familyId });
+  const { isSyncing, syncNow, isGoogleConnected, needsReconnect } = useCalendarSync({ familyId });
+  const { showToast } = useToast();
 
   // Deadline push reminders (wave 3 retention) — native only; local
   // notifications aren't reliable on web
@@ -138,6 +142,27 @@ export default function CalendarScreen() {
   const handleRefresh = useCallback(async () => {
     await Promise.all([refetchAppts(), refetchDeadlines()]);
   }, [refetchAppts, refetchDeadlines]);
+
+  /**
+   * Sync always says what happened. Before this, a dead Google grant (they
+   * expire while the OAuth app is unverified) made the button a silent
+   * no-op — indistinguishable from the feature being broken.
+   */
+  const handleSync = useCallback(async () => {
+    const result = await syncNow();
+    if (result.ok) {
+      const moved = result.pulled + result.pushed;
+      showToast(
+        moved === 0
+          ? 'Calendar synced — everything was already up to date'
+          : `Calendar synced — ${result.pulled} in, ${result.pushed} out`,
+        'success'
+      );
+      await handleRefresh();
+    } else {
+      showToast(result.error ?? 'Calendar sync failed', 'error');
+    }
+  }, [syncNow, showToast, handleRefresh]);
 
   /**
    * Overlap warning: before adding an appointment, check the candidate's
@@ -246,7 +271,7 @@ export default function CalendarScreen() {
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={[styles.syncButton, !isGoogleConnected && styles.syncButtonDisabled]}
-            onPress={async () => { await syncNow(); await handleRefresh(); }}
+            onPress={handleSync}
             disabled={isSyncing}
             accessibilityRole="button"
             accessibilityLabel="Sync with Google Calendar"
@@ -285,6 +310,25 @@ export default function CalendarScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Connection banner: a dead Google grant is the usual reason sync
+          stops working, and it needs a human to re-grant access */}
+      {needsReconnect && (
+        <TouchableOpacity
+          style={styles.reconnectBanner}
+          onPress={() => (navigation as never as { navigate: (n: string) => void }).navigate('Profile')}
+          accessibilityRole="button"
+          accessibilityLabel="Reconnect your Google account in Profile"
+        >
+          <Text style={styles.reconnectEmoji}>🔌</Text>
+          <View style={styles.reconnectBody}>
+            <Text style={styles.reconnectTitle}>Google Calendar isn't connected</Text>
+            <Text style={styles.reconnectText}>
+              Connections expire periodically. Tap to reconnect in Profile → Google Account.
+            </Text>
+          </View>
+        </TouchableOpacity>
+      )}
 
       {viewMode === 'upcoming' ? (
         <>
@@ -818,6 +862,24 @@ const styles = StyleSheet.create({
   dayNumToday: { color: colors.teal },
   dayDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.teal, marginTop: 2 },
   listContent: { padding: spacing.md, paddingBottom: spacing['2xl'] },
+  reconnectBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: '#FEF3C7',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FDE68A',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  reconnectEmoji: { fontSize: 20 },
+  reconnectBody: { flex: 1 },
+  reconnectTitle: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold as '600',
+    color: '#92400E',
+  },
+  reconnectText: { fontSize: fonts.sizes.xs, color: '#B45309', marginTop: 1, lineHeight: 16 },
   reminderBanner: {
     flexDirection: 'row',
     alignItems: 'center',
