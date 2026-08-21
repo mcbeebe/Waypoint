@@ -7,6 +7,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export type CommunicationKind = 'letter' | 'email' | 'call' | 'meeting' | 'note';
+/** Written but not confirmed sent, vs confirmed out the door (032) */
+export type CommunicationStatus = 'draft' | 'sent';
 export type CommunicationOrg = 'regional_center' | 'school' | 'insurance' | 'medical' | 'other';
 
 export interface Communication {
@@ -20,6 +22,8 @@ export interface Communication {
   subject: string;
   body: string | null;
   template_key: string | null;
+  status: CommunicationStatus;
+  sent_at: string | null;
   occurred_at: string;
   created_at: string;
 }
@@ -34,16 +38,22 @@ export interface NewCommunication {
   template_key?: string;
   occurred_at?: string;
   child_id?: string | null;
+  /** Defaults to 'sent' — calls and meetings already happened. Drafts pass 'draft'. */
+  status?: CommunicationStatus;
 }
 
 /**
  * Fire-and-forget auto-log used by Letters and the Navigator email handoff.
  * Never throws — a failed log must not break sending the actual letter.
  */
-export async function logCommunication(familyId: string, entry: NewCommunication): Promise<void> {
+export async function logCommunication(
+  familyId: string,
+  entry: NewCommunication
+): Promise<string | null> {
   try {
-    if (!familyId) return;
-    await supabase.from('communications').insert({
+    if (!familyId) return null;
+    const status = entry.status ?? 'sent';
+    const row = {
       family_id: familyId,
       kind: entry.kind,
       direction: entry.direction ?? 'outgoing',
@@ -54,9 +64,40 @@ export async function logCommunication(familyId: string, entry: NewCommunication
       template_key: entry.template_key ?? null,
       occurred_at: entry.occurred_at ?? new Date().toISOString(),
       child_id: entry.child_id ?? null,
-    });
+    };
+    const { data, error } = await supabase
+      .from('communications')
+      .insert({ ...row, status, sent_at: status === 'sent' ? new Date().toISOString() : null })
+      .select('id')
+      .single();
+
+    // Pre-032 database: still record it, just without the draft/sent state
+    if (error && /status|sent_at/i.test(error.message) &&
+        /does not exist|schema cache|could not find/i.test(error.message)) {
+      const { data: fallback } = await supabase
+        .from('communications')
+        .insert(row)
+        .select('id')
+        .single();
+      return (fallback?.id as string) ?? null;
+    }
+    return (data?.id as string) ?? null;
   } catch {
     // best-effort
+    return null;
+  }
+}
+
+/** Mark a logged draft as actually sent. Returns false if it didn't stick. */
+export async function markCommunicationSent(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('communications')
+      .update({ status: 'sent', sent_at: new Date().toISOString() })
+      .eq('id', id);
+    return !error;
+  } catch {
+    return false;
   }
 }
 
@@ -132,5 +173,24 @@ export function useCommunications(familyId: string) {
     }
   }, []);
 
-  return { communications, loading, error, refetch, addCommunication, deleteCommunication };
+  /** Confirm a draft went out — optimistic, reverts if the write fails. */
+  const markSent = useCallback(async (id: string): Promise<boolean> => {
+    const now = new Date().toISOString();
+    setCommunications((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, status: 'sent' as CommunicationStatus, sent_at: now } : c))
+    );
+    const ok = await markCommunicationSent(id);
+    if (!ok) refetch();
+    return ok;
+  }, [refetch]);
+
+  return {
+    communications,
+    loading,
+    error,
+    refetch,
+    addCommunication,
+    deleteCommunication,
+    markSent,
+  };
 }

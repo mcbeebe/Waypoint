@@ -38,7 +38,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useI18n } from '@/i18n';
 import { trackDraftUsed } from '@/lib/analytics';
-import { logCommunication } from '@/hooks/useCommunications';
+import { logCommunication, markCommunicationSent } from '@/hooks/useCommunications';
 import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
@@ -93,6 +93,15 @@ export default function LettersScreen() {
     // reflects what was actually discussed
     setChatGuidance(route.params?.guidance ?? null);
   }, [route.params?.template, route.params?.question, route.params?.guidance]);
+
+  // Reopened from the paper trail: drop the saved text straight into the
+  // editor so an unsent draft can be picked back up
+  useEffect(() => {
+    const saved = route.params?.draftBody;
+    if (!saved) return;
+    setDraft(saved);
+    loggedDraftRef.current = saved; // already in the log — don't duplicate it
+  }, [route.params?.draftBody]);
   const [tone, setTone] = useState<DraftTone>('professional');
   const [question, setQuestion] = useState('');
   const [draft, setDraft] = useState<string | null>(null);
@@ -148,29 +157,54 @@ export default function LettersScreen() {
     complaint: 'other', general: 'other',
   };
 
-  // Auto-log each draft to the paper trail once, on first copy/open
+  // Each draft is saved to the paper trail once, as a DRAFT — writing a
+  // letter isn't the same as sending it, and the log shouldn't pretend
+  // otherwise until the parent says so.
   const loggedDraftRef = React.useRef<string | null>(null);
+  const savedIdRef = React.useRef<string | null>(null);
   // Filled from `outgoing` below so the log shows the real subject line
   const outgoingSubjectRef = React.useRef<string | null>(null);
-  const logDraftOnce = useCallback(() => {
-    if (!draft || !template || !family?.id || loggedDraftRef.current === draft) return;
+  const [savedId, setSavedId] = useState<string | null>(null);
+  const [markedSent, setMarkedSent] = useState(false);
+
+  const saveDraftOnce = useCallback(async (): Promise<string | null> => {
+    if (!draft || !template || !family?.id) return null;
+    if (loggedDraftRef.current === draft) return savedIdRef.current;
     loggedDraftRef.current = draft;
-    logCommunication(family.id, {
+    const id = await logCommunication(family.id, {
       kind: 'letter',
       subject: outgoingSubjectRef.current ?? template.title,
       body: draft,
       template_key: template.key,
       organization: ORG_BY_TEMPLATE[template.key] ?? 'other',
+      contact: outgoingContactRef.current ?? undefined,
+      status: 'draft',
     });
+    savedIdRef.current = id;
+    setSavedId(id);
+    setMarkedSent(false);
+    return id;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, template, family?.id]);
+
+  /** The parent confirms it actually went out. */
+  const handleMarkSent = useCallback(async () => {
+    const id = savedIdRef.current ?? (await saveDraftOnce());
+    if (!id) {
+      showToast("Couldn't update the paper trail — please try again.", 'error');
+      return;
+    }
+    const ok = await markCommunicationSent(id);
+    setMarkedSent(ok);
+    showToast(ok ? 'Marked as sent — saved to your paper trail' : "Couldn't mark it sent.", ok ? 'success' : 'error');
+  }, [saveDraftOnce, showToast]);
 
   const handleCopy = useCallback(async () => {
     if (!draft) return;
     await Clipboard.setStringAsync(draft);
-    logDraftOnce();
-    showToast('Draft copied — logged to your paper trail.', 'success');
-  }, [draft, showToast, logDraftOnce]);
+    await saveDraftOnce();
+    showToast('Draft copied — saved to your paper trail.', 'success');
+  }, [draft, showToast, saveDraftOnce]);
 
   /**
    * Where "send this" goes depends on the device: desktop browsers get
@@ -178,6 +212,7 @@ export default function LettersScreen() {
    * compose URL is hijacked on mobile by a "Gmail is better on the app"
    * interstitial that throws the draft away.
    */
+  const outgoingContactRef = React.useRef<string | null>(null);
   const composeEnv = {
     platformOS: Platform.OS,
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
@@ -199,6 +234,7 @@ export default function LettersScreen() {
     });
     const recipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
     outgoingSubjectRef.current = subject;
+    outgoingContactRef.current = recipient.contact?.name ?? null;
     return { subject, body, recipient };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, template, contacts, primaryChild?.first_name, family?.parent_last_name]);
@@ -216,7 +252,7 @@ export default function LettersScreen() {
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
-    logDraftOnce();
+    await saveDraftOnce();
     // Long drafts can get truncated by a mail app's URL handling — put the
     // full text on the clipboard first so nothing is ever lost.
     const long = draft.length > LONG_BODY_CHARS;
@@ -230,9 +266,13 @@ export default function LettersScreen() {
       await Clipboard.setStringAsync(draft);
       showToast('Could not open your email app — the draft is copied, paste it there.', 'error');
     }
-  }, [draft, target, showToast, logDraftOnce]);
+  }, [draft, target, showToast, saveDraftOnce]);
 
   const reset = () => {
+    loggedDraftRef.current = null;
+    savedIdRef.current = null;
+    setSavedId(null);
+    setMarkedSent(false);
     setDraft(null);
     setTemplate(null);
     setQuestion('');
@@ -434,6 +474,57 @@ export default function LettersScreen() {
               <Button title="Copy" onPress={handleCopy} variant="primary" />
               <Button title={target?.label ?? 'Open in Mail app'} onPress={handleSend} variant="outline" />
             </View>
+            {/* Saving a draft and confirming it went out are different acts —
+                the paper trail should reflect which one happened */}
+            <View style={styles.trackBox}>
+              {markedSent ? (
+                <Text style={styles.trackSent}>
+                  ✅ Marked as sent — it's in your paper trail
+                </Text>
+              ) : (
+                <>
+                  <Text style={styles.trackText}>
+                    {savedId
+                      ? 'Saved as a draft in your paper trail. Did it go out?'
+                      : 'Save this draft to come back to it later.'}
+                  </Text>
+                  <View style={styles.trackButtons}>
+                    {!savedId && (
+                      <TouchableOpacity
+                        style={styles.trackSaveButton}
+                        onPress={async () => {
+                          const id = await saveDraftOnce();
+                          showToast(
+                            id ? 'Draft saved to your paper trail' : "Couldn't save — please try again.",
+                            id ? 'success' : 'error'
+                          );
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Save this draft"
+                      >
+                        <Text style={styles.trackSaveText}>💾 Save draft</Text>
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                      style={styles.trackSentButton}
+                      onPress={handleMarkSent}
+                      accessibilityRole="button"
+                      accessibilityLabel="Mark this letter as sent"
+                    >
+                      <Text style={styles.trackSentButtonText}>✓ Mark as sent</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+              <TouchableOpacity
+                onPress={() => (navigation as never as { navigate: (n: string) => void }).navigate('CommunicationLog')}
+                accessibilityRole="button"
+                accessibilityLabel="Open your paper trail"
+              >
+                <Text style={styles.trackLink}>View paper trail →</Text>
+              </TouchableOpacity>
+            </View>
+
             <Button title="Start a new letter" onPress={reset} variant="outline" />
             <Text style={styles.disclaimer}>
               Review before sending: fill in any [BRACKETED] blanks and double-check dates and
@@ -625,6 +716,45 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   actionRow: { flexDirection: 'row', gap: spacing.sm },
+  trackBox: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  trackText: { fontSize: fonts.sizes.sm, color: colors.dark, lineHeight: 19 },
+  trackSent: {
+    fontSize: fonts.sizes.sm,
+    color: '#047857',
+    fontWeight: fonts.weights.semibold as '600',
+  },
+  trackButtons: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
+  trackSaveButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    minHeight: 38,
+    justifyContent: 'center',
+  },
+  trackSaveText: { fontSize: fonts.sizes.sm, color: colors.dark },
+  trackSentButton: {
+    backgroundColor: '#D1FAE5',
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    minHeight: 38,
+    justifyContent: 'center',
+  },
+  trackSentButtonText: {
+    fontSize: fonts.sizes.sm,
+    color: '#047857',
+    fontWeight: fonts.weights.semibold as '600',
+  },
+  trackLink: { fontSize: fonts.sizes.xs, color: colors.teal, fontWeight: fonts.weights.medium as '500' },
   disclaimer: {
     fontSize: fonts.sizes.xs,
     color: colors.mid,

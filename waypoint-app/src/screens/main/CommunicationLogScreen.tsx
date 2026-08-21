@@ -28,6 +28,7 @@ import {
   type CommunicationKind,
   type CommunicationOrg,
 } from '@/hooks/useCommunications';
+import { useNavigation } from '@react-navigation/native';
 import { useToast } from '@/components/Toast';
 import { showConfirm } from '@/lib/dialogs';
 import EmptyState from '@/components/EmptyState';
@@ -64,16 +65,24 @@ export default function CommunicationLogScreen() {
   const { family } = useFamily();
   const { showToast } = useToast();
   const {
-    communications, loading, addCommunication, deleteCommunication,
+    communications, loading, addCommunication, deleteCommunication, markSent,
   } = useCommunications(family?.id ?? '');
+  const navigation = useNavigation();
 
-  const [filter, setFilter] = useState<CommunicationKind | 'all'>('all');
+  const [filter, setFilter] = useState<CommunicationKind | 'all' | 'drafts'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
 
-  const filtered = useMemo(
-    () => (filter === 'all' ? communications : communications.filter((c) => c.kind === filter)),
-    [communications, filter]
+  const filtered = useMemo(() => {
+    if (filter === 'all') return communications;
+    // Unsent drafts are the ones that need chasing, so they get their own view
+    if (filter === 'drafts') return communications.filter((c) => c.status === 'draft');
+    return communications.filter((c) => c.kind === filter);
+  }, [communications, filter]);
+
+  const draftCount = useMemo(
+    () => communications.filter((c) => c.status === 'draft').length,
+    [communications]
   );
 
   /** Share the whole (filtered) log as plain text — hearing/advocate prep */
@@ -120,6 +129,13 @@ export default function CommunicationLogScreen() {
       <View style={styles.toolbar}>
         <View style={styles.filterRow}>
           <FilterPill label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
+          {draftCount > 0 && (
+            <FilterPill
+              label={`✍️ Drafts (${draftCount})`}
+              active={filter === 'drafts'}
+              onPress={() => setFilter('drafts')}
+            />
+          )}
           {(Object.keys(KIND_CONFIG) as CommunicationKind[]).map((k) => (
             <FilterPill
               key={k}
@@ -166,15 +182,26 @@ export default function CommunicationLogScreen() {
             <View style={styles.entryTop}>
               <Text style={styles.entryEmoji}>{KIND_CONFIG[item.kind].emoji}</Text>
               <View style={styles.entryBody}>
-                <Text style={styles.entrySubject} numberOfLines={expandedId === item.id ? undefined : 2}>
-                  {item.subject}
-                </Text>
+                <View style={styles.entryTitleRow}>
+                  <Text
+                    style={[styles.entrySubject, styles.entrySubjectFlex]}
+                    numberOfLines={expandedId === item.id ? undefined : 2}
+                  >
+                    {item.subject}
+                  </Text>
+                  {item.status === 'draft' && (
+                    <View style={styles.draftBadge}>
+                      <Text style={styles.draftBadgeText}>DRAFT</Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.entryMeta}>
                   {[
                     formatWhen(item.occurred_at),
                     item.contact,
                     item.organization ? ORG_LABELS[item.organization] : null,
-                    item.template_key ? 'Auto-logged from Letters' : null,
+                    item.status === 'sent' && item.sent_at ? `Sent ${formatWhen(item.sent_at)}` : null,
+                    item.template_key ? 'From Letters' : null,
                   ].filter(Boolean).join(' · ')}
                 </Text>
               </View>
@@ -187,6 +214,36 @@ export default function CommunicationLogScreen() {
             {expandedId === item.id && (
               <>
                 {item.body ? <Text style={styles.entryText}>{item.body}</Text> : null}
+                {item.status === 'draft' && (
+                  <View style={styles.draftActions}>
+                    <TouchableOpacity
+                      style={styles.markSentBtn}
+                      onPress={async () => {
+                        const ok = await markSent(item.id);
+                        showToast(ok ? 'Marked as sent' : "Couldn't update — please try again.", ok ? 'success' : 'error');
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Mark "${item.subject}" as sent`}
+                    >
+                      <Text style={styles.markSentText}>✓ Mark as sent</Text>
+                    </TouchableOpacity>
+                    {item.body ? (
+                      <TouchableOpacity
+                        style={styles.reopenBtn}
+                        onPress={() =>
+                          (navigation as never as { navigate: (n: string, p?: object) => void }).navigate(
+                            'Letters',
+                            { template: item.template_key ?? 'general', draftBody: item.body }
+                          )
+                        }
+                        accessibilityRole="button"
+                        accessibilityLabel={`Keep working on "${item.subject}"`}
+                      >
+                        <Text style={styles.reopenText}>Keep editing</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                )}
                 <TouchableOpacity
                   style={styles.deleteLink}
                   onPress={() => handleDelete(item)}
@@ -405,6 +462,44 @@ const styles = StyleSheet.create({
   entryEmoji: { fontSize: 18 },
   entryBody: { flex: 1 },
   entrySubject: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.medium as '500', color: colors.dark, lineHeight: 19 },
+  entryTitleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6 },
+  entrySubjectFlex: { flex: 1 },
+  draftBadge: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: radii.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  draftBadgeText: {
+    fontSize: 9,
+    color: '#92400E',
+    fontWeight: fonts.weights.bold as '700',
+    letterSpacing: 0.5,
+  },
+  draftActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, flexWrap: 'wrap' },
+  markSentBtn: {
+    backgroundColor: '#D1FAE5',
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  markSentText: {
+    fontSize: fonts.sizes.xs,
+    color: '#047857',
+    fontWeight: fonts.weights.semibold as '600',
+  },
+  reopenBtn: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  reopenText: { fontSize: fonts.sizes.xs, color: colors.dark },
   entryMeta: { fontSize: fonts.sizes.xs, color: colors.mid, marginTop: 2 },
   entryText: {
     fontSize: fonts.sizes.xs,
