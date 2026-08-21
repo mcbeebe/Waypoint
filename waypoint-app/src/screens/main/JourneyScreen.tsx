@@ -16,7 +16,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
-import { getJourneyForDiagnosis, getPhaseIndexForAge } from '@/data/journeyMaps';
+import {
+  getJourneyForDiagnosis,
+  getJourneyKeyForDiagnosis,
+  getPhaseIndexForAge,
+} from '@/data/journeyMaps';
 import { Card } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
 import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
@@ -42,6 +46,11 @@ export default function JourneyScreen() {
 
   const journey = useMemo(
     () => getJourneyForDiagnosis(diagnoses.map(d => d.name)),
+    [diagnoses]
+  );
+  // Passed to the phase screen so its link stays serializable
+  const journeyKey = useMemo(
+    () => getJourneyKeyForDiagnosis(diagnoses.map(d => d.name)),
     [diagnoses]
   );
   const years = ageYears(primaryChild?.date_of_birth ?? null);
@@ -99,10 +108,11 @@ export default function JourneyScreen() {
               {/* Phase card */}
               <TouchableOpacity
                 style={styles.phaseCardTouch}
-                onPress={() => setExpanded(isOpen && expanded !== null ? null : i)}
+                onPress={() =>
+                  (navigation as any).navigate('JourneyPhase', { journeyKey, phaseIndex: i })
+                }
                 accessibilityRole="button"
-                accessibilityState={{ expanded: isOpen }}
-                accessibilityLabel={`${phase.label}, ages ${phase.age}${isCurrent ? ', current phase' : ''}`}
+                accessibilityLabel={`${phase.label}, ages ${phase.age}${isCurrent ? ', current phase' : ''}. Opens next steps for this stage.`}
               >
                 <View style={[styles.phaseCard, isOpen && { borderColor: phase.color, borderWidth: 1.5 }]}>
                   {isCurrent && (
@@ -118,11 +128,21 @@ export default function JourneyScreen() {
                       </Text>
                       <Text style={[styles.phaseLabel, { fontSize: sz(16) }]}>{phase.label}</Text>
                     </View>
-                    <Ionicons
-                      name={isOpen ? 'chevron-up' : 'chevron-down'}
-                      size={18}
-                      color={colors.mid}
-                    />
+                    <TouchableOpacity
+                      onPress={() => setExpanded(isOpen && expanded !== null ? null : i)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: isOpen }}
+                      accessibilityLabel={
+                        isOpen ? `Hide ${phase.label} summary` : `Preview ${phase.label} summary`
+                      }
+                    >
+                      <Ionicons
+                        name={isOpen ? 'chevron-up' : 'chevron-down'}
+                        size={18}
+                        color={colors.mid}
+                      />
+                    </TouchableOpacity>
                   </View>
 
                   {isOpen && (
@@ -151,6 +171,19 @@ export default function JourneyScreen() {
                           ⚠️ {phase.alert}
                         </Text>
                       </View>
+
+                      <TouchableOpacity
+                        style={[styles.nextStepsButton, { borderColor: phase.color }]}
+                        onPress={() =>
+                          (navigation as any).navigate('JourneyPhase', { journeyKey, phaseIndex: i })
+                        }
+                        accessibilityRole="button"
+                        accessibilityLabel={`Next steps for ${phase.label}`}
+                      >
+                        <Text style={[styles.nextStepsText, { color: phase.color, fontSize: sz(13) }]}>
+                          Next steps for this stage →
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   )}
                 </View>
@@ -321,6 +354,16 @@ const styles = StyleSheet.create({
     color: semantic.success,
     fontWeight: fonts.weights.medium as '500',
   },
+  nextStepsButton: {
+    borderWidth: 1.5,
+    borderRadius: radii.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+    marginTop: spacing.sm,
+  },
+  nextStepsText: { fontWeight: fonts.weights.bold as '700' },
   alertTile: {
     backgroundColor: semantic.warningBg,
     borderRadius: radii.md,

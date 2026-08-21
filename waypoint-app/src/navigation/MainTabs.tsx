@@ -27,6 +27,7 @@ import DocumentAnalysisScreen from '@/screens/main/DocumentAnalysisScreen';
 import ProvidersScreen from '@/screens/main/ProvidersScreen';
 import ServicesScreen from '@/screens/main/ServicesScreen';
 import InsuranceScreen from '@/screens/main/InsuranceScreen';
+import JourneyPhaseScreen from '@/screens/main/JourneyPhaseScreen';
 import HealthRecordsScreen from '@/screens/main/HealthRecordsScreen';
 import FamilySharingScreen from '@/screens/main/FamilySharingScreen';
 import ProviderPortalScreen from '@/screens/main/ProviderPortalScreen';
@@ -209,6 +210,7 @@ function HomeStack() {
     <HomeStackNav.Navigator screenOptions={detailHeaderOptions}>
       <HomeStackNav.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
       <HomeStackNav.Screen name="Journey" component={JourneyScreen} options={{ title: 'Journey Map' }} />
+      <HomeStackNav.Screen name="JourneyPhase" component={JourneyPhaseScreen} options={{ title: 'This Stage' }} />
       <HomeStackNav.Screen name="Agencies" component={AgenciesScreen} options={{ title: 'Agency Directory' }} />
       <HomeStackNav.Screen name="Reimbursables" component={ReimbursablesScreen} options={{ title: 'RC Funding Guide' }} />
       <HomeStackNav.Screen name="Insights" component={InsightsScreen} options={{ title: 'Insights' }} />

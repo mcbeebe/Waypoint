@@ -427,6 +427,8 @@ export interface Appointment {
   reminder_sent: boolean;
   status: AppointmentStatus;
   google_calendar_event_id: string | null;
+  /** Where this row came from (031): created in-app, or pulled from Google */
+  source: 'waypoint' | 'google';
   /** Repeat rule (029) — expanded client-side; null = one-off */
   recurrence: 'weekly' | 'biweekly' | 'monthly' | null;
   /** Last date (inclusive) the series repeats; null = open-ended */

@@ -639,17 +639,30 @@ export const JOURNEY_MAP_DEFAULT: Journey = {
  * @param diagnoses Diagnosis keys in intake order; the first is treated as primary.
  * @returns The matching journey, or JOURNEY_MAP_DEFAULT when no specific map exists.
  */
-export function getJourneyForDiagnosis(diagnoses: string[]): Journey {
-  // Use primary (first) diagnosis for journey map
+/**
+ * The JOURNEY_MAP_DATA key a set of diagnoses resolves to, or '_default'.
+ * Navigation passes this key (not the journey object) so phase links stay
+ * serializable and survive a reload.
+ */
+export function getJourneyKeyForDiagnosis(diagnoses: string[]): string {
   const primary = diagnoses[0] || '';
-  // Map some aliases
   let dxKey = primary;
   if (dxKey === 'dyslexia') dxKey = 'sld';
   if (dxKey === 'md') dxKey = 'cp'; // muscular dystrophy shares similar physical disability path
   if (dxKey === 'tbi') dxKey = 'multiple'; // TBI often co-occurs
+  // PDA is an autism-spectrum profile
+  if (dxKey === 'pda') dxKey = 'autism';
   if (dxKey === 'deaf' || dxKey === 'blind' || dxKey === 'ed' || dxKey === 'ohi' || dxKey === 'suspected') dxKey = '_default';
-  if (JOURNEY_MAP_DATA[dxKey]) return JOURNEY_MAP_DATA[dxKey];
-  return JOURNEY_MAP_DEFAULT;
+  return JOURNEY_MAP_DATA[dxKey] ? dxKey : '_default';
+}
+
+/** The journey for a key from getJourneyKeyForDiagnosis(). */
+export function getJourneyByKey(key: string): Journey {
+  return JOURNEY_MAP_DATA[key] ?? JOURNEY_MAP_DEFAULT;
+}
+
+export function getJourneyForDiagnosis(diagnoses: string[]): Journey {
+  return getJourneyByKey(getJourneyKeyForDiagnosis(diagnoses));
 }
 
 /**

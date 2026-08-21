@@ -95,8 +95,9 @@ export function useCalendarSync(options: UseCalendarSyncOptions): UseCalendarSyn
         continue;
       }
 
-      // New event from Google — insert
-      await supabase.from('appointments').insert({
+      // New event from Google — insert, tagged so the app can offer a
+      // "just my Waypoint items" view later
+      const row = {
         family_id: familyId,
         title: gcalEvent.summary,
         start_time: startTime,
@@ -105,7 +106,15 @@ export function useCalendarSync(options: UseCalendarSyncOptions): UseCalendarSyn
         notes: gcalEvent.description,
         google_calendar_event_id: gcalEvent.id,
         status: 'scheduled',
-      });
+      };
+      const { error: insertError } = await supabase
+        .from('appointments')
+        .insert({ ...row, source: 'google' });
+      // Pre-031 database: still record the event, just untagged
+      if (insertError && /source/i.test(insertError.message) &&
+          /does not exist|schema cache|could not find/i.test(insertError.message)) {
+        await supabase.from('appointments').insert(row);
+      }
 
       upsertCount++;
     }
