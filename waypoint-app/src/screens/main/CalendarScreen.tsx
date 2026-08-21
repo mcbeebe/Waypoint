@@ -29,6 +29,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
 import { expandOccurrences, findOverlaps, type RecurrenceRule } from '@/lib/recurrence';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showConfirm } from '@/lib/dialogs';
 import { useFamily } from '@/hooks/useFamily';
 import { useAppointments, isRecurrenceSupported } from '@/hooks/useAppointments';
@@ -67,6 +68,9 @@ const DEADLINE_TYPE_CONFIG: Record<string, { label: string; emoji: string }> = {
 };
 
 type ViewMode = 'upcoming' | 'deadlines';
+/** Shared with Home so the choice means the same thing in both places */
+type Scope = 'all' | 'waypoint';
+const SCOPE_KEY = 'waypoint_agenda_scope';
 
 /** An appointment as displayed: a real row or one expanded occurrence of a series */
 type DisplayAppointment = Appointment & { occurrenceId: string; isVirtual: boolean };
@@ -86,6 +90,18 @@ export default function CalendarScreen() {
   const navigation = useNavigation();
 
   const [viewMode, setViewMode] = useState<ViewMode>('upcoming');
+  const [scope, setScope] = useState<Scope>('all');
+
+  // Same preference the Home summary uses
+  useEffect(() => {
+    AsyncStorage.getItem(SCOPE_KEY)
+      .then((v) => { if (v === 'waypoint' || v === 'all') setScope(v); })
+      .catch(() => {});
+  }, []);
+  const changeScope = useCallback((next: Scope) => {
+    setScope(next);
+    AsyncStorage.setItem(SCOPE_KEY, next).catch(() => {});
+  }, []);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -218,7 +234,9 @@ export default function CalendarScreen() {
   // Expand recurring series into this week's occurrences, then group by day
   const appointmentsByDay = useMemo(() => {
     const groups: Record<string, DisplayAppointment[]> = {};
-    for (const appt of appointments) {
+    const visible =
+      scope === 'waypoint' ? appointments.filter((a) => a.source !== 'google') : appointments;
+    for (const appt of visible) {
       for (const occ of expandOccurrences(appt, weekRange.start, weekRange.end)) {
         const display: DisplayAppointment = {
           ...appt,
@@ -236,7 +254,7 @@ export default function CalendarScreen() {
       groups[day].sort((a, b) => a.start_time.localeCompare(b.start_time));
     }
     return groups;
-  }, [appointments, weekRange.start, weekRange.end]);
+  }, [appointments, weekRange.start, weekRange.end, scope]);
 
   // Week days for header
   const weekDays = useMemo(() => {
@@ -335,6 +353,29 @@ export default function CalendarScreen() {
         <View style={styles.loadErrorBanner}>
           <Text style={styles.loadErrorTitle}>Couldn't load your appointments</Text>
           <Text style={styles.loadErrorText}>{apptError}</Text>
+        </View>
+      )}
+
+      {viewMode === 'upcoming' && (
+        <View style={styles.scopeRow}>
+          {(['all', 'waypoint'] as Scope[]).map((option) => (
+            <TouchableOpacity
+              key={option}
+              style={[styles.scopePill, scope === option && styles.scopePillActive]}
+              onPress={() => changeScope(option)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: scope === option }}
+              accessibilityLabel={
+                option === 'all'
+                  ? 'Show every event, including synced Google Calendar events'
+                  : 'Show only appointments created in Waypoint'
+              }
+            >
+              <Text style={[styles.scopeText, scope === option && styles.scopeTextActive]}>
+                {option === 'all' ? 'Everything' : 'Waypoint only'}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 
@@ -850,6 +891,26 @@ const styles = StyleSheet.create({
   togglePillActive: { backgroundColor: colors.teal },
   toggleText: { fontSize: 12, color: colors.dark, fontWeight: fonts.weights.medium },
   toggleTextActive: { color: colors.white },
+  scopeRow: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  scopePill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+    borderRadius: radii.full,
+    backgroundColor: colors.light,
+    minHeight: 28,
+    justifyContent: 'center',
+  },
+  scopePillActive: { backgroundColor: colors.teal },
+  scopeText: { fontSize: 11, color: colors.dark, fontWeight: fonts.weights.medium as '500' },
+  scopeTextActive: { color: colors.white, fontWeight: fonts.weights.semibold as '600' },
   weekNav: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: spacing.lg, paddingVertical: spacing.sm,

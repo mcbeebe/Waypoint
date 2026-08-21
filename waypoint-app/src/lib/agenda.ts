@@ -23,7 +23,12 @@ export interface AgendaAppointment {
   start_time: string;
   appointment_type?: string | null;
   location?: string | null;
+  /** 'google' rows come from calendar sync; undefined pre-031 = treat as ours */
+  source?: string | null;
 }
+
+/** Everything, or only what lives in Waypoint (hiding synced Google events). */
+export type AgendaScope = 'all' | 'waypoint';
 
 export interface AgendaDeadline {
   id: string;
@@ -38,6 +43,8 @@ export interface AgendaInput {
   deadlines: AgendaDeadline[];
   /** Injected so the view is deterministic in tests */
   now: Date;
+  /** Default 'all'; 'waypoint' hides events pulled from Google Calendar */
+  scope?: AgendaScope;
 }
 
 export interface DaySummary {
@@ -93,8 +100,15 @@ function dueKey(due: string): string {
 }
 
 export function buildAgenda(input: AgendaInput): Agenda {
-  const { actions, appointments, deadlines, now } = input;
+  const { actions, deadlines, now, scope = 'all' } = input;
   const todayKey = dayKey(now);
+
+  // A synced Google calendar buries the journey under school runs and work
+  // meetings; 'waypoint' scope narrows this back to what the app manages.
+  const appointments =
+    scope === 'waypoint'
+      ? input.appointments.filter((a) => a.source !== 'google')
+      : input.appointments;
 
   const openActions = actions.filter((a) => OPEN_STATUSES.has(a.status));
 

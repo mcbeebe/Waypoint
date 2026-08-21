@@ -8,13 +8,15 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import type { Agenda, AgendaAction, AgendaAppointment } from '@/lib/agenda';
+import type { Agenda, AgendaAction, AgendaAppointment, AgendaScope } from '@/lib/agenda';
 import { weekSummaryLine } from '@/lib/agenda';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 interface TodayCardProps {
   agenda: Agenda;
   childName?: string | null;
+  scope: AgendaScope;
+  onChangeScope: (scope: AgendaScope) => void;
   onOpenAction: (actionId: string) => void;
   onOpenCalendar: () => void;
   onOpenActions: () => void;
@@ -35,6 +37,8 @@ function todayLabel(): string {
 export default function TodayCard({
   agenda,
   childName,
+  scope,
+  onChangeScope,
   onOpenAction,
   onOpenCalendar,
   onOpenActions,
@@ -49,6 +53,27 @@ export default function TodayCard({
       <View style={styles.headerRow}>
         <Text style={styles.label}>TODAY</Text>
         <Text style={styles.date}>{todayLabel()}</Text>
+      </View>
+
+      {/* A synced Google calendar buries the journey — let the parent narrow
+          this to what Waypoint manages */}
+      <View style={styles.scopeRow}>
+        {(['all', 'waypoint'] as AgendaScope[]).map((option) => (
+          <TouchableOpacity
+            key={option}
+            style={[styles.scopePill, scope === option && styles.scopePillActive]}
+            onPress={() => onChangeScope(option)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: scope === option }}
+            accessibilityLabel={
+              option === 'all' ? 'Show everything on my calendar' : 'Show only Waypoint items'
+            }
+          >
+            <Text style={[styles.scopeText, scope === option && styles.scopeTextActive]}>
+              {option === 'all' ? 'Everything' : 'Waypoint only'}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {overdue.length > 0 && (
@@ -181,6 +206,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
   },
   date: { fontSize: fonts.sizes.xs, color: colors.mid },
+  scopeRow: { flexDirection: 'row', gap: 6, marginTop: spacing.sm },
+  scopePill: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+    borderRadius: radii.full,
+    backgroundColor: colors.light,
+    minHeight: 28,
+    justifyContent: 'center',
+  },
+  scopePillActive: { backgroundColor: colors.teal },
+  scopeText: { fontSize: 11, color: colors.dark, fontWeight: fonts.weights.medium as '500' },
+  scopeTextActive: { color: colors.white, fontWeight: fonts.weights.semibold as '600' },
   overdueRow: {
     backgroundColor: '#FEE2E2',
     borderRadius: radii.md,

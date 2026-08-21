@@ -145,3 +145,36 @@ describe('dayKey', () => {
     expect(dayKey(new Date(2026, 0, 5, 23, 0))).toBe('2026-01-05');
   });
 });
+
+describe('buildAgenda — scope', () => {
+  const mixed = {
+    ...base,
+    appointments: [
+      { id: 'school-run', title: 'Double drop off', start_time: at(19, 7), source: 'google' },
+      { id: 'ot', title: 'OT session', start_time: at(19, 15), source: 'waypoint' },
+      { id: 'legacy', title: 'Older row, pre-031', start_time: at(19, 16) },
+    ],
+  };
+
+  it('shows everything by default', () => {
+    expect(buildAgenda(mixed).todayAppointments).toHaveLength(3);
+  });
+
+  it('hides synced Google events in waypoint scope', () => {
+    const agenda = buildAgenda({ ...mixed, scope: 'waypoint' });
+    expect(agenda.todayAppointments.map((a) => a.id)).toEqual(['ot', 'legacy']);
+  });
+
+  it('keeps rows from before the source column existed', () => {
+    // undefined source must not vanish — that would empty a pre-031 calendar
+    const agenda = buildAgenda({ ...mixed, scope: 'waypoint' });
+    expect(agenda.todayAppointments.some((a) => a.id === 'legacy')).toBe(true);
+  });
+
+  it('narrows the week counts too', () => {
+    const all = buildAgenda(mixed).week[0].appointmentCount;
+    const mine = buildAgenda({ ...mixed, scope: 'waypoint' }).week[0].appointmentCount;
+    expect(all).toBe(3);
+    expect(mine).toBe(2);
+  });
+});

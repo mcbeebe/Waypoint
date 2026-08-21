@@ -22,7 +22,7 @@ import GapPromptsCard from '@/components/GapPromptsCard';
 import ProfileCompletionCard from '@/components/ProfileCompletionCard';
 import TodayCard from '@/components/TodayCard';
 import { useAppointments } from '@/hooks/useAppointments';
-import { buildAgenda } from '@/lib/agenda';
+import { buildAgenda, type AgendaScope } from '@/lib/agenda';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useExpenses } from '@/hooks/useExpenses';
@@ -32,6 +32,9 @@ import { percentageLabel } from '@/lib/accessibility';
 import { FLAGS } from '@/lib/flags';
 import { lookupRC } from '@/data/regionalCenters';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
+
+/** Remembers "Everything" vs "Waypoint only" between visits */
+const AGENDA_SCOPE_KEY = 'waypoint_agenda_scope';
 
 /** Get time-based greeting (ported from GAS MVP) */
 function getGreeting(): string {
@@ -122,6 +125,18 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
     familyId: family?.id ?? '',
     dateRange: agendaRange,
   });
+  // Remembered so the parent isn't re-choosing this every morning
+  const [agendaScope, setAgendaScope] = useState<AgendaScope>('all');
+  useEffect(() => {
+    AsyncStorage.getItem(AGENDA_SCOPE_KEY)
+      .then((v) => { if (v === 'waypoint' || v === 'all') setAgendaScope(v); })
+      .catch(() => {});
+  }, []);
+  const changeAgendaScope = (next: AgendaScope) => {
+    setAgendaScope(next);
+    AsyncStorage.setItem(AGENDA_SCOPE_KEY, next).catch(() => {});
+  };
+
   const agenda = useMemo(
     () =>
       buildAgenda({
@@ -129,8 +144,9 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
         appointments: agendaAppointments,
         deadlines,
         now: new Date(),
+        scope: agendaScope,
       }),
-    [actions, agendaAppointments, deadlines]
+    [actions, agendaAppointments, deadlines, agendaScope]
   );
 
   useEffect(() => {
@@ -201,6 +217,8 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           <TodayCard
             agenda={agenda}
             childName={primaryChild?.first_name}
+            scope={agendaScope}
+            onChangeScope={changeAgendaScope}
             onOpenAction={(actionId) =>
               (navigation as any).navigate('Tracker', {
                 screen: 'ActionDetail',

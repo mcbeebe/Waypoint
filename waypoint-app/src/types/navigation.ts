@@ -22,6 +22,7 @@ export type MainTabParamList = {
 export type HomeStackParamList = {
   HomeMain: undefined;
   Journey: undefined;
+  JourneyPhase: { journeyKey: string; phaseIndex: number };
   Agencies: undefined;
   Reimbursables: undefined;
   Insights: undefined;
