@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { retryQuery, friendlyErrorMessage } from '@/lib/netRetry';
 import type {
   Action,
   ActionStatus,
@@ -76,12 +77,15 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
         query = query.eq('category', categoryFilter);
       }
 
-      const { data, error: dbError } = await query;
+      // A dropped connection is the common case on a phone — retry the
+      // blip rather than showing the parent a raw "TypeError: Load failed"
+      const { data, error: dbError } = await retryQuery(() => query);
 
       if (dbError) throw new Error(dbError.message);
+      setError(null);
       setActions((data as Action[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your action plan."));
     }
   }, [familyId, statusFilter, categoryFilter]);
 
@@ -141,11 +145,9 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
     };
 
     try {
-      const { data: created, error: dbError } = await supabase
-        .from('actions')
-        .insert(newAction)
-        .select()
-        .single();
+      const { data: created, error: dbError } = await retryQuery(() =>
+        supabase.from('actions').insert(newAction).select().single()
+      );
 
       if (dbError) throw new Error(dbError.message);
 
@@ -161,8 +163,7 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
       // ANY error (including permission/validation failures), showed success,
       // and the action then evaporated. Surface the real error instead; a
       // true offline queue with replay is roadmap 7.2.
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Couldn't save this action: ${message}`);
+      setError(friendlyErrorMessage(err, "Couldn't save this action."));
       return null;
     }
   }, [familyId, fetchStats]);
@@ -178,15 +179,13 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
     );
 
     try {
-      const { error: dbError } = await supabase
-        .from('actions')
-        .update(data)
-        .eq('id', actionId);
+      const { error: dbError } = await retryQuery(() =>
+        supabase.from('actions').update(data).eq('id', actionId)
+      );
 
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Couldn't save this change: ${message}`);
+      setError(friendlyErrorMessage(err, "Couldn't save that change."));
       fetchActions(); // roll back the optimistic update
     }
   }, [fetchActions]);
