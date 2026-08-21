@@ -32,6 +32,8 @@ import {
 } from '@/lib/letters';
 import { fillKnownBlanks, analyzeBlanks, type LetterProfile } from '@/lib/draftBlanks';
 import { composeTarget, LONG_BODY_CHARS } from '@/lib/emailCompose';
+import { extractSubject, buildSubject, pickRecipient } from '@/lib/letterAddress';
+import { useContacts } from '@/hooks/useContacts';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useI18n } from '@/i18n';
@@ -45,6 +47,7 @@ import { colors, fonts, spacing, radii } from '@/lib/theme';
 export default function LettersScreen() {
   const { family, updateFamily } = useFamily();
   const { children } = useChildren(family?.id);
+  const { contacts } = useContacts(family?.id);
   const { showToast } = useToast();
   const { locale } = useI18n();
   const route = useRoute<RouteProp<HomeStackParamList, 'Letters'>>();
@@ -136,7 +139,7 @@ export default function LettersScreen() {
     }
   }, [template, tone, question, chatGuidance, hasAIConsent, locale, showToast, family, letterProfile]);
 
-  /** Which system this letter targets, for the paper-trail entry */
+  /** Which system this letter targets — paper trail + recipient lookup */
   const ORG_BY_TEMPLATE: Partial<Record<string, CommunicationOrg>> = {
     appeal_letter: 'insurance', ihss_appeal: 'other',
     rc_request: 'regional_center', dds_4731_complaint: 'regional_center',
@@ -147,12 +150,14 @@ export default function LettersScreen() {
 
   // Auto-log each draft to the paper trail once, on first copy/open
   const loggedDraftRef = React.useRef<string | null>(null);
+  // Filled from `outgoing` below so the log shows the real subject line
+  const outgoingSubjectRef = React.useRef<string | null>(null);
   const logDraftOnce = useCallback(() => {
     if (!draft || !template || !family?.id || loggedDraftRef.current === draft) return;
     loggedDraftRef.current = draft;
     logCommunication(family.id, {
       kind: 'letter',
-      subject: template.title,
+      subject: outgoingSubjectRef.current ?? template.title,
       body: draft,
       template_key: template.key,
       organization: ORG_BY_TEMPLATE[template.key] ?? 'other',
@@ -178,9 +183,33 @@ export default function LettersScreen() {
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
     maxTouchPoints: typeof navigator !== 'undefined' ? navigator.maxTouchPoints : undefined,
   };
-  const target = draft && template
+  /**
+   * Address the draft before handing it to the mail app: the letter names
+   * its own subject and greets its recipient by name, and Key Contacts
+   * knows the address — no reason to make the parent supply any of it.
+   */
+  const outgoing = React.useMemo(() => {
+    if (!draft || !template) return null;
+    const { subject: draftSubject, body } = extractSubject(draft);
+    const subject = buildSubject({
+      draftSubject,
+      templateTitle: template.title,
+      childFirstName: primaryChild?.first_name,
+      familyLastName: family?.parent_last_name,
+    });
+    const recipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
+    outgoingSubjectRef.current = subject;
+    return { subject, body, recipient };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, template, contacts, primaryChild?.first_name, family?.parent_last_name]);
+
+  const target = outgoing
     ? composeTarget(
-        { subject: `${template.title} — ${family?.parent_first_name ?? ''}`.trim(), body: draft },
+        {
+          to: outgoing.recipient.to[0],
+          subject: outgoing.subject,
+          body: outgoing.body,
+        },
         composeEnv
       )
     : null;
@@ -375,6 +404,32 @@ export default function LettersScreen() {
               multiline
               textAlignVertical="top"
             />
+            {outgoing && (
+              <View style={styles.addressBox}>
+                <Text style={styles.addressLine} numberOfLines={2}>
+                  <Text style={styles.addressLabel}>To: </Text>
+                  {outgoing.recipient.contact
+                    ? `${outgoing.recipient.contact.name} (${outgoing.recipient.contact.email})`
+                    : 'no saved contact matched — add the address in your email app'}
+                </Text>
+                <Text style={styles.addressLine} numberOfLines={2}>
+                  <Text style={styles.addressLabel}>Subject: </Text>
+                  {outgoing.subject}
+                </Text>
+                {!outgoing.recipient.contact && (
+                  <TouchableOpacity
+                    onPress={() => (navigation as never as { navigate: (n: string) => void }).navigate('Profile')}
+                    accessibilityRole="button"
+                    accessibilityLabel="Save this recipient in Key Contacts"
+                  >
+                    <Text style={styles.addressHint}>
+                      Save them in Profile → Key Contacts and Waypoint will address the next one →
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
             <View style={styles.actionRow}>
               <Button title="Copy" onPress={handleCopy} variant="primary" />
               <Button title={target?.label ?? 'Open in Mail app'} onPress={handleSend} variant="outline" />
@@ -552,6 +607,22 @@ const styles = StyleSheet.create({
     color: colors.dark,
     minHeight: 320,
     lineHeight: 21,
+  },
+  addressBox: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    padding: spacing.sm,
+    gap: 2,
+  },
+  addressLine: { fontSize: fonts.sizes.xs, color: colors.dark, lineHeight: 17 },
+  addressLabel: { color: colors.mid, fontWeight: fonts.weights.semibold as '600' },
+  addressHint: {
+    fontSize: fonts.sizes.xs,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
+    marginTop: 4,
   },
   actionRow: { flexDirection: 'row', gap: spacing.sm },
   disclaimer: {
