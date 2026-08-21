@@ -317,11 +317,44 @@ export function useDocuments(options: UseDocumentsOptions) {
     }
   }, [familyId]);
 
+  /**
+   * Keep the analysis with the document that produced it. Before this it
+   * lived only in navigation state — leaving the screen discarded a full
+   * legal read, and re-opening meant paying for the AI again.
+   */
+  const saveAnalysis = useCallback(async (
+    documentId: string,
+    analysis: unknown
+  ): Promise<boolean> => {
+    try {
+      const { error: dbError } = await supabase
+        .from('documents')
+        .update({ analysis, analyzed_at: new Date().toISOString() })
+        .eq('id', documentId);
+      if (dbError) {
+        // Pre-033 database: the read still worked, it just isn't saved yet
+        if (/analysis|analyzed_at/i.test(dbError.message)) return false;
+        throw new Error(dbError.message);
+      }
+      setDocuments((prev) =>
+        prev.map((d) =>
+          d.id === documentId
+            ? { ...d, analysis: analysis as Document['analysis'], analyzed_at: new Date().toISOString() }
+            : d
+        )
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   return {
     documents,
     loading,
     error,
     uploading,
+    saveAnalysis,
     countByType,
     uploadDocument,
     createDocument,

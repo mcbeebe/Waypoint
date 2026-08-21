@@ -80,6 +80,7 @@ export default function DocumentsScreen() {
     createShareLink,
     getDownloadUrl,
     updateDocument,
+    saveAnalysis,
     refetch,
   } = useDocuments({ familyId });
 
@@ -175,6 +176,9 @@ export default function DocumentsScreen() {
 
       const analysis = await analyzeIEP(text, 'full');
       if (analysis) {
+        // Keep it: a full legal read shouldn't evaporate when the parent
+        // leaves the screen, and re-reading costs another AI call
+        saveAnalysis(doc.id, analysis).catch(() => {});
         (navigation as any).navigate('DocumentAnalysis', {
           analysis,
           documentId: doc.id,
@@ -298,17 +302,49 @@ export default function DocumentsScreen() {
                 {/* Actions */}
                 <View style={styles.actionRow}>
                   {(doc.document_type === 'iep' || doc.document_type === 'evaluation') && (
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.analyzeButton]}
-                      onPress={() => handleAnalyze(doc)}
-                      disabled={busy}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Analyze ${doc.title} with AI`}
-                    >
-                      <Text style={[styles.analyzeButtonText, { fontSize: sz(12.5) }]}>
-                        {analyzingDocId === doc.id ? '⏳ Analyzing…' : '🧠 AI Review'}
-                      </Text>
-                    </TouchableOpacity>
+                    <>
+                      {/* An analysis already paid for is one tap away, free */}
+                      {doc.analysis && (
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.analyzeButton]}
+                          onPress={() =>
+                            (navigation as any).navigate('DocumentAnalysis', {
+                              analysis: doc.analysis,
+                              documentId: doc.id,
+                              childId: doc.child_id,
+                            })
+                          }
+                          accessibilityRole="button"
+                          accessibilityLabel={`Open the saved analysis of ${doc.title}`}
+                        >
+                          <Text style={[styles.analyzeButtonText, { fontSize: sz(12.5) }]}>
+                            📖 View analysis
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity
+                        style={[styles.actionButton, !doc.analysis && styles.analyzeButton]}
+                        onPress={() => handleAnalyze(doc)}
+                        disabled={busy}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          doc.analysis ? `Re-analyze ${doc.title}` : `Analyze ${doc.title} with AI`
+                        }
+                      >
+                        <Text
+                          style={[
+                            doc.analysis ? styles.actionButtonText : styles.analyzeButtonText,
+                            { fontSize: sz(12.5) },
+                          ]}
+                        >
+                          {analyzingDocId === doc.id
+                            ? '⏳ Analyzing…'
+                            : doc.analysis
+                              ? '🔄 Re-run'
+                              : '🧠 AI Review'}
+                        </Text>
+                      </TouchableOpacity>
+                    </>
                   )}
                   <TouchableOpacity
                     style={styles.actionButton}

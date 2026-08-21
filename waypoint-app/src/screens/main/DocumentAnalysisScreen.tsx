@@ -45,7 +45,15 @@ const SEVERITY_CONFIG: Record<WeaknessSeverity, { label: string; color: string }
 type ViewMode = 'analysis' | 'comparison' | 'prep';
 
 /** Plain-English summary cards — what the parent reads first */
-function PlainSummary({ summary }: { summary: IEPParentSummary }) {
+function PlainSummary({
+  summary,
+  onAddNextSteps,
+  addingSteps,
+}: {
+  summary: IEPParentSummary;
+  onAddNextSteps?: () => void;
+  addingSteps?: boolean;
+}) {
   return (
     <View style={psStyles.container}>
       <Text style={psStyles.whatIsThis}>📄 {summary.whatIsThis}</Text>
@@ -88,6 +96,22 @@ function PlainSummary({ summary }: { summary: IEPParentSummary }) {
               <Text style={psStyles.bulletText}>{item}</Text>
             </View>
           ))}
+          {/* Advice you have to retype is advice you won't act on */}
+          {onAddNextSteps && (
+            <TouchableOpacity
+              style={psStyles.addStepsButton}
+              onPress={onAddNextSteps}
+              disabled={addingSteps}
+              accessibilityRole="button"
+              accessibilityLabel="Add these next steps to my action plan"
+            >
+              <Text style={psStyles.addStepsText}>
+                {addingSteps
+                  ? 'Adding…'
+                  : `＋ Add ${summary.nextSteps.length} step${summary.nextSteps.length === 1 ? '' : 's'} to my Action Plan`}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -95,6 +119,22 @@ function PlainSummary({ summary }: { summary: IEPParentSummary }) {
 }
 
 const psStyles = StyleSheet.create({
+  addStepsButton: {
+    marginTop: spacing.sm,
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.teal,
+    borderRadius: radii.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 42,
+  },
+  addStepsText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    fontWeight: fonts.weights.bold as '700',
+  },
   container: {
     marginBottom: spacing.md,
     gap: spacing.sm,
@@ -180,6 +220,7 @@ export default function DocumentAnalysisScreen({
   meetingPrepContext,
   onBack,
   onSaveGoals,
+  onCreateActions,
 }: {
   analysis: IEPAnalysisResult;
   comparisonAnalysis?: IEPAnalysisResult;
@@ -187,6 +228,10 @@ export default function DocumentAnalysisScreen({
   onBack?: () => void;
   /** Save the analyzed goals into the IEP goal tracker */
   onSaveGoals?: (goals: IEPAnalysisResult['goals']) => void;
+  /** Turn recommendations into Action Plan items; resolves with how many landed */
+  onCreateActions?: (
+    drafts: Array<{ title: string; description?: string; priority?: string }>
+  ) => Promise<number>;
 }) {
   const { showToast } = useToast();
   const { generateMeetingPrep, compareIEPs, isAnalyzing } = useDocumentAnalysis();
@@ -196,6 +241,54 @@ export default function DocumentAnalysisScreen({
   const [showExpert, setShowExpert] = useState(false);
   const [meetingPrepText, setMeetingPrepText] = useState<string | null>(null);
   const [comparison, setComparison] = useState<IEPComparisonResult | null>(null);
+  const [addingSteps, setAddingSteps] = useState(false);
+  const [stepsAdded, setStepsAdded] = useState(false);
+
+  /**
+   * Turn the analysis into work. Each next step becomes a plan item, and
+   * every goal with a critical finding becomes a "get this rewritten"
+   * item carrying the suggested wording and the citation behind it.
+   */
+  const handleAddNextSteps = useCallback(async () => {
+    if (!onCreateActions || addingSteps) return;
+    setAddingSteps(true);
+    try {
+      const drafts: Array<{ title: string; description?: string; priority?: string }> = [];
+
+      for (const step of analysis.parentSummary?.nextSteps ?? []) {
+        drafts.push({
+          title: step,
+          description: `From your IEP analysis.\n\n${analysis.parentSummary?.headline ?? ''}`.trim(),
+          priority: 'high',
+        });
+      }
+
+      for (const goal of analysis.goals) {
+        const critical = goal.weaknesses?.filter((w) => w.severity === 'critical') ?? [];
+        if (critical.length === 0 || !goal.improvedGoal) continue;
+        drafts.push({
+          title: `Ask the team to rewrite the ${goal.domain} goal`,
+          description: [
+            `The current goal has ${critical.length} critical issue${critical.length === 1 ? '' : 's'}:`,
+            ...critical.map((w) => `• ${w.issue} — ${w.explanation}`),
+            '',
+            'Suggested wording to bring to the meeting:',
+            goal.improvedGoal,
+            goal.legalCitation ? `\nSupporting regulation: ${goal.legalCitation}` : '',
+          ]
+            .filter(Boolean)
+            .join('\n'),
+          priority: 'high',
+        });
+      }
+
+      if (drafts.length === 0) return;
+      const added = await onCreateActions(drafts);
+      if (added > 0) setStepsAdded(true);
+    } finally {
+      setAddingSteps(false);
+    }
+  }, [onCreateActions, addingSteps, analysis]);
 
   const handleCompare = useCallback(() => {
     if (!comparisonAnalysis) {
@@ -311,7 +404,11 @@ export default function DocumentAnalysisScreen({
           <>
             {analysis.parentSummary ? (
               <>
-                <PlainSummary summary={analysis.parentSummary} />
+                <PlainSummary
+                  summary={analysis.parentSummary}
+                  onAddNextSteps={onCreateActions && !stepsAdded ? handleAddNextSteps : undefined}
+                  addingSteps={addingSteps}
+                />
                 {/* Expert layer behind a toggle — the dense full assessment */}
                 <TouchableOpacity
                   style={styles.expertToggle}
