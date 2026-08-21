@@ -20,6 +20,9 @@ import { useActions } from '@/hooks/useActions';
 import CheckInCard from '@/components/CheckInCard';
 import GapPromptsCard from '@/components/GapPromptsCard';
 import ProfileCompletionCard from '@/components/ProfileCompletionCard';
+import TodayCard from '@/components/TodayCard';
+import { useAppointments } from '@/hooks/useAppointments';
+import { buildAgenda } from '@/lib/agenda';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useExpenses } from '@/hooks/useExpenses';
@@ -105,6 +108,31 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
   const activeActions = actions.filter((a) => a.status === 'in_progress');
   const completionPct = stats?.completion_rate ?? 0;
 
+  // Today & week at a glance — the next seven days of appointments, read
+  // alongside the open actions and deadlines this screen already loads
+  const agendaRange = useMemo(() => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    end.setHours(23, 59, 59, 999);
+    return { start: start.toISOString(), end: end.toISOString() };
+  }, []);
+  const { appointments: agendaAppointments } = useAppointments({
+    familyId: family?.id ?? '',
+    dateRange: agendaRange,
+  });
+  const agenda = useMemo(
+    () =>
+      buildAgenda({
+        actions,
+        appointments: agendaAppointments,
+        deadlines,
+        now: new Date(),
+      }),
+    [actions, agendaAppointments, deadlines]
+  );
+
   useEffect(() => {
     setEmpathyIndex(Math.floor(Math.random() * EMPATHY_MESSAGES.length));
   }, []);
@@ -166,6 +194,22 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
               </View>
             )}
           </View>
+        )}
+
+        {/* What's on deck today, and the week ahead */}
+        {family?.id && (
+          <TodayCard
+            agenda={agenda}
+            childName={primaryChild?.first_name}
+            onOpenAction={(actionId) =>
+              (navigation as any).navigate('Tracker', {
+                screen: 'ActionDetail',
+                params: { actionId },
+              })
+            }
+            onOpenCalendar={() => (navigation as any).navigate('Calendar')}
+            onOpenActions={() => (navigation as any).navigate('Tracker')}
+          />
         )}
 
         {/* Empathy Message */}

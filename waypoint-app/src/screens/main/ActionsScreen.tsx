@@ -332,6 +332,14 @@ export default function ActionsScreen() {
       {error && (
         <View style={styles.errorBanner}>
           <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity
+            onPress={() => { refetch(); refetchAll(); }}
+            style={styles.errorRetry}
+            accessibilityRole="button"
+            accessibilityLabel="Try loading your action plan again"
+          >
+            <Text style={styles.errorRetryText}>Retry</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -828,13 +836,30 @@ const styles = StyleSheet.create({
     bottom: 80,
     left: spacing.md,
     right: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
     backgroundColor: '#FEE2E2',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radii.md,
   },
   errorText: {
+    flex: 1,
     fontSize: fonts.sizes.xs,
     color: '#DC2626',
+  },
+  errorRetry: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radii.sm,
+    backgroundColor: colors.white,
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  errorRetryText: {
+    fontSize: fonts.sizes.xs,
+    color: '#991B1B',
+    fontWeight: fonts.weights.semibold as '600',
   },
 });
