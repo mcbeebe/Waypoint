@@ -121,6 +121,9 @@ export interface Document {
   tags: string[] | null;
   version: number;
   version_group_id: string | null;
+  /** Saved IEP analysis (033) — null until the document has been read */
+  analysis: IEPAnalysisResult | null;
+  analyzed_at: string | null;
   uploaded_at: string;
   created_at: string;
 }
@@ -147,6 +150,11 @@ export interface IEPGoalRecord {
   target: string | null;
   measurement: string | null;
   status: 'active' | 'met' | 'discontinued';
+  /** What the analysis said about this goal (033) */
+  strength: GoalStrength | null;
+  suggested_rewrite: string | null;
+  issues: IEPGoalWeakness[] | null;
+  legal_citation: string | null;
   created_at: string;
   updated_at: string;
 }

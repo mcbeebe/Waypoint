@@ -15,6 +15,11 @@ export interface CreateGoalInput {
   measurement?: string;
   child_id?: string;
   document_id?: string;
+  /** What the IEP analysis found (033) — the part worth bringing to the meeting */
+  strength?: string;
+  suggested_rewrite?: string;
+  issues?: unknown;
+  legal_citation?: string;
 }
 
 export function useIEPGoals(familyId: string, childId?: string) {
@@ -80,10 +85,15 @@ export function useIEPGoals(familyId: string, childId?: string) {
   const createGoals = useCallback(async (inputs: CreateGoalInput[]): Promise<number> => {
     if (inputs.length === 0) return 0;
     try {
-      const { data, error: dbError } = await supabase
-        .from('iep_goals')
-        .insert(inputs.map(g => ({ ...g, family_id: familyId })))
-        .select();
+      const rows = inputs.map(g => ({ ...g, family_id: familyId }));
+      let { data, error: dbError } = await supabase.from('iep_goals').insert(rows).select();
+
+      // Pre-033 database: save the goals without the analysis fields rather
+      // than losing them entirely
+      if (dbError && /strength|suggested_rewrite|issues|legal_citation/i.test(dbError.message)) {
+        const stripped = rows.map(({ strength, suggested_rewrite, issues, legal_citation, ...rest }) => rest);
+        ({ data, error: dbError } = await supabase.from('iep_goals').insert(stripped).select());
+      }
       if (dbError) throw dbError;
       const created = (data as IEPGoalRecord[]) ?? [];
       setGoals(prev => [...prev, ...created]);

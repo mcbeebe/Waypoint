@@ -165,6 +165,7 @@ function ActionDetailRoute({ route, navigation }: any) {
 function DocumentAnalysisRoute({ route, navigation }: any) {
   const { family } = useFamily();
   const { createGoals } = useIEPGoals(family?.id ?? '');
+  const { createAction } = useActions({ familyId: family?.id ?? '' });
   const { showToast } = useToast();
   const { analysis, documentId, childId } = route.params;
 
@@ -172,6 +173,27 @@ function DocumentAnalysisRoute({ route, navigation }: any) {
     <DocumentAnalysisScreen
       analysis={analysis}
       onBack={() => navigation.goBack()}
+      onCreateActions={async (drafts: Array<{ title: string; description?: string; priority?: string }>) => {
+        let added = 0;
+        for (const d of drafts) {
+          const created = await createAction({
+            title: d.title,
+            description: d.description,
+            category: 'iep',
+            priority: (d.priority as any) ?? 'high',
+            child_id: childId ?? undefined,
+            source: 'system',
+          });
+          if (created) added++;
+        }
+        showToast(
+          added > 0
+            ? `${added} step${added === 1 ? '' : 's'} added to your Action Plan`
+            : "Couldn't add those — please try again.",
+          added > 0 ? 'success' : 'error'
+        );
+        return added;
+      }}
       onSaveGoals={async goals => {
         const count = await createGoals(
           goals.map((g: any) => ({
@@ -182,6 +204,12 @@ function DocumentAnalysisRoute({ route, navigation }: any) {
             measurement: g.measurement ?? undefined,
             child_id: childId ?? undefined,
             document_id: documentId ?? undefined,
+            // The rewrite and the reasoning are the reason to save a goal at
+            // all — they're what you take into the meeting
+            strength: g.strength ?? undefined,
+            suggested_rewrite: g.improvedGoal ?? undefined,
+            issues: g.weaknesses ?? undefined,
+            legal_citation: g.legalCitation ?? undefined,
           }))
         );
         if (count > 0) {
