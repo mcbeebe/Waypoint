@@ -199,3 +199,87 @@ export function formatActionForSharing(action: ShareableAction): string {
   lines.push('', '— Shared from Waypoint · waypointchild.com');
   return lines.join('\n');
 }
+
+// ─── Titling a saved chat answer ────────────────────────────────────────────
+
+/**
+ * Turn an AI answer into an action TITLE.
+ *
+ * Saving a reply used to take its first line verbatim, which produced
+ * plan items like "Yes — for most Regional Center families, this is one of
+ * the highest-value moves. …" — a conversation fragment, not a task. A
+ * title has to survive being read six weeks later in a list.
+ */
+
+/** Conversational run-ups that carry no instruction. */
+const OPENER_RE =
+  /^(yes|no|yep|absolutely|definitely|exactly|short answer|the short answer is|great question|good question|honestly|okay|ok|sure|right|correct|that'?s right|this is|that is|it'?s|here'?s (the|what|how)[^.:]*)\b[\s,:—–-]*/i;
+
+/** Verbs that mark a sentence as something to DO. */
+const ACTION_VERBS = [
+  'call', 'email', 'request', 'ask', 'send', 'apply', 'file', 'submit', 'schedule',
+  'contact', 'write', 'get', 'gather', 'bring', 'document', 'follow up', 'start',
+  'check', 'confirm', 'verify', 'appeal', 'register', 'sign', 'complete', 'review',
+  'record', 'keep', 'take', 'tell', 'let', 'set up', 'book', 'order', 'reply',
+  'respond', 'push', 'insist', 'demand', 'put',
+];
+const ACTION_VERB_RE = new RegExp(`^(${ACTION_VERBS.join('|')})\\b`, 'i');
+
+const MAX_TITLE = 80;
+
+/** Strip list/heading markers and collapse whitespace. */
+function tidyLine(line: string): string {
+  return line
+    .replace(/^\s*(?:[-*•+]|\d+[.)])\s+/, '')
+    .replace(/^#{1,6}\s*/, '')
+    .replace(/\*\*/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Cut at a word boundary so a title never ends mid-word. */
+function truncateWords(text: string, max = MAX_TITLE): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${(lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut).replace(/[\s,;:.—–-]+$/, '')}…`;
+}
+
+function polish(text: string): string {
+  const cleaned = tidyLine(text).replace(/[:;,]\s*$/, '').replace(/\.$/, '');
+  if (!cleaned) return '';
+  return truncateWords(cleaned.charAt(0).toUpperCase() + cleaned.slice(1));
+}
+
+export interface TitleSource {
+  /** The answer text, markdown already stripped */
+  content: string;
+  /** Structured steps parsed from the reply, if it had any */
+  steps?: Array<{ action: string }>;
+  /** The question that prompted the answer, as a last resort */
+  question?: string;
+}
+
+/**
+ * Best available title, in order of how task-like the source is:
+ * the first structured step → the first instructional sentence →
+ * the first real sentence → the question asked.
+ */
+export function deriveActionTitle(source: TitleSource): string {
+  const firstStep = source.steps?.[0]?.action;
+  if (firstStep && firstStep.trim()) return polish(firstStep);
+
+  // Sentences, in order, with conversational openers removed
+  const sentences = source.content
+    .split(/\n+/)
+    .flatMap((line) => tidyLine(line).split(/(?<=[.!?])\s+/))
+    .map((s) => s.replace(OPENER_RE, '').trim())
+    .filter((s) => s.length > 3);
+
+  const instruction = sentences.find((s) => ACTION_VERB_RE.test(s));
+  if (instruction) return polish(instruction);
+
+  if (sentences.length > 0) return polish(sentences[0]);
+  if (source.question?.trim()) return polish(source.question);
+  return 'Saved from your AI chat';
+}

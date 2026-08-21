@@ -40,6 +40,7 @@ import ChatMetaCards from '@/components/ChatMetaCards';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
 import { hideStreamingTrailer, hasRichMeta, type ChatStep } from '@/lib/followups';
 import { composeTarget } from '@/lib/emailCompose';
+import { deriveActionTitle } from '@/lib/actionContent';
 import { useI18n } from '@/i18n';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -207,12 +208,14 @@ export default function NavigatorScreen() {
     setSavingMessageId(message.id);
 
     try {
-      // Extract a title from the first line/sentence of the message (max 100 chars)
+      // A title has to read as a TASK weeks later in a list — taking the
+      // reply's first line produced items like "Yes — for most Regional
+      // Center families, this is one of the highest-value moves…"
       const plainContent = stripInlineMarkdown(message.content);
-      const firstLine = plainContent.split('\n')[0].trim();
-      const title = firstLine.length > 100
-        ? firstLine.slice(0, 97) + '...'
-        : firstLine;
+      const title = deriveActionTitle({
+        content: plainContent,
+        steps: message.meta?.steps,
+      });
 
       const action = await createAction({
         title,
@@ -221,8 +224,9 @@ export default function NavigatorScreen() {
         source: 'ai_navigator',
         source_message_id: asMessageUuid(message.id),
         chat_session_id: sessionId ?? undefined,
-        category: 'general',
-        priority: 'medium',
+        // Honour what the answer itself said it was about, like step saves do
+        category: META_CATEGORY_TO_ACTION[message.meta?.category ?? ''] ?? 'general',
+        priority: message.meta?.urgency === 'high' ? 'high' : 'medium',
       });
 
       if (action) {

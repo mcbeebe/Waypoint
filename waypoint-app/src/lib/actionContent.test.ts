@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatActionForSharing, type ShareableAction } from './actionContent';
+import { formatActionForSharing, type ShareableAction, deriveActionTitle } from './actionContent';
 
 const FULL_ACTION: ShareableAction = {
   title: 'Apply for IHSS (In-Home Supportive Services)',
@@ -65,5 +65,68 @@ describe('formatActionForSharing', () => {
     });
     expect(text).not.toContain('priority');
     expect(text).toContain('Due October 1, 2026');
+  });
+});
+
+// ─── deriveActionTitle ──────────────────────────────────────────────────────
+
+describe('deriveActionTitle', () => {
+  it('uses the first structured step when the answer had one', () => {
+    expect(
+      deriveActionTitle({
+        content: 'Yes — this is one of the highest-value moves you can make right now.',
+        steps: [{ action: 'Call your service coordinator to request an IPP meeting' }],
+      })
+    ).toBe('Call your service coordinator to request an IPP meeting');
+  });
+
+  it('skips the conversational opener and finds the instruction', () => {
+    // The exact shape that produced the bad plan item
+    const reply =
+      'Yes — for most Regional Center families, this is one of the highest-value moves. ' +
+      'Call your service coordinator and ask them to add respite hours to the IPP.';
+    expect(deriveActionTitle({ content: reply })).toBe(
+      'Call your service coordinator and ask them to add respite hours to the IPP'
+    );
+  });
+
+  it('never returns a raw conversational fragment as the title', () => {
+    const title = deriveActionTitle({
+      content: 'Yes — for most Regional Center families, this is one of the highest-value moves.',
+    });
+    expect(title).not.toMatch(/^Yes —/);
+    expect(title.startsWith('For most Regional Center families')).toBe(true);
+  });
+
+  it('strips list markers and bold from a bulleted answer', () => {
+    expect(
+      deriveActionTitle({ content: '- **Request** an IEP evaluation in writing this week' })
+    ).toBe('Request an IEP evaluation in writing this week');
+  });
+
+  it('truncates long titles at a word boundary, never mid-word', () => {
+    const long =
+      'Email the special education director and request a full psychoeducational evaluation including speech, occupational therapy, and assistive technology assessments';
+    const title = deriveActionTitle({ content: long });
+    expect(title.length).toBeLessThanOrEqual(81);
+    expect(title.endsWith('…')).toBe(true);
+    // The kept text must be a whole-word prefix of the original: the very
+    // next character in the source is a space, so no word was sliced open
+    const kept = title.slice(0, -1);
+    expect(long.startsWith(kept)).toBe(true);
+    expect(long[kept.length]).toBe(' ');
+  });
+
+  it('capitalises and drops trailing punctuation', () => {
+    expect(deriveActionTitle({ content: 'ask the school for prior written notice:' })).toBe(
+      'Ask the school for prior written notice'
+    );
+  });
+
+  it('falls back to the question, then to a safe label', () => {
+    expect(deriveActionTitle({ content: '', question: 'How do I get respite hours?' })).toBe(
+      'How do I get respite hours?'
+    );
+    expect(deriveActionTitle({ content: '' })).toBe('Saved from your AI chat');
   });
 });
