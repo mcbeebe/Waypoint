@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { Deadline, DeadlineType, DeadlineStatus } from '@/types/database';
 
 interface UseDeadlinesOptions {
@@ -44,7 +45,7 @@ export function useDeadlines(options: UseDeadlinesOptions) {
       if (dbError) throw new Error(dbError.message);
       setDeadlines((data as Deadline[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your deadlines."));
     }
   }, [familyId, statusFilter]);
 
@@ -78,7 +79,7 @@ export function useDeadlines(options: UseDeadlinesOptions) {
       ));
       return deadline;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your deadlines."));
       return null;
     }
   }, [familyId]);
@@ -93,7 +94,7 @@ export function useDeadlines(options: UseDeadlinesOptions) {
         .eq('id', id);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your deadlines."));
       fetchDeadlines();
     }
   }, [fetchDeadlines]);

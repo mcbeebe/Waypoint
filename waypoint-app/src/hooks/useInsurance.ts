@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { InsuranceAuthorization, AuthorizationStatus } from '@/types/database';
 
 export interface AuthorizationInput {
@@ -53,7 +54,7 @@ export function useInsurance(familyId: string | undefined) {
       if (dbError) throw new Error(dbError.message);
       setAuthorizations((data as InsuranceAuthorization[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your authorizations."));
     } finally {
       setLoading(false);
     }
@@ -140,7 +141,7 @@ export function useInsurance(familyId: string | undefined) {
       setAuthorizations((prev) => [...prev, created]);
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your authorizations."));
       return false;
     }
   }, [familyId, syncDeadline]);
@@ -162,7 +163,7 @@ export function useInsurance(familyId: string | undefined) {
       setAuthorizations((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your authorizations."));
       return false;
     }
   }, [authorizations, syncDeadline]);
@@ -181,7 +182,7 @@ export function useInsurance(familyId: string | undefined) {
       setAuthorizations((prev) => prev.filter((a) => a.id !== id));
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your authorizations."));
       return false;
     }
   }, [authorizations]);

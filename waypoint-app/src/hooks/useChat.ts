@@ -5,6 +5,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import { retrieveMultiSourceContext, type RAGResult } from '@/lib/rag';
 import { streamNavigatorResponse, classifyIntent } from '@/lib/ai';
 import { parseTrailers, hasRichMeta, type ChatMeta } from '@/lib/followups';
@@ -234,7 +235,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         ragResult.confidence
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't reach the AI Navigator."));
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
@@ -276,7 +277,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       setMessages(loaded);
       setSessionId(sid);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't reach the AI Navigator."));
     } finally {
       setIsLoading(false);
     }

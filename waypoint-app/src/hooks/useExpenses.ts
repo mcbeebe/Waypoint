@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { Expense, ExpenseCategory, ReimbursementStatus } from '@/types/database';
 
 
@@ -77,7 +78,7 @@ export function useExpenses(options: UseExpensesOptions): UseExpensesReturn {
       if (dbError) throw new Error(dbError.message);
       setExpenses((data as Expense[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your expenses."));
     }
   }, [familyId, categoryFilter, dateRange?.start, dateRange?.end]);
 
@@ -171,7 +172,7 @@ export function useExpenses(options: UseExpensesOptions): UseExpensesReturn {
         .eq('id', id);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your expenses."));
       fetchExpenses(); // Rollback
     }
   }, [fetchExpenses]);
@@ -187,7 +188,7 @@ export function useExpenses(options: UseExpensesOptions): UseExpensesReturn {
         .eq('id', id);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your expenses."));
       fetchExpenses(); // Rollback
     }
   }, [fetchExpenses]);

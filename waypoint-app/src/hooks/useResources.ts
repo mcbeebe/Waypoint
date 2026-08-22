@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { Resource, ResourceCategory, DifficultyLevel } from '@/types/database';
 
 interface UseResourcesOptions {
@@ -52,7 +53,7 @@ export function useResources(options: UseResourcesOptions = {}) {
       }
       setHasMore(results.length >= pageSize);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load resources."));
     }
   }, [category, difficulty, searchQuery, pageSize]);
 

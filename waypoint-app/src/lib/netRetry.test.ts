@@ -75,3 +75,30 @@ describe('retryQuery', () => {
     expect(result.data).toBe('recovered');
   });
 });
+
+describe('friendlyErrorMessage — the messages parents actually saw', () => {
+  it('translates Safari’s "Load failed" instead of printing it', () => {
+    // This exact string reached the Documents screen as a red banner
+    expect(friendlyErrorMessage(new TypeError('Load failed'))).toBe(
+      "Couldn't reach Waypoint — check your connection and try again."
+    );
+  });
+
+  it('translates Chrome’s equivalent the same way', () => {
+    expect(friendlyErrorMessage(new TypeError('Failed to fetch'))).toBe(
+      friendlyErrorMessage(new TypeError('Load failed'))
+    );
+  });
+
+  it('uses the caller’s context when there is no message at all', () => {
+    expect(friendlyErrorMessage(undefined, "Couldn't load your documents.")).toBe(
+      "Couldn't load your documents."
+    );
+  });
+
+  it('never leaks a raw JS error prefix', () => {
+    expect(friendlyErrorMessage(new Error('column "analysis" does not exist'))).not.toMatch(
+      /^(TypeError|Error):/
+    );
+  });
+});
