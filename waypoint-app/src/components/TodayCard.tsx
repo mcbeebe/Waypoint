@@ -8,8 +8,17 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import type { Agenda, AgendaAction, AgendaAppointment, AgendaScope } from '@/lib/agenda';
-import { weekSummaryLine } from '@/lib/agenda';
+import { Ionicons } from '@expo/vector-icons';
+import type {
+  Agenda,
+  AgendaAction,
+  AgendaAppointment,
+  AgendaItem,
+  AgendaScope,
+  DaySummary,
+} from '@/lib/agenda';
+import { weekSummaryLine, collapsedSummaryLine } from '@/lib/agenda';
+import { useBooleanPreference } from '@/hooks/usePreference';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 interface TodayCardProps {
@@ -25,6 +34,22 @@ interface TodayCardProps {
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
+
+/** "Sat, Aug 22" — enough to place a day without the year's noise. */
+function dayHeading(day: DaySummary): string {
+  const [y, m, d] = day.key.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+const KIND_ICON: Record<AgendaItem['kind'], string> = {
+  appointment: '🗓',
+  deadline: '⏰',
+  action: '📋',
+};
 
 function todayLabel(): string {
   return new Date().toLocaleDateString(undefined, {
@@ -47,13 +72,41 @@ export default function TodayCard({
     agenda;
   const summary = weekSummaryLine(week);
 
+  // Both remembered per device: a parent who wants this out of the way
+  // shouldn't have to close it again every morning.
+  const [collapsed, setCollapsed] = useBooleanPreference('home_today_collapsed', false);
+  const [weekExpanded, setWeekExpanded] = useBooleanPreference('home_week_expanded', false);
+
+  const upcomingDays = week.slice(1);
+  const daysWithItems = upcomingDays.filter((d) => d.items.length > 0).length;
+
   return (
     <View style={styles.card}>
       {/* Today */}
-      <View style={styles.headerRow}>
-        <Text style={styles.label}>TODAY</Text>
-        <Text style={styles.date}>{todayLabel()}</Text>
-      </View>
+      <TouchableOpacity
+        style={styles.headerRow}
+        onPress={() => setCollapsed(!collapsed)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: !collapsed }}
+        accessibilityLabel={collapsed ? 'Expand today and this week' : 'Collapse today and this week'}
+      >
+        <View style={styles.headerLeft}>
+          <Text style={styles.label}>TODAY</Text>
+          {collapsed && <Text style={styles.collapsedSummary}>{collapsedSummaryLine(agenda)}</Text>}
+        </View>
+        <View style={styles.headerRight}>
+          {!collapsed && <Text style={styles.date}>{todayLabel()}</Text>}
+          <Ionicons
+            name={collapsed ? 'chevron-down' : 'chevron-up'}
+            size={18}
+            color={colors.mid}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {/* Everything below folds away when the card is collapsed */}
+      {!collapsed && (
+        <>
 
       {/* A synced Google calendar buries the journey — let the parent narrow
           this to what Waypoint manages */}
@@ -185,6 +238,68 @@ export default function TodayCard({
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* The rest of the week, spelled out — the dots say a day is busy but
+          not with what, which meant opening Calendar to find out */}
+      {weekExpanded && (
+        <View style={styles.weekDetail}>
+          {upcomingDays.map((day) => (
+            <View key={day.key} style={styles.weekDay}>
+              <Text style={styles.weekDayHeading}>{dayHeading(day)}</Text>
+              {day.items.length === 0 ? (
+                <Text style={styles.weekDayClear}>Clear</Text>
+              ) : (
+                day.items.map((item) => (
+                  <TouchableOpacity
+                    key={`${item.kind}-${item.id}`}
+                    style={styles.weekItemRow}
+                    onPress={() =>
+                      item.kind === 'action' ? onOpenAction(item.id) : onOpenCalendar()
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      `${dayHeading(day)}: ${item.title}` +
+                      (item.time ? ` at ${formatTime(item.time)}` : '')
+                    }
+                  >
+                    <Text style={styles.weekItemTime}>
+                      {item.time ? formatTime(item.time) : KIND_ICON[item.kind]}
+                    </Text>
+                    <Text style={styles.weekItemText} numberOfLines={1}>
+                      {item.title}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+          ))}
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={styles.weekToggle}
+        onPress={() => setWeekExpanded(!weekExpanded)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: weekExpanded }}
+        accessibilityLabel={
+          weekExpanded ? 'Hide the rest of the week' : 'Show every day this week'
+        }
+      >
+        <Text style={styles.weekToggleText}>
+          {weekExpanded
+            ? 'Hide the rest of the week'
+            : daysWithItems > 0
+              ? `Show all 7 days (${daysWithItems} more with something on)`
+              : 'Show all 7 days'}
+        </Text>
+        <Ionicons
+          name={weekExpanded ? 'chevron-up' : 'chevron-down'}
+          size={14}
+          color={colors.teal}
+        />
+      </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 }
@@ -198,7 +313,61 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 32,
+  },
+  headerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  collapsedSummary: {
+    flex: 1,
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+  },
+  weekDetail: {
+    marginTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.sm,
+    gap: spacing.sm,
+  },
+  weekDay: { gap: 1 },
+  weekDayHeading: {
+    fontSize: 11,
+    fontWeight: fonts.weights.semibold as '600',
+    color: colors.navy,
+  },
+  weekDayClear: { fontSize: fonts.sizes.xs, color: colors.mid, paddingVertical: 2 },
+  weekItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: 5,
+    minHeight: 30,
+  },
+  weekItemTime: {
+    fontSize: fonts.sizes.xs,
+    color: colors.teal,
+    fontWeight: fonts.weights.semibold as '600',
+    width: 62,
+  },
+  weekItemText: { flex: 1, fontSize: fonts.sizes.xs, color: colors.dark },
+  weekToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: spacing.sm,
+    paddingVertical: 7,
+    minHeight: 34,
+  },
+  weekToggleText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.teal,
+    fontWeight: fonts.weights.medium as '500',
+  },
   label: {
     fontSize: 10,
     fontWeight: fonts.weights.bold as '700',

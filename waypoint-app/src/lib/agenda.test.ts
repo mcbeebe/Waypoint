@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { buildAgenda, weekSummaryLine, dayKey, type AgendaInput } from './agenda';
+import {
+  buildAgenda,
+  weekSummaryLine,
+  collapsedSummaryLine,
+  dayKey,
+  type AgendaInput,
+} from './agenda';
 
 // A fixed local "now": Wed Aug 19 2026, 9am
 const NOW = new Date(2026, 7, 19, 9, 0, 0);
@@ -176,5 +182,93 @@ describe('buildAgenda — scope', () => {
     const mine = buildAgenda({ ...mixed, scope: 'waypoint' }).week[0].appointmentCount;
     expect(all).toBe(3);
     expect(mine).toBe(2);
+  });
+});
+
+describe('buildAgenda — week items', () => {
+  const agenda = buildAgenda({
+    ...base,
+    appointments: [
+      { id: 'p2', title: 'Speech therapy', start_time: at(21, 15) },
+      { id: 'p1', title: 'OT session', start_time: at(21, 9) },
+    ],
+    deadlines: [{ id: 'd1', title: 'Consent form due', due_date: on(21), status: 'pending' }],
+    actions: [
+      action({ id: 'a1', title: 'Call the SC', due_date: on(21) }),
+      action({ id: 'a2', title: 'Later thing', due_date: on(23) }),
+    ],
+  });
+  const friday = agenda.week.find((d) => d.key === on(21))!;
+
+  it('lists every kind of thing on that day', () => {
+    expect(friday.items.map((i) => i.title)).toEqual([
+      'OT session',
+      'Speech therapy',
+      'Consent form due',
+      'Call the SC',
+    ]);
+  });
+
+  it('orders appointments by time, before dues', () => {
+    expect(friday.items.slice(0, 2).map((i) => i.kind)).toEqual(['appointment', 'appointment']);
+    expect(friday.items[0].time! < friday.items[1].time!).toBe(true);
+  });
+
+  it('carries a time only for appointments', () => {
+    expect(friday.items.filter((i) => i.time !== null)).toHaveLength(2);
+    expect(friday.items.find((i) => i.kind === 'action')!.time).toBeNull();
+  });
+
+  it('agrees with the counts the dots are drawn from', () => {
+    for (const day of agenda.week) {
+      expect(day.items.length).toBe(day.appointmentCount + day.dueCount);
+    }
+  });
+
+  it('gives quiet days an empty list, not a missing one', () => {
+    const quiet = agenda.week.find((d) => d.key === on(22))!;
+    expect(quiet.items).toEqual([]);
+  });
+
+  it('covers all seven days so none of the week is hidden', () => {
+    expect(agenda.week).toHaveLength(7);
+    expect(agenda.week[0].key).toBe(on(19));
+    expect(agenda.week[6].key).toBe(on(25));
+  });
+
+  it('respects scope — a Google event drops out of the day list too', () => {
+    const scoped = buildAgenda({
+      ...base,
+      scope: 'waypoint',
+      appointments: [
+        { id: 'g1', title: 'Work standup', start_time: at(21, 9), source: 'google' },
+        { id: 'w1', title: 'OT session', start_time: at(21, 10), source: 'waypoint' },
+      ],
+    });
+    const day = scoped.week.find((d) => d.key === on(21))!;
+    expect(day.items.map((i) => i.title)).toEqual(['OT session']);
+  });
+});
+
+describe('collapsedSummaryLine', () => {
+  it('says what is hidden when the card is closed', () => {
+    const agenda = buildAgenda({
+      ...base,
+      actions: [
+        action({ id: 'a1', due_date: on(19) }),
+        action({ id: 'a2', due_date: on(22) }),
+      ],
+      appointments: [{ id: 'p1', title: 'OT', start_time: at(19, 10) }],
+    });
+    expect(collapsedSummaryLine(agenda)).toBe('2 today · 2 due this week');
+  });
+
+  it('leads with overdue, because that is the part that cannot wait', () => {
+    const agenda = buildAgenda({ ...base, actions: [action({ id: 'a1', due_date: on(10) })] });
+    expect(collapsedSummaryLine(agenda).startsWith('1 overdue')).toBe(true);
+  });
+
+  it('still says something on a clear week', () => {
+    expect(collapsedSummaryLine(buildAgenda(base))).toBe('Nothing today');
   });
 });

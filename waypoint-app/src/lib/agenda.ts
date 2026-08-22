@@ -47,6 +47,18 @@ export interface AgendaInput {
   scope?: AgendaScope;
 }
 
+/** What kind of thing a day holds — drives the icon and the tap target. */
+export type AgendaItemKind = 'appointment' | 'deadline' | 'action';
+
+/** One line in a day's list, flattened so the view needs no branching. */
+export interface AgendaItem {
+  id: string;
+  kind: AgendaItemKind;
+  title: string;
+  /** ISO datetime for appointments; null for all-day dues */
+  time: string | null;
+}
+
 export interface DaySummary {
   /** YYYY-MM-DD in local time */
   key: string;
@@ -57,6 +69,12 @@ export interface DaySummary {
   appointmentCount: number;
   /** Actions + deadlines falling due that day */
   dueCount: number;
+  /**
+   * Everything on that day, in reading order: timed appointments first,
+   * then deadlines, then actions due. Lets the week expand into real
+   * events instead of counts, without a second pass over the data.
+   */
+  items: AgendaItem[];
 }
 
 export interface Agenda {
@@ -146,15 +164,44 @@ export function buildAgenda(input: AgendaInput): Agenda {
   const week: DaySummary[] = Array.from({ length: 7 }, (_, i) => {
     const d = addDays(now, i);
     const key = dayKey(d);
+
+    const dayAppointments = appointments
+      .filter((a) => dayKey(new Date(a.start_time)) === key)
+      .sort((a, b) => a.start_time.localeCompare(b.start_time));
+    const dayDeadlines = deadlines.filter(
+      (dl) => dl.status !== 'completed' && dueKey(dl.due_date) === key
+    );
+    const dayActions = openActions.filter((a) => a.due_date && dueKey(a.due_date) === key);
+
+    const items: AgendaItem[] = [
+      ...dayAppointments.map((a) => ({
+        id: a.id,
+        kind: 'appointment' as const,
+        title: a.title,
+        time: a.start_time,
+      })),
+      ...dayDeadlines.map((dl) => ({
+        id: dl.id,
+        kind: 'deadline' as const,
+        title: dl.title,
+        time: null,
+      })),
+      ...dayActions.map((a) => ({
+        id: a.id,
+        kind: 'action' as const,
+        title: a.title,
+        time: null,
+      })),
+    ];
+
     return {
       key,
       label: WEEKDAY[d.getDay()],
       dayOfMonth: d.getDate(),
       isToday: i === 0,
-      appointmentCount: appointments.filter((a) => dayKey(new Date(a.start_time)) === key).length,
-      dueCount:
-        openActions.filter((a) => a.due_date && dueKey(a.due_date) === key).length +
-        deadlines.filter((dl) => dl.status !== 'completed' && dueKey(dl.due_date) === key).length,
+      appointmentCount: dayAppointments.length,
+      dueCount: dayDeadlines.length + dayActions.length,
+      items,
     };
   });
 
@@ -171,6 +218,20 @@ export function buildAgenda(input: AgendaInput): Agenda {
       todayDeadlines.length === 0 &&
       overdue.length === 0,
   };
+}
+
+/** "3 today · 5 due this week" — enough to justify leaving the card collapsed. */
+export function collapsedSummaryLine(agenda: Agenda): string {
+  const today =
+    agenda.todayAppointments.length + agenda.todayActions.length + agenda.todayDeadlines.length;
+  const weekDue = agenda.week.reduce((n, d) => n + d.dueCount, 0);
+  const parts: string[] = [];
+  if (agenda.overdue.length > 0) {
+    parts.push(`${agenda.overdue.length} overdue`);
+  }
+  parts.push(today === 0 ? 'Nothing today' : `${today} today`);
+  if (weekDue > 0) parts.push(`${weekDue} due this week`);
+  return parts.join(' · ');
 }
 
 /** "3 appointments · 2 due" — the week in one line, or null when it's clear. */
