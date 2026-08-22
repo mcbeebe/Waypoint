@@ -34,6 +34,8 @@ import ActionEventModal from '@/components/ActionEventModal';
 import ActionFormModal, { type ActionFormValues } from '@/components/ActionFormModal';
 import DateInput from '@/components/DateInput';
 import { getCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
+import { useActionNotes } from '@/hooks/useActionNotes';
+import { showConfirm } from '@/lib/dialogs';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -83,7 +85,19 @@ export default function ActionDetailScreen({
   const [editingDue, setEditingDue] = useState(false);
   const [dueDraft, setDueDraft] = useState('');
   const [savingDue, setSavingDue] = useState(false);
+  // Notes: the parent's own running log of what actually happened
+  const [noteDraft, setNoteDraft] = useState('');
+  const [savingNote, setSavingNote] = useState(false);
+  // Next steps: added inline so a parent doesn't have to open the edit form
+  const [stepDraft, setStepDraft] = useState('');
   const { showToast } = useToast();
+  const {
+    notes,
+    supported: notesSupported,
+    error: notesError,
+    addNote,
+    deleteNote,
+  } = useActionNotes(action.id, action.family_id);
   const learnMoreKey = LEARN_MORE_BY_ACTION_TITLE[action.title];
   const { scale, cycleScale } = useTextScale();
   /** Scaled font size — applied to all reading-heavy text */
@@ -105,6 +119,45 @@ export default function ActionDetailScreen({
       ]),
     [action.description, action.script, action.steps]
   );
+
+  /** Append a next step to the checklist without opening the edit form. */
+  const handleAddStep = () => {
+    const step = stepDraft.trim();
+    if (!step) return;
+    onUpdate({ steps: [...(action.steps ?? []), { step, done: false }] });
+    setStepDraft('');
+    showToast('Step added', 'success');
+  };
+
+  const handleDeleteStep = async (index: number) => {
+    const ok = await showConfirm(
+      'Remove this step?',
+      action.steps?.[index]?.step ?? '',
+      'Remove',
+      true
+    );
+    if (!ok) return;
+    onUpdate({ steps: (action.steps ?? []).filter((_, i) => i !== index) });
+  };
+
+  const handleAddNote = async () => {
+    if (savingNote) return;
+    const body = noteDraft.trim();
+    if (!body) return;
+    setSavingNote(true);
+    const ok = await addNote(body);
+    setSavingNote(false);
+    if (ok) {
+      setNoteDraft('');
+    } else {
+      showToast(notesSupported ? "Couldn't save that note" : 'Notes aren\u2019t available yet', 'error');
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string, body: string) => {
+    const ok = await showConfirm('Delete this note?', body, 'Delete', true);
+    if (ok) deleteNote(noteId);
+  };
 
   const openDueEditor = () => {
     setDueDraft(action.due_date ?? '');
@@ -454,30 +507,132 @@ export default function ActionDetailScreen({
           </View>
         )}
 
-        {/* Steps Checklist */}
-        {action.steps && action.steps.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              ✅ Steps ({stepsDone}/{stepsTotal})
-            </Text>
-            {action.steps.map((step, index) => (
+        {/* Steps Checklist — always shown so a next step can be added */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {stepsTotal > 0 ? `✅ Steps (${stepsDone}/${stepsTotal})` : '✅ Next steps'}
+          </Text>
+          {(action.steps ?? []).map((step, index) => (
+            <View key={index} style={styles.stepRow}>
               <TouchableOpacity
-                key={index}
-                style={styles.stepRow}
+                style={styles.stepToggle}
                 onPress={() => onToggleStep(index)}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: step.done }}
+                accessibilityLabel={step.step}
               >
                 <View style={[styles.checkbox, step.done && styles.checkboxDone]}>
                   {step.done && <Text style={styles.checkmark}>✓</Text>}
                 </View>
-                <Text style={[styles.stepText, step.done && styles.stepTextDone, { fontSize: sz(14), lineHeight: sz(21) }]}>
+                <Text
+                  style={[
+                    styles.stepText,
+                    step.done && styles.stepTextDone,
+                    { fontSize: sz(14), lineHeight: sz(21) },
+                  ]}
+                >
                   {step.step}
                 </Text>
               </TouchableOpacity>
-            ))}
+              <TouchableOpacity
+                onPress={() => handleDeleteStep(index)}
+                style={styles.rowDelete}
+                accessibilityRole="button"
+                accessibilityLabel={`Remove step: ${step.step}`}
+              >
+                <Ionicons name="close" size={16} color={colors.mid} />
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          <View style={styles.inlineAddRow}>
+            <TextInput
+              style={[styles.inlineInput, { fontSize: sz(14) }]}
+              value={stepDraft}
+              onChangeText={setStepDraft}
+              placeholder="Add a next step…"
+              placeholderTextColor={colors.mid}
+              returnKeyType="done"
+              onSubmitEditing={handleAddStep}
+              accessibilityLabel="Add a next step"
+            />
+            <TouchableOpacity
+              style={[styles.inlineAddButton, !stepDraft.trim() && styles.inlineAddButtonDisabled]}
+              onPress={handleAddStep}
+              disabled={!stepDraft.trim()}
+              accessibilityRole="button"
+              accessibilityLabel="Add step"
+            >
+              <Text style={styles.inlineAddButtonText}>Add</Text>
+            </TouchableOpacity>
           </View>
-        )}
+        </View>
+
+        {/* Notes & updates — the parent's own record of what happened */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            💬 Notes &amp; updates{notes.length > 0 ? ` (${notes.length})` : ''}
+          </Text>
+
+          {!notesSupported ? (
+            <Text style={[styles.notesEmpty, { fontSize: sz(13) }]}>
+              Notes will be available here once the latest update finishes rolling out.
+            </Text>
+          ) : (
+            <>
+              {notesError && <Text style={styles.notesError}>{notesError}</Text>}
+
+              {notes.length === 0 && !notesError && (
+                <Text style={[styles.notesEmpty, { fontSize: sz(13) }]}>
+                  Keep a running log here — who you called, what they said, what you're waiting on.
+                </Text>
+              )}
+
+              {notes.map((note) => (
+                <View key={note.id} style={styles.noteCard}>
+                  <View style={styles.noteHeader}>
+                    <Text style={styles.noteDate}>{formatNoteDate(note.created_at)}</Text>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteNote(note.id, note.body)}
+                      style={styles.rowDelete}
+                      accessibilityRole="button"
+                      accessibilityLabel="Delete note"
+                    >
+                      <Ionicons name="trash-outline" size={14} color={colors.mid} />
+                    </TouchableOpacity>
+                  </View>
+                  <Text style={[styles.noteBody, { fontSize: sz(14), lineHeight: sz(21) }]}>
+                    {note.body}
+                  </Text>
+                </View>
+              ))}
+
+              <TextInput
+                style={[styles.noteInput, { fontSize: sz(14) }]}
+                value={noteDraft}
+                onChangeText={setNoteDraft}
+                placeholder="Add a note — left a voicemail, emailed the SC, still waiting…"
+                placeholderTextColor={colors.mid}
+                multiline
+                accessibilityLabel="Add a note"
+              />
+              <TouchableOpacity
+                style={[
+                  styles.noteAddButton,
+                  (!noteDraft.trim() || savingNote) && styles.inlineAddButtonDisabled,
+                ]}
+                onPress={handleAddNote}
+                disabled={!noteDraft.trim() || savingNote}
+                accessibilityRole="button"
+                accessibilityLabel="Save note"
+              >
+                <Text style={styles.noteAddButtonText}>
+                  {savingNote ? 'Saving…' : 'Add note'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
 
         {/* KB Article Links */}
         {action.kb_article_ids && action.kb_article_ids.length > 0 && (
@@ -607,6 +762,19 @@ function TimelineItem({ label, value }: { label: string; value: string }) {
       <Text style={styles.timelineValue}>{value}</Text>
     </View>
   );
+}
+
+/** "Today · 2:14 PM" for fresh notes, "Mar 14 · 2:14 PM" for older ones. */
+function formatNoteDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const today = new Date();
+  const sameDay =
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate();
+  if (sameDay) return `Today · ${time}`;
+  return `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} · ${time}`;
 }
 
 function formatDate(dateStr: string): string {
@@ -952,6 +1120,104 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     gap: 10,
+  },
+  stepToggle: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  rowDelete: {
+    padding: 6,
+  },
+  inlineAddRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 6,
+  },
+  inlineInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 8,
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+    backgroundColor: colors.white,
+  },
+  inlineAddButton: {
+    backgroundColor: colors.teal,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: radii.sm,
+  },
+  inlineAddButtonDisabled: {
+    opacity: 0.45,
+  },
+  inlineAddButtonText: {
+    color: colors.white,
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.semibold,
+  },
+  notesEmpty: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+    lineHeight: 20,
+    marginBottom: spacing.sm,
+  },
+  notesError: {
+    fontSize: fonts.sizes.xs,
+    color: '#DC2626',
+    marginBottom: spacing.sm,
+  },
+  noteCard: {
+    backgroundColor: colors.light,
+    borderRadius: radii.sm,
+    padding: spacing.sm,
+    marginBottom: 6,
+  },
+  noteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  noteDate: {
+    fontSize: 11,
+    color: colors.mid,
+    fontWeight: fonts.weights.medium,
+  },
+  noteBody: {
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+    lineHeight: 20,
+  },
+  noteInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 8,
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+    backgroundColor: colors.white,
+    minHeight: 64,
+    textAlignVertical: 'top',
+    marginTop: 4,
+  },
+  noteAddButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.teal,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: radii.sm,
+    marginTop: 8,
+  },
+  noteAddButtonText: {
+    color: colors.white,
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.semibold,
   },
   checkbox: {
     width: 22,
