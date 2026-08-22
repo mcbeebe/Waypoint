@@ -34,6 +34,7 @@ import ActionEventModal from '@/components/ActionEventModal';
 import ActionFormModal, { type ActionFormValues } from '@/components/ActionFormModal';
 import DateInput from '@/components/DateInput';
 import { getCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
+import { actionUrl, withWaypointLink } from '@/lib/appLinks';
 import { useActionNotes } from '@/hooks/useActionNotes';
 import { showConfirm } from '@/lib/dialogs';
 
@@ -193,6 +194,8 @@ export default function ActionDetailScreen({
             await updateCalendarEvent(action.google_event_id, {
               start: { dateTime: start.toISOString(), timeZone },
               end: { dateTime: end.toISOString(), timeZone },
+              // Backfills the deep link on events created before it existed
+              description: withWaypointLink(ev.description ?? '', actionUrl(action.id)),
             });
           }
           showToast('Deadline updated — Google Calendar event moved', 'success');
