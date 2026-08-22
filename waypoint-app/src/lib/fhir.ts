@@ -12,6 +12,14 @@
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import * as Crypto from 'expo-crypto';
+import {
+  VERIFIER_BYTES,
+  verifierFromBytes,
+  challengeFromVerifier,
+  stateFromBytes,
+  statesMatch,
+} from '@/lib/pkce';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -40,6 +48,24 @@ const FHIR_SCOPES = [
 
 const CLIENT_ID = process.env.EXPO_PUBLIC_FHIR_CLIENT_ID ?? '';
 const REDIRECT_URI = Linking.createURL('fhir-callback');
+
+// PKCE + state live only for the length of one authorization. Kept in
+// SecureStore rather than memory so a backgrounded app that gets evicted
+// mid-login can still complete the exchange when the redirect returns.
+const PKCE_VERIFIER_KEY = 'waypoint_fhir_pkce_verifier';
+const OAUTH_STATE_KEY = 'waypoint_fhir_oauth_state';
+
+/** base64 SHA-256, the shape lib/pkce expects. */
+async function sha256Base64(input: string): Promise<string> {
+  return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, input, {
+    encoding: Crypto.CryptoEncoding.BASE64,
+  });
+}
+
+async function clearAuthTransients(): Promise<void> {
+  await SecureStore.deleteItemAsync(PKCE_VERIFIER_KEY).catch(() => {});
+  await SecureStore.deleteItemAsync(OAUTH_STATE_KEY).catch(() => {});
+}
 
 // ─── FHIR Resource Types ────────────────────────────────────────────────────
 
@@ -95,25 +121,68 @@ export interface FHIRObservation {
  */
 export async function connectMyChart(): Promise<{ success: boolean; error?: string }> {
   try {
+    if (!CLIENT_ID) {
+      return { success: false, error: 'MyChart isn\u2019t configured yet.' };
+    }
+
+    // PKCE: Epic requires S256 for public clients like this one. The
+    // verifier stays on the device and proves that the app redeeming the
+    // code is the same one that asked for it.
+    const verifier = verifierFromBytes(await Crypto.getRandomBytesAsync(VERIFIER_BYTES));
+    const challenge = await challengeFromVerifier(verifier, sha256Base64);
+    // state binds the callback to this request, so a redirect the app
+    // didn't initiate can't be used to inject an attacker's code.
+    const state = stateFromBytes(await Crypto.getRandomBytesAsync(16));
+
+    await SecureStore.setItemAsync(PKCE_VERIFIER_KEY, verifier);
+    await SecureStore.setItemAsync(OAUTH_STATE_KEY, state);
+
     const authUrl = `${DEFAULT_AUTH_URL}?` + new URLSearchParams({
       response_type: 'code',
       client_id: CLIENT_ID,
       redirect_uri: REDIRECT_URI,
       scope: FHIR_SCOPES,
       aud: DEFAULT_FHIR_SERVER,
+      state,
+      code_challenge: challenge,
+      code_challenge_method: 'S256',
     }).toString();
 
     const result = await WebBrowser.openAuthSessionAsync(authUrl, REDIRECT_URI);
 
     if (result.type !== 'success' || !result.url) {
+      await clearAuthTransients();
       return { success: false, error: 'Authentication cancelled' };
     }
 
-    // Extract authorization code from redirect URL
     const url = new URL(result.url);
+
+    // Epic reports a refusal in the redirect, not in the HTTP status
+    const authError = url.searchParams.get('error');
+    if (authError) {
+      await clearAuthTransients();
+      return {
+        success: false,
+        error: url.searchParams.get('error_description') ?? `MyChart declined: ${authError}`,
+      };
+    }
+
+    const expectedState = await SecureStore.getItemAsync(OAUTH_STATE_KEY);
+    if (!statesMatch(expectedState, url.searchParams.get('state'))) {
+      await clearAuthTransients();
+      return { success: false, error: 'This sign-in couldn\u2019t be verified. Please try again.' };
+    }
+
     const code = url.searchParams.get('code');
     if (!code) {
+      await clearAuthTransients();
       return { success: false, error: 'No authorization code received' };
+    }
+
+    const storedVerifier = await SecureStore.getItemAsync(PKCE_VERIFIER_KEY);
+    if (!storedVerifier) {
+      await clearAuthTransients();
+      return { success: false, error: 'This sign-in expired. Please try again.' };
     }
 
     // Exchange code for tokens
@@ -125,8 +194,11 @@ export async function connectMyChart(): Promise<{ success: boolean; error?: stri
         code,
         redirect_uri: REDIRECT_URI,
         client_id: CLIENT_ID,
+        code_verifier: storedVerifier,
       }).toString(),
     });
+
+    await clearAuthTransients();
 
     if (!tokenResponse.ok) {
       return { success: false, error: 'Token exchange failed' };
@@ -146,6 +218,7 @@ export async function connectMyChart(): Promise<{ success: boolean; error?: stri
 
     return { success: true };
   } catch (err) {
+    await clearAuthTransients();
     return { success: false, error: err instanceof Error ? err.message : 'Connection failed' };
   }
 }
@@ -154,6 +227,7 @@ export async function connectMyChart(): Promise<{ success: boolean; error?: stri
  * Disconnect MyChart — revoke tokens and clear stored data.
  */
 export async function disconnectMyChart(): Promise<void> {
+  await clearAuthTransients();
   await SecureStore.deleteItemAsync(FHIR_TOKEN_KEY);
   await SecureStore.deleteItemAsync(FHIR_REFRESH_KEY);
   await SecureStore.deleteItemAsync(FHIR_SERVER_KEY);
