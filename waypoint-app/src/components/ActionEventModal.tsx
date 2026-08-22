@@ -28,6 +28,7 @@ import {
   updateCalendarEvent,
   deleteCalendarEvent,
 } from '@/lib/googleCalendar';
+import { actionUrl, withWaypointLink, stripWaypointLink } from '@/lib/appLinks';
 import type { Action } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -96,7 +97,7 @@ export default function ActionEventModal({ visible, action, onClose, onSaved }: 
       getCalendarEvent(action.google_event_id)
         .then((ev) => {
           setTitle(ev.summary);
-          setNotes(ev.description ?? '');
+          setNotes(stripWaypointLink(ev.description ?? ''));
           setHtmlLink(ev.htmlLink || null);
           setAttendeesText((ev.attendees ?? []).map((a) => a.email).join(', '));
           if (ev.start.dateTime && ev.end.dateTime) {
@@ -139,6 +140,8 @@ export default function ActionEventModal({ visible, action, onClose, onSaved }: 
     setDuration(60);
     setAttendeesText('');
     const firstLine = (action.description ?? '').split('\n')[0];
+    // The Waypoint link isn't shown in this field — it's attached on save,
+    // so the parent edits their own notes without a URL in the way.
     setNotes(`${firstLine}${firstLine ? '\n\n' : ''}From your Waypoint action plan.`);
   }, [action]);
 
@@ -177,9 +180,14 @@ export default function ActionEventModal({ visible, action, onClose, onSaved }: 
     const end = new Date(start.getTime() + duration * 60000);
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    // Always (re)attach the deep link so tapping the event in Google
+    // Calendar comes back here to update status — including on events
+    // created before this existed, and without stacking duplicates.
+    const description = withWaypointLink(notes.trim(), actionUrl(action.id));
+
     const payload = {
       summary: title.trim(),
-      description: notes.trim() || undefined,
+      description,
       start: { dateTime: start.toISOString(), timeZone },
       end: { dateTime: end.toISOString(), timeZone },
       attendees: attendees.map((email) => ({ email })),
@@ -317,6 +325,10 @@ export default function ActionEventModal({ visible, action, onClose, onSaved }: 
                 placeholder="Agenda, phone number to call, documents to bring…"
                 placeholderTextColor={colors.mid}
               />
+              <Text style={styles.hint}>
+                A link back to this action in Waypoint is added automatically — tap it from
+                Google Calendar to see the details and update its status.
+              </Text>
 
               {error && <Text style={styles.errorText}>{error}</Text>}
 

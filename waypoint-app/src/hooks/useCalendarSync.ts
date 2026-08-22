@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { fetchCalendarEvents, createCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
 import { getGoogleAccessToken } from '@/lib/auth';
+import { calendarUrl, withWaypointLink, stripWaypointLink } from '@/lib/appLinks';
 import type { Appointment, GoogleCalendarEvent } from '@/types/database';
 
 const LAST_SYNC_KEY = 'waypoint_calendar_last_sync';
@@ -103,7 +104,9 @@ export function useCalendarSync(options: UseCalendarSyncOptions): UseCalendarSyn
         start_time: startTime,
         end_time: endTime,
         location: gcalEvent.location,
-        notes: gcalEvent.description,
+        // Drop our own link line on the way back in — it's navigation
+        // for Google Calendar, not something to show in Waypoint
+        notes: gcalEvent.description ? stripWaypointLink(gcalEvent.description) : gcalEvent.description,
         google_calendar_event_id: gcalEvent.id,
         status: 'scheduled',
       };
@@ -140,7 +143,8 @@ export function useCalendarSync(options: UseCalendarSyncOptions): UseCalendarSyn
       try {
         const gcalEvent = await createCalendarEvent({
           summary: appt.title,
-          description: appt.notes ?? undefined,
+          // Link back so the event is a way into Waypoint, not a dead end
+          description: withWaypointLink(appt.notes ?? '', calendarUrl()),
           location: appt.location ?? undefined,
           start: { dateTime: appt.start_time },
           end: { dateTime: appt.end_time ?? appt.start_time },
