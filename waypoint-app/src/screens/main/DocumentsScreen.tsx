@@ -186,12 +186,22 @@ export default function DocumentsScreen() {
       if (analysis) {
         // Keep it: a full legal read shouldn't evaporate when the parent
         // leaves the screen, and re-reading costs another AI call
-        saveAnalysis(doc.id, analysis).catch(() => {});
+        const saved = await saveAnalysis(doc.id, analysis).catch(() => 'failed' as const);
         (navigation as any).navigate('DocumentAnalysis', {
           analysis,
           documentId: doc.id,
           childId: doc.child_id,
         });
+        if (saved !== 'saved') {
+          // Say it out loud. Silently discarding a read the parent paid for
+          // is how this went unnoticed in the first place.
+          showToast(
+            saved === 'unsupported'
+              ? "Analysis ready, but saving it needs an update that hasn't been applied yet — copy anything you need before you leave this screen."
+              : "Analysis ready, but it couldn't be saved — copy anything you need before you leave this screen.",
+            'info'
+          );
+        }
       } else {
         showToast(getLastError() ?? 'Analysis failed — please try again.', 'error');
       }

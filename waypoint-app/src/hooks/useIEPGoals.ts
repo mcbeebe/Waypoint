@@ -23,6 +23,13 @@ export interface CreateGoalInput {
   legal_citation?: string;
 }
 
+/** How a bulk goal import went, including what the database couldn't keep. */
+export interface CreateGoalsResult {
+  created: number;
+  /** True when 033 is missing: goals saved, rewrites and citations did not. */
+  analysisFieldsDropped: boolean;
+}
+
 export function useIEPGoals(familyId: string, childId?: string) {
   const [goals, setGoals] = useState<IEPGoalRecord[]>([]);
   const [logsByGoal, setLogsByGoal] = useState<Record<string, IEPGoalLog[]>>({});
@@ -82,26 +89,35 @@ export function useIEPGoals(familyId: string, childId?: string) {
     }
   }, [familyId]);
 
-  /** Bulk-import goals (e.g. from an AI IEP analysis) */
-  const createGoals = useCallback(async (inputs: CreateGoalInput[]): Promise<number> => {
-    if (inputs.length === 0) return 0;
+  /**
+   * Bulk-import goals (e.g. from an AI IEP analysis).
+   *
+   * Reports whether the analysis fields survived: pre-033 the goals still
+   * save, but without the suggested rewrite and the citation behind it —
+   * which are most of the reason to save a goal at all. The caller says so
+   * rather than letting the parent discover it at the IEP meeting.
+   */
+  const createGoals = useCallback(async (inputs: CreateGoalInput[]): Promise<CreateGoalsResult> => {
+    if (inputs.length === 0) return { created: 0, analysisFieldsDropped: false };
     try {
       const rows = inputs.map(g => ({ ...g, family_id: familyId }));
       let { data, error: dbError } = await supabase.from('iep_goals').insert(rows).select();
+      let analysisFieldsDropped = false;
 
       // Pre-033 database: save the goals without the analysis fields rather
       // than losing them entirely
       if (dbError && /strength|suggested_rewrite|issues|legal_citation/i.test(dbError.message)) {
         const stripped = rows.map(({ strength, suggested_rewrite, issues, legal_citation, ...rest }) => rest);
         ({ data, error: dbError } = await supabase.from('iep_goals').insert(stripped).select());
+        analysisFieldsDropped = !dbError;
       }
       if (dbError) throw dbError;
       const created = (data as IEPGoalRecord[]) ?? [];
       setGoals(prev => [...prev, ...created]);
-      return created.length;
+      return { created: created.length, analysisFieldsDropped };
     } catch (err) {
       setError(friendlyErrorMessage(err, "Couldn't load your IEP goals."));
-      return 0;
+      return { created: 0, analysisFieldsDropped: false };
     }
   }, [familyId]);
 

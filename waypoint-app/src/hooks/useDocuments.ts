@@ -43,6 +43,13 @@ interface CreateDocumentInput {
   extracted_text?: string;
 }
 
+/**
+ * Why an analysis did or didn't persist. 'unsupported' means migration 033
+ * hasn't been applied — the columns aren't there yet, which is a different
+ * story from a save that genuinely failed.
+ */
+export type SaveAnalysisResult = 'saved' | 'unsupported' | 'failed';
+
 export function useDocuments(options: UseDocumentsOptions) {
   const { familyId, typeFilter, childId } = options;
 
@@ -331,15 +338,17 @@ export function useDocuments(options: UseDocumentsOptions) {
   const saveAnalysis = useCallback(async (
     documentId: string,
     analysis: unknown
-  ): Promise<boolean> => {
+  ): Promise<SaveAnalysisResult> => {
     try {
       const { error: dbError } = await supabase
         .from('documents')
         .update({ analysis, analyzed_at: new Date().toISOString() })
         .eq('id', documentId);
       if (dbError) {
-        // Pre-033 database: the read still worked, it just isn't saved yet
-        if (/analysis|analyzed_at/i.test(dbError.message)) return false;
+        // Pre-033 database: the read still worked, it just isn't saved yet.
+        // The caller has to say so — a parent who paid for an AI read and
+        // watched it vanish deserves to know why.
+        if (/analysis|analyzed_at/i.test(dbError.message)) return 'unsupported';
         throw new Error(dbError.message);
       }
       setDocuments((prev) =>
@@ -349,9 +358,9 @@ export function useDocuments(options: UseDocumentsOptions) {
             : d
         )
       );
-      return true;
+      return 'saved';
     } catch {
-      return false;
+      return 'failed';
     }
   }, []);
 

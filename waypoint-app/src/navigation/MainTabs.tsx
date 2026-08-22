@@ -195,7 +195,7 @@ function DocumentAnalysisRoute({ route, navigation }: any) {
         return added;
       }}
       onSaveGoals={async goals => {
-        const count = await createGoals(
+        const { created, analysisFieldsDropped } = await createGoals(
           goals.map((g: any) => ({
             domain: g.domain,
             goal_text: g.goalText,
@@ -212,8 +212,13 @@ function DocumentAnalysisRoute({ route, navigation }: any) {
             legal_citation: g.legalCitation ?? undefined,
           }))
         );
-        if (count > 0) {
-          showToast(`${count} goals saved to your IEP Hub. 🎯`, 'success');
+        if (created > 0) {
+          showToast(
+            analysisFieldsDropped
+              ? `${created} goals saved — but the suggested rewrites and citations need an update that hasn't been applied yet.`
+              : `${created} goals saved to your IEP Hub. 🎯`,
+            analysisFieldsDropped ? 'info' : 'success'
+          );
           navigation.navigate('IEPHub');
         } else {
           showToast('Could not save goals — please try again.', 'error');
