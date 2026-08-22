@@ -220,9 +220,13 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             scope={agendaScope}
             onChangeScope={changeAgendaScope}
             onOpenAction={(actionId) =>
+              // `initial: false` puts the Actions LIST beneath the detail
+              // screen. Without it the detail becomes the whole stack, and
+              // both Back and the Actions tab have nowhere to go.
               (navigation as any).navigate('Tracker', {
                 screen: 'ActionDetail',
                 params: { actionId },
+                initial: false,
               })
             }
             onOpenCalendar={() => (navigation as any).navigate('Calendar')}
@@ -444,10 +448,10 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             { icon: 'mail-outline', label: 'Letters', go: () => (navigation as any).navigate('Letters') },
             { icon: 'search-outline', label: 'Email Check', go: () => (navigation as any).navigate('EmailAnalyzer') },
             { icon: 'file-tray-full-outline', label: 'Paper Trail', go: () => (navigation as any).navigate('CommunicationLog') },
-            { icon: 'book-outline', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources' }) },
-            { icon: 'newspaper-outline', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog' }) },
-            { icon: 'cash-outline', label: 'Expenses', go: () => (navigation as any).navigate('Calendar', { screen: 'Expenses' }) },
-            { icon: 'receipt-outline', label: 'Tax Report', go: () => (navigation as any).navigate('Calendar', { screen: 'TaxReport' }) },
+            { icon: 'book-outline', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources', initial: false }) },
+            { icon: 'newspaper-outline', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog', initial: false }) },
+            { icon: 'cash-outline', label: 'Expenses', go: () => (navigation as any).navigate('Calendar', { screen: 'Expenses', initial: false }) },
+            { icon: 'receipt-outline', label: 'Tax Report', go: () => (navigation as any).navigate('Calendar', { screen: 'TaxReport', initial: false }) },
             { icon: 'shield-checkmark-outline', label: 'Insurance', go: () => (navigation as any).navigate('Insurance') },
             { icon: 'medkit-outline', label: 'Providers', go: () => (navigation as any).navigate('Providers') },
             { icon: 'layers-outline', label: 'Services', go: () => (navigation as any).navigate('Services') },
