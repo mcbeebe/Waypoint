@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { ForumReport, ReportStatus } from '@/types/database';
 
 /** Auto-flag keywords for content that may need review */
@@ -45,7 +46,7 @@ export function useModeration(): UseModerationReturn {
       if (dbError) throw new Error(dbError.message);
       setPendingReports((data as ForumReport[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't complete that moderation action."));
     }
   }, []);
 
@@ -64,7 +65,7 @@ export function useModeration(): UseModerationReturn {
         .eq('id', postId);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't complete that moderation action."));
     }
   }, []);
 
@@ -78,7 +79,7 @@ export function useModeration(): UseModerationReturn {
         .eq('id', threadId);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't complete that moderation action."));
     }
   }, []);
 
@@ -92,7 +93,7 @@ export function useModeration(): UseModerationReturn {
         .eq('id', threadId);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't complete that moderation action."));
     }
   }, []);
 
@@ -115,7 +116,7 @@ export function useModeration(): UseModerationReturn {
       if (dbError) throw new Error(dbError.message);
       setPendingReports((prev) => prev.filter((r) => r.id !== reportId));
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't complete that moderation action."));
     }
   }, []);
 

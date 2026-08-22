@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { IEPGoalRecord, IEPGoalLog } from '@/types/database';
 
 export interface CreateGoalInput {
@@ -55,7 +56,7 @@ export function useIEPGoals(familyId: string, childId?: string) {
       }
       setLogsByGoal(grouped);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your IEP goals."));
     }
   }, [familyId, childId]);
 
@@ -76,7 +77,7 @@ export function useIEPGoals(familyId: string, childId?: string) {
       setGoals(prev => [...prev, goal]);
       return goal;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your IEP goals."));
       return null;
     }
   }, [familyId]);
@@ -99,7 +100,7 @@ export function useIEPGoals(familyId: string, childId?: string) {
       setGoals(prev => [...prev, ...created]);
       return created.length;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your IEP goals."));
       return 0;
     }
   }, [familyId]);
@@ -134,7 +135,7 @@ export function useIEPGoals(familyId: string, childId?: string) {
       setLogsByGoal(prev => ({ ...prev, [goalId]: [...(prev[goalId] ?? []), log] }));
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your IEP goals."));
       return false;
     }
   }, [familyId]);

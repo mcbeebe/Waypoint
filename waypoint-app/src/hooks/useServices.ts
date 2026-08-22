@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { Service, ServiceType, ServiceStatus, FundingSource } from '@/types/database';
 
 interface UseServicesOptions {
@@ -68,7 +69,7 @@ export function useServices(options: UseServicesOptions): UseServicesReturn {
       if (dbError) throw new Error(dbError.message);
       setRawServices((data as Service[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your services."));
     }
   }, [familyId, childId, providerId, statusFilter]);
 
@@ -126,7 +127,7 @@ export function useServices(options: UseServicesOptions): UseServicesReturn {
       setRawServices((prev) => [service, ...prev]);
       return service;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your services."));
       return null;
     }
   }, [familyId]);
@@ -138,7 +139,7 @@ export function useServices(options: UseServicesOptions): UseServicesReturn {
       const { error: dbError } = await supabase.from('services').update(data).eq('id', id);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your services."));
       fetchServices();
     }
   }, [fetchServices]);
@@ -150,7 +151,7 @@ export function useServices(options: UseServicesOptions): UseServicesReturn {
       const { error: dbError } = await supabase.from('services').delete().eq('id', id);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your services."));
       fetchServices();
     }
   }, [fetchServices]);

@@ -22,6 +22,7 @@ import { useFamily } from '@/hooks/useFamily';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useDocumentAnalysis } from '@/hooks/useDocumentAnalysis';
 import { useToast } from '@/components/Toast';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import AIConsentModal from '@/components/AIConsentModal';
 import { Card, Chip, SkeletonCard } from '@/components/ui';
 import EmptyState from '@/components/EmptyState';
@@ -74,6 +75,7 @@ export default function DocumentsScreen() {
     documents,
     loading,
     error,
+    clearError,
     uploading,
     pickAndUpload,
     pickAndUploadVersion,
@@ -156,7 +158,13 @@ export default function DocumentsScreen() {
           showToast('Could not open the file.', 'error');
           return;
         }
-        const blob = await (await fetch(url)).blob();
+        let blob: Blob;
+        try {
+          blob = await (await fetch(url)).blob();
+        } catch (err) {
+          showToast(friendlyErrorMessage(err, "Couldn't download the file to analyze."), 'error');
+          return;
+        }
         if (blob.size > 8 * 1024 * 1024) {
           showToast('File is too large to analyze (8MB max). Try photos of individual pages.', 'error');
           return;
@@ -187,6 +195,9 @@ export default function DocumentsScreen() {
       } else {
         showToast(getLastError() ?? 'Analysis failed — please try again.', 'error');
       }
+    } catch (err) {
+      // Anything unexpected still owes the parent an explanation
+      showToast(friendlyErrorMessage(err, 'Analysis failed — please try again.'), 'error');
     } finally {
       setAnalyzingDocId(null);
     }
@@ -259,6 +270,24 @@ export default function DocumentsScreen() {
         {error && (
           <Card tone="danger">
             <Text style={[styles.errorText, { fontSize: sz(13) }]}>{error}</Text>
+            <View style={styles.errorActions}>
+              <TouchableOpacity
+                onPress={() => { clearError(); refetch(); }}
+                style={styles.errorRetry}
+                accessibilityRole="button"
+                accessibilityLabel="Try loading your documents again"
+              >
+                <Text style={styles.errorRetryText}>Retry</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={clearError}
+                style={styles.errorDismiss}
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss this message"
+              >
+                <Text style={styles.errorDismissText}>Dismiss</Text>
+              </TouchableOpacity>
+            </View>
           </Card>
         )}
 
@@ -434,6 +463,35 @@ const styles = StyleSheet.create({
   cancelText: { color: colors.mid, fontWeight: fonts.weights.semibold as '600' },
   analyzingText: { color: semantic.info, fontWeight: fonts.weights.medium as '500' },
   errorText: { color: semantic.danger },
+  errorActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  errorRetry: {
+    backgroundColor: semantic.danger,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderRadius: radii.sm,
+    minHeight: 34,
+    justifyContent: 'center',
+  },
+  errorRetryText: {
+    color: colors.white,
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.semibold as '600',
+  },
+  errorDismiss: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    minHeight: 34,
+    justifyContent: 'center',
+  },
+  errorDismissText: {
+    color: semantic.danger,
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.medium as '500',
+  },
   docHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   docEmoji: { fontSize: 24 },
   docHeadText: { flex: 1 },

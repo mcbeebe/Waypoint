@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { DirectMessage } from '@/types/database';
 
 interface Conversation {
@@ -49,7 +50,7 @@ export function useDirectMessages(): UseDirectMessagesReturn {
       if (dbError) throw new Error(dbError.message);
       setAllMessages((data as DirectMessage[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your messages."));
     }
   }, []);
 
@@ -140,7 +141,7 @@ export function useDirectMessages(): UseDirectMessagesReturn {
       setAllMessages((prev) => [msg, ...prev]);
       return msg;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your messages."));
       return null;
     }
   }, []);
@@ -165,7 +166,7 @@ export function useDirectMessages(): UseDirectMessagesReturn {
         )
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your messages."));
     }
   }, []);
 
@@ -179,7 +180,7 @@ export function useDirectMessages(): UseDirectMessagesReturn {
         blocked_id: userId,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your messages."));
     }
   }, []);
 

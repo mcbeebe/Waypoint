@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type {
   FamilyMember,
   FamilyMemberRole,
@@ -74,7 +75,7 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't update family sharing."));
     }
   }, [familyId]);
 
@@ -108,7 +109,7 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
       setInvitations((prev) => [invitation, ...prev]);
       return invitation;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't update family sharing."));
       return null;
     }
   }, [familyId]);
@@ -123,7 +124,7 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
         .eq('id', memberId);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't update family sharing."));
       fetchAll();
     }
   }, [fetchAll]);
@@ -135,7 +136,7 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
       const { error: dbError } = await supabase.from('family_members').delete().eq('id', memberId);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't update family sharing."));
       fetchAll();
     }
   }, [fetchAll]);
@@ -147,7 +148,7 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
       const { error: dbError } = await supabase.from('family_invitations').delete().eq('id', invitationId);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't update family sharing."));
       fetchAll();
     }
   }, [fetchAll]);

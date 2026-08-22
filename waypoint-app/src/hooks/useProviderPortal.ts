@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type {
   ProviderProfile,
   ProviderFamilyConnection,
@@ -34,7 +35,7 @@ export function useProviderProfile() {
       if (dbError) throw new Error(dbError.message);
       setProfile(data as ProviderProfile | null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the provider portal."));
     }
   }, []);
 
@@ -72,7 +73,7 @@ export function useProviderProfile() {
       setProfile(p);
       return p;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the provider portal."));
       return null;
     }
   }, []);
@@ -87,7 +88,7 @@ export function useProviderProfile() {
         .eq('id', profile.id);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the provider portal."));
       fetchProfile();
     }
   }, [profile, fetchProfile]);
@@ -114,7 +115,7 @@ export function useProviderConnections(profileId: string | undefined) {
       if (dbError) throw new Error(dbError.message);
       setConnections((data as ProviderFamilyConnection[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the provider portal."));
     }
   }, [profileId]);
 
@@ -142,7 +143,7 @@ export function useProviderConnections(profileId: string | undefined) {
       setConnections((prev) => [conn, ...prev]);
       return conn;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the provider portal."));
       return null;
     }
   }, [profileId]);
@@ -156,7 +157,7 @@ export function useProviderConnections(profileId: string | undefined) {
         .eq('id', connectionId);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the provider portal."));
       fetchConnections();
     }
   }, [fetchConnections]);
@@ -183,7 +184,7 @@ export function useProviderMessages(connectionId: string | undefined) {
       if (dbError) throw new Error(dbError.message);
       setMessages((data as ProviderMessage[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the provider portal."));
     }
   }, [connectionId]);
 
@@ -215,7 +216,7 @@ export function useProviderMessages(connectionId: string | undefined) {
       setMessages((prev) => [...prev, msg]);
       return msg;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the provider portal."));
       return null;
     }
   }, [connectionId]);
@@ -258,7 +259,7 @@ export function useProviderDirectory(filters: DirectoryFilters = {}) {
       }
       setProviders(results);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the provider portal."));
     }
   }, [filters.providerType, filters.specialty, filters.acceptsInsurance, filters.isAcceptingPatients]);
 

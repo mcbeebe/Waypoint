@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { Provider, ProviderType } from '@/types/database';
 
 interface UseProvidersOptions {
@@ -62,7 +63,7 @@ export function useProviders(options: UseProvidersOptions): UseProvidersReturn {
       if (dbError) throw new Error(dbError.message);
       setProviders((data as Provider[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your providers."));
     }
   }, [familyId, typeFilter, showInactive]);
 
@@ -95,7 +96,7 @@ export function useProviders(options: UseProvidersOptions): UseProvidersReturn {
       setProviders((prev) => [...prev, provider].sort((a, b) => a.name.localeCompare(b.name)));
       return provider;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your providers."));
       return null;
     }
   }, [familyId]);
@@ -110,7 +111,7 @@ export function useProviders(options: UseProvidersOptions): UseProvidersReturn {
         .eq('id', id);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your providers."));
       fetchProviders();
     }
   }, [fetchProviders]);

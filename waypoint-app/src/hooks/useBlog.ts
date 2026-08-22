@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { BlogPost, BlogCategory } from '@/types/database';
 
 interface UseBlogOptions {
@@ -46,7 +47,7 @@ export function useBlog(options: UseBlogOptions = {}) {
       }
       setHasMore(fetched.length >= pageSize);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load articles."));
     }
   }, [category, pageSize]);
 

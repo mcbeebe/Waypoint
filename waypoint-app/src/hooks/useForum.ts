@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type {
   ForumCategory,
   ForumThread,
@@ -28,7 +29,7 @@ export function useCategories() {
       if (dbError) throw new Error(dbError.message);
       setCategories((data as ForumCategory[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the community."));
     }
   }, []);
 
@@ -80,7 +81,7 @@ export function useThreads(options: UseThreadsOptions = {}) {
       }
       setHasMore(fetched.length >= pageSize);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the community."));
     }
   }, [categoryId, pageSize]);
 
@@ -124,7 +125,7 @@ export function useThreads(options: UseThreadsOptions = {}) {
       setThreads((prev) => [thread, ...prev]);
       return thread;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the community."));
       return null;
     }
   }, []);
@@ -158,7 +159,7 @@ export function usePosts(threadId: string) {
       if (dbError) throw new Error(dbError.message);
       setPosts((data as ForumPost[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the community."));
     }
   }, [threadId]);
 
@@ -194,7 +195,7 @@ export function usePosts(threadId: string) {
       setPosts((prev) => [...prev, post]);
       return post;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the community."));
       return null;
     }
   }, [threadId]);
@@ -223,7 +224,7 @@ export function usePosts(threadId: string) {
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the community."));
     }
   }, []);
 
@@ -238,7 +239,7 @@ export function usePosts(threadId: string) {
         reason,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load the community."));
     }
   }, []);
 

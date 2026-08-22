@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 
 export type CommunicationKind = 'letter' | 'email' | 'call' | 'meeting' | 'note';
 /** Written but not confirmed sent, vs confirmed out the door (032) */
@@ -123,7 +124,7 @@ export function useCommunications(familyId: string) {
       setCommunications((data as Communication[]) ?? []);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your paper trail."));
     } finally {
       setLoading(false);
     }
@@ -157,7 +158,7 @@ export function useCommunications(familyId: string) {
       ));
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your paper trail."));
       return false;
     }
   }, [familyId]);

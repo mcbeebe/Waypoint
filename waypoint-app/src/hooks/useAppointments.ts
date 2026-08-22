@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { Appointment, AppointmentType, AppointmentStatus } from '@/types/database';
 
 /**
@@ -89,7 +90,7 @@ export function useAppointments(options: UseAppointmentsOptions) {
       setError(null);
       setAppointments((data as Appointment[]) ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your appointments."));
     }
   }, [familyId, dateRange?.start, dateRange?.end]);
 
@@ -143,7 +144,7 @@ export function useAppointments(options: UseAppointmentsOptions) {
       ));
       return appointment;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your appointments."));
       return null;
     }
   }, [familyId]);
@@ -159,7 +160,7 @@ export function useAppointments(options: UseAppointmentsOptions) {
         .eq('id', id);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your appointments."));
       fetchAppointments(); // Revert on failure
     }
   }, [fetchAppointments]);

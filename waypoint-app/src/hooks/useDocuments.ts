@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '@/lib/supabase';
+import { retryQuery, friendlyErrorMessage } from '@/lib/netRetry';
 import type { Document, DocumentType } from '@/types/database';
 
 const STORAGE_BUCKET = 'documents';
@@ -65,11 +66,12 @@ export function useDocuments(options: UseDocumentsOptions) {
         query = query.eq('child_id', childId);
       }
 
-      const { data, error: dbError } = await query;
+      const { data, error: dbError } = await retryQuery(() => query);
       if (dbError) throw new Error(dbError.message);
       setDocuments((data as Document[]) ?? []);
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't load your documents."));
     }
   }, [familyId, typeFilter, childId]);
 
@@ -125,7 +127,7 @@ export function useDocuments(options: UseDocumentsOptions) {
       setDocuments((prev) => [document, ...prev]);
       return document;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't upload that file."));
       return null;
     } finally {
       setUploading(false);
@@ -155,7 +157,7 @@ export function useDocuments(options: UseDocumentsOptions) {
       setDocuments((prev) => [document, ...prev]);
       return document;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't save that document."));
       return null;
     }
   }, [familyId]);
@@ -163,14 +165,15 @@ export function useDocuments(options: UseDocumentsOptions) {
   /** Get a signed download URL for a document */
   const getDownloadUrl = useCallback(async (filePath: string): Promise<string | null> => {
     try {
-      const { data, error: urlError } = await supabase.storage
-        .from(STORAGE_BUCKET)
-        .createSignedUrl(filePath, 3600); // 1 hour expiry
+      const { data, error: urlError } = await retryQuery(() =>
+        supabase.storage.from(STORAGE_BUCKET).createSignedUrl(filePath, 3600) // 1 hour expiry
+      );
 
       if (urlError) throw new Error(urlError.message);
-      return data.signedUrl;
+      setError(null);
+      return data!.signedUrl;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't open that file."));
       return null;
     }
   }, []);
@@ -186,10 +189,13 @@ export function useDocuments(options: UseDocumentsOptions) {
         .eq('id', id);
       if (dbError) throw new Error(dbError.message);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't save that change."));
       fetchDocuments();
     }
   }, [fetchDocuments]);
+
+  /** Let the parent dismiss a banner they've read. */
+  const clearError = useCallback(() => setError(null), []);
 
   const refetch = useCallback(async () => {
     setLoading(true);
@@ -234,7 +240,7 @@ export function useDocuments(options: UseDocumentsOptions) {
         },
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't upload that file."));
       return null;
     }
   }, [uploadDocument, childId]);
@@ -278,7 +284,7 @@ export function useDocuments(options: UseDocumentsOptions) {
         },
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't upload that version."));
       return null;
     }
   }, [documents, uploadDocument, updateDocument]);
@@ -312,7 +318,7 @@ export function useDocuments(options: UseDocumentsOptions) {
 
       return data.signedUrl;
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyErrorMessage(err, "Couldn't create a share link."));
       return null;
     }
   }, [familyId]);
@@ -353,6 +359,7 @@ export function useDocuments(options: UseDocumentsOptions) {
     documents,
     loading,
     error,
+    clearError,
     uploading,
     saveAnalysis,
     countByType,
