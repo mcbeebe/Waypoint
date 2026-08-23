@@ -153,6 +153,14 @@ exports[`generateStarterPlan — characterization matrix > case 2: dx=[suspected
 exports[`generateStarterPlan — characterization matrix > case 3: dx=[autism,delay] age=15 rc=active iep=active ins=none 1`] = `
 [
   {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 5,
+    "title": "Ask about Self-Determination in writing",
+  },
+  {
     "category": "benefits",
     "hasDueDate": true,
     "hasScript": true,
@@ -289,6 +297,14 @@ exports[`generateStarterPlan — characterization matrix > case 6: dx=[delay] ag
 
 exports[`generateStarterPlan — characterization matrix > case 7: dx=[suspected] age=15 rc=active iep=eval_done ins=none 1`] = `
 [
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 5,
+    "title": "Ask about Self-Determination in writing",
+  },
   {
     "category": "medical",
     "hasDueDate": true,
@@ -459,6 +475,14 @@ exports[`generateStarterPlan — characterization matrix > case 10: dx=[autism] 
 exports[`generateStarterPlan — characterization matrix > case 11: dx=[delay] age=15 rc=active iep=unknown ins=none 1`] = `
 [
   {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 5,
+    "title": "Ask about Self-Determination in writing",
+  },
+  {
     "category": "iep",
     "hasDueDate": true,
     "hasScript": true,
@@ -590,6 +614,14 @@ exports[`generateStarterPlan — characterization matrix > case 14: dx=[] age=8 
 
 exports[`generateStarterPlan — characterization matrix > case 15: dx=[autism] age=15 rc=active iep=no ins=none 1`] = `
 [
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 5,
+    "title": "Ask about Self-Determination in writing",
+  },
   {
     "category": "iep",
     "hasDueDate": true,
@@ -784,4 +816,15 @@ exports[`generateStarterPlan — characterization matrix > case 18: dx=[autism,d
 ]
 `;
 
-exports[`generateStarterPlan — characterization matrix > case 19: dx=[] age=15 rc=active iep=na ins=none 1`] = `[]`;
+exports[`generateStarterPlan — characterization matrix > case 19: dx=[] age=15 rc=active iep=na ins=none 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 5,
+    "title": "Ask about Self-Determination in writing",
+  },
+]
+`;

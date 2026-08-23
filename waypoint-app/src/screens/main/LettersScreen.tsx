@@ -88,6 +88,10 @@ export default function LettersScreen() {
     }
     if (route.params?.question) {
       setQuestion(route.params.question);
+    } else if (match?.defaultRequest) {
+      // A lever tap shouldn't land on a blank box: seed the template's
+      // standard ask so the parent edits instead of composing from scratch.
+      setQuestion(match.defaultRequest);
     }
     // The Navigator conversation's substance rides along so the draft
     // reflects what was actually discussed
@@ -301,7 +305,10 @@ export default function LettersScreen() {
               <TouchableOpacity
                 key={t.key}
                 style={styles.templateCard}
-                onPress={() => setTemplate(t)}
+                onPress={() => {
+                  setTemplate(t);
+                  if (t.defaultRequest) setQuestion((q) => q.trim() ? q : t.defaultRequest!);
+                }}
                 accessibilityRole="button"
                 accessibilityLabel={t.title}
               >
