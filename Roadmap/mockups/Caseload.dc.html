@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+    a { color: #0891B2; } a:hover { color: #0E7490; }
+  </style>
+</helmet>
+<div style="width: 1200px; min-height: 840px; background: #F8FAFC; display: flex; flex-direction: column; gap: 16px; padding: 24px 28px; box-sizing: border-box; color: #334155; font-size: 14px; line-height: 1.45">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; flex-direction: column">
+      <div style="font-size: 24px; font-weight: 800; color: #1B2A4A">My caseload</div>
+      <div style="font-size: 13px; color: #64748B">12 families · 5 need attention today</div>
+    </div>
+    <div style="display: flex; gap: 10px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 600; color: #334155">Export</div>
+      <div style="background: #0891B2; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 700; color: #FFFFFF">+ Add family</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 24px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">5</div><div style="font-size: 12px; color: #64748B">Need attention</div><div style="font-size: 12px; font-weight: 700; color: #DC2626">2 due this week</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 24px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">$96k</div><div style="font-size: 12px; color: #64748B">Budgets under management</div><div style="font-size: 12px; font-weight: 700; color: #0E9F6E">▲ $21k this month</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 24px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">4.2%</div><div style="font-size: 12px; color: #64748B">Free → booked conversion</div><div style="font-size: 12px; font-weight: 700; color: #0E9F6E">62 of 1,480 registered</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 24px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">6.5 h</div><div style="font-size: 12px; color: #64748B">Avg facilitator hours / family</div><div style="font-size: 12px; font-weight: 700; color: #0E9F6E">target ≤ 8 h</div></div>
+  </div>
+
+  <div style="display: flex; gap: 8px; align-items: center">
+    <div style="background: #1B2A4A; color: #FFFFFF; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 700">Needs attention</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">All</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">Pre-enrollment</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">Active</div>
+    <div style="background: #ECFEFF; border: 1px solid #0891B2; color: #0E7490; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">RCEB ×</div>
+    <div style="background: #ECFEFF; border: 1px solid #0891B2; color: #0E7490; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">Spanish ×</div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden">
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 12px 18px; background: #F8FAFC; border-bottom: 2px solid #E2E8F0; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #64748B">
+      <div>FAMILY</div><div>STAGE</div><div>WHY NOW</div><div>HOURS / BUDGET</div><div>LAST CONTACT</div><div></div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Ramirez, M.</div><div style="font-size: 12px; color: #64748B">Leo, 4 · autism · ES</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">Person-centered plan</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FEE2E2; color: #DC2626">⚠ PCP due in 4 days</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">18 / 40 hrs</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 45%; border-radius: 9999px; background: #F59E0B"></div></div></div>
+      <div style="font-size: 13px; color: #334155">2 days</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Nguyen, L.</div><div style="font-size: 12px; color: #64748B">Mai, 6 · global delay · VI</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">Spending plan</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FEE2E2; color: #DC2626">⚠ Plan over budget by $916</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">31 / 40 hrs</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 78%; border-radius: 9999px; background: #DC2626"></div></div></div>
+      <div style="font-size: 13px; color: #334155">1 day</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Okafor, D.</div><div style="font-size: 12px; color: #64748B">Ezra, 16 · ID · EN</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #EFF6FF; color: #2563EB">Orientation</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">No contact in 21 days</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">4 / 40 hrs</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 10%; border-radius: 9999px; background: #0891B2"></div></div></div>
+      <div style="font-size: 13px; color: #334155">21 days</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Alvarez, P.</div><div style="font-size: 12px; color: #64748B">Sofia, 9 · CP · ES</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">Active</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">Renewal in 82 days</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">$21,400 budget</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 66%; border-radius: 9999px; background: #10B981"></div></div></div>
+      <div style="font-size: 13px; color: #334155">6 days</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Whitfield, J.</div><div style="font-size: 12px; color: #64748B">Amos, 3 · ASD · EN</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #EFF6FF; color: #2563EB">Intake</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FEE2E2; color: #DC2626">⚠ Part C exit in 11 days</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">0 / 40 hrs</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 2%; border-radius: 9999px; background: #0891B2"></div></div></div>
+      <div style="font-size: 13px; color: #334155">4 days</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+  </div>
+
+  <div style="background: #EFF6FF; border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #334155"><span style="font-weight: 700; color: #2563EB">Sorted by risk, not alphabetically.</span> Ranking weighs statutory deadline proximity, hour-cap burn rate, and days since contact. <a href="#">See how this is ranked</a> — the logic is always explainable.</div>
+</div>
+</x-dc>
+</body>
+</html>

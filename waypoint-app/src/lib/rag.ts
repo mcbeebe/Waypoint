@@ -11,10 +11,14 @@
 
 import { supabase } from './supabase';
 import type { KnowledgeMatch } from '@/types/database';
+// Confidence gate on retrieval quality (REQ-1206) — pure logic lives in
+// ragScoring.ts so it stays unit-testable without the Supabase client.
+import { ftsConfidence } from './ragScoring';
+import type { RAGConfidence } from './ragScoring';
 
 const DEFAULT_MATCH_COUNT = 5;
 
-export type RAGConfidence = 'high' | 'low' | 'none';
+export type { RAGConfidence } from './ragScoring';
 
 export interface RAGResult {
   context: string;
@@ -39,15 +43,6 @@ async function ftsSearch(
     throw new Error(`Supabase RPC error: ${error.message}`);
   }
   return (data ?? []) as KnowledgeMatch[];
-}
-
-/**
- * FTS rank scores are much smaller than cosine similarities, so
- * confidence is based on having matches at all: the rank ordering is
- * meaningful, the absolute magnitude is not.
- */
-function ftsConfidence(matches: KnowledgeMatch[]): RAGConfidence {
-  return matches.length === 0 ? 'none' : 'high';
 }
 
 /**

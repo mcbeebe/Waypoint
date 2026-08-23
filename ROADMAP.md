@@ -1,6 +1,30 @@
 # Waypoint Implementation Roadmap
 
-**Version 1.1 · Locked August 16, 2026**
+**Version 2.0 · August 23, 2026 — supersedes v1.1's Phases 3–8**
+
+> **⚠ Strategy change (Aug 2026):** the consumer-subscription sequencing below is superseded by the payer-funded plan in [`Roadmap/PRD-SDP-and-Premium-v1.md`](Roadmap/PRD-SDP-and-Premium-v1.md) (context: [`Roadmap/Payer-Funded-Pivot-Review-Aug2026.md`](Roadmap/Payer-Funded-Pivot-Review-Aug2026.md), [`Roadmap/Assumptions-Audit-Aug2026.md`](Roadmap/Assumptions-Audit-Aug2026.md), [`Roadmap/Options-Stack-Rank-Aug2026.md`](Roadmap/Options-Stack-Rank-Aug2026.md)).
+> **Still in force from v1.1:** Phases 0, 0.5, 1 and 2 (wiring, UX kit, CA navigation core, Documents/IEP) — they serve both strategies. **Superseded:** Phases 3–8 as sequenced below (individual workstreams survive where the PRD pulls them in).
+>
+> **The development plan of record:**
+>
+> | Phase | Weeks | Ships | Gate |
+> |---|---|---|---|
+> | **W0 · Rebase & foundations** | 1–2 | Remaining audit P0s · migrations 035–036 (organizations, profiles/roles, staff, family assignments + consent, staff access log, `accessible_family_ids()` RLS helper) · role-forked routing (staff shell) · funnel event taxonomy · 099 vendorization packet started | RLS verification clean; staff login lands on a caseload shell, never onboarding; packet drafted |
+> | **W1a · Funnel + Process Navigator** | 3–6 | Eligibility-first onboarding, funded offer, booking (EN+ES) · content provenance · planGenerator rules-table refactor · you-are-here process map, path decision aid, lever letters (G1–G3) | 3-min onboarding→result; funnel events flowing; IPP-meeting letter generated in-app |
+> | **W1b · Facilitation workspace** | 5–10 | Caseload, case detail, PCP builder, 099 cap tracker, spending plan (COI block), time capture, baselines · RC + FMS invoicing · request/authorization tracker (G4) | One family orientation→approved plan in-app; **one PAID invoice**; hours-per-family measured |
+> | **W2 · Premium** | 11–14 | Pricing page + web checkout · sponsor-aware entitlements · gates on existing features · AI cost caps · prompt-regression CI | First 10 subscribers; conversion instrumented; cost/user visible |
+> | **W3 · Evidence & decision** | 15–18 | 10-family price/caseload readout · outcome baselines · funnel verdict · G3 gate pre-read with DDS answers | Go/no-go memo on scaling facilitation and opening the next channel |
+>
+> Non-engineering in parallel: DDS service-code question #0 in writing (week 1) · ten SDP-family price interviews · SELPA pilot conversation (October window) · grant applications.
+>
+> **Delivery status (Aug 23, 2026):**
+> - **W0 — code complete.** Migrations 035–037, role-forked routing, funnel taxonomy, request tracker schema. *Open (ops):* apply migrations, run RLS verification queries, submit the 099 packet.
+> - **W1a — code complete.** Eligibility result, funded offer, booking (EN+ES), process map + path decider + lever letters (G1–G3), request tracker (G4), provenance registry + `content_sources` (migration 038), single-source dollar figures, characterization net + stable action keys (C-12 step 1; full rules-table refactor deferred behind the net).
+> - **W1b — code complete.** Migrations 039–041 (cases, service events, COI-guarded spending plan, baselines, dual-payer invoices, vendor packets, anniversary cron); staff workspace (ranked caseload, case detail with 099 burn forecast, PCP builder, time capture with hard stop, spending plan, baselines); Billing + Scorecard. *Gate items are operational:* first real family through the pipeline, first PAID invoice.
+> - **W2 — code complete.** Migration 042 (entitlements + facilitation auto-grant + monthly AI meter); pricing page with Stripe Payment-Link checkout (env-configured) and the sponsored-$0 state; PremiumGate (first gates: IEP Hub, Tax Report); server-side tier enforcement in ai-proxy (30/mo free Navigator cap, cost-efficient model tier for free, analyze-iep Premium-only); stripe-webhook edge function writes/cancels self-paid entitlements; F4 prompt-regression suite (78-case golden set + weekly CI). *Open (ops):* create the two Stripe Payment Links + webhook secret, set env, create a QA account for the regression secrets. Remaining gate wiring (letters history, binder export, multi-child) rides on those features' own workstreams.
+> - **W3 — evidence & decision.** Operational phase: real families through the pipeline, price interviews, funnel verdict, go/no-go memo. The Scorecard screen already reports its four metrics.
+
+**Version 1.1 · Locked August 16, 2026** *(superseded as described above; retained for reference)*
 
 One consolidated plan covering every gap identified in the codebase audit plus all of PRD v2.0 (F1–F15). Eight phases ordered by leverage: **unlock what's already built, then port the proven GAS features, then build what's never existed.** Each phase ends at a shippable state with an explicit review gate.
 

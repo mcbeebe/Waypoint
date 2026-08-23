@@ -253,7 +253,15 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         console.warn('Starter plan generation failed:', planErr);
       }
 
-      // The Journey Map is the post-onboarding reveal — Home reads this once
+      // Funnel (B4): registration is complete once the family row exists.
+      try {
+        const { trackFunnelStep } = await import('@/lib/analytics');
+        await trackFunnelStep(family.id, 'registered', {
+          regionalCenter: rc?.name ?? undefined,
+        });
+      } catch {}
+
+      // The eligibility result is the post-onboarding reveal — Home reads this once
       try { await AsyncStorage.setItem(SHOW_JOURNEY_FLAG, '1'); } catch {}
 
       onComplete();

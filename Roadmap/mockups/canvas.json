@@ -1,0 +1,19 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1080, "title": "01 · Eligibility Result" },
+    { "file": "FundedOffer.dc.html", "x": 490, "y": 0, "w": 390, "h": 1100, "title": "02 · Funded Offer & Booking" },
+    { "file": "PremiumPricing.dc.html", "x": 980, "y": 0, "w": 390, "h": 1080, "title": "03 · Premium Pricing" },
+    { "file": "PremiumGate.dc.html", "x": 1470, "y": 0, "w": 390, "h": 1060, "title": "04 · Premium Gate + Sponsored" },
+    { "file": "Caseload.dc.html", "x": 0, "y": 1240, "w": 1200, "h": 840, "title": "05 · Facilitator Caseload" },
+    { "file": "CaseDetail.dc.html", "x": 1300, "y": 1240, "w": 1200, "h": 880, "title": "06 · SDP Case Detail" },
+    { "file": "SpendingPlan.dc.html", "x": 0, "y": 2260, "w": 1200, "h": 980, "title": "07 · Spending Plan (COI block)" },
+    { "file": "Invoices.dc.html", "x": 1300, "y": 2260, "w": 1200, "h": 860, "title": "08 · Billing — RC + FMS" },
+    { "file": "OwnerDashboard.dc.html", "x": 0, "y": 3380, "w": 1200, "h": 840, "title": "09 · Owner Scorecard" }
+  ],
+  "annotations": [
+    { "id": "note-funnel", "x": 1960, "y": 40, "w": 300, "text": "FAMILY SURFACE (phones)\nEpics W-B + W-E from the PRD.\n\nAudit corrections applied:\n· no code-108 card on eligibility\n· 'who pays' states RC-paid transition + budget line after enrollment\n· independence pledge (W&I 4685.8) is a selling point\n· sponsored families never see upgrade prompts" },
+    { "id": "note-facilitator", "x": 2600, "y": 1240, "w": 300, "text": "FACILITATOR + OWNER SURFACE (desktop)\nEpics W-A/W-C/W-D.\n\n· Spending Plan blocks Waypoint-as-provider (statutory bar), with the one legal exception shown: the facilitation line the family prices\n· Billing shows the dual payer path: RC (024/099 via eBilling) and FMS (agreed price)\n· 099 vendorization status is first-class" },
+    { "id": "note-owner", "x": 1300, "y": 3420, "w": 300, "text": "OWNER SCORECARD\nThe six PRD 7 kill-criteria as first-class numbers with targets and sample sizes. This screen IS the week-18 go/no-go input." }
+  ],
+  "launch": { "view": "canvas" }
+}

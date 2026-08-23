@@ -17,6 +17,8 @@
  */
 
 import type { ActionCategory, ActionPriority, ActionStep } from '@/types/database';
+import { SSI_FBR_MONTHLY, SSI_YEAR } from '@/data/benefitFigures';
+import { stableKeyFor } from '@/lib/actionKeys';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -100,51 +102,56 @@ function isoDateInDays(days: number): string {
 }
 
 /**
- * Honest parent-effort estimates per action, surfaced in the detail view so
- * families know the size of the lift before they start (UX 4).
+ * Honest parent-effort estimates per action, keyed by STABLE ACTION KEY
+ * (src/lib/actionKeys.ts), surfaced in the detail view so families know the
+ * size of the lift before they start (UX 4).
  */
-const EFFORT_BY_TITLE: Record<string, string> = {
-  'Call Regional Center for Early Start referral': 'One 15–20 min phone call to start; intake visit comes later',
-  'Call Regional Center to start your referral': 'One 15–20 min phone call, plus ~1 hour gathering documents',
-  'Follow up on RC application status': 'One 10–15 min phone call',
-  'Get a formal evaluation for your child': '~1 hour total: one letter and two phone calls',
-  'Send written request for IEP meeting': '~30 min to personalize and send the letter',
-  'Request school district evaluation (in writing)': '~30 min to personalize and send the letter',
-  'Get pediatrician referral for therapy': "One 10–15 min call to your pediatrician's office",
-  'Call insurance to verify therapy coverage': 'One 30–45 min phone call (have your insurance card ready)',
-  'Apply for Medi-Cal': '~45–60 min online application at BenefitsCal.com',
-  'Start SSI application': 'The biggest lift: 2–4 hours spread over several days (call + forms)',
-  'Apply for IHSS (In-Home Supportive Services)': '~1 hour application, then one in-home assessment visit',
-  'Request 504 Plan or IEP evaluation': '~30 min to personalize and send the letter',
-  "Apply for California Children's Services (CCS)": '~30 min: one call to your doctor for the referral',
-  'Apply for CCS and connect with Down syndrome resources': '~30–45 min of calls to RC and your pediatrician',
-  'Connect with Deaf/HoH specialized services': '~30 min: written request plus a call to the school',
-  'Connect with vision impairment services': '~30 min: written request plus a call to the school',
-  'Coordinate TBI-specific services across systems': '~45 min of calls across school and RC',
-  'Request ERMHS (mental health services) through school': '~30 min: written request to the school',
-  'Request speech/language IEP evaluation': '~30 min: written request to the school',
-  'Apply to Department of Rehabilitation (DOR)': '~45 min application at dor.ca.gov',
-  'Set up a CalABLE savings account': '~30 min online at CalABLE.ca.gov',
+const EFFORT_BY_KEY: Record<string, string> = {
+  rc_early_start_referral: 'One 15–20 min phone call to start; intake visit comes later',
+  rc_start_referral: 'One 15–20 min phone call, plus ~1 hour gathering documents',
+  rc_follow_up_application: 'One 10–15 min phone call',
+  dx_formal_evaluation: '~1 hour total: one letter and two phone calls',
+  iep_request_meeting: '~30 min to personalize and send the letter',
+  iep_request_evaluation: '~30 min to personalize and send the letter',
+  therapy_pediatrician_referral: "One 10–15 min call to your pediatrician's office",
+  insurance_verify_coverage: 'One 30–45 min phone call (have your insurance card ready)',
+  medical_apply: '~45–60 min online application at BenefitsCal.com',
+  ssi_apply: 'The biggest lift: 2–4 hours spread over several days (call + forms)',
+  ihss_apply: '~1 hour application, then one in-home assessment visit',
+  iep_504_request: '~30 min to personalize and send the letter',
+  ccs_apply: '~30 min: one call to your doctor for the referral',
+  ccs_down_syndrome: '~30–45 min of calls to RC and your pediatrician',
+  deaf_hoh_services: '~30 min: written request plus a call to the school',
+  vision_services: '~30 min: written request plus a call to the school',
+  tbi_coordinate: '~45 min of calls across school and RC',
+  ermhs_request: '~30 min: written request to the school',
+  sli_iep_evaluation: '~30 min: written request to the school',
+  dor_apply: '~45 min application at dor.ca.gov',
+  calable_setup: '~30 min online at CalABLE.ca.gov',
 };
 
 /**
- * Completion check-in sets by action title (GAS followUpKey). When one of
+ * Completion check-in sets by STABLE ACTION KEY (GAS followUpKey). When one of
  * these actions is completed, the Tracker asks "how did it go?" and blocker
  * answers generate the next escalation steps (see lib/adaptiveEngine.ts).
  */
-const FOLLOW_UP_KEY_BY_TITLE: Record<string, string> = {
-  'Call Regional Center for Early Start referral': 'rc_done',
-  'Call Regional Center to start your referral': 'rc_done',
-  'Send written request for IEP meeting': 'iep_done',
-  'Request school district evaluation (in writing)': 'school_eval_done',
-  'Get pediatrician referral for therapy': 'ped_done',
-  'Call insurance to verify therapy coverage': 'ins_done',
+const FOLLOW_UP_KEY_BY_KEY: Record<string, string> = {
+  rc_early_start_referral: 'rc_done',
+  rc_start_referral: 'rc_done',
+  iep_request_meeting: 'iep_done',
+  iep_request_evaluation: 'school_eval_done',
+  therapy_pediatrician_referral: 'ped_done',
+  insurance_verify_coverage: 'ins_done',
 };
 
 function buildAction(content: ActionContent, priority: ActionPriority): StarterAction {
+  // Stable key (C-12 step 1): the ONE title lookup — every other table keys
+  // on the stable key, so retitling or localizing an action cannot silently
+  // detach its effort estimate or follow-up check-in.
+  const stableKey = stableKeyFor(content.title);
   const parts: string[] = [content.subtitle];
   if (content.deadlineLabel) parts.push(`⏰ Timeline: ${content.deadlineLabel}`);
-  const effort = EFFORT_BY_TITLE[content.title];
+  const effort = stableKey ? EFFORT_BY_KEY[stableKey] : undefined;
   if (effort) parts.push(`🕒 Effort: ${effort}`);
   parts.push(`Why this matters: ${content.whyMatters}`);
   if (content.documents && content.documents.length > 0) {
@@ -170,7 +177,7 @@ function buildAction(content: ActionContent, priority: ActionPriority): StarterA
     steps: content.steps ? content.steps.map(s => ({ step: s, done: false })) : null,
     due_date: content.dueInDays != null ? isoDateInDays(content.dueInDays) : null,
     follow_up_note: content.smsReminder ?? null,
-    follow_up_key: FOLLOW_UP_KEY_BY_TITLE[content.title] ?? null,
+    follow_up_key: (stableKey ? FOLLOW_UP_KEY_BY_KEY[stableKey] : undefined) ?? null,
   };
 }
 
@@ -614,7 +621,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
     actions.push(buildAction({
       category: 'benefits',
       title: 'Start SSI application',
-      subtitle: `SSI provides ~$994/month (2026 rate, adjusted annually) in cash benefits plus automatic Medi-Cal enrollment. ${hasDx('autism') ? 'Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.' : "Your child's diagnosis may qualify based on functional limitations."} This is real income for your family.`,
+      subtitle: `SSI provides ~$${SSI_FBR_MONTHLY}/month (${SSI_YEAR} rate, adjusted annually) in cash benefits plus automatic Medi-Cal enrollment. ${hasDx('autism') ? 'Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.' : "Your child's diagnosis may qualify based on functional limitations."} This is real income for your family.`,
       whyMatters: "SSI puts nearly $1,000/month directly into your family's hands — that's over $11,000/year. It also automatically enrolls your child in Medi-Cal (which unlocks IHSS, EPSDT, and more). The application is lengthy and many families give up, but the approval rate for children with well-documented developmental disabilities is significant. The key is the Function Report: describe your child's WORST days, not their best.",
       deadlineLabel: 'Within 30 days',
       dueInDays: 30,

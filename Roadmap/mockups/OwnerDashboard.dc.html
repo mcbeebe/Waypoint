@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+    a { color: #0891B2; } a:hover { color: #0E7490; }
+  </style>
+</helmet>
+<div style="width: 1200px; min-height: 840px; background: #F8FAFC; display: flex; flex-direction: column; gap: 16px; padding: 24px 28px; box-sizing: border-box; color: #334155; font-size: 14px; line-height: 1.45">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; flex-direction: column">
+      <div style="font-size: 24px; font-weight: 800; color: #1B2A4A">Phase 1 scorecard</div>
+      <div style="font-size: 13px; color: #64748B">Week of 10 Aug 2026 · the six numbers the go/no-go decision reads</div>
+    </div>
+    <div style="display: flex; gap: 8px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 9999px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: #64748B">Week</div>
+      <div style="background: #1B2A4A; color: #FFFFFF; border-radius: 9999px; padding: 8px 16px; font-size: 13px; font-weight: 700">Month</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Free → booked conversion</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">4.2%</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">on target</span></div>
+      <div style="font-size: 12px; color: #94A3B8">62 booked of 1,480 registered · target ≥ 3.0%</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Paid invoices</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">1</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">existence proof ✓</span></div>
+      <div style="font-size: 12px; color: #94A3B8">$620 collected · RCEB, code 024 · paid 12 Aug</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Median agreed price</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">$1,050</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">above floor</span></div>
+      <div style="font-size: 12px; color: #94A3B8">kill line &lt; $800/yr · n=6 families</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Facilitator hours per family</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">6.5 h</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">under cap</span></div>
+      <div style="font-size: 12px; color: #94A3B8">target ≤ 8 h to approved plan · median, n=6</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Premium conversion</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">2.4%</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">on target</span></div>
+      <div style="font-size: 12px; color: #94A3B8">target ≥ 2% of engaged free users · n=1,012</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Free-tier AI cost</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">$0.31</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #FDF3E3; color: #B45309">watch</span></div>
+      <div style="font-size: 12px; color: #94A3B8">per registered user / month · cap $0.50</div>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Acquisition funnel — month to date</div>
+      <div style="font-size: 12px; color: #94A3B8">by source and language in the full view</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Registered</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 100%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">1,480</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Saw eligibility result</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 82%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">1,214</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Viewed funded offer</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 35%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">512</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Booked a Navigator call</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 4.2%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">62</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Became a served family</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 1%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">12</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 13px; font-weight: 700; color: #1B2A4A">Pipeline value</div>
+      <div style="font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$18,400</div>
+      <div style="font-size: 12px; color: #94A3B8">12 served families · transition + first-year facilitation, at each family's agreed price</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 13px; font-weight: 700; color: #1B2A4A">Outstanding receivables</div>
+      <div style="font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$2,452</div>
+      <div style="font-size: 12px; color: #94A3B8">all under 30 days · oldest: INV-0158, due 30 Aug</div>
+    </div>
+  </div>
+
+  <div style="font-size: 12px; color: #94A3B8">Every number links to its query. No bare percentages — sample sizes shown. Targets come from PRD §7.</div>
+</div>
+</x-dc>
+</body>
+</html>

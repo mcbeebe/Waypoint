@@ -1,0 +1,548 @@
+[
+  {
+    "id": "qa-1771966500519",
+    "question": "How do I apply to Regional Center for my 2-year-old?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should explain intake process, 120-day timeline, Early Start. No legal jargon."
+  },
+  {
+    "id": "qa-1771966500752",
+    "question": "What paperwork do I need for RC reimbursement of pre-authorized respite?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Focus on forms, receipts, submission process. No Lanterman Act citations."
+  },
+  {
+    "id": "qa-1771966501229",
+    "question": "My service coordinator hasn't returned my calls in 3 weeks about adding ABA to the IPP",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Firm advice on escalation, mention right to IPP meeting within 30 days. Not heavy legal."
+  },
+  {
+    "id": "qa-1771966501718",
+    "question": "RC denied our request for respite hours and I want to file a fair hearing",
+    "expectedCategory": "regional-center",
+    "expectedTone": "adversarial",
+    "expectedBehavior": "Should cite §4710.5, Aid Paid Pending 10-day rule, OAH process. Full legal support."
+  },
+  {
+    "id": "qa-1771966501940",
+    "question": "How should I prepare for my first IEP meeting?",
+    "expectedCategory": "iep",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Practical prep advice, what to bring, questions to ask. No legal threats."
+  },
+  {
+    "id": "qa-1771966502291",
+    "question": "Can I record the IEP meeting?",
+    "expectedCategory": "iep",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Yes with 24hr notice, cite Ed Code §56341.1 if helpful, but keep it friendly."
+  },
+  {
+    "id": "qa-1771966502551",
+    "question": "The school is 2 months late on completing my child's evaluation",
+    "expectedCategory": "iep",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Mention 60-day timeline, suggest written follow-up, firm but not threatening."
+  },
+  {
+    "id": "qa-1771966502828",
+    "question": "School refuses to evaluate my child and won't give me prior written notice",
+    "expectedCategory": "iep",
+    "expectedTone": "adversarial",
+    "expectedBehavior": "Cite IDEA PWN requirements, mention CDE complaint and due process rights."
+  },
+  {
+    "id": "qa-1771966503050",
+    "question": "What is IHSS and how do I apply as a parent provider?",
+    "expectedCategory": "benefits",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Explain IHSS, application steps, parent provider option. Practical and encouraging."
+  },
+  {
+    "id": "qa-1771966503285",
+    "question": "How does CalABLE work with SSI?",
+    "expectedCategory": "benefits",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Explain $100K threshold, SSI interaction, tax benefits. Informational."
+  },
+  {
+    "id": "qa-1771966503535",
+    "question": "Does my insurance cover ABA therapy for autism?",
+    "expectedCategory": "insurance",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Explain SB 946, how to verify with plan. Don't assume a fight."
+  },
+  {
+    "id": "qa-1771966503775",
+    "question": "Insurance denied ABA therapy saying it's not medically necessary",
+    "expectedCategory": "insurance",
+    "expectedTone": "adversarial",
+    "expectedBehavior": "Cite SB 946, explain appeal + IMR process, DMHC 60% overturn rate."
+  },
+  {
+    "id": "qa-1771966504005",
+    "question": "What are my rights if RC reduces my child's services?",
+    "expectedCategory": "rights",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Explain Notice of Action, fair hearing, Aid Paid Pending. Educational but empowering."
+  },
+  {
+    "id": "qa-1771966504239",
+    "question": "I just got my child's autism diagnosis, where do I start?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Warm overview of RC, school, insurance paths. One or two next steps."
+  },
+  {
+    "id": "qa-1771966504620",
+    "question": "What's the difference between RC and the school district?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Clear comparison, no legal jargon, practical guidance."
+  },
+  {
+    "id": "qa-1771966504863",
+    "question": "My child is turning 3, what happens with Early Start?",
+    "expectedCategory": "transitions",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Explain transition to IEP, keep RC services. Practical timeline."
+  },
+  {
+    "id": "qa-1771966505162",
+    "question": "I submitted my reimbursement claim to RC but it's been 60 days with no payment",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "For pre-authorized: focus on follow-up process. Mention escalation if needed but not full legal."
+  },
+  {
+    "id": "qa-1771966505432",
+    "question": "RC says they don't fund swim lessons but my doctor recommended aquatic therapy",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Distinguish recreational vs therapeutic, suggest IPP amendment with medical documentation."
+  },
+  {
+    "id": "qa-1771968992135",
+    "question": "My son gets speech therapy through his IEP but RC also has speech in his IPP — who is supposed to be paying and are we getting double-billed?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should explain payer-of-last-resort, school vs RC responsibilities for speech. No legal escalation. Should ask clarifying questions about the IPP and IEP details."
+  },
+  {
+    "id": "qa-1771968992381",
+    "question": "Insurance denied OT, the school says OT isn't educationally necessary, and RC says insurance should cover it. My kid has no OT now. Nobody will pay.",
+    "expectedCategory": "rights",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Classic finger-pointing scenario. Should identify that RC is payer of last resort. Should ask what denials they have in writing. Firm but not adversarial yet."
+  },
+  {
+    "id": "qa-1771968992673",
+    "question": "I found out yesterday my 18-month-old has cerebral palsy and I haven't stopped crying. I don't even know what questions to ask. Please help.",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "MUST lead with deep emotional support — this is a raw, fresh diagnosis moment. One simple next step (call RC). Mention parent support groups. DO NOT overwhelm with legal rights or five systems."
+  },
+  {
+    "id": "qa-1771968992931",
+    "question": "I feel like the worst parent in the world because I missed the 10-day window to file Aid Paid Pending and now my daughter is losing her respite hours next week",
+    "expectedCategory": "rights",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Must NOT make the parent feel worse. Acknowledge the stress. Explain what options remain (can still file fair hearing within 60 days, just without APR). Offer to help draft. Empathetic, not clinical."
+  },
+  {
+    "id": "qa-1771968993192",
+    "question": "My service coordinator told me over the phone that RC doesn't cover parent training but I've heard other families get it",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Tricky: verbal denial only. Should ask if they got anything in writing. Explain that RC does fund parent training for many families. Should NOT jump to \"file a complaint\" — should first suggest asking for the denial in writing and requesting an IPP meeting."
+  },
+  {
+    "id": "qa-1771968993468",
+    "question": "The school keeps canceling my IEP meeting — this is the third time in two months",
+    "expectedCategory": "iep",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Should ask clarifying question: how are they canceling? By phone? Email? Are they offering new dates? Then provide firm guidance about right to timely meeting. Should suggest putting the request in writing."
+  },
+  {
+    "id": "qa-1771968993725",
+    "question": "I'm the grandmother raising my grandchild with Down syndrome. I don't have legal guardianship yet — can I still get RC services and attend IEP meetings?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Must address the guardianship nuance — educational rights holder vs legal guardian. Explain that caregivers CAN access services. Warm and practical. Should mention how to become educational rights holder."
+  },
+  {
+    "id": "qa-1771968993975",
+    "question": "We're a foster family and our foster child has autism. DCFS is involved. Can we request RC services or does the bio parent have to?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Must navigate foster care + RC eligibility carefully. Foster parents CAN request services. Should mention surrogate parent rights for IEP. Sensitive to the complexity."
+  },
+  {
+    "id": "qa-1771968994255",
+    "question": "My child's doctor says we need a neuropsych eval but I don't know if insurance, the school, or RC should do it",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Tests whether \"neuropsych eval\" triggers insurance or IEP. Correct answer: all three are options with different pros/cons. Should lay out the options clearly without legal jargon."
+  },
+  {
+    "id": "qa-1771968994469",
+    "question": "Is Self-Determination worth it? Our RC coordinator says it's a lot of paperwork",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should explain SDP pros and cons honestly — more control but more admin work. Should NOT dismiss the coordinator's concern. Balanced, practical guidance."
+  },
+  {
+    "id": "qa-1771968994731",
+    "question": "I paid out of pocket for ABA for 3 months while waiting for RC to find a vendor. Can I get reimbursed even though it wasn't pre-authorized?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Non-pre-authorized retroactive reimbursement — this is the hard case. Should explain that it IS possible but difficult. Must ask if they have documentation, medical necessity letters. Should NOT promise reimbursement. Should offer to draft a request letter."
+  },
+  {
+    "id": "qa-1771968994997",
+    "question": "My RC approved respite but the vendor is charging more than RC will reimburse. Am I stuck paying the difference?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Common vendor rate gap issue. Should explain POS rates, suggest asking RC for a rate exception or different vendor. Stay collaborative. Clarify if this is a vendored vs non-vendored provider."
+  },
+  {
+    "id": "qa-1771968995281",
+    "question": "My 17-year-old has an IEP and gets RC services. She turns 18 in 6 months. What do I need to do about conservatorship, SSI, and making sure her services continue?",
+    "expectedCategory": "transitions",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Three-part transition question. Should address: (1) conservatorship alternatives (supported decision-making first), (2) SSI application at 18 when deeming stops, (3) RC continues lifelong. Well-organized, not overwhelming."
+  },
+  {
+    "id": "qa-1771968995517",
+    "question": "We just moved to California from Texas. My child had an IEP and was receiving ABA through Medicaid there. How do we transfer everything?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Interstate transfer scenario. Should explain: (1) 30-day IEP transfer rule, (2) new RC intake needed, (3) Medi-Cal application, (4) insurance re-enrollment. Practical first steps."
+  },
+  {
+    "id": "qa-1771968995757",
+    "question": "RC isn't giving us what we need",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Intentionally vague — engine MUST ask clarifying questions. What service? What happened? What have they tried? Should NOT give specific legal advice without knowing the situation."
+  },
+  {
+    "id": "qa-1771968996012",
+    "question": "Something is wrong with my child's school placement",
+    "expectedCategory": "iep",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Very vague. Engine must ask: What type of placement? What's wrong? Has parent discussed with the IEP team? Should not jump to due process or legal options without understanding the problem."
+  },
+  {
+    "id": "qa-1771968996278",
+    "question": "My ex-husband and I disagree about our child's IEP — he doesn't think she needs special education. Can he block the IEP?",
+    "expectedCategory": "iep",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Custody and IEP intersection. Both parents have rights. Should explain that either parent can request eval/services. Sensitive handling — should not take sides. Practical guidance."
+  },
+  {
+    "id": "qa-1771968996557",
+    "question": "I think my child's therapist through RC isn't very good but I'm afraid if I complain they'll take away the service entirely",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Fear-based question. Must reassure that requesting a different provider does NOT risk losing the service. Explain how to request a vendor change through the IPP. Warm and encouraging."
+  },
+  {
+    "id": "qa-1771968996821",
+    "question": "What respite agencies are vendored with my Regional Center?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should use the family's RC from their profile to give specific guidance. If RC is known, name it. Suggest calling that specific RC or checking their vendor list. Test whether profile data is used."
+  },
+  {
+    "id": "qa-1771968997091",
+    "question": "I just got a Notice of Action from RC reducing my son's ABA from 20 to 10 hours. The letter is dated 6 days ago. What do I do RIGHT NOW?",
+    "expectedCategory": "rights",
+    "expectedTone": "adversarial",
+    "expectedBehavior": "URGENT: 4 days left for Aid Paid Pending. Must immediately flag the 10-day window. Step 1: file fair hearing TODAY. Provide exact language. This IS the time for full legal citations. Should offer to draft the fair hearing request."
+  },
+  {
+    "id": "qa-1771968998581",
+    "question": "My son gets speech therapy through his IEP but RC also has speech in his IPP — who is supposed to be paying and are we getting double-billed?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should explain payer-of-last-resort, school vs RC responsibilities for speech. No legal escalation. Should ask clarifying questions about the IPP and IEP details."
+  },
+  {
+    "id": "qa-1771968998840",
+    "question": "Insurance denied OT, the school says OT isn't educationally necessary, and RC says insurance should cover it. My kid has no OT now. Nobody will pay.",
+    "expectedCategory": "rights",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Classic finger-pointing scenario. Should identify that RC is payer of last resort. Should ask what denials they have in writing. Firm but not adversarial yet."
+  },
+  {
+    "id": "qa-1771968999186",
+    "question": "I found out yesterday my 18-month-old has cerebral palsy and I haven't stopped crying. I don't even know what questions to ask. Please help.",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "MUST lead with deep emotional support — this is a raw, fresh diagnosis moment. One simple next step (call RC). Mention parent support groups. DO NOT overwhelm with legal rights or five systems."
+  },
+  {
+    "id": "qa-1771968999451",
+    "question": "I feel like the worst parent in the world because I missed the 10-day window to file Aid Paid Pending and now my daughter is losing her respite hours next week",
+    "expectedCategory": "rights",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Must NOT make the parent feel worse. Acknowledge the stress. Explain what options remain (can still file fair hearing within 60 days, just without APR). Offer to help draft. Empathetic, not clinical."
+  },
+  {
+    "id": "qa-1771968999702",
+    "question": "My service coordinator told me over the phone that RC doesn't cover parent training but I've heard other families get it",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Tricky: verbal denial only. Should ask if they got anything in writing. Explain that RC does fund parent training for many families. Should NOT jump to \"file a complaint\" — should first suggest asking for the denial in writing and requesting an IPP meeting."
+  },
+  {
+    "id": "qa-1771968999931",
+    "question": "The school keeps canceling my IEP meeting — this is the third time in two months",
+    "expectedCategory": "iep",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Should ask clarifying question: how are they canceling? By phone? Email? Are they offering new dates? Then provide firm guidance about right to timely meeting. Should suggest putting the request in writing."
+  },
+  {
+    "id": "qa-1771969000169",
+    "question": "I'm the grandmother raising my grandchild with Down syndrome. I don't have legal guardianship yet — can I still get RC services and attend IEP meetings?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Must address the guardianship nuance — educational rights holder vs legal guardian. Explain that caregivers CAN access services. Warm and practical. Should mention how to become educational rights holder."
+  },
+  {
+    "id": "qa-1771969000729",
+    "question": "We're a foster family and our foster child has autism. DCFS is involved. Can we request RC services or does the bio parent have to?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Must navigate foster care + RC eligibility carefully. Foster parents CAN request services. Should mention surrogate parent rights for IEP. Sensitive to the complexity."
+  },
+  {
+    "id": "qa-1771969000947",
+    "question": "My child's doctor says we need a neuropsych eval but I don't know if insurance, the school, or RC should do it",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Tests whether \"neuropsych eval\" triggers insurance or IEP. Correct answer: all three are options with different pros/cons. Should lay out the options clearly without legal jargon."
+  },
+  {
+    "id": "qa-1771969001175",
+    "question": "Is Self-Determination worth it? Our RC coordinator says it's a lot of paperwork",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should explain SDP pros and cons honestly — more control but more admin work. Should NOT dismiss the coordinator's concern. Balanced, practical guidance."
+  },
+  {
+    "id": "qa-1771969001391",
+    "question": "I paid out of pocket for ABA for 3 months while waiting for RC to find a vendor. Can I get reimbursed even though it wasn't pre-authorized?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Non-pre-authorized retroactive reimbursement — this is the hard case. Should explain that it IS possible but difficult. Must ask if they have documentation, medical necessity letters. Should NOT promise reimbursement. Should offer to draft a request letter."
+  },
+  {
+    "id": "qa-1771969001764",
+    "question": "My RC approved respite but the vendor is charging more than RC will reimburse. Am I stuck paying the difference?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Common vendor rate gap issue. Should explain POS rates, suggest asking RC for a rate exception or different vendor. Stay collaborative. Clarify if this is a vendored vs non-vendored provider."
+  },
+  {
+    "id": "qa-1771969002014",
+    "question": "My 17-year-old has an IEP and gets RC services. She turns 18 in 6 months. What do I need to do about conservatorship, SSI, and making sure her services continue?",
+    "expectedCategory": "transitions",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Three-part transition question. Should address: (1) conservatorship alternatives (supported decision-making first), (2) SSI application at 18 when deeming stops, (3) RC continues lifelong. Well-organized, not overwhelming."
+  },
+  {
+    "id": "qa-1771969002226",
+    "question": "We just moved to California from Texas. My child had an IEP and was receiving ABA through Medicaid there. How do we transfer everything?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Interstate transfer scenario. Should explain: (1) 30-day IEP transfer rule, (2) new RC intake needed, (3) Medi-Cal application, (4) insurance re-enrollment. Practical first steps."
+  },
+  {
+    "id": "qa-1771969002478",
+    "question": "RC isn't giving us what we need",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Intentionally vague — engine MUST ask clarifying questions. What service? What happened? What have they tried? Should NOT give specific legal advice without knowing the situation."
+  },
+  {
+    "id": "qa-1771969003257",
+    "question": "Something is wrong with my child's school placement",
+    "expectedCategory": "iep",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Very vague. Engine must ask: What type of placement? What's wrong? Has parent discussed with the IEP team? Should not jump to due process or legal options without understanding the problem."
+  },
+  {
+    "id": "qa-1771969003501",
+    "question": "My ex-husband and I disagree about our child's IEP — he doesn't think she needs special education. Can he block the IEP?",
+    "expectedCategory": "iep",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Custody and IEP intersection. Both parents have rights. Should explain that either parent can request eval/services. Sensitive handling — should not take sides. Practical guidance."
+  },
+  {
+    "id": "qa-1771969003750",
+    "question": "I think my child's therapist through RC isn't very good but I'm afraid if I complain they'll take away the service entirely",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Fear-based question. Must reassure that requesting a different provider does NOT risk losing the service. Explain how to request a vendor change through the IPP. Warm and encouraging."
+  },
+  {
+    "id": "qa-1771969004024",
+    "question": "What respite agencies are vendored with my Regional Center?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should use the family's RC from their profile to give specific guidance. If RC is known, name it. Suggest calling that specific RC or checking their vendor list. Test whether profile data is used."
+  },
+  {
+    "id": "qa-1771969004284",
+    "question": "I just got a Notice of Action from RC reducing my son's ABA from 20 to 10 hours. The letter is dated 6 days ago. What do I do RIGHT NOW?",
+    "expectedCategory": "rights",
+    "expectedTone": "adversarial",
+    "expectedBehavior": "URGENT: 4 days left for Aid Paid Pending. Must immediately flag the 10-day window. Step 1: file fair hearing TODAY. Provide exact language. This IS the time for full legal citations. Should offer to draft the fair hearing request."
+  },
+  {
+    "id": "qa-1771975840561",
+    "question": "My son gets speech therapy through his IEP but RC also has speech in his IPP — who is supposed to be paying and are we getting double-billed?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should explain payer-of-last-resort, school vs RC responsibilities for speech. No legal escalation. Should ask clarifying questions about the IPP and IEP details."
+  },
+  {
+    "id": "qa-1771975840837",
+    "question": "Insurance denied OT, the school says OT isn't educationally necessary, and RC says insurance should cover it. My kid has no OT now. Nobody will pay.",
+    "expectedCategory": "rights",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Classic finger-pointing scenario. Should identify that RC is payer of last resort. Should ask what denials they have in writing. Firm but not adversarial yet."
+  },
+  {
+    "id": "qa-1771975841852",
+    "question": "I found out yesterday my 18-month-old has cerebral palsy and I haven't stopped crying. I don't even know what questions to ask. Please help.",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "MUST lead with deep emotional support — this is a raw, fresh diagnosis moment. One simple next step (call RC). Mention parent support groups. DO NOT overwhelm with legal rights or five systems."
+  },
+  {
+    "id": "qa-1771975842100",
+    "question": "I feel like the worst parent in the world because I missed the 10-day window to file Aid Paid Pending and now my daughter is losing her respite hours next week",
+    "expectedCategory": "rights",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Must NOT make the parent feel worse. Acknowledge the stress. Explain what options remain (can still file fair hearing within 60 days, just without APR). Offer to help draft. Empathetic, not clinical."
+  },
+  {
+    "id": "qa-1771975842339",
+    "question": "My service coordinator told me over the phone that RC doesn't cover parent training but I've heard other families get it",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Tricky: verbal denial only. Should ask if they got anything in writing. Explain that RC does fund parent training for many families. Should NOT jump to \"file a complaint\" — should first suggest asking for the denial in writing and requesting an IPP meeting."
+  },
+  {
+    "id": "qa-1771975842588",
+    "question": "The school keeps canceling my IEP meeting — this is the third time in two months",
+    "expectedCategory": "iep",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Should ask clarifying question: how are they canceling? By phone? Email? Are they offering new dates? Then provide firm guidance about right to timely meeting. Should suggest putting the request in writing."
+  },
+  {
+    "id": "qa-1771975842858",
+    "question": "I'm the grandmother raising my grandchild with Down syndrome. I don't have legal guardianship yet — can I still get RC services and attend IEP meetings?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Must address the guardianship nuance — educational rights holder vs legal guardian. Explain that caregivers CAN access services. Warm and practical. Should mention how to become educational rights holder."
+  },
+  {
+    "id": "qa-1771975843093",
+    "question": "We're a foster family and our foster child has autism. DCFS is involved. Can we request RC services or does the bio parent have to?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Must navigate foster care + RC eligibility carefully. Foster parents CAN request services. Should mention surrogate parent rights for IEP. Sensitive to the complexity."
+  },
+  {
+    "id": "qa-1771975843331",
+    "question": "My child's doctor says we need a neuropsych eval but I don't know if insurance, the school, or RC should do it",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Tests whether \"neuropsych eval\" triggers insurance or IEP. Correct answer: all three are options with different pros/cons. Should lay out the options clearly without legal jargon."
+  },
+  {
+    "id": "qa-1771975843580",
+    "question": "Is Self-Determination worth it? Our RC coordinator says it's a lot of paperwork",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should explain SDP pros and cons honestly — more control but more admin work. Should NOT dismiss the coordinator's concern. Balanced, practical guidance."
+  },
+  {
+    "id": "qa-1771975843841",
+    "question": "I paid out of pocket for ABA for 3 months while waiting for RC to find a vendor. Can I get reimbursed even though it wasn't pre-authorized?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Non-pre-authorized retroactive reimbursement — this is the hard case. Should explain that it IS possible but difficult. Must ask if they have documentation, medical necessity letters. Should NOT promise reimbursement. Should offer to draft a request letter."
+  },
+  {
+    "id": "qa-1771975844073",
+    "question": "My RC approved respite but the vendor is charging more than RC will reimburse. Am I stuck paying the difference?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Common vendor rate gap issue. Should explain POS rates, suggest asking RC for a rate exception or different vendor. Stay collaborative. Clarify if this is a vendored vs non-vendored provider."
+  },
+  {
+    "id": "qa-1771975844287",
+    "question": "My 17-year-old has an IEP and gets RC services. She turns 18 in 6 months. What do I need to do about conservatorship, SSI, and making sure her services continue?",
+    "expectedCategory": "transitions",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Three-part transition question. Should address: (1) conservatorship alternatives (supported decision-making first), (2) SSI application at 18 when deeming stops, (3) RC continues lifelong. Well-organized, not overwhelming."
+  },
+  {
+    "id": "qa-1771975844532",
+    "question": "We just moved to California from Texas. My child had an IEP and was receiving ABA through Medicaid there. How do we transfer everything?",
+    "expectedCategory": "navigation",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Interstate transfer scenario. Should explain: (1) 30-day IEP transfer rule, (2) new RC intake needed, (3) Medi-Cal application, (4) insurance re-enrollment. Practical first steps."
+  },
+  {
+    "id": "qa-1771975844775",
+    "question": "RC isn't giving us what we need",
+    "expectedCategory": "regional-center",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Intentionally vague — engine MUST ask clarifying questions. What service? What happened? What have they tried? Should NOT give specific legal advice without knowing the situation."
+  },
+  {
+    "id": "qa-1771975845017",
+    "question": "Something is wrong with my child's school placement",
+    "expectedCategory": "iep",
+    "expectedTone": "assertive",
+    "expectedBehavior": "Very vague. Engine must ask: What type of placement? What's wrong? Has parent discussed with the IEP team? Should not jump to due process or legal options without understanding the problem."
+  },
+  {
+    "id": "qa-1771975845253",
+    "question": "My ex-husband and I disagree about our child's IEP — he doesn't think she needs special education. Can he block the IEP?",
+    "expectedCategory": "iep",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Custody and IEP intersection. Both parents have rights. Should explain that either parent can request eval/services. Sensitive handling — should not take sides. Practical guidance."
+  },
+  {
+    "id": "qa-1771975845516",
+    "question": "I think my child's therapist through RC isn't very good but I'm afraid if I complain they'll take away the service entirely",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Fear-based question. Must reassure that requesting a different provider does NOT risk losing the service. Explain how to request a vendor change through the IPP. Warm and encouraging."
+  },
+  {
+    "id": "qa-1771975845750",
+    "question": "What respite agencies are vendored with my Regional Center?",
+    "expectedCategory": "regional-center",
+    "expectedTone": "collaborative",
+    "expectedBehavior": "Should use the family's RC from their profile to give specific guidance. If RC is known, name it. Suggest calling that specific RC or checking their vendor list. Test whether profile data is used."
+  },
+  {
+    "id": "qa-1771975845972",
+    "question": "I just got a Notice of Action from RC reducing my son's ABA from 20 to 10 hours. The letter is dated 6 days ago. What do I do RIGHT NOW?",
+    "expectedCategory": "rights",
+    "expectedTone": "adversarial",
+    "expectedBehavior": "URGENT: 4 days left for Aid Paid Pending. Must immediately flag the 10-day window. Step 1: file fair hearing TODAY. Provide exact language. This IS the time for full legal citations. Should offer to draft the fair hearing request."
+  }
+]

@@ -1,3 +1,4 @@
+import { SSI_FBR_MONTHLY, SSI_YEAR, SSI_MONTHLY_SHORT } from '@/data/benefitFigures';
 /**
  * Agency directory and "Learn More" explainer entries.
  * LEARN_MORE ~lines 906-926). LEARN_MORE bodies converted from inline HTML
@@ -70,9 +71,9 @@ export const AGENCIES: Agency[] = [
     type: 'Federal',
     phone: '1-800-772-1213',
     website: 'ssa.gov',
-    what: 'SSI ~$994/month (2026) for children with disabilities. Auto-enrolls in Medi-Cal.',
+    what: `SSI ~$${SSI_FBR_MONTHLY}/month (${SSI_YEAR}) for children with disabilities. Auto-enrolls in Medi-Cal.`,
     whyMatters: 'Real money + Medi-Cal. The Function Report is key — describe WORST days.',
-    services: ['SSI ~$994/mo (2026, adjusted annually)', 'Automatic Medi-Cal', 'CalABLE eligibility'],
+    services: [`SSI ${SSI_MONTHLY_SHORT} (adjusted annually)`, 'Automatic Medi-Cal', 'CalABLE eligibility'],
     rights: ['Appeal any denial', 'Continuing benefits during appeal', 'Back pay from application date'],
     watchOut: 'Function Report: describe WORST days. Be painfully specific about limitations.',
   },
@@ -119,7 +120,7 @@ export const LEARN_MORE: Record<string, LearnMoreEntry> = {
   'SSI': {
     key: 'SSI',
     title: 'Supplemental Security Income (SSI)',
-    body: 'What it is: A federal monthly cash benefit for people with disabilities who have limited income and resources. Administered by the Social Security Administration (SSA).\n\nAmount: Up to ~$994 (2026 federal rate, adjusted annually; CA adds a state supplement)/month in CA (federal + state supplement). Adjusted annually for cost of living.\n\nFor children: A child under 18 qualifies if they have a medically determinable physical or mental impairment that results in \'marked and severe functional limitations\' expected to last 12+ months or result in death. Family income and resources are considered (under $2,000 countable resources).\n\nKey benefits beyond cash: Automatic Medi-Cal enrollment in CA (no separate application), eligibility for CalABLE savings account, pathway to IHSS.\n\nHow to apply: Call SSA at 1-800-772-1213, visit ssa.gov, or go to your local SSA office. Child applications cannot be fully completed online — you\'ll need an appointment.\n\nTimeline: 3-6 months for initial decision. If denied, appeal within 60 days — approval rates improve significantly on appeal.\n\nThe Function Report (SSA-3375-BK): This is the most important document in your application. It asks how your child\'s disability affects daily life. Describe your child\'s WORST days in vivid, specific detail. Never minimize.',
+    body: `What it is: A federal monthly cash benefit for people with disabilities who have limited income and resources. Administered by the Social Security Administration (SSA).\n\nAmount: Up to ~$${SSI_FBR_MONTHLY} (${SSI_YEAR} federal rate, adjusted annually; CA adds a state supplement)/month in CA (federal + state supplement). Adjusted annually for cost of living.\n\nFor children: A child under 18 qualifies if they have a medically determinable physical or mental impairment that results in 'marked and severe functional limitations' expected to last 12+ months or result in death. Family income and resources are considered (under $2,000 countable resources).\n\nKey benefits beyond cash: Automatic Medi-Cal enrollment in CA (no separate application), eligibility for CalABLE savings account, pathway to IHSS.\n\nHow to apply: Call SSA at 1-800-772-1213, visit ssa.gov, or go to your local SSA office. Child applications cannot be fully completed online — you'll need an appointment.\n\nTimeline: 3-6 months for initial decision. If denied, appeal within 60 days — approval rates improve significantly on appeal.\n\nThe Function Report (SSA-3375-BK): This is the most important document in your application. It asks how your child's disability affects daily life. Describe your child's WORST days in vivid, specific detail. Never minimize.`,
     tip: 'The #1 mistake: writing the Function Report on a good day. Describe the worst days. \'Cannot dress independently — puts clothes on backwards, cannot button or zip, requires full physical help for 30+ minutes.\' Get letters from every provider. If denied, appeal — don\'t re-apply. Consider a disability attorney (they work on contingency).',
   },
   'IHSS': {

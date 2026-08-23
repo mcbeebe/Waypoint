@@ -1,0 +1,176 @@
+/**
+ * Pricing (PRD W-E: E1) — what free includes forever, what Premium adds,
+ * and web checkout in under two minutes. Sponsored families see the $0
+ * banner instead of a buy button. Checkout is Stripe on the web (no
+ * native IAP in v1): the payment-link URLs arrive via env so keys never
+ * touch the bundle.
+ */
+import React from 'react';
+import { View, Text, ScrollView, Pressable, Linking, StyleSheet } from 'react-native';
+import { useFamily } from '@/hooks/useFamily';
+import { useEntitlement } from '@/hooks/useEntitlement';
+import {
+  FREE_FEATURES,
+  PREMIUM_FEATURES,
+  PRICE_ANNUAL_CENTS,
+  PRICE_MONTHLY_CENTS,
+  MONEY_BACK_DAYS,
+} from '@/lib/entitlements';
+import { useToast } from '@/components/Toast';
+import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+
+const CHECKOUT_ANNUAL = process.env.EXPO_PUBLIC_STRIPE_CHECKOUT_ANNUAL_URL;
+const CHECKOUT_MONTHLY = process.env.EXPO_PUBLIC_STRIPE_CHECKOUT_MONTHLY_URL;
+
+export default function PricingScreen() {
+  const { family } = useFamily();
+  const { isPremium, sponsorLabel } = useEntitlement(family?.id);
+  const { showToast } = useToast();
+
+  const checkout = async (url: string | undefined) => {
+    if (!url || !family?.id) {
+      showToast('Checkout is opening soon — nothing to pay today.', 'info');
+      return;
+    }
+    try {
+      // client_reference_id ties the Stripe session to this family — the
+      // webhook uses it to write the entitlement row.
+      const sep = url.includes('?') ? '&' : '?';
+      await Linking.openURL(`${url}${sep}client_reference_id=${family.id}`);
+    } catch {
+      showToast('Could not open checkout — please try again.', 'error');
+    }
+  };
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.title}>Free forever. Premium when you want more.</Text>
+
+      {sponsorLabel ? (
+        <View style={styles.sponsorBanner}>
+          <Text style={styles.sponsorText}>{sponsorLabel}</Text>
+        </View>
+      ) : null}
+
+      <View style={styles.card}>
+        <Text style={styles.tierName}>Free</Text>
+        <Text style={styles.tierPrice}>$0</Text>
+        <Text style={styles.tierNote}>Everything below stays free, forever.</Text>
+        {FREE_FEATURES.map((f) => (
+          <Text key={f} style={styles.feature}>✓ {f}</Text>
+        ))}
+      </View>
+
+      <View style={[styles.card, styles.premiumCard]}>
+        <Text style={styles.tierName}>Premium</Text>
+        <Text style={styles.tierPrice}>
+          ${(PRICE_ANNUAL_CENTS / 100).toFixed(0)}
+          <Text style={styles.tierPer}>/year</Text>
+        </Text>
+        <Text style={styles.tierNote}>
+          or ${(PRICE_MONTHLY_CENTS / 100).toFixed(2)}/month · {MONEY_BACK_DAYS}-day money-back
+          guarantee · cancel any time
+        </Text>
+        <Text style={styles.everything}>Everything in Free, plus:</Text>
+        {PREMIUM_FEATURES.map((f) => (
+          <Text key={f} style={styles.feature}>✓ {f}</Text>
+        ))}
+        {isPremium ? (
+          <View style={styles.activeBadge}>
+            <Text style={styles.activeBadgeText}>✓ Premium is active on your account</Text>
+          </View>
+        ) : (
+          <>
+            <Pressable style={styles.cta} onPress={() => checkout(CHECKOUT_ANNUAL)}>
+              <Text style={styles.ctaText}>
+                Get Premium · ${(PRICE_ANNUAL_CENTS / 100).toFixed(0)}/yr
+              </Text>
+            </Pressable>
+            <Pressable style={styles.secondary} onPress={() => checkout(CHECKOUT_MONTHLY)}>
+              <Text style={styles.secondaryText}>
+                Monthly instead · ${(PRICE_MONTHLY_CENTS / 100).toFixed(2)}/mo
+              </Text>
+            </Pressable>
+          </>
+        )}
+      </View>
+
+      <Text style={styles.finePrint}>
+        Checkout happens on the web via Stripe — receipts and cancellation are
+        self-serve. We never sell your data, on either tier.
+      </Text>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.light },
+  content: { padding: spacing.base, paddingBottom: spacing['2xl'] },
+  title: {
+    fontSize: fonts.sizes['2xl'],
+    fontWeight: fonts.weights.extrabold,
+    color: colors.navy,
+    lineHeight: 30,
+  },
+  sponsorBanner: {
+    marginTop: spacing.md,
+    backgroundColor: semantic.successBg,
+    borderRadius: radii.md,
+    padding: spacing.base,
+  },
+  sponsorText: { color: semantic.success, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.md },
+  card: {
+    marginTop: spacing.base,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
+  },
+  premiumCard: { borderColor: colors.teal, borderWidth: 2 },
+  tierName: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold, color: colors.navy },
+  tierPrice: {
+    marginTop: spacing.xs,
+    fontSize: fonts.sizes['3xl'],
+    fontWeight: fonts.weights.extrabold,
+    color: colors.navy,
+  },
+  tierPer: { fontSize: fonts.sizes.md, color: colors.mid, fontWeight: fonts.weights.medium },
+  tierNote: { marginTop: spacing.xs, fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18 },
+  everything: {
+    marginTop: spacing.md,
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold,
+    color: colors.mid,
+  },
+  feature: { marginTop: spacing.sm, fontSize: fonts.sizes.md, color: colors.dark, lineHeight: 20 },
+  activeBadge: {
+    marginTop: spacing.base,
+    backgroundColor: semantic.successBg,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    alignItems: 'center',
+  },
+  activeBadgeText: { color: semantic.success, fontWeight: fonts.weights.bold },
+  cta: {
+    marginTop: spacing.base,
+    minHeight: 48,
+    borderRadius: radii.md,
+    backgroundColor: colors.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaText: { color: colors.white, fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold },
+  secondary: {
+    marginTop: spacing.sm,
+    minHeight: 44,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryText: { color: colors.dark, fontWeight: fonts.weights.semibold },
+  finePrint: { marginTop: spacing.base, fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18 },
+});

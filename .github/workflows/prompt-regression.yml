@@ -1,0 +1,38 @@
+# Prompt-regression suite (PRD W-F: F4) — replays the QA golden set against
+# the deployed ai-proxy classifier. Costs real API tokens, so it runs weekly
+# and on demand, never per-PR (the per-PR guard is the golden-set integrity
+# test inside the normal CI suite).
+#
+# Secrets required:
+#   WAYPOINT_SUPABASE_URL   https://<ref>.supabase.co
+#   WAYPOINT_QA_JWT         access token for the dedicated QA account
+#                           (a signed-in family user with AI consent)
+
+name: Prompt regression
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 14 * * 1' # Mondays 14:00 UTC
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: waypoint-app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run golden set against deployed classifier
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.WAYPOINT_SUPABASE_URL }}
+          WAYPOINT_JWT: ${{ secrets.WAYPOINT_QA_JWT }}
+        run: |
+          if [ -z "$EXPO_PUBLIC_SUPABASE_URL" ] || [ -z "$WAYPOINT_JWT" ]; then
+            echo "Secrets not configured — skipping (set WAYPOINT_SUPABASE_URL and WAYPOINT_QA_JWT)."
+            exit 0
+          fi
+          node scripts/prompt-regression.mjs

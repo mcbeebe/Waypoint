@@ -83,6 +83,10 @@ Write in a firm, direct tone. This overrides any other tone instructions below.
 const DRAFT_PROMPTS: Record<string, string> = {
   appeal_letter: `Draft a formal insurance appeal letter for a parent of a child with disabilities in California. Include: today's date, policy/member info placeholders, the denial reason being appealed, a strong medical necessity argument citing specific functional limitations, legal citations (SB 946 if autism-related, Mental Health Parity Act, EPSDT if Medi-Cal), and a clear request for reversal. Address to the insurance company appeals department. Tone: firm, professional, factual — this IS an adversarial situation so legal citations are appropriate. Use [BRACKETS] for information the parent needs to fill in.`,
   iep_email: `Draft a professional email to a school district special education department. Match the assertiveness to the selected tone: warm = cooperative, no legal codes; professional = firm, reference IDEA timelines and the right to Prior Written Notice; strong = cite specific Education Code sections and make clear the parent expects compliance. Use [BRACKETS] for information the parent needs to fill in.`,
+  ipp_review_request: `Draft a written request for an IPP (Individual Program Plan) review meeting to the family's Regional Center Service Coordinator. Key legal anchor: under W&I Code §4646.5(b), when a parent requests an IPP review, the meeting must be held within 30 days of the request — state the request date and the resulting deadline explicitly. The letter should: 1) request the meeting in writing and name the 30-day clock, 2) list the specific topics to address — unmet needs to document in the IPP, services to add or adjust, and (when relevant) discussion of the Self-Determination Program and what the child's individual budget would look like, 3) ask that the family's concerns be entered into the IPP record, 4) request written confirmation of the meeting date. Match escalation to tone: warm = collaborative scheduling request; professional = firm, deadline named, written response requested; strong = deadline named plus a statement that an unexcused failure to schedule will be raised with the RC's executive office. Use [BRACKETS] for information the parent needs to fill in.`,
+  noa_request: `Draft a letter demanding a written Notice of Action after a Regional Center verbally denied, reduced, or delayed a service. Key legal anchors: a Regional Center that denies or changes a requested service must provide written notice of the action and of appeal rights (W&I Code §4710); if an EXISTING service is being reduced or terminated, note the right to appeal and to continued services pending the appeal (aid paid pending) when the appeal is filed on time. The letter should: 1) state what was requested, when, and what was said verbally, 2) request the decision in writing as a formal Notice of Action with the specific reason and the legal or policy basis, 3) note that the family cannot exercise its appeal rights without written notice, 4) set a reasonable response deadline. A verbal no is not a decision — that is the letter's spine. This is a rights-based demand: even at warm tone it stays firm and specific. Use [BRACKETS] for information the parent needs to fill in.`,
+  rc_timeline_followup: `Draft a follow-up letter to a Regional Center about a statutory clock that is running or has run out. Key legal anchors: under W&I Code §4643, when an assessment is needed for eligibility it must be performed within 120 days of initial intake — or as soon as possible and within 60 days when delay would risk the person's health and safety or risk further delay of development; after assessment is complete, the IPP must be developed within 60 days (W&I Code §4646). The letter should: 1) state the relevant start date (intake, request, or assessment completion), 2) compute and state the deadline, 3) ask for the current status and a firm date, 4) at professional/strong tone, note that continued delay will be raised as a compliance matter (4731 complaint). Never invent a clock that does not exist — if the situation has no statutory deadline, frame the request around reasonableness and ask for a written timeline. Use [BRACKETS] for information the parent needs to fill in.`,
+  sdp_info_request: `Draft a letter to the family's Regional Center Service Coordinator requesting information about the Self-Determination Program and the steps to enroll. Key legal anchors: the SDP is available to all eligible Regional Center consumers under W&I Code §4685.8 (statewide open enrollment since July 2021, any age, no income test); enrollment requires the SCDD orientation. The letter should: 1) state the family's interest in SDP for their child, 2) request a referral to the required orientation and any RC-specific enrollment materials, 3) ask what the child's individual budget would be based on (the most recent 12 months of authorized services plus IPP-identified unmet needs), and request a copy of the child's current authorizations for that purpose, 4) request an IPP review meeting if needed to document unmet needs before the budget is set — that sequencing protects the family's budget. Tone guidance: even at warm tone, put every request in writing with a requested response date. Use [BRACKETS] for information the parent needs to fill in.`,
   rc_request: `Draft a request letter to the family's Regional Center Service Coordinator. Match escalation to tone: warm = a collaborative request framed as "We believe [child] would benefit from...", no legal citations; professional = firm, mention that services are based on individual need and request a written response within a reasonable timeline; strong = reference the Lanterman Act entitlement principle with relevant W&I Code sections, be specific about the service, the assessed need, response timeline, and fair hearing rights if denied. Use [BRACKETS] for information the parent needs to fill in.`,
   iep_prep: `Create a comprehensive IEP meeting preparation document. Include: 1) Agenda items to raise, 2) Specific questions to ask the team, 3) Practical reminders (recording option, taking IEP home to review, bringing an advocate or support person), 4) Suggested goals or areas to discuss based on the child's profile, 5) Things to watch for during the meeting. Keep the tone practical and empowering — this is about preparation, not confrontation. Format as a practical checklist the parent can print and bring.`,
   complaint: `Draft a formal complaint document. Determine the correct mechanism (4731 complaint for RC rights violations, CDE compliance complaint for school violations, DMHC complaint for insurance issues) based on the context. Include: specific rights or laws violated, dates and incidents, requested resolution, and the correct filing address/contact. This IS an adversarial document — legal precision and specific citations are appropriate here. Use [BRACKETS] for information the parent needs to fill in.`,
@@ -188,7 +192,7 @@ After your prose answer, append trailer lines. Each goes on its OWN line, at the
 [[RIGHTS: one sentence]] — the single most relevant legal right, with citation.
 [[WATCHOUT: one sentence]] — the pitfall to avoid.
 [[RESOURCES: [{"name":"...","url":"...","phone":"...","how":"..."}]]] — up to 3 real organizations/pages that help with THIS situation (omit unknown fields; never invent URLs).
-[[DRAFT: template_key | offer text]] — when a letter/email would genuinely help: template_key ∈ assessment_request, iep_email, iep_prep, pwn_request, records_request, rc_request, appeal_letter, ihss_appeal, cde_complaint, dds_4731_complaint, complaint, general. Offer text like "Want me to draft the appeal letter?".
+[[DRAFT: template_key | offer text]] — when a letter/email would genuinely help: template_key ∈ assessment_request, iep_email, iep_prep, pwn_request, records_request, rc_request, ipp_review_request, noa_request, rc_timeline_followup, sdp_info_request, appeal_letter, ihss_appeal, cde_complaint, dds_4731_complaint, complaint, general. Offer text like "Want me to draft the appeal letter?".
 [[FOLLOWUPS: option 1 | option 2 | option 3]] — ALWAYS include, last line: 2-3 short follow-ups (max ~8 words each) the parent might tap next.
 ${planContext}
 
@@ -298,6 +302,10 @@ serve(async (req: Request) => {
     // ─── AI gate: consent + daily quota (Wave 1) ─────────────────────
     // Applies to every action that sends family data to Anthropic.
     const AI_ACTIONS = ['chat', 'classify', 'ocr', 'analyze-iep', 'draft', 'analyze-email', 'extract-memories'];
+    // Free-tier Navigator cap — keep in sync with FREE_NAVIGATOR_MONTHLY_LIMIT
+    // in src/lib/entitlements.ts (the client shows the same number).
+    const FREE_NAVIGATOR_MONTHLY_LIMIT = 30;
+    let isPremium = false;
     let family: {
       id: string;
       ai_consent_at: string | null;
@@ -330,6 +338,43 @@ serve(async (req: Request) => {
         return jsonError(
           "You've reached today's AI limit. It resets at midnight — your saved plans and documents are unaffected.",
           429,
+        );
+      }
+
+      // ─── Tier resolution (W-E: E2/E3/E4) ──────────────────────────
+      // A live entitlement row = Premium; none = free tier. Resolved
+      // server-side so gates can't be bypassed by a modified client.
+      if (family?.id) {
+        const today = new Date().toISOString().slice(0, 10);
+        const { data: grants } = await supabase
+          .from('entitlements')
+          .select('status, period_start, period_end')
+          .eq('family_id', family.id)
+          .eq('status', 'active');
+        isPremium = (grants ?? []).some(
+          (g) =>
+            g.period_start <= today && (g.period_end === null || g.period_end >= today),
+        );
+      }
+
+      // Free tier: monthly Navigator cap (E3/E4). The daily ceiling above
+      // stays as the anti-abuse backstop for everyone.
+      if (!isPremium && action === 'chat') {
+        const { data: monthly } = await supabase
+          .rpc('monthly_ai_usage', { p_user: user.id });
+        if (typeof monthly === 'number' && monthly > FREE_NAVIGATOR_MONTHLY_LIMIT) {
+          return jsonError(
+            `You've used this month's ${FREE_NAVIGATOR_MONTHLY_LIMIT} free Navigator messages. Premium removes the cap — everything else in your free plan is unaffected.`,
+            402,
+          );
+        }
+      }
+
+      // Premium-only actions enforced server-side (E3)
+      if (!isPremium && action === 'analyze-iep') {
+        return jsonError(
+          'IEP document analysis is a Premium feature. Your free plan — eligibility results, the process map, your action plan, letters, and the request tracker — is unaffected.',
+          402,
         );
       }
     }
@@ -508,7 +553,9 @@ ${lines.join('\n')}
           'anthropic-beta': 'prompt-caching-2024-07-31',
         },
         body: JSON.stringify({
-          model: 'claude-opus-5',
+          // Cost-efficient tier for free users; Premium gets the flagship
+          // model (W-E: E4). Both stay pinned server-side.
+          model: isPremium ? 'claude-opus-5' : 'claude-sonnet-5',
           max_tokens: 4096,
           system: systemBlocks,
           messages,

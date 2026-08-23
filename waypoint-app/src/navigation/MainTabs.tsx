@@ -28,6 +28,11 @@ import ProvidersScreen from '@/screens/main/ProvidersScreen';
 import ServicesScreen from '@/screens/main/ServicesScreen';
 import InsuranceScreen from '@/screens/main/InsuranceScreen';
 import JourneyPhaseScreen from '@/screens/main/JourneyPhaseScreen';
+import ProcessMapScreen from '@/screens/main/ProcessMapScreen';
+import EligibilityResultScreen from '@/screens/main/EligibilityResultScreen';
+import FundedOfferScreen from '@/screens/main/FundedOfferScreen';
+import RequestTrackerScreen from '@/screens/main/RequestTrackerScreen';
+import PricingScreen from '@/screens/main/PricingScreen';
 import HealthRecordsScreen from '@/screens/main/HealthRecordsScreen';
 import FamilySharingScreen from '@/screens/main/FamilySharingScreen';
 import ProviderPortalScreen from '@/screens/main/ProviderPortalScreen';
@@ -45,6 +50,7 @@ import AgenciesScreen from '@/screens/main/AgenciesScreen';
 import ReimbursablesScreen from '@/screens/main/ReimbursablesScreen';
 import JourneyScreen from '@/screens/main/JourneyScreen';
 import IEPHubScreen from '@/screens/main/IEPHubScreen';
+import PremiumGate from '@/components/PremiumGate';
 import { useIEPGoals } from '@/hooks/useIEPGoals';
 import { useToast } from '@/components/Toast';
 
@@ -244,12 +250,24 @@ function HomeStack() {
       <HomeStackNav.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
       <HomeStackNav.Screen name="Journey" component={JourneyScreen} options={{ title: 'Journey Map' }} />
       <HomeStackNav.Screen name="JourneyPhase" component={JourneyPhaseScreen} options={{ title: 'This Stage' }} />
+      <HomeStackNav.Screen name="ProcessMap" component={ProcessMapScreen} options={{ title: 'How the System Works' }} />
+      <HomeStackNav.Screen name="EligibilityResult" component={EligibilityResultScreen} options={{ title: 'Your Result' }} />
+      <HomeStackNav.Screen name="FundedOffer" component={FundedOfferScreen} options={{ title: 'Free Help' }} />
+      <HomeStackNav.Screen name="RequestTracker" component={RequestTrackerScreen} options={{ title: 'Requests & Clocks' }} />
+      <HomeStackNav.Screen name="Pricing" component={PricingScreen} options={{ title: 'Free & Premium' }} />
       <HomeStackNav.Screen name="Agencies" component={AgenciesScreen} options={{ title: 'Agency Directory' }} />
       <HomeStackNav.Screen name="Reimbursables" component={ReimbursablesScreen} options={{ title: 'RC Funding Guide' }} />
       <HomeStackNav.Screen name="Insights" component={InsightsScreen} options={{ title: 'Insights' }} />
       <HomeStackNav.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Documents' }} />
       <HomeStackNav.Screen name="DocumentAnalysis" component={DocumentAnalysisRoute} options={{ title: 'IEP Review' }} />
-      <HomeStackNav.Screen name="IEPHub" component={IEPHubScreen} options={{ title: 'IEP Goals & Timeline' }} />
+      <HomeStackNav.Screen name="IEPHub" options={{ title: 'IEP Goals & Timeline' }}>
+        {/* Premium gate (W-E: E3) — server also enforces analyze-iep */}
+        {() => (
+          <PremiumGate feature="IEP document analysis">
+            <IEPHubScreen />
+          </PremiumGate>
+        )}
+      </HomeStackNav.Screen>
       <HomeStackNav.Screen name="Letters" component={LettersScreen} options={{ title: 'Letters & Drafts' }} />
       <HomeStackNav.Screen name="EmailAnalyzer" component={EmailAnalyzerScreen} options={{ title: 'Email Analyzer' }} />
       <HomeStackNav.Screen name="CommunicationLog" component={CommunicationLogScreen} options={{ title: 'Paper Trail' }} />
@@ -312,7 +330,13 @@ function CalendarStack() {
     <CalendarStackNav.Navigator screenOptions={detailHeaderOptions}>
       <CalendarStackNav.Screen name="CalendarMain" component={CalendarScreen} options={{ headerShown: false }} />
       <CalendarStackNav.Screen name="Expenses" component={ExpensesScreen} options={{ title: 'Expenses' }} />
-      <CalendarStackNav.Screen name="TaxReport" component={TaxReportScreen} options={{ title: 'Tax Report' }} />
+      <CalendarStackNav.Screen name="TaxReport" options={{ title: 'Tax Report' }}>
+        {() => (
+          <PremiumGate feature="Expense & tax reports">
+            <TaxReportScreen />
+          </PremiumGate>
+        )}
+      </CalendarStackNav.Screen>
     </CalendarStackNav.Navigator>
   );
 }

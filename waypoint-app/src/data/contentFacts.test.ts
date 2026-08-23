@@ -43,9 +43,25 @@ describe('stale legal facts must not reappear', () => {
   }
 });
 
+describe('figure literals live only in benefitFigures.ts (REQ-1003)', () => {
+  // The dollar figure itself may appear only in the constants module —
+  // everywhere else must interpolate it, so a rate change is a one-line edit.
+  const FIGURE_FILES = [
+    'src/data/agencies.ts',
+    'src/lib/planGenerator.ts',
+    'src/lib/eligibility.ts',
+  ];
+  it('no hardcoded SSI figure outside the constants module', () => {
+    for (const file of FIGURE_FILES) {
+      expect(read(file), `${file} hardcodes the SSI figure`).not.toMatch(/\$994/);
+    }
+  });
+});
+
 describe('current facts are present', () => {
-  it('SSI figure is the 2026 rate', () => {
-    expect(read('src/data/agencies.ts')).toContain('$994');
+  it('SSI figure is the 2026 rate, sourced from the constants module', () => {
+    expect(read('src/data/benefitFigures.ts')).toContain('SSI_FBR_MONTHLY = 994');
+    expect(read('src/data/agencies.ts')).toContain('SSI_FBR_MONTHLY');
   });
   it('ABLE age 46 is stated', () => {
     expect(read('src/data/agencies.ts')).toContain('age 46');
