@@ -17,6 +17,7 @@
  */
 
 import type { ActionCategory, ActionPriority, ActionStep } from '@/types/database';
+import { SSI_FBR_MONTHLY, SSI_YEAR } from '@/data/benefitFigures';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -614,7 +615,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
     actions.push(buildAction({
       category: 'benefits',
       title: 'Start SSI application',
-      subtitle: `SSI provides ~$994/month (2026 rate, adjusted annually) in cash benefits plus automatic Medi-Cal enrollment. ${hasDx('autism') ? 'Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.' : "Your child's diagnosis may qualify based on functional limitations."} This is real income for your family.`,
+      subtitle: `SSI provides ~$${SSI_FBR_MONTHLY}/month (${SSI_YEAR} rate, adjusted annually) in cash benefits plus automatic Medi-Cal enrollment. ${hasDx('autism') ? 'Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.' : "Your child's diagnosis may qualify based on functional limitations."} This is real income for your family.`,
       whyMatters: "SSI puts nearly $1,000/month directly into your family's hands — that's over $11,000/year. It also automatically enrolls your child in Medi-Cal (which unlocks IHSS, EPSDT, and more). The application is lengthy and many families give up, but the approval rate for children with well-documented developmental disabilities is significant. The key is the Function Report: describe your child's WORST days, not their best.",
       deadlineLabel: 'Within 30 days',
       dueInDays: 30,

@@ -8,6 +8,7 @@
  * card carries its citation + last-reviewed date (content provenance).
  */
 import type { RcStatus, IepStatus } from '@/types/database';
+import { SSI_FBR_MONTHLY, SSI_YEAR } from '@/data/benefitFigures';
 
 export type EligibilityStatus = 'enrolled' | 'likely' | 'review' | 'later';
 
@@ -17,7 +18,7 @@ export interface EligibilityCard {
   body: string;
   status: EligibilityStatus;
   statusLabel: string;
-  /** A fact line, e.g. "2026 federal rate · $994/mo + CA supplement". */
+  /** A fact line, e.g. the current SSI federal rate + CA supplement. */
   factLabel: string | null;
   factValue: string | null;
   citation: string;
@@ -139,9 +140,9 @@ export function deriveEligibility(input: EligibilityInput): EligibilityResult {
     body: "Monthly payments for a disabled child — depends on household income and it's not automatic, so we'd check with you.",
     status: 'review',
     statusLabel: 'Needs review',
-    factLabel: '2026 federal rate',
-    factValue: '$994/mo + CA supplement',
-    citation: 'SSA 2026 COLA',
+    factLabel: `${SSI_YEAR} federal rate`,
+    factValue: `$${SSI_FBR_MONTHLY}/mo + CA supplement`,
+    citation: `SSA ${SSI_YEAR} COLA`,
     reviewedOn: REVIEWED,
   });
 
