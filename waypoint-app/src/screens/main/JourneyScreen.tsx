@@ -44,7 +44,9 @@ export default function JourneyScreen() {
   const primaryChild = children.find(c => c.is_primary) || children[0];
   const { diagnoses } = useDiagnoses(primaryChild?.id);
   const { scale } = useTextScale();
-  const esUI = useI18n().locale === 'es';
+  const journeyLocale = useI18n().locale;
+  const esUI = journeyLocale === 'es';
+  const viUI = journeyLocale === 'vi';
   const sz = (n: number) => Math.round(n * scale);
 
   const journey = useMemo(
@@ -183,8 +185,8 @@ export default function JourneyScreen() {
                               </Text>
                               <Text style={[styles.entityGo, { fontSize: sz(11), color: phase.color }]}>
                                 {lever?.type === 'letter'
-                                  ? esUI ? '✉️ Redactar la carta →' : '✉️ Draft the letter →'
-                                  : esUI ? 'Hacer esto →' : 'Do this →'}
+                                  ? esUI ? '✉️ Redactar la carta →' : viUI ? '✉️ Soạn thư →' : '✉️ Draft the letter →'
+                                  : esUI ? 'Hacer esto →' : viUI ? 'Làm việc này →' : 'Do this →'}
                               </Text>
                             </View>
                           </TouchableOpacity>
@@ -211,7 +213,7 @@ export default function JourneyScreen() {
                         accessibilityLabel={`Next steps for ${phase.label}`}
                       >
                         <Text style={[styles.nextStepsText, { color: phase.color, fontSize: sz(13) }]}>
-                          {esUI ? 'Ver todos los pasos y agregarlos a mi plan →' : 'See all steps & add them to my plan →'}
+                          {esUI ? 'Ver todos los pasos y agregarlos a mi plan →' : viUI ? 'Xem tất cả các bước & thêm vào kế hoạch →' : 'See all steps & add them to my plan →'}
                         </Text>
                       </TouchableOpacity>
                     </View>

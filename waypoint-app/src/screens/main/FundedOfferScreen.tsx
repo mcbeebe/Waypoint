@@ -13,11 +13,12 @@ import { nextIntroSlots } from '@/lib/introSlots';
 import { trackFunnelStep } from '@/lib/analytics';
 import { useToast } from '@/components/Toast';
 import { useI18n } from '@/i18n';
+import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 /**
- * Screen chrome in EN/ES; Vietnamese falls back to English for now. The
+ * Screen chrome in EN/ES/VI. The
  * appointment record itself (title/notes) stays English — it is shared
  * operational data read by staff.
  */
@@ -114,6 +115,41 @@ const STRINGS: Record<FunnelLocale, {
     done: 'Listo',
     yourChild: 'su hijo/a',
   },
+  vi: {
+    title: 'Bắt đầu',
+    freeBadge: '✓ Miễn phí cho quý vị',
+    navCardTitle: 'Làm việc với một Người dẫn đường, miễn phí cho quý vị',
+    navCardBody:
+      'Một người thật, từng làm điều này cho chính con mình, sẽ đồng hành cùng quý vị qua toàn bộ quá trình ghi danh Tự quyết.',
+    whoPays: 'Ai trả tiền cho việc này?',
+    payEnrollLead: () => 'Trong lúc ghi danh: Trung tâm Khu vực của quý vị trả.',
+    payEnrollRest: (name) =>
+      ` Tối đa $1,000 cho kế hoạch lấy con người làm trung tâm của ${name} và tối đa 40 giờ hỗ trợ chuyển đổi — tính cho Trung tâm Khu vực, không phải cho quý vị.`,
+    payAfterLead: (name) =>
+      `Sau khi ghi danh: một khoản do quý vị phê duyệt trong ngân sách của ${name}.`,
+    payAfterRest:
+      ' Quý vị thỏa thuận giá với chúng tôi, thấy nó trong kế hoạch, và có thể dừng bất cứ lúc nào.',
+    pledgeLead: (name) => `Chúng tôi không bao giờ bán dịch vụ trong kế hoạch của ${name}.`,
+    pledgeRest:
+      ' Luật tiểu bang (W&I §4685.8) yêu cầu người hỗ trợ của quý vị phải độc lập — lòng trung thành duy nhất của chúng tôi là với quý vị.',
+    whatNext: 'Điều gì diễn ra tiếp theo',
+    steps: [
+      ['Một cuộc gọi 30 phút', ' — chúng tôi xác nhận điều kiện và trả lời câu hỏi của quý vị. Không ràng buộc.'],
+      ['Chúng tôi lo giấy tờ', ' — buổi định hướng, kế hoạch lấy con người làm trung tâm, chứng nhận ngân sách của quý vị.'],
+      ['Quý vị phê duyệt mọi thứ', ' trước khi bất cứ điều gì được gửi đi.'],
+    ],
+    pickTime: 'Chọn giờ',
+    slotNote: 'Có giờ buổi tối theo yêu cầu.',
+    bookingLabel: 'Đang đặt…',
+    bookCta: (day, time) => `Đặt ${day} · ${time}`,
+    decline: 'Tiếp tục dùng Waypoint miễn phí',
+    bookError: 'Không đặt được cuộc gọi — vui lòng thử lại.',
+    confirmTitle: 'Đã đặt lịch ✓',
+    confirmBody: (day, time) =>
+      `${day} lúc ${time} — 30 phút, không ràng buộc. Đã có trong lịch Waypoint của quý vị, và mọi thứ vẫn miễn phí dù thế nào.`,
+    done: 'Xong',
+    yourChild: 'con quý vị',
+  },
 };
 
 export default function FundedOfferScreen() {
@@ -124,7 +160,7 @@ export default function FundedOfferScreen() {
   const { createAppointment } = useAppointments({ familyId: family?.id ?? '' });
   const { showToast } = useToast();
   const { locale } = useI18n();
-  const funnelLocale: FunnelLocale = locale === 'es' ? 'es' : 'en';
+  const funnelLocale: FunnelLocale = toFunnelLocale(locale);
   const S = STRINGS[funnelLocale];
 
   const slots = useMemo(() => nextIntroSlots(), []);

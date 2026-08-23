@@ -42,6 +42,7 @@ import { logCommunication, markCommunicationSent } from '@/hooks/useCommunicatio
 import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
 import { sentNextFor } from '@/lib/sentNext';
+import { toFunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
 import { deadlineFor } from '@/lib/requestClocks';
 import type { RequestDeadline } from '@/lib/requestClocks';
@@ -226,7 +227,7 @@ export default function LettersScreen() {
       return;
     }
     const next = template
-      ? sentNextFor(template.key, primaryChild?.first_name, locale === 'es' ? 'es' : 'en')
+      ? sentNextFor(template.key, primaryChild?.first_name, toFunnelLocale(locale))
       : null;
     if (!next) {
       showToast('Marked as sent — saved to your paper trail', 'success');
@@ -553,12 +554,12 @@ export default function LettersScreen() {
                   {sentMoment.deadline && (
                     <View style={styles.sentClockChip}>
                       <Text style={styles.sentClockText}>
-                        ⏱ {locale === 'es' ? 'Su plazo' : 'Their deadline'}: {sentMoment.deadline.dueOn} ({sentMoment.deadline.daysRemaining} {locale === 'es' ? 'días' : 'days'}) · {sentMoment.deadline.citation}
+                        ⏱ {locale === 'es' ? 'Su plazo' : locale === 'vi' ? 'Hạn của họ' : 'Their deadline'}: {sentMoment.deadline.dueOn} ({sentMoment.deadline.daysRemaining} {locale === 'es' ? 'días' : locale === 'vi' ? 'ngày' : 'days'}) · {sentMoment.deadline.citation}
                       </Text>
                     </View>
                   )}
                   <Text style={styles.sentSection}>
-                    {locale === 'es' ? 'QUÉ SIGUE AHORA' : 'WHAT HAPPENS NOW'}
+                    {locale === 'es' ? 'QUÉ SIGUE AHORA' : locale === 'vi' ? 'ĐIỀU GÌ DIỄN RA TIẾP THEO' : 'WHAT HAPPENS NOW'}
                   </Text>
                   {sentMoment.next.expectations.map((e, i) => (
                     <View key={i} style={styles.sentBulletRow}>
@@ -578,14 +579,18 @@ export default function LettersScreen() {
                       <Text style={styles.sentTrackButtonText}>
                         {locale === 'es'
                           ? '✓ Waypoint lo está siguiendo — véalo en Solicitudes →'
-                          : '✓ Waypoint is tracking this — see it in Requests →'}
+                          : locale === 'vi'
+                            ? '✓ Waypoint đang theo dõi — xem trong mục Yêu cầu →'
+                            : '✓ Waypoint is tracking this — see it in Requests →'}
                       </Text>
                     </TouchableOpacity>
                   )}
                   <Text style={styles.sentFollowUp}>
                     {locale === 'es'
                       ? `¿Nada en ${sentMoment.next.followUpDays} días? Vuelva — la carta de seguimiento está a un toque.`
-                      : `Hear nothing in ${sentMoment.next.followUpDays} days? Come back — the follow-up letter is one tap.`}
+                      : locale === 'vi'
+                        ? `Không có hồi âm sau ${sentMoment.next.followUpDays} ngày? Hãy quay lại — thư nhắc chỉ cần một chạm.`
+                        : `Hear nothing in ${sentMoment.next.followUpDays} days? Come back — the follow-up letter is one tap.`}
                   </Text>
                 </View>
               ) : markedSent ? (
