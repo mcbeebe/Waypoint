@@ -21,7 +21,7 @@ function fingerprint(intake: PlanIntake) {
     title: a.title,
     category: a.category,
     priority: a.priority,
-    steps: a.steps.length,
+    steps: a.steps?.length ?? 0,
     hasScript: !!a.script,
     hasDueDate: !!a.due_date,
   }));
