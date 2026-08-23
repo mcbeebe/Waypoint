@@ -14,6 +14,16 @@
  * - urgent / high / standard             → priority urgent / high / medium
  * - deadline (relative phrase)           → due_date (computed) + phrase in description
  * - smsReminder                          → follow_up_note
+ *
+ * Structure (C-12, complete): step 1 decoupled every side table from
+ * titles via stable keys (actionKeys.ts); step 2 flattened the branch
+ * forest into ONE ordered rules table inside generateStarterPlan — each
+ * entry is {stable key, predicate, content builder}, with the old
+ * else-chains' exclusions written out explicitly. planRules.test.ts
+ * proves every rule reachable and nothing emitted outside the table;
+ * the characterization snapshots pin the behavior. Localization now
+ * means threading a locale into the content builders — the table and
+ * predicates don't change.
  */
 
 import type { ActionCategory, ActionPriority, ActionStep } from '@/types/database';
@@ -305,9 +315,17 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
 
   const actions: StarterAction[] = [];
 
+  // ── The rules table (C-12 step 2) ─────────────────────────────────────────
+  // One entry per emittable action: stable key + predicate + content
+  // builder. Predicates are plain booleans over the derived context above
+  // — auditable in one read, and the else-chains' exclusions are explicit.
+  // Content closures capture the context, so localizing later means
+  // threading a locale into the builders without touching this table.
+  const rules: Array<{ key: string; when: boolean; make: () => StarterAction }> = [];
+
+
   // ── RC / Early Start ──────────────────────────────────────────────────────
-  if (isES && rcE && rcStatus !== 'active') {
-    actions.push(buildAction({
+    rules.push({ key: 'rc_early_start_referral', when: isES && rcE && rcStatus !== 'active', make: () => buildAction({
       category: 'regional_center',
       title: 'Call Regional Center for Early Start referral',
       subtitle: 'Early Start serves ages 0–3 with a LOWER eligibility bar — no diagnosis needed. Your child gets an IFSP (plan of services) within 45 days of referral.',
@@ -338,9 +356,8 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       ],
       smsReminder: 'Tomorrow 9am: Call RC for Early Start. 45-day timeline. No diagnosis needed.',
       insiderTip: "You do NOT need a doctor's referral. Anyone — parent, grandparent, daycare worker — can refer a child. If RC tries to delay, cite W&I Code §95014. Services should start as soon as the IFSP is signed.",
-    }, 'urgent'));
-  } else if (needsRC && !isES) {
-    actions.push(buildAction({
+    }, 'urgent') });
+    rules.push({ key: 'rc_start_referral', when: needsRC && !isES, make: () => buildAction({
       category: 'regional_center',
       title: 'Call Regional Center to start your referral',
       subtitle: `Your child's ${needsDx ? 'suspected ' : ''}diagnosis qualifies for Lanterman Act services. RC provides a free evaluation, assigns a Service Coordinator, and funds services that insurance and school don't cover.`,
@@ -369,9 +386,8 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         : ['Diagnosis report (most important document)', 'Birth certificate', 'CA residency proof (utility bill, lease)', 'Medical records', 'School records / IEP if available', 'Insurance card'],
       smsReminder: 'Tomorrow 9am: Call RC. Have documents ready. 15-working-day intake deadline.',
       insiderTip: "You can self-refer — no doctor needed. If RC says there's a 'waitlist,' push back: under Lanterman, there are NO waitlists for intake. If they miss the 15-day timeline, document it and file a 4731 complaint. Ask for your SC's supervisor's name upfront — you may need it later.",
-    }, 'urgent'));
-  } else if (rcStatus === 'applied') {
-    actions.push(buildAction({
+    }, 'urgent') });
+    rules.push({ key: 'rc_follow_up_application', when: rcStatus === 'applied' && !(isES && rcE), make: () => buildAction({
       category: 'regional_center',
       title: 'Follow up on RC application status',
       subtitle: 'Check where you are in the process. The Lanterman Act sets firm timelines: intake within 15 working days, eligibility within 120 days, IPP within 60 days of eligibility.',
@@ -397,12 +413,11 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       documents: ['Your referral date (check email/records)', 'Any correspondence from RC', 'Notes from previous calls'],
       smsReminder: 'Tomorrow: Call RC. Reference referral date and 15-day rule.',
       insiderTip: "Keep a 'communication log' — a simple notebook with date, who you called, what they said. This becomes powerful evidence if you need to file a complaint. If you feel stuck, call Disability Rights CA (1-800-776-5746) for free advocacy help.",
-    }, 'high'));
-  } else if (rcStatus === 'active') {
+    }, 'high') });
     // The fork most families are never told about: nearly every consumer
     // qualifies for Self-Determination, ~1.5% are enrolled. Surfacing it in
     // the starter plan is a core free-tier promise (PRD W-G).
-    actions.push(buildAction({
+    rules.push({ key: 'sdp_ask_in_writing', when: rcStatus === 'active', make: () => buildAction({
       category: 'regional_center',
       title: 'Ask about Self-Determination in writing',
       subtitle: "Your child is a Regional Center consumer — which means a second path exists: the Self-Determination Program turns services into an annual budget your family directs. Most families are never told. One written request starts the conversation.",
@@ -425,12 +440,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       documents: ["Your child's current IPP (request a copy if you don't have one)", 'Any denials or unmet-needs notes — these belong in the IPP before converting'],
       smsReminder: 'This week: send the SDP info request letter. Budget basis = last 12 months of authorizations.',
       insiderTip: "Don't convert before documenting. The budget formula anchors to the PRIOR 12 months of authorized services plus documented unmet needs — families who switch first and document later lock in smaller budgets. Ask for the orientation AND your authorization records in the same letter, then use the 30-day IPP meeting rule to get missing needs on paper.",
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── Diagnosis ─────────────────────────────────────────────────────────────
-  if (needsDx && !isES) {
-    actions.push(buildAction({
+    rules.push({ key: 'dx_formal_evaluation', when: needsDx && !isES, make: () => buildAction({
       category: 'medical',
       title: 'Get a formal evaluation for your child',
       subtitle: "There are multiple FREE paths to a diagnosis: school district evaluation, Regional Center assessment, or private specialist with insurance. Run them in parallel — don't wait for one before starting another.",
@@ -460,13 +473,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       ],
       smsReminder: 'This week: Request eval from school AND call RC. Both free. Dual-track is fastest.',
       insiderTip: 'The #1 mistake families make is going one path at a time. Run all three simultaneously — school, RC, and private. Whoever finishes first, that report helps the others. School evaluations focus on educational impact; RC evaluations focus on developmental disability; private evaluations are often the most thorough. You want all three perspectives.',
-    }, 'urgent'));
-  }
+    }, 'urgent') });
 
   // ── School / IEP ──────────────────────────────────────────────────────────
-  if (needsIEP && iepStatus !== 'na') {
-    if (iepStatus === 'eval_done') {
-      actions.push(buildAction({
+      rules.push({ key: 'iep_request_meeting', when: needsIEP && iepStatus === 'eval_done', make: () => buildAction({
         category: 'iep',
         title: 'Send written request for IEP meeting',
         subtitle: 'Your child has been evaluated — the evaluation and IEP meeting share one 60-day clock that started when you signed the assessment consent (CA Ed Code §56344) — the meeting should already be scheduled. The IEP is a legally binding document that guarantees services.',
@@ -492,9 +502,8 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         ],
         smsReminder: 'Monday: Send IEP request. Email + certified mail. 30-day clock starts.',
         insiderTip: "NEVER sign the IEP at the meeting. Say 'I'd like to take this home to review.' You have the right to do this. Once you sign, it's much harder to change. Also: request an audio recording of the meeting — you have the right under CA Ed Code §56341.1. If the school says no, they must provide the recording at their expense.",
-      }, 'urgent'));
-    } else {
-      actions.push(buildAction({
+      }, 'urgent') });
+      rules.push({ key: 'iep_request_evaluation', when: needsIEP && iepStatus !== 'na' && iepStatus !== 'eval_done', make: () => buildAction({
         category: 'iep',
         title: 'Request school district evaluation (in writing)',
         subtitle: 'Your school district must respond with an assessment plan within 15 calendar days of your written request. The full evaluation is completely FREE — even at private school.',
@@ -520,9 +529,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         ],
         smsReminder: 'Monday: Send eval request. Email + certified mail. 15-day deadline.',
         insiderTip: "Be specific in your concerns but ask them to evaluate in ALL areas of suspected disability. If you only mention speech, they might only test speech. Write: 'Please assess in all areas of suspected disability.' If the school misses the 15-day or 60-day deadlines, file a compliance complaint with CDE at (916) 319-0800 — it's free and surprisingly effective.",
-      }, 'urgent'));
-    }
-  }
+      }, 'urgent') });
 
   // ── Therapy / Insurance ───────────────────────────────────────────────────
   // 'sensory' and 'genetic' (new in the app's selector) added — both are
@@ -531,8 +538,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
     hasDx('autism') || hasDx('delay') || hasDx('cp') || hasDx('id') || hasDx('down') ||
     hasDx('epilepsy') || hasDx('md') || hasDx('tbi') || hasDx('deaf') || hasDx('blind') ||
     hasDx('multiple') || hasDx('sli') || hasDx('ohi') || hasDx('sensory') || hasDx('genetic');
-  if (therapyDx && ['private', 'both'].includes(insurance)) {
-    actions.push(buildAction({
+    rules.push({ key: 'therapy_pediatrician_referral', when: therapyDx && ['private', 'both'].includes(insurance), make: () => buildAction({
       category: 'medical',
       title: 'Get pediatrician referral for therapy',
       subtitle: `Most insurance plans require a physician referral before covering therapy. You need referrals for OT${hasDx('autism') ? ', speech, and ABA' : ''}, plus a Letter of Medical Necessity — the single most important document for insurance approval.`,
@@ -562,8 +568,8 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       ],
       smsReminder: 'Tomorrow: Call pediatrician for referrals + medical necessity letter.',
       insiderTip: "Ask the pediatrician to write the LMN using insurance-friendly language: 'medically necessary to prevent regression,' 'functional limitations in daily living,' 'without intervention, prognosis is poor.' Generic letters get denied. Specific, clinical letters get approved. Keep the original — you'll reuse it for every authorization cycle.",
-    }, 'urgent'));
-    actions.push(buildAction({
+    }, 'urgent') });
+    rules.push({ key: 'insurance_verify_coverage', when: therapyDx && ['private', 'both'].includes(insurance), make: () => buildAction({
       category: 'insurance',
       title: 'Call insurance to verify therapy coverage',
       subtitle: `Confirm your plan's coverage for ${hasDx('autism') ? 'ABA, OT, and speech' : 'therapy'}. Start the prior authorization process.${hasDx('autism') ? ' Under CA law SB 946, insurance MUST cover behavioral health treatment (ABA) for autism with no dollar caps.' : ''}`,
@@ -599,12 +605,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       ],
       smsReminder: 'Day 3: Call insurance about coverage, prior auth, in-network providers.',
       insiderTip: `Always get the representative's name, call reference number, and ask them to note the call on your account. If they deny something verbally, say: 'Please send me that denial in writing with the specific contractual provision.' This forces them to be accurate. ${hasDx('autism') ? "If they deny ABA, cite SB 946 — many reps don't know about it. Ask for the 'Behavioral Health' or 'Autism Services' department specifically. " : ''}If no in-network providers are available within a reasonable distance, you can request a 'network adequacy exception' to see out-of-network providers at in-network rates.`,
-    }, 'urgent'));
-  }
+    }, 'urgent') });
 
   // ── Medi-Cal ──────────────────────────────────────────────────────────────
-  if (needsMC && rcE) {
-    actions.push(buildAction({
+    rules.push({ key: 'medical_apply', when: needsMC && rcE, make: () => buildAction({
       category: 'benefits',
       title: 'Apply for Medi-Cal',
       subtitle: 'Even if you have private insurance, your child likely qualifies for Medi-Cal. This unlocks IHSS (paid caregiving), covers copays and deductibles, and provides EPSDT — which requires Medi-Cal to cover ALL medically necessary services for children under 21.',
@@ -639,15 +643,13 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       eligibility: "For children with developmental disabilities who are Regional Center clients, institutional deeming applies — only your CHILD's income and resources are counted, not the family's. Most children qualify. Without institutional deeming, income limits vary by household size. Bottom line: if your child is an RC client or has a developmental disability, apply regardless of family income. Check at BenefitsCal.com or call 1-800-300-1506.",
       smsReminder: 'Next week: Apply for Medi-Cal at BenefitsCal.com or call 1-800-300-1506.',
       insiderTip: "Apply even if you think you earn too much. 'Institutional deeming' for RC clients means only your child's income and resources are counted, not the family's. Most children with developmental disabilities qualify. If denied, appeal — and ask RC to provide a letter confirming your child is their client. Also: Medi-Cal is retroactive up to 3 months, so keep all medical receipts from the past 90 days.",
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── SSI + IHSS ────────────────────────────────────────────────────────────
   const ssiExcluded =
     (hasDx('sld') && diagnosisArr.length === 1) ||
     (hasDx('dyslexia') && diagnosisArr.length === 1);
-  if (rcE && !ssiExcluded) {
-    actions.push(buildAction({
+    rules.push({ key: 'ssi_apply', when: rcE && !ssiExcluded, make: () => buildAction({
       category: 'benefits',
       title: 'Start SSI application',
       subtitle: `SSI provides ~$${SSI_FBR_MONTHLY}/month (${SSI_YEAR} rate, adjusted annually) in cash benefits plus automatic Medi-Cal enrollment. ${hasDx('autism') ? 'Children with autism who have marked limitations in social functioning, communication, or behavior typically qualify.' : "Your child's diagnosis may qualify based on functional limitations."} This is real income for your family.`,
@@ -685,8 +687,8 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       eligibility: "For children under 18, SSI looks at BOTH the child's disability AND the family's income/resources. Resource limit: $2,000 in countable resources (your home, one vehicle, and CalABLE accounts up to $100K do NOT count). Disability standard: 'marked and severe functional limitations' compared to same-age peers. Bottom line: if your child has a significant developmental disability, apply — SSA's income deductions are generous and many families who think they earn too much actually qualify. Apply: 1-800-772-1213 or ssa.gov.",
       smsReminder: 'Week 2: Start SSI app. Call 1-800-772-1213 to schedule appointment.',
       insiderTip: "The #1 reason SSI applications are denied is insufficient evidence of functional limitations. The diagnosis alone isn't enough — SSA wants to know HOW the disability affects daily life. On the Function Report, never write 'sometimes' or 'can do with help.' Write: 'Cannot do independently. Requires full physical assistance every time.' Describe meltdowns, safety risks, sleep disruption, inability to self-care. If denied, appeal immediately — don't re-apply (you lose time). A disability attorney takes cases on contingency and can dramatically improve your odds.",
-    }, 'high'));
-    actions.push(buildAction({
+    }, 'high') });
+    rules.push({ key: 'ihss_apply', when: rcE && !ssiExcluded, make: () => buildAction({
       category: 'benefits',
       title: 'Apply for IHSS (In-Home Supportive Services)',
       subtitle: 'IHSS pays for in-home caregiving so your child can live at home safely. Parents CAN be paid providers — this is one of the only programs that compensates the caregiving you\'re already doing. Covers personal care, domestic tasks, protective supervision, and more.',
@@ -722,14 +724,12 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       eligibility: 'Requirement #1: your child MUST have Medi-Cal — no exceptions. Requirement #2: must live at home. Requirement #3: must need assistance with daily activities due to the disability. There is NO separate income limit for IHSS — if your child has Medi-Cal, income is not re-tested. If your child needs ANY help with daily living because of their disability, you likely qualify. Apply: your county IHSS office or BenefitsCal.com.',
       smsReminder: 'After Medi-Cal approved: Apply for IHSS at county office or BenefitsCal.com.',
       insiderTip: 'The in-home assessment is EVERYTHING. The social worker observes for about an hour and assigns hours based on what they see. Prepare by keeping a detailed care log showing exactly what you do each day and how long it takes. During the visit, do NOT compensate for your child\'s needs — let the assessor see the true level of support required. If you disagree with the hours assigned, appeal immediately. For protective supervision: document every safety incident, elopement attempt, or dangerous behavior. The county must give you a written notice of the hours — if you disagree, you have 90 days to request a state hearing.',
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── ADHD-specific ─────────────────────────────────────────────────────────
   // Gated on needsIEP: a child who already HAS an active IEP doesn't need to
   // be told to request an evaluation — that step is behind them.
-  if (hasDx('adhd') && needsIEP && iepStatus !== 'na') {
-    actions.push(buildAction({
+    rules.push({ key: 'iep_504_request', when: hasDx('adhd') && needsIEP && iepStatus !== 'na', make: () => buildAction({
       category: 'iep',
       title: 'Request 504 Plan or IEP evaluation',
       subtitle: "ADHD qualifies for an IEP under the 'Other Health Impairment' (OHI) category, OR for a Section 504 plan. An IEP is stronger (legally binding services), while a 504 provides accommodations. Request the IEP evaluation first — if denied, the 504 is your fallback.",
@@ -762,12 +762,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       ],
       smsReminder: 'This week: Send written IEP/504 request to school. Email + certified mail.',
       insiderTip: "Important: ADHD alone does not qualify for Regional Center. If your child also has autism, intellectual disability, or another Lanterman-qualifying condition, pursue RC separately. Schools sometimes try to skip the IEP evaluation and go straight to 504 because 504 is cheaper and less enforceable. Don't accept this. Insist on a full special education evaluation first. If ADHD is significantly impacting academics OR behavior, your child likely qualifies for an IEP under OHI. The magic words: 'My child's ADHD adversely affects their educational performance.' If the school still says no, ask for their denial in writing — called 'Prior Written Notice' — and consider filing a CDE complaint.",
-    }, 'urgent'));
-  }
+    }, 'urgent') });
 
   // ── Epilepsy-specific: CCS eligible ───────────────────────────────────────
-  if (hasDx('epilepsy')) {
-    actions.push(buildAction({
+    rules.push({ key: 'ccs_apply', when: hasDx('epilepsy'), make: () => buildAction({
       category: 'medical',
       title: "Apply for California Children's Services (CCS)",
       subtitle: 'Epilepsy is a CCS-eligible condition. CCS covers specialized medical care, therapy, and medical equipment for children under 21 — regardless of immigration status.',
@@ -788,12 +786,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         'Proof of CA residency',
       ],
       insiderTip: "CCS can be combined with Medi-Cal and private insurance. It's a 'payer of last resort,' meaning it fills gaps other coverage misses. If your child's neurologist isn't CCS-paneled, CCS can authorize out-of-network care.",
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── Down syndrome-specific ────────────────────────────────────────────────
-  if (hasDx('down')) {
-    actions.push(buildAction({
+    rules.push({ key: 'ccs_down_syndrome', when: hasDx('down'), make: () => buildAction({
       category: 'medical',
       title: 'Apply for CCS and connect with Down syndrome resources',
       subtitle: 'Down syndrome qualifies for CCS (conditional) and full RC services. Many children with Down syndrome benefit from early speech therapy, OT, and PT — start as early as possible.',
@@ -813,12 +809,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         'Any existing therapy evaluations',
       ],
       insiderTip: "Children with Down syndrome often qualify for services across almost every program in the system. Don't let anyone tell you 'they're too high-functioning' — eligibility is based on the diagnosis, not the severity. Request evaluations in ALL developmental areas.",
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── Deaf/Hard of Hearing-specific ─────────────────────────────────────────
-  if (hasDx('deaf')) {
-    actions.push(buildAction({
+    rules.push({ key: 'deaf_hoh_services', when: hasDx('deaf'), make: () => buildAction({
       category: 'iep',
       title: 'Connect with Deaf/HoH specialized services',
       subtitle: 'Your child qualifies for specialized services including DHH itinerant teachers, audiological services, and communication supports (ASL, oral, or total communication). Schools must provide a communication plan.',
@@ -840,12 +834,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         'Communication assessment',
       ],
       insiderTip: "The IEP must include a 'communication plan' for DHH students. Schools often overlook this. Insist on it. Also: if your child uses ASL, they're entitled to a qualified ASL interpreter — not just someone who 'knows some signs.' CCS covers hearing aids and audiological services.",
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── Blind/Visually Impaired-specific ──────────────────────────────────────
-  if (hasDx('blind')) {
-    actions.push(buildAction({
+    rules.push({ key: 'vision_services', when: hasDx('blind'), make: () => buildAction({
       category: 'iep',
       title: 'Connect with vision impairment services',
       subtitle: 'Your child qualifies for specialized services including a Teacher of the Visually Impaired (TVI), orientation and mobility training, and assistive technology. CCS covers eye care and specialized equipment.',
@@ -867,12 +859,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         'Medical records',
       ],
       insiderTip: "Under IDEA, schools must provide Braille instruction unless the IEP team determines it's not appropriate after a proper assessment. Don't let the school skip this. Also: contact the Department of Rehabilitation early — they have Pre-Employment Transition Services for blind/VI youth starting at age 14.",
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── TBI-specific ──────────────────────────────────────────────────────────
-  if (hasDx('tbi')) {
-    actions.push(buildAction({
+    rules.push({ key: 'tbi_coordinate', when: hasDx('tbi'), make: () => buildAction({
       category: 'medical',
       title: 'Coordinate TBI-specific services across systems',
       subtitle: 'Traumatic Brain Injury qualifies for RC, IEP (TBI is its own IDEA category), CCS, and full insurance-covered rehabilitation. TBI needs change over time — regular re-evaluations are essential.',
@@ -894,12 +884,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         'School performance records pre- and post-injury',
       ],
       insiderTip: 'Schools often underestimate the long-term effects of TBI. Push for re-evaluations — your child\'s needs 6 months after injury may be very different from day one. Also: RC eligibility for TBI requires the injury to have occurred before age 18 and to result in significant functional limitations. Document everything from the beginning.',
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── Emotional Disturbance-specific ────────────────────────────────────────
-  if (hasDx('ed')) {
-    actions.push(buildAction({
+    rules.push({ key: 'ermhs_request', when: hasDx('ed'), make: () => buildAction({
       category: 'iep',
       title: 'Request ERMHS (mental health services) through school',
       subtitle: 'Emotional Disturbance qualifies for an IEP and ERMHS — Educationally Related Mental Health Services. These are counseling, behavioral support, and therapeutic services provided through the school at no cost.',
@@ -922,12 +910,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         'Parent observations of behavioral concerns',
       ],
       insiderTip: "If your child is being suspended or disciplined repeatedly, they may need an ERMHS assessment. Under IDEA, a student with a disability cannot be suspended for more than 10 days if the behavior is a 'manifestation' of their disability. Request a Manifestation Determination Review (MDR) if facing suspension — and make sure ERMHS is part of the solution, not punishment.",
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── Speech/Language Impairment-specific ───────────────────────────────────
-  if (hasDx('sli') && !hasDx('autism') && needsIEP && iepStatus !== 'na') {
-    actions.push(buildAction({
+    rules.push({ key: 'sli_iep_evaluation', when: hasDx('sli') && !hasDx('autism') && needsIEP && iepStatus !== 'na', make: () => buildAction({
       category: 'iep',
       title: 'Request speech/language IEP evaluation',
       subtitle: 'Speech/Language Impairment is its own IDEA category. Your child is entitled to a school-based evaluation and, if eligible, speech therapy services through an IEP — completely free.',
@@ -949,12 +935,10 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         'School report cards noting communication concerns',
       ],
       insiderTip: 'Schools sometimes offer minimal speech minutes (like 30 min/week). Push for what your child actually needs based on the evaluation. If the SLP recommends more minutes than the school offers, document the discrepancy. Also: RC eligibility for SLI alone is conditional, but if speech delays are accompanied by other developmental concerns, RC may qualify your child.',
-    }, 'high'));
-  }
+    }, 'high') });
 
   // ── Transition (teens) ────────────────────────────────────────────────────
-  if (isTr && rcE) {
-    actions.push(buildAction({
+    rules.push({ key: 'dor_apply', when: isTr && rcE, make: () => buildAction({
       category: 'general',
       title: 'Apply to Department of Rehabilitation (DOR)',
       subtitle: 'DOR provides vocational rehabilitation: job training, supported employment, job coaching, assistive technology for work, and college support. Apply at age 15–16 — waitlists can be 6+ months and transition planning starts early.',
@@ -988,8 +972,8 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       ],
       smsReminder: 'This month: Apply to DOR at dor.ca.gov or call local office. Waitlists are long — start now.',
       insiderTip: "DOR waitlists can be 6-12 months, which is why applying at 15-16 is critical. Ask to be placed in 'Order of Selection Category 1' (most significant disability) — RC clients usually qualify. This means you're served first. Also: DOR can pay for community college, trade school, or university if it's part of the employment plan. Many families don't realize this.",
-    }, 'medium'));
-    actions.push(buildAction({
+    }, 'medium') });
+    rules.push({ key: 'calable_setup', when: isTr && rcE, make: () => buildAction({
       category: 'benefits',
       title: 'Set up a CalABLE savings account',
       subtitle: 'CalABLE lets individuals with disabilities save up to $100,000 without losing SSI or Medi-Cal eligibility. Earnings grow tax-free. Use funds for education, housing, transportation, assistive technology, health, and more.',
@@ -1013,8 +997,41 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       ],
       smsReminder: 'When SSI approved: Open CalABLE account at CalABLE.ca.gov to protect savings.',
       insiderTip: 'Open the CalABLE account as soon as SSI is approved (or even before, if you can self-certify). The most common mistake is accumulating savings in a regular bank account and accidentally losing SSI eligibility. CalABLE is also a great way for grandparents and relatives to contribute to your child\'s future without jeopardizing benefits. Contributions make excellent birthday and holiday gifts.',
-    }, 'medium'));
+    }, 'medium') });
+
+  for (const r of rules) {
+    if (r.when) actions.push(r.make());
   }
 
   return actions;
 }
+
+/**
+ * Every rule key in the table, in emission order (C-12 step 2). Tests
+ * assert these stay aligned with STABLE_ACTION_KEYS and that every rule
+ * is reachable by some intake — a dead rule fails loudly.
+ */
+export const PLAN_RULE_KEYS = [
+  'rc_early_start_referral',
+  'rc_start_referral',
+  'rc_follow_up_application',
+  'sdp_ask_in_writing',
+  'dx_formal_evaluation',
+  'iep_request_meeting',
+  'iep_request_evaluation',
+  'therapy_pediatrician_referral',
+  'insurance_verify_coverage',
+  'medical_apply',
+  'ssi_apply',
+  'ihss_apply',
+  'iep_504_request',
+  'ccs_apply',
+  'ccs_down_syndrome',
+  'deaf_hoh_services',
+  'vision_services',
+  'tbi_coordinate',
+  'ermhs_request',
+  'sli_iep_evaluation',
+  'dor_apply',
+  'calable_setup',
+] as const;
