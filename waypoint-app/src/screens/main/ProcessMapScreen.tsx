@@ -6,11 +6,13 @@
  * lever letter for the steps that have one. The SDP fork renders for
  * active consumers — the path most families are never told about.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { RC_STAGES, SDP_FORK, deriveStageIndex, sdpAvailable } from '@/lib/processMap';
+import { decidePath } from '@/lib/pathDecision';
+import type { PathAnswers } from '@/lib/pathDecision';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 export default function ProcessMapScreen() {
@@ -105,6 +107,7 @@ export default function ProcessMapScreen() {
               ✉️ {SDP_FORK.leverLabel}
             </Text>
           </Pressable>
+          <PathDecider onLever={openLetter} />
         </View>
       ) : (
         <View style={styles.card}>
@@ -125,6 +128,72 @@ export default function ProcessMapScreen() {
         </Text>
       </View>
     </ScrollView>
+  );
+}
+
+/**
+ * "Which path fits us?" (PRD W-G: G2) — three honest questions, answered on
+ * the screen, no data leaves the device. The recommendation states the
+ * catches and hands the family the matching lever letter.
+ */
+function PathDecider({ onLever }: { onLever: (template: string) => void }) {
+  const [answers, setAnswers] = useState<PathAnswers>({
+    hasAuthorizationHistory: null,
+    unmetNeedsDocumented: null,
+    wantsControl: null,
+  });
+  const result = decidePath(answers);
+
+  const questions: Array<{ key: keyof PathAnswers; label: string }> = [
+    { key: 'hasAuthorizationHistory', label: 'Is your child already receiving Regional Center services regularly?' },
+    { key: 'unmetNeedsDocumented', label: 'Are the things your child needs (but isn\u2019t getting) written into the IPP?' },
+    { key: 'wantsControl', label: 'Do you want to choose providers and manage a budget yourselves?' },
+  ];
+
+  return (
+    <View style={styles.decider}>
+      <Text style={styles.deciderTitle}>Which path fits your family?</Text>
+      {questions.map((q) => (
+        <View key={q.key} style={styles.deciderRow}>
+          <Text style={styles.deciderQuestion}>{q.label}</Text>
+          <View style={styles.deciderPills}>
+            {([true, false] as const).map((val) => {
+              const active = answers[q.key] === val;
+              return (
+                <Pressable
+                  key={String(val)}
+                  style={[styles.pill, active && styles.pillActive]}
+                  onPress={() => setAnswers((a) => ({ ...a, [q.key]: val }))}
+                >
+                  <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                    {val ? 'Yes' : 'No'}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      ))}
+      <View
+        style={[
+          styles.deciderResult,
+          result.recommendation !== 'incomplete' && styles.deciderResultReady,
+        ]}
+      >
+        <Text style={styles.deciderHeadline}>{result.headline}</Text>
+        <Text style={styles.deciderBody}>{result.body}</Text>
+        {result.leverTemplate && (
+          <Pressable
+            style={[styles.lever, styles.leverPrimary]}
+            onPress={() => onLever(result.leverTemplate!)}
+          >
+            <Text style={[styles.leverText, styles.leverTextPrimary]}>
+              ✉️ {result.leverLabel}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    </View>
   );
 }
 
@@ -215,6 +284,39 @@ const styles = StyleSheet.create({
     color: colors.coral,
     marginBottom: spacing.sm,
   },
+  decider: {
+    marginTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.base,
+    gap: spacing.md,
+  },
+  deciderTitle: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold, color: colors.navy },
+  deciderRow: { gap: spacing.sm },
+  deciderQuestion: { fontSize: fonts.sizes.md, color: colors.dark, lineHeight: 19 },
+  deciderPills: { flexDirection: 'row', gap: spacing.sm },
+  pill: {
+    minHeight: 44,
+    minWidth: 72,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.base,
+  },
+  pillActive: { backgroundColor: colors.navy, borderColor: colors.navy },
+  pillText: { fontWeight: fonts.weights.semibold, color: colors.dark },
+  pillTextActive: { color: colors.white },
+  deciderResult: {
+    backgroundColor: colors.light,
+    borderRadius: radii.md,
+    padding: spacing.base,
+  },
+  deciderResultReady: { backgroundColor: semantic.infoBg },
+  deciderHeadline: { fontWeight: fonts.weights.bold, color: colors.navy, fontSize: fonts.sizes.base },
+  deciderBody: { marginTop: spacing.xs, color: colors.dark, fontSize: fonts.sizes.sm, lineHeight: 19 },
   trust: {
     backgroundColor: semantic.infoBg,
     borderRadius: radii.md,
