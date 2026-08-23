@@ -443,6 +443,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             { icon: 'business-outline', label: 'Agencies', go: () => (navigation as any).navigate('Agencies') },
             { icon: 'wallet-outline', label: 'RC Funding', go: () => (navigation as any).navigate('Reimbursables') },
             { icon: 'map-outline', label: 'Journey', go: () => (navigation as any).navigate('Journey') },
+            { icon: 'compass-outline', label: 'How It Works', go: () => (navigation as any).navigate('ProcessMap') },
             { icon: 'folder-open-outline', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
             { icon: 'school-outline', label: 'IEP Hub', go: () => (navigation as any).navigate('IEPHub') },
             { icon: 'mail-outline', label: 'Letters', go: () => (navigation as any).navigate('Letters') },

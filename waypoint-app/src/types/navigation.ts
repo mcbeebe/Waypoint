@@ -24,6 +24,8 @@ export type MainTabParamList = {
 export type HomeStackParamList = {
   HomeMain: undefined;
   Journey: undefined;
+  /** "You are here" in the Regional Center system (PRD W-G: G1) */
+  ProcessMap: undefined;
   JourneyPhase: { journeyKey: string; phaseIndex: number };
   Agencies: undefined;
   Reimbursables: undefined;

@@ -64,6 +64,7 @@ const linking: LinkingOptions<RootStackParamList> = {
             screens: {
               HomeMain: '',
               Journey: 'journey',
+              ProcessMap: 'how-it-works',
               JourneyPhase: 'journey/:journeyKey/:phaseIndex',
               Agencies: 'agencies',
               Reimbursables: 'rc-funding',
