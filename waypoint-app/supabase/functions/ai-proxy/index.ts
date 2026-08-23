@@ -302,6 +302,10 @@ serve(async (req: Request) => {
     // ─── AI gate: consent + daily quota (Wave 1) ─────────────────────
     // Applies to every action that sends family data to Anthropic.
     const AI_ACTIONS = ['chat', 'classify', 'ocr', 'analyze-iep', 'draft', 'analyze-email', 'extract-memories'];
+    // Free-tier Navigator cap — keep in sync with FREE_NAVIGATOR_MONTHLY_LIMIT
+    // in src/lib/entitlements.ts (the client shows the same number).
+    const FREE_NAVIGATOR_MONTHLY_LIMIT = 30;
+    let isPremium = false;
     let family: {
       id: string;
       ai_consent_at: string | null;
@@ -334,6 +338,43 @@ serve(async (req: Request) => {
         return jsonError(
           "You've reached today's AI limit. It resets at midnight — your saved plans and documents are unaffected.",
           429,
+        );
+      }
+
+      // ─── Tier resolution (W-E: E2/E3/E4) ──────────────────────────
+      // A live entitlement row = Premium; none = free tier. Resolved
+      // server-side so gates can't be bypassed by a modified client.
+      if (family?.id) {
+        const today = new Date().toISOString().slice(0, 10);
+        const { data: grants } = await supabase
+          .from('entitlements')
+          .select('status, period_start, period_end')
+          .eq('family_id', family.id)
+          .eq('status', 'active');
+        isPremium = (grants ?? []).some(
+          (g) =>
+            g.period_start <= today && (g.period_end === null || g.period_end >= today),
+        );
+      }
+
+      // Free tier: monthly Navigator cap (E3/E4). The daily ceiling above
+      // stays as the anti-abuse backstop for everyone.
+      if (!isPremium && action === 'chat') {
+        const { data: monthly } = await supabase
+          .rpc('monthly_ai_usage', { p_user: user.id });
+        if (typeof monthly === 'number' && monthly > FREE_NAVIGATOR_MONTHLY_LIMIT) {
+          return jsonError(
+            `You've used this month's ${FREE_NAVIGATOR_MONTHLY_LIMIT} free Navigator messages. Premium removes the cap — everything else in your free plan is unaffected.`,
+            402,
+          );
+        }
+      }
+
+      // Premium-only actions enforced server-side (E3)
+      if (!isPremium && action === 'analyze-iep') {
+        return jsonError(
+          'IEP document analysis is a Premium feature. Your free plan — eligibility results, the process map, your action plan, letters, and the request tracker — is unaffected.',
+          402,
         );
       }
     }
@@ -512,7 +553,9 @@ ${lines.join('\n')}
           'anthropic-beta': 'prompt-caching-2024-07-31',
         },
         body: JSON.stringify({
-          model: 'claude-opus-5',
+          // Cost-efficient tier for free users; Premium gets the flagship
+          // model (W-E: E4). Both stay pinned server-side.
+          model: isPremium ? 'claude-opus-5' : 'claude-sonnet-5',
           max_tokens: 4096,
           system: systemBlocks,
           messages,

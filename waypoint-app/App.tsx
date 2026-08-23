@@ -80,6 +80,7 @@ const linking: LinkingOptions<RootStackParamList> = {
               EligibilityResult: 'your-result',
               FundedOffer: 'free-help',
               RequestTracker: 'requests',
+              Pricing: 'premium',
               JourneyPhase: 'journey/:journeyKey/:phaseIndex',
               Agencies: 'agencies',
               Reimbursables: 'rc-funding',

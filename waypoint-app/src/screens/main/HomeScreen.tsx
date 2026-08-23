@@ -460,6 +460,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             { icon: 'medkit-outline', label: 'Providers', go: () => (navigation as any).navigate('Providers') },
             { icon: 'layers-outline', label: 'Services', go: () => (navigation as any).navigate('Services') },
             { icon: 'bar-chart-outline', label: 'Insights', go: () => (navigation as any).navigate('Insights') },
+            { icon: 'star-outline', label: 'Premium', go: () => (navigation as any).navigate('Pricing') },
             { icon: 'people-outline', label: 'Family', go: () => (navigation as any).navigate('FamilySharing') },
             { icon: 'fitness-outline', label: 'Health Records', go: () => (navigation as any).navigate('HealthRecords') },
             { icon: 'briefcase-outline', label: 'Provider Portal', go: () => (navigation as any).navigate('ProviderPortal') },

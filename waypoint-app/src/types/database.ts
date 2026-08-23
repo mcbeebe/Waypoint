@@ -902,3 +902,22 @@ export interface VendorPacket {
   created_at: string;
   updated_at: string;
 }
+
+// ─── Entitlements (042) ─────────────────────────────────────────────────────
+
+export type SponsorType = 'self' | 'facilitation' | 'district' | 'employer' | 'licensee';
+export type EntitlementStatus = 'active' | 'canceled' | 'expired';
+
+/** A live row grants Premium; no rows = free tier (PRD W-E: E2) */
+export interface Entitlement {
+  id: string;
+  family_id: string;
+  tier: 'premium';
+  sponsor_type: SponsorType;
+  source: string | null;
+  period_start: string;
+  period_end: string | null;
+  status: EntitlementStatus;
+  created_at: string;
+  updated_at: string;
+}

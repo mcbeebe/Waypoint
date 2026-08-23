@@ -16,6 +16,12 @@
 > | **W3 · Evidence & decision** | 15–18 | 10-family price/caseload readout · outcome baselines · funnel verdict · G3 gate pre-read with DDS answers | Go/no-go memo on scaling facilitation and opening the next channel |
 >
 > Non-engineering in parallel: DDS service-code question #0 in writing (week 1) · ten SDP-family price interviews · SELPA pilot conversation (October window) · grant applications.
+>
+> **Delivery status (Aug 23, 2026):**
+> - **W0 — code complete.** Migrations 035–037, role-forked routing, funnel taxonomy, request tracker schema. *Open (ops):* apply migrations, run RLS verification queries, submit the 099 packet.
+> - **W1a — code complete.** Eligibility result, funded offer, booking (EN+ES), process map + path decider + lever letters (G1–G3), request tracker (G4), provenance registry + `content_sources` (migration 038), single-source dollar figures, characterization net + stable action keys (C-12 step 1; full rules-table refactor deferred behind the net).
+> - **W1b — code complete.** Migrations 039–041 (cases, service events, COI-guarded spending plan, baselines, dual-payer invoices, vendor packets, anniversary cron); staff workspace (ranked caseload, case detail with 099 burn forecast, PCP builder, time capture with hard stop, spending plan, baselines); Billing + Scorecard. *Gate items are operational:* first real family through the pipeline, first PAID invoice.
+> - **W2 — next.** Entitlements + pricing + gates; Stripe account/keys are a user-side prerequisite.
 
 **Version 1.1 · Locked August 16, 2026** *(superseded as described above; retained for reference)*
 

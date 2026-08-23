@@ -47,6 +47,8 @@ export type HomeStackParamList = {
   FundedOffer: undefined;
   /** Request/authorization tracker with statutory clocks (PRD W-G: G4) */
   RequestTracker: undefined;
+  /** Free vs Premium + web checkout (PRD W-E: E1) */
+  Pricing: undefined;
   JourneyPhase: { journeyKey: string; phaseIndex: number };
   Agencies: undefined;
   Reimbursables: undefined;
