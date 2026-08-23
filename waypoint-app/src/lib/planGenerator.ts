@@ -110,6 +110,7 @@ const EFFORT_BY_KEY: Record<string, string> = {
   rc_early_start_referral: 'One 15–20 min phone call to start; intake visit comes later',
   rc_start_referral: 'One 15–20 min phone call, plus ~1 hour gathering documents',
   rc_follow_up_application: 'One 10–15 min phone call',
+  sdp_ask_in_writing: '~20 min: review and send the pre-drafted letter',
   dx_formal_evaluation: '~1 hour total: one letter and two phone calls',
   iep_request_meeting: '~30 min to personalize and send the letter',
   iep_request_evaluation: '~30 min to personalize and send the letter',
@@ -396,6 +397,34 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       documents: ['Your referral date (check email/records)', 'Any correspondence from RC', 'Notes from previous calls'],
       smsReminder: 'Tomorrow: Call RC. Reference referral date and 15-day rule.',
       insiderTip: "Keep a 'communication log' — a simple notebook with date, who you called, what they said. This becomes powerful evidence if you need to file a complaint. If you feel stuck, call Disability Rights CA (1-800-776-5746) for free advocacy help.",
+    }, 'high'));
+  } else if (rcStatus === 'active') {
+    // The fork most families are never told about: nearly every consumer
+    // qualifies for Self-Determination, ~1.5% are enrolled. Surfacing it in
+    // the starter plan is a core free-tier promise (PRD W-G).
+    actions.push(buildAction({
+      category: 'regional_center',
+      title: 'Ask about Self-Determination in writing',
+      subtitle: "Your child is a Regional Center consumer — which means a second path exists: the Self-Determination Program turns services into an annual budget your family directs. Most families are never told. One written request starts the conversation.",
+      whyMatters: "On the traditional path, the Regional Center buys services one authorization at a time and you wait on each decision. Under SDP (W&I §4685.8), your child's services become an annual budget you control — pick providers, set schedules, reallocate as needs change. Nearly every consumer qualifies, yet only about 1.5% are enrolled, largely because families don't know to ask. Your starting budget is built from the last 12 months of authorized services PLUS unmet needs documented in the IPP — so asking early, and documenting needs before converting, directly protects your budget.",
+      deadlineLabel: 'Send this month',
+      dueInDays: 21,
+      talkingPoints: [
+        'I want to learn about the Self-Determination Program for my child.',
+        'Please refer us to the next SDP orientation — I understand orientation is the first required step.',
+        "Please send copies of all of my child's service authorizations from the last 12 months — I understand the individual budget is based on them.",
+        'If there are needs we should document in the IPP first, I want to schedule an IPP review meeting (within 30 days of my request).',
+      ],
+      steps: [
+        'Send the SDP information request letter (Waypoint drafts it for you).',
+        'Attend the SDP orientation — required before enrolling, offered regularly by every RC.',
+        "Review your child's authorization history when it arrives — this is the budget basis.",
+        'Before converting: get any unmet needs written into the IPP via a review meeting (30-day clock).',
+        'Decide with real numbers — Waypoint\'s "Which path fits us?" tool walks you through the trade-offs.',
+      ],
+      documents: ["Your child's current IPP (request a copy if you don't have one)", 'Any denials or unmet-needs notes — these belong in the IPP before converting'],
+      smsReminder: 'This week: send the SDP info request letter. Budget basis = last 12 months of authorizations.',
+      insiderTip: "Don't convert before documenting. The budget formula anchors to the PRIOR 12 months of authorized services plus documented unmet needs — families who switch first and document later lock in smaller budgets. Ask for the orientation AND your authorization records in the same letter, then use the 30-day IPP meeting rule to get missing needs on paper.",
     }, 'high'));
   }
 

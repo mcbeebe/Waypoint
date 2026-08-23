@@ -27,6 +27,12 @@ export interface ProcessStage {
   leverTemplate: string | null;
   /** Label for the lever button. */
   leverLabel: string | null;
+  /**
+   * Stable action keys (actionKeys.ts) whose plan items belong to this
+   * stage — the map shows them live with their status, so "how the system
+   * works" and "what I should do" are one surface, not two.
+   */
+  actionKeys: string[];
 }
 
 /** Stage 0 + Path A — every family's spine. */
@@ -45,6 +51,7 @@ export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
         : 'You start this clock — apply in writing and keep the date.',
       leverTemplate: null,
       leverLabel: null,
+      actionKeys: ['rc_early_start_referral', 'rc_start_referral'],
     },
     {
       key: 'assessment',
@@ -58,6 +65,7 @@ export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
         : 'Assessment within 120 days of intake — or 60 when delay is risky.',
       leverTemplate: 'rc_timeline_followup',
       leverLabel: es ? 'Dar seguimiento a una evaluación atrasada' : 'Follow up on an overdue assessment',
+      actionKeys: ['rc_follow_up_application'],
     },
     {
       key: 'ipp',
@@ -71,6 +79,7 @@ export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
         : 'IPP within 60 days of assessment. A requested review meeting: within 30 days.',
       leverTemplate: 'ipp_review_request',
       leverLabel: es ? 'Pedir una reunión del IPP (plazo de 30 días)' : 'Request an IPP meeting (30-day clock)',
+      actionKeys: [],
     },
     {
       key: 'services',
@@ -84,6 +93,7 @@ export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
         : 'No fixed clock on authorizations — put requests in writing and track them.',
       leverTemplate: 'noa_request',
       leverLabel: es ? 'Exigir una Notificación de Acción por escrito' : 'Demand a written Notice of Action',
+      actionKeys: [],
     },
   ];
 }
@@ -107,6 +117,7 @@ export function getSdpFork(locale: FunnelLocale = 'en'): ProcessStage {
     leverLabel: es
       ? 'Preguntar por la Autodeterminación por escrito'
       : 'Ask about Self-Determination in writing',
+    actionKeys: ['sdp_ask_in_writing'],
   };
 }
 

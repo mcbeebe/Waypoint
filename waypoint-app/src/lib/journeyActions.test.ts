@@ -5,6 +5,7 @@ import {
   entityToAction,
   phaseToActions,
   phaseQuestion,
+  entityLever,
 } from './journeyActions';
 import type { JourneyPhase } from '@/data/types';
 
@@ -89,5 +90,33 @@ describe('phaseQuestion', () => {
     expect(q).toContain('ages 0–3');
     expect(q).toContain('Autism (ASD)');
     expect(q).toMatch(/deadlines/);
+  });
+});
+
+describe('entityLever — every journey row has a real destination or an honest null', () => {
+  it('RC entities route to the system map; IPP mentions to the meeting letter', () => {
+    expect(entityLever({ name: 'Regional Center', action: 'Early Start intake', time: '45 days' }))
+      .toEqual({ type: 'screen', screen: 'ProcessMap' });
+    expect(entityLever({ name: 'Regional Center', action: 'Annual IPP review and goal updates', time: 'Yearly' }))
+      .toEqual({ type: 'letter', template: 'ipp_review_request' });
+  });
+
+  it('school rows route to the right letter', () => {
+    expect(entityLever({ name: 'School District', action: 'Assessment plan (15 days)', time: '~75 days' }))
+      .toEqual({ type: 'letter', template: 'assessment_request' });
+    expect(entityLever({ name: 'School District', action: 'Annual IEP reviews', time: 'Yearly' }))
+      .toEqual({ type: 'letter', template: 'iep_email' });
+  });
+
+  it('insurance/benefits/medical route to their screens', () => {
+    expect(entityLever({ name: 'Insurance', action: 'Therapy re-authorizations', time: 'Every 3–12 mo' })?.type).toBe('screen');
+    expect(entityLever({ name: 'IHSS', action: 'Annual hour reassessment', time: 'Yearly' }))
+      .toEqual({ type: 'screen', screen: 'Agencies' });
+    expect(entityLever({ name: 'Pediatrician', action: 'Referral', time: 'Immediate' }))
+      .toEqual({ type: 'screen', screen: 'Providers' });
+  });
+
+  it('unmappable rows return null, not a wrong guess', () => {
+    expect(entityLever({ name: 'Attorney', action: 'Consult on due process', time: 'As needed' })).toBeNull();
   });
 });

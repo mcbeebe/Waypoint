@@ -21,6 +21,7 @@ import {
   getJourneyKeyForDiagnosis,
   getPhaseIndexForAge,
 } from '@/data/journeyMaps';
+import { entityLever } from '@/lib/journeyActions';
 import { Card } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
 import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
@@ -151,15 +152,40 @@ export default function JourneyScreen() {
                         {phase.description}
                       </Text>
 
-                      {phase.entities.map((e, j) => (
-                        <View key={j} style={[styles.entityRow, { backgroundColor: phase.bg }]}>
-                          <Text style={[styles.entityName, { fontSize: sz(13) }]}>{e.name}</Text>
-                          <Text style={[styles.entityAction, { fontSize: sz(13) }]}>{e.action}</Text>
-                          <Text style={[styles.entityTime, { fontSize: sz(11), color: phase.color }]}>
-                            ⏱ {e.time}
-                          </Text>
-                        </View>
-                      ))}
+                      {phase.entities.map((e, j) => {
+                        const lever = entityLever(e);
+                        return (
+                          <TouchableOpacity
+                            key={j}
+                            style={[styles.entityRow, { backgroundColor: phase.bg }]}
+                            onPress={() => {
+                              // Each row is operable: straight to its letter or
+                              // screen; rows with no single lever open the
+                              // stage's next-steps (add-to-plan) screen.
+                              if (lever?.type === 'letter') {
+                                (navigation as any).navigate('Letters', { template: lever.template });
+                              } else if (lever?.type === 'screen') {
+                                (navigation as any).navigate(lever.screen);
+                              } else {
+                                (navigation as any).navigate('JourneyPhase', { journeyKey, phaseIndex: i });
+                              }
+                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel={`${e.name}: ${e.action}. ${lever?.type === 'letter' ? 'Opens a pre-drafted letter.' : 'Opens the next step.'}`}
+                          >
+                            <Text style={[styles.entityName, { fontSize: sz(13) }]}>{e.name}</Text>
+                            <Text style={[styles.entityAction, { fontSize: sz(13) }]}>{e.action}</Text>
+                            <View style={styles.entityFoot}>
+                              <Text style={[styles.entityTime, { fontSize: sz(11), color: phase.color }]}>
+                                ⏱ {e.time}
+                              </Text>
+                              <Text style={[styles.entityGo, { fontSize: sz(11), color: phase.color }]}>
+                                {lever?.type === 'letter' ? '✉️ Draft the letter →' : 'Do this →'}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
 
                       <View style={styles.milestoneTile}>
                         <Text style={[styles.milestoneText, { fontSize: sz(13), lineHeight: sz(19) }]}>
@@ -181,7 +207,7 @@ export default function JourneyScreen() {
                         accessibilityLabel={`Next steps for ${phase.label}`}
                       >
                         <Text style={[styles.nextStepsText, { color: phase.color, fontSize: sz(13) }]}>
-                          Next steps for this stage →
+                          See all steps & add them to my plan →
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -339,6 +365,13 @@ const styles = StyleSheet.create({
     color: colors.dark,
     marginTop: 1,
   },
+  entityFoot: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  entityGo: { fontWeight: '700' },
   entityTime: {
     fontWeight: fonts.weights.semibold as '600',
     marginTop: 3,

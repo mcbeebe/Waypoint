@@ -39,6 +39,7 @@ export const STABLE_ACTION_KEYS: Record<string, ActionKeyEntry> = {
   'Request speech/language IEP evaluation': { key: 'sli_iep_evaluation', jurisdiction: 'CA' },
   'Apply to Department of Rehabilitation (DOR)': { key: 'dor_apply', jurisdiction: 'CA' },
   'Set up a CalABLE savings account': { key: 'calable_setup', jurisdiction: 'CA' },
+  'Ask about Self-Determination in writing': { key: 'sdp_ask_in_writing', jurisdiction: 'CA' },
 };
 
 /** Stable key for a generated title; null when the title is not cataloged. */

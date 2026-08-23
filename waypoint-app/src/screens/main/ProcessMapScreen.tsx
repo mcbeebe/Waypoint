@@ -6,14 +6,18 @@
  * lever letter for the steps that have one. The SDP fork renders for
  * active consumers — the path most families are never told about.
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren } from '@/hooks/useFamily';
+import { useActions } from '@/hooks/useActions';
 import { getRcStages, getSdpFork, deriveStageIndex, sdpAvailable } from '@/lib/processMap';
+import type { ProcessStage } from '@/lib/processMap';
+import { stableKeyFor } from '@/lib/actionKeys';
 import { decidePath, getPathQuestions } from '@/lib/pathDecision';
 import type { PathAnswers } from '@/lib/pathDecision';
 import type { FunnelLocale } from '@/lib/eligibility';
+import type { Action } from '@/types/database';
 import { useI18n } from '@/i18n';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
@@ -27,6 +31,12 @@ const STRINGS: Record<FunnelLocale, {
   laterBody: (name: string) => string;
   trust: string;
   yourChild: string;
+  inPlan: string;
+  statusLabel: Record<Action['status'], string>;
+  ippHaveTitle: string;
+  ippHaveBody: string;
+  ippUpload: string;
+  ippRecords: string;
 }> = {
   en: {
     title: 'How the system works',
@@ -40,6 +50,18 @@ const STRINGS: Record<FunnelLocale, {
     trust:
       'Every deadline above cites the statute it comes from. When a step has no legal deadline, we say so — and give you the lever that creates one.',
     yourChild: 'your child',
+    inPlan: 'IN YOUR PLAN',
+    statusLabel: {
+      not_started: 'To do',
+      in_progress: 'In progress',
+      completed: 'Done ✓',
+      dismissed: 'Dismissed',
+    },
+    ippHaveTitle: 'Do you already have an IPP?',
+    ippHaveBody:
+      "It's a document titled \"Individual Program Plan,\" written at a meeting with your Service Coordinator (at least yearly). If you've never seen one, your coordinator has it — and you're entitled to a copy.",
+    ippUpload: 'I have it — add it to Waypoint',
+    ippRecords: "Not sure? Request your records",
   },
   es: {
     title: 'Cómo funciona el sistema',
@@ -53,6 +75,18 @@ const STRINGS: Record<FunnelLocale, {
     trust:
       'Cada plazo de arriba cita el estatuto del que proviene. Cuando un paso no tiene plazo legal, se lo decimos — y le damos la herramienta que crea uno.',
     yourChild: 'su hijo/a',
+    inPlan: 'EN SU PLAN',
+    statusLabel: {
+      not_started: 'Pendiente',
+      in_progress: 'En curso',
+      completed: 'Hecho ✓',
+      dismissed: 'Descartado',
+    },
+    ippHaveTitle: '¿Ya tiene un IPP?',
+    ippHaveBody:
+      'Es un documento titulado "Plan de Programa Individual", escrito en una reunión con su coordinador/a de servicios (al menos una vez al año). Si nunca lo ha visto, su coordinador/a lo tiene — y usted tiene derecho a una copia.',
+    ippUpload: 'Lo tengo — agregarlo a Waypoint',
+    ippRecords: '¿No está seguro/a? Solicite sus registros',
   },
 };
 
@@ -71,8 +105,62 @@ export default function ProcessMapScreen() {
   const showSdp = sdpAvailable(child?.rc_status);
   const childName = child?.first_name || S.yourChild;
 
+  // The map and the plan are one surface: each stage lists its live plan
+  // items (matched on stable action keys), tappable through to the action.
+  const { actions } = useActions({ familyId: family?.id ?? '' });
+  const actionsByKey = useMemo(() => {
+    const m = new Map<string, Action>();
+    for (const a of actions) {
+      const k = stableKeyFor(a.title);
+      if (k && !m.has(k)) m.set(k, a);
+    }
+    return m;
+  }, [actions]);
+
   const openLetter = (template: string) => {
     (navigation as any).navigate('Letters', { template });
+  };
+
+  const openAction = (actionId: string) => {
+    (navigation as any).navigate('Tracker', {
+      screen: 'ActionDetail',
+      params: { actionId },
+      initial: false,
+    });
+  };
+
+  const stageActions = (stage: ProcessStage): Action[] =>
+    stage.actionKeys
+      .map((k) => actionsByKey.get(k))
+      .filter((a): a is Action => !!a && a.status !== 'dismissed');
+
+  const renderStageActions = (stage: ProcessStage) => {
+    const linked = stageActions(stage);
+    if (linked.length === 0) return null;
+    return (
+      <View style={styles.planLinks}>
+        <Text style={styles.planLinksLabel}>{S.inPlan}</Text>
+        {linked.map((a) => (
+          <Pressable
+            key={a.id}
+            style={styles.planLink}
+            onPress={() => openAction(a.id)}
+            accessibilityRole="button"
+            accessibilityLabel={a.title}
+          >
+            <View
+              style={[
+                styles.planLinkDot,
+                a.status === 'completed' && styles.planLinkDotDone,
+                a.status === 'in_progress' && styles.planLinkDotActive,
+              ]}
+            />
+            <Text style={styles.planLinkTitle} numberOfLines={1}>{a.title}</Text>
+            <Text style={styles.planLinkStatus}>{S.statusLabel[a.status]} ›</Text>
+          </Pressable>
+        ))}
+      </View>
+    );
   };
 
   return (
@@ -111,6 +199,27 @@ export default function ProcessMapScreen() {
               </View>
             </View>
             <Text style={styles.citation}>ⓘ {stage.citation}</Text>
+            {renderStageActions(stage)}
+            {stage.key === 'ipp' && (
+              <View style={styles.ippBox}>
+                <Text style={styles.ippTitle}>{S.ippHaveTitle}</Text>
+                <Text style={styles.ippBody}>{S.ippHaveBody}</Text>
+                <View style={styles.ippButtons}>
+                  <Pressable
+                    style={styles.ippButton}
+                    onPress={() => (navigation as any).navigate('Documents')}
+                  >
+                    <Text style={styles.ippButtonText}>📄 {S.ippUpload}</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.ippButton}
+                    onPress={() => openLetter('records_request')}
+                  >
+                    <Text style={styles.ippButtonText}>✉️ {S.ippRecords}</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
             {stage.leverTemplate && state !== 'done' && (
               <Pressable
                 style={[styles.lever, state === 'current' && styles.leverPrimary]}
@@ -141,6 +250,7 @@ export default function ProcessMapScreen() {
             </View>
           </View>
           <Text style={styles.citation}>ⓘ {sdpFork.citation}</Text>
+          {renderStageActions(sdpFork)}
           <Pressable
             style={[styles.lever, styles.leverPrimary]}
             onPress={() => openLetter(sdpFork.leverTemplate!)}
@@ -300,6 +410,52 @@ const styles = StyleSheet.create({
   },
   clockChipText: { color: semantic.warning, fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
   citation: { marginTop: spacing.sm, fontSize: fonts.sizes.xs, color: colors.mid },
+  planLinks: { marginTop: spacing.md, gap: spacing.xs },
+  planLinksLabel: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    letterSpacing: 1,
+    color: colors.mid,
+  },
+  planLink: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.light,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+  },
+  planLinkDot: {
+    width: 10,
+    height: 10,
+    borderRadius: radii.full,
+    backgroundColor: colors.border,
+  },
+  planLinkDotActive: { backgroundColor: semantic.warning },
+  planLinkDotDone: { backgroundColor: semantic.success },
+  planLinkTitle: { flex: 1, fontSize: fonts.sizes.sm, color: colors.dark, fontWeight: fonts.weights.semibold },
+  planLinkStatus: { fontSize: fonts.sizes.sm, color: colors.teal, fontWeight: fonts.weights.semibold },
+  ippBox: {
+    marginTop: spacing.md,
+    backgroundColor: semantic.infoBg,
+    borderRadius: radii.md,
+    padding: spacing.md,
+  },
+  ippTitle: { fontWeight: fonts.weights.bold, color: colors.navy, fontSize: fonts.sizes.md },
+  ippBody: { marginTop: spacing.xs, fontSize: fonts.sizes.sm, color: colors.dark, lineHeight: 19 },
+  ippButtons: { marginTop: spacing.md, gap: spacing.sm },
+  ippButton: {
+    minHeight: 44,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  ippButtonText: { fontWeight: fonts.weights.semibold, color: colors.dark, fontSize: fonts.sizes.sm },
   lever: {
     marginTop: spacing.md,
     minHeight: 44,

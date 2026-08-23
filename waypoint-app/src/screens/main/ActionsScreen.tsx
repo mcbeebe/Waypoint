@@ -136,6 +136,20 @@ export default function ActionsScreen() {
     });
   }, [actions]);
 
+  // Focus view: a full plan is 8+ items and reads as a wall. The default
+  // "All" view shows the next 3 doable steps (unlocked, not done) and
+  // collapses the rest behind one count — one step at a time is the design,
+  // not a limitation. Any explicit filter shows everything it matches.
+  const [showAll, setShowAll] = useState(false);
+  const focusMode = activeFilter === 'all' && !showAll;
+  const visibleActions = useMemo(() => {
+    if (!focusMode) return sortedActions;
+    return sortedActions
+      .filter((a) => (a.status === 'not_started' || a.status === 'in_progress') && !isLocked(a))
+      .slice(0, 3);
+  }, [focusMode, sortedActions, isLocked]);
+  const hiddenCount = sortedActions.length - visibleActions.length;
+
   const handleCycleStatus = (action: Action) => {
     if (isLocked(action) && action.status !== 'completed') {
       const depTitle = action.depends_on ? titleById.get(action.depends_on) : undefined;
@@ -293,8 +307,31 @@ export default function ActionsScreen() {
 
       {/* Action List */}
       <FlatList
-        data={sortedActions}
+        data={visibleActions}
         keyExtractor={(item) => item.id}
+        ListHeaderComponent={
+          focusMode && visibleActions.length > 0 ? (
+            <Text style={styles.focusHint}>
+              Start here — your next {visibleActions.length === 1 ? 'step' : `${visibleActions.length} steps`}. One at a time is the plan.
+            </Text>
+          ) : null
+        }
+        ListFooterComponent={
+          activeFilter === 'all' && sortedActions.length > 3 ? (
+            <TouchableOpacity
+              style={styles.focusToggle}
+              onPress={() => setShowAll((v) => !v)}
+              accessibilityRole="button"
+              accessibilityLabel={focusMode ? `Show all ${sortedActions.length} steps` : 'Focus on the next steps'}
+            >
+              <Text style={styles.focusToggleText}>
+                {focusMode
+                  ? `Show everything (${hiddenCount} more) ↓`
+                  : 'Focus on my next 3 ↑'}
+              </Text>
+            </TouchableOpacity>
+          ) : null
+        }
         renderItem={({ item }) => (
           <SwipeableRow actions={swipeActionsFor(item)} enabled={!isLocked(item)} style={styles.swipeRow}>
             <ActionCard
@@ -682,6 +719,23 @@ const styles = StyleSheet.create({
   filterTextActive: {
     color: colors.white,
   },
+  focusHint: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+    marginBottom: spacing.md,
+    lineHeight: 19,
+  },
+  focusToggle: {
+    minHeight: 44,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing.sm,
+  },
+  focusToggleText: { color: colors.teal, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.md },
   listContent: {
     padding: spacing.md,
     paddingBottom: spacing['2xl'],

@@ -27,6 +27,11 @@ import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
+import InsightCard from '@/components/InsightCard';
+import { deriveHomeInsight } from '@/lib/insights';
+import { ageFromDob } from '@/lib/eligibility';
+import type { FunnelLocale } from '@/lib/eligibility';
+import { useI18n } from '@/i18n';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { percentageLabel } from '@/lib/accessibility';
 import { FLAGS } from '@/lib/flags';
@@ -97,6 +102,25 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
   // Live data from actions + deadlines + expenses
   const { actions, stats, refetch: refetchActions } = useActions({ familyId: family?.id ?? '' });
   const { diagnoses } = useDiagnoses(primaryChild?.id);
+  const { locale } = useI18n();
+  const funnelLocale: FunnelLocale = locale === 'es' ? 'es' : 'en';
+  // "Waypoint noticed" — the one entitlement this profile isn't using yet
+  const insight = useMemo(
+    () =>
+      primaryChild
+        ? deriveHomeInsight(
+            {
+              ageYears: ageFromDob(primaryChild.date_of_birth),
+              rcStatus: primaryChild.rc_status,
+              iepStatus: primaryChild.iep_status,
+              hasDiagnosis: diagnoses.length > 0,
+              childName: primaryChild.first_name,
+            },
+            funnelLocale
+          )
+        : null,
+    [primaryChild, diagnoses.length, funnelLocale]
+  );
   const { deadlines } = useDeadlines({ familyId: family?.id ?? '' });
   const { summary: expenseSummary } = useExpenses({ familyId: family?.id ?? '' });
 
@@ -232,6 +256,16 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             }
             onOpenCalendar={() => (navigation as any).navigate('Calendar')}
             onOpenActions={() => (navigation as any).navigate('Tracker')}
+          />
+        )}
+
+        {/* Waypoint noticed — the highest-leverage unused entitlement */}
+        {insight && (
+          <InsightCard
+            insight={insight}
+            onOpen={(target) =>
+              (navigation as any).navigate(target.screen, target.params)
+            }
           />
         )}
 

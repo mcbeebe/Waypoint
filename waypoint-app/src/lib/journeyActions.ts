@@ -73,6 +73,35 @@ export function phaseToActions(
   return phase.entities.map((e) => entityToAction(e, phase, childName));
 }
 
+/**
+ * The direct lever behind a journey entity row — the letter or screen one
+ * tap away, so the map is operable in place instead of read-only. Null
+ * means "no single lever": the caller falls back to the phase's
+ * next-steps screen (which adds items to the plan).
+ */
+export type EntityLever =
+  | { type: 'letter'; template: string }
+  | { type: 'screen'; screen: string };
+
+export function entityLever(entity: JourneyEntity): EntityLever | null {
+  const text = `${entity.name} ${entity.action}`.toLowerCase();
+  const category = entityCategory(entity.name);
+
+  if (category === 'regional_center') {
+    if (/ipp/.test(text)) return { type: 'letter', template: 'ipp_review_request' };
+    // Intake, Early Start, eligibility — the system map is the lever
+    return { type: 'screen', screen: 'ProcessMap' };
+  }
+  if (category === 'iep') {
+    if (/assessment|eval|504/.test(text)) return { type: 'letter', template: 'assessment_request' };
+    return { type: 'letter', template: 'iep_email' };
+  }
+  if (category === 'insurance') return { type: 'screen', screen: 'Insurance' };
+  if (category === 'benefits') return { type: 'screen', screen: 'Agencies' };
+  if (category === 'medical') return { type: 'screen', screen: 'Providers' };
+  return null;
+}
+
 /** A question that gets the Navigator answering about this exact stage. */
 export function phaseQuestion(
   phase: JourneyPhase,
