@@ -446,6 +446,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             { icon: 'map-outline', label: 'Journey', go: () => (navigation as any).navigate('Journey') },
             { icon: 'compass-outline', label: 'How It Works', go: () => (navigation as any).navigate('ProcessMap') },
             { icon: 'checkmark-circle-outline', label: 'Your Result', go: () => (navigation as any).navigate('EligibilityResult') },
+            { icon: 'stopwatch-outline', label: 'Requests', go: () => (navigation as any).navigate('RequestTracker') },
             { icon: 'folder-open-outline', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
             { icon: 'school-outline', label: 'IEP Hub', go: () => (navigation as any).navigate('IEPHub') },
             { icon: 'mail-outline', label: 'Letters', go: () => (navigation as any).navigate('Letters') },

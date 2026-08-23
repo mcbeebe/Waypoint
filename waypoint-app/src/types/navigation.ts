@@ -30,6 +30,8 @@ export type HomeStackParamList = {
   EligibilityResult: undefined;
   /** Funded offer + intro-call booking (PRD W-B: B2/B3) */
   FundedOffer: undefined;
+  /** Request/authorization tracker with statutory clocks (PRD W-G: G4) */
+  RequestTracker: undefined;
   JourneyPhase: { journeyKey: string; phaseIndex: number };
   Agencies: undefined;
   Reimbursables: undefined;
