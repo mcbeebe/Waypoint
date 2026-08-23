@@ -113,6 +113,7 @@ The AI engine must be empathetic, actionable, and legally accurate. It should fe
 - **Branch:** `main` (default)
 - **Commit style:** Conventional commits (`feat:`, `fix:`, `docs:`, `chore:`)
 - **Commit after:** Each working increment
+- **Ship automatically (owner preference, Aug 2026):** when a work increment is complete and ALL gates pass (`npx tsc --noEmit`, `npx vitest run`, `npx eslint . --ext .ts,.tsx --quiet` from `waypoint-app/`), open a PR to `main` and merge it without waiting for a further ask. Use a merge commit (preserve history). Don't merge with failing or unrun gates.
 - **Note:** `gas-mvp/` has a legacy nested `.git/` directory that should be removed (all history is in the parent repo)
 
 ## Development Notes
