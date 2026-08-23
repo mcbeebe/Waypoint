@@ -1,0 +1,175 @@
+<title>Regional Center Money Map</title>
+<style>
+  :root{
+    --paper:#F7FAF9; --surface:#FFFFFF; --ink:#1B2A4A; --body:#334155; --mut:#64748B; --faint:#94A3B8;
+    --teal:#0891B2; --tealdk:#0E7490; --rule:#D8E0E6;
+    --good:#0E9F6E; --goodbg:#E6F7F1; --warn:#B45309; --warnbg:#FDF3E3; --bad:#DC2626; --badbg:#FEE2E2; --info:#2563EB; --infobg:#EFF6FF;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#111C22; --surface:#18242C; --ink:#E8EEF3; --body:#C4D0D8; --mut:#93A5B1; --faint:#6E8290;
+      --teal:#38BDDB; --tealdk:#67CFE5; --rule:#2C3E4A;
+      --good:#4ECBA0; --goodbg:#173029; --warn:#DDAA5E; --warnbg:#2E2818; --bad:#F08A7A; --badbg:#33231F; --info:#7AA7F5; --infobg:#1C2836;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#111C22; --surface:#18242C; --ink:#E8EEF3; --body:#C4D0D8; --mut:#93A5B1; --faint:#6E8290;
+    --teal:#38BDDB; --tealdk:#67CFE5; --rule:#2C3E4A;
+    --good:#4ECBA0; --goodbg:#173029; --warn:#DDAA5E; --warnbg:#2E2818; --bad:#F08A7A; --badbg:#33231F; --info:#7AA7F5; --infobg:#1C2836;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--body);font-family:-apple-system,'Segoe UI',Roboto,Helvetica,sans-serif;font-size:15px;line-height:1.55}
+  .page{max-width:900px;margin:0 auto;padding:40px 20px 80px}
+  .mast{border-bottom:3px solid var(--teal);padding-bottom:20px}
+  h1{font-size:30px;font-weight:800;color:var(--ink);margin:0 0 8px}
+  .dek{margin:0;color:var(--mut);max-width:64ch}
+  h2{font-size:21px;font-weight:800;color:var(--ink);margin:44px 0 4px}
+  .sub{margin:0 0 14px;color:var(--mut);font-size:14px;max-width:68ch}
+  .lane{font-size:11px;font-weight:700;letter-spacing:1.2px;color:var(--tealdk);margin:36px 0 -4px}
+
+  .step{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:16px 18px;margin-top:12px}
+  .step .head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .step b.t{color:var(--ink);font-size:15.5px}
+  .step p{margin:6px 0 0;font-size:14px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{font-size:11px;font-weight:700;border-radius:9999px;padding:4px 9px;white-space:nowrap}
+  .actor{background:var(--infobg);color:var(--info)}
+  .clock{background:var(--warnbg);color:var(--warn)}
+  .money{background:var(--goodbg);color:var(--good)}
+  .gate{background:var(--badbg);color:var(--bad)}
+  .wp{background:var(--surface);color:var(--tealdk);border:1.5px solid var(--teal)}
+  .arrow{text-align:center;color:var(--faint);font-size:18px;line-height:1;margin-top:10px}
+  .call{border-left:4px solid var(--teal);background:var(--surface);border-radius:0 12px 12px 0;border-top:1px solid var(--rule);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:14px 16px;margin-top:14px;font-size:14px}
+  .call.warn{border-left-color:#F59E0B}
+  .tscroll{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);border-radius:14px;margin-top:14px}
+  table{border-collapse:collapse;width:100%;min-width:760px;font-size:13px}
+  th{font-size:11px;font-weight:700;letter-spacing:.5px;text-align:left;color:var(--mut);padding:10px 12px;border-bottom:2px solid var(--rule)}
+  td{padding:10px 12px;border-bottom:1px solid var(--rule);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td b{color:var(--ink)}
+  .flag{font-size:12px;color:var(--faint)}
+  footer{margin-top:48px;font-size:12px;color:var(--faint)}
+  a{color:var(--tealdk)}
+</style>
+<div class="page">
+<div class="mast">
+  <h1>Regional Center Money Map</h1>
+  <p class="dek">The exact business process: how a family becomes a Regional Center consumer, how services get approved and paid on the traditional path and the Self-Determination path, and precisely where Waypoint — and a camp, a respite agency, an ABA provider — plug in. Every clock and rule below was verified against statute or DDS directives (Aug 2026); the few unverifiable internals are flagged.</p>
+</div>
+
+<h2>The cast</h2>
+<div class="chips" style="margin-top:10px">
+  <span class="chip actor">FAMILY / CONSUMER — the child is the RC "consumer"</span>
+  <span class="chip actor">SERVICE COORDINATOR — the family's RC case manager (W&amp;I §4647)</span>
+  <span class="chip actor">RC APPROVAL CHAIN — supervisor → clinical/director review → exec. director for exceptions</span>
+  <span class="chip actor">VENDORED PROVIDERS — camps, respite, ABA agencies with an RC vendor number</span>
+  <span class="chip actor">FMS — the family's fiscal agent in self-directed models</span>
+  <span class="chip wp">WAYPOINT — free app + independent facilitator</span>
+  <span class="chip actor">DDS — sets the rules and rates statewide</span>
+</div>
+
+<p class="lane">STAGE 0 · BECOMING A CONSUMER — EVERY FAMILY STARTS HERE</p>
+<div class="step">
+  <div class="head"><b class="t">1 · Family contacts the Regional Center (intake)</b><span class="chips"><span class="chip actor">Family → RC</span></span></div>
+  <p>Under 3: Early Start (the RCs also run IDEA Part C). Age 3+: Lanterman Act application. <span class="chip wp">Waypoint free app: tells the family they likely qualify and drafts the referral</span></p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">2 · Assessment &amp; eligibility decision</b><span class="chips"><span class="chip clock">≤120 days from intake (≤60 if delay is risky) · W&amp;I §4643</span></span></div>
+  <p>RC clinicians assess; eligibility = substantial disability from a qualifying condition (autism, ID, CP, epilepsy, or "5th category") beginning before 18. Denials carry appeal rights. <span class="chip wp">Waypoint: assessment prep, records checklist, appeal letters</span></p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">3 · Service coordinator assigned → IPP written</b><span class="chips"><span class="chip clock">IPP within 60 days of assessment completion · W&amp;I §4646</span><span class="chip gate">GATE: nothing is purchasable unless it's in the IPP</span></span></div>
+  <p>The IPP (Individual Program Plan) is the master document: goals + the services the RC will provide. It's negotiated in a meeting between family and service coordinator, and it is <b>the</b> gate — every dollar on either path below traces to it. A review meeting must be held within 30 days whenever the family requests one (§4646.5(b)) — the family's main forcing lever.</p>
+</div>
+<div class="call"><b style="color:var(--ink)">Two money rules that shape everything:</b> (1) <b>Payer of last resort</b> — the RC must use "generic resources" first (school district, Medi-Cal, private insurance; W&amp;I §4646.4, §4659), which is why RCs often demand an insurance denial before buying a service. (2) <b>Free to the family</b> — all family cost-participation programs are fully repealed (family fees ended July 2024; the Parental Fee Program July 2025). Nothing on this page costs the family out-of-pocket.</div>
+
+<p class="lane">PATH A · TRADITIONAL PURCHASE OF SERVICE — HOW MOST VENDORS GET PAID</p>
+<div class="step">
+  <div class="head"><b class="t">A1 · Service coordinator drafts a POS authorization</b><span class="chips"><span class="chip actor">SC → RC approval chain</span></span></div>
+  <p>For each IPP service: a Purchase of Service authorization naming a <b>vendored</b> provider, service code, units, dates, rate. The SC does not approve alone: supervisor/manager sign-off is standard, clinical or director second-level review applies to high-cost or exceptional requests, and POS-policy <i>exceptions</i> need the executive director. Initial authorizations often run only 3–6 months. <span class="flag">Exact dollar thresholds are internal and vary by RC — not published.</span></p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">A2 · Vendored provider delivers, bills monthly via eBilling</b><span class="chips"><span class="chip money">RC pays ~2–6 weeks after each service month</span></span></div>
+  <p>Vendorization (Title 17) is a one-time gate per provider — but it never obligates any RC to purchase. Billing over the authorized units is unrecoverable, which is why authorization tracking is the core control in any provider's software.</p>
+</div>
+<div class="call"><b style="color:var(--ink)">The camp example, Path A:</b> since AB 136 (2021) restored camps, social recreation, and nonmedical therapies, a camp can be paid three ways: as a <b>vendored provider</b> on a POS authorization; <b>unvendored via service code 459</b> ("participant-directed" — the family picks a general-population camp and a traditional-system FMS pays it); or by <b>family reimbursement</b>. So even in the traditional system, not everything requires vendorization anymore.</div>
+<div class="call warn"><b style="color:var(--ink)">Where Waypoint fits on Path A today: nowhere as a paid provider.</b> This is the audit's code-108 finding — there is no confirmed service code for coaching the <i>parents of</i> a child consumer, which is exactly DDS question #0. Until that's answered, Waypoint's Path-A role is the free app helping families win IPP battles.</div>
+
+<p class="lane">PATH B · SELF-DETERMINATION PROGRAM — WHERE WAYPOINT GETS PAID</p>
+<p class="sub">SDP is an alternative to Path A: instead of the RC buying services one authorization at a time, the RC converts the consumer's services into an annual <b>individual budget</b> the family directs. Same state money, different decision-maker.</p>
+
+<div class="step">
+  <div class="head"><b class="t">B1 · Orientation</b><span class="chips"><span class="chip actor">SCDD (sole statewide provider since 1 Apr 2026)</span></span></div>
+  <p>Mandatory, free: two 2-hour sessions. The family decides to proceed. <span class="chip wp">Waypoint: finds the family (free app), explains SDP, gets them scheduled</span></p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">B2 · Individual budget developed &amp; certified</b><span class="chips"><span class="chip actor">RC planning team certifies</span><span class="chip clock">No statutory deadline — the 30-day IPP-meeting rule is the only lever</span></span></div>
+  <p>Under AB 143 (2025): the initial budget = the most recent 12 months of <b>authorized</b> services (not spend), plus amounts for IPP-identified unmet needs. This is why child budgets are often modest — a child with little authorization history starts low, and the "unmet needs" add-on is where facilitation earns its keep.</p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">B3 · Person-centered plan written</b><span class="chips"><span class="chip money">RC reimburses up to $1,000 · code 024</span><span class="chip wp">WAYPOINT REVENUE №1 — no vendorization needed</span></span></div>
+  <p>The family picks <b>anyone with PCP training</b> — vendored or not — to write the plan; the RC pays as a purchase reimbursement after the written plan is delivered (case-by-case increases for language access/complexity). Paid per family, per authorization by the service coordinator.</p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">B4 · Transition supports delivered</b><span class="chips"><span class="chip money">RC pays hourly, up to 40 hrs · code 099 · via eBilling</span><span class="chip wp">WAYPOINT REVENUE №2 — requires one 099 vendorization</span></span></div>
+  <p>Hands-on help getting enrolled: budget worksheets, plan drafting, FMS selection. Delivered by a 099-<b>vendored</b> provider on a per-family authorization; more hours possible case-by-case. This is the one vendorization Waypoint needs in Phase 1 — a week-1 task.</p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">B5 · Spending plan built → RC certifies it</b><span class="chips"><span class="chip gate">GATE: RC certification (AB 143)</span></span></div>
+  <p>Family + facilitator translate the certified budget into lines: services, providers, rates — summing exactly to the budget. The RC certifies completeness and IPP linkage (a "cost-effectiveness" test is coming; the DDS directive defining it is late), and budgets growing ≥$20k year-over-year get reported to DDS. <b>Waypoint may never appear as a service provider on a plan it facilitates</b> (W&amp;I §4685.8) — the facilitation line itself is the one legal exception, priced by the family.</p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">B6 · Family picks an FMS</b><span class="chips"><span class="chip money">FMS fee paid by the RC on top of the budget ($230–925/mo by model + headcount)</span></span></div>
+  <p>Three models: <b>315 Fiscal Agent</b> (pays vendors/businesses), <b>316 Co-Employer</b> (FMS is employer of record for the family's workers), <b>317 Fiscal/Employer Agent</b> (family is the direct employer; FMS runs payroll/taxes). The fee never draws down the family's budget.</p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">B7 · IPP amended → enrolled</b><span class="chips"><span class="chip actor">SC + family sign</span></span></div>
+  <p>SDP participation is written into the IPP; the budget year starts.</p>
+</div>
+<div class="arrow">↓</div>
+<div class="step">
+  <div class="head"><b class="t">B8 · Ongoing: providers invoice the FMS; the FMS pays from the budget</b><span class="chips"><span class="chip money">Budget dollars, disbursed by the FMS</span><span class="chip wp">WAYPOINT REVENUE №3 — the facilitation line, at the family's agreed price</span></span></div>
+  <p>Here's the SDP flexibility: <b>providers on the spending plan need no vendorization</b> — a camp, a tutor, a swim coach, a parent-chosen aide simply invoice the FMS. What they do need: FMS-run background checks for direct-care work, EVV for personal-care services, and HCBS-compliant settings. The independent facilitator is paid the same way — from the budget (which is not increased to cover it: every facilitation dollar trades off against service dollars, which is why the price is the family's call).</p>
+</div>
+<div class="step" style="margin-top:14px">
+  <div class="head"><b class="t">Annual renewal</b><span class="chips"><span class="chip clock">Budget + plan renewed ≤60 days after the budget year ends; FMS notified ≥14 days before</span></span></div>
+  <p>The one place SDP has hard clocks — and the recurring-revenue moment for facilitation.</p>
+</div>
+<div class="call warn"><b style="color:var(--ink)">Reality check on speed:</b> orientation → enrolled runs <b>~3–12 months in practice (~8 months average)</b>; there is no enforceable deadline on initial budget certification or plan approval. Bottlenecks: orientation scheduling, budget negotiation, FMS onboarding, RC staff capacity. Compressing this pipeline <i>is</i> Waypoint's facilitation product — and why "hours per family" and "days per stage" are on the owner scorecard.</div>
+
+<h2>The money map — every payment, in one table</h2>
+<div class="tscroll"><table>
+  <tr><th>PAYMENT</th><th>WHO DECIDES</th><th>WHO APPROVES</th><th>WHO PAYS · FROM WHAT</th><th>PROVIDER NEEDS</th><th>WAYPOINT?</th></tr>
+  <tr><td><b>Traditional service</b> (respite, ABA, day program)</td><td>IPP meeting</td><td>SC → supervisor (→ director/ED for exceptions)</td><td>RC · POS budget · eBilling, ~2–6 wks</td><td>Vendorization + per-family authorization</td><td>Not today (code question #0 pending)</td></tr>
+  <tr><td><b>Camp / social rec</b> (Path A)</td><td>IPP meeting</td><td>Same chain</td><td>RC directly, or via code-459 FMS, or family reimbursed</td><td>Vendored <i>or</i> unvendored via 459</td><td>—</td></tr>
+  <tr><td><b>SDP: initial PCP</b></td><td>Family picks the writer</td><td>SC authorizes the reimbursement</td><td><b>RC · up to $1,000 · code 024</b></td><td>PCP training only — no vendorization</td><td><b>✓ Revenue №1</b></td></tr>
+  <tr><td><b>SDP: transition help</b></td><td>Family picks the helper</td><td>SC authorizes hours</td><td><b>RC · up to 40 hrs · code 099 · eBilling</b></td><td><b>099 vendorization</b> (one-time)</td><td><b>✓ Revenue №2</b></td></tr>
+  <tr><td><b>SDP: FMS fee</b></td><td>Family picks the FMS</td><td>Standard DDS rate schedule</td><td>RC · <b>outside</b> the budget · $230–925/mo</td><td>FMS vendorization (codes 315–317)</td><td>No (not an FMS)</td></tr>
+  <tr><td><b>SDP: services on the plan</b> (camp, tutor, coach, aide)</td><td>Family, in the spending plan</td><td>RC certifies the plan as a whole</td><td>FMS · from the family's budget</td><td>No vendorization; background checks / EVV / HCBS as applicable</td><td><b>✗ barred on plans Waypoint facilitates</b> (§4685.8)</td></tr>
+  <tr><td><b>SDP: ongoing facilitation</b></td><td>Family sets the price</td><td>Inside the certified plan</td><td>FMS · from the family's budget (budget not increased for it)</td><td>None today; DDS certification coming ~Mar 2027</td><td><b>✓ Revenue №3</b></td></tr>
+</table></div>
+
+<h2>Where each player fits</h2>
+<div class="tscroll"><table>
+  <tr><th>PLAYER</th><th>PATH A (traditional)</th><th>PATH B (SDP)</th></tr>
+  <tr><td><b>Waypoint free app</b></td><td>Gets families eligible, into IPP meetings, requesting services</td><td>Finds SDP candidates, books the facilitator — the funnel</td></tr>
+  <tr><td><b>Waypoint facilitation</b></td><td>—</td><td>PCP ($1,000, RC-paid) → 40 transition hrs (RC-paid, 099-vendored) → annual facilitation line (budget-paid via FMS, family-priced) — never a service provider on the same plan</td></tr>
+  <tr><td><b>Summer camp</b></td><td>Vendored POS, code-459 FMS route, or reimbursement</td><td>A spending-plan line; invoices the FMS; no vendorization</td></tr>
+  <tr><td><b>Respite agency</b></td><td>Vendored + per-family authorization</td><td>Spending-plan line via FMS (background checks, EVV)</td></tr>
+  <tr><td><b>ABA provider</b></td><td>Usually insurance/Medi-Cal first (payer-of-last-resort), then vendored RC POS</td><td>Spending-plan line if the family allocates it</td></tr>
+  <tr><td><b>FMS</b></td><td>Only for code-459 participant-directed services</td><td>Mandatory; the checkbook for everything on the plan</td></tr>
+</table></div>
+
+<div class="call" style="margin-top:24px"><b style="color:var(--ink)">The two flags still worth confirming with RCEB before building:</b> the internal dollar thresholds in its POS approval chain (published policy shows the levels, not the amounts), and how fast it is currently certifying SDP budgets and spending plans in practice — the pipeline's real cycle time. Everything else above traces to statute, a DDS directive, or an RC's published policy.</div>
+
+<footer>Verified 23 Aug 2026 · sources: W&amp;I §§4643/4646/4646.4/4646.5/4647/4648.5/4659/4685.8, Title 17, DDS directives D-2025-SDP-002/-003, D-2026-SDP-002, AB 136 (2021), AB 143 (2025), DDS FMS rate schedules, RC published POS policies · companion: Roadmap/Assumptions-Audit-Aug2026.md</footer>
+</div>
