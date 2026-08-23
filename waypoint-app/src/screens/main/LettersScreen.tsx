@@ -161,7 +161,11 @@ export default function LettersScreen() {
   const ORG_BY_TEMPLATE: Partial<Record<string, CommunicationOrg>> = {
     appeal_letter: 'insurance', ihss_appeal: 'other',
     rc_request: 'regional_center', dds_4731_complaint: 'regional_center',
+    ipp_review_request: 'regional_center', noa_request: 'regional_center',
+    rc_timeline_followup: 'regional_center', sdp_info_request: 'regional_center',
     iep_email: 'school', iep_prep: 'school', assessment_request: 'school',
+    // records_request can go to either system — the actual recipient's
+    // organization (below) wins over this default
     records_request: 'school', pwn_request: 'school', cde_complaint: 'school',
     complaint: 'other', general: 'other',
   };
@@ -185,7 +189,10 @@ export default function LettersScreen() {
       subject: outgoingSubjectRef.current ?? template.title,
       body: draft,
       template_key: template.key,
-      organization: ORG_BY_TEMPLATE[template.key] ?? 'other',
+      // Who it actually went to beats the template's default — a records
+      // request to the RC should log as Regional Center, not School
+      organization:
+        outgoingOrgRef.current ?? ORG_BY_TEMPLATE[template.key] ?? 'other',
       contact: outgoingContactRef.current ?? undefined,
       status: 'draft',
     });
@@ -218,7 +225,9 @@ export default function LettersScreen() {
       showToast("Couldn't mark it sent.", 'error');
       return;
     }
-    const next = template ? sentNextFor(template.key, primaryChild?.first_name) : null;
+    const next = template
+      ? sentNextFor(template.key, primaryChild?.first_name, locale === 'es' ? 'es' : 'en')
+      : null;
     if (!next) {
       showToast('Marked as sent — saved to your paper trail', 'success');
       return;
@@ -250,7 +259,7 @@ export default function LettersScreen() {
       ? deadlineFor(next.track.requestType, new Date().toISOString().slice(0, 10))
       : null;
     setSentMoment({ next, deadline, tracked });
-  }, [saveDraftOnce, showToast, template, primaryChild?.first_name, primaryChild?.id, requests, createRequest]);
+  }, [saveDraftOnce, showToast, template, primaryChild?.first_name, primaryChild?.id, requests, createRequest, locale]);
 
   const handleCopy = useCallback(async () => {
     if (!draft) return;
@@ -266,6 +275,8 @@ export default function LettersScreen() {
    * interstitial that throws the draft away.
    */
   const outgoingContactRef = React.useRef<string | null>(null);
+  // The matched recipient's organization — the truthful paper-trail label
+  const outgoingOrgRef = React.useRef<CommunicationOrg | null>(null);
   const composeEnv = {
     platformOS: Platform.OS,
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
@@ -288,6 +299,7 @@ export default function LettersScreen() {
     const recipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
     outgoingSubjectRef.current = subject;
     outgoingContactRef.current = recipient.contact?.name ?? null;
+    outgoingOrgRef.current = (recipient.contact?.organization as CommunicationOrg | null) ?? null;
     return { subject, body, recipient };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, template, contacts, primaryChild?.first_name, family?.parent_last_name]);
@@ -541,11 +553,13 @@ export default function LettersScreen() {
                   {sentMoment.deadline && (
                     <View style={styles.sentClockChip}>
                       <Text style={styles.sentClockText}>
-                        ⏱ Their deadline: {sentMoment.deadline.dueOn} ({sentMoment.deadline.daysRemaining} days) · {sentMoment.deadline.citation}
+                        ⏱ {locale === 'es' ? 'Su plazo' : 'Their deadline'}: {sentMoment.deadline.dueOn} ({sentMoment.deadline.daysRemaining} {locale === 'es' ? 'días' : 'days'}) · {sentMoment.deadline.citation}
                       </Text>
                     </View>
                   )}
-                  <Text style={styles.sentSection}>WHAT HAPPENS NOW</Text>
+                  <Text style={styles.sentSection}>
+                    {locale === 'es' ? 'QUÉ SIGUE AHORA' : 'WHAT HAPPENS NOW'}
+                  </Text>
                   {sentMoment.next.expectations.map((e, i) => (
                     <View key={i} style={styles.sentBulletRow}>
                       <Text style={styles.sentBulletNum}>{i + 1}.</Text>
@@ -562,12 +576,16 @@ export default function LettersScreen() {
                       accessibilityLabel="See this request in your tracker"
                     >
                       <Text style={styles.sentTrackButtonText}>
-                        ✓ Waypoint is tracking this — see it in Requests →
+                        {locale === 'es'
+                          ? '✓ Waypoint lo está siguiendo — véalo en Solicitudes →'
+                          : '✓ Waypoint is tracking this — see it in Requests →'}
                       </Text>
                     </TouchableOpacity>
                   )}
                   <Text style={styles.sentFollowUp}>
-                    Hear nothing in {sentMoment.next.followUpDays} days? Come back — the follow-up letter is one tap.
+                    {locale === 'es'
+                      ? `¿Nada en ${sentMoment.next.followUpDays} días? Vuelva — la carta de seguimiento está a un toque.`
+                      : `Hear nothing in ${sentMoment.next.followUpDays} days? Come back — the follow-up letter is one tap.`}
                   </Text>
                 </View>
               ) : markedSent ? (

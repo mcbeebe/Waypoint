@@ -55,3 +55,21 @@ describe('sentNextFor', () => {
     }
   });
 });
+
+describe('Spanish parity', () => {
+  it('ES changes prose but never tracking, clocks, or follow-up timing', () => {
+    for (const key of LEVER_TEMPLATES) {
+      const en = sentNextFor(key, 'Teddy', 'en')!;
+      const es = sentNextFor(key, 'Teddy', 'es')!;
+      expect(es.track).toEqual(en.track);
+      expect(es.followUpDays).toBe(en.followUpDays);
+      expect(es.celebration).not.toBe(en.celebration);
+      expect(es.expectations.length).toBe(en.expectations.length);
+    }
+  });
+
+  it('citations survive translation in the prose', () => {
+    const es = sentNextFor('ipp_review_request', 'Teddy', 'es')!;
+    expect(es.did).toContain('W&I §4646.5(b)');
+  });
+});

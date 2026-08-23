@@ -22,6 +22,7 @@ import {
   getPhaseIndexForAge,
 } from '@/data/journeyMaps';
 import { entityLever } from '@/lib/journeyActions';
+import { useI18n } from '@/i18n';
 import { Card } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
 import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
@@ -43,6 +44,7 @@ export default function JourneyScreen() {
   const primaryChild = children.find(c => c.is_primary) || children[0];
   const { diagnoses } = useDiagnoses(primaryChild?.id);
   const { scale } = useTextScale();
+  const esUI = useI18n().locale === 'es';
   const sz = (n: number) => Math.round(n * scale);
 
   const journey = useMemo(
@@ -180,7 +182,9 @@ export default function JourneyScreen() {
                                 ⏱ {e.time}
                               </Text>
                               <Text style={[styles.entityGo, { fontSize: sz(11), color: phase.color }]}>
-                                {lever?.type === 'letter' ? '✉️ Draft the letter →' : 'Do this →'}
+                                {lever?.type === 'letter'
+                                  ? esUI ? '✉️ Redactar la carta →' : '✉️ Draft the letter →'
+                                  : esUI ? 'Hacer esto →' : 'Do this →'}
                               </Text>
                             </View>
                           </TouchableOpacity>
@@ -207,7 +211,7 @@ export default function JourneyScreen() {
                         accessibilityLabel={`Next steps for ${phase.label}`}
                       >
                         <Text style={[styles.nextStepsText, { color: phase.color, fontSize: sz(13) }]}>
-                          See all steps & add them to my plan →
+                          {esUI ? 'Ver todos los pasos y agregarlos a mi plan →' : 'See all steps & add them to my plan →'}
                         </Text>
                       </TouchableOpacity>
                     </View>
