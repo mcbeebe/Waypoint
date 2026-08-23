@@ -18,7 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCaseload } from '@/hooks/useFacilitation';
+import { useCaseload, useStaffSelf } from '@/hooks/useFacilitation';
 import { RANKING_EXPLANATION } from '@/lib/caseloadRanking';
 import { SDP_PIPELINE } from '@/lib/sdpStages';
 import type { StaffStackParamList } from '@/types/navigation';
@@ -33,6 +33,8 @@ function stageLabel(stage: string): string {
 export default function StaffHomeScreen() {
   const navigation = useNavigation<Nav>();
   const { rows, loading, error, refetch } = useCaseload();
+  const { staff } = useStaffSelf();
+  const isLeadership = staff?.role === 'admin' || staff?.role === 'supervisor';
   const [showExplanation, setShowExplanation] = useState(false);
 
   return (
@@ -50,6 +52,22 @@ export default function StaffHomeScreen() {
         {showExplanation && (
           <View style={styles.explainBox}>
             <Text style={styles.explainText}>{RANKING_EXPLANATION}</Text>
+          </View>
+        )}
+        {isLeadership && (
+          <View style={styles.leadRow}>
+            <Pressable
+              style={styles.leadButton}
+              onPress={() => navigation.navigate('Billing')}
+            >
+              <Text style={styles.leadButtonText}>Billing</Text>
+            </Pressable>
+            <Pressable
+              style={styles.leadButton}
+              onPress={() => navigation.navigate('Scorecard')}
+            >
+              <Text style={styles.leadButtonText}>Scorecard</Text>
+            </Pressable>
           </View>
         )}
       </View>
@@ -147,6 +165,18 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   explainText: { fontSize: fonts.sizes.sm, color: colors.dark, lineHeight: 18 },
+  leadRow: { marginTop: spacing.md, flexDirection: 'row', gap: spacing.sm },
+  leadButton: {
+    minHeight: 44,
+    flex: 1,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  leadButtonText: { color: colors.navy, fontWeight: fonts.weights.bold },
   list: { paddingHorizontal: spacing.base, paddingBottom: spacing['2xl'] },
   card: {
     backgroundColor: colors.white,

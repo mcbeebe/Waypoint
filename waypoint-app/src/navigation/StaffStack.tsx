@@ -10,6 +10,8 @@ import PCPBuilderScreen from '@/screens/staff/PCPBuilderScreen';
 import SpendingPlanScreen from '@/screens/staff/SpendingPlanScreen';
 import TimeCaptureScreen from '@/screens/staff/TimeCaptureScreen';
 import BaselineScreen from '@/screens/staff/BaselineScreen';
+import BillingScreen from '@/screens/staff/BillingScreen';
+import ScorecardScreen from '@/screens/staff/ScorecardScreen';
 import type { StaffStackParamList } from '@/types/navigation';
 
 const Stack = createNativeStackNavigator<StaffStackParamList>();
@@ -23,6 +25,8 @@ export default function StaffStack() {
       <Stack.Screen name="SpendingPlan" component={SpendingPlanScreen} />
       <Stack.Screen name="TimeCapture" component={TimeCaptureScreen} />
       <Stack.Screen name="Baseline" component={BaselineScreen} />
+      <Stack.Screen name="Billing" component={BillingScreen} />
+      <Stack.Screen name="Scorecard" component={ScorecardScreen} />
     </Stack.Navigator>
   );
 }

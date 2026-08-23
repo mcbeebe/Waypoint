@@ -22,6 +22,10 @@ export type StaffStackParamList = {
   SpendingPlan: { caseId: string; familyId: string };
   TimeCapture: { caseId: string; familyId: string };
   Baseline: { caseId: string; familyId: string };
+  /** Supervisor/admin: dual-payer invoicing + aged receivables (W-D: D2) */
+  Billing: undefined;
+  /** Supervisor/admin: the four kill-criteria metrics (W-D: D4) */
+  Scorecard: undefined;
 };
 
 export type MainTabParamList = {

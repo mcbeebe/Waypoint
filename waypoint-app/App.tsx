@@ -60,6 +60,8 @@ const linking: LinkingOptions<RootStackParamList> = {
           SpendingPlan: 'staff/case/:familyId/plan/:caseId',
           TimeCapture: 'staff/case/:familyId/time/:caseId',
           Baseline: 'staff/case/:familyId/baseline/:caseId',
+          Billing: 'staff/billing',
+          Scorecard: 'staff/scorecard',
         },
       },
       Terms: 'terms',
