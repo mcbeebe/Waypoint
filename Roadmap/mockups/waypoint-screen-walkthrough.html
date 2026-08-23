@@ -1,0 +1,635 @@
+<title>Waypoint Screen Walkthrough</title>
+<style>
+  body { margin: 0; background: #EDF1F4; color: #334155; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; line-height: 1.5; }
+  a { color: #0E7490; }
+  .page { max-width: 1280px; margin: 0 auto; padding: 40px 20px 80px; }
+  .mast { border-bottom: 3px solid #0891B2; padding-bottom: 20px; margin-bottom: 8px; }
+  .mast h1 { font-size: 30px; font-weight: 800; color: #1B2A4A; margin: 0 0 8px; }
+  .mast p { margin: 0; color: #64748B; max-width: 62ch; }
+  section { margin-top: 48px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 1.2px; color: #0E7490; margin: 0 0 4px; }
+  h2 { font-size: 22px; font-weight: 800; color: #1B2A4A; margin: 0 0 6px; }
+  .note { margin: 0 0 16px; color: #64748B; max-width: 70ch; font-size: 14px; }
+  .frame { background: #FFFFFF; border: 1px solid #D8E0E6; border-radius: 16px; box-shadow: 0 2px 10px rgba(27,42,74,0.07); overflow-x: auto; }
+  .frame > div { margin: 0 auto; }
+  .phone { max-width: 430px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; }
+  .toc a { font-size: 13px; font-weight: 600; text-decoration: none; background: #FFFFFF; border: 1px solid #D8E0E6; border-radius: 9999px; padding: 7px 13px; color: #334155; }
+  footer { margin-top: 56px; font-size: 12px; color: #94A3B8; }
+</style>
+<div class="page">
+  <div class="mast">
+    <h1>Waypoint Screen Walkthrough</h1>
+    <p>The nine Phase 1+2 screens from the PRD (SDP facilitation + Premium tier), in reading order — family funnel, then the facilitator workspace, then the owner view. Drawn in the app's own design tokens; every audit correction applied.</p>
+    <div class="toc">
+<a href="#Main">01 · Eligibility Result</a>
+<a href="#FundedOffer">02 · Funded Offer & Booking</a>
+<a href="#PremiumPricing">03 · Premium Pricing</a>
+<a href="#PremiumGate">04 · Premium Gate — two states</a>
+<a href="#Caseload">05 · Caseload</a>
+<a href="#CaseDetail">06 · SDP Case Detail</a>
+<a href="#SpendingPlan">07 · Spending Plan Builder</a>
+<a href="#Invoices">08 · Billing — dual payer path</a>
+<a href="#OwnerDashboard">09 · Phase 1 Scorecard</a>
+</div></div>
+<section id="Main"><p class="eyebrow">FAMILY · FREE FUNNEL</p><h2>01 · Eligibility Result</h2><p class="note">Onboarding ends in an answer, not a profile: what Leo likely qualifies for, with the statute and review date on every card. No code-108 claims anywhere.</p><div class="frame phone"><div style="width: 390px; min-height: 1080px; background: #F8FAFC; display: flex; flex-direction: column; gap: 12px; padding: 20px 16px 16px 16px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #0891B2">YOUR RESULT</div>
+    <div style="display: flex; gap: 6px">
+      <div style="font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 9999px; background: #1B2A4A; color: #FFFFFF">EN</div>
+      <div style="font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 9999px; background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B">ES</div>
+    </div>
+  </div>
+
+  <div style="background: #1B2A4A; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+    <div style="font-size: 24px; font-weight: 800; line-height: 1.2; color: #FFFFFF">Leo may qualify for 4 things you aren't getting</div>
+    <div style="font-size: 14px; color: #CBD5E1">Based on his autism diagnosis, age 4, and your ZIP in Oakland — served by <span style="font-weight: 700; color: #FFFFFF">Regional Center of the East Bay</span>.</div>
+    <div style="display: flex; gap: 16px; border-top: 1px solid #334155; padding-top: 12px">
+      <div style="display: flex; flex-direction: column">
+        <div style="font-size: 24px; font-weight: 800; color: #FFFFFF">4</div>
+        <div style="font-size: 12px; color: #94A3B8">programs to pursue</div>
+      </div>
+      <div style="display: flex; flex-direction: column">
+        <div style="font-size: 24px; font-weight: 800; color: #FFFFFF">2</div>
+        <div style="font-size: 12px; color: #94A3B8">deadlines in 60 days</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-left: 4px solid #10B981; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+      <div style="font-size: 16px; font-weight: 700; color: #1B2A4A">Self-Determination Program</div>
+      <div style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E; white-space: nowrap">Likely eligible</div>
+    </div>
+    <div style="font-size: 13px; color: #64748B">You choose and direct Leo's services with a budget you control. Most families never hear about it.</div>
+    <div style="display: flex; justify-content: space-between; font-size: 13px">
+      <span style="color: #64748B">Typical child budget</span><span style="font-weight: 700; color: #1B2A4A">varies — set from Leo's needs</span>
+    </div>
+    <div style="font-size: 11px; color: #94A3B8">ⓘ W&amp;I §4685.8 · reviewed 14 Aug 2026</div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-left: 4px solid #10B981; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+      <div style="font-size: 16px; font-weight: 700; color: #1B2A4A">Regional Center services</div>
+      <div style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E; white-space: nowrap">Likely eligible</div>
+    </div>
+    <div style="font-size: 13px; color: #64748B">Respite, behavior support, and family services under the Lanterman Act — no income test, no waiting list.</div>
+    <div style="font-size: 11px; color: #94A3B8">ⓘ Lanterman Act, W&amp;I §4512 · reviewed 2 Aug 2026</div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-left: 4px solid #F59E0B; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+      <div style="font-size: 16px; font-weight: 700; color: #1B2A4A">Supplemental Security Income</div>
+      <div style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #FDF3E3; color: #B45309; white-space: nowrap">Needs review</div>
+    </div>
+    <div style="font-size: 13px; color: #64748B">Depends on household income — it's not automatic, so we'd check with you.</div>
+    <div style="display: flex; justify-content: space-between; font-size: 13px">
+      <span style="color: #64748B">2026 federal rate</span><span style="font-weight: 700; color: #1B2A4A">$994/mo + CA supplement</span>
+    </div>
+    <div style="font-size: 11px; color: #94A3B8">ⓘ SSA 2026 COLA · reviewed 12 Aug 2026</div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 16px; text-align: center; font-size: 14px; font-weight: 600; color: #334155">Show 1 more · CalABLE account</div>
+
+  <div style="background: #EFF6FF; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #334155"><span style="font-weight: 700; color: #2563EB">Why you can trust this.</span> Every item cites the statute or rate it comes from and the date we last checked it. Nothing here is a guess.</div>
+
+  <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px">
+    <div style="background: #0891B2; color: #FFFFFF; border-radius: 12px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700">See how to get these →</div>
+    <div style="text-align: center; font-size: 12px; color: #94A3B8">Free. No card. We never sell your data.</div>
+  </div>
+</div></div></section>
+<section id="FundedOffer"><p class="eyebrow">FAMILY · FREE FUNNEL</p><h2>02 · Funded Offer & Booking</h2><p class="note">The conversion moment. 'Who pays' is stated honestly — Regional Center pays during enrollment, a family-approved budget line after — and the independence pledge (W&I §4685.8) is a selling point. Declining is a real button.</p><div class="frame phone"><div style="width: 390px; min-height: 1100px; background: #F8FAFC; display: flex; flex-direction: column; gap: 14px; padding: 20px 16px 16px 16px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; flex-direction: column">
+      <div style="font-size: 22px; font-weight: 800; color: #1B2A4A">Getting started</div>
+      <div style="font-size: 13px; color: #64748B">Step 2 of 2</div>
+    </div>
+    <div style="font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">✓ No cost to you</div>
+  </div>
+
+  <div style="background: #ECFEFF; border: 1px solid #0891B2; border-radius: 12px; padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="8" r="4"></circle><path d="M4 21v-1a7 7 0 0 1 14 0v1"></path></svg>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 16px; font-weight: 700; color: #1B2A4A">Work with a Navigator, free to you</div>
+      <div style="font-size: 13px; color: #64748B">A real person who has done this for their own child walks you through Self-Determination enrollment end to end.</div>
+    </div>
+  </div>
+
+  <div style="font-size: 16px; font-weight: 700; color: #1B2A4A">Who pays for this?</div>
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; font-size: 13px">
+    <div style="display: flex; gap: 10px"><div style="width: 8px; height: 8px; border-radius: 9999px; background: #0891B2; margin-top: 5px; flex-shrink: 0"></div><div><span style="font-weight: 700; color: #1B2A4A">While you enroll: your Regional Center pays.</span> Up to $1,000 for Leo's person-centered plan and up to 40 hours of transition help — billed to the Regional Center, not to you.</div></div>
+    <div style="display: flex; gap: 10px"><div style="width: 8px; height: 8px; border-radius: 9999px; background: #0891B2; margin-top: 5px; flex-shrink: 0"></div><div><span style="font-weight: 700; color: #1B2A4A">After you're enrolled: a line you approve in Leo's budget.</span> You set the price with us, see it in the plan, and can stop at any time.</div></div>
+    <div style="display: flex; gap: 10px"><div style="width: 8px; height: 8px; border-radius: 9999px; background: #10B981; margin-top: 5px; flex-shrink: 0"></div><div><span style="font-weight: 700; color: #1B2A4A">We never sell services on Leo's plan.</span> State law (W&amp;I §4685.8) makes your facilitator independent — our only loyalty is to you.</div></div>
+  </div>
+
+  <div style="font-size: 16px; font-weight: 700; color: #1B2A4A">What happens next</div>
+  <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px">
+    <div style="display: flex; gap: 10px"><div style="font-weight: 800; color: #0891B2">1.</div><div><span style="font-weight: 700; color: #1B2A4A">A 30-minute call</span> — we confirm eligibility and answer your questions. No commitment.</div></div>
+    <div style="display: flex; gap: 10px"><div style="font-weight: 800; color: #0891B2">2.</div><div><span style="font-weight: 700; color: #1B2A4A">We handle the paperwork</span> — orientation, the person-centered plan, your budget certification.</div></div>
+    <div style="display: flex; gap: 10px"><div style="font-weight: 800; color: #0891B2">3.</div><div><span style="font-weight: 700; color: #1B2A4A">You approve everything</span> before anything is submitted.</div></div>
+  </div>
+
+  <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Pick a time with Maria R., Navigator</div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center"><div style="font-size: 14px; font-weight: 700; color: #1B2A4A">Tue 26</div><div style="font-size: 12px; color: #64748B">10:00 AM</div></div>
+    <div style="background: #0891B2; border-radius: 12px; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center"><div style="font-size: 14px; font-weight: 700; color: #FFFFFF">Tue 26</div><div style="font-size: 12px; color: #E0F2FE">2:30 PM</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center"><div style="font-size: 14px; font-weight: 700; color: #1B2A4A">Wed 27</div><div style="font-size: 12px; color: #64748B">9:00 AM</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center"><div style="font-size: 14px; font-weight: 700; color: #1B2A4A">Wed 27</div><div style="font-size: 12px; color: #64748B">4:00 PM</div></div>
+  </div>
+  <div style="font-size: 12px; color: #94A3B8">Maria speaks English and Spanish. Evening slots available on request.</div>
+
+  <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px">
+    <div style="background: #0891B2; color: #FFFFFF; border-radius: 12px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700">Book Tuesday 2:30 PM</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #334155; border-radius: 12px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600">Keep using Waypoint free instead</div>
+  </div>
+</div></div></section>
+<section id="PremiumPricing"><p class="eyebrow">FAMILY · PREMIUM</p><h2>03 · Premium Pricing</h2><p class="note">$99/yr launch (or $14.99/mo), web checkout, 30-day guarantee. Free tier stays genuinely useful forever; facilitation clients get Premium included at $0.</p><div class="frame phone"><div style="width: 390px; min-height: 1080px; background: #F8FAFC; display: flex; flex-direction: column; gap: 14px; padding: 20px 16px 16px 16px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <div style="font-size: 22px; font-weight: 800; color: #1B2A4A">Waypoint Premium</div>
+    <div style="font-size: 13px; color: #64748B">The free app is free forever. Premium adds the full toolkit for families going deeper.</div>
+  </div>
+
+  <div style="background: #1B2A4A; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; align-items: baseline; gap: 8px">
+      <div style="font-size: 30px; font-weight: 800; color: #FFFFFF">$99</div>
+      <div style="font-size: 14px; color: #94A3B8">/year</div>
+      <div style="font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #F97316; color: #FFFFFF">Launch price</div>
+    </div>
+    <div style="font-size: 13px; color: #CBD5E1">or $14.99/month · cancel anytime · 30-day money-back guarantee</div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden">
+    <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); background: #F8FAFC; border-bottom: 1px solid #E2E8F0; padding: 10px 14px; font-size: 12px; font-weight: 700; color: #64748B">
+      <div>WHAT YOU GET</div><div style="text-align: center">FREE</div><div style="text-align: center; color: #0891B2">PREMIUM</div>
+    </div>
+    <div style="display: flex; flex-direction: column; font-size: 13px">
+      <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); padding: 10px 14px; border-bottom: 1px solid #E2E8F0"><div>Eligibility results &amp; guides</div><div style="text-align: center; color: #0E9F6E; font-weight: 700">✓</div><div style="text-align: center; color: #0E9F6E; font-weight: 700">✓</div></div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); padding: 10px 14px; border-bottom: 1px solid #E2E8F0"><div>Journey map &amp; starter plan</div><div style="text-align: center; color: #0E9F6E; font-weight: 700">✓</div><div style="text-align: center; color: #0E9F6E; font-weight: 700">✓</div></div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); padding: 10px 14px; border-bottom: 1px solid #E2E8F0"><div>Deadline reminders</div><div style="text-align: center; color: #0E9F6E; font-weight: 700">✓</div><div style="text-align: center; color: #0E9F6E; font-weight: 700">✓</div></div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); padding: 10px 14px; border-bottom: 1px solid #E2E8F0"><div>AI Navigator</div><div style="text-align: center; color: #64748B">20 msgs/mo</div><div style="text-align: center; color: #0891B2; font-weight: 700">Unlimited</div></div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); padding: 10px 14px; border-bottom: 1px solid #E2E8F0"><div>IEP analysis &amp; goal tracking</div><div style="text-align: center; color: #94A3B8">—</div><div style="text-align: center; color: #0891B2; font-weight: 700">✓</div></div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); padding: 10px 14px; border-bottom: 1px solid #E2E8F0"><div>Letters, ready to send</div><div style="text-align: center; color: #94A3B8">—</div><div style="text-align: center; color: #0891B2; font-weight: 700">✓</div></div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); padding: 10px 14px; border-bottom: 1px solid #E2E8F0"><div>Document binder &amp; export</div><div style="text-align: center; color: #94A3B8">—</div><div style="text-align: center; color: #0891B2; font-weight: 700">✓</div></div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); padding: 10px 14px; border-bottom: 1px solid #E2E8F0"><div>Expense &amp; tax reports</div><div style="text-align: center; color: #94A3B8">—</div><div style="text-align: center; color: #0891B2; font-weight: 700">✓</div></div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); padding: 10px 14px"><div>Multiple children</div><div style="text-align: center; color: #94A3B8">—</div><div style="text-align: center; color: #0891B2; font-weight: 700">✓</div></div>
+    </div>
+  </div>
+
+  <div style="background: #E6F7F1; border-radius: 12px; padding: 12px 14px; font-size: 13px; color: #334155"><span style="font-weight: 700; color: #0E9F6E">Working with a Waypoint facilitator?</span> Premium is included with your facilitation — you pay $0.</div>
+
+  <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px">
+    <div style="background: #0891B2; color: #FFFFFF; border-radius: 12px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700">Get Premium — $99/year</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #334155; border-radius: 12px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600">Continue with Free</div>
+    <div style="text-align: center; font-size: 12px; color: #94A3B8">Secure checkout on the web · receipts &amp; cancellation self-serve</div>
+  </div>
+</div></div></section>
+<section id="PremiumGate"><p class="eyebrow">FAMILY · PREMIUM</p><h2>04 · Premium Gate — two states</h2><p class="note">Gates explain value instead of dead-ending (State A). Sponsored families never see an upgrade prompt (State B) — the entitlement check precedes every gate render.</p><div class="frame phone"><div style="width: 390px; min-height: 1060px; background: #F8FAFC; display: flex; flex-direction: column; gap: 14px; padding: 20px 16px 16px 16px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
+  <div style="font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #94A3B8">STATE A · FREE USER</div>
+  <div style="display: flex; flex-direction: column; gap: 4px">
+    <div style="font-size: 22px; font-weight: 800; color: #1B2A4A">IEP Analysis</div>
+    <div style="font-size: 13px; color: #64748B">Leo_IEP_2026.pdf · uploaded 12 Aug</div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; gap: 10px; align-items: flex-start">
+      <div style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #FEE2E2; color: #DC2626; white-space: nowrap; margin-top: 1px">FLAG</div>
+      <div style="font-size: 13px"><span style="font-weight: 700; color: #1B2A4A">Goal 2 has no baseline.</span> Progress can't be measured without one. <span style="color: #94A3B8">(free preview)</span></div>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-start; opacity: 0.35">
+      <div style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #FDF3E3; color: #B45309; white-space: nowrap; margin-top: 1px">CHECK</div>
+      <div style="font-size: 13px"><span style="font-weight: 700; color: #1B2A4A">Speech minutes dropped 33%</span> from the prior IEP with no explanation.</div>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-start; opacity: 0.2">
+      <div style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #EFF6FF; color: #2563EB; white-space: nowrap; margin-top: 1px">CITE</div>
+      <div style="font-size: 13px"><span style="font-weight: 700; color: #1B2A4A">Assessment-plan clock:</span> 15 calendar days to respond.</div>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 2px solid #0891B2; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+    <div style="font-size: 17px; font-weight: 800; color: #1B2A4A">This is a Premium tool</div>
+    <div style="font-size: 13px; color: #64748B">The full analysis flags weak goals, missing services, and deadline risks — each with the law it rests on. The first flag is free; the rest is Premium.</div>
+    <div style="display: flex; flex-direction: column; gap: 8px; width: 100%">
+      <div style="background: #0891B2; color: #FFFFFF; border-radius: 12px; min-height: 46px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700">Unlock with Premium — $99/yr</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #334155; border-radius: 12px; min-height: 46px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">See a sample analysis</div>
+    </div>
+  </div>
+
+  <div style="border-top: 2px dashed #E2E8F0; margin-top: 6px; padding-top: 14px; display: flex; flex-direction: column; gap: 10px">
+    <div style="font-size: 11px; font-weight: 700; letter-spacing: 1px; color: #94A3B8">STATE B · SPONSORED FAMILY (FACILITATION CLIENT)</div>
+    <div style="background: #E6F7F1; border: 1px solid #10B981; border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E9F6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px"><path d="M20 6 9 17l-5-5"></path></svg>
+      <div style="font-size: 13px; color: #334155"><span style="font-weight: 700; color: #0E9F6E">Included with your facilitation — you pay $0.</span> All Premium tools are open because you work with a Waypoint Navigator. No upgrade prompts, ever.</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; display: flex; gap: 10px; align-items: flex-start">
+      <div style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #FDF3E3; color: #B45309; white-space: nowrap; margin-top: 1px">CHECK</div>
+      <div style="font-size: 13px"><span style="font-weight: 700; color: #1B2A4A">Speech minutes dropped 33%</span> from the prior IEP with no explanation. Ask why in writing — your Navigator drafted the letter.</div>
+    </div>
+  </div>
+</div></div></section>
+<section id="Caseload"><p class="eyebrow">FACILITATOR</p><h2>05 · Caseload</h2><p class="note">Who needs attention today and why, in under a minute. Every row states its reason; the ranking is explainable; the founder's kill-criteria metrics sit in the KPI band.</p><div class="frame "><div style="width: 1200px; min-height: 840px; background: #F8FAFC; display: flex; flex-direction: column; gap: 16px; padding: 24px 28px; box-sizing: border-box; color: #334155; font-size: 14px; line-height: 1.45">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; flex-direction: column">
+      <div style="font-size: 24px; font-weight: 800; color: #1B2A4A">My caseload</div>
+      <div style="font-size: 13px; color: #64748B">12 families · 5 need attention today</div>
+    </div>
+    <div style="display: flex; gap: 10px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 600; color: #334155">Export</div>
+      <div style="background: #0891B2; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 700; color: #FFFFFF">+ Add family</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 24px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">5</div><div style="font-size: 12px; color: #64748B">Need attention</div><div style="font-size: 12px; font-weight: 700; color: #DC2626">2 due this week</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 24px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">$96k</div><div style="font-size: 12px; color: #64748B">Budgets under management</div><div style="font-size: 12px; font-weight: 700; color: #0E9F6E">▲ $21k this month</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 24px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">4.2%</div><div style="font-size: 12px; color: #64748B">Free → booked conversion</div><div style="font-size: 12px; font-weight: 700; color: #0E9F6E">62 of 1,480 registered</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 24px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">6.5 h</div><div style="font-size: 12px; color: #64748B">Avg facilitator hours / family</div><div style="font-size: 12px; font-weight: 700; color: #0E9F6E">target ≤ 8 h</div></div>
+  </div>
+
+  <div style="display: flex; gap: 8px; align-items: center">
+    <div style="background: #1B2A4A; color: #FFFFFF; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 700">Needs attention</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">All</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">Pre-enrollment</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">Active</div>
+    <div style="background: #ECFEFF; border: 1px solid #0891B2; color: #0E7490; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">RCEB ×</div>
+    <div style="background: #ECFEFF; border: 1px solid #0891B2; color: #0E7490; border-radius: 9999px; padding: 8px 14px; font-size: 13px; font-weight: 600">Spanish ×</div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden">
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 12px 18px; background: #F8FAFC; border-bottom: 2px solid #E2E8F0; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #64748B">
+      <div>FAMILY</div><div>STAGE</div><div>WHY NOW</div><div>HOURS / BUDGET</div><div>LAST CONTACT</div><div></div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Ramirez, M.</div><div style="font-size: 12px; color: #64748B">Leo, 4 · autism · ES</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">Person-centered plan</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FEE2E2; color: #DC2626">⚠ PCP due in 4 days</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">18 / 40 hrs</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 45%; border-radius: 9999px; background: #F59E0B"></div></div></div>
+      <div style="font-size: 13px; color: #334155">2 days</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Nguyen, L.</div><div style="font-size: 12px; color: #64748B">Mai, 6 · global delay · VI</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">Spending plan</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FEE2E2; color: #DC2626">⚠ Plan over budget by $916</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">31 / 40 hrs</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 78%; border-radius: 9999px; background: #DC2626"></div></div></div>
+      <div style="font-size: 13px; color: #334155">1 day</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Okafor, D.</div><div style="font-size: 12px; color: #64748B">Ezra, 16 · ID · EN</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #EFF6FF; color: #2563EB">Orientation</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">No contact in 21 days</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">4 / 40 hrs</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 10%; border-radius: 9999px; background: #0891B2"></div></div></div>
+      <div style="font-size: 13px; color: #334155">21 days</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Alvarez, P.</div><div style="font-size: 12px; color: #64748B">Sofia, 9 · CP · ES</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">Active</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">Renewal in 82 days</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">$21,400 budget</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 66%; border-radius: 9999px; background: #10B981"></div></div></div>
+      <div style="font-size: 13px; color: #334155">6 days</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.3fr 1fr 1.5fr 1.1fr 0.8fr 0.6fr; gap: 12px; padding: 14px 18px; align-items: center">
+      <div><div style="font-weight: 700; color: #1B2A4A">Whitfield, J.</div><div style="font-size: 12px; color: #64748B">Amos, 3 · ASD · EN</div></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #EFF6FF; color: #2563EB">Intake</span></div>
+      <div><span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FEE2E2; color: #DC2626">⚠ Part C exit in 11 days</span></div>
+      <div><div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #334155">0 / 40 hrs</div><div style="height: 6px; border-radius: 9999px; background: #E2E8F0; margin-top: 4px"><div style="height: 6px; width: 2%; border-radius: 9999px; background: #0891B2"></div></div></div>
+      <div style="font-size: 13px; color: #334155">4 days</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 0; text-align: center; font-weight: 700; color: #334155">Open</div>
+    </div>
+  </div>
+
+  <div style="background: #EFF6FF; border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #334155"><span style="font-weight: 700; color: #2563EB">Sorted by risk, not alphabetically.</span> Ranking weighs statutory deadline proximity, hour-cap burn rate, and days since contact. <a href="#">See how this is ranked</a> — the logic is always explainable.</div>
+</div></div></section>
+<section id="CaseDetail"><p class="eyebrow">FACILITATOR</p><h2>06 · SDP Case Detail</h2><p class="note">One family, one screen: pipeline stage, the 099 cap as a burn-rate forecast, RC-paid 024, the family's agreed facilitation price, and the outcome baseline.</p><div class="frame "><div style="width: 1200px; min-height: 880px; background: #F8FAFC; display: flex; flex-direction: column; gap: 16px; padding: 24px 28px; box-sizing: border-box; color: #334155; font-size: 14px; line-height: 1.45">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; color: #94A3B8">Caseload / Ramirez, M.</div>
+      <div style="display: flex; align-items: center; gap: 10px">
+        <div style="font-size: 24px; font-weight: 800; color: #1B2A4A">Leo Ramirez</div>
+        <span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #F8FAFC; border: 1px solid #E2E8F0; color: #64748B">4 yrs</span>
+      </div>
+      <div style="font-size: 13px; color: #64748B">Autism · RCEB · Spanish preferred · Consented 12 Jun 2026</div>
+    </div>
+    <div style="display: flex; gap: 10px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 600; color: #334155">Message</div>
+      <div style="background: #0891B2; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 700; color: #FFFFFF">Log time</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; background: #E2E8F0; border-radius: 12px; overflow: hidden; border: 1px solid #E2E8F0">
+    <div style="background: #E6F7F1; padding: 12px 14px"><div style="font-size: 12px; font-weight: 700; color: #0E9F6E">1 · Orientation</div><div style="font-size: 12px; color: #0E9F6E">✓ 14 Jun</div></div>
+    <div style="background: #0891B2; padding: 12px 14px"><div style="font-size: 12px; font-weight: 700; color: #FFFFFF">2 · Person-centered plan</div><div style="font-size: 12px; color: #E0F2FE">In progress</div></div>
+    <div style="background: #FFFFFF; padding: 12px 14px"><div style="font-size: 12px; font-weight: 700; color: #94A3B8">3 · Budget certified</div><div style="font-size: 12px; color: #CBD5E1">—</div></div>
+    <div style="background: #FFFFFF; padding: 12px 14px"><div style="font-size: 12px; font-weight: 700; color: #94A3B8">4 · Spending plan</div><div style="font-size: 12px; color: #CBD5E1">—</div></div>
+    <div style="background: #FFFFFF; padding: 12px 14px"><div style="font-size: 12px; font-weight: 700; color: #94A3B8">5 · Enrolled</div><div style="font-size: 12px; color: #CBD5E1">—</div></div>
+  </div>
+
+  <div style="background: #FEE2E2; border: 1px solid #DC2626; border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px">
+    <div style="font-size: 13px; color: #334155"><span style="font-weight: 700; color: #DC2626">⚠ Person-centered plan due 20 Aug — 4 days.</span> The budget-certification meeting can&#39;t be scheduled until the PCP is filed.</div>
+    <div style="background: #0891B2; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 700; color: #FFFFFF; white-space: nowrap">Open PCP builder</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Pre-enrollment hours · code 099</div>
+          <div style="display: flex; gap: 6px">
+            <span style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">099 vendored ✓</span>
+            <span style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #FDF3E3; color: #B45309">45% used</span>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #64748B">Transition supports · billed to RCEB</span><span style="font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A">18.0 / 40.0 hrs</span></div>
+        <div style="height: 8px; border-radius: 9999px; background: #E2E8F0"><div style="height: 8px; width: 45%; border-radius: 9999px; background: #F59E0B"></div></div>
+        <div style="background: #FDF3E3; border-radius: 10px; padding: 10px 12px; font-size: 12px; color: #334155">ⓘ 22 hours remain. At the current pace this family reaches the 40-hour cap around <span style="font-weight: 700">Oct 3</span>. Extensions need Regional Center approval.</div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Initial PCP · code 024</div>
+          <span style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #EFF6FF; color: #2563EB">RC-paid</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #64748B">Authorized</span><span style="font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A">$1,000.00</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #64748B">Delivered to date</span><span style="font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A">$620.00</span></div>
+        <div style="font-size: 12px; color: #94A3B8">Reimbursed by the Regional Center — never from Leo's budget.</div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Ongoing facilitation</div>
+          <span style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #F8FAFC; border: 1px solid #E2E8F0; color: #64748B">Starts at enrollment</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #64748B">Agreed price (family-approved)</span><span style="font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A">$1,100 / yr</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #64748B">Billed to</span><span style="font-weight: 700; color: #1B2A4A">Acumen FMS</span></div>
+        <div style="font-size: 12px; color: #94A3B8">Price discovery: caseload median so far $1,050 · target ≥ $800.</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Next actions</div>
+        <div style="display: flex; gap: 10px; align-items: flex-start"><div style="width: 8px; height: 8px; border-radius: 9999px; background: #DC2626; margin-top: 6px; flex-shrink: 0"></div><div style="font-size: 13px"><span style="font-weight: 700; color: #1B2A4A">Complete PCP section 4 — daily routines.</span><div style="font-size: 12px; color: #64748B">Due 20 Aug · you</div></div></div>
+        <div style="display: flex; gap: 10px; align-items: flex-start"><div style="width: 8px; height: 8px; border-radius: 9999px; background: #F59E0B; margin-top: 6px; flex-shrink: 0"></div><div style="font-size: 13px"><span style="font-weight: 700; color: #1B2A4A">Family to return signed records-release consent.</span><div style="font-size: 12px; color: #64748B">Sent 12 Aug · awaiting family</div></div></div>
+        <div style="display: flex; gap: 10px; align-items: flex-start"><div style="width: 8px; height: 8px; border-radius: 9999px; background: #CBD5E1; margin-top: 6px; flex-shrink: 0"></div><div style="font-size: 13px"><span style="font-weight: 700; color: #94A3B8">Schedule IPP meeting once budget certified.</span><div style="font-size: 12px; color: #CBD5E1">Blocked · stage 3</div></div></div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Outcome baseline</div>
+          <span style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">Captured ✓</span>
+        </div>
+        <div style="font-size: 13px; color: #64748B">Taken 14 Aug at start of service: services in place, unmet needs, 9 hrs/wk coordination, caregiver strain. Re-measure <span style="font-weight: 700; color: #1B2A4A">Feb 2027</span>.</div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+        <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Recent activity</div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span><span style="font-weight: 700; color: #1B2A4A">14 Aug</span> · 1.5 hrs · PCP interview with family</span><span style="font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">billable</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span><span style="font-weight: 700; color: #1B2A4A">12 Aug</span> · 0.5 hrs · Consent packet sent</span><span style="font-size: 11px; color: #94A3B8">admin</span></div>
+        <div style="display: flex; justify-content: space-between; font-size: 13px"><span><span style="font-weight: 700; color: #1B2A4A">8 Aug</span> · 2.0 hrs · RCEB intake call</span><span style="font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">billable</span></div>
+      </div>
+    </div>
+  </div>
+</div></div></section>
+<section id="SpendingPlan"><p class="eyebrow">FACILITATOR</p><h2>07 · Spending Plan Builder</h2><p class="note">Errors in money, not validation-speak. The statutory conflict-of-interest bar is enforced in-product: Waypoint cannot be added as a service provider on a plan it facilitates — the facilitation line is the one legal exception, priced by the family.</p><div class="frame "><div style="width: 1200px; min-height: 980px; background: #F8FAFC; display: flex; flex-direction: column; gap: 16px; padding: 24px 28px; box-sizing: border-box; color: #334155; font-size: 14px; line-height: 1.45">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="font-size: 12px; color: #94A3B8">Nguyen, L. / Spending plan</div>
+      <div style="display: flex; align-items: center; gap: 12px">
+        <div style="font-size: 24px; font-weight: 800; color: #1B2A4A">Spending plan — FY 2026–27</div>
+        <span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">Draft · autosaved 2 min ago</span>
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 600; color: #334155">Preview PDF</div>
+      <div style="background: #E2E8F0; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 700; color: #64748B">Submit to RCEB</div>
+    </div>
+  </div>
+
+  <div style="background: #FEE2E2; border: 1px solid #DC2626; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+    <div style="font-size: 13px; color: #334155"><span style="font-weight: 700; color: #DC2626">⚠ Plan exceeds the certified budget by $916.00.</span> Total allocated is $24,916.00 against a certified budget of $24,000.00. You cannot submit until this is zero or below.</div>
+    <div style="display: flex; gap: 10px">
+      <div style="background: #0891B2; border-radius: 10px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 16px; font-weight: 700; font-size: 13px; color: #FFFFFF">Reduce respite by $916</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 16px; font-weight: 600; font-size: 13px; color: #334155">Request budget adjustment</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 22px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">$24,000</div><div style="font-size: 12px; color: #64748B">Certified budget</div><div style="font-size: 11px; color: #94A3B8">certified 2 Jul 2026</div></div>
+    <div style="background: #FFFFFF; border: 2px solid #DC2626; border-radius: 12px; padding: 14px 16px"><div style="font-size: 22px; font-weight: 800; color: #DC2626; font-variant-numeric: tabular-nums">$24,916</div><div style="font-size: 12px; color: #64748B">Allocated</div><div style="font-size: 11px; font-weight: 700; color: #DC2626">104% of budget</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 22px; font-weight: 800; color: #DC2626; font-variant-numeric: tabular-nums">($916)</div><div style="font-size: 12px; color: #64748B">Remaining</div><div style="font-size: 11px; font-weight: 700; color: #DC2626">over by 3.8%</div></div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px"><div style="font-size: 22px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">4</div><div style="font-size: 12px; color: #64748B">Line items</div><div style="font-size: 11px; color: #94A3B8">4 categories</div></div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden">
+    <div style="display: grid; grid-template-columns: 1.6fr 1fr 1.2fr 0.7fr 0.8fr 0.8fr 0.5fr; gap: 12px; padding: 12px 18px; background: #F8FAFC; border-bottom: 2px solid #E2E8F0; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: #64748B">
+      <div>SERVICE</div><div>CATEGORY</div><div>PROVIDER</div><div>RATE</div><div>FREQUENCY</div><div>ANNUAL</div><div></div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.6fr 1fr 1.2fr 0.7fr 0.8fr 0.8fr 0.5fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center; font-size: 13px">
+      <div><div style="font-weight: 700; color: #1B2A4A">Respite, in-home</div><div style="font-size: 12px; color: #94A3B8">Code 862</div></div>
+      <div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">Personal support</span></div>
+      <div>Bay Respite Co.</div><div style="font-variant-numeric: tabular-nums">$28.50/hr</div><div>8 hrs/wk</div><div style="font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A">$11,856</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 6px 0; text-align: center; font-weight: 700; color: #334155">Edit</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.6fr 1fr 1.2fr 0.7fr 0.8fr 0.8fr 0.5fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center; font-size: 13px">
+      <div><div style="font-weight: 700; color: #1B2A4A">Behavior services</div><div style="font-size: 12px; color: #94A3B8">Code 620</div></div>
+      <div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #EFF6FF; color: #2563EB">Therapeutic</span></div>
+      <div>Catalight</div><div style="font-variant-numeric: tabular-nums">$62.00/hr</div><div>3 hrs/wk</div><div style="font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A">$9,672</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 6px 0; text-align: center; font-weight: 700; color: #334155">Edit</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.6fr 1fr 1.2fr 0.7fr 0.8fr 0.8fr 0.5fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center; font-size: 13px">
+      <div><div style="font-weight: 700; color: #1B2A4A">Community integration</div><div style="font-size: 12px; color: #94A3B8">Code 331</div></div>
+      <div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #FDF3E3; color: #B45309">Community</span></div>
+      <div>Self-directed</div><div style="font-variant-numeric: tabular-nums">$22.00/hr</div><div>2 hrs/wk</div><div style="font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A">$2,288</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 6px 0; text-align: center; font-weight: 700; color: #334155">Edit</div>
+    </div>
+    <div style="display: grid; grid-template-columns: 1.6fr 1fr 1.2fr 0.7fr 0.8fr 0.8fr 0.5fr; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #E2E8F0; align-items: center; font-size: 13px">
+      <div><div style="font-weight: 700; color: #1B2A4A">Independent facilitation</div><div style="font-size: 12px; color: #94A3B8">IF services</div></div>
+      <div><span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background: #F8FAFC; border: 1px solid #E2E8F0; color: #64748B">Facilitation</span></div>
+      <div>Waypoint <span style="font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: #ECFEFF; color: #0E7490">IF</span></div><div style="font-variant-numeric: tabular-nums">—</div><div>annual</div><div style="font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A">$1,100</div>
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 6px 0; text-align: center; font-weight: 700; color: #334155">Edit</div>
+    </div>
+    <div style="display: flex; justify-content: flex-end; gap: 24px; padding: 12px 18px; background: #FEE2E2; font-size: 13px">
+      <div style="font-weight: 700; color: #1B2A4A">Total allocated</div><div style="font-weight: 800; font-variant-numeric: tabular-nums; color: #DC2626">$24,916</div>
+    </div>
+    <div style="display: flex; justify-content: flex-end; gap: 24px; padding: 10px 18px; font-size: 13px">
+      <div style="color: #64748B">Certified budget</div><div style="font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A">$24,000</div>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 2px solid #DC2626; border-radius: 12px; padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="12" r="10"></circle><path d="m4.9 4.9 14.2 14.2"></path></svg>
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 14px; font-weight: 700; color: #DC2626">Waypoint can't be added as a service provider on this plan</div>
+      <div style="font-size: 13px; color: #334155">Because Waypoint is Mai's independent facilitator, state law (W&amp;I §4685.8) bars us from also selling services on her plan. This protects your family: your facilitator's only loyalty is to Mai. The facilitation line above is the one exception the law defines — and you set its price.</div>
+      <div style="display: flex; gap: 10px; margin-top: 2px">
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 10px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 16px; font-weight: 600; font-size: 13px; color: #334155">Choose a different provider</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #EFF6FF; border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #334155"><span style="font-weight: 700; color: #2563EB">Rates are checked against the current DDS schedule at entry.</span> A rate that doesn't match will block submission here rather than get the plan rejected weeks later.</div>
+</div></div></section>
+<section id="Invoices"><p class="eyebrow">OWNER</p><h2>08 · Billing — dual payer path</h2><p class="note">The corrected money mechanics: Regional Center invoices (024/099 via eBilling) and FMS invoices (ongoing facilitation at the agreed price) side by side, with 099 vendorization status and receivables aging.</p><div class="frame "><div style="width: 1200px; min-height: 860px; background: #F8FAFC; display: flex; flex-direction: column; gap: 16px; padding: 24px 28px; box-sizing: border-box; color: #334155; font-size: 14px; line-height: 1.45">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; flex-direction: column">
+      <div style="font-size: 24px; font-weight: 800; color: #1B2A4A">Billing</div>
+      <div style="font-size: 13px; color: #64748B">Every line traces to a logged, timestamped service event — nothing can be billed twice.</div>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center">
+      <span style="font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">099 vendorization · Approved 12 Jun</span>
+      <div style="background: #0891B2; border-radius: 12px; min-height: 44px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; padding: 0 18px; font-weight: 700; color: #FFFFFF">New invoice</div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 8px">
+    <div style="background: #1B2A4A; color: #FFFFFF; border-radius: 9999px; padding: 8px 16px; font-size: 13px; font-weight: 700">All</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 9999px; padding: 8px 16px; font-size: 13px; font-weight: 600">Regional Center</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; border-radius: 9999px; padding: 8px 16px; font-size: 13px; font-weight: 600">FMS</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start">
+        <div><div style="font-size: 16px; font-weight: 700; color: #1B2A4A">INV-2026-0142 · Regional Center of the East Bay</div><div style="font-size: 12px; color: #64748B">Ramirez, M. · transition services · July 2026</div></div>
+        <span style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #EFF6FF; color: #2563EB">Payer: Regional Center</span>
+      </div>
+      <div style="display: flex; flex-direction: column; border-top: 1px solid #E2E8F0">
+        <div style="display: grid; grid-template-columns: 0.6fr 2fr 0.7fr 0.8fr; gap: 10px; padding: 8px 0; font-size: 11px; font-weight: 700; color: #64748B; border-bottom: 1px solid #E2E8F0"><div>CODE</div><div>DESCRIPTION</div><div>UNITS</div><div>AMOUNT</div></div>
+        <div style="display: grid; grid-template-columns: 0.6fr 2fr 0.7fr 0.8fr; gap: 10px; padding: 8px 0; font-size: 13px; border-bottom: 1px solid #E2E8F0"><div style="font-weight: 700">024</div><div>Initial person-centered plan</div><div style="font-variant-numeric: tabular-nums">1</div><div style="font-weight: 700; font-variant-numeric: tabular-nums">$620.00</div></div>
+        <div style="display: grid; grid-template-columns: 0.6fr 2fr 0.7fr 0.8fr; gap: 10px; padding: 8px 0; font-size: 13px"><div style="font-weight: 700">099</div><div>Pre-enrollment transition supports</div><div style="font-variant-numeric: tabular-nums">14.0 hr</div><div style="font-weight: 700; font-variant-numeric: tabular-nums">$732.20</div></div>
+        <div style="display: flex; justify-content: flex-end; gap: 20px; padding: 8px 0; border-top: 2px solid #E2E8F0; font-size: 13px"><div style="font-weight: 700">Total</div><div style="font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$1,352.20</div></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px">
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 10px; height: 10px; border-radius: 9999px; background: #0E9F6E; flex-shrink: 0"></div><div><span style="font-weight: 700; color: #1B2A4A">Assembled</span> · 1 Aug, automatic</div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 10px; height: 10px; border-radius: 9999px; background: #0E9F6E; flex-shrink: 0"></div><div><span style="font-weight: 700; color: #1B2A4A">Submitted via eBilling</span> · 5 Aug (by the 8th → paid by the 15th)</div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 10px; height: 10px; border-radius: 9999px; background: #0E9F6E; flex-shrink: 0"></div><div><span style="font-weight: 700; color: #1B2A4A">Paid</span> · 12 Aug via EFT</div></div>
+      </div>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start">
+        <div><div style="font-size: 16px; font-weight: 700; color: #1B2A4A">INV-2026-0158 · Acumen Fiscal Agent</div><div style="font-size: 12px; color: #64748B">Alvarez, P. · ongoing facilitation · annual</div></div>
+        <span style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: #ECFEFF; color: #0E7490">Payer: FMS</span>
+      </div>
+      <div style="display: flex; flex-direction: column; border-top: 1px solid #E2E8F0">
+        <div style="display: grid; grid-template-columns: 2.6fr 0.7fr 0.8fr; gap: 10px; padding: 8px 0; font-size: 11px; font-weight: 700; color: #64748B; border-bottom: 1px solid #E2E8F0"><div>DESCRIPTION</div><div>PERIOD</div><div>AMOUNT</div></div>
+        <div style="display: grid; grid-template-columns: 2.6fr 0.7fr 0.8fr; gap: 10px; padding: 8px 0; font-size: 13px"><div>Independent facilitation — family-approved plan line</div><div>FY 26–27</div><div style="font-weight: 700; font-variant-numeric: tabular-nums">$1,100.00</div></div>
+        <div style="display: flex; justify-content: flex-end; gap: 20px; padding: 8px 0; border-top: 2px solid #E2E8F0; font-size: 13px"><div style="font-weight: 700">Total</div><div style="font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$1,100.00</div></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px">
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 10px; height: 10px; border-radius: 9999px; background: #0E9F6E; flex-shrink: 0"></div><div><span style="font-weight: 700; color: #1B2A4A">Vendor form on file</span> · W-9 ✓ 14 Jan 2026</div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 10px; height: 10px; border-radius: 9999px; background: #0E9F6E; flex-shrink: 0"></div><div><span style="font-weight: 700; color: #1B2A4A">Sent to Acumen</span> · 1 Aug · Net 30</div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 10px; height: 10px; border-radius: 9999px; background: #CBD5E1; flex-shrink: 0"></div><div style="color: #64748B">Paid · due 30 Aug · auto re-invoices next year</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+    <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Receivables aging</div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 4px"><div style="font-size: 12px; color: #64748B">0–30 days</div><div style="font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$2,452</div><div style="height: 8px; border-radius: 4px; background: #E2E8F0"><div style="height: 8px; border-radius: 4px; background: #0891B2; width: 100%"></div></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px"><div style="font-size: 12px; color: #64748B">31–60 days</div><div style="font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$0</div><div style="height: 8px; border-radius: 4px; background: #E2E8F0"></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px"><div style="font-size: 12px; color: #64748B">61–90 days</div><div style="font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$0</div><div style="height: 8px; border-radius: 4px; background: #E2E8F0; width: 100%"></div></div>
+      <div style="display: flex; flex-direction: column; gap: 4px"><div style="font-size: 12px; color: #64748B">90+ days</div><div style="font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$0</div><div style="height: 8px; border-radius: 4px; background: #E2E8F0; width: 100%"></div></div>
+    </div>
+    <div style="font-size: 12px; color: #94A3B8">RC eBilling pays ~2–6 weeks after month-end when submitted by the 8th; FMS terms vary — chase anything past 60.</div>
+  </div>
+</div></div></section>
+<section id="OwnerDashboard"><p class="eyebrow">OWNER</p><h2>09 · Phase 1 Scorecard</h2><p class="note">The six PRD kill-criteria as first-class numbers with targets and sample sizes, plus the acquisition funnel. This screen is the week-18 go/no-go input.</p><div class="frame "><div style="width: 1200px; min-height: 840px; background: #F8FAFC; display: flex; flex-direction: column; gap: 16px; padding: 24px 28px; box-sizing: border-box; color: #334155; font-size: 14px; line-height: 1.45">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; flex-direction: column">
+      <div style="font-size: 24px; font-weight: 800; color: #1B2A4A">Phase 1 scorecard</div>
+      <div style="font-size: 13px; color: #64748B">Week of 10 Aug 2026 · the six numbers the go/no-go decision reads</div>
+    </div>
+    <div style="display: flex; gap: 8px">
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 9999px; padding: 8px 16px; font-size: 13px; font-weight: 600; color: #64748B">Week</div>
+      <div style="background: #1B2A4A; color: #FFFFFF; border-radius: 9999px; padding: 8px 16px; font-size: 13px; font-weight: 700">Month</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Free → booked conversion</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">4.2%</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">on target</span></div>
+      <div style="font-size: 12px; color: #94A3B8">62 booked of 1,480 registered · target ≥ 3.0%</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Paid invoices</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">1</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">existence proof ✓</span></div>
+      <div style="font-size: 12px; color: #94A3B8">$620 collected · RCEB, code 024 · paid 12 Aug</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Median agreed price</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">$1,050</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">above floor</span></div>
+      <div style="font-size: 12px; color: #94A3B8">kill line &lt; $800/yr · n=6 families</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Facilitator hours per family</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">6.5 h</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">under cap</span></div>
+      <div style="font-size: 12px; color: #94A3B8">target ≤ 8 h to approved plan · median, n=6</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Premium conversion</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">2.4%</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #E6F7F1; color: #0E9F6E">on target</span></div>
+      <div style="font-size: 12px; color: #94A3B8">target ≥ 2% of engaged free users · n=1,012</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+      <div style="font-size: 12px; font-weight: 600; color: #64748B">Free-tier AI cost</div>
+      <div style="display: flex; align-items: baseline; gap: 8px"><div style="font-size: 28px; font-weight: 800; color: #1B2A4A; font-variant-numeric: tabular-nums">$0.31</div><span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; background: #FDF3E3; color: #B45309">watch</span></div>
+      <div style="font-size: 12px; color: #94A3B8">per registered user / month · cap $0.50</div>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Acquisition funnel — month to date</div>
+      <div style="font-size: 12px; color: #94A3B8">by source and language in the full view</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Registered</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 100%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">1,480</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Saw eligibility result</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 82%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">1,214</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Viewed funded offer</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 35%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">512</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Booked a Navigator call</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 4.2%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">62</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 170px 1fr 90px; gap: 12px; align-items: center">
+        <div style="font-size: 13px; color: #334155">Became a served family</div>
+        <div style="height: 22px; border-radius: 4px; background: #E2E8F0"><div style="height: 22px; width: 1%; border-radius: 4px; background: #0891B2"></div></div>
+        <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: #1B2A4A; text-align: right">12</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 13px; font-weight: 700; color: #1B2A4A">Pipeline value</div>
+      <div style="font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$18,400</div>
+      <div style="font-size: 12px; color: #94A3B8">12 served families · transition + first-year facilitation, at each family's agreed price</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 13px; font-weight: 700; color: #1B2A4A">Outstanding receivables</div>
+      <div style="font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: #1B2A4A">$2,452</div>
+      <div style="font-size: 12px; color: #94A3B8">all under 30 days · oldest: INV-0158, due 30 Aug</div>
+    </div>
+  </div>
+
+  <div style="font-size: 12px; color: #94A3B8">Every number links to its query. No bare percentages — sample sizes shown. Targets come from PRD §7.</div>
+</div></div></section>
+<footer>Waypoint · PRD: Roadmap/PRD-SDP-and-Premium-v1.md · sources: Roadmap/mockups/ · branch claude/roadmap-product-strategy-wmg2rb</footer></div>
