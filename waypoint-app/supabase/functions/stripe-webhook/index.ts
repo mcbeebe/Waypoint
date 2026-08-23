@@ -10,6 +10,9 @@
  *   STRIPE_WEBHOOK_SECRET  the signing secret from the Stripe dashboard
  *   SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY  standard
  *
+ * Deployed with verify_jwt=false (supabase/config.toml) — Stripe cannot
+ * send a Supabase JWT; the HMAC check above is the authentication.
+ *
  * Events handled:
  *   checkout.session.completed          → activate (family from client_reference_id)
  *   customer.subscription.deleted       → cancel (match on subscription id)
