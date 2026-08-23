@@ -16,6 +16,7 @@ import type { ProcessStage } from '@/lib/processMap';
 import { stableKeyFor } from '@/lib/actionKeys';
 import { decidePath, getPathQuestions } from '@/lib/pathDecision';
 import type { PathAnswers } from '@/lib/pathDecision';
+import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { Action } from '@/types/database';
 import { useI18n } from '@/i18n';
@@ -88,6 +89,31 @@ const STRINGS: Record<FunnelLocale, {
     ippUpload: 'Lo tengo — agregarlo a Waypoint',
     ippRecords: '¿No está seguro/a? Solicite sus registros',
   },
+  vi: {
+    title: 'Hệ thống hoạt động thế nào',
+    subtitle: (name) =>
+      `Quy trình Trung tâm Khu vực cho ${name}, từng bước một — kèm thời hạn luật định ở mỗi bước và lá thư thúc đẩy nó. Mỗi quy định đều ghi rõ nguồn.`,
+    youAreHere: 'QUÝ VỊ ĐANG Ở ĐÂY',
+    forkEyebrow: 'NGÃ RẼ MÀ ÍT GIA ĐÌNH ĐƯỢC BIẾT',
+    laterTitle: 'Chặng sau của con đường',
+    laterBody: (name) =>
+      `Khi ${name} trở thành thân chủ chính thức của Trung tâm Khu vực, một con đường thứ hai sẽ mở ra: chương trình Tự quyết, nơi dịch vụ trở thành ngân sách do gia đình điều hành. Chúng tôi sẽ hiển thị nó ở đây khi áp dụng.`,
+    trust:
+      'Mỗi thời hạn ở trên đều trích dẫn điều luật gốc. Khi một bước không có thời hạn pháp lý, chúng tôi nói rõ — và đưa quý vị công cụ để tạo ra một thời hạn.',
+    yourChild: 'con quý vị',
+    inPlan: 'TRONG KẾ HOẠCH CỦA QUÝ VỊ',
+    statusLabel: {
+      not_started: 'Chưa làm',
+      in_progress: 'Đang làm',
+      completed: 'Xong ✓',
+      dismissed: 'Đã bỏ qua',
+    },
+    ippHaveTitle: 'Quý vị đã có IPP chưa?',
+    ippHaveBody:
+      'Đó là tài liệu có tên "Individual Program Plan" (Kế hoạch Chương trình Cá nhân), được lập trong cuộc họp với điều phối viên dịch vụ (ít nhất mỗi năm một lần). Nếu quý vị chưa từng thấy, điều phối viên đang giữ nó — và quý vị có quyền nhận một bản sao.',
+    ippUpload: 'Tôi có rồi — thêm vào Waypoint',
+    ippRecords: 'Chưa chắc? Yêu cầu hồ sơ của quý vị',
+  },
 };
 
 export default function ProcessMapScreen() {
@@ -96,7 +122,7 @@ export default function ProcessMapScreen() {
   const { children } = useChildren(family?.id);
   const child = children[0];
   const { locale } = useI18n();
-  const funnelLocale: FunnelLocale = locale === 'es' ? 'es' : 'en';
+  const funnelLocale: FunnelLocale = toFunnelLocale(locale);
   const S = STRINGS[funnelLocale];
   const rcStages = getRcStages(funnelLocale);
   const sdpFork = getSdpFork(funnelLocale);
@@ -293,13 +319,14 @@ function PathDecider({
     wantsControl: null,
   });
   const es = locale === 'es';
+  const vi = locale === 'vi';
   const result = decidePath(answers, locale);
   const questions = getPathQuestions(locale);
 
   return (
     <View style={styles.decider}>
       <Text style={styles.deciderTitle}>
-        {es ? '\u00bfQu\u00e9 camino le conviene a su familia?' : 'Which path fits your family?'}
+        {es ? '\u00bfQu\u00e9 camino le conviene a su familia?' : vi ? 'Con đường nào phù hợp với gia đình quý vị?' : 'Which path fits your family?'}
       </Text>
       {questions.map((q) => (
         <View key={q.key} style={styles.deciderRow}>
@@ -314,7 +341,7 @@ function PathDecider({
                   onPress={() => setAnswers((a) => ({ ...a, [q.key]: val }))}
                 >
                   <Text style={[styles.pillText, active && styles.pillTextActive]}>
-                    {val ? (es ? 'Sí' : 'Yes') : 'No'}
+                    {val ? (es ? 'Sí' : vi ? 'Có' : 'Yes') : (vi ? 'Không' : 'No')}
                   </Text>
                 </Pressable>
               );

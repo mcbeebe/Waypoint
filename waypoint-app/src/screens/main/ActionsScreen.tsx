@@ -139,6 +139,7 @@ export default function ActionsScreen() {
 
   const { locale } = useI18n();
   const esUI = locale === 'es';
+  const viUI = locale === 'vi';
 
   // Focus view: a full plan is 8+ items and reads as a wall. The default
   // "All" view shows the next 3 doable steps (unlocked, not done) and
@@ -318,7 +319,9 @@ export default function ActionsScreen() {
             <Text style={styles.focusHint}>
               {esUI
                 ? `Empiece aquí — ${visibleActions.length === 1 ? 'su siguiente paso' : `sus siguientes ${visibleActions.length} pasos`}. Uno a la vez es el plan.`
-                : `Start here — your next ${visibleActions.length === 1 ? 'step' : `${visibleActions.length} steps`}. One at a time is the plan.`}
+                : viUI
+                  ? `Bắt đầu ở đây — ${visibleActions.length === 1 ? 'bước tiếp theo của quý vị' : `${visibleActions.length} bước tiếp theo`}. Từng bước một chính là kế hoạch.`
+                  : `Start here — your next ${visibleActions.length === 1 ? 'step' : `${visibleActions.length} steps`}. One at a time is the plan.`}
             </Text>
           ) : null
         }
@@ -332,8 +335,8 @@ export default function ActionsScreen() {
             >
               <Text style={styles.focusToggleText}>
                 {focusMode
-                  ? esUI ? `Ver todo (${hiddenCount} más) ↓` : `Show everything (${hiddenCount} more) ↓`
-                  : esUI ? 'Enfocar mis siguientes 3 ↑' : 'Focus on my next 3 ↑'}
+                  ? esUI ? `Ver todo (${hiddenCount} más) ↓` : viUI ? `Xem tất cả (${hiddenCount} mục nữa) ↓` : `Show everything (${hiddenCount} more) ↓`
+                  : esUI ? 'Enfocar mis siguientes 3 ↑' : viUI ? 'Tập trung 3 bước tiếp theo ↑' : 'Focus on my next 3 ↑'}
               </Text>
             </TouchableOpacity>
           ) : null

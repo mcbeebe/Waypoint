@@ -29,7 +29,7 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
 import InsightCard from '@/components/InsightCard';
 import { deriveHomeInsight } from '@/lib/insights';
-import { ageFromDob } from '@/lib/eligibility';
+import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -103,7 +103,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
   const { actions, stats, refetch: refetchActions } = useActions({ familyId: family?.id ?? '' });
   const { diagnoses } = useDiagnoses(primaryChild?.id);
   const { locale } = useI18n();
-  const funnelLocale: FunnelLocale = locale === 'es' ? 'es' : 'en';
+  const funnelLocale: FunnelLocale = toFunnelLocale(locale);
   // "Waypoint noticed" — the one entitlement this profile isn't using yet
   const insight = useMemo(
     () =>

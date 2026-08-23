@@ -7,9 +7,9 @@
  * (Roadmap/Assumptions-Audit-Aug2026.md; Regional Center Money Map). When
  * a step has no enforceable clock, we say so — false clocks destroy trust.
  *
- * Bilingual (W1a ES parity): stages carry EN + ES; callers pass the
- * locale. Citations stay in English. Spanish is a careful draft — flag
- * for native-speaker review before wide release.
+ * Trilingual (EN/ES/VI): callers pass the locale; strings select via
+ * L(en, es, vi). Citations stay in English. Spanish and Vietnamese are
+ * careful drafts — flag for native-speaker review before wide release.
  */
 import type { RcStatus } from '@/types/database';
 import type { FunnelLocale } from '@/lib/eligibility';
@@ -35,64 +35,113 @@ export interface ProcessStage {
   actionKeys: string[];
 }
 
+function picker(locale: FunnelLocale) {
+  return (en: string, es: string, vi: string) =>
+    locale === 'es' ? es : locale === 'vi' ? vi : en;
+}
+
 /** Stage 0 + Path A — every family's spine. */
 export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
-  const es = locale === 'es';
+  const L = picker(locale);
   return [
     {
       key: 'intake',
-      title: es ? 'Contactar al Centro Regional' : 'Contact the Regional Center',
-      body: es
-        ? 'Menores de 3 años: Early Start. A partir de 3: una solicitud bajo la Ley Lanterman. Los servicios del Centro Regional no tienen requisito de ingresos y no cuestan nada a las familias.'
-        : 'Under 3: Early Start. Age 3+: a Lanterman Act application. Regional Center services have no income test and cost families nothing.',
+      title: L(
+        'Contact the Regional Center',
+        'Contactar al Centro Regional',
+        'Liên hệ Trung tâm Khu vực'
+      ),
+      body: L(
+        'Under 3: Early Start. Age 3+: a Lanterman Act application. Regional Center services have no income test and cost families nothing.',
+        'Menores de 3 años: Early Start. A partir de 3: una solicitud bajo la Ley Lanterman. Los servicios del Centro Regional no tienen requisito de ingresos y no cuestan nada a las familias.',
+        'Dưới 3 tuổi: Early Start. Từ 3 tuổi: nộp đơn theo Đạo luật Lanterman. Dịch vụ Trung tâm Khu vực không xét thu nhập và hoàn toàn miễn phí cho gia đình.'
+      ),
       citation: 'Lanterman Act',
-      clock: es
-        ? 'Usted inicia este plazo — solicite por escrito y guarde la fecha.'
-        : 'You start this clock — apply in writing and keep the date.',
+      clock: L(
+        'You start this clock — apply in writing and keep the date.',
+        'Usted inicia este plazo — solicite por escrito y guarde la fecha.',
+        'Quý vị khởi động thời hạn này — nộp đơn bằng văn bản và giữ lại ngày nộp.'
+      ),
       leverTemplate: null,
       leverLabel: null,
       actionKeys: ['rc_early_start_referral', 'rc_start_referral'],
     },
     {
       key: 'assessment',
-      title: es ? 'Evaluación y decisión de elegibilidad' : 'Assessment & eligibility decision',
-      body: es
-        ? 'El Centro Regional evalúa si su hijo/a tiene una discapacidad que califica y que comenzó antes de los 18 años. Una negación debe incluir sus derechos de apelación.'
-        : 'The Regional Center assesses whether your child has a qualifying disability that began before 18. A denial must come with appeal rights.',
+      title: L(
+        'Assessment & eligibility decision',
+        'Evaluación y decisión de elegibilidad',
+        'Đánh giá & quyết định điều kiện'
+      ),
+      body: L(
+        'The Regional Center assesses whether your child has a qualifying disability that began before 18. A denial must come with appeal rights.',
+        'El Centro Regional evalúa si su hijo/a tiene una discapacidad que califica y que comenzó antes de los 18 años. Una negación debe incluir sus derechos de apelación.',
+        'Trung tâm Khu vực đánh giá xem con quý vị có khuyết tật đủ điều kiện, khởi phát trước 18 tuổi hay không. Nếu từ chối, họ phải kèm theo quyền kháng cáo.'
+      ),
       citation: 'W&I §4643',
-      clock: es
-        ? 'Evaluación dentro de 120 días desde la solicitud — o 60 si la demora es riesgosa.'
-        : 'Assessment within 120 days of intake — or 60 when delay is risky.',
+      clock: L(
+        'Assessment within 120 days of intake — or 60 when delay is risky.',
+        'Evaluación dentro de 120 días desde la solicitud — o 60 si la demora es riesgosa.',
+        'Đánh giá trong 120 ngày kể từ khi nộp đơn — hoặc 60 ngày nếu trì hoãn gây rủi ro.'
+      ),
       leverTemplate: 'rc_timeline_followup',
-      leverLabel: es ? 'Dar seguimiento a una evaluación atrasada' : 'Follow up on an overdue assessment',
+      leverLabel: L(
+        'Follow up on an overdue assessment',
+        'Dar seguimiento a una evaluación atrasada',
+        'Theo dõi đánh giá quá hạn'
+      ),
       actionKeys: ['rc_follow_up_application'],
     },
     {
       key: 'ipp',
-      title: es ? 'El IPP — donde empieza cada servicio' : 'The IPP — where every service starts',
-      body: es
-        ? 'El Plan de Programa Individual enumera los servicios que el Centro Regional proveerá. Nada se puede comprar si no está en el IPP — y usted puede pedir una reunión de revisión en cualquier momento, no solo una vez al año.'
-        : 'The Individual Program Plan lists the services the Regional Center will provide. Nothing is purchasable unless it is in the IPP — and you can request a review meeting at any time, not just annually.',
+      title: L(
+        'The IPP — where every service starts',
+        'El IPP — donde empieza cada servicio',
+        'IPP — nơi mọi dịch vụ bắt đầu'
+      ),
+      body: L(
+        'The Individual Program Plan lists the services the Regional Center will provide. Nothing is purchasable unless it is in the IPP — and you can request a review meeting at any time, not just annually.',
+        'El Plan de Programa Individual enumera los servicios que el Centro Regional proveerá. Nada se puede comprar si no está en el IPP — y usted puede pedir una reunión de revisión en cualquier momento, no solo una vez al año.',
+        'Kế hoạch Chương trình Cá nhân (IPP) liệt kê các dịch vụ Trung tâm Khu vực sẽ cung cấp. Không có gì được chi trả nếu không nằm trong IPP — và quý vị có thể yêu cầu họp xem xét bất cứ lúc nào, không chỉ mỗi năm một lần.'
+      ),
       citation: 'W&I §4646 · §4646.5(b)',
-      clock: es
-        ? 'IPP dentro de 60 días tras la evaluación. Reunión de revisión solicitada: dentro de 30 días.'
-        : 'IPP within 60 days of assessment. A requested review meeting: within 30 days.',
+      clock: L(
+        'IPP within 60 days of assessment. A requested review meeting: within 30 days.',
+        'IPP dentro de 60 días tras la evaluación. Reunión de revisión solicitada: dentro de 30 días.',
+        'IPP trong 60 ngày sau đánh giá. Họp xem xét theo yêu cầu: trong 30 ngày.'
+      ),
       leverTemplate: 'ipp_review_request',
-      leverLabel: es ? 'Pedir una reunión del IPP (plazo de 30 días)' : 'Request an IPP meeting (30-day clock)',
+      leverLabel: L(
+        'Request an IPP meeting (30-day clock)',
+        'Pedir una reunión del IPP (plazo de 30 días)',
+        'Yêu cầu họp IPP (thời hạn 30 ngày)'
+      ),
       actionKeys: [],
     },
     {
       key: 'services',
-      title: es ? 'Los servicios se autorizan — o se niegan' : 'Services get authorized — or denied',
-      body: es
-        ? 'Cada servicio del IPP se convierte en una autorización escrita a un proveedor. Un "no" verbal no es una decisión: usted tiene derecho a recibirla por escrito, con sus derechos de apelación.'
-        : 'Each IPP service becomes a written authorization to a provider. A verbal "no" is not a decision: you are entitled to it in writing, with your appeal rights.',
+      title: L(
+        'Services get authorized — or denied',
+        'Los servicios se autorizan — o se niegan',
+        'Dịch vụ được duyệt — hoặc bị từ chối'
+      ),
+      body: L(
+        'Each IPP service becomes a written authorization to a provider. A verbal "no" is not a decision: you are entitled to it in writing, with your appeal rights.',
+        'Cada servicio del IPP se convierte en una autorización escrita a un proveedor. Un "no" verbal no es una decisión: usted tiene derecho a recibirla por escrito, con sus derechos de apelación.',
+        'Mỗi dịch vụ IPP trở thành giấy ủy quyền bằng văn bản cho nhà cung cấp. Lời từ chối miệng không phải là quyết định: quý vị có quyền nhận nó bằng văn bản, kèm quyền kháng cáo.'
+      ),
       citation: 'W&I §4710',
-      clock: es
-        ? 'Las autorizaciones no tienen plazo fijo — pida todo por escrito y déle seguimiento.'
-        : 'No fixed clock on authorizations — put requests in writing and track them.',
+      clock: L(
+        'No fixed clock on authorizations — put requests in writing and track them.',
+        'Las autorizaciones no tienen plazo fijo — pida todo por escrito y déle seguimiento.',
+        'Ủy quyền không có thời hạn cố định — hãy yêu cầu bằng văn bản và theo dõi.'
+      ),
       leverTemplate: 'noa_request',
-      leverLabel: es ? 'Exigir una Notificación de Acción por escrito' : 'Demand a written Notice of Action',
+      leverLabel: L(
+        'Demand a written Notice of Action',
+        'Exigir una Notificación de Acción por escrito',
+        'Yêu cầu Thông báo Hành động bằng văn bản'
+      ),
       actionKeys: [],
     },
   ];
@@ -100,23 +149,31 @@ export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
 
 /** The fork: what most families are never told. */
 export function getSdpFork(locale: FunnelLocale = 'en'): ProcessStage {
-  const es = locale === 'es';
+  const L = picker(locale);
   return {
     key: 'sdp',
-    title: es
-      ? 'El camino que nadie menciona: la Autodeterminación'
-      : 'The path nobody mentions: Self-Determination',
-    body: es
-      ? 'En lugar de que el Centro Regional compre servicios autorización por autorización, los servicios de su hijo/a pueden convertirse en un presupuesto anual que su familia dirige. Casi todos los niños del Centro Regional califican — solo ~1.5% está inscrito. Su presupuesto inicial se basa en los últimos 12 meses de servicios autorizados más las necesidades documentadas en el IPP, así que documente las necesidades ANTES de cambiar.'
-      : 'Instead of the Regional Center buying services one authorization at a time, your child’s services can become an annual budget your family directs. Nearly every Regional Center child qualifies — about 1.5% are enrolled. Your starting budget is built from the last 12 months of authorized services plus unmet needs documented in the IPP, so document needs BEFORE converting.',
+    title: L(
+      'The path nobody mentions: Self-Determination',
+      'El camino que nadie menciona: la Autodeterminación',
+      'Con đường ít ai nhắc đến: Tự quyết'
+    ),
+    body: L(
+      'Instead of the Regional Center buying services one authorization at a time, your child’s services can become an annual budget your family directs. Nearly every Regional Center child qualifies — about 1.5% are enrolled. Your starting budget is built from the last 12 months of authorized services plus unmet needs documented in the IPP, so document needs BEFORE converting.',
+      'En lugar de que el Centro Regional compre servicios autorización por autorización, los servicios de su hijo/a pueden convertirse en un presupuesto anual que su familia dirige. Casi todos los niños del Centro Regional califican — solo ~1.5% está inscrito. Su presupuesto inicial se basa en los últimos 12 meses de servicios autorizados más las necesidades documentadas en el IPP, así que documente las necesidades ANTES de cambiar.',
+      'Thay vì Trung tâm Khu vực mua dịch vụ theo từng giấy ủy quyền, dịch vụ của con quý vị có thể trở thành ngân sách hằng năm do gia đình điều hành. Hầu hết trẻ của Trung tâm Khu vực đều đủ điều kiện — chỉ ~1.5% ghi danh. Ngân sách khởi điểm dựa trên 12 tháng dịch vụ đã duyệt gần nhất cộng với nhu cầu chưa đáp ứng có ghi trong IPP, vì vậy hãy ghi nhận nhu cầu TRƯỚC KHI chuyển đổi.'
+    ),
     citation: 'W&I §4685.8',
-    clock: es
-      ? 'La inscripción no tiene plazo obligatorio — típicamente 3–12 meses. La regla de la reunión de 30 días es su herramienta en cada paso.'
-      : 'No enforceable clock on enrollment — typically 3–12 months. The 30-day IPP-meeting rule is your lever at every step.',
+    clock: L(
+      'No enforceable clock on enrollment — typically 3–12 months. The 30-day IPP-meeting rule is your lever at every step.',
+      'La inscripción no tiene plazo obligatorio — típicamente 3–12 meses. La regla de la reunión de 30 días es su herramienta en cada paso.',
+      'Ghi danh không có thời hạn bắt buộc — thường 3–12 tháng. Quy tắc họp IPP 30 ngày là công cụ của quý vị ở mỗi bước.'
+    ),
     leverTemplate: 'sdp_info_request',
-    leverLabel: es
-      ? 'Preguntar por la Autodeterminación por escrito'
-      : 'Ask about Self-Determination in writing',
+    leverLabel: L(
+      'Ask about Self-Determination in writing',
+      'Preguntar por la Autodeterminación por escrito',
+      'Hỏi về Tự quyết bằng văn bản'
+    ),
     actionKeys: ['sdp_ask_in_writing'],
   };
 }

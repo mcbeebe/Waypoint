@@ -7,14 +7,14 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
-import { deriveEligibility, ageFromDob } from '@/lib/eligibility';
+import { deriveEligibility, ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { EligibilityStatus, FunnelLocale } from '@/lib/eligibility';
 import { sdpAvailable } from '@/lib/processMap';
 import { trackFunnelStep } from '@/lib/analytics';
 import { useI18n } from '@/i18n';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
-/** Screen chrome in EN/ES. Vietnamese falls back to English for now. */
+/** Screen chrome in EN/ES/VI. */
 const STRINGS: Record<FunnelLocale, {
   eyebrow: string;
   heroTitle: (name: string, count: number) => string;
@@ -57,6 +57,21 @@ const STRINGS: Record<FunnelLocale, {
     footerNote: 'Gratis. Sin tarjeta. Nunca vendemos sus datos.',
     yourChild: 'Su hijo/a',
   },
+  vi: {
+    eyebrow: 'KẾT QUẢ CỦA QUÝ VỊ',
+    heroTitle: (name, count) =>
+      `${name} có thể đủ điều kiện cho ${count} chương trình đáng theo đuổi`,
+    heroSub: (rc) =>
+      `Dựa trên những gì quý vị cho biết${rc ? ` — được phục vụ bởi ${rc}` : ''}. Mỗi mục đều ghi rõ quy định làm căn cứ và ngày chúng tôi kiểm tra lần cuối.`,
+    reviewed: 'đã kiểm tra',
+    trustLead: 'Vì sao quý vị có thể tin điều này. ',
+    trustBody:
+      'Không có gì ở đây là phỏng đoán — và khi điều gì phụ thuộc vào thông tin chúng tôi chưa có (như thu nhập), chúng tôi ghi "cần xem xét" thay vì hứa hẹn.',
+    ctaOffer: 'Xem cách nhận các quyền lợi này — trợ giúp miễn phí',
+    ctaMap: 'Xem cách nhận các quyền lợi này →',
+    footerNote: 'Miễn phí. Không cần thẻ. Chúng tôi không bao giờ bán dữ liệu của quý vị.',
+    yourChild: 'Con quý vị',
+  },
 };
 
 const STATUS_STYLE: Record<EligibilityStatus, { bg: string; fg: string; border: string }> = {
@@ -73,7 +88,7 @@ export default function EligibilityResultScreen() {
   const child = children[0];
   const { diagnoses } = useDiagnoses(child?.id);
   const { locale } = useI18n();
-  const funnelLocale: FunnelLocale = locale === 'es' ? 'es' : 'en';
+  const funnelLocale: FunnelLocale = toFunnelLocale(locale);
   const S = STRINGS[funnelLocale];
 
   const result = useMemo(
