@@ -300,3 +300,42 @@ export function useOwnerMetrics() {
 
   return { metrics, loading };
 }
+
+// ─── W3 evidence readout data (one-shot fetch) ──────────────────────────────
+
+import type { EvidenceInputs } from '@/lib/evidenceReport';
+
+/**
+ * Raw rows for the exportable evidence readout (ROADMAP W3). Supervisor/
+ * admin RLS applies — a facilitator gets partial rows and the readout says
+ * so via its n-counts rather than erroring.
+ */
+export async function fetchEvidenceInputs(): Promise<EvidenceInputs> {
+  const [funnelRes, evRes, caseRes, baseRes, invRes] = await Promise.all([
+    supabase
+      .from('analytics_events')
+      .select('family_id, event_data')
+      .eq('event_type', 'funnel_step'),
+    supabase.from('service_events').select('family_id, case_id, minutes'),
+    supabase.from('sdp_cases').select('id, stage, agreed_annual_price_cents').is('closed_on', null),
+    supabase
+      .from('family_baselines')
+      .select('case_id, kind, coordination_hours_per_week, caregiver_strain'),
+    supabase.from('invoices').select('status, payer_type, total_cents'),
+  ]);
+  return {
+    funnelEvents: (funnelRes.data ?? []).map((r) => {
+      const d = (r.event_data ?? {}) as { step?: string; source?: string | null; language?: string | null };
+      return {
+        family_id: r.family_id,
+        step: d.step ?? '',
+        source: d.source ?? null,
+        language: d.language ?? null,
+      };
+    }),
+    serviceEvents: evRes.data ?? [],
+    cases: caseRes.data ?? [],
+    baselines: baseRes.data ?? [],
+    invoices: invRes.data ?? [],
+  };
+}

@@ -3,12 +3,15 @@
  * as first-class metrics with their targets shown, plus the funnel. The
  * go/no-go memo in W3 reads these same figures.
  */
-import React from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, Pressable, StyleSheet, Platform, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useOwnerMetrics } from '@/hooks/useBilling';
+import { useOwnerMetrics, fetchEvidenceInputs } from '@/hooks/useBilling';
+import { buildEvidenceReport, renderEvidenceHtml } from '@/lib/evidenceReport';
+import { FUNNEL_GATE, HOURS_PER_FAMILY_MODEL } from '@/lib/evidenceTargets';
 import { formatCents } from '@/lib/spendingPlan';
+import { useToast } from '@/components/Toast';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 const FUNNEL_ORDER: Array<[string, string]> = [
@@ -20,14 +23,45 @@ const FUNNEL_ORDER: Array<[string, string]> = [
   ['became_client', 'Became a client'],
 ];
 
-/** Phase-1 hours-per-family model assumption the readout tests against. */
-const HOURS_PER_FAMILY_TARGET = 30;
-/** Funnel gate from the PRD: ≥3% registered → booked. */
-const CONVERSION_TARGET = 0.03;
+// Gates live in evidenceTargets so this screen and the exported readout
+// can never disagree on what "pass" means.
+const HOURS_PER_FAMILY_TARGET = HOURS_PER_FAMILY_MODEL;
+const CONVERSION_TARGET = FUNNEL_GATE;
 
 export default function ScorecardScreen() {
   const navigation = useNavigation();
   const { metrics, loading } = useOwnerMetrics();
+  const { showToast } = useToast();
+  const [exporting, setExporting] = useState(false);
+
+  /**
+   * W3: the go/no-go memo's data section, generated from live rows. Web
+   * opens the printable document in a new tab; native shares the summary.
+   */
+  const exportReadout = async () => {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const report = buildEvidenceReport(await fetchEvidenceInputs());
+      if (Platform.OS === 'web') {
+        const blob = new Blob([renderEvidenceHtml(report)], { type: 'text/html' });
+        window.open(URL.createObjectURL(blob), '_blank');
+      } else {
+        await Share.share({
+          message:
+            `Waypoint evidence readout ${report.generatedOn}\n` +
+            `Pipeline: ${formatCents(report.pipelineValueCents)} · Invoiced: ${formatCents(report.invoicedCents)} (paid ${formatCents(report.paidCents)}, n=${report.paidInvoiceCount})\n` +
+            `Hours/family: ${report.hoursPerFamily ?? '—'}h (n=${report.familiesWithTime}, model ≤${HOURS_PER_FAMILY_MODEL}h)\n` +
+            `Free→booked: ${report.conversion === null ? '—' : `${Math.round(report.conversion * 1000) / 10}%`} (${report.booked}/${report.registered}, gate ≥${FUNNEL_GATE * 100}%)\n` +
+            `Verdicts — funnel: ${report.funnelVerdict ?? 'insufficient data'} · hours: ${report.hoursVerdict ?? 'insufficient data'} · paid invoice: ${report.paidInvoiceVerdict}`,
+        });
+      }
+    } catch {
+      showToast("Couldn't build the readout — please try again.", 'error');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const conversionPct =
     metrics?.conversion !== null && metrics?.conversion !== undefined
@@ -45,6 +79,16 @@ export default function ScorecardScreen() {
           The four numbers the Phase-1 go/no-go decision reads. Targets shown
           against actuals — no vanity framing.
         </Text>
+        <Pressable
+          style={styles.exportButton}
+          onPress={exportReadout}
+          accessibilityRole="button"
+          accessibilityLabel="Export the evidence readout"
+        >
+          <Text style={styles.exportButtonText}>
+            {exporting ? 'Building…' : '📄 Export evidence readout'}
+          </Text>
+        </Pressable>
 
         {loading || !metrics ? (
           <Text style={styles.loadingText}>Loading…</Text>
@@ -131,6 +175,17 @@ const styles = StyleSheet.create({
   title: { fontSize: fonts.sizes['2xl'], fontWeight: fonts.weights.extrabold, color: colors.navy },
   subtitle: { marginTop: spacing.xs, fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18 },
   loadingText: { marginTop: spacing.lg, color: colors.mid },
+  exportButton: {
+    marginTop: spacing.md,
+    minHeight: 44,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.teal,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exportButtonText: { color: colors.teal, fontWeight: fonts.weights.bold },
   grid: {
     marginTop: spacing.base,
     flexDirection: 'row',

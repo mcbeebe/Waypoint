@@ -28,6 +28,7 @@ import { Card, Chip, SkeletonCard } from '@/components/ui';
 import EmptyState from '@/components/EmptyState';
 import { useTextScale } from '@/lib/textSize';
 import type { Document, DocumentType } from '@/types/database';
+import { usePremiumGuard } from '@/hooks/usePremiumGuard';
 import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
 
 const TYPE_OPTIONS: Array<{ key: DocumentType; label: string; emoji: string }> = [
@@ -59,6 +60,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 export default function DocumentsScreen() {
+  const { guard } = usePremiumGuard();
   const navigation = useNavigation();
   const { family, updateFamily } = useFamily();
   const familyId = family?.id ?? '';
@@ -120,6 +122,9 @@ export default function DocumentsScreen() {
 
   const handleShare = async (doc: Document, seconds: number, label: string) => {
     setShareDocId(null);
+    // Premium (E3): share links are part of the document binder tier —
+    // uploading and viewing your own documents stays free
+    if (!guard('Document sharing links')) return;
     const link = await createShareLink(doc, seconds);
     if (link) {
       await Clipboard.setStringAsync(link);
