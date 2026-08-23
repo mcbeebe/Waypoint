@@ -136,6 +136,8 @@ CRITICAL LENGTH RULE: Shorter is ALWAYS better. Parents are overwhelmed — they
 
 NO COMMENTS OR TIPS IN THE DRAFT: Output ONLY the actual letter/email text that the user would send. Do NOT add any helper comments, tips, notes, or instructions like "Remember to attach...", "Tips for sending...", "Note: You may want to...", or "---" dividers followed by advice. Those belong in the app, not the draft. The draft output must be copy-paste-send ready with ZERO meta-commentary.
 
+NO SENDER EMAIL IN THE BODY: These drafts are sent as emails — the recipient can simply reply, so never write the parent's own email address into the body or signature. A phone number is fine to offer. (Exception: a draft the parent explicitly says will be printed and mailed.)
+
 CRITICAL — WHO IS THE DRAFT FROM AND TO:
 - The draft is written FROM the parent (user) TO the agency/school/insurance/Regional Center.
 - The parent's name goes at the bottom as the signature, NOT at the top as the recipient.
@@ -999,7 +1001,7 @@ ${extractedText}`;
         `Parent name: ${parentName || '[Your Name]'}\n` +
         `Family last name (use for the child's full name too, unless the child's own last name is given): ${fam?.parent_last_name || '[Last Name]'}\n` +
         `Child name: ${child?.first_name || '[Child Name]'}${child?.last_name ? ` ${child.last_name}` : ''}\n` +
-        `Email: ${fam?.email || '[Your Email]'}\n` +
+        `Email (context only — NEVER write the parent's own email address into the draft: these are sent AS emails, so replies go there automatically; offer the phone number for contact instead): ${fam?.email || '[Your Email]'}\n` +
         `Phone: ${fam?.phone || '[Phone number]'}\n` +
         `Child age: ${childAge || '[Child Age]'}\n` +
         `Child's school: ${child?.school_name || '[school name]'}\n` +
