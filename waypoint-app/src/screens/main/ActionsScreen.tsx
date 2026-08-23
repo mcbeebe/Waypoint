@@ -31,6 +31,7 @@ import SwipeableRow, { type SwipeAction } from '@/components/SwipeableRow';
 import ActionFormModal, { type ActionFormValues } from '@/components/ActionFormModal';
 import { FOLLOWUPS } from '@/lib/adaptiveEngine';
 import { trackActionOutcome } from '@/lib/analytics';
+import { useI18n } from '@/i18n';
 import { SkeletonCard } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
@@ -135,6 +136,9 @@ export default function ActionsScreen() {
       return b.created_at.localeCompare(a.created_at);
     });
   }, [actions]);
+
+  const { locale } = useI18n();
+  const esUI = locale === 'es';
 
   // Focus view: a full plan is 8+ items and reads as a wall. The default
   // "All" view shows the next 3 doable steps (unlocked, not done) and
@@ -312,7 +316,9 @@ export default function ActionsScreen() {
         ListHeaderComponent={
           focusMode && visibleActions.length > 0 ? (
             <Text style={styles.focusHint}>
-              Start here — your next {visibleActions.length === 1 ? 'step' : `${visibleActions.length} steps`}. One at a time is the plan.
+              {esUI
+                ? `Empiece aquí — ${visibleActions.length === 1 ? 'su siguiente paso' : `sus siguientes ${visibleActions.length} pasos`}. Uno a la vez es el plan.`
+                : `Start here — your next ${visibleActions.length === 1 ? 'step' : `${visibleActions.length} steps`}. One at a time is the plan.`}
             </Text>
           ) : null
         }
@@ -326,8 +332,8 @@ export default function ActionsScreen() {
             >
               <Text style={styles.focusToggleText}>
                 {focusMode
-                  ? `Show everything (${hiddenCount} more) ↓`
-                  : 'Focus on my next 3 ↑'}
+                  ? esUI ? `Ver todo (${hiddenCount} más) ↓` : `Show everything (${hiddenCount} more) ↓`
+                  : esUI ? 'Enfocar mis siguientes 3 ↑' : 'Focus on my next 3 ↑'}
               </Text>
             </TouchableOpacity>
           ) : null
