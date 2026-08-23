@@ -40,6 +40,11 @@ import { useI18n } from '@/i18n';
 import { trackDraftUsed } from '@/lib/analytics';
 import { logCommunication, markCommunicationSent } from '@/hooks/useCommunications';
 import type { CommunicationOrg } from '@/hooks/useCommunications';
+import { useRequests } from '@/hooks/useRequests';
+import { sentNextFor } from '@/lib/sentNext';
+import type { SentNext } from '@/lib/sentNext';
+import { deadlineFor } from '@/lib/requestClocks';
+import type { RequestDeadline } from '@/lib/requestClocks';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -191,6 +196,15 @@ export default function LettersScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, template, family?.id]);
 
+  // The sent moment (owner feedback): a send deserves a congratulation,
+  // the next step, and honest expectations — plus automatic clock tracking.
+  const { requests, createRequest } = useRequests(family?.id);
+  const [sentMoment, setSentMoment] = useState<{
+    next: SentNext;
+    deadline: RequestDeadline | null;
+    tracked: boolean;
+  } | null>(null);
+
   /** The parent confirms it actually went out. */
   const handleMarkSent = useCallback(async () => {
     const id = savedIdRef.current ?? (await saveDraftOnce());
@@ -200,8 +214,43 @@ export default function LettersScreen() {
     }
     const ok = await markCommunicationSent(id);
     setMarkedSent(ok);
-    showToast(ok ? 'Marked as sent — saved to your paper trail' : "Couldn't mark it sent.", ok ? 'success' : 'error');
-  }, [saveDraftOnce, showToast]);
+    if (!ok) {
+      showToast("Couldn't mark it sent.", 'error');
+      return;
+    }
+    const next = template ? sentNextFor(template.key, primaryChild?.first_name) : null;
+    if (!next) {
+      showToast('Marked as sent — saved to your paper trail', 'success');
+      return;
+    }
+    // Open the tracked request (once): the Request Tracker owns the clock
+    // from here. An existing live row of the same title is not duplicated.
+    let tracked = false;
+    if (next.track) {
+      const already = requests.some(
+        (r) =>
+          r.title === next.track!.title &&
+          (r.status === 'requested' || r.status === 'in_progress')
+      );
+      if (already) {
+        tracked = true;
+      } else {
+        const created = await createRequest({
+          request_type: next.track.requestType,
+          title: next.track.title,
+          requested_on: new Date().toISOString().slice(0, 10),
+          child_id: primaryChild?.id ?? null,
+          channel: 'email',
+          notes: 'Sent via Waypoint Letters',
+        });
+        tracked = !!created;
+      }
+    }
+    const deadline = next.track
+      ? deadlineFor(next.track.requestType, new Date().toISOString().slice(0, 10))
+      : null;
+    setSentMoment({ next, deadline, tracked });
+  }, [saveDraftOnce, showToast, template, primaryChild?.first_name, primaryChild?.id, requests, createRequest]);
 
   const handleCopy = useCallback(async () => {
     if (!draft) return;
@@ -277,6 +326,7 @@ export default function LettersScreen() {
     savedIdRef.current = null;
     setSavedId(null);
     setMarkedSent(false);
+    setSentMoment(null);
     setDraft(null);
     setTemplate(null);
     setQuestion('');
@@ -484,7 +534,43 @@ export default function LettersScreen() {
             {/* Saving a draft and confirming it went out are different acts —
                 the paper trail should reflect which one happened */}
             <View style={styles.trackBox}>
-              {markedSent ? (
+              {markedSent && sentMoment ? (
+                <View style={styles.sentMoment}>
+                  <Text style={styles.sentCelebration}>🎉 {sentMoment.next.celebration}</Text>
+                  <Text style={styles.sentDid}>{sentMoment.next.did}</Text>
+                  {sentMoment.deadline && (
+                    <View style={styles.sentClockChip}>
+                      <Text style={styles.sentClockText}>
+                        ⏱ Their deadline: {sentMoment.deadline.dueOn} ({sentMoment.deadline.daysRemaining} days) · {sentMoment.deadline.citation}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={styles.sentSection}>WHAT HAPPENS NOW</Text>
+                  {sentMoment.next.expectations.map((e, i) => (
+                    <View key={i} style={styles.sentBulletRow}>
+                      <Text style={styles.sentBulletNum}>{i + 1}.</Text>
+                      <Text style={styles.sentBulletText}>{e}</Text>
+                    </View>
+                  ))}
+                  {sentMoment.tracked && (
+                    <TouchableOpacity
+                      style={styles.sentTrackButton}
+                      onPress={() =>
+                        (navigation as never as { navigate: (n: string) => void }).navigate('RequestTracker')
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel="See this request in your tracker"
+                    >
+                      <Text style={styles.sentTrackButtonText}>
+                        ✓ Waypoint is tracking this — see it in Requests →
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  <Text style={styles.sentFollowUp}>
+                    Hear nothing in {sentMoment.next.followUpDays} days? Come back — the follow-up letter is one tap.
+                  </Text>
+                </View>
+              ) : markedSent ? (
                 <Text style={styles.trackSent}>
                   ✅ Marked as sent — it's in your paper trail
                 </Text>
@@ -723,6 +809,43 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   actionRow: { flexDirection: 'row', gap: spacing.sm },
+  sentMoment: { gap: spacing.sm },
+  sentCelebration: {
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.extrabold,
+    color: colors.navy,
+    lineHeight: 24,
+  },
+  sentDid: { fontSize: fonts.sizes.md, color: colors.dark, lineHeight: 20 },
+  sentClockChip: {
+    backgroundColor: '#FDF3E3',
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  sentClockText: { color: '#92600A', fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
+  sentSection: {
+    marginTop: spacing.xs,
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    letterSpacing: 1,
+    color: colors.mid,
+  },
+  sentBulletRow: { flexDirection: 'row', gap: spacing.sm },
+  sentBulletNum: { fontWeight: fonts.weights.extrabold, color: colors.teal, fontSize: fonts.sizes.sm },
+  sentBulletText: { flex: 1, fontSize: fonts.sizes.sm, color: colors.dark, lineHeight: 19 },
+  sentTrackButton: {
+    marginTop: spacing.xs,
+    minHeight: 44,
+    borderRadius: radii.md,
+    backgroundColor: colors.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  sentTrackButtonText: { color: colors.white, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.sm },
+  sentFollowUp: { fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18 },
   trackBox: {
     backgroundColor: colors.white,
     borderWidth: 1,
