@@ -33,11 +33,11 @@ create policy "Authenticated read content sources" on public.content_sources
 create policy "Admins manage content sources" on public.content_sources for all
   using (exists (
     select 1 from public.profiles p
-    where p.id = auth.uid() and p.role = 'admin'
+    where p.user_id = auth.uid() and p.role = 'admin'
   ))
   with check (exists (
     select 1 from public.profiles p
-    where p.id = auth.uid() and p.role = 'admin'
+    where p.user_id = auth.uid() and p.role = 'admin'
   ));
 
 -- Seed — mirrors src/data/contentSources.ts as of 2026-08-23

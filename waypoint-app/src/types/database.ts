@@ -752,3 +752,153 @@ export interface FamilyAssignment {
   revoked_at: string | null;
   created_at: string;
 }
+
+// ─── Facilitation workspace (039/040) ───────────────────────────────────────
+
+/** The 5-stage pipeline (plus bookends) a facilitated family moves through */
+export type SdpCaseStage =
+  | 'intake'
+  | 'orientation'
+  | 'pcp'
+  | 'budget_certification'
+  | 'spending_plan'
+  | 'active'
+  | 'closed';
+
+export interface SdpCase {
+  id: string;
+  organization_id: string;
+  family_id: string;
+  child_id: string | null;
+  facilitator_staff_id: string | null;
+  stage: SdpCaseStage;
+  agreed_annual_price_cents: number | null;
+  certified_budget_cents: number | null;
+  pcp_draft: Record<string, unknown>;
+  pcp_completed_at: string | null;
+  orientation_done_on: string | null;
+  budget_certified_on: string | null;
+  spending_plan_approved_on: string | null;
+  started_service_on: string | null;
+  last_contact_on: string | null;
+  closed_on: string | null;
+  close_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** The one canonical time-capture model (conflict C-3(b)) */
+export type ServiceActivityType =
+  | 'intake_call'
+  | 'orientation'
+  | 'pcp'
+  | 'transition_099'
+  | 'facilitation'
+  | 'admin'
+  | 'other';
+
+export interface ServiceEvent {
+  id: string;
+  organization_id: string;
+  staff_id: string;
+  family_id: string;
+  case_id: string | null;
+  activity_type: ServiceActivityType;
+  minutes: number;
+  occurred_on: string;
+  notes: string | null;
+  billable: boolean;
+  appointment_id: string | null;
+  created_at: string;
+}
+
+export interface TransitionExtension {
+  id: string;
+  case_id: string;
+  requested_on: string;
+  approved_on: string | null;
+  additional_hours: number;
+  approved_by: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface SpendingPlanLine {
+  id: string;
+  case_id: string;
+  category: string;
+  provider_name: string;
+  service_code: string | null;
+  annual_amount_cents: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type BaselineKind = 'baseline' | '6mo' | '12mo';
+
+export interface FamilyBaseline {
+  id: string;
+  case_id: string;
+  family_id: string;
+  kind: BaselineKind;
+  captured_on: string;
+  services_in_place: string | null;
+  unmet_needs: string | null;
+  coordination_hours_per_week: number | null;
+  caregiver_strain: number | null;
+  remeasure_due_on: string | null;
+  created_at: string;
+}
+
+export type InvoicePayerType = 'regional_center' | 'fms';
+export type InvoiceStatus = 'draft' | 'submitted' | 'paid' | 'void';
+
+export interface Invoice {
+  id: string;
+  organization_id: string;
+  invoice_number: string;
+  payer_type: InvoicePayerType;
+  payer_name: string;
+  family_id: string | null;
+  case_id: string | null;
+  status: InvoiceStatus;
+  period_start: string | null;
+  period_end: string | null;
+  issued_on: string | null;
+  due_on: string | null;
+  paid_on: string | null;
+  total_cents: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvoiceLine {
+  id: string;
+  invoice_id: string;
+  service_event_id: string | null;
+  description: string;
+  service_code: string | null;
+  quantity: number;
+  unit_price_cents: number;
+  amount_cents: number;
+  created_at: string;
+}
+
+export type VendorPacketStatus = 'draft' | 'submitted' | 'vendored' | 'rejected';
+
+export interface VendorPacket {
+  id: string;
+  organization_id: string;
+  packet_type: '024' | '099' | 'fms';
+  regional_center: string;
+  status: VendorPacketStatus;
+  submitted_on: string | null;
+  vendored_on: string | null;
+  vendor_number: string | null;
+  checklist: Record<string, unknown>;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
