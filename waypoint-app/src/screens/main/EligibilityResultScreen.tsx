@@ -8,10 +8,56 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { deriveEligibility, ageFromDob } from '@/lib/eligibility';
-import type { EligibilityStatus } from '@/lib/eligibility';
+import type { EligibilityStatus, FunnelLocale } from '@/lib/eligibility';
 import { sdpAvailable } from '@/lib/processMap';
 import { trackFunnelStep } from '@/lib/analytics';
+import { useI18n } from '@/i18n';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+
+/** Screen chrome in EN/ES. Vietnamese falls back to English for now. */
+const STRINGS: Record<FunnelLocale, {
+  eyebrow: string;
+  heroTitle: (name: string, count: number) => string;
+  heroSub: (rc: string | null | undefined) => string;
+  reviewed: string;
+  trustLead: string;
+  trustBody: string;
+  ctaOffer: string;
+  ctaMap: string;
+  footerNote: string;
+  yourChild: string;
+}> = {
+  en: {
+    eyebrow: 'YOUR RESULT',
+    heroTitle: (name, count) =>
+      `${name} may qualify for ${count} ${count === 1 ? 'thing' : 'things'} worth pursuing`,
+    heroSub: (rc) =>
+      `Based on what you told us${rc ? ` — served by ${rc}` : ''}. Every item cites the rule it comes from and the date we last checked it.`,
+    reviewed: 'reviewed',
+    trustLead: 'Why you can trust this. ',
+    trustBody:
+      'Nothing here is a guess — and when something depends on facts we don’t have (like income), we say "needs review" instead of promising.',
+    ctaOffer: 'See how to get these — free help',
+    ctaMap: 'See how to get these →',
+    footerNote: 'Free. No card. We never sell your data.',
+    yourChild: 'Your child',
+  },
+  es: {
+    eyebrow: 'SU RESULTADO',
+    heroTitle: (name, count) =>
+      `${name} podría calificar para ${count} ${count === 1 ? 'programa que vale la pena' : 'programas que valen la pena'}`,
+    heroSub: (rc) =>
+      `Basado en lo que nos contó${rc ? ` — atendido por ${rc}` : ''}. Cada punto cita la regla de la que proviene y la fecha en que la verificamos por última vez.`,
+    reviewed: 'revisado',
+    trustLead: 'Por qué puede confiar en esto. ',
+    trustBody:
+      'Nada aquí es una suposición — y cuando algo depende de datos que no tenemos (como los ingresos), decimos "requiere revisión" en lugar de prometer.',
+    ctaOffer: 'Vea cómo obtenerlos — ayuda gratuita',
+    ctaMap: 'Vea cómo obtenerlos →',
+    footerNote: 'Gratis. Sin tarjeta. Nunca vendemos sus datos.',
+    yourChild: 'Su hijo/a',
+  },
+};
 
 const STATUS_STYLE: Record<EligibilityStatus, { bg: string; fg: string; border: string }> = {
   enrolled: { bg: semantic.successBg, fg: semantic.success, border: semantic.success },
@@ -26,16 +72,22 @@ export default function EligibilityResultScreen() {
   const { children } = useChildren(family?.id);
   const child = children[0];
   const { diagnoses } = useDiagnoses(child?.id);
+  const { locale } = useI18n();
+  const funnelLocale: FunnelLocale = locale === 'es' ? 'es' : 'en';
+  const S = STRINGS[funnelLocale];
 
   const result = useMemo(
     () =>
-      deriveEligibility({
-        ageYears: ageFromDob(child?.date_of_birth),
-        rcStatus: child?.rc_status,
-        iepStatus: child?.iep_status,
-        hasDiagnosis: diagnoses.length > 0,
-      }),
-    [child?.date_of_birth, child?.rc_status, child?.iep_status, diagnoses.length]
+      deriveEligibility(
+        {
+          ageYears: ageFromDob(child?.date_of_birth),
+          rcStatus: child?.rc_status,
+          iepStatus: child?.iep_status,
+          hasDiagnosis: diagnoses.length > 0,
+        },
+        funnelLocale
+      ),
+    [child?.date_of_birth, child?.rc_status, child?.iep_status, diagnoses.length, funnelLocale]
   );
 
   // Funnel: fire once per mount, once family context is known (B4).
@@ -49,23 +101,16 @@ export default function EligibilityResultScreen() {
     }
   }, [family?.id, family?.regional_center]);
 
-  const childName = child?.first_name || 'Your child';
+  const childName = child?.first_name || S.yourChild;
   const offerAvailable = sdpAvailable(child?.rc_status);
 
   return (
     <View style={styles.root}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.hero}>
-          <Text style={styles.heroEyebrow}>YOUR RESULT</Text>
-          <Text style={styles.heroTitle}>
-            {childName} may qualify for {result.likelyCount}{' '}
-            {result.likelyCount === 1 ? 'thing' : 'things'} worth pursuing
-          </Text>
-          <Text style={styles.heroSub}>
-            Based on what you told us
-            {family?.regional_center ? ` — served by ${family.regional_center}` : ''}. Every
-            item cites the rule it comes from and the date we last checked it.
-          </Text>
+          <Text style={styles.heroEyebrow}>{S.eyebrow}</Text>
+          <Text style={styles.heroTitle}>{S.heroTitle(childName, result.likelyCount)}</Text>
+          <Text style={styles.heroSub}>{S.heroSub(family?.regional_center)}</Text>
         </View>
 
         {result.cards.map((card) => {
@@ -86,7 +131,7 @@ export default function EligibilityResultScreen() {
                 </View>
               )}
               <Text style={styles.citation}>
-                ⓘ {card.citation} · reviewed {card.reviewedOn}
+                ⓘ {card.citation} · {S.reviewed} {card.reviewedOn}
               </Text>
             </View>
           );
@@ -94,9 +139,8 @@ export default function EligibilityResultScreen() {
 
         <View style={styles.trust}>
           <Text style={styles.trustText}>
-            <Text style={styles.trustLead}>Why you can trust this. </Text>
-            Nothing here is a guess — and when something depends on facts we don&apos;t
-            have (like income), we say &quot;needs review&quot; instead of promising.
+            <Text style={styles.trustLead}>{S.trustLead}</Text>
+            {S.trustBody}
           </Text>
         </View>
       </ScrollView>
@@ -110,11 +154,9 @@ export default function EligibilityResultScreen() {
               : (navigation as any).navigate('ProcessMap')
           }
         >
-          <Text style={styles.ctaText}>
-            {offerAvailable ? 'See how to get these — free help' : 'See how to get these →'}
-          </Text>
+          <Text style={styles.ctaText}>{offerAvailable ? S.ctaOffer : S.ctaMap}</Text>
         </Pressable>
-        <Text style={styles.footerNote}>Free. No card. We never sell your data.</Text>
+        <Text style={styles.footerNote}>{S.footerNote}</Text>
       </View>
     </View>
   );

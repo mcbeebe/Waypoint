@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decidePath } from './pathDecision';
+import { decidePath, getPathQuestions } from './pathDecision';
 import { LETTER_TEMPLATES } from './lettersCatalog';
 
 describe('decidePath', () => {
@@ -37,6 +37,27 @@ describe('decidePath', () => {
     });
     expect(r.recommendation).toBe('sdp_ready');
     expect(r.body).toContain('authorization history');
+  });
+
+  it('Spanish locale changes prose but never the recommendation or lever', () => {
+    const answers = {
+      hasAuthorizationHistory: true,
+      unmetNeedsDocumented: false,
+      wantsControl: true,
+    };
+    const en = decidePath(answers, 'en');
+    const es = decidePath(answers, 'es');
+    expect(es.recommendation).toBe(en.recommendation);
+    expect(es.leverTemplate).toBe(en.leverTemplate);
+    expect(es.headline).not.toBe(en.headline);
+    expect(es.body).toContain('IPP'); // domain terms survive translation
+  });
+
+  it('localized questions keep stable keys in both locales', () => {
+    const en = getPathQuestions('en');
+    const es = getPathQuestions('es');
+    expect(es.map((q) => q.key)).toEqual(en.map((q) => q.key));
+    expect(new Set(es.map((q) => q.label)).size).toBe(3);
   });
 
   it('every lever points at a real letter template', () => {

@@ -12,7 +12,109 @@ import { useAppointments } from '@/hooks/useAppointments';
 import { nextIntroSlots } from '@/lib/introSlots';
 import { trackFunnelStep } from '@/lib/analytics';
 import { useToast } from '@/components/Toast';
+import { useI18n } from '@/i18n';
+import type { FunnelLocale } from '@/lib/eligibility';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+
+/**
+ * Screen chrome in EN/ES; Vietnamese falls back to English for now. The
+ * appointment record itself (title/notes) stays English — it is shared
+ * operational data read by staff.
+ */
+const STRINGS: Record<FunnelLocale, {
+  title: string;
+  freeBadge: string;
+  navCardTitle: string;
+  navCardBody: string;
+  whoPays: string;
+  payEnrollLead: (name: string) => string;
+  payEnrollRest: (name: string) => string;
+  payAfterLead: (name: string) => string;
+  payAfterRest: string;
+  pledgeLead: (name: string) => string;
+  pledgeRest: string;
+  whatNext: string;
+  steps: Array<[string, string]>;
+  pickTime: string;
+  slotNote: string;
+  bookingLabel: string;
+  bookCta: (day: string, time: string) => string;
+  decline: string;
+  bookError: string;
+  confirmTitle: string;
+  confirmBody: (day: string, time: string) => string;
+  done: string;
+  yourChild: string;
+}> = {
+  en: {
+    title: 'Getting started',
+    freeBadge: '✓ No cost to you',
+    navCardTitle: 'Work with a Navigator, free to you',
+    navCardBody:
+      'A real person who has done this for their own child walks you through Self-Determination enrollment end to end.',
+    whoPays: 'Who pays for this?',
+    payEnrollLead: () => 'While you enroll: your Regional Center pays.',
+    payEnrollRest: (name) =>
+      ` Up to $1,000 for ${name}'s person-centered plan and up to 40 hours of transition help — billed to the Regional Center, not to you.`,
+    payAfterLead: (name) => `After you're enrolled: a line you approve in ${name}'s budget.`,
+    payAfterRest: ' You set the price with us, see it in the plan, and can stop at any time.',
+    pledgeLead: (name) => `We never sell services on ${name}'s plan.`,
+    pledgeRest:
+      ' State law (W&I §4685.8) makes your facilitator independent — our only loyalty is to you.',
+    whatNext: 'What happens next',
+    steps: [
+      ['A 30-minute call', ' — we confirm eligibility and answer your questions. No commitment.'],
+      ['We handle the paperwork', ' — orientation, the person-centered plan, your budget certification.'],
+      ['You approve everything', ' before anything is submitted.'],
+    ],
+    pickTime: 'Pick a time',
+    slotNote: 'Evening times available on request.',
+    bookingLabel: 'Booking…',
+    bookCta: (day, time) => `Book ${day} · ${time}`,
+    decline: 'Keep using Waypoint free instead',
+    bookError: 'Could not book the call — please try again.',
+    confirmTitle: "You're booked ✓",
+    confirmBody: (day, time) =>
+      `${day} at ${time} — 30 minutes, no commitment. It's on your Waypoint calendar, and everything stays free either way.`,
+    done: 'Done',
+    yourChild: 'your child',
+  },
+  es: {
+    title: 'Cómo empezar',
+    freeBadge: '✓ Sin costo para usted',
+    navCardTitle: 'Trabaje con un Navegador, gratis para usted',
+    navCardBody:
+      'Una persona real que ya hizo esto por su propio hijo/a le acompaña en la inscripción a la Autodeterminación de principio a fin.',
+    whoPays: '¿Quién paga esto?',
+    payEnrollLead: () => 'Mientras se inscribe: paga su Centro Regional.',
+    payEnrollRest: (name) =>
+      ` Hasta $1,000 para el plan centrado en la persona de ${name} y hasta 40 horas de ayuda de transición — facturado al Centro Regional, no a usted.`,
+    payAfterLead: (name) =>
+      `Después de inscribirse: una línea que usted aprueba en el presupuesto de ${name}.`,
+    payAfterRest:
+      ' Usted fija el precio con nosotros, lo ve en el plan y puede parar en cualquier momento.',
+    pledgeLead: (name) => `Nunca vendemos servicios en el plan de ${name}.`,
+    pledgeRest:
+      ' La ley estatal (W&I §4685.8) hace que su facilitador sea independiente — nuestra única lealtad es hacia usted.',
+    whatNext: 'Qué sigue',
+    steps: [
+      ['Una llamada de 30 minutos', ' — confirmamos la elegibilidad y respondemos sus preguntas. Sin compromiso.'],
+      ['Nosotros manejamos el papeleo', ' — la orientación, el plan centrado en la persona, la certificación de su presupuesto.'],
+      ['Usted aprueba todo', ' antes de que se envíe cualquier cosa.'],
+    ],
+    pickTime: 'Elija una hora',
+    slotNote: 'Horarios de tarde-noche disponibles a solicitud.',
+    bookingLabel: 'Reservando…',
+    bookCta: (day, time) => `Reservar ${day} · ${time}`,
+    decline: 'Seguir usando Waypoint gratis',
+    bookError: 'No se pudo reservar la llamada — inténtelo de nuevo.',
+    confirmTitle: 'Su llamada está reservada ✓',
+    confirmBody: (day, time) =>
+      `${day} a las ${time} — 30 minutos, sin compromiso. Está en su calendario de Waypoint, y todo sigue siendo gratis de cualquier manera.`,
+    done: 'Listo',
+    yourChild: 'su hijo/a',
+  },
+};
 
 export default function FundedOfferScreen() {
   const navigation = useNavigation();
@@ -21,13 +123,16 @@ export default function FundedOfferScreen() {
   const child = children[0];
   const { createAppointment } = useAppointments({ familyId: family?.id ?? '' });
   const { showToast } = useToast();
+  const { locale } = useI18n();
+  const funnelLocale: FunnelLocale = locale === 'es' ? 'es' : 'en';
+  const S = STRINGS[funnelLocale];
 
   const slots = useMemo(() => nextIntroSlots(), []);
   const [selected, setSelected] = useState(1);
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
 
-  const childName = child?.first_name || 'your child';
+  const childName = child?.first_name || S.yourChild;
 
   // Funnel (B4): offer viewed, once per mount.
   const tracked = useRef(false);
@@ -59,7 +164,7 @@ export default function FundedOfferScreen() {
           'Free 30-minute call: confirm Self-Determination eligibility and answer your questions. No commitment.',
       });
       if (!appt) {
-        showToast('Could not book the call — please try again.', 'error');
+        showToast(S.bookError, 'error');
         return;
       }
       await trackFunnelStep(family.id, 'booking_completed');
@@ -73,13 +178,10 @@ export default function FundedOfferScreen() {
     const slot = slots[selected];
     return (
       <View style={[styles.root, styles.center]}>
-        <Text style={styles.confirmTitle}>You&apos;re booked ✓</Text>
-        <Text style={styles.confirmBody}>
-          {slot.dayLabel} at {slot.timeLabel} — 30 minutes, no commitment. It&apos;s on
-          your Waypoint calendar, and everything stays free either way.
-        </Text>
+        <Text style={styles.confirmTitle}>{S.confirmTitle}</Text>
+        <Text style={styles.confirmBody}>{S.confirmBody(slot.dayLabel, slot.timeLabel)}</Text>
         <Pressable style={styles.cta} onPress={() => (navigation as any).navigate('HomeMain')}>
-          <Text style={styles.ctaText}>Done</Text>
+          <Text style={styles.ctaText}>{S.done}</Text>
         </Pressable>
       </View>
     );
@@ -89,55 +191,45 @@ export default function FundedOfferScreen() {
     <View style={styles.root}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
         <View style={styles.headRow}>
-          <Text style={styles.title}>Getting started</Text>
+          <Text style={styles.title}>{S.title}</Text>
           <View style={styles.freeBadge}>
-            <Text style={styles.freeBadgeText}>✓ No cost to you</Text>
+            <Text style={styles.freeBadgeText}>{S.freeBadge}</Text>
           </View>
         </View>
 
         <View style={styles.navCard}>
-          <Text style={styles.navCardTitle}>Work with a Navigator, free to you</Text>
-          <Text style={styles.navCardBody}>
-            A real person who has done this for their own child walks you through
-            Self-Determination enrollment end to end.
-          </Text>
+          <Text style={styles.navCardTitle}>{S.navCardTitle}</Text>
+          <Text style={styles.navCardBody}>{S.navCardBody}</Text>
         </View>
 
-        <Text style={styles.section}>Who pays for this?</Text>
+        <Text style={styles.section}>{S.whoPays}</Text>
         <View style={styles.card}>
           <View style={styles.bullet}>
             <View style={styles.dotTeal} />
             <Text style={styles.bulletText}>
-              <Text style={styles.bold}>While you enroll: your Regional Center pays.</Text> Up
-              to $1,000 for {childName}&apos;s person-centered plan and up to 40 hours of
-              transition help — billed to the Regional Center, not to you.
+              <Text style={styles.bold}>{S.payEnrollLead(childName)}</Text>
+              {S.payEnrollRest(childName)}
             </Text>
           </View>
           <View style={styles.bullet}>
             <View style={styles.dotTeal} />
             <Text style={styles.bulletText}>
-              <Text style={styles.bold}>After you&apos;re enrolled: a line you approve in{' '}
-              {childName}&apos;s budget.</Text> You set the price with us, see it in the plan,
-              and can stop at any time.
+              <Text style={styles.bold}>{S.payAfterLead(childName)}</Text>
+              {S.payAfterRest}
             </Text>
           </View>
           <View style={styles.bullet}>
             <View style={styles.dotSage} />
             <Text style={styles.bulletText}>
-              <Text style={styles.bold}>We never sell services on {childName}&apos;s plan.</Text>{' '}
-              State law (W&amp;I §4685.8) makes your facilitator independent — our only
-              loyalty is to you.
+              <Text style={styles.bold}>{S.pledgeLead(childName)}</Text>
+              {S.pledgeRest}
             </Text>
           </View>
         </View>
 
-        <Text style={styles.section}>What happens next</Text>
+        <Text style={styles.section}>{S.whatNext}</Text>
         <View style={styles.stepList}>
-          {[
-            ['A 30-minute call', ' — we confirm eligibility and answer your questions. No commitment.'],
-            ['We handle the paperwork', ' — orientation, the person-centered plan, your budget certification.'],
-            ['You approve everything', ' before anything is submitted.'],
-          ].map(([lead, rest], i) => (
+          {S.steps.map(([lead, rest], i) => (
             <View key={lead} style={styles.stepRow}>
               <Text style={styles.stepNum}>{i + 1}.</Text>
               <Text style={styles.bulletText}>
@@ -148,7 +240,7 @@ export default function FundedOfferScreen() {
           ))}
         </View>
 
-        <Text style={styles.section}>Pick a time</Text>
+        <Text style={styles.section}>{S.pickTime}</Text>
         <View style={styles.slotGrid}>
           {slots.map((slot, i) => (
             <Pressable
@@ -165,19 +257,19 @@ export default function FundedOfferScreen() {
             </Pressable>
           ))}
         </View>
-        <Text style={styles.slotNote}>Evening times available on request.</Text>
+        <Text style={styles.slotNote}>{S.slotNote}</Text>
       </ScrollView>
 
       <View style={styles.footer}>
         <Pressable style={[styles.cta, booking && styles.ctaDisabled]} onPress={book}>
           <Text style={styles.ctaText}>
             {booking
-              ? 'Booking…'
-              : `Book ${slots[selected].dayLabel} · ${slots[selected].timeLabel}`}
+              ? S.bookingLabel
+              : S.bookCta(slots[selected].dayLabel, slots[selected].timeLabel)}
           </Text>
         </Pressable>
         <Pressable style={styles.decline} onPress={() => (navigation as any).navigate('HomeMain')}>
-          <Text style={styles.declineText}>Keep using Waypoint free instead</Text>
+          <Text style={styles.declineText}>{S.decline}</Text>
         </Pressable>
       </View>
     </View>
