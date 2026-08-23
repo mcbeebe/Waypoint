@@ -42,12 +42,29 @@ async function ftsSearch(
 }
 
 /**
- * FTS rank scores are much smaller than cosine similarities, so
- * confidence is based on having matches at all: the rank ordering is
- * meaningful, the absolute magnitude is not.
+ * Rank threshold below which retrieval is treated as low-confidence.
+ *
+ * The FTS query is an OR-of-lexemes, so a question sharing ONE common word
+ * with an article still "matches" — with a tiny normalized ts_rank. Before
+ * this gate, any match at all reported 'high', so the low-confidence
+ * warning in the system prompt could only ever fire on zero results, and a
+ * weak one-word overlap produced a confident wrong answer (REQ-1206).
+ * match_knowledge_fts returns `similarity` as a normalized ts_rank in
+ * [0, 1); glancing single-term overlaps score well under this threshold
+ * while genuinely on-topic articles score above it.
  */
-function ftsConfidence(matches: KnowledgeMatch[]): RAGConfidence {
-  return matches.length === 0 ? 'none' : 'high';
+const LOW_CONFIDENCE_RANK = 0.05;
+
+/**
+ * Confidence gate on retrieval quality, not mere existence:
+ * no matches → 'none'; matches whose BEST normalized rank is still weak →
+ * 'low' (the assistant hedges and refers out); otherwise 'high'.
+ * Exported for tests.
+ */
+export function ftsConfidence(matches: KnowledgeMatch[]): RAGConfidence {
+  if (matches.length === 0) return 'none';
+  const topRank = Math.max(...matches.map((m) => m.similarity ?? 0));
+  return topRank < LOW_CONFIDENCE_RANK ? 'low' : 'high';
 }
 
 /**
