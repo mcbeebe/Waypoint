@@ -44,6 +44,14 @@
 5. **The IEP layer (~850k, +504s) is where the free app wins users but no one pays today.** Districts are the adversary, parents are low-income. Monetization there is indirect: funnel into RC-funded services, grants, outcomes-driven B2B later. It's also 100x the SDP pond — which is why the funnel, not the facilitation practice, is the long-term asset.
 6. **Catchment pick:** RCEB (~27.5k) is a solid home catchment; LA County (~138.5k across 7 RCs, three of them 63% ASD) is the scale market one vendorization can reach as a "utilizing RC" seller — subject to each RC choosing to purchase.
 
+## Will Regional Centers pay for the app itself?
+
+Almost certainly not as software. The DDS payment architecture (verified in `Assumptions-Audit-Aug2026.md`) buys *human service hours* against per-family POS authorizations at wage-built rates; there is no service code for a software subscription, and no consumer app appears on any RC vendor list found. **Three narrow exceptions, none of which is "250k app licenses":**
+
+- **Human-wrapped service:** an RC pays for a *navigator/coach service* (delivered efficiently because of the app) per family — this is the plan's actual model, pending the service-code answer (DDS question #0).
+- **RC staff tooling:** RCs' own service coordinators carry brutal caseloads (~1:66+ vs. statutory targets). Selling Waypoint's caseload/triage tooling to the 21 RCs *for their coordinators* is a legitimate small B2B channel (21 buyers, operations budgets) — worth one slide, not a business plan.
+- **Equity pilots:** DDS disparity/service-access grants fund navigation pilots — real money, but that's the grant channel already correctly discounted as neither sustainable nor scalable.
+
 ## Flagged for manual pull (proxy-blocked exact values)
 - Exact DDS 0-21 count: data.ca.gov "Consumers Served by Age Group and Gender" (updated Apr 2026)
 - FY 2023-24 POS workbooks: current ethnicity %, language %, per-capita $ by ethnicity (new methodology)
