@@ -8,9 +8,20 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Main: NavigatorScreenParams<MainTabParamList> | undefined;
   /** Staff shell (035/036): facilitators, supervisors, admins land here */
-  Staff: undefined;
+  Staff: NavigatorScreenParams<StaffStackParamList> | undefined;
   Terms: undefined;
   Privacy: undefined;
+};
+
+/** Facilitation workspace (PRD W-C) — the staff-side stack */
+export type StaffStackParamList = {
+  StaffHome: undefined;
+  /** familyId always; caseId when a live case exists */
+  CaseDetail: { familyId: string; caseId?: string };
+  PCPBuilder: { caseId: string; familyId: string };
+  SpendingPlan: { caseId: string; familyId: string };
+  TimeCapture: { caseId: string; familyId: string };
+  Baseline: { caseId: string; familyId: string };
 };
 
 export type MainTabParamList = {

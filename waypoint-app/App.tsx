@@ -27,7 +27,7 @@ import OnboardingFlow from './src/screens/onboarding/OnboardingFlow';
 import TermsOfService from './src/screens/legal/TermsOfService';
 import PrivacyPolicy from './src/screens/legal/PrivacyPolicy';
 import MainTabs from './src/navigation/MainTabs';
-import StaffHomeScreen from './src/screens/staff/StaffHomeScreen';
+import StaffStack from './src/navigation/StaffStack';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import LoadingScreen from './src/components/LoadingScreen';
 import NetworkBanner from './src/components/NetworkBanner';
@@ -51,7 +51,17 @@ const linking: LinkingOptions<RootStackParamList> = {
     screens: {
       Welcome: 'welcome',
       Onboarding: 'onboarding',
-      Staff: 'staff',
+      Staff: {
+        initialRouteName: 'StaffHome',
+        screens: {
+          StaffHome: 'staff',
+          CaseDetail: 'staff/case/:familyId',
+          PCPBuilder: 'staff/case/:familyId/pcp/:caseId',
+          SpendingPlan: 'staff/case/:familyId/plan/:caseId',
+          TimeCapture: 'staff/case/:familyId/time/:caseId',
+          Baseline: 'staff/case/:familyId/baseline/:caseId',
+        },
+      },
       Terms: 'terms',
       Privacy: 'privacy',
       Main: {
@@ -201,9 +211,9 @@ export default function App() {
                       {() => <ResetPasswordScreen onDone={clearPasswordRecovery} />}
                     </Stack.Screen>
                   ) : isStaff ? (
-                    // Staff (facilitator/supervisor/admin) → caseload shell,
-                    // never parent onboarding (035/036 role fork)
-                    <Stack.Screen name="Staff" component={StaffHomeScreen} />
+                    // Staff (facilitator/supervisor/admin) → facilitation
+                    // workspace, never parent onboarding (035/036 role fork)
+                    <Stack.Screen name="Staff" component={StaffStack} />
                   ) : !onboardingComplete ? (
                     // Authenticated but hasn't completed onboarding
                     <Stack.Screen name="Onboarding">

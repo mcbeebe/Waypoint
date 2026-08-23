@@ -1,12 +1,12 @@
 /**
- * Staff shell — the facilitator's landing screen (PRD W-A / first slice of W-C).
+ * Caseload — who needs attention today and why (PRD W-C: C1).
  *
- * W0 scope: prove the role fork end-to-end. A staff login lands here — never
- * in parent onboarding — and sees their assigned families (via the
- * accessible_family_ids RLS path from migration 036). The full caseload
- * dashboard (ranking, clocks, stages) is W1b; this screen is its skeleton.
+ * Every row is ranked by the explainable score in caseloadRanking and
+ * states its top reason inline; "How is this ranked?" shows the exact
+ * factors and weights. RLS (036) scopes the list to the consented
+ * caseload — revocation empties it immediately.
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,70 +16,55 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '@/lib/supabase';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useCaseload } from '@/hooks/useFacilitation';
+import { RANKING_EXPLANATION } from '@/lib/caseloadRanking';
+import { SDP_PIPELINE } from '@/lib/sdpStages';
+import type { StaffStackParamList } from '@/types/navigation';
+import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
-interface AssignedFamily {
-  id: string;
-  parent_first_name: string | null;
-  parent_last_name: string | null;
-  regional_center: string | null;
+type Nav = NativeStackNavigationProp<StaffStackParamList, 'StaffHome'>;
+
+function stageLabel(stage: string): string {
+  return SDP_PIPELINE.find((s) => s.stage === stage)?.label ?? 'Intake';
 }
 
 export default function StaffHomeScreen() {
-  const [families, setFamilies] = useState<AssignedFamily[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchCaseload = useCallback(async () => {
-    try {
-      setError(null);
-      // RLS (036) scopes this to owned + actively assigned families; for a
-      // staff account that means exactly the consented caseload.
-      const { data, error: fetchError } = await supabase
-        .from('families')
-        .select('id, parent_first_name, parent_last_name, regional_center')
-        .order('created_at', { ascending: false });
-      if (fetchError) {
-        setError(fetchError.message);
-        return;
-      }
-      setFamilies(data ?? []);
-    } catch (err: unknown) {
-      const e = err as { message?: string };
-      setError(e.message || 'Failed to load caseload');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchCaseload();
-  }, [fetchCaseload]);
+  const navigation = useNavigation<Nav>();
+  const { rows, loading, error, refetch } = useCaseload();
+  const [showExplanation, setShowExplanation] = useState(false);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>My caseload</Text>
-        <Text style={styles.subtitle}>
-          {families.length} {families.length === 1 ? 'family' : 'families'} · full
-          dashboard arrives with the facilitation workspace
-        </Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.subtitle}>
+            {rows.length} {rows.length === 1 ? 'family' : 'families'}
+          </Text>
+          <Pressable onPress={() => setShowExplanation((v) => !v)} hitSlop={8}>
+            <Text style={styles.explainLink}>How is this ranked?</Text>
+          </Pressable>
+        </View>
+        {showExplanation && (
+          <View style={styles.explainBox}>
+            <Text style={styles.explainText}>{RANKING_EXPLANATION}</Text>
+          </View>
+        )}
       </View>
       {error ? (
         <View style={styles.errorBox}>
           <Text style={styles.errorText}>{error}</Text>
-          <Pressable onPress={fetchCaseload} style={styles.retryButton}>
+          <Pressable onPress={refetch} style={styles.retryButton}>
             <Text style={styles.retryText}>Try again</Text>
           </Pressable>
         </View>
       ) : (
         <FlatList
-          data={families}
-          keyExtractor={(item) => item.id}
-          refreshControl={
-            <RefreshControl refreshing={loading} onRefresh={fetchCaseload} />
-          }
+          data={rows}
+          keyExtractor={(item) => item.caseId}
+          refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} />}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             loading ? null : (
@@ -94,16 +79,36 @@ export default function StaffHomeScreen() {
             )
           }
           renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.cardName}>
-                {[item.parent_first_name, item.parent_last_name]
-                  .filter(Boolean)
-                  .join(' ') || 'Family'}
-              </Text>
+            <Pressable
+              style={[styles.card, item.score >= 60 && styles.cardUrgent]}
+              onPress={() =>
+                navigation.navigate('CaseDetail', {
+                  familyId: item.familyId,
+                  caseId: item.hasCase ? item.caseId : undefined,
+                })
+              }
+            >
+              <View style={styles.cardHead}>
+                <Text style={styles.cardName}>{item.familyName}</Text>
+                <View
+                  style={[
+                    styles.scoreBadge,
+                    item.score >= 60
+                      ? styles.scoreHigh
+                      : item.score >= 30
+                        ? styles.scoreMid
+                        : styles.scoreLow,
+                  ]}
+                >
+                  <Text style={styles.scoreText}>{item.score}</Text>
+                </View>
+              </View>
+              <Text style={styles.cardReason}>{item.reasons[0]}</Text>
               <Text style={styles.cardMeta}>
-                {item.regional_center || 'Regional Center not set'}
+                {item.hasCase ? stageLabel(item.stage) : 'No case yet — tap to start'}
+                {item.regionalCenter ? ` · ${item.regionalCenter}` : ''}
               </Text>
-            </View>
+            </Pressable>
           )}
         />
       )}
@@ -123,11 +128,25 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.extrabold,
     color: colors.navy,
   },
-  subtitle: {
+  headerRow: {
     marginTop: spacing.xs,
-    fontSize: fonts.sizes.sm,
-    color: colors.mid,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
+  subtitle: { fontSize: fonts.sizes.sm, color: colors.mid },
+  explainLink: {
+    fontSize: fonts.sizes.sm,
+    color: colors.teal,
+    fontWeight: fonts.weights.semibold,
+  },
+  explainBox: {
+    marginTop: spacing.sm,
+    backgroundColor: semantic.infoBg,
+    borderRadius: radii.md,
+    padding: spacing.md,
+  },
+  explainText: { fontSize: fonts.sizes.sm, color: colors.dark, lineHeight: 18 },
   list: { paddingHorizontal: spacing.base, paddingBottom: spacing['2xl'] },
   card: {
     backgroundColor: colors.white,
@@ -137,10 +156,30 @@ const styles = StyleSheet.create({
     padding: spacing.base,
     marginBottom: spacing.md,
   },
+  cardUrgent: { borderColor: semantic.warning, borderWidth: 2 },
+  cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardName: {
+    flex: 1,
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold,
     color: colors.navy,
+  },
+  scoreBadge: {
+    minWidth: 36,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    alignItems: 'center',
+  },
+  scoreHigh: { backgroundColor: semantic.warningBg },
+  scoreMid: { backgroundColor: semantic.infoBg },
+  scoreLow: { backgroundColor: colors.light },
+  scoreText: { fontWeight: fonts.weights.bold, color: colors.navy, fontSize: fonts.sizes.sm },
+  cardReason: {
+    marginTop: spacing.sm,
+    fontSize: fonts.sizes.md,
+    color: colors.dark,
+    fontWeight: fonts.weights.semibold,
   },
   cardMeta: { marginTop: spacing.xs, fontSize: fonts.sizes.sm, color: colors.mid },
   empty: {
