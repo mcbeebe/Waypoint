@@ -7,6 +7,8 @@ export type RootStackParamList = {
   ResetPassword: undefined;
   Onboarding: undefined;
   Main: NavigatorScreenParams<MainTabParamList> | undefined;
+  /** Staff shell (035/036): facilitators, supervisors, admins land here */
+  Staff: undefined;
   Terms: undefined;
   Privacy: undefined;
 };

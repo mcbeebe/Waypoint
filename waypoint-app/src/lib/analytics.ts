@@ -14,7 +14,43 @@ type EventType =
   | 'kb_helpful'
   | 'kb_unhelpful'
   | 'feature_used'
-  | 'chat_exchange';
+  | 'chat_exchange'
+  | 'funnel_step';
+
+/**
+ * Acquisition-funnel steps (PRD W-B: B4). The owner scorecard's
+ * "free → booked" conversion is computed from these events:
+ * booked ÷ registered, with per-source and per-language cuts.
+ */
+export type FunnelStep =
+  | 'registered'
+  | 'eligibility_result_viewed'
+  | 'funded_offer_viewed'
+  | 'booking_started'
+  | 'booking_completed'
+  | 'became_client';
+
+/**
+ * Track one acquisition-funnel step. Steps that can fire repeatedly
+ * (viewing a result twice) are deduplicated at query time by taking each
+ * family's first occurrence, so callers can fire unconditionally.
+ */
+export async function trackFunnelStep(
+  familyId: string,
+  step: FunnelStep,
+  opts?: { source?: string; language?: string; regionalCenter?: string }
+): Promise<void> {
+  await trackEvent({
+    familyId,
+    eventType: 'funnel_step',
+    eventData: {
+      step,
+      source: opts?.source ?? null,
+      language: opts?.language ?? null,
+    },
+    regionalCenter: opts?.regionalCenter,
+  });
+}
 
 interface TrackEventOptions {
   familyId: string;

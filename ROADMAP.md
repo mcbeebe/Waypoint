@@ -1,6 +1,23 @@
 # Waypoint Implementation Roadmap
 
-**Version 1.1 · Locked August 16, 2026**
+**Version 2.0 · August 23, 2026 — supersedes v1.1's Phases 3–8**
+
+> **⚠ Strategy change (Aug 2026):** the consumer-subscription sequencing below is superseded by the payer-funded plan in [`Roadmap/PRD-SDP-and-Premium-v1.md`](Roadmap/PRD-SDP-and-Premium-v1.md) (context: [`Roadmap/Payer-Funded-Pivot-Review-Aug2026.md`](Roadmap/Payer-Funded-Pivot-Review-Aug2026.md), [`Roadmap/Assumptions-Audit-Aug2026.md`](Roadmap/Assumptions-Audit-Aug2026.md), [`Roadmap/Options-Stack-Rank-Aug2026.md`](Roadmap/Options-Stack-Rank-Aug2026.md)).
+> **Still in force from v1.1:** Phases 0, 0.5, 1 and 2 (wiring, UX kit, CA navigation core, Documents/IEP) — they serve both strategies. **Superseded:** Phases 3–8 as sequenced below (individual workstreams survive where the PRD pulls them in).
+>
+> **The development plan of record:**
+>
+> | Phase | Weeks | Ships | Gate |
+> |---|---|---|---|
+> | **W0 · Rebase & foundations** | 1–2 | Remaining audit P0s · migrations 035–036 (organizations, profiles/roles, staff, family assignments + consent, staff access log, `accessible_family_ids()` RLS helper) · role-forked routing (staff shell) · funnel event taxonomy · 099 vendorization packet started | RLS verification clean; staff login lands on a caseload shell, never onboarding; packet drafted |
+> | **W1a · Funnel + Process Navigator** | 3–6 | Eligibility-first onboarding, funded offer, booking (EN+ES) · content provenance · planGenerator rules-table refactor · you-are-here process map, path decision aid, lever letters (G1–G3) | 3-min onboarding→result; funnel events flowing; IPP-meeting letter generated in-app |
+> | **W1b · Facilitation workspace** | 5–10 | Caseload, case detail, PCP builder, 099 cap tracker, spending plan (COI block), time capture, baselines · RC + FMS invoicing · request/authorization tracker (G4) | One family orientation→approved plan in-app; **one PAID invoice**; hours-per-family measured |
+> | **W2 · Premium** | 11–14 | Pricing page + web checkout · sponsor-aware entitlements · gates on existing features · AI cost caps · prompt-regression CI | First 10 subscribers; conversion instrumented; cost/user visible |
+> | **W3 · Evidence & decision** | 15–18 | 10-family price/caseload readout · outcome baselines · funnel verdict · G3 gate pre-read with DDS answers | Go/no-go memo on scaling facilitation and opening the next channel |
+>
+> Non-engineering in parallel: DDS service-code question #0 in writing (week 1) · ten SDP-family price interviews · SELPA pilot conversation (October window) · grant applications.
+
+**Version 1.1 · Locked August 16, 2026** *(superseded as described above; retained for reference)*
 
 One consolidated plan covering every gap identified in the codebase audit plus all of PRD v2.0 (F1–F15). Eight phases ordered by leverage: **unlock what's already built, then port the proven GAS features, then build what's never existed.** Each phase ends at a shippable state with an explicit review gate.
 

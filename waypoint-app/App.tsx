@@ -17,6 +17,8 @@ import * as ExpoLinking from 'expo-linking';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
 import { useAuth } from './src/hooks/useAuth';
+import { useProfile } from './src/hooks/useProfile';
+import { isStaffRole } from './src/lib/roles';
 import { supabase } from './src/lib/supabase';
 import { initSentry, setSentryUser, clearSentryUser } from './src/lib/sentry';
 import WelcomeScreen from './src/screens/auth/WelcomeScreen';
@@ -25,6 +27,7 @@ import OnboardingFlow from './src/screens/onboarding/OnboardingFlow';
 import TermsOfService from './src/screens/legal/TermsOfService';
 import PrivacyPolicy from './src/screens/legal/PrivacyPolicy';
 import MainTabs from './src/navigation/MainTabs';
+import StaffHomeScreen from './src/screens/staff/StaffHomeScreen';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import LoadingScreen from './src/components/LoadingScreen';
 import NetworkBanner from './src/components/NetworkBanner';
@@ -48,6 +51,7 @@ const linking: LinkingOptions<RootStackParamList> = {
     screens: {
       Welcome: 'welcome',
       Onboarding: 'onboarding',
+      Staff: 'staff',
       Terms: 'terms',
       Privacy: 'privacy',
       Main: {
@@ -110,12 +114,17 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const { session, loading: authLoading, passwordRecovery, clearPasswordRecovery } = useAuth();
+  // Role fork (035): resolve the profile role BEFORE touching families, so a
+  // staff login never falls into parent onboarding or creates a family row.
+  const { role, loading: profileLoading } = useProfile(session?.user?.id);
+  const isStaff = isStaffRole(role);
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const [checkingOnboarding, setCheckingOnboarding] = useState(false);
 
-  // Check if user has completed onboarding
+  // Check if user has completed onboarding (family accounts only — a staff
+  // account has no families row and must not be pushed into onboarding).
   const checkOnboarding = useCallback(async () => {
-    if (!session?.user?.id) {
+    if (!session?.user?.id || isStaff) {
       setOnboardingComplete(null);
       return;
     }
@@ -141,7 +150,7 @@ export default function App() {
     } finally {
       setCheckingOnboarding(false);
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, isStaff]);
 
   useEffect(() => {
     checkOnboarding();
@@ -160,8 +169,8 @@ export default function App() {
     setOnboardingComplete(true);
   }, []);
 
-  // Show loading while auth or onboarding status is being determined
-  if (authLoading || checkingOnboarding) {
+  // Show loading while auth, role, or onboarding status is being determined
+  if (authLoading || (session && profileLoading) || checkingOnboarding) {
     return (
       <SafeAreaProvider>
         <LoadingScreen />
@@ -187,6 +196,10 @@ export default function App() {
                     <Stack.Screen name="ResetPassword">
                       {() => <ResetPasswordScreen onDone={clearPasswordRecovery} />}
                     </Stack.Screen>
+                  ) : isStaff ? (
+                    // Staff (facilitator/supervisor/admin) → caseload shell,
+                    // never parent onboarding (035/036 role fork)
+                    <Stack.Screen name="Staff" component={StaffHomeScreen} />
                   ) : !onboardingComplete ? (
                     // Authenticated but hasn't completed onboarding
                     <Stack.Screen name="Onboarding">

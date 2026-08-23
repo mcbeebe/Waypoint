@@ -706,3 +706,49 @@ export interface BlogPost {
   created_at: string;
   updated_at: string;
 }
+
+// ─── Two-sided foundation (035/036) ─────────────────────────────────────────
+
+/** Role resolved at login (profiles table, migration 035) */
+export type ProfileRole = 'family' | 'facilitator' | 'supervisor' | 'admin';
+
+export interface Profile {
+  user_id: string;
+  role: ProfileRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  status: 'active' | 'suspended';
+  created_at: string;
+}
+
+export interface StaffMember {
+  id: string;
+  organization_id: string;
+  auth_user_id: string;
+  role: 'facilitator' | 'supervisor' | 'admin';
+  full_name: string;
+  status: 'active' | 'inactive';
+  supervisor_id: string | null;
+  hire_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** The consent gate (036): staff see a family only through an active row */
+export interface FamilyAssignment {
+  id: string;
+  family_id: string;
+  staff_id: string;
+  organization_id: string;
+  role_on_case: 'facilitator' | 'supervisor';
+  consented_at: string;
+  consent_version: string;
+  revoked_at: string | null;
+  created_at: string;
+}
