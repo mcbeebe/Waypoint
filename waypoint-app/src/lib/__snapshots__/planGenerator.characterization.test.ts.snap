@@ -1,0 +1,787 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ageBandFromBirthday — characterization > maps ages to bands stably 1`] = `
+[
+  "0.5y → 0-2",
+  "1y → 0-2",
+  "2.9y → 0-2",
+  "3y → 3-5",
+  "5y → 3-5",
+  "6y → 6-12",
+  "12y → 6-12",
+  "14y → 13-17",
+  "16y → 13-17",
+  "21y → 13-17",
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 0: dx=[autism] age=1 rc=unknown iep=no ins=private 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Call Regional Center for Early Start referral",
+  },
+  {
+    "category": "medical",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Get pediatrician referral for therapy",
+  },
+  {
+    "category": "insurance",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call insurance to verify therapy coverage",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Apply for Medi-Cal",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 1: dx=[delay] age=4 rc=known iep=unknown ins=medicaid 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call Regional Center to start your referral",
+  },
+  {
+    "category": "iep",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Request school district evaluation (in writing)",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 2: dx=[suspected] age=8 rc=applied iep=eval_done ins=both 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 6,
+    "title": "Follow up on RC application status",
+  },
+  {
+    "category": "medical",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Get a formal evaluation for your child",
+  },
+  {
+    "category": "iep",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Send written request for IEP meeting",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 3: dx=[autism,delay] age=15 rc=active iep=active ins=none 1`] = `
+[
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Apply for Medi-Cal",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+  {
+    "category": "general",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "medium",
+    "steps": 8,
+    "title": "Apply to Department of Rehabilitation (DOR)",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": false,
+    "hasScript": false,
+    "priority": "medium",
+    "steps": 8,
+    "title": "Set up a CalABLE savings account",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 4: dx=[] age=1 rc=unknown iep=na ins=private 1`] = `[]`;
+
+exports[`generateStarterPlan — characterization matrix > case 5: dx=[autism] age=4 rc=known iep=no ins=medicaid 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call Regional Center to start your referral",
+  },
+  {
+    "category": "iep",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Request school district evaluation (in writing)",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 6: dx=[delay] age=8 rc=applied iep=unknown ins=both 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 6,
+    "title": "Follow up on RC application status",
+  },
+  {
+    "category": "iep",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Request school district evaluation (in writing)",
+  },
+  {
+    "category": "medical",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Get pediatrician referral for therapy",
+  },
+  {
+    "category": "insurance",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call insurance to verify therapy coverage",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 7: dx=[suspected] age=15 rc=active iep=eval_done ins=none 1`] = `
+[
+  {
+    "category": "medical",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Get a formal evaluation for your child",
+  },
+  {
+    "category": "iep",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Send written request for IEP meeting",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Apply for Medi-Cal",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+  {
+    "category": "general",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "medium",
+    "steps": 8,
+    "title": "Apply to Department of Rehabilitation (DOR)",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": false,
+    "hasScript": false,
+    "priority": "medium",
+    "steps": 8,
+    "title": "Set up a CalABLE savings account",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 8: dx=[autism,delay] age=1 rc=unknown iep=active ins=private 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Call Regional Center for Early Start referral",
+  },
+  {
+    "category": "medical",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Get pediatrician referral for therapy",
+  },
+  {
+    "category": "insurance",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call insurance to verify therapy coverage",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Apply for Medi-Cal",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 9: dx=[] age=4 rc=known iep=na ins=medicaid 1`] = `[]`;
+
+exports[`generateStarterPlan — characterization matrix > case 10: dx=[autism] age=8 rc=applied iep=no ins=both 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 6,
+    "title": "Follow up on RC application status",
+  },
+  {
+    "category": "iep",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Request school district evaluation (in writing)",
+  },
+  {
+    "category": "medical",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Get pediatrician referral for therapy",
+  },
+  {
+    "category": "insurance",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call insurance to verify therapy coverage",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 11: dx=[delay] age=15 rc=active iep=unknown ins=none 1`] = `
+[
+  {
+    "category": "iep",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Request school district evaluation (in writing)",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Apply for Medi-Cal",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+  {
+    "category": "general",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "medium",
+    "steps": 8,
+    "title": "Apply to Department of Rehabilitation (DOR)",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": false,
+    "hasScript": false,
+    "priority": "medium",
+    "steps": 8,
+    "title": "Set up a CalABLE savings account",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 12: dx=[suspected] age=1 rc=unknown iep=eval_done ins=private 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Call Regional Center for Early Start referral",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Apply for Medi-Cal",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 13: dx=[autism,delay] age=4 rc=known iep=active ins=medicaid 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call Regional Center to start your referral",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 14: dx=[] age=8 rc=applied iep=na ins=both 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 6,
+    "title": "Follow up on RC application status",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 15: dx=[autism] age=15 rc=active iep=no ins=none 1`] = `
+[
+  {
+    "category": "iep",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Request school district evaluation (in writing)",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Apply for Medi-Cal",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+  {
+    "category": "general",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "medium",
+    "steps": 8,
+    "title": "Apply to Department of Rehabilitation (DOR)",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": false,
+    "hasScript": false,
+    "priority": "medium",
+    "steps": 8,
+    "title": "Set up a CalABLE savings account",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 16: dx=[delay] age=1 rc=unknown iep=unknown ins=private 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Call Regional Center for Early Start referral",
+  },
+  {
+    "category": "medical",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Get pediatrician referral for therapy",
+  },
+  {
+    "category": "insurance",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call insurance to verify therapy coverage",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Apply for Medi-Cal",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 17: dx=[suspected] age=4 rc=known iep=eval_done ins=medicaid 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call Regional Center to start your referral",
+  },
+  {
+    "category": "medical",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Get a formal evaluation for your child",
+  },
+  {
+    "category": "iep",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Send written request for IEP meeting",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 18: dx=[autism,delay] age=8 rc=applied iep=active ins=both 1`] = `
+[
+  {
+    "category": "regional_center",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 6,
+    "title": "Follow up on RC application status",
+  },
+  {
+    "category": "medical",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 6,
+    "title": "Get pediatrician referral for therapy",
+  },
+  {
+    "category": "insurance",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "urgent",
+    "steps": 7,
+    "title": "Call insurance to verify therapy coverage",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 7,
+    "title": "Start SSI application",
+  },
+  {
+    "category": "benefits",
+    "hasDueDate": true,
+    "hasScript": true,
+    "priority": "high",
+    "steps": 8,
+    "title": "Apply for IHSS (In-Home Supportive Services)",
+  },
+]
+`;
+
+exports[`generateStarterPlan — characterization matrix > case 19: dx=[] age=15 rc=active iep=na ins=none 1`] = `[]`;
