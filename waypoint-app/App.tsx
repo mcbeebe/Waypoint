@@ -65,6 +65,8 @@ const linking: LinkingOptions<RootStackParamList> = {
               HomeMain: '',
               Journey: 'journey',
               ProcessMap: 'how-it-works',
+              EligibilityResult: 'your-result',
+              FundedOffer: 'free-help',
               JourneyPhase: 'journey/:journeyKey/:phaseIndex',
               Agencies: 'agencies',
               Reimbursables: 'rc-funding',

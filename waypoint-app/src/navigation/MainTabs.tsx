@@ -29,6 +29,8 @@ import ServicesScreen from '@/screens/main/ServicesScreen';
 import InsuranceScreen from '@/screens/main/InsuranceScreen';
 import JourneyPhaseScreen from '@/screens/main/JourneyPhaseScreen';
 import ProcessMapScreen from '@/screens/main/ProcessMapScreen';
+import EligibilityResultScreen from '@/screens/main/EligibilityResultScreen';
+import FundedOfferScreen from '@/screens/main/FundedOfferScreen';
 import HealthRecordsScreen from '@/screens/main/HealthRecordsScreen';
 import FamilySharingScreen from '@/screens/main/FamilySharingScreen';
 import ProviderPortalScreen from '@/screens/main/ProviderPortalScreen';
@@ -246,6 +248,8 @@ function HomeStack() {
       <HomeStackNav.Screen name="Journey" component={JourneyScreen} options={{ title: 'Journey Map' }} />
       <HomeStackNav.Screen name="JourneyPhase" component={JourneyPhaseScreen} options={{ title: 'This Stage' }} />
       <HomeStackNav.Screen name="ProcessMap" component={ProcessMapScreen} options={{ title: 'How the System Works' }} />
+      <HomeStackNav.Screen name="EligibilityResult" component={EligibilityResultScreen} options={{ title: 'Your Result' }} />
+      <HomeStackNav.Screen name="FundedOffer" component={FundedOfferScreen} options={{ title: 'Free Help' }} />
       <HomeStackNav.Screen name="Agencies" component={AgenciesScreen} options={{ title: 'Agency Directory' }} />
       <HomeStackNav.Screen name="Reimbursables" component={ReimbursablesScreen} options={{ title: 'RC Funding Guide' }} />
       <HomeStackNav.Screen name="Insights" component={InsightsScreen} options={{ title: 'Insights' }} />

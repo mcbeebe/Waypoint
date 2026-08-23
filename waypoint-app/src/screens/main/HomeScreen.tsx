@@ -158,13 +158,14 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
     [family?.zip_code]
   );
 
-  // Post-onboarding reveal: open the Journey Map once, then clear the flag
+  // Post-onboarding reveal: open the eligibility result once (B1 — onboarding
+  // ends in an answer; it links onward to the Journey Map), then clear the flag
   useEffect(() => {
     AsyncStorage.getItem(SHOW_JOURNEY_FLAG)
       .then(v => {
         if (v) {
           AsyncStorage.removeItem(SHOW_JOURNEY_FLAG).catch(() => {});
-          (navigation as any).navigate('Journey');
+          (navigation as any).navigate('EligibilityResult');
         }
       })
       .catch(() => {});
@@ -444,6 +445,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             { icon: 'wallet-outline', label: 'RC Funding', go: () => (navigation as any).navigate('Reimbursables') },
             { icon: 'map-outline', label: 'Journey', go: () => (navigation as any).navigate('Journey') },
             { icon: 'compass-outline', label: 'How It Works', go: () => (navigation as any).navigate('ProcessMap') },
+            { icon: 'checkmark-circle-outline', label: 'Your Result', go: () => (navigation as any).navigate('EligibilityResult') },
             { icon: 'folder-open-outline', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
             { icon: 'school-outline', label: 'IEP Hub', go: () => (navigation as any).navigate('IEPHub') },
             { icon: 'mail-outline', label: 'Letters', go: () => (navigation as any).navigate('Letters') },
