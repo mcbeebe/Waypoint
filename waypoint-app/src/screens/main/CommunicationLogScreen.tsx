@@ -31,6 +31,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useToast } from '@/components/Toast';
 import { showConfirm } from '@/lib/dialogs';
+import { usePremiumGuard } from '@/hooks/usePremiumGuard';
 import EmptyState from '@/components/EmptyState';
 import DateInput from '@/components/DateInput';
 import { SkeletonCard } from '@/components/ui';
@@ -62,6 +63,7 @@ function formatWhen(iso: string): string {
 }
 
 export default function CommunicationLogScreen() {
+  const { guard } = usePremiumGuard();
   const { family } = useFamily();
   const { showToast } = useToast();
   const {
@@ -88,6 +90,9 @@ export default function CommunicationLogScreen() {
   /** Share the whole (filtered) log as plain text — hearing/advocate prep */
   const handleShareLog = useCallback(async () => {
     if (filtered.length === 0) return;
+    // Premium (E3): the export is the hearing-prep artifact — logging and
+    // reading your own paper trail stays free
+    if (!guard('Paper-trail export')) return;
     const lines = filtered.map((c) => {
       const bits = [
         `${KIND_CONFIG[c.kind].emoji} ${formatWhen(c.occurred_at)} — ${c.subject}`,

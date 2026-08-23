@@ -39,6 +39,7 @@ import ContactsCard from '@/components/ContactsCard';
 import { resetTutorial } from '@/components/OnboardingTutorial';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
+import { usePremiumGuard } from '@/hooks/usePremiumGuard';
 import type { Child } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -84,6 +85,7 @@ const MEMORY_KIND_EMOJI: Record<MemoryKind, string> = {
 export default function ProfileScreen() {
   const { family, updateFamily, loading: familyLoading } = useFamily();
   const { children, addChild, updateChild, deleteChild } = useChildren(family?.id);
+  const { guard } = usePremiumGuard();
   const primaryChild = children.find(c => c.is_primary) || children[0];
   const { diagnoses, setDiagnoses } = useDiagnoses(primaryChild?.id);
   const { t, locale, setLocale } = useI18n();
@@ -318,6 +320,9 @@ export default function ProfileScreen() {
   }, [parentName, parentLastName, email, phone, zipCode, schoolDistrict, insurance, selectedDiagnoses, rcStatus, iepStatus, childName, primaryChild, family, diagnoses, updateFamily, updateChild, setDiagnoses, showToast]);
 
   const handleAddChild = useCallback(async () => {
+    // Premium (E3): the first child is free forever; additional children
+    // are part of multi-child support
+    if (children.length >= 1 && !guard('Multi-child support')) return;
     const name = newChildName.trim();
     if (!name) {
       showToast("Please enter the child's first name", 'error');
@@ -340,7 +345,7 @@ export default function ProfileScreen() {
     } finally {
       setAddingChild(false);
     }
-  }, [newChildName, addChild]);
+  }, [newChildName, addChild, children.length, guard]);
 
   // ─── Google account (web) ─────────────────────────────────────────
   const [googleStatus, setGoogleStatus] = useState<{ connected: boolean; email: string | null }>({
