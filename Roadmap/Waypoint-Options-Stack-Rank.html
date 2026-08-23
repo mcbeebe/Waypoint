@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waypoint Options Stack Rank</title>
+<style>
+  :root{
+    --paper:#F7FAF9; --surface:#FFFFFF; --ink:#182A33; --ink-soft:#44585F; --ink-faint:#6B7E84;
+    --teal:#0D9488; --teal-text:#0F6E64; --teal-wash:#E3F1EE; --rule:#D5E2DF;
+    --good:#E4F2E8; --good-t:#3E6B4C; --warn:#F6EFDD; --warn-t:#8A6A1F; --bad:#F6E5DF; --bad-t:#A2452F; --grey:#ECEFF0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:15px/1.55 "Libre Franklin","Segoe UI",-apple-system,Helvetica,Arial,sans-serif;padding:2rem 1.25rem 4rem}
+  .wrap{max-width:80rem;margin:0 auto}
+  header{border-bottom:3px solid var(--teal);padding-bottom:1.2rem;margin-bottom:1.6rem}
+  .kicker{font:600 .7rem/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-text);margin:0 0 .6rem}
+  h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.6rem,4vw,2.3rem);margin:0 0 .5rem;line-height:1.1}
+  .dek{color:var(--ink-soft);max-width:52rem;margin:0;font-size:.95rem}
+  h2{font-family:Georgia,serif;font-size:1.25rem;margin:2.4rem 0 .8rem;border-bottom:1px solid var(--rule);padding-bottom:.4rem}
+  .tscroll{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:1000px;font-size:.82rem}
+  th{font:600 .66rem/1.3 ui-monospace,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;
+    color:#FFFFFF;background:#16253B;text-align:left;padding:.6rem .7rem;position:sticky;top:0}
+  td{padding:.6rem .7rem;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink-soft)}
+  tr:nth-child(odd) td{background:#FBFDFC}
+  tr:last-child td{border-bottom:none}
+  td.rank{font:700 1rem/1 ui-monospace,Menlo,monospace;color:var(--teal-text)}
+  td.opt{font-weight:700;color:var(--ink);min-width:12rem}
+  .pill{display:inline-block;font:600 .66rem/1 ui-monospace,Menlo,monospace;letter-spacing:.05em;
+    border-radius:2px;padding:.28rem .45rem;white-space:nowrap;margin-bottom:.3rem}
+  .p-high{background:var(--good);color:var(--good-t)} .p-med{background:var(--warn);color:var(--warn-t)}
+  .p-low{background:var(--bad);color:var(--bad-t)} .p-unk{background:var(--grey);color:var(--ink-faint)}
+  .note{font-size:.8rem;color:var(--ink-faint);margin-top:.8rem}
+  .verdict{border-left:3px solid var(--teal);background:var(--surface);padding:.9rem 1.15rem;margin:1.4rem 0;color:var(--ink-soft)}
+  .verdict strong{color:var(--ink)}
+  footer{margin-top:2.5rem;font:.7rem/1.6 ui-monospace,Menlo,monospace;color:var(--ink-faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="kicker">Waypoint · Strategy · 23 Aug 2026</p>
+  <h1>Monetization Options, Stack-Ranked</h1>
+  <p class="dek">Every option scored on probability of successful engagement, effort, time to first dollar, 3-year revenue upside, risk, and strategic value. Scores grounded in the primary-source assumptions audit, market sizing, and channel deep dive (see Roadmap/*.md). Revenue figures are realistic 3-year ranges, not ceilings.</p>
+</header>
+
+<h2>The ranked stack</h2>
+<div class="tscroll"><table>
+  <thead><tr>
+    <th>#</th><th>Option</th><th>P(success)</th><th>Effort</th><th>Time to $</th><th>3-yr revenue</th><th>Risk</th><th>Strategic value</th><th>ROI verdict / action</th>
+  </tr></thead>
+  <tbody>
+  <tr><td class="rank">1</td><td class="opt">SDP facilitation (FMS/RC-paid, Phase 1)</td>
+    <td><span class="pill p-high">HIGH</span><br>Mechanism statute-verified; competitors are paid this way today</td>
+    <td>Medium (~10 wks, already planned)</td><td><strong>Weeks</strong></td><td>$0.3–1M (capped)</td>
+    <td><span class="pill p-med">MED</span><br>Price unverified; statutory COI separation; AB 143 tightening</td>
+    <td>High — validates funnel + payer thesis; funds everything</td>
+    <td><strong>Do now.</strong> Highest certainty per unit of effort; the existence proof the rest depends on.</td></tr>
+  <tr><td class="rank">2</td><td class="opt">Consumer premium tier (~$99–149/yr)</td>
+    <td><span class="pill p-high">HIGH</span><br>Proven price band (Highlighter $50/yr, Undivided $149/yr)</td>
+    <td>Low (~2–3 wks)</td><td>3–6 mo</td><td>$0.3–1M (churny)</td>
+    <td><span class="pill p-high" style="background:var(--good);color:var(--good-t)">LOW</span></td>
+    <td>Low-Med — margin, no moat</td>
+    <td><strong>Ship in Phase 2.</strong> Best revenue-per-effort in the stack; never call it the engine.</td></tr>
+  <tr><td class="rank">3</td><td class="opt">Employer white-label layer (Cleo / Wellthy / EAP escalation)</td>
+    <td><span class="pill p-med">MED</span><br>Model just validated by the acquisition wave; partner-dependent</td>
+    <td>Very low (BD calls, no build)</td><td>6–12 mo</td><td>$0.1–0.5M</td>
+    <td><span class="pill p-high" style="background:var(--good);color:var(--good-t)">LOW-MED</span><br>Partner concentration</td>
+    <td>Medium — imports national demand later</td>
+    <td><strong>Start conversations now.</strong> Near-zero cost, asymmetric payoff.</td></tr>
+  <tr><td class="rank">4</td><td class="opt">District parent-layer + SB 445 translation (&ldquo;Waypoint for Schools&rdquo;)</td>
+    <td><span class="pill p-med">MED</span><br>Confirmed whitespace (SEIS has no parent portal) + earmarked ADR/IDEA budget; new GTM, 136 consensus buyers</td>
+    <td>Med-High (compliance workflow, translator network, separate brand)</td><td>9–15 mo (2027 cycle)</td><td>$0.5–1.5M ARR, software margin</td>
+    <td><span class="pill p-med">MED</span><br>CCEE free-template wildcard; dual-agent brand tension</td>
+    <td>High — legally distributes Waypoint to every IEP family in a district</td>
+    <td><strong>Pilot one SELPA</strong> in the Oct–Mar budget window; build on evidence.</td></tr>
+  <tr><td class="rank">5</td><td class="opt">Platform licensing (L3) to other facilitators/vendors</td>
+    <td><span class="pill p-med">MED</span><br>Fragmented small-practice market; needs own use as proof</td>
+    <td>2 days now (tenancy); real packaging later</td><td>12–18 mo</td><td>$0.3–1M early; largest long-term ceiling</td>
+    <td><span class="pill p-med">MED</span><br>Market education, support load</td>
+    <td><strong>Highest long-term</strong> — carries the $8–20M valuation branch</td>
+    <td>#5 near-term, <strong>#1 long-term</strong>. Pay the tenancy cost now; sell after Phase 1 proves the tooling.</td></tr>
+  <tr><td class="rank">6</td><td class="opt">CalAIM ECM (Medi-Cal managed care)</td>
+    <td><span class="pill p-med">MED-LOW</span><br>Eligible + ~$350 PMPM precedent, but PoF gap and per-plan contracting</td>
+    <td>High (care-mgmt ops, credentialing, per-plan contracts)</td><td>12–24 mo</td><td>$0.5–1.5M+; most scalable ceiling for the Medi-Cal majority</td>
+    <td><span class="pill p-low">MED-HIGH</span><br>Rate sustainability; 2026 waiver refinements</td>
+    <td>High — the only payer covering low-income non-RC families</td>
+    <td><strong>Groundwork 2027</strong> (PAVE, hubs) once outcome baselines exist; don't lead with it.</td></tr>
+  <tr><td class="rank">7</td><td class="opt">RC staff tooling (coordinator caseload/triage; 21 buyers)</td>
+    <td><span class="pill p-low">LOW-MED</span><br>Real pain (1:66+ caseloads) but slow public procurement</td>
+    <td>Low (reuses staff screens)</td><td>9–18 mo</td><td>$0.1–0.3M</td>
+    <td><span class="pill p-high" style="background:var(--good);color:var(--good-t)">LOW</span></td>
+    <td>Medium — deepens RC relationships</td>
+    <td><strong>Opportunistic.</strong> One slide in every RC conversation; build only against a signed pilot.</td></tr>
+  <tr><td class="rank">8</td><td class="opt">Corrected RC-funded parent services (ex-code-108 engine)</td>
+    <td><span class="pill p-unk">UNKNOWN</span><br>Binary on DDS question #0 (code 108 disproven)</td>
+    <td>Very high if go (vendorization, W-2 staffing, labor margins)</td><td>12–18 mo after a written answer</td><td>$1M+ if code/rate/remote work; else $0</td>
+    <td><span class="pill p-low">HIGH</span><br>Wrong-population finding; no remote authority before Jul 2027</td>
+    <td>High if real — only path to the 250k DDS children as a provider</td>
+    <td>#8 as a build; <strong>#1 as a question.</strong> Spend nothing beyond the DDS letter until answered.</td></tr>
+  <tr><td class="rank">9</td><td class="opt">CHW billing (~$63/hr, ~6 hrs/member/yr cap)</td>
+    <td><span class="pill p-med">MED</span></td>
+    <td>Low (rides ECM enrollment)</td><td>12+ mo</td><td>&lt;$0.1M</td>
+    <td><span class="pill p-high" style="background:var(--good);color:var(--good-t)">LOW</span></td>
+    <td>Low</td>
+    <td>Supplement to CalAIM only — never standalone.</td></tr>
+  <tr><td class="rank">10</td><td class="opt">Grants (STTR Sep 5 2026, DDS equity, foundations)</td>
+    <td><span class="pill p-low">LOW-MED</span> per application</td>
+    <td>Medium (applications)</td><td>6–12 mo</td><td>$0.1–0.5M one-time</td>
+    <td><span class="pill p-high" style="background:var(--good);color:var(--good-t)">LOW</span></td>
+    <td>Medium — funds Spanish-first + outcomes work</td>
+    <td><strong>Bridge funding, not a channel.</strong> Pursue in parallel; never plan on it.</td></tr>
+  </tbody>
+</table></div>
+<p class="note">P(success) pills: green = high, amber = medium, red = low, grey = unknown. Risk pills: green = low, amber = medium, red = high.</p>
+
+<h2>Rejected — closed by evidence</h2>
+<div class="tscroll"><table style="min-width:800px">
+  <thead><tr><th>Option</th><th>Why it is rejected (verified evidence)</th></tr></thead>
+  <tbody>
+    <tr><td class="opt">Consumer subscription as the primary engine</td><td>Needs ~126k–250k registered CA users for $1M; ~75% of the target market is low-income/Medi-Cal; Undivided's 7-year retreat to $19/mo + free human-led onboarding proves DTC-only fails here.</td></tr>
+    <tr><td class="opt">Core IEP compliance software</td><td>SEIS is a government near-monopoly (~700k students at ~$9.50/student/yr) across 136 SELPA buyers; a free state-digitized IEP template lands June 2026.</td></tr>
+    <tr><td class="opt">Code 108 coaching as specified</td><td>DDS Jan-2026 service definitions: code 108 serves consumers who are themselves parents (adults with I/DD) — not parents of child consumers. Wrong population.</td></tr>
+    <tr><td class="opt">Per-family app licenses to Regional Centers</td><td>No service code exists for software; the DDS payment architecture buys human service hours against POS authorizations.</td></tr>
+    <tr><td class="opt">Direct employer benefits product</td><td>Category consolidating (Joshin sold, Grayce wound down); RethinkCare incumbent; consultant-gated 12–18-month cycles.</td></tr>
+    <tr><td class="opt">Advocate take-rate marketplace</td><td>No take-rate model has ever survived in this category — surviving models are $10/mo listing fees or SaaS.</td></tr>
+    <tr><td class="opt">Facilitator + provider to the same family</td><td>Statutorily barred: W&amp;I §4685.8 defines an Independent Facilitator as someone not otherwise serving the participant. Separate books of families, enforced in-product.</td></tr>
+  </tbody>
+</table></div>
+
+<h2>Sequencing</h2>
+<div class="tscroll"><table style="min-width:800px">
+  <thead><tr><th>When</th><th>Actions</th></tr></thead>
+  <tbody>
+    <tr><td class="opt">Now<br>(Q4 2026)</td><td>Build Phase 1 (funnel + SDP facilitation + org tenancy) · Send DDS question #0 in writing (unlocks or kills option 8) · Open employer white-label conversations (3) · Approach one friendly SELPA for a translation/parent-summary pilot (4 — budget window opens October) · Grant applications (10; STTR standard deadline Sep 5/8, 2026).</td></tr>
+    <tr><td class="opt">2027</td><td>Ship the consumer annual tier behind the funnel (2) · SELPA pilot live if signed (4) · CalAIM groundwork — NPI, PAVE enrollment, community-care-hub conversations — once outcome baselines exist (6) · Gate G3 decision on RC-funded services with DDS's written answers (8).</td></tr>
+    <tr><td class="opt">2028</td><td>Scale the two of {district layer, platform licensing, CalAIM} showing real pull · License the platform to external facilitators if Phase-1 tooling proved itself (5) · Direct ECM plan contracts with outcomes data (6) · Build option 8 only if code, rate, and delivery mode all came back workable.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="verdict">
+  <strong>Portfolio read:</strong> no single option replaces the broken code-108 engine — the play is #1 now, #2/#3 as cheap seconds, #4 piloted this fall, #5's door held open for two days of schema work, and #6 in 2027. Composite realistic outcome by year 3–5: <strong>$2–5M across four mid-size channels at software-weighted margins</strong> — matching the original plan's base case without the 21-person payroll or single-payer concentration. The single highest-ROI action in the stack is not a build: it is <strong>DDS question #0 in writing</strong>, which resolves a $0-or-$1M+ unknown for the price of a letter.
+</div>
+
+<footer>Sources &amp; detail: Roadmap/Options-Stack-Rank-Aug2026.md · Assumptions-Audit-Aug2026.md · Market-Sizing-CA-Aug2026.md · Channel-Deep-Dive-Aug2026.md · branch claude/roadmap-product-strategy-wmg2rb</footer>
+</div>
+</body>
+</html>
