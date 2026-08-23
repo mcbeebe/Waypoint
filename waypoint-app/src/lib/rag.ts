@@ -11,10 +11,14 @@
 
 import { supabase } from './supabase';
 import type { KnowledgeMatch } from '@/types/database';
+// Confidence gate on retrieval quality (REQ-1206) — pure logic lives in
+// ragScoring.ts so it stays unit-testable without the Supabase client.
+import { ftsConfidence } from './ragScoring';
+import type { RAGConfidence } from './ragScoring';
 
 const DEFAULT_MATCH_COUNT = 5;
 
-export type RAGConfidence = 'high' | 'low' | 'none';
+export type { RAGConfidence } from './ragScoring';
 
 export interface RAGResult {
   context: string;
@@ -39,32 +43,6 @@ async function ftsSearch(
     throw new Error(`Supabase RPC error: ${error.message}`);
   }
   return (data ?? []) as KnowledgeMatch[];
-}
-
-/**
- * Rank threshold below which retrieval is treated as low-confidence.
- *
- * The FTS query is an OR-of-lexemes, so a question sharing ONE common word
- * with an article still "matches" — with a tiny normalized ts_rank. Before
- * this gate, any match at all reported 'high', so the low-confidence
- * warning in the system prompt could only ever fire on zero results, and a
- * weak one-word overlap produced a confident wrong answer (REQ-1206).
- * match_knowledge_fts returns `similarity` as a normalized ts_rank in
- * [0, 1); glancing single-term overlaps score well under this threshold
- * while genuinely on-topic articles score above it.
- */
-const LOW_CONFIDENCE_RANK = 0.05;
-
-/**
- * Confidence gate on retrieval quality, not mere existence:
- * no matches → 'none'; matches whose BEST normalized rank is still weak →
- * 'low' (the assistant hedges and refers out); otherwise 'high'.
- * Exported for tests.
- */
-export function ftsConfidence(matches: KnowledgeMatch[]): RAGConfidence {
-  if (matches.length === 0) return 'none';
-  const topRank = Math.max(...matches.map((m) => m.similarity ?? 0));
-  return topRank < LOW_CONFIDENCE_RANK ? 'low' : 'high';
 }
 
 /**

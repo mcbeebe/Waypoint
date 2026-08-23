@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ftsConfidence } from './rag';
+import { ftsConfidence } from './ragScoring';
 import type { KnowledgeMatch } from '@/types/database';
 
 function match(similarity: number): KnowledgeMatch {
