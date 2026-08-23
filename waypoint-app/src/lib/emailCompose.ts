@@ -41,7 +41,10 @@ export function isMobileBrowser(env: ComposeEnv): boolean {
 export function mailtoUrl(opts: ComposeOptions): string {
   const params = new URLSearchParams();
   params.set('subject', opts.subject);
-  params.set('body', opts.body);
+  // RFC 2368 requires CRLF (%0D%0A) for line breaks in mailto bodies —
+  // Gmail's iOS handler drops lone \n (%0A) and flattens the draft into
+  // one paragraph, losing the letter's formatting.
+  params.set('body', opts.body.replace(/\r?\n/g, '\r\n'));
   // URLSearchParams encodes spaces as "+", which mail apps render literally
   const query = params.toString().replace(/\+/g, '%20');
   return `mailto:${opts.to ? encodeURIComponent(opts.to) : ''}?${query}`;

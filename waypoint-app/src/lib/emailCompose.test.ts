@@ -52,11 +52,19 @@ describe('composeTarget', () => {
 });
 
 describe('url encoding', () => {
-  it('encodes spaces as %20 in mailto (not "+"), and keeps newlines', () => {
+  it('encodes spaces as %20 in mailto (not "+"), and newlines as CRLF', () => {
     const url = mailtoUrl(OPTS);
     expect(url).not.toMatch(/\+/);
     expect(url).toContain('subject=Request%20for%20IEP%20Meeting');
-    expect(url).toContain('%0A'); // newline survived
+    // RFC 2368: line breaks must be %0D%0A — Gmail iOS drops bare %0A and
+    // flattens the whole letter into one paragraph
+    expect(url).toContain('%0D%0A');
+    expect(url).not.toMatch(/(?<!%0D)%0A/);
+  });
+
+  it('already-CRLF bodies are not double-escaped', () => {
+    const url = mailtoUrl({ subject: 's', body: 'a\r\nb' });
+    expect(url).toContain('body=a%0D%0Ab');
   });
 
   it('includes the recipient when there is one', () => {
