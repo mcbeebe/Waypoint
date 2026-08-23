@@ -102,6 +102,23 @@ Waypoint's family app becomes a free, eligibility-first funnel that converts Cal
 - **F3.** Funnel screens (eligibility, offer, booking, pricing) ship EN + ES at parity; planGenerator rules-table refactor (conflict C-12(b)) lands in this phase to unlock generated-content localization.
 - **F4.** Prompt-regression suite in CI (ports QATests.csv) before Premium raises Navigator usage.
 
+### EPIC W-G · Process Navigator — rights, steps, and clocks *(new, free tier; added 23 Aug after the money-map work)*
+
+The system's core failure is informational: families sit on Path A for years without knowing the clocks they control, the levers they hold, or that Path B exists (1.5% SDP enrollment against near-universal eligibility). Making the process itself legible is therefore a **core free-tier feature** — it is the funnel's substance, the origin of the funded-offer conversion, and the data asset (days-to-service by RC) nobody else has.
+
+- **G1.** As a parent, I see a personalized "you are here" map of the Regional Center process — intake → assessment → IPP → services, on my current path — with the statutory clock on my current step and what happens next.
+  *AC:* renders from the family's profile + logged events; every step cites its statute (provenance schema); clocks show date math ("assessment due by Oct 14 — 120 days from your Sept 16 intake"); EN+ES. *Reuses:* JourneyScreen/journeyMaps (extend from diagnosis journeys to process journeys), content provenance (F2).
+- **G2.** As a parent, I get a "which path fits us?" decision aid for traditional POS vs. SDP.
+  *AC:* short questionnaire (authorization history, unmet needs documented in IPP, appetite for admin, current-provider satisfaction) → plain-language recommendation with the trade-offs stated honestly (budget anchored to authorizations; all-in; admin; facilitation from budget) and a prep checklist ("get these needs into your IPP *before* converting"); never overstates SDP; hands off to the funded offer (B2) when SDP fits. *Reuses:* planGenerator rules table (C-12), eligibility screener (B1).
+- **G3.** As a parent, I can pull the exact lever for my situation, pre-drafted.
+  *AC:* one-tap generation of the working letters: IPP review meeting request (30-day clock, §4646.5(b)), Notice of Action demand, assessment-clock follow-up (§4643), generic-resources denial request, SDP information request — each citing its statute, in the family's language, with sending history. *Reuses:* LettersScreen + draft templates + letter engine (exists), useDeadlines.
+- **G4.** As a parent, I track every request, authorization, and reimbursement I have in flight — and the app watches the clocks for me.
+  *AC:* a `family_requests` record per ask (service, date requested, channel, statutory clock if any, status: requested → assessed → authorized/denied → started → reimbursed); deadline engine computes due dates and nudges; an overdue item offers the matching G3 letter as the next action; denials prompt the NOA/appeal path; authorization end-dates feed renewal reminders. *Reuses:* actions table + deadlines engine + notifications (wired in W-A/W-B); new table in migration 041.
+- **G5.** As the owner, aggregated (consented, de-identified) request outcomes build the accountability dataset: median days-to-service by service type and RC, denial rates, appeal outcomes.
+  *AC:* feeds the outcomes engine (E8-equivalent); no number surfaces without n; this is the evidence base for equity grants, RC conversations, and the eventual payer pitch. *Depends on:* research consent (Phase 2).
+
+**Strategic note:** G4 is the flywheel — a family tracking its Path-A pain in Waypoint is simultaneously assembling the documented-unmet-needs record that becomes their SDP budget case (catch #1), which is the moment the funded offer converts. Free-tier tracking → documented needs → facilitation client.
+
 ## 5. How it builds on the current product (file-level map)
 
 | Exists today (main) | Becomes | Change |
@@ -123,8 +140,8 @@ Waypoint's family app becomes a free, eligibility-first funnel that converts Cal
 | Phase | Weeks | Ships | Gate (exit test) |
 |---|---|---|---|
 | **W0 · Rebase & foundations** | 1–2 | Audit-P0 verify/fix (F1) · migrations 035–036 (A1–A4, tenancy) · 099 vendorization packet started (D1) · funnel event taxonomy | RLS verification clean; staff login lands on empty caseload; packet submitted |
-| **W1a · Funnel** | 3–6 | Eligibility result + offer + booking, EN+ES (B1–B4) · provenance schema (F2) · C-12 refactor (F3) | 3-min onboarding→result; funnel events flowing; ES parity on 4 screens |
-| **W1b · Facilitation workspace** | 5–10 (overlaps) | Caseload, case detail, PCP builder, 099 tracker, spending plan, time capture, baselines (C1–C7) · invoicing both payer paths (D2–D4) | **One family orientation→approved plan in-app; one PAID invoice; hours-per-family measured** |
+| **W1a · Funnel** | 3–6 | Eligibility result + offer + booking, EN+ES (B1–B4) · provenance schema (F2) · C-12 refactor (F3) · **Process Navigator: you-are-here map, path decision aid, lever letters (G1–G3)** | 3-min onboarding→result; funnel events flowing; ES parity on 4 screens; a family can generate an IPP-meeting-request letter in-app |
+| **W1b · Facilitation workspace** | 5–10 (overlaps) | Caseload, case detail, PCP builder, 099 tracker, spending plan, time capture, baselines (C1–C7) · invoicing both payer paths (D2–D4) · **request/authorization tracker with clocks (G4)** | **One family orientation→approved plan in-app; one PAID invoice; hours-per-family measured**; ≥1 real family tracking live requests |
 | **W2 · Premium** | 11–14 | Pricing page + Stripe web checkout (E1) · entitlements incl. sponsored (E2) · gates on existing features (E3) · AI cost caps (E4) · prompt CI (F4) | First 10 paying subscribers; conversion instrumented; free-tier cost/user visible |
 | **W3 · Evidence & decision** | 15–18 | 10-family price/caseload readout · outcome baselines complete · funnel ≥/< 3% verdict · G3 pre-read with DDS answers | Go/no-go memo: scale facilitation, adjust price, and whether door #3/#4 opens next |
 
