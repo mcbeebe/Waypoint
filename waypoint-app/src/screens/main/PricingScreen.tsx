@@ -28,12 +28,15 @@ export default function PricingScreen() {
   const { showToast } = useToast();
 
   const checkout = async (url: string | undefined) => {
-    if (!url) {
+    if (!url || !family?.id) {
       showToast('Checkout is opening soon — nothing to pay today.', 'info');
       return;
     }
     try {
-      await Linking.openURL(url);
+      // client_reference_id ties the Stripe session to this family — the
+      // webhook uses it to write the entitlement row.
+      const sep = url.includes('?') ? '&' : '?';
+      await Linking.openURL(`${url}${sep}client_reference_id=${family.id}`);
     } catch {
       showToast('Could not open checkout — please try again.', 'error');
     }
