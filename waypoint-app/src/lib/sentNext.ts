@@ -58,9 +58,9 @@ export function sentNextFor(
         ),
         expectations: [
           L(
-            'Your Service Coordinator should reply with an orientation referral — sessions run regularly, often monthly.',
-            'Su coordinador/a de servicios debe responder con una referencia a la orientación — hay sesiones con regularidad, a menudo mensuales.',
-            'Điều phối viên dịch vụ sẽ trả lời kèm giới thiệu buổi định hướng — các buổi diễn ra đều đặn, thường hằng tháng.'
+            'Your Service Coordinator should confirm the orientation steps — two required 2-hour SCDD sessions (Part A before Part B), virtual, in 12 languages.',
+            'Su coordinador/a de servicios debe confirmar los pasos de la orientación — dos sesiones obligatorias de 2 horas de SCDD (Parte A antes de la Parte B), virtuales, en 12 idiomas.',
+            'Điều phối viên sẽ xác nhận các bước định hướng — hai buổi bắt buộc 2 giờ của SCDD (Phần A trước Phần B), trực tuyến, có 12 ngôn ngữ.'
           ),
           L(
             `The copies of ${name}'s authorizations are the budget basis — file them when they arrive.`,
@@ -73,9 +73,9 @@ export function sentNextFor(
             'SDP không có thời hạn pháp lý riêng (thành thật: ghi danh thường mất 3–12 tháng) — nhưng mỗi bước đều có thể thúc đẩy bằng quy tắc họp IPP 30 ngày.'
           ),
           L(
-            'Next milestone: attend the orientation, then get unmet needs written into the IPP BEFORE converting — that protects the budget.',
-            'Próximo hito: asista a la orientación y luego haga que las necesidades no cubiertas queden escritas en el IPP ANTES de cambiar — eso protege el presupuesto.',
-            'Cột mốc tiếp theo: dự buổi định hướng, rồi đưa nhu cầu chưa đáp ứng vào IPP TRƯỚC KHI chuyển đổi — điều đó bảo vệ ngân sách.'
+            'Next milestone: complete both parts, hand in the two certificates — the RC then owes you four things in writing (IPP copy, transition supports info, FMS info, budget steps). And get unmet needs into the IPP BEFORE the budget is calculated.',
+            'Próximo hito: complete ambas partes y entregue los dos certificados — el Centro Regional entonces le debe cuatro cosas por escrito (copia del IPP, información de apoyos de transición, información del FMS, pasos del presupuesto). Y haga que las necesidades no cubiertas entren al IPP ANTES de que se calcule el presupuesto.',
+            'Cột mốc tiếp theo: hoàn thành cả hai phần, nộp hai giấy chứng nhận — Trung tâm Khu vực khi đó phải cung cấp bốn thứ bằng văn bản (bản sao IPP, thông tin hỗ trợ chuyển tiếp, thông tin FMS, các bước ngân sách). Và đưa nhu cầu chưa đáp ứng vào IPP TRƯỚC KHI ngân sách được tính.'
           ),
         ],
         track: { requestType: 'other', title: 'SDP orientation & records request' },
@@ -218,6 +218,38 @@ export function sentNextFor(
         ],
         track: { requestType: 'other', title: 'Records request (IPP, assessments, authorizations)' },
         followUpDays: 10,
+      };
+    case 'medi_cal_deeming':
+      return {
+        celebration: L(
+          'You just asked for the key most families never hear about.',
+          'Acaba de pedir la llave de la que la mayoría de las familias nunca oye hablar.',
+          'Quý vị vừa yêu cầu chiếc chìa khóa mà hầu hết gia đình chưa từng nghe đến.'
+        ),
+        did: L(
+          `Institutional deeming lets ${name} qualify for Medi-Cal without counting your income — and Medi-Cal is what unlocks IHSS paid care hours and federal SDP funding.`,
+          `La consideración institucional permite que ${name} califique para Medi-Cal sin contar sus ingresos — y Medi-Cal es lo que abre las horas de cuidado pagadas de IHSS y el financiamiento federal del SDP.`,
+          `Cơ chế "institutional deeming" giúp ${name} đủ điều kiện Medi-Cal mà không tính thu nhập của quý vị — và Medi-Cal chính là chìa khóa mở giờ chăm sóc IHSS và tài trợ liên bang cho SDP.`
+        ),
+        expectations: [
+          L(
+            'Your Service Coordinator should confirm the referral steps and the documents they need — deeming runs through the HCBS waiver, and the RC handles the referral.',
+            'Su coordinador/a de servicios debe confirmar los pasos de la referencia y los documentos que necesitan — la consideración corre por la exención HCBS, y el Centro Regional maneja la referencia.',
+            'Điều phối viên sẽ xác nhận các bước giới thiệu và giấy tờ cần thiết — cơ chế này chạy qua miễn trừ HCBS, và Trung tâm Khu vực lo phần giới thiệu.'
+          ),
+          L(
+            'There is no statutory clock on this request — 2 weeks of silence earns the follow-up letter.',
+            'Esta solicitud no tiene plazo legal — 2 semanas de silencio ameritan la carta de seguimiento.',
+            'Yêu cầu này không có thời hạn pháp lý — im lặng 2 tuần thì nên gửi thư nhắc.'
+          ),
+          L(
+            'Once Medi-Cal is active, the IHSS application at the county is the next layer — Waypoint will surface it.',
+            'Cuando Medi-Cal esté activo, la solicitud de IHSS en el condado es la siguiente capa — Waypoint se la mostrará.',
+            'Khi Medi-Cal có hiệu lực, đơn IHSS ở quận hạt là tầng tiếp theo — Waypoint sẽ nhắc quý vị.'
+          ),
+        ],
+        track: { requestType: 'other', title: 'Medi-Cal institutional deeming referral' },
+        followUpDays: 14,
       };
     case 'rc_timeline_followup':
       return {

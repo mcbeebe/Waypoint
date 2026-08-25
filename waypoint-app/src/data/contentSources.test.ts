@@ -10,6 +10,8 @@ import type { FunnelLocale } from '@/lib/eligibility';
 import { getRcStages, getSdpFork } from '@/lib/processMap';
 import { deadlineFor } from '@/lib/requestClocks';
 import type { RequestType } from '@/lib/requestClocks';
+import { getSdpJourneySteps } from '@/lib/sdpJourney';
+import { deriveResourceStack } from '@/lib/resourceStack';
 
 function emittedCitations(): Set<string> {
   const out = new Set<string>();
@@ -32,6 +34,17 @@ function emittedCitations(): Set<string> {
   for (const locale of locales) {
     for (const s of getRcStages(locale)) out.add(s.citation);
     out.add(getSdpFork(locale).citation);
+  }
+
+  // SDP journey steps + resource stack layers, both locales
+  for (const locale of locales) {
+    for (const s of getSdpJourneySteps(locale)) out.add(s.citation);
+    for (const rcStatus of ['unknown', 'applied', 'active'] as const)
+      for (const l of deriveResourceStack(
+        { ageYears: 6, rcStatus, iepStatus: 'active' },
+        locale
+      ).layers)
+        out.add(l.citation);
   }
 
   // Request clocks

@@ -164,6 +164,7 @@ export default function LettersScreen() {
     rc_request: 'regional_center', dds_4731_complaint: 'regional_center',
     ipp_review_request: 'regional_center', noa_request: 'regional_center',
     rc_timeline_followup: 'regional_center', sdp_info_request: 'regional_center',
+    medi_cal_deeming: 'regional_center',
     iep_email: 'school', iep_prep: 'school', assessment_request: 'school',
     // records_request can go to either system — the actual recipient's
     // organization (below) wins over this default

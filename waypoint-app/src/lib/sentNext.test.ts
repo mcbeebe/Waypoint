@@ -4,7 +4,7 @@ import { deadlineFor, REQUEST_TYPE_LABELS } from './requestClocks';
 
 const LEVER_TEMPLATES = [
   'sdp_info_request', 'ipp_review_request', 'assessment_request',
-  'noa_request', 'records_request', 'rc_timeline_followup',
+  'noa_request', 'records_request', 'rc_timeline_followup', 'medi_cal_deeming',
 ];
 
 describe('sentNextFor', () => {
