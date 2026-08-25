@@ -28,7 +28,9 @@ import { useDeadlines } from '@/hooks/useDeadlines';
 import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
 import InsightCard from '@/components/InsightCard';
+import StackInsightCard from '@/components/StackInsightCard';
 import { deriveHomeInsight } from '@/lib/insights';
+import { deriveStackInsight } from '@/lib/resourceStack';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
@@ -120,6 +122,27 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           )
         : null,
     [primaryChild, diagnoses.length, funnelLocale]
+  );
+  // Resource Stack edition of the same card — takes the slot when the next
+  // unlock has a deep-dive guide (Medi-Cal deeming, IHSS).
+  const stackInsight = useMemo(
+    () =>
+      primaryChild
+        ? deriveStackInsight(
+            {
+              ageYears: ageFromDob(primaryChild.date_of_birth),
+              rcStatus: primaryChild.rc_status,
+              iepStatus: primaryChild.iep_status,
+              mediCalStatus: primaryChild.medi_cal_status,
+              ihssStatus: primaryChild.ihss_status,
+              ssiStatus: primaryChild.ssi_status,
+              sdpStep: primaryChild.sdp_step,
+            },
+            funnelLocale,
+            primaryChild.first_name
+          )
+        : null,
+    [primaryChild, funnelLocale]
   );
   const { deadlines } = useDeadlines({ familyId: family?.id ?? '' });
   const { summary: expenseSummary } = useExpenses({ familyId: family?.id ?? '' });
@@ -259,15 +282,23 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           />
         )}
 
-        {/* Waypoint noticed — the highest-leverage unused entitlement */}
-        {insight && (
+        {/* Waypoint noticed — the highest-leverage unused entitlement. The
+            Resource Stack edition wins the slot when a deep-dive unlock
+            exists; the generic card covers the other stories. */}
+        {stackInsight ? (
+          <StackInsightCard
+            insight={stackInsight}
+            locale={funnelLocale}
+            onDraft={(template) => (navigation as any).navigate('Letters', { template })}
+          />
+        ) : insight ? (
           <InsightCard
             insight={insight}
             onOpen={(target) =>
               (navigation as any).navigate(target.screen, target.params)
             }
           />
-        )}
+        ) : null}
 
         {/* Empathy Message */}
         <View

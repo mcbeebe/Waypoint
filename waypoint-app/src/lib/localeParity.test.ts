@@ -12,7 +12,7 @@ import { decidePath, getPathQuestions } from './pathDecision';
 import { deriveHomeInsight } from './insights';
 import { sentNextFor } from './sentNext';
 import { getSdpJourneySteps, deriveSdpJourney } from './sdpJourney';
-import { deriveResourceStack } from './resourceStack';
+import { deriveResourceStack, deriveStackInsight } from './resourceStack';
 
 const LOCALES: FunnelLocale[] = ['en', 'es', 'vi'];
 
@@ -116,6 +116,14 @@ describe('resource stack is structurally locale-invariant', () => {
       expect(other.layers.map((l) => l.lever)).toEqual(en.layers.map((l) => l.lever));
       expect(other.nextUnlock?.key).toBe(en.nextUnlock?.key);
       expect(other.layers.map((l) => l.gets)).not.toEqual(en.layers.map((l) => l.gets));
+      const enInsight = deriveStackInsight(input, 'en', 'Teddy')!;
+      const otherInsight = deriveStackInsight(input, locale, 'Teddy')!;
+      expect(otherInsight.guide.layerKey).toBe(enInsight.guide.layerKey);
+      expect(otherInsight.guide.leverTemplate).toBe(enInsight.guide.leverTemplate);
+      expect(otherInsight.citation).toBe(enInsight.citation);
+      expect(otherInsight.bars.map((b) => b.status)).toEqual(enInsight.bars.map((b) => b.status));
+      expect(otherInsight.title).toContain('Teddy');
+      expect(otherInsight.title).not.toBe(enInsight.title);
     });
   }
 });

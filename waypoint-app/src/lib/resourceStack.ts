@@ -264,3 +264,162 @@ export function deriveResourceStack(
   const nextUnlock = layers.find((l) => l.status === 'available') ?? null;
   return { layers, securedCount, totalCount: layers.length, nextUnlock };
 }
+
+/** Undivided-style unlock explainer: WHAT / WHY / HOW + a parent tip. */
+export interface UnlockGuide {
+  layerKey: StackLayerKey;
+  title: string;
+  what: string;
+  why: string;
+  how: string;
+  tip: string;
+  citation: string;
+  leverTemplate: string;
+  leverLabel: string;
+}
+
+/**
+ * The deep-dive guide for the layers whose unlock is a concrete written
+ * request (Medi-Cal deeming, then IHSS). Null for layers whose lever is a
+ * whole screen rather than one request.
+ */
+export function unlockGuideFor(
+  key: StackLayerKey,
+  locale: FunnelLocale = 'en',
+  childName?: string | null
+): UnlockGuide | null {
+  const L = picker(locale);
+  const name = childName || L('your child', 'su hijo/a', 'con quý vị');
+  switch (key) {
+    case 'medi_cal':
+      return {
+        layerKey: 'medi_cal',
+        title: L(
+          'Medi-Cal without counting your income',
+          'Medi-Cal sin contar sus ingresos',
+          'Medi-Cal không tính thu nhập của quý vị'
+        ),
+        what: L(
+          `"Institutional deeming" treats ${name}'s eligibility as if only their own income counted — most families over the normal limit qualify this way.`,
+          `La "consideración institucional" trata la elegibilidad de ${name} como si solo contaran sus propios ingresos — la mayoría de las familias por encima del límite normal califica así.`,
+          `"Institutional deeming" xét điều kiện của ${name} như thể chỉ tính thu nhập của chính con — hầu hết gia đình vượt mức bình thường đều đủ điều kiện theo cách này.`
+        ),
+        why: L(
+          "It unlocks IHSS paid caregiving hours and federal matching for a future SDP budget — two layers of the stack.",
+          'Abre las horas de cuidado pagadas de IHSS y el financiamiento federal para un futuro presupuesto del SDP — dos capas de la pila.',
+          'Nó mở giờ chăm sóc có trả lương IHSS và nguồn đối ứng liên bang cho ngân sách SDP tương lai — hai tầng của chồng quyền lợi.'
+        ),
+        how: L(
+          "One request to your Service Coordinator asks for it through the HCBS waiver. Waypoint drafts it and starts a follow-up clock.",
+          'Una solicitud a su coordinador/a de servicios la pide a través de la exención HCBS. Waypoint la redacta e inicia un plazo de seguimiento.',
+          'Một yêu cầu gửi điều phối viên dịch vụ, xin qua miễn trừ HCBS. Waypoint soạn thư và khởi động đồng hồ theo dõi.'
+        ),
+        tip: L(
+          'Ask for it by name — "institutional deeming through the HCBS waiver." Coordinators rarely offer it unprompted.',
+          'Pídala por su nombre — "consideración institucional a través de la exención HCBS". Los coordinadores rara vez la ofrecen sin que se la pidan.',
+          'Hãy yêu cầu đích danh — "institutional deeming qua miễn trừ HCBS." Điều phối viên hiếm khi tự đề nghị.'
+        ),
+        citation: 'HCBS waiver deeming',
+        leverTemplate: 'medi_cal_deeming',
+        leverLabel: L('Draft the request →', 'Redactar la solicitud →', 'Soạn yêu cầu →'),
+      };
+    case 'ihss':
+      return {
+        layerKey: 'ihss',
+        title: L(
+          'IHSS: get paid for the care you already give',
+          'IHSS: cobre por el cuidado que ya brinda',
+          'IHSS: được trả lương cho việc chăm sóc quý vị vẫn đang làm'
+        ),
+        what: L(
+          `IHSS pays a caregiver — including a parent — for ${name}'s care hours, and protective supervision adds hours for many developmental disabilities.`,
+          `IHSS paga a un cuidador — incluido un padre o madre — por las horas de cuidado de ${name}, y la supervisión protectora agrega horas para muchas discapacidades del desarrollo.`,
+          `IHSS trả lương cho người chăm sóc — kể cả cha mẹ — theo giờ chăm sóc của ${name}, và "giám sát bảo vệ" cộng thêm giờ cho nhiều khuyết tật phát triển.`
+        ),
+        why: L(
+          "It's income for care you already give — and an SDP spending plan can't buy what IHSS covers, so having it makes a future budget go further.",
+          'Es un ingreso por el cuidado que ya brinda — y un plan de gastos del SDP no puede comprar lo que IHSS cubre, así que tenerlo hace rendir más un presupuesto futuro.',
+          'Đó là thu nhập cho việc chăm sóc quý vị vẫn đang làm — và kế hoạch chi tiêu SDP không được mua thứ IHSS đã phủ, nên có IHSS giúp ngân sách tương lai đi xa hơn.'
+        ),
+        how: L(
+          'Apply at your county IHSS office (Medi-Cal must be active first). Ask for a protective-supervision assessment in the same application.',
+          'Solicite en la oficina de IHSS de su condado (Medi-Cal debe estar activo primero). Pida una evaluación de supervisión protectora en la misma solicitud.',
+          'Nộp đơn tại văn phòng IHSS của quận hạt (Medi-Cal phải có hiệu lực trước). Yêu cầu đánh giá "giám sát bảo vệ" ngay trong đơn.'
+        ),
+        tip: L(
+          'Keep a one-week care diary before the home visit — assessors count what you can show, not what you remember.',
+          'Lleve un diario de cuidado de una semana antes de la visita al hogar — los evaluadores cuentan lo que usted puede mostrar, no lo que recuerda.',
+          'Ghi nhật ký chăm sóc một tuần trước buổi thăm nhà — người đánh giá tính những gì quý vị chứng minh được, không phải những gì quý vị nhớ.'
+        ),
+        citation: 'W&I §12300',
+        leverTemplate: 'general',
+        leverLabel: L('Plan the application →', 'Planear la solicitud →', 'Lên kế hoạch nộp đơn →'),
+      };
+    default:
+      return null;
+  }
+}
+
+/** The Home "Waypoint noticed" stack insight (mockup Concept C). */
+export interface StackInsight {
+  eyebrow: string;
+  title: string;
+  body: string;
+  ctaLabel: string;
+  /** Bar states in layer order, for the mini visualization. */
+  bars: Array<{ key: StackLayerKey; label: string; status: StackLayerStatus }>;
+  securedCount: number;
+  totalCount: number;
+  guide: UnlockGuide;
+  citation: string;
+}
+
+const BAR_LABELS: Record<StackLayerKey, Record<FunnelLocale, string>> = {
+  school: { en: 'School', es: 'Escuela', vi: 'Trường' },
+  regional_center: { en: 'RC', es: 'CR', vi: 'TTKV' },
+  medi_cal: { en: 'Medi-Cal', es: 'Medi-Cal', vi: 'Medi-Cal' },
+  ihss: { en: 'IHSS', es: 'IHSS', vi: 'IHSS' },
+  sdp: { en: 'SDP', es: 'SDP', vi: 'SDP' },
+  ssi: { en: 'SSI', es: 'SSI', vi: 'SSI' },
+};
+
+/**
+ * Derive the Home stack insight — non-null only when the next unlock has a
+ * deep-dive guide (Medi-Cal, IHSS), so the card never renders with a vague
+ * ask. The generic insight card covers the other stories.
+ */
+export function deriveStackInsight(
+  input: StackInput,
+  locale: FunnelLocale = 'en',
+  childName?: string | null
+): StackInsight | null {
+  const L = picker(locale);
+  const stack = deriveResourceStack(input, locale);
+  if (!stack.nextUnlock) return null;
+  const guide = unlockGuideFor(stack.nextUnlock.key, locale, childName);
+  if (!guide) return null;
+  const name = childName || L('Your child', 'Su hijo/a', 'Con quý vị');
+  return {
+    eyebrow: L('WAYPOINT NOTICED', 'WAYPOINT NOTÓ', 'WAYPOINT NHẬN THẤY'),
+    title: L(
+      `${name} is using ${stack.securedCount} of ${stack.totalCount} benefit layers`,
+      `${name} está usando ${stack.securedCount} de ${stack.totalCount} capas de beneficios`,
+      `${name} đang dùng ${stack.securedCount} / ${stack.totalCount} tầng quyền lợi`
+    ),
+    body: L(
+      `The next one is bigger than it looks: ${guide.title}. ${guide.why}`,
+      `La siguiente es más grande de lo que parece: ${guide.title}. ${guide.why}`,
+      `Tầng tiếp theo lớn hơn vẻ ngoài: ${guide.title}. ${guide.why}`
+    ),
+    ctaLabel: L('See the fastest unlock →', 'Ver el desbloqueo más rápido →', 'Xem cách mở nhanh nhất →'),
+    bars: stack.layers.map((l) => ({
+      key: l.key,
+      label: BAR_LABELS[l.key][locale],
+      status: l.status,
+    })),
+    securedCount: stack.securedCount,
+    totalCount: stack.totalCount,
+    guide,
+    citation: guide.citation,
+  };
+}
