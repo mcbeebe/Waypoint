@@ -29,6 +29,7 @@ import ServicesScreen from '@/screens/main/ServicesScreen';
 import InsuranceScreen from '@/screens/main/InsuranceScreen';
 import JourneyPhaseScreen from '@/screens/main/JourneyPhaseScreen';
 import ProcessMapScreen from '@/screens/main/ProcessMapScreen';
+import SdpJourneyScreen from '@/screens/main/SdpJourneyScreen';
 import EligibilityResultScreen from '@/screens/main/EligibilityResultScreen';
 import FundedOfferScreen from '@/screens/main/FundedOfferScreen';
 import RequestTrackerScreen from '@/screens/main/RequestTrackerScreen';
@@ -251,6 +252,7 @@ function HomeStack() {
       <HomeStackNav.Screen name="Journey" component={JourneyScreen} options={{ title: 'Journey Map' }} />
       <HomeStackNav.Screen name="JourneyPhase" component={JourneyPhaseScreen} options={{ title: 'This Stage' }} />
       <HomeStackNav.Screen name="ProcessMap" component={ProcessMapScreen} options={{ title: 'How the System Works' }} />
+      <HomeStackNav.Screen name="SdpJourney" component={SdpJourneyScreen} options={{ title: 'Self-Determination Journey' }} />
       <HomeStackNav.Screen name="EligibilityResult" component={EligibilityResultScreen} options={{ title: 'Your Result' }} />
       <HomeStackNav.Screen name="FundedOffer" component={FundedOfferScreen} options={{ title: 'Free Help' }} />
       <HomeStackNav.Screen name="RequestTracker" component={RequestTrackerScreen} options={{ title: 'Requests & Clocks' }} />

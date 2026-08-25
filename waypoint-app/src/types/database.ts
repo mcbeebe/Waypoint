@@ -32,6 +32,9 @@ export type RcStatus = 'unknown' | 'known' | 'applied' | 'active';
 /** IEP status collected during onboarding (012_children_intake_status.sql) */
 export type IepStatus = 'no' | 'unknown' | 'eval_done' | 'active' | 'na';
 
+/** Self-reported benefit-layer status (043_resource_stack_status.sql) */
+export type BenefitStatus = 'none' | 'applied' | 'active' | 'not_eligible' | 'unknown';
+
 export interface Child {
   id: string;
   family_id: string;
@@ -46,6 +49,11 @@ export interface Child {
   grade: string | null;
   rc_status: RcStatus | null;
   iep_status: IepStatus | null;
+  /** Resource Stack layer statuses + SDP journey position (043) */
+  medi_cal_status: BenefitStatus | null;
+  ihss_status: BenefitStatus | null;
+  ssi_status: BenefitStatus | null;
+  sdp_step: number | null;
   iep_last_annual_review: string | null;
   iep_last_triennial: string | null;
   iep_assessment_plan_requested: string | null;

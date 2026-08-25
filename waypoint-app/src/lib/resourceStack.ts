@@ -12,11 +12,10 @@
  * native-speaker review. Value claims stay honest — no invented dollar
  * averages.
  */
-import type { RcStatus, IepStatus } from '@/types/database';
+import type { RcStatus, IepStatus, BenefitStatus } from '@/types/database';
 import type { FunnelLocale } from '@/lib/eligibility';
 
-/** Self-reported status for the benefit layers (migration 043). */
-export type BenefitStatus = 'none' | 'applied' | 'active' | 'not_eligible' | 'unknown';
+export type { BenefitStatus };
 
 export type StackLayerKey =
   | 'school'

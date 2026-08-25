@@ -38,6 +38,7 @@ const STRINGS: Record<FunnelLocale, {
   ippHaveBody: string;
   ippUpload: string;
   ippRecords: string;
+  sdpJourneyCta: string;
 }> = {
   en: {
     title: 'How the system works',
@@ -63,6 +64,7 @@ const STRINGS: Record<FunnelLocale, {
       "It's a document titled \"Individual Program Plan,\" written at a meeting with your Service Coordinator (at least yearly). If you've never seen one, your coordinator has it — and you're entitled to a copy.",
     ippUpload: 'I have it — add it to Waypoint',
     ippRecords: "Not sure? Request your records",
+    sdpJourneyCta: 'See the full journey, step by step →',
   },
   es: {
     title: 'Cómo funciona el sistema',
@@ -88,6 +90,7 @@ const STRINGS: Record<FunnelLocale, {
       'Es un documento titulado "Plan de Programa Individual", escrito en una reunión con su coordinador/a de servicios (al menos una vez al año). Si nunca lo ha visto, su coordinador/a lo tiene — y usted tiene derecho a una copia.',
     ippUpload: 'Lo tengo — agregarlo a Waypoint',
     ippRecords: '¿No está seguro/a? Solicite sus registros',
+    sdpJourneyCta: 'Ver el camino completo, paso a paso →',
   },
   vi: {
     title: 'Hệ thống hoạt động thế nào',
@@ -113,6 +116,7 @@ const STRINGS: Record<FunnelLocale, {
       'Đó là tài liệu có tên "Individual Program Plan" (Kế hoạch Chương trình Cá nhân), được lập trong cuộc họp với điều phối viên dịch vụ (ít nhất mỗi năm một lần). Nếu quý vị chưa từng thấy, điều phối viên đang giữ nó — và quý vị có quyền nhận một bản sao.',
     ippUpload: 'Tôi có rồi — thêm vào Waypoint',
     ippRecords: 'Chưa chắc? Yêu cầu hồ sơ của quý vị',
+    sdpJourneyCta: 'Xem toàn bộ hành trình, từng bước →',
   },
 };
 
@@ -279,11 +283,17 @@ export default function ProcessMapScreen() {
           {renderStageActions(sdpFork)}
           <Pressable
             style={[styles.lever, styles.leverPrimary]}
-            onPress={() => openLetter(sdpFork.leverTemplate!)}
+            onPress={() => (navigation as any).navigate('SdpJourney')}
           >
             <Text style={[styles.leverText, styles.leverTextPrimary]}>
-              ✉️ {sdpFork.leverLabel}
+              🗺 {S.sdpJourneyCta}
             </Text>
+          </Pressable>
+          <Pressable
+            style={styles.lever}
+            onPress={() => openLetter(sdpFork.leverTemplate!)}
+          >
+            <Text style={styles.leverText}>✉️ {sdpFork.leverLabel}</Text>
           </Pressable>
           <PathDecider onLever={openLetter} locale={funnelLocale} />
         </View>
