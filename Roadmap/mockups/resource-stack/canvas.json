@@ -1,13 +1,13 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1250, "title": "A · Your Resource Stack" },
-    { "file": "Journey.dc.html", "x": 490, "y": 0, "w": 390, "h": 1560, "title": "B · SDP Journey (steps 0–8)" },
-    { "file": "HomeInsight.dc.html", "x": 980, "y": 0, "w": 390, "h": 1060, "title": "C · Home stack insight + unlock sheet" }
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1340, "title": "A · Your Resource Stack" },
+    { "file": "Journey.dc.html", "x": 490, "y": 0, "w": 390, "h": 1780, "title": "B · SDP Journey (steps 0–8)" },
+    { "file": "HomeInsight.dc.html", "x": 980, "y": 0, "w": 390, "h": 1240, "title": "C · Home stack insight + unlock sheet" }
   ],
   "annotations": [
-    { "id": "note-concept-a", "x": 0, "y": -260, "w": 300, "text": "CONCEPT A — the stack as the mental model.\nFoundation at the bottom, goal at the top, one highlighted 'next unlock'. Teaches WHY order matters (generic services first = legal strategy).\n\nBest teacher; biggest build (new Journey-tab top level)." },
-    { "id": "note-concept-b", "x": 490, "y": -260, "w": 300, "text": "CONCEPT B — SDP steps 0–8, current per the Mar 2026 DDS directive (D-2026-SDP-002): two-part SCDD-only orientation, certificate hand-off with the 4 mandatory items.\n\nExactly one CTA, on the current step, wired to a letter + tracked clock. Slots into the existing ProcessMap SDP fork — least navigation change." },
-    { "id": "note-concept-c", "x": 980, "y": -260, "w": 300, "text": "CONCEPT C — Home insight + Undivided-style unlock sheet (WHAT / WHY / HOW + parent tip).\nMini stack bars tease the model; the sheet converts it into one drafted request.\n\nSmallest build, highest reach — recommended first ship together with B." },
+    { "id": "note-concept-a", "x": 0, "y": -340, "w": 300, "text": "CONCEPT A — the stack as the mental model.\nFoundation at the bottom, goal at the top, one highlighted 'next unlock'. Teaches WHY order matters (generic services first = legal strategy).\n\nBest teacher; biggest build (new Journey-tab top level)." },
+    { "id": "note-concept-b", "x": 490, "y": -340, "w": 300, "text": "CONCEPT B — SDP steps 0–8, current per the Mar 2026 DDS directive (D-2026-SDP-002): two-part SCDD-only orientation, certificate hand-off with the 4 mandatory items.\n\nExactly one CTA, on the current step, wired to a letter + tracked clock. Slots into the existing ProcessMap SDP fork — least navigation change." },
+    { "id": "note-concept-c", "x": 980, "y": -340, "w": 300, "text": "CONCEPT C — Home insight + Undivided-style unlock sheet (WHAT / WHY / HOW + parent tip).\nMini stack bars tease the model; the sheet converts it into one drafted request.\n\nSmallest build, highest reach — recommended first ship together with B." },
     { "id": "note-shared", "x": 1470, "y": 0, "w": 280, "text": "Shared rules across all three:\n· every claim carries a citation + reviewed date\n· one primary CTA per screen, always ending in a letter or tracked clock\n· trilingual EN/ES/VI via the L() pattern\n· values framed honestly (no invented dollar averages)\n\nPlan: Roadmap/Resource-Stack-Journey-Plan.md" }
   ],
   "launch": { "view": "canvas" }
