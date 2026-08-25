@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { deriveResourceStack } from './resourceStack';
+import { deriveResourceStack, unlockGuideFor, deriveStackInsight } from './resourceStack';
 import type { StackInput } from './resourceStack';
+import { LETTER_TEMPLATES } from './lettersCatalog';
 
 const BASE: StackInput = {
   ageYears: 6,
@@ -80,5 +81,60 @@ describe('deriveResourceStack', () => {
       expect(l.citation.length, l.key).toBeGreaterThan(0);
       expect(l.statusLabel.length, l.key).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('unlockGuideFor', () => {
+  it('deep-dive guides exist for Medi-Cal and IHSS; other layers get none', () => {
+    expect(unlockGuideFor('medi_cal', 'en', 'Leo')).not.toBeNull();
+    expect(unlockGuideFor('ihss')).not.toBeNull();
+    expect(unlockGuideFor('school')).toBeNull();
+    expect(unlockGuideFor('ssi')).toBeNull();
+  });
+
+  it('guide lever templates exist in the letters catalog', () => {
+    const known = new Set(LETTER_TEMPLATES.map((t) => t.key));
+    for (const key of ['medi_cal', 'ihss'] as const) {
+      expect(known.has(unlockGuideFor(key)!.leverTemplate), key).toBe(true);
+    }
+  });
+
+  it('the Medi-Cal guide teaches the by-name ask and names the child', () => {
+    const g = unlockGuideFor('medi_cal', 'en', 'Leo')!;
+    expect(g.tip).toContain('institutional deeming');
+    expect(g.what).toContain('Leo');
+    expect(g.leverTemplate).toBe('medi_cal_deeming');
+  });
+});
+
+describe('deriveStackInsight', () => {
+  it('renders for the mockup family: Medi-Cal is the fastest unlock', () => {
+    const i = deriveStackInsight(BASE, 'en', 'Leo')!;
+    expect(i).not.toBeNull();
+    expect(i.guide.layerKey).toBe('medi_cal');
+    expect(i.title).toContain('2 of 6');
+    expect(i.title).toContain('Leo');
+    expect(i.bars).toHaveLength(6);
+    expect(i.bars.filter((b) => b.status === 'secured')).toHaveLength(2);
+  });
+
+  it('moves to IHSS once Medi-Cal is secured', () => {
+    const i = deriveStackInsight({ ...BASE, mediCalStatus: 'active' }, 'en', 'Leo')!;
+    expect(i.guide.layerKey).toBe('ihss');
+  });
+
+  it('stays quiet when the next unlock has no deep-dive guide', () => {
+    // IEP missing → next unlock is school, whose lever is a whole flow.
+    expect(deriveStackInsight({ ...BASE, iepStatus: 'no' })).toBeNull();
+    // Everything secured → nothing to say.
+    expect(
+      deriveStackInsight({
+        ...BASE,
+        mediCalStatus: 'active',
+        ihssStatus: 'active',
+        sdpStep: 8,
+        ssiStatus: 'active',
+      })
+    ).toBeNull();
   });
 });
