@@ -15,7 +15,7 @@ export interface StageInfo {
 
 /** The working pipeline, in order (intake/closed are bookends, not shown). */
 export const SDP_PIPELINE: StageInfo[] = [
-  { stage: 'orientation', label: 'Orientation', exit: 'Family completes the RC’s SDP orientation' },
+  { stage: 'orientation', label: 'Orientation', exit: 'Family completes SCDD orientation Parts A + B and holds both certificates (D-2026-SDP-002)' },
   { stage: 'pcp', label: 'Person-centered plan', exit: 'PCP complete and submitted (code 024, up to $1,000)' },
   { stage: 'budget_certification', label: 'Budget', exit: 'RC certifies the annual budget' },
   { stage: 'spending_plan', label: 'Spending plan', exit: 'Plan sums to the certified budget; FMS onboarded' },
@@ -33,7 +33,7 @@ export function nextActionFor(c: Pick<SdpCase, 'stage' | 'pcp_completed_at' | 'c
     case 'intake':
       return 'Book the intro call and confirm SDP eligibility';
     case 'orientation':
-      return 'Get the family onto the RC’s next SDP orientation';
+      return 'Register the family for SCDD orientation Part A (then B — both certificates required)';
     case 'pcp':
       return c.pcp_completed_at
         ? 'Submit the PCP and invoice code 024'

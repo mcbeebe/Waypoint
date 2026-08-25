@@ -162,7 +162,7 @@ export function getSdpFork(locale: FunnelLocale = 'en'): ProcessStage {
       'En lugar de que el Centro Regional compre servicios autorización por autorización, los servicios de su hijo/a pueden convertirse en un presupuesto anual que su familia dirige. Casi todos los niños del Centro Regional califican — solo ~1.5% está inscrito. Su presupuesto inicial se basa en los últimos 12 meses de servicios autorizados más las necesidades documentadas en el IPP, así que documente las necesidades ANTES de cambiar.',
       'Thay vì Trung tâm Khu vực mua dịch vụ theo từng giấy ủy quyền, dịch vụ của con quý vị có thể trở thành ngân sách hằng năm do gia đình điều hành. Hầu hết trẻ của Trung tâm Khu vực đều đủ điều kiện — chỉ ~1.5% ghi danh. Ngân sách khởi điểm dựa trên 12 tháng dịch vụ đã duyệt gần nhất cộng với nhu cầu chưa đáp ứng có ghi trong IPP, vì vậy hãy ghi nhận nhu cầu TRƯỚC KHI chuyển đổi.'
     ),
-    citation: 'W&I §4685.8',
+    citation: 'W&I §4685.8 · DDS D-2026-SDP-002',
     clock: L(
       'No enforceable clock on enrollment — typically 3–12 months. The 30-day IPP-meeting rule is your lever at every step.',
       'La inscripción no tiene plazo obligatorio — típicamente 3–12 meses. La regla de la reunión de 30 días es su herramienta en cada paso.',

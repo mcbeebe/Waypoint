@@ -36,7 +36,7 @@ export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'lanterman_act',
     title: 'Lanterman Developmental Disabilities Services Act',
-    covers: ['Lanterman Act', 'Lanterman Act, W&I §4512 · §4643'],
+    covers: ['Lanterman Act', 'Lanterman Act, W&I §4512 · §4643', 'Lanterman Act, W&I §4512'],
     url: 'https://leginfo.legislature.ca.gov/faces/codes_displayexpandedbranch.xhtml?tocCode=WIC&division=4.5.',
     verifiedOn: VERIFIED,
     claim:
@@ -70,7 +70,7 @@ export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'wic_4685_8',
     title: 'Welfare & Institutions Code §4685.8 (Self-Determination Program)',
-    covers: ['W&I §4685.8'],
+    covers: ['W&I §4685.8', 'W&I §4685.8(u)', 'W&I §4685.8 · §4646.5(b)'],
     url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4685.8.',
     verifiedOn: VERIFIED,
     claim:
@@ -113,11 +113,47 @@ export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'dds_sdp_guidance_2024',
     title: 'DDS Self-Determination Program guidance (July 2024)',
-    covers: ['DDS SDP guidance (2024)'],
+    covers: ['DDS SDP guidance (2024)', 'codes 024 + 099 · July 2024 DDS guidance'],
     url: 'https://www.dds.ca.gov/initiatives/sdp/',
     verifiedOn: VERIFIED,
     claim:
       'Service code 024 person-centered-plan reimbursement cap ($1,000) and code 099 transition-support cap (40 hours) — see benefitFigures.',
+  },
+  {
+    key: 'dds_d_2026_sdp_002',
+    title: 'DDS Directive D-2026-SelfDeterminationProgram-002 (Mar 24, 2026)',
+    covers: ['DDS D-2026-SDP-002', 'W&I §4685.8 · DDS D-2026-SDP-002'],
+    url: 'https://www.dds.ca.gov/wp-content/uploads/2026/03/D-2026-Self-DeterminationProgram-002.pdf',
+    verifiedOn: '2026-08-25',
+    claim:
+      'Effective Apr 1, 2026: SDP orientation is two required 2-hour sessions delivered only by SCDD (Part A before B, certificate after each); handing both certificates to the service coordinator triggers a mandatory four-item response (IPP copy, transition-supports info, FMS info, budget-process steps).',
+  },
+  {
+    key: 'dds_fms_models',
+    title: 'DDS FMS models comparison (Bill Payer · Sole Employer · Co-Employer)',
+    covers: ['three models: Bill Payer · Sole Employer · Co-Employer'],
+    url: 'https://www.dds.ca.gov/wp-content/uploads/2021/04/FMSModelsComparisonChart_04272021.pdf',
+    verifiedOn: '2026-08-25',
+    claim:
+      'The three FMS models and their duties; since July 1, 2022 the regional center pays the FMS outside the individual budget.',
+  },
+  {
+    key: 'edc_56341',
+    title: 'Education Code §56341 (IEP team and contents)',
+    covers: ['IDEA · Ed Code §56341'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56341.',
+    verifiedOn: '2026-08-25',
+    claim:
+      'The IEP delivers services (therapies, aide support, placement) at no cost as part of FAPE from age 3 to 22.',
+  },
+  {
+    key: 'hcbs_deeming',
+    title: 'Medi-Cal HCBS (DD) waiver — institutional deeming',
+    covers: ['HCBS waiver deeming'],
+    url: 'https://www.dds.ca.gov/services/medi-cal-waiver/',
+    verifiedOn: '2026-08-25',
+    claim:
+      "Institutional deeming under the HCBS DD waiver determines a child's Medi-Cal eligibility without counting parental income or resources.",
   },
 ];
 

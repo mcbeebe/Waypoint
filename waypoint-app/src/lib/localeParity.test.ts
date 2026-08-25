@@ -11,6 +11,8 @@ import { getRcStages, getSdpFork } from './processMap';
 import { decidePath, getPathQuestions } from './pathDecision';
 import { deriveHomeInsight } from './insights';
 import { sentNextFor } from './sentNext';
+import { getSdpJourneySteps, deriveSdpJourney } from './sdpJourney';
+import { deriveResourceStack } from './resourceStack';
 
 const LOCALES: FunnelLocale[] = ['en', 'es', 'vi'];
 
@@ -82,10 +84,46 @@ describe('home insight is structurally locale-invariant', () => {
   }
 });
 
+describe('SDP journey is structurally locale-invariant', () => {
+  const en = getSdpJourneySteps('en');
+  for (const locale of ['es', 'vi'] as const) {
+    it(locale, () => {
+      const other = getSdpJourneySteps(locale);
+      expect(other.map((s) => s.key)).toEqual(en.map((s) => s.key));
+      expect(other.map((s) => s.n)).toEqual(en.map((s) => s.n));
+      expect(other.map((s) => s.leverTemplate)).toEqual(en.map((s) => s.leverTemplate));
+      expect(other.map((s) => s.checklist.length)).toEqual(en.map((s) => s.checklist.length));
+      expect(other.map((s) => s.title)).not.toEqual(en.map((s) => s.title));
+      expect(deriveSdpJourney(2, locale).progressPct).toBe(deriveSdpJourney(2, 'en').progressPct);
+    });
+  }
+});
+
+describe('resource stack is structurally locale-invariant', () => {
+  const input = {
+    ageYears: 6, rcStatus: 'active' as const, iepStatus: 'active' as const,
+    mediCalStatus: 'unknown' as const, ihssStatus: 'unknown' as const,
+    ssiStatus: 'unknown' as const, sdpStep: null,
+  };
+  const en = deriveResourceStack(input, 'en');
+  for (const locale of ['es', 'vi'] as const) {
+    it(locale, () => {
+      const other = deriveResourceStack(input, locale);
+      expect(other.layers.map((l) => l.key)).toEqual(en.layers.map((l) => l.key));
+      expect(other.layers.map((l) => l.status)).toEqual(en.layers.map((l) => l.status));
+      expect(other.layers.map((l) => l.citation)).toEqual(en.layers.map((l) => l.citation));
+      expect(other.layers.map((l) => l.lockedBy)).toEqual(en.layers.map((l) => l.lockedBy));
+      expect(other.layers.map((l) => l.lever)).toEqual(en.layers.map((l) => l.lever));
+      expect(other.nextUnlock?.key).toBe(en.nextUnlock?.key);
+      expect(other.layers.map((l) => l.gets)).not.toEqual(en.layers.map((l) => l.gets));
+    });
+  }
+});
+
 describe('sent moment is structurally locale-invariant', () => {
   const KEYS = [
     'sdp_info_request', 'ipp_review_request', 'assessment_request',
-    'noa_request', 'records_request', 'rc_timeline_followup',
+    'noa_request', 'records_request', 'rc_timeline_followup', 'medi_cal_deeming',
   ];
   for (const locale of ['es', 'vi'] as const) {
     it(locale, () => {
