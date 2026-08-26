@@ -165,6 +165,15 @@ export const CONTENT_SOURCES: ContentSource[] = [
       'Refusals to initiate or change identification, evaluation, or placement require prior written notice; parents get school records within 5 business days of a request.',
   },
   {
+    key: 'edc_56329b_56501',
+    title: 'Education Code §56329(b) (IEE at public expense) · §56501 (due process)',
+    covers: ['Ed Code §56329(b) · §56501'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56329.',
+    verifiedOn: '2026-08-26',
+    claim:
+      'A parent who disagrees with a district assessment may obtain an independent educational evaluation at public expense unless the district initiates and prevails at a due-process hearing; §56501 provides the due-process forum.',
+  },
+  {
     key: 'hcbs_deeming',
     title: 'Medi-Cal HCBS (DD) waiver — institutional deeming',
     covers: ['HCBS waiver deeming'],

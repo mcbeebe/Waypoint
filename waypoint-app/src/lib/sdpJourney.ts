@@ -69,9 +69,9 @@ export function getSdpJourneySteps(locale: FunnelLocale = 'en'): SdpJourneyStep[
       n: 0,
       title: L('Fix the IPP first', 'Primero arregle el IPP', 'Sửa IPP trước tiên'),
       body: L(
-        'Your budget will be based on the last 12 months of Regional Center spending — plus needs documented in the IPP. Get unmet needs written in and authorized BEFORE anyone calculates a number.',
-        'Su presupuesto se basará en los últimos 12 meses de gastos del Centro Regional — más las necesidades documentadas en el IPP. Haga que las necesidades no cubiertas queden escritas y autorizadas ANTES de que alguien calcule una cifra.',
-        'Ngân sách sẽ dựa trên 12 tháng chi tiêu gần nhất của Trung tâm Khu vực — cộng với nhu cầu ghi trong IPP. Hãy đưa nhu cầu chưa đáp ứng vào IPP và được duyệt TRƯỚC KHI ai đó tính con số.'
+        "Your budget will be based on the last 12 months of Regional Center spending — plus needs documented in the IPP. Get unmet needs written in and authorized BEFORE anyone calculates a number. This step needs no orientation: the 30-day IPP-meeting right belongs to every family, and if you're told to wait for the webinars first, ask for that in writing.",
+        'Su presupuesto se basará en los últimos 12 meses de gastos del Centro Regional — más las necesidades documentadas en el IPP. Haga que las necesidades no cubiertas queden escritas y autorizadas ANTES de que alguien calcule una cifra. Este paso no requiere orientación: el derecho a la reunión del IPP en 30 días es de todas las familias, y si le dicen que espere los webinars, pida esa respuesta por escrito.',
+        'Ngân sách sẽ dựa trên 12 tháng chi tiêu gần nhất của Trung tâm Khu vực — cộng với nhu cầu ghi trong IPP. Hãy đưa nhu cầu chưa đáp ứng vào IPP và được duyệt TRƯỚC KHI ai đó tính con số. Bước này không cần định hướng: quyền họp IPP trong 30 ngày thuộc về mọi gia đình, và nếu bị bảo phải chờ học webinar trước, hãy yêu cầu câu trả lời đó bằng văn bản.'
       ),
       youGet: L(
         'A budget basis that reflects real needs, not a low year of spending.',

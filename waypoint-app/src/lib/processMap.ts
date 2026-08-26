@@ -168,9 +168,9 @@ export function getSchoolStages(locale: FunnelLocale = 'en'): ProcessStage[] {
       ),
       citation: 'Ed Code §56321',
       clock: L(
-        'Assessment plan due within 15 calendar days of your written request.',
-        'Plan de evaluación dentro de 15 días calendario desde su solicitud escrita.',
-        'Kế hoạch đánh giá phải có trong 15 ngày dương lịch kể từ yêu cầu bằng văn bản.'
+        'Assessment plan due within 15 calendar days of your written request (school breaks over 5 school days pause the clock).',
+        'Plan de evaluación dentro de 15 días calendario desde su solicitud escrita (las vacaciones escolares de más de 5 días escolares pausan el plazo).',
+        'Kế hoạch đánh giá phải có trong 15 ngày dương lịch kể từ yêu cầu bằng văn bản (kỳ nghỉ học trên 5 ngày học sẽ tạm dừng thời hạn).'
       ),
       leverTemplate: 'assessment_request',
       leverLabel: L(
@@ -188,15 +188,15 @@ export function getSchoolStages(locale: FunnelLocale = 'en'): ProcessStage[] {
         'Ký kế hoạch; đánh giá được tiến hành'
       ),
       body: L(
-        'Once you sign consent, the district assesses in every area of suspected disability and must hold the IEP meeting — the clock runs from your signature, so sign promptly and keep the date.',
-        'Cuando usted firma el consentimiento, el distrito evalúa en cada área de posible discapacidad y debe realizar la reunión del IEP — el plazo corre desde su firma, así que firme pronto y guarde la fecha.',
-        'Khi quý vị ký đồng ý, học khu đánh giá mọi lĩnh vực nghi ngờ khuyết tật và phải tổ chức họp IEP — thời hạn tính từ chữ ký của quý vị, nên hãy ký sớm và giữ lại ngày ký.'
+        'You have at least 15 days to review and sign the plan — but the 60-day clock starts at your signature, so sign promptly and keep the date. The district must then assess in every area of suspected disability and hold the IEP meeting.',
+        'Usted tiene al menos 15 días para revisar y firmar el plan — pero el plazo de 60 días empieza con su firma, así que firme pronto y guarde la fecha. El distrito debe entonces evaluar en cada área de posible discapacidad y realizar la reunión del IEP.',
+        'Quý vị có ít nhất 15 ngày để xem và ký kế hoạch — nhưng thời hạn 60 ngày tính từ chữ ký, nên hãy ký sớm và giữ lại ngày ký. Học khu sau đó phải đánh giá mọi lĩnh vực nghi ngờ khuyết tật và tổ chức họp IEP.'
       ),
       citation: 'Ed Code §56321 · §56344',
       clock: L(
-        '60 days from signed consent to a completed evaluation and the IEP meeting.',
-        '60 días desde el consentimiento firmado hasta la evaluación completa y la reunión del IEP.',
-        '60 ngày từ khi ký đồng ý đến khi đánh giá xong và họp IEP.'
+        '60 days from signed consent to a completed evaluation and the IEP meeting (long school breaks pause the clock).',
+        '60 días desde el consentimiento firmado hasta la evaluación completa y la reunión del IEP (las vacaciones escolares largas pausan el plazo).',
+        '60 ngày từ khi ký đồng ý đến khi đánh giá xong và họp IEP (kỳ nghỉ học dài sẽ tạm dừng thời hạn).'
       ),
       leverTemplate: 'iep_email',
       leverLabel: L(
@@ -220,9 +220,9 @@ export function getSchoolStages(locale: FunnelLocale = 'en'): ProcessStage[] {
       ),
       citation: 'Ed Code §56343.5',
       clock: L(
-        'A requested IEP meeting: held within 30 days of your written request.',
-        'Reunión del IEP solicitada: dentro de 30 días de su solicitud escrita.',
-        'Họp IEP theo yêu cầu: trong 30 ngày kể từ yêu cầu bằng văn bản.'
+        'A requested IEP meeting: held within 30 days of your written request (school vacation days don’t count).',
+        'Reunión del IEP solicitada: dentro de 30 días de su solicitud escrita (los días de vacaciones escolares no cuentan).',
+        'Họp IEP theo yêu cầu: trong 30 ngày kể từ yêu cầu bằng văn bản (ngày nghỉ học không tính).'
       ),
       leverTemplate: 'iep_email',
       leverLabel: L(
@@ -255,6 +255,32 @@ export function getSchoolStages(locale: FunnelLocale = 'en'): ProcessStage[] {
         'Demand Prior Written Notice',
         'Exigir Notificación Previa por Escrito',
         'Yêu cầu Thông báo Trước bằng Văn bản'
+      ),
+      actionKeys: [],
+    },
+    {
+      key: 'school_disagree',
+      title: L(
+        'Disagree? You have real leverage',
+        '¿No está de acuerdo? Tiene herramientas reales',
+        'Không đồng ý? Quý vị có công cụ thực sự'
+      ),
+      body: L(
+        "If you disagree with the district's assessment, you can request an independent educational evaluation (IEE) at public expense — the district must pay for it or defend its own assessment at a hearing. For legal violations there's a state compliance complaint, and for placement or service disputes, mediation and due process.",
+        'Si no está de acuerdo con la evaluación del distrito, puede pedir una evaluación educativa independiente (IEE) pagada con fondos públicos — el distrito debe pagarla o defender su propia evaluación en una audiencia. Para violaciones legales existe la queja estatal de cumplimiento, y para disputas de colocación o servicios, la mediación y el debido proceso.',
+        'Nếu không đồng ý với đánh giá của học khu, quý vị có thể yêu cầu đánh giá giáo dục độc lập (IEE) bằng công quỹ — học khu phải trả chi phí hoặc bảo vệ đánh giá của mình tại phiên điều trần. Với vi phạm pháp luật có đơn khiếu nại tuân thủ cấp tiểu bang, và với tranh chấp xếp lớp hay dịch vụ, có hòa giải và thủ tục tố tụng.'
+      ),
+      citation: 'Ed Code §56329(b) · §56501',
+      clock: L(
+        'No clock on you — but the district must answer an IEE request "without unnecessary delay."',
+        'Usted no tiene plazo — pero el distrito debe responder a una solicitud de IEE "sin demora innecesaria".',
+        'Quý vị không bị giới hạn thời gian — nhưng học khu phải trả lời yêu cầu IEE "không chậm trễ vô lý".'
+      ),
+      leverTemplate: 'cde_complaint',
+      leverLabel: L(
+        'Draft a state compliance complaint',
+        'Redactar una queja estatal de cumplimiento',
+        'Soạn đơn khiếu nại tuân thủ cấp tiểu bang'
       ),
       actionKeys: [],
     },
