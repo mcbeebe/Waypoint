@@ -11,7 +11,7 @@
  * L(en, es, vi). Citations stay in English. Spanish and Vietnamese are
  * careful drafts — flag for native-speaker review before wide release.
  */
-import type { RcStatus } from '@/types/database';
+import type { RcStatus, IepStatus } from '@/types/database';
 import type { FunnelLocale } from '@/lib/eligibility';
 
 export interface ProcessStage {
@@ -147,6 +147,138 @@ export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
   ];
 }
 
+/**
+ * The school-system spine (IDEA / CA Ed Code) — same shape as the RC
+ * stages so ProcessMapScreen renders either system, clearly labeled.
+ */
+export function getSchoolStages(locale: FunnelLocale = 'en'): ProcessStage[] {
+  const L = picker(locale);
+  return [
+    {
+      key: 'school_referral',
+      title: L(
+        'Ask for an evaluation — in writing',
+        'Pida una evaluación — por escrito',
+        'Yêu cầu đánh giá — bằng văn bản'
+      ),
+      body: L(
+        'A written special-education evaluation request starts a legal clock; a verbal ask starts nothing. The district must respond with an assessment plan for you to sign.',
+        'Una solicitud escrita de evaluación de educación especial inicia un plazo legal; pedirlo de palabra no inicia nada. El distrito debe responder con un plan de evaluación para su firma.',
+        'Yêu cầu đánh giá giáo dục đặc biệt bằng văn bản khởi động thời hạn pháp lý; nói miệng thì không. Học khu phải trả lời bằng kế hoạch đánh giá để quý vị ký.'
+      ),
+      citation: 'Ed Code §56321',
+      clock: L(
+        'Assessment plan due within 15 calendar days of your written request.',
+        'Plan de evaluación dentro de 15 días calendario desde su solicitud escrita.',
+        'Kế hoạch đánh giá phải có trong 15 ngày dương lịch kể từ yêu cầu bằng văn bản.'
+      ),
+      leverTemplate: 'assessment_request',
+      leverLabel: L(
+        'Draft the evaluation request (15-day clock)',
+        'Redactar la solicitud de evaluación (plazo de 15 días)',
+        'Soạn yêu cầu đánh giá (thời hạn 15 ngày)'
+      ),
+      actionKeys: ['iep_request_evaluation', 'iep_504_request', 'sli_iep_evaluation'],
+    },
+    {
+      key: 'school_assessment',
+      title: L(
+        'Sign the plan; the assessment runs',
+        'Firme el plan; corre la evaluación',
+        'Ký kế hoạch; đánh giá được tiến hành'
+      ),
+      body: L(
+        'Once you sign consent, the district assesses in every area of suspected disability and must hold the IEP meeting — the clock runs from your signature, so sign promptly and keep the date.',
+        'Cuando usted firma el consentimiento, el distrito evalúa en cada área de posible discapacidad y debe realizar la reunión del IEP — el plazo corre desde su firma, así que firme pronto y guarde la fecha.',
+        'Khi quý vị ký đồng ý, học khu đánh giá mọi lĩnh vực nghi ngờ khuyết tật và phải tổ chức họp IEP — thời hạn tính từ chữ ký của quý vị, nên hãy ký sớm và giữ lại ngày ký.'
+      ),
+      citation: 'Ed Code §56321 · §56344',
+      clock: L(
+        '60 days from signed consent to a completed evaluation and the IEP meeting.',
+        '60 días desde el consentimiento firmado hasta la evaluación completa y la reunión del IEP.',
+        '60 ngày từ khi ký đồng ý đến khi đánh giá xong và họp IEP.'
+      ),
+      leverTemplate: 'iep_email',
+      leverLabel: L(
+        'Follow up on the 60-day clock',
+        'Dar seguimiento al plazo de 60 días',
+        'Theo dõi thời hạn 60 ngày'
+      ),
+      actionKeys: [],
+    },
+    {
+      key: 'school_iep',
+      title: L(
+        'The IEP — where every service starts',
+        'El IEP — donde empieza cada servicio',
+        'IEP — nơi mọi dịch vụ bắt đầu'
+      ),
+      body: L(
+        'The IEP lists the services, minutes, and placement the district must deliver. It is reviewed at least annually — and you can request an IEP team meeting at any time, in writing.',
+        'El IEP enumera los servicios, minutos y colocación que el distrito debe proveer. Se revisa al menos una vez al año — y usted puede pedir una reunión del equipo del IEP en cualquier momento, por escrito.',
+        'IEP liệt kê dịch vụ, số phút và việc xếp lớp mà học khu phải cung cấp. IEP được xem xét ít nhất mỗi năm — và quý vị có thể yêu cầu họp nhóm IEP bất cứ lúc nào, bằng văn bản.'
+      ),
+      citation: 'Ed Code §56343.5',
+      clock: L(
+        'A requested IEP meeting: held within 30 days of your written request.',
+        'Reunión del IEP solicitada: dentro de 30 días de su solicitud escrita.',
+        'Họp IEP theo yêu cầu: trong 30 ngày kể từ yêu cầu bằng văn bản.'
+      ),
+      leverTemplate: 'iep_email',
+      leverLabel: L(
+        'Request an IEP meeting (30-day clock)',
+        'Pedir una reunión del IEP (plazo de 30 días)',
+        'Yêu cầu họp IEP (thời hạn 30 ngày)'
+      ),
+      actionKeys: ['iep_request_meeting'],
+    },
+    {
+      key: 'school_services',
+      title: L(
+        'Services get delivered — or refused',
+        'Los servicios se entregan — o se niegan',
+        'Dịch vụ được cung cấp — hoặc bị từ chối'
+      ),
+      body: L(
+        'A refusal to evaluate, place, or serve must come as Prior Written Notice explaining why — a verbal "no" is not a decision. And your child\'s full school file is yours on request.',
+        'Una negativa a evaluar, colocar o proveer servicios debe llegar como Notificación Previa por Escrito explicando por qué — un "no" verbal no es una decisión. Y el expediente escolar completo de su hijo/a es suyo si lo pide.',
+        'Từ chối đánh giá, xếp lớp hay cung cấp dịch vụ phải bằng Thông báo Trước bằng Văn bản nêu lý do — lời từ chối miệng không phải là quyết định. Và toàn bộ hồ sơ học đường của con thuộc về quý vị khi yêu cầu.'
+      ),
+      citation: 'Ed Code §56500.4 · §56504',
+      clock: L(
+        'Records: within 5 business days of your request. Refusals: Prior Written Notice required.',
+        'Registros: dentro de 5 días hábiles de su solicitud. Negativas: se requiere Notificación Previa por Escrito.',
+        'Hồ sơ: trong 5 ngày làm việc kể từ yêu cầu. Từ chối: bắt buộc có Thông báo Trước bằng Văn bản.'
+      ),
+      leverTemplate: 'pwn_request',
+      leverLabel: L(
+        'Demand Prior Written Notice',
+        'Exigir Notificación Previa por Escrito',
+        'Yêu cầu Thông báo Trước bằng Văn bản'
+      ),
+      actionKeys: [],
+    },
+  ];
+}
+
+/**
+ * "You are here" for the school system, from the child's IEP status
+ * captured at onboarding (children.iep_status).
+ */
+export function deriveSchoolStageIndex(iepStatus: IepStatus | null | undefined): number {
+  switch (iepStatus) {
+    case 'eval_done':
+      return 2; // evaluated — the IEP meeting/document is the live stage
+    case 'active':
+      return 3; // IEP in place — delivery and disagreements matter now
+    case 'no':
+    case 'unknown':
+    case 'na':
+    default:
+      return 0; // not yet referred
+  }
+}
+
 /** The fork: what most families are never told. */
 export function getSdpFork(locale: FunnelLocale = 'en'): ProcessStage {
   const L = picker(locale);
@@ -181,6 +313,7 @@ export function getSdpFork(locale: FunnelLocale = 'en'): ProcessStage {
 /** English defaults kept for existing consumers and tests. */
 export const RC_STAGES: ProcessStage[] = getRcStages('en');
 export const SDP_FORK: ProcessStage = getSdpFork('en');
+export const SCHOOL_STAGES: ProcessStage[] = getSchoolStages('en');
 
 /**
  * Where "you are here" points, from the child's Regional Center status

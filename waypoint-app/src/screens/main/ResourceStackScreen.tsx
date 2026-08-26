@@ -10,6 +10,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFamily, useChildren } from '@/hooks/useFamily';
+import { useToast } from '@/components/Toast';
 import { deriveResourceStack } from '@/lib/resourceStack';
 import type { StackLayer, StackLayerKey } from '@/lib/resourceStack';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
@@ -29,6 +30,7 @@ const STRINGS: Record<FunnelLocale, {
   unlockCta: string;
   lockedNeeds: (layerTitle: string) => string;
   haveIt: string;
+  saveFailed: string;
   whyTitle: string;
   whyBody: string;
   yourChild: string;
@@ -44,6 +46,7 @@ const STRINGS: Record<FunnelLocale, {
     unlockCta: 'Unlock this layer →',
     lockedNeeds: (layerTitle) => `Locked — needs ${layerTitle}`,
     haveIt: 'We already have this ✓',
+    saveFailed: "Couldn't save that — please try again in a moment.",
     whyTitle: 'Why the order matters.',
     whyBody:
       "The SDP spending plan can't buy anything the school, Medi-Cal, or IHSS must already provide — so securing the lower layers first makes the budget go further, legally.",
@@ -60,6 +63,7 @@ const STRINGS: Record<FunnelLocale, {
     unlockCta: 'Desbloquear esta capa →',
     lockedNeeds: (layerTitle) => `Bloqueado — necesita ${layerTitle}`,
     haveIt: 'Ya lo tenemos ✓',
+    saveFailed: 'No se pudo guardar — inténtelo de nuevo en un momento.',
     whyTitle: 'Por qué importa el orden.',
     whyBody:
       'El plan de gastos del SDP no puede comprar nada que la escuela, Medi-Cal o IHSS ya deban proveer — así que asegurar primero las capas de abajo hace rendir más el presupuesto, legalmente.',
@@ -76,6 +80,7 @@ const STRINGS: Record<FunnelLocale, {
     unlockCta: 'Mở tầng này →',
     lockedNeeds: (layerTitle) => `Chưa mở — cần ${layerTitle}`,
     haveIt: 'Chúng tôi đã có ✓',
+    saveFailed: 'Không lưu được — vui lòng thử lại sau giây lát.',
     whyTitle: 'Vì sao thứ tự quan trọng.',
     whyBody:
       'Kế hoạch chi tiêu SDP không được mua thứ gì trường học, Medi-Cal hoặc IHSS phải cung cấp — nên bảo đảm các tầng dưới trước giúp ngân sách đi xa hơn, đúng luật.',
@@ -100,6 +105,7 @@ export default function ResourceStackScreen() {
   const { locale } = useI18n();
   const funnelLocale = toFunnelLocale(locale);
   const S = STRINGS[funnelLocale];
+  const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
 
   const stack = useMemo(
@@ -129,7 +135,9 @@ export default function ResourceStackScreen() {
     if (!child || !field || saving) return;
     setSaving(true);
     try {
-      await updateChild(child.id, { [field]: 'active' });
+      const ok = await updateChild(child.id, { [field]: 'active' });
+      // A failed save must be loud — a silent no-op reads as a dead button.
+      if (!ok) showToast(S.saveFailed, 'error');
     } finally {
       setSaving(false);
     }
@@ -190,12 +198,29 @@ export default function ResourceStackScreen() {
         </View>
         <Text style={[styles.cardBody, (locked || later) && styles.cardBodyMuted]}>{layer.gets}</Text>
         {isNext && (
-          <Pressable style={styles.cta} onPress={() => openLever(layer)}>
+          <Pressable
+            style={({ pressed }) => [styles.cta, pressed && styles.pressedDim]}
+            onPress={(e) => {
+              (e as { stopPropagation?: () => void })?.stopPropagation?.();
+              openLever(layer);
+            }}
+          >
             <Text style={styles.ctaText}>{S.unlockCta}</Text>
           </Pressable>
         )}
         {canSelfReport && (
-          <Pressable style={styles.haveBtn} disabled={saving} onPress={() => markHave(layer)}>
+          <Pressable
+            style={({ pressed }) => [styles.haveBtn, (pressed || saving) && styles.pressedDim]}
+            hitSlop={8}
+            disabled={saving}
+            accessibilityRole="button"
+            accessibilityLabel={S.haveIt}
+            onPress={(e) => {
+              // Don't let the tap also fire the card's navigation (web).
+              (e as { stopPropagation?: () => void })?.stopPropagation?.();
+              markHave(layer);
+            }}
+          >
             <Text style={styles.haveBtnText}>{S.haveIt}</Text>
           </Pressable>
         )}
@@ -326,7 +351,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   ctaText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
-  haveBtn: { alignSelf: 'flex-start', minHeight: 28, justifyContent: 'center' },
+  pressedDim: { opacity: 0.55 },
+  haveBtn: { alignSelf: 'flex-start', minHeight: 32, justifyContent: 'center' },
   haveBtnText: {
     color: colors.mid,
     fontSize: fonts.sizes.sm,

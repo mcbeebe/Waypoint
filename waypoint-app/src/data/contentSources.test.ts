@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { CONTENT_SOURCES, sourceForCitation } from './contentSources';
 import { deriveEligibility } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
-import { getRcStages, getSdpFork } from '@/lib/processMap';
+import { getRcStages, getSchoolStages, getSdpFork } from '@/lib/processMap';
 import { deadlineFor } from '@/lib/requestClocks';
 import type { RequestType } from '@/lib/requestClocks';
 import { getSdpJourneySteps } from '@/lib/sdpJourney';
@@ -33,6 +33,7 @@ function emittedCitations(): Set<string> {
   // Process map stages + fork, both locales
   for (const locale of locales) {
     for (const s of getRcStages(locale)) out.add(s.citation);
+    for (const s of getSchoolStages(locale)) out.add(s.citation);
     out.add(getSdpFork(locale).citation);
   }
 

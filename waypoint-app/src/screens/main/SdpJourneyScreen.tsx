@@ -10,6 +10,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFamily, useChildren } from '@/hooks/useFamily';
+import { useToast } from '@/components/Toast';
 import { deriveSdpJourney, SDP_JOURNEY_TOTAL } from '@/lib/sdpJourney';
 import type { SdpJourneyStep, SdpStepStatus } from '@/lib/sdpJourney';
 import { toFunnelLocale } from '@/lib/eligibility';
@@ -30,6 +31,8 @@ const STRINGS: Record<FunnelLocale, {
   imHere: string;
   doneNote: string;
   yourChild: string;
+  saveFailed: string;
+  saved: (n: number) => string;
 }> = {
   en: {
     eyebrow: 'SELF-DETERMINATION JOURNEY',
@@ -43,6 +46,8 @@ const STRINGS: Record<FunnelLocale, {
     imHere: 'I’m on this step',
     doneNote: 'Done',
     yourChild: 'Your child',
+    saveFailed: "Couldn't save your progress — please try again in a moment.",
+    saved: (n) => `Saved — you're on step ${n}.`,
   },
   es: {
     eyebrow: 'CAMINO DE AUTODETERMINACIÓN',
@@ -56,6 +61,8 @@ const STRINGS: Record<FunnelLocale, {
     imHere: 'Estoy en este paso',
     doneNote: 'Hecho',
     yourChild: 'Su hijo/a',
+    saveFailed: 'No se pudo guardar su progreso — inténtelo de nuevo en un momento.',
+    saved: (n) => `Guardado — está en el paso ${n}.`,
   },
   vi: {
     eyebrow: 'HÀNH TRÌNH TỰ QUYẾT',
@@ -69,6 +76,8 @@ const STRINGS: Record<FunnelLocale, {
     imHere: 'Tôi đang ở bước này',
     doneNote: 'Đã xong',
     yourChild: 'Con quý vị',
+    saveFailed: 'Không lưu được tiến trình — vui lòng thử lại sau giây lát.',
+    saved: (n) => `Đã lưu — quý vị đang ở bước ${n}.`,
   },
 };
 
@@ -82,6 +91,7 @@ export default function SdpJourneyScreen() {
   const { locale } = useI18n();
   const funnelLocale = toFunnelLocale(locale);
   const S = STRINGS[funnelLocale];
+  const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
 
   const journey = useMemo(
@@ -95,7 +105,11 @@ export default function SdpJourneyScreen() {
     if (!child || saving) return;
     setSaving(true);
     try {
-      await updateChild(child.id, { sdp_step: Math.min(Math.max(n, 0), SDP_JOURNEY_TOTAL) });
+      const step = Math.min(Math.max(n, 0), SDP_JOURNEY_TOTAL);
+      const ok = await updateChild(child.id, { sdp_step: step });
+      // A failed save must be loud — a silent no-op reads as a dead button.
+      if (ok) showToast(S.saved(step), 'success');
+      else showToast(S.saveFailed, 'error');
     } finally {
       setSaving(false);
     }
@@ -162,15 +176,28 @@ export default function SdpJourneyScreen() {
           )}
           {current && (
             <Pressable
-              style={styles.advance}
+              style={({ pressed }) => [
+                styles.advance,
+                (pressed || saving) && styles.pressedDim,
+              ]}
+              hitSlop={8}
               disabled={saving}
+              accessibilityRole="button"
+              accessibilityLabel={S.markDone}
               onPress={() => setStep(step.n + 1)}
             >
               <Text style={styles.advanceText}>{S.markDone}</Text>
             </Pressable>
           )}
           {!current && !done && (
-            <Pressable style={styles.hereBtn} disabled={saving} onPress={() => setStep(step.n)}>
+            <Pressable
+              style={({ pressed }) => [styles.hereBtn, (pressed || saving) && styles.pressedDim]}
+              hitSlop={8}
+              disabled={saving}
+              accessibilityRole="button"
+              accessibilityLabel={S.imHere}
+              onPress={() => setStep(step.n)}
+            >
               <Text style={styles.hereBtnText}>{S.imHere}</Text>
             </Pressable>
           )}
@@ -331,7 +358,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   advanceText: { color: colors.teal, fontSize: fonts.sizes.md, fontWeight: fonts.weights.bold },
-  hereBtn: { alignSelf: 'flex-start' },
+  pressedDim: { opacity: 0.55 },
+  hereBtn: { alignSelf: 'flex-start', minHeight: 32, justifyContent: 'center' },
   hereBtnText: {
     color: colors.mid,
     fontSize: fonts.sizes.sm,

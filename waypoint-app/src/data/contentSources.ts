@@ -147,6 +147,24 @@ export const CONTENT_SOURCES: ContentSource[] = [
       'The IEP delivers services (therapies, aide support, placement) at no cost as part of FAPE from age 3 to 22.',
   },
   {
+    key: 'edc_56343_5',
+    title: 'Education Code §56343.5 (IEP meeting on parent request)',
+    covers: ['Ed Code §56343.5'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56343.5.',
+    verifiedOn: '2026-08-26',
+    claim:
+      'An IEP team meeting requested in writing by a parent must be held within 30 days of the request (school vacations excepted).',
+  },
+  {
+    key: 'edc_56500_4_56504',
+    title: 'Education Code §56500.4 (prior written notice) · §56504 (records)',
+    covers: ['Ed Code §56500.4 · §56504'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56504.',
+    verifiedOn: '2026-08-26',
+    claim:
+      'Refusals to initiate or change identification, evaluation, or placement require prior written notice; parents get school records within 5 business days of a request.',
+  },
+  {
     key: 'hcbs_deeming',
     title: 'Medi-Cal HCBS (DD) waiver — institutional deeming',
     covers: ['HCBS waiver deeming'],

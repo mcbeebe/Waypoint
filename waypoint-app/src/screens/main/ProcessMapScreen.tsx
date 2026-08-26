@@ -6,12 +6,19 @@
  * lever letter for the steps that have one. The SDP fork renders for
  * active consumers — the path most families are never told about.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
-import { getRcStages, getSdpFork, deriveStageIndex, sdpAvailable } from '@/lib/processMap';
+import {
+  getRcStages,
+  getSchoolStages,
+  getSdpFork,
+  deriveStageIndex,
+  deriveSchoolStageIndex,
+  sdpAvailable,
+} from '@/lib/processMap';
 import type { ProcessStage } from '@/lib/processMap';
 import { stableKeyFor } from '@/lib/actionKeys';
 import { decidePath, getPathQuestions } from '@/lib/pathDecision';
@@ -26,6 +33,10 @@ import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 const STRINGS: Record<FunnelLocale, {
   title: string;
   subtitle: (name: string) => string;
+  schoolTitle: string;
+  schoolSubtitle: (name: string) => string;
+  systemChipRc: string;
+  systemChipSchool: string;
   youAreHere: string;
   forkEyebrow: string;
   laterTitle: string;
@@ -41,9 +52,14 @@ const STRINGS: Record<FunnelLocale, {
   sdpJourneyCta: string;
 }> = {
   en: {
-    title: 'How the system works',
+    title: 'How the Regional Center works',
     subtitle: (name) =>
       `The Regional Center process for ${name}, step by step — with the deadline the law puts on each step and the letter that moves it. Every rule cites its source.`,
+    schoolTitle: 'How the school system works',
+    schoolSubtitle: (name) =>
+      `The special-education process for ${name}, step by step — with the deadline the law puts on each step and the letter that moves it. Every rule cites its source.`,
+    systemChipRc: 'REGIONAL CENTER',
+    systemChipSchool: 'SCHOOL DISTRICT',
     youAreHere: 'YOU ARE HERE',
     forkEyebrow: 'THE FORK MOST FAMILIES NEVER HEAR ABOUT',
     laterTitle: 'Further down the road',
@@ -67,9 +83,14 @@ const STRINGS: Record<FunnelLocale, {
     sdpJourneyCta: 'See the full journey, step by step →',
   },
   es: {
-    title: 'Cómo funciona el sistema',
+    title: 'Cómo funciona el Centro Regional',
     subtitle: (name) =>
       `El proceso del Centro Regional para ${name}, paso a paso — con el plazo que la ley pone en cada paso y la carta que lo impulsa. Cada regla cita su fuente.`,
+    schoolTitle: 'Cómo funciona el sistema escolar',
+    schoolSubtitle: (name) =>
+      `El proceso de educación especial para ${name}, paso a paso — con el plazo que la ley pone en cada paso y la carta que lo impulsa. Cada regla cita su fuente.`,
+    systemChipRc: 'CENTRO REGIONAL',
+    systemChipSchool: 'DISTRITO ESCOLAR',
     youAreHere: 'USTED ESTÁ AQUÍ',
     forkEyebrow: 'EL CAMINO DEL QUE POCAS FAMILIAS SE ENTERAN',
     laterTitle: 'Más adelante en el camino',
@@ -93,9 +114,14 @@ const STRINGS: Record<FunnelLocale, {
     sdpJourneyCta: 'Ver el camino completo, paso a paso →',
   },
   vi: {
-    title: 'Hệ thống hoạt động thế nào',
+    title: 'Trung tâm Khu vực hoạt động thế nào',
     subtitle: (name) =>
       `Quy trình Trung tâm Khu vực cho ${name}, từng bước một — kèm thời hạn luật định ở mỗi bước và lá thư thúc đẩy nó. Mỗi quy định đều ghi rõ nguồn.`,
+    schoolTitle: 'Hệ thống trường học hoạt động thế nào',
+    schoolSubtitle: (name) =>
+      `Quy trình giáo dục đặc biệt cho ${name}, từng bước một — kèm thời hạn luật định ở mỗi bước và lá thư thúc đẩy nó. Mỗi quy định đều ghi rõ nguồn.`,
+    systemChipRc: 'TRUNG TÂM KHU VỰC',
+    systemChipSchool: 'HỌC KHU',
     youAreHere: 'QUÝ VỊ ĐANG Ở ĐÂY',
     forkEyebrow: 'NGÃ RẼ MÀ ÍT GIA ĐÌNH ĐƯỢC BIẾT',
     laterTitle: 'Chặng sau của con đường',
@@ -122,17 +148,34 @@ const STRINGS: Record<FunnelLocale, {
 
 export default function ProcessMapScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
+  // One screen, two systems (owner feedback, Aug 2026): the RC map and the
+  // school map share the layout but are clearly labeled as separate systems.
+  const system: 'rc' | 'school' =
+    (route.params as { system?: 'rc' | 'school' } | undefined)?.system === 'school'
+      ? 'school'
+      : 'rc';
   const { family } = useFamily();
   const { children } = useChildren(family?.id);
   const child = children[0];
   const { locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
   const S = STRINGS[funnelLocale];
-  const rcStages = getRcStages(funnelLocale);
+  const rcStages =
+    system === 'school' ? getSchoolStages(funnelLocale) : getRcStages(funnelLocale);
   const sdpFork = getSdpFork(funnelLocale);
 
-  const stageIndex = deriveStageIndex(child?.rc_status);
-  const showSdp = sdpAvailable(child?.rc_status);
+  useEffect(() => {
+    (navigation as any).setOptions({
+      title: system === 'school' ? 'How the School System Works' : 'How the Regional Center Works',
+    });
+  }, [navigation, system]);
+
+  const stageIndex =
+    system === 'school'
+      ? deriveSchoolStageIndex(child?.iep_status)
+      : deriveStageIndex(child?.rc_status);
+  const showSdp = system === 'rc' && sdpAvailable(child?.rc_status);
   const childName = child?.first_name || S.yourChild;
 
   // The map and the plan are one surface: each stage lists its live plan
@@ -195,8 +238,15 @@ export default function ProcessMapScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>{S.title}</Text>
-      <Text style={styles.subtitle}>{S.subtitle(childName)}</Text>
+      <View style={styles.systemChip}>
+        <Text style={styles.systemChipText}>
+          {system === 'school' ? S.systemChipSchool : S.systemChipRc}
+        </Text>
+      </View>
+      <Text style={styles.title}>{system === 'school' ? S.schoolTitle : S.title}</Text>
+      <Text style={styles.subtitle}>
+        {system === 'school' ? S.schoolSubtitle(childName) : S.subtitle(childName)}
+      </Text>
 
       {rcStages.map((stage, i) => {
         const state = i < stageIndex ? 'done' : i === stageIndex ? 'current' : 'upcoming';
@@ -297,12 +347,12 @@ export default function ProcessMapScreen() {
           </Pressable>
           <PathDecider onLever={openLetter} locale={funnelLocale} />
         </View>
-      ) : (
+      ) : system === 'rc' ? (
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{S.laterTitle}</Text>
           <Text style={styles.cardBody}>{S.laterBody(childName)}</Text>
         </View>
-      )}
+      ) : null}
 
       <View style={styles.trust}>
         <Text style={styles.trustText}>{S.trust}</Text>
@@ -383,6 +433,20 @@ function PathDecider({
 }
 
 const styles = StyleSheet.create({
+  systemChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.navy,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    marginBottom: spacing.sm,
+  },
+  systemChipText: {
+    color: colors.white,
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    letterSpacing: 1,
+  },
   container: { flex: 1, backgroundColor: colors.light },
   content: { padding: spacing.base, paddingBottom: spacing['2xl'] },
   title: {
