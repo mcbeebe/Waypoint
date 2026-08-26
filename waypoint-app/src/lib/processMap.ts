@@ -343,14 +343,19 @@ export const SCHOOL_STAGES: ProcessStage[] = getSchoolStages('en');
 
 /**
  * Where "you are here" points, from the child's Regional Center status
- * captured at onboarding (children.rc_status).
+ * captured at onboarding (children.rc_status). A family that has confirmed
+ * an IPP is on file (children.has_ipp) is past the IPP stage — services
+ * and authorizations are the live concern.
  */
-export function deriveStageIndex(rcStatus: RcStatus | null | undefined): number {
+export function deriveStageIndex(
+  rcStatus: RcStatus | null | undefined,
+  hasIpp?: boolean | null
+): number {
   switch (rcStatus) {
     case 'applied':
       return 1; // waiting on assessment/eligibility — the §4643 clock matters now
     case 'active':
-      return 2; // consumer with (or due) an IPP — the meeting lever matters now
+      return hasIpp ? 3 : 2; // IPP confirmed → services; else the meeting lever matters now
     case 'known':
     case 'unknown':
     default:

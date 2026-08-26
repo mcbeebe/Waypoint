@@ -27,6 +27,7 @@ import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { Action } from '@/types/database';
 import { useI18n } from '@/i18n';
+import { useToast } from '@/components/Toast';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 /** Screen chrome in EN/ES. Vietnamese falls back to English for now. */
@@ -49,6 +50,11 @@ const STRINGS: Record<FunnelLocale, {
   ippHaveBody: string;
   ippUpload: string;
   ippRecords: string;
+  ippConfirm: string;
+  ippConfirmedTitle: string;
+  ippConfirmedBody: string;
+  ippAddDoc: string;
+  saveFailed: string;
   sdpJourneyCta: string;
 }> = {
   en: {
@@ -80,6 +86,12 @@ const STRINGS: Record<FunnelLocale, {
       "It's a document titled \"Individual Program Plan,\" written at a meeting with your Service Coordinator (at least yearly). If you've never seen one, your coordinator has it — and you're entitled to a copy.",
     ippUpload: 'I have it — add it to Waypoint',
     ippRecords: "Not sure? Request your records",
+    ippConfirm: "We have an IPP — I'll add it later ✓",
+    ippConfirmedTitle: 'IPP on file ✓',
+    ippConfirmedBody:
+      'Good — that moves you past this stage. Add the document to Waypoint whenever you like: it powers letter drafts and the SDP budget basis.',
+    ippAddDoc: 'Add the IPP document',
+    saveFailed: "Couldn't save that — please try again in a moment.",
     sdpJourneyCta: 'See the full journey, step by step →',
   },
   es: {
@@ -111,6 +123,12 @@ const STRINGS: Record<FunnelLocale, {
       'Es un documento titulado "Plan de Programa Individual", escrito en una reunión con su coordinador/a de servicios (al menos una vez al año). Si nunca lo ha visto, su coordinador/a lo tiene — y usted tiene derecho a una copia.',
     ippUpload: 'Lo tengo — agregarlo a Waypoint',
     ippRecords: '¿No está seguro/a? Solicite sus registros',
+    ippConfirm: 'Tenemos un IPP — lo agregaré después ✓',
+    ippConfirmedTitle: 'IPP en el expediente ✓',
+    ippConfirmedBody:
+      'Bien — eso lo lleva más allá de esta etapa. Agregue el documento a Waypoint cuando quiera: alimenta los borradores de cartas y la base del presupuesto del SDP.',
+    ippAddDoc: 'Agregar el documento del IPP',
+    saveFailed: 'No se pudo guardar — inténtelo de nuevo en un momento.',
     sdpJourneyCta: 'Ver el camino completo, paso a paso →',
   },
   vi: {
@@ -142,6 +160,12 @@ const STRINGS: Record<FunnelLocale, {
       'Đó là tài liệu có tên "Individual Program Plan" (Kế hoạch Chương trình Cá nhân), được lập trong cuộc họp với điều phối viên dịch vụ (ít nhất mỗi năm một lần). Nếu quý vị chưa từng thấy, điều phối viên đang giữ nó — và quý vị có quyền nhận một bản sao.',
     ippUpload: 'Tôi có rồi — thêm vào Waypoint',
     ippRecords: 'Chưa chắc? Yêu cầu hồ sơ của quý vị',
+    ippConfirm: 'Chúng tôi có IPP — sẽ thêm sau ✓',
+    ippConfirmedTitle: 'Đã có IPP ✓',
+    ippConfirmedBody:
+      'Tốt — quý vị đã qua giai đoạn này. Thêm tài liệu vào Waypoint bất cứ lúc nào: nó hỗ trợ soạn thư và làm cơ sở ngân sách SDP.',
+    ippAddDoc: 'Thêm tài liệu IPP',
+    saveFailed: 'Không lưu được — vui lòng thử lại sau giây lát.',
     sdpJourneyCta: 'Xem toàn bộ hành trình, từng bước →',
   },
 };
@@ -156,8 +180,10 @@ export default function ProcessMapScreen() {
       ? 'school'
       : 'rc';
   const { family } = useFamily();
-  const { children } = useChildren(family?.id);
+  const { children, updateChild } = useChildren(family?.id);
   const child = children[0];
+  const { showToast } = useToast();
+  const [saving, setSaving] = useState(false);
   const { locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
   const S = STRINGS[funnelLocale];
@@ -174,7 +200,18 @@ export default function ProcessMapScreen() {
   const stageIndex =
     system === 'school'
       ? deriveSchoolStageIndex(child?.iep_status)
-      : deriveStageIndex(child?.rc_status);
+      : deriveStageIndex(child?.rc_status, child?.has_ipp);
+
+  const confirmIpp = async () => {
+    if (!child || saving) return;
+    setSaving(true);
+    try {
+      const ok = await updateChild(child.id, { has_ipp: true });
+      if (!ok) showToast(S.saveFailed, 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
   const showSdp = system === 'rc' && sdpAvailable(child?.rc_status);
   const childName = child?.first_name || S.yourChild;
 
@@ -281,24 +318,54 @@ export default function ProcessMapScreen() {
             <Text style={styles.citation}>ⓘ {stage.citation}</Text>
             {renderStageActions(stage)}
             {stage.key === 'ipp' && (
-              <View style={styles.ippBox}>
-                <Text style={styles.ippTitle}>{S.ippHaveTitle}</Text>
-                <Text style={styles.ippBody}>{S.ippHaveBody}</Text>
-                <View style={styles.ippButtons}>
-                  <Pressable
-                    style={styles.ippButton}
-                    onPress={() => (navigation as any).navigate('Documents')}
-                  >
-                    <Text style={styles.ippButtonText}>📄 {S.ippUpload}</Text>
-                  </Pressable>
-                  <Pressable
-                    style={styles.ippButton}
-                    onPress={() => openLetter('records_request')}
-                  >
-                    <Text style={styles.ippButtonText}>✉️ {S.ippRecords}</Text>
-                  </Pressable>
+              child?.has_ipp ? (
+                <View style={[styles.ippBox, styles.ippBoxConfirmed]}>
+                  <Text style={styles.ippConfirmedTitle}>{S.ippConfirmedTitle}</Text>
+                  <Text style={styles.ippBody}>{S.ippConfirmedBody}</Text>
+                  <View style={styles.ippButtons}>
+                    <Pressable
+                      style={styles.ippButton}
+                      onPress={() => (navigation as any).navigate('Documents')}
+                    >
+                      <Text style={styles.ippButtonText}>📄 {S.ippAddDoc}</Text>
+                    </Pressable>
+                  </View>
                 </View>
-              </View>
+              ) : (
+                <View style={styles.ippBox}>
+                  <Text style={styles.ippTitle}>{S.ippHaveTitle}</Text>
+                  <Text style={styles.ippBody}>{S.ippHaveBody}</Text>
+                  <View style={styles.ippButtons}>
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.ippButton,
+                        styles.ippButtonConfirm,
+                        (pressed || saving) && styles.pressedDim,
+                      ]}
+                      disabled={saving}
+                      accessibilityRole="button"
+                      accessibilityLabel={S.ippConfirm}
+                      onPress={confirmIpp}
+                    >
+                      <Text style={[styles.ippButtonText, styles.ippButtonConfirmText]}>
+                        {S.ippConfirm}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={styles.ippButton}
+                      onPress={() => (navigation as any).navigate('Documents')}
+                    >
+                      <Text style={styles.ippButtonText}>📄 {S.ippUpload}</Text>
+                    </Pressable>
+                    <Pressable
+                      style={styles.ippButton}
+                      onPress={() => openLetter('records_request')}
+                    >
+                      <Text style={styles.ippButtonText}>✉️ {S.ippRecords}</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              )
             )}
             {stage.leverTemplate && state !== 'done' && (
               <Pressable
@@ -557,6 +624,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   ippButtonText: { fontWeight: fonts.weights.semibold, color: colors.dark, fontSize: fonts.sizes.sm },
+  ippBoxConfirmed: { backgroundColor: semantic.successBg },
+  ippConfirmedTitle: { fontWeight: fonts.weights.bold, color: semantic.success, fontSize: fonts.sizes.md },
+  ippButtonConfirm: { borderColor: semantic.success, backgroundColor: colors.white },
+  ippButtonConfirmText: { color: semantic.success },
+  pressedDim: { opacity: 0.55 },
   lever: {
     marginTop: spacing.md,
     minHeight: 44,

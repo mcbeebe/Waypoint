@@ -7,7 +7,13 @@
 import { describe, it, expect } from 'vitest';
 import { deriveEligibility, toFunnelLocale } from './eligibility';
 import type { FunnelLocale } from './eligibility';
-import { getRcStages, getSchoolStages, getSdpFork, deriveSchoolStageIndex } from './processMap';
+import {
+  getRcStages,
+  getSchoolStages,
+  getSdpFork,
+  deriveSchoolStageIndex,
+  deriveStageIndex,
+} from './processMap';
 import { decidePath, getPathQuestions } from './pathDecision';
 import { deriveHomeInsight } from './insights';
 import { sentNextFor } from './sentNext';
@@ -60,6 +66,13 @@ describe('process map is structurally locale-invariant', () => {
       expect(otherSchool.map((s) => s.title)).not.toEqual(enSchool.map((s) => s.title));
     });
   }
+
+  it('a confirmed IPP moves "you are here" past the IPP stage', () => {
+    expect(deriveStageIndex('active')).toBe(2);
+    expect(deriveStageIndex('active', null)).toBe(2);
+    expect(deriveStageIndex('active', true)).toBe(3);
+    expect(deriveStageIndex('applied', true)).toBe(1);
+  });
 
   it('school "you are here" derives from IEP status', () => {
     expect(deriveSchoolStageIndex('no')).toBe(0);

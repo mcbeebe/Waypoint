@@ -49,6 +49,8 @@ export interface Child {
   grade: string | null;
   rc_status: RcStatus | null;
   iep_status: IepStatus | null;
+  /** Family confirmed an IPP exists, upload optional (044); null = unknown */
+  has_ipp: boolean | null;
   /** Resource Stack layer statuses + SDP journey position (043) */
   medi_cal_status: BenefitStatus | null;
   ihss_status: BenefitStatus | null;
