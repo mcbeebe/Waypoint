@@ -10,6 +10,7 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Pressable,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -84,6 +85,28 @@ export default function JourneyScreen() {
             )}
           </View>
         </View>
+
+        {/* Resource Stack — the six benefit layers, foundation-up */}
+        <Pressable
+          style={styles.stackEntry}
+          onPress={() => (navigation as any).navigate('ResourceStack')}
+          accessibilityRole="button"
+        >
+          <Text style={styles.stackEntryIcon}>🧱</Text>
+          <View style={styles.stackEntryBody}>
+            <Text style={[styles.stackEntryTitle, { fontSize: sz(15) }]}>
+              {esUI ? 'La pila de recursos' : viUI ? 'Chồng quyền lợi' : 'The Resource Stack'}
+            </Text>
+            <Text style={[styles.stackEntrySub, { fontSize: sz(12.5) }]}>
+              {esUI
+                ? 'Seis capas de beneficios — cada una abre la siguiente. Vea cuáles usa ya.'
+                : viUI
+                  ? 'Sáu tầng quyền lợi — mỗi tầng mở tầng kế tiếp. Xem quý vị đang dùng tầng nào.'
+                  : 'Six benefit layers — each unlocks the next. See which ones you’re using.'}
+            </Text>
+          </View>
+          <Text style={styles.stackEntryGo}>→</Text>
+        </Pressable>
 
         {/* Intro */}
         <Card>
@@ -247,6 +270,22 @@ export default function JourneyScreen() {
 }
 
 const styles = StyleSheet.create({
+  stackEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: colors.white,
+    borderWidth: 2,
+    borderColor: colors.teal,
+    borderRadius: radii.md,
+    padding: spacing.base,
+    marginBottom: spacing.md,
+  },
+  stackEntryIcon: { fontSize: 22 },
+  stackEntryBody: { flex: 1 },
+  stackEntryTitle: { fontWeight: fonts.weights.extrabold, color: colors.navy },
+  stackEntrySub: { color: colors.mid, marginTop: 2 },
+  stackEntryGo: { fontSize: fonts.sizes.lg, color: colors.teal, fontWeight: fonts.weights.bold },
   container: {
     flex: 1,
     backgroundColor: colors.light,

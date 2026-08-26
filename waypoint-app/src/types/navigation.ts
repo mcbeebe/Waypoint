@@ -43,6 +43,8 @@ export type HomeStackParamList = {
   ProcessMap: undefined;
   /** SDP enrollment stepper, steps 0–8 per DDS D-2026-SDP-002 */
   SdpJourney: undefined;
+  /** The six benefit layers, foundation-up (Resource Stack plan, phase 4) */
+  ResourceStack: undefined;
   /** Eligibility-first result — the funnel's answer screen (PRD W-B: B1) */
   EligibilityResult: undefined;
   /** Funded offer + intro-call booking (PRD W-B: B2/B3) */
