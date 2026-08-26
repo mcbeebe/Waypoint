@@ -218,6 +218,13 @@ The knowledge base matches for this query have low confidence scores. Use the pr
 6. When relevant, mention timelines and deadlines (they matter enormously in disability law)
 7. If a question falls outside California disability services, acknowledge it and redirect gently
 
+## Attached Photos
+The parent may attach photos — usually of documents: IEP pages, IPPs, Notices of Action, denial letters, assessment reports, bills. When photos are attached:
+- Read them carefully and quote the specific language that matters (deadlines, denial reasons, service amounts, signatures, dates).
+- If text is blurry or cut off, say exactly what you cannot read rather than guessing — a misread deadline is worse than an honest "I can't make out the date."
+- Identify what kind of document it is, then answer the parent's question about it; if they asked nothing specific, surface the items that need action (clocks, appeal windows, missing signatures).
+- Photos of people: acknowledge warmly but do not attempt medical or diagnostic observations (Medical Boundary applies).
+
 ## Medical Boundary
 You are NOT a medical professional and do NOT provide medical advice, even though medical topics are inside your domain. Specifically:
 - NEVER recommend for or against any medication, dosage, dosing schedule, or medication change — even when knowledge base articles describe treatment options. You may explain what a category of treatment IS (e.g., what ABA is, what stimulant medications are used for) and then direct the decision to the child's prescribing clinician.
@@ -427,9 +434,66 @@ serve(async (req: Request) => {
       // Phase by how many turns the parent has taken; a "skip to action"
       // style request bypasses pacing entirely.
       const msgList: Array<{ role: string; content: unknown }> = Array.isArray(messages) ? messages : [];
+
+      // ── Sanitize message content (vision support, Aug 2026) ─────────
+      // The client may send content arrays with image blocks (photos of
+      // IEPs, NOAs, denial letters). The client is untrusted: allow only
+      // text and base64 image blocks, cap image count and size, and drop
+      // everything else — the raw body never reaches the API.
+      const MAX_IMAGES_PER_REQUEST = 6;
+      const MAX_IMAGE_B64_CHARS = 7_000_000; // ~5 MB binary, the API's per-image cap
+      const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      let imageCount = 0;
+      const cleanMessages = msgList
+        .filter((m) => m?.role === 'user' || m?.role === 'assistant')
+        .map((m) => {
+          if (typeof m.content === 'string') return { role: m.role, content: m.content };
+          if (Array.isArray(m.content)) {
+            const blocks = m.content
+              .map((b: { type?: string; text?: unknown; source?: { type?: string; media_type?: string; data?: unknown } }) => {
+                if (b?.type === 'text' && typeof b.text === 'string') {
+                  return { type: 'text', text: b.text };
+                }
+                if (
+                  b?.type === 'image' &&
+                  b.source?.type === 'base64' &&
+                  typeof b.source.media_type === 'string' &&
+                  ALLOWED_IMAGE_TYPES.includes(b.source.media_type) &&
+                  typeof b.source.data === 'string' &&
+                  b.source.data.length > 0 &&
+                  b.source.data.length <= MAX_IMAGE_B64_CHARS
+                ) {
+                  imageCount++;
+                  return {
+                    type: 'image',
+                    source: { type: 'base64', media_type: b.source.media_type, data: b.source.data },
+                  };
+                }
+                return null;
+              })
+              .filter(Boolean);
+            return { role: m.role, content: blocks.length > 0 ? blocks : '' };
+          }
+          return { role: m.role, content: '' };
+        });
+      if (imageCount > MAX_IMAGES_PER_REQUEST) {
+        return jsonError(
+          `Too many photos in one message — up to ${MAX_IMAGES_PER_REQUEST} are supported.`,
+          400
+        );
+      }
+
       const userTurns = msgList.filter((m) => m?.role === 'user').length;
       const lastUser = [...msgList].reverse().find((m) => m?.role === 'user');
-      const lastUserText = typeof lastUser?.content === 'string' ? lastUser.content : '';
+      const lastUserText =
+        typeof lastUser?.content === 'string'
+          ? lastUser.content
+          : Array.isArray(lastUser?.content)
+            ? lastUser.content
+                .filter((b: { type?: string; text?: unknown }) => b?.type === 'text' && typeof b.text === 'string')
+                .map((b: { text: string }) => b.text)
+                .join(' ')
+            : '';
       const skipToAction =
         /skip to (the )?action|just tell me what to do|give me the (full|everything|all my options|the action|whole)/i
           .test(lastUserText) || /\b(urgent|emergency|deadline is|due tomorrow|hearing is)\b/i.test(lastUserText);
@@ -560,7 +624,7 @@ ${lines.join('\n')}
           model: isPremium ? 'claude-opus-5' : 'claude-sonnet-5',
           max_tokens: 4096,
           system: systemBlocks,
-          messages,
+          messages: cleanMessages,
           stream: true,
           ...(safeOutputConfig ? { output_config: safeOutputConfig } : {}),
         }),

@@ -36,6 +36,16 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
  * therefore not be stripped by a modified client.
  */
 
+/** Content blocks for messages with image attachments (Claude vision). */
+export type ChatContentBlock =
+  | { type: 'text'; text: string }
+  | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } };
+
+export interface ApiChatMessage {
+  role: 'user' | 'assistant';
+  content: string | ChatContentBlock[];
+}
+
 interface StreamCallbacks {
   onToken: (token: string) => void;
   onComplete: (fullText: string) => void;
@@ -50,7 +60,7 @@ interface StreamCallbacks {
  * so the static portions (instructions, KB context) are cached across messages.
  */
 export async function streamNavigatorResponse(
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+  messages: ApiChatMessage[],
   context: ChatContext,
   ragContext: string,
   callbacks: StreamCallbacks,
