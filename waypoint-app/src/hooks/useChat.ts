@@ -8,6 +8,9 @@ import { supabase } from '@/lib/supabase';
 import { friendlyErrorMessage } from '@/lib/netRetry';
 import { retrieveMultiSourceContext, type RAGResult } from '@/lib/rag';
 import { streamNavigatorResponse, classifyIntent } from '@/lib/ai';
+import type { ApiChatMessage, ChatContentBlock } from '@/lib/ai';
+import { thumbUri } from '@/lib/chatImages';
+import type { ChatImage } from '@/lib/chatImages';
 import { parseTrailers, hasRichMeta, type ChatMeta } from '@/lib/followups';
 import { trackEvent } from '@/lib/analytics';
 import { extractMemoriesFromExchange } from '@/hooks/useMemories';
@@ -24,6 +27,8 @@ export interface UIMessage {
   followUps?: string[];
   /** Structured card metadata (steps, rights, resources…) parsed from trailers */
   meta?: ChatMeta;
+  /** Attached photo thumbnails (data URIs) — in-memory only, not persisted */
+  images?: string[];
   createdAt: string;
 }
 
@@ -38,7 +43,7 @@ interface UseChatReturn {
   error: string | null;
   sessionId: string | null;
   toneLevel: ToneLevel;
-  sendMessage: (text: string) => Promise<void>;
+  sendMessage: (text: string, images?: ChatImage[]) => Promise<void>;
   setToneLevel: (tone: ToneLevel) => void;
   loadSession: (sessionId: string) => Promise<void>;
   startNewSession: () => void;
@@ -90,16 +95,23 @@ export function useChat(options: UseChatOptions): UseChatReturn {
     }
   }, []);
 
-  /** Send a user message and get AI response */
-  const sendMessage = useCallback(async (text: string) => {
-    if (!text.trim() || isLoading) return;
+  /** Send a user message (optionally with photo attachments) and get AI response */
+  const sendMessage = useCallback(async (text: string, images?: ChatImage[]) => {
+    const hasImages = !!images && images.length > 0;
+    if ((!text.trim() && !hasImages) || isLoading) return;
     setError(null);
     setIsLoading(true);
+
+    // Photos with no question still deserve a useful answer.
+    const effectiveText =
+      text.trim() ||
+      'I attached photos of a document. Please read them and tell me what matters.';
 
     const userMessage: UIMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: text.trim(),
+      content: text.trim() || '(photos attached)',
+      images: hasImages ? images.map(thumbUri) : undefined,
       createdAt: new Date().toISOString(),
     };
 
@@ -121,17 +133,24 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       // Create session if needed
       let sid = sessionId;
       if (!sid) {
-        sid = await createSession(text);
+        sid = await createSession(effectiveText);
         setSessionId(sid);
       }
 
-      // Persist user message
-      await persistMessage(sid, 'user', text.trim());
+      // Persist user message (text only — base64 photos stay in memory; a
+      // reloaded session shows the note instead of the images)
+      await persistMessage(
+        sid,
+        'user',
+        hasImages
+          ? `${text.trim() || '(photos attached)'}${text.trim() ? `\n[${images!.length} photo${images!.length === 1 ? '' : 's'} attached]` : ''}`
+          : text.trim()
+      );
 
       // Step 1: Classify intent (fast, uses Haiku)
       // Note: classification.suggestedTone is intentionally unused — auto-
       // switching tone would silently override the user's tone-bar choice.
-      const classification = await classifyIntent(text);
+      const classification = await classifyIntent(effectiveText);
 
       // Step 2: Retrieve relevant KB articles via RAG (multi-source for
       // cross-topic queries). Retrieval is optional: if it fails (e.g. no
@@ -139,7 +158,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       // instead of failing the whole message.
       let ragResult: RAGResult;
       try {
-        ragResult = await retrieveMultiSourceContext(text, classification.sources, {
+        ragResult = await retrieveMultiSourceContext(effectiveText, classification.sources, {
           matchCount: 5,
         });
       } catch (ragError) {
@@ -148,10 +167,24 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       }
 
       // Step 3: Build conversation history for API
-      const apiMessages = messages
+      const apiMessages: ApiChatMessage[] = messages
         .filter((m) => !m.isStreaming)
         .map((m) => ({ role: m.role, content: m.content }));
-      apiMessages.push({ role: 'user' as const, content: text.trim() });
+      // Images ride as vision content blocks, before the text (API guidance).
+      apiMessages.push(
+        hasImages
+          ? {
+              role: 'user' as const,
+              content: [
+                ...images!.map<ChatContentBlock>((img) => ({
+                  type: 'image',
+                  source: { type: 'base64', media_type: img.media_type, data: img.data },
+                })),
+                { type: 'text', text: effectiveText },
+              ],
+            }
+          : { role: 'user' as const, content: effectiveText }
+      );
 
       // Step 4: Stream AI response
       const currentContext: ChatContext = { ...context, toneLevel };
@@ -204,7 +237,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
             // exchange in the background so the AI knows the family better
             // next time. Fire-and-forget.
             extractMemoriesFromExchange([
-              { role: 'user', content: text.trim() },
+              { role: 'user', content: effectiveText },
               { role: 'assistant', content },
             ]);
 

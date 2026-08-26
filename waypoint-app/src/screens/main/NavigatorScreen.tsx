@@ -21,7 +21,10 @@ import {
   StyleSheet,
   ActivityIndicator,
   Linking,
+  Image,
 } from 'react-native';
+import { pickChatImages, thumbUri, MAX_CHAT_IMAGES } from '@/lib/chatImages';
+import type { ChatImage } from '@/lib/chatImages';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useChat, type UIMessage } from '@/hooks/useChat';
@@ -90,6 +93,9 @@ export default function NavigatorScreen() {
   const hasAIConsent = !!family?.ai_consent_at;
   const [showConsent, setShowConsent] = useState(false);
   const [pendingText, setPendingText] = useState<string | null>(null);
+  const [pendingImages, setPendingImages] = useState<ChatImage[]>([]);
+  const [attachments, setAttachments] = useState<ChatImage[]>([]);
+  const [picking, setPicking] = useState(false);
 
   const acceptConsent = async () => {
     setShowConsent(false);
@@ -99,10 +105,12 @@ export default function NavigatorScreen() {
       showToast("Couldn't save your consent — please try again in a moment.", 'error');
       return;
     }
-    if (pendingText) {
-      const text = pendingText;
+    if (pendingText || pendingImages.length > 0) {
+      const text = pendingText ?? '';
+      const imgs = pendingImages;
       setPendingText(null);
-      sendMessage(text);
+      setPendingImages([]);
+      sendMessage(text, imgs.length > 0 ? imgs : undefined);
     }
   };
 
@@ -410,15 +418,37 @@ export default function NavigatorScreen() {
   }, [messages.length, messages[messages.length - 1]?.content]);
 
   const handleSend = () => {
-    if (!inputText.trim()) return;
+    if (!inputText.trim() && attachments.length === 0) return;
     if (!hasAIConsent) {
       setPendingText(inputText.trim());
+      setPendingImages(attachments);
       setShowConsent(true);
       setInputText('');
+      setAttachments([]);
       return;
     }
-    sendMessage(inputText.trim());
+    sendMessage(inputText.trim(), attachments.length > 0 ? attachments : undefined);
     setInputText('');
+    setAttachments([]);
+  };
+
+  const handleAttach = async () => {
+    if (picking || isLoading) return;
+    setPicking(true);
+    try {
+      const { images, skipped } = await pickChatImages(attachments.length);
+      if (images.length > 0) setAttachments((prev) => [...prev, ...images]);
+      if (skipped > 0) {
+        showToast(
+          `${skipped} image${skipped === 1 ? '' : 's'} skipped — up to ${MAX_CHAT_IMAGES} photos, ~4 MB each.`,
+          'error'
+        );
+      }
+    } catch {
+      showToast("Couldn't open your photos — please try again.", 'error');
+    } finally {
+      setPicking(false);
+    }
   };
 
   const handleSuggestion = (text: string) => {
@@ -564,13 +594,55 @@ export default function NavigatorScreen() {
           />
         )}
 
+        {/* Attached photos (pending send) */}
+        {attachments.length > 0 && (
+          <ScrollView
+            horizontal
+            style={styles.attachStrip}
+            contentContainerStyle={styles.attachStripContent}
+            showsHorizontalScrollIndicator={false}
+          >
+            {attachments.map((img, i) => (
+              <View key={`${img.name}-${i}`} style={styles.attachThumbWrap}>
+                <Image source={{ uri: thumbUri(img) }} style={styles.attachThumb} />
+                <TouchableOpacity
+                  style={styles.attachRemove}
+                  onPress={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${img.name}`}
+                >
+                  <Text style={styles.attachRemoveText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        )}
+
         {/* Input Bar */}
         <View style={styles.inputBar}>
+          <TouchableOpacity
+            style={styles.attachButton}
+            onPress={handleAttach}
+            disabled={picking || isLoading}
+            accessibilityRole="button"
+            accessibilityLabel="Attach photos"
+            accessibilityHint="Add photos of documents to ask about"
+          >
+            {picking ? (
+              <ActivityIndicator size="small" color={colors.mid} />
+            ) : (
+              <Ionicons name="camera-outline" size={22} color={colors.mid} />
+            )}
+          </TouchableOpacity>
           <TextInput
             style={styles.input}
             value={inputText}
             onChangeText={setInputText}
-            placeholder="Ask about your child's services..."
+            placeholder={
+              attachments.length > 0
+                ? 'Ask about these photos...'
+                : "Ask about your child's services..."
+            }
             placeholderTextColor={colors.mid}
             multiline
             maxLength={2000}
@@ -582,9 +654,13 @@ export default function NavigatorScreen() {
             accessibilityHint="Type your question about disability services"
           />
           <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
+            style={[
+              styles.sendButton,
+              ((!inputText.trim() && attachments.length === 0) || isLoading) &&
+                styles.sendButtonDisabled,
+            ]}
             onPress={handleSend}
-            disabled={!inputText.trim() || isLoading}
+            disabled={(!inputText.trim() && attachments.length === 0) || isLoading}
             accessibilityRole="button"
             accessibilityLabel="Send message"
           >
@@ -884,9 +960,18 @@ function MessageBubble({
           ]}
         >
           {isUser ? (
-            <Text style={[styles.bubbleText, styles.bubbleTextUser]}>
-              {message.content}
-            </Text>
+            <>
+              {message.images && message.images.length > 0 && (
+                <View style={styles.bubbleImageRow}>
+                  {message.images.map((uri, i) => (
+                    <Image key={i} source={{ uri }} style={styles.bubbleImage} />
+                  ))}
+                </View>
+              )}
+              <Text style={[styles.bubbleText, styles.bubbleTextUser]}>
+                {message.content}
+              </Text>
+            </>
           ) : (
             <>
               <RichText
@@ -1300,6 +1385,54 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     gap: 8,
+  },
+  attachButton: {
+    width: 40,
+    height: 40,
+    borderRadius: radii.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.light,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  attachStrip: {
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    maxHeight: 76,
+  },
+  attachStripContent: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
+  attachThumbWrap: { position: 'relative' },
+  attachThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  attachRemove: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 20,
+    height: 20,
+    borderRadius: radii.full,
+    backgroundColor: colors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  attachRemoveText: { color: colors.white, fontSize: 10, fontWeight: '700' },
+  bubbleImageRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 6 },
+  bubbleImage: {
+    width: 96,
+    height: 96,
+    borderRadius: radii.sm,
+    backgroundColor: colors.light,
   },
   input: {
     flex: 1,
