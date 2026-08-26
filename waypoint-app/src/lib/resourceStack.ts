@@ -174,7 +174,7 @@ export function deriveResourceStack(
       citation: 'IDEA · Ed Code §56341',
       status: schoolStatus,
       lockedBy: null,
-      lever: { screen: 'Letters', params: { template: 'assessment_request' } },
+      lever: { screen: 'ProcessMap', params: { system: 'school' } },
     },
     {
       key: 'regional_center',
@@ -188,7 +188,7 @@ export function deriveResourceStack(
       citation: 'Lanterman Act, W&I §4512',
       status: rcLayerStatus,
       lockedBy: null,
-      lever: { screen: 'ProcessMap' },
+      lever: { screen: 'ProcessMap', params: { system: 'rc' } },
     },
     {
       key: 'medi_cal',

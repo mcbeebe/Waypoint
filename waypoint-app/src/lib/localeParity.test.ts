@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { deriveEligibility, toFunnelLocale } from './eligibility';
 import type { FunnelLocale } from './eligibility';
-import { getRcStages, getSdpFork } from './processMap';
+import { getRcStages, getSchoolStages, getSdpFork, deriveSchoolStageIndex } from './processMap';
 import { decidePath, getPathQuestions } from './pathDecision';
 import { deriveHomeInsight } from './insights';
 import { sentNextFor } from './sentNext';
@@ -51,8 +51,23 @@ describe('process map is structurally locale-invariant', () => {
       expect(other.map((s) => s.actionKeys)).toEqual(en.map((s) => s.actionKeys));
       expect(getSdpFork(locale).citation).toBe(getSdpFork('en').citation);
       expect(getSdpFork(locale).title).not.toBe(getSdpFork('en').title);
+      const enSchool = getSchoolStages('en');
+      const otherSchool = getSchoolStages(locale);
+      expect(otherSchool.map((s) => s.key)).toEqual(enSchool.map((s) => s.key));
+      expect(otherSchool.map((s) => s.citation)).toEqual(enSchool.map((s) => s.citation));
+      expect(otherSchool.map((s) => s.leverTemplate)).toEqual(enSchool.map((s) => s.leverTemplate));
+      expect(otherSchool.map((s) => s.actionKeys)).toEqual(enSchool.map((s) => s.actionKeys));
+      expect(otherSchool.map((s) => s.title)).not.toEqual(enSchool.map((s) => s.title));
     });
   }
+
+  it('school "you are here" derives from IEP status', () => {
+    expect(deriveSchoolStageIndex('no')).toBe(0);
+    expect(deriveSchoolStageIndex('unknown')).toBe(0);
+    expect(deriveSchoolStageIndex('eval_done')).toBe(2);
+    expect(deriveSchoolStageIndex('active')).toBe(3);
+    expect(deriveSchoolStageIndex(null)).toBe(0);
+  });
 });
 
 describe('path decision is structurally locale-invariant', () => {

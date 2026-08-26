@@ -39,8 +39,8 @@ export type MainTabParamList = {
 export type HomeStackParamList = {
   HomeMain: undefined;
   Journey: undefined;
-  /** "You are here" in the Regional Center system (PRD W-G: G1) */
-  ProcessMap: undefined;
+  /** "You are here" — Regional Center system by default, or the school system */
+  ProcessMap: { system?: 'rc' | 'school' } | undefined;
   /** SDP enrollment stepper, steps 0–8 per DDS D-2026-SDP-002 */
   SdpJourney: undefined;
   /** The six benefit layers, foundation-up (Resource Stack plan, phase 4) */
