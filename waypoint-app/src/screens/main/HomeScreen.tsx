@@ -321,6 +321,7 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             locale={funnelLocale}
             onDraft={(template) => (navigation as any).navigate('Letters', { template })}
             onOpenStack={() => (navigation as any).navigate('ResourceStack')}
+            onTrack={() => (navigation as any).navigate('RequestTracker')}
             onSnooze={snoozeInsight}
           />
         ) : insight ? (

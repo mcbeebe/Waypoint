@@ -153,6 +153,21 @@ export default function RequestTrackerScreen() {
             </Text>
           </Pressable>
         )}
+
+        {item.communication_id && (
+          <Pressable
+            style={styles.letterLink}
+            onPress={() =>
+              (navigation as any).navigate('CommunicationLog', {
+                highlightId: item.communication_id,
+              })
+            }
+            accessibilityRole="button"
+            accessibilityLabel="View the letter behind this request"
+          >
+            <Text style={styles.letterLinkText}>📄 View the letter in your Paper Trail ›</Text>
+          </Pressable>
+        )}
       </View>
     );
   };
@@ -270,6 +285,12 @@ const styles = StyleSheet.create({
   clockTextRunning: { color: semantic.warning },
   clockTextOverdue: { color: semantic.danger },
   noClock: { fontSize: fonts.sizes.sm, color: colors.mid },
+  letterLink: { minHeight: 32, justifyContent: 'center', alignSelf: 'flex-start' },
+  letterLinkText: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
+    color: colors.teal,
+  },
   lever: {
     minHeight: 44,
     borderRadius: radii.md,

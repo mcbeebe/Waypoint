@@ -18,6 +18,8 @@ export interface FamilyRequest {
   status: 'requested' | 'in_progress' | 'granted' | 'denied' | 'withdrawn';
   decided_on: string | null;
   notes: string | null;
+  /** Paper-trail entry this request was opened from (045); null if hand-tracked */
+  communication_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -29,6 +31,7 @@ interface CreateRequestInput {
   child_id?: string | null;
   channel?: string | null;
   notes?: string | null;
+  communication_id?: string | null;
 }
 
 export function useRequests(familyId: string | undefined) {

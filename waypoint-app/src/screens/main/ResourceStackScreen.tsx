@@ -32,6 +32,7 @@ const STRINGS: Record<FunnelLocale, {
   lockedNeeds: (layerTitle: string) => string;
   haveIt: string;
   startedIt: string;
+  trackedIn: (date: string) => string;
   saveFailed: string;
   whyTitle: string;
   whyBody: string;
@@ -49,6 +50,7 @@ const STRINGS: Record<FunnelLocale, {
     lockedNeeds: (layerTitle) => `Locked — needs ${layerTitle}`,
     haveIt: 'We already have this ✓',
     startedIt: "We've started this — mark in progress",
+    trackedIn: (date) => `Requested ${date} — tracked in Requests & Clocks ›`,
     saveFailed: "Couldn't save that — please try again in a moment.",
     whyTitle: 'Why the order matters.',
     whyBody:
@@ -67,6 +69,7 @@ const STRINGS: Record<FunnelLocale, {
     lockedNeeds: (layerTitle) => `Bloqueado — necesita ${layerTitle}`,
     haveIt: 'Ya lo tenemos ✓',
     startedIt: 'Ya lo empezamos — marcar en proceso',
+    trackedIn: (date) => `Solicitado el ${date} — en Solicitudes y Plazos ›`,
     saveFailed: 'No se pudo guardar — inténtelo de nuevo en un momento.',
     whyTitle: 'Por qué importa el orden.',
     whyBody:
@@ -85,6 +88,7 @@ const STRINGS: Record<FunnelLocale, {
     lockedNeeds: (layerTitle) => `Chưa mở — cần ${layerTitle}`,
     haveIt: 'Chúng tôi đã có ✓',
     startedIt: 'Chúng tôi đã bắt đầu — đánh dấu đang tiến hành',
+    trackedIn: (date) => `Đã yêu cầu ${date} — theo dõi trong Yêu cầu & Thời hạn ›`,
     saveFailed: 'Không lưu được — vui lòng thử lại sau giây lát.',
     whyTitle: 'Vì sao thứ tự quan trọng.',
     whyBody:
@@ -116,15 +120,16 @@ export default function ResourceStackScreen() {
   // An open tracked deeming request reads as applied — a sent letter must
   // show here as In progress without the family flipping anything.
   const { requests } = useRequests(family?.id);
-  const mediCalRequested = useMemo(
+  const deemingRequest = useMemo(
     () =>
-      requests.some(
+      requests.find(
         (r) =>
           r.title === MEDI_CAL_DEEMING_REQUEST_TITLE &&
           (r.status === 'requested' || r.status === 'in_progress' || r.status === 'granted')
-      ),
+      ) ?? null,
     [requests]
   );
+  const mediCalRequested = !!deemingRequest;
 
   const stack = useMemo(
     () =>
@@ -216,6 +221,19 @@ export default function ResourceStackScreen() {
           </View>
         </View>
         <Text style={[styles.cardBody, (locked || later) && styles.cardBodyMuted]}>{layer.gets}</Text>
+        {layer.key === 'medi_cal' && layer.status === 'in_progress' && deemingRequest && (
+          <Pressable
+            style={styles.trackedLink}
+            onPress={(e) => {
+              (e as { stopPropagation?: () => void })?.stopPropagation?.();
+              (navigation as any).navigate('RequestTracker');
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={S.trackedIn(deemingRequest.requested_on)}
+          >
+            <Text style={styles.trackedLinkText}>✉️ {S.trackedIn(deemingRequest.requested_on)}</Text>
+          </Pressable>
+        )}
         {isNext && (
           <Pressable
             style={({ pressed }) => [styles.cta, pressed && styles.pressedDim]}
@@ -388,6 +406,8 @@ const styles = StyleSheet.create({
   },
   ctaText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   pressedDim: { opacity: 0.55 },
+  trackedLink: { minHeight: 32, justifyContent: 'center', alignSelf: 'flex-start' },
+  trackedLinkText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold, color: colors.teal },
   selfReportRow: { gap: spacing.xs },
   haveBtn: { alignSelf: 'flex-start', minHeight: 32, justifyContent: 'center' },
   haveBtnText: {

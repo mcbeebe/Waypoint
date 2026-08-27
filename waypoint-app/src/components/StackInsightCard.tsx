@@ -28,9 +28,11 @@ interface StackInsightCardProps {
   onOpenStack?: () => void;
   /** "Remind me later" — snoozes the card. */
   onSnooze?: () => void;
+  /** in_motion mode: the CTA follows the tracked request instead. */
+  onTrack?: () => void;
 }
 
-export default function StackInsightCard({ insight, locale, onDraft, onOpenStack, onSnooze }: StackInsightCardProps) {
+export default function StackInsightCard({ insight, locale, onDraft, onOpenStack, onSnooze, onTrack }: StackInsightCardProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const S = SHEET_STRINGS[locale];
   const g = insight.guide;
@@ -73,7 +75,8 @@ export default function StackInsightCard({ insight, locale, onDraft, onOpenStack
           style={styles.cta}
           onPress={(e) => {
             (e as { stopPropagation?: () => void })?.stopPropagation?.();
-            setSheetOpen(true);
+            if (insight.mode === 'in_motion' && onTrack) onTrack();
+            else setSheetOpen(true);
           }}
           accessibilityRole="button"
           accessibilityLabel={insight.ctaLabel}

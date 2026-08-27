@@ -377,6 +377,12 @@ export function unlockGuideFor(
 
 /** The Home "Waypoint noticed" stack insight (mockup Concept C). */
 export interface StackInsight {
+  /**
+   * 'unlock': the next layer is actionable now — CTA opens the unlock
+   * sheet. 'in_motion': the family already acted (request tracked) — the
+   * story continues instead of resetting; CTA goes to the tracker.
+   */
+  mode: 'unlock' | 'in_motion';
   eyebrow: string;
   title: string;
   body: string;
@@ -410,31 +416,65 @@ export function deriveStackInsight(
 ): StackInsight | null {
   const L = picker(locale);
   const stack = deriveResourceStack(input, locale);
-  if (!stack.nextUnlock) return null;
-  const guide = unlockGuideFor(stack.nextUnlock.key, locale, childName);
-  if (!guide) return null;
   const name = childName || L('Your child', 'Su hijo/a', 'Con quý vị');
+  const eyebrow = L('WAYPOINT NOTICED', 'WAYPOINT NOTÓ', 'WAYPOINT NHẬN THẤY');
+  const bars = stack.layers.map((l) => ({
+    key: l.key,
+    label: BAR_LABELS[l.key][locale],
+    status: l.status,
+  }));
+
+  const unlockGuide = stack.nextUnlock
+    ? unlockGuideFor(stack.nextUnlock.key, locale, childName)
+    : null;
+  if (unlockGuide) {
+    return {
+      mode: 'unlock',
+      eyebrow,
+      title: L(
+        `${name} is using ${stack.securedCount} of ${stack.totalCount} benefit layers`,
+        `${name} está usando ${stack.securedCount} de ${stack.totalCount} capas de beneficios`,
+        `${name} đang dùng ${stack.securedCount} / ${stack.totalCount} tầng quyền lợi`
+      ),
+      body: L(
+        `The next one is bigger than it looks: ${unlockGuide.title}. ${unlockGuide.why}`,
+        `La siguiente es más grande de lo que parece: ${unlockGuide.title}. ${unlockGuide.why}`,
+        `Tầng tiếp theo lớn hơn vẻ ngoài: ${unlockGuide.title}. ${unlockGuide.why}`
+      ),
+      ctaLabel: L('See the fastest unlock →', 'Ver el desbloqueo más rápido →', 'Xem cách mở nhanh nhất →'),
+      bars,
+      securedCount: stack.securedCount,
+      totalCount: stack.totalCount,
+      guide: unlockGuide,
+      citation: unlockGuide.citation,
+    };
+  }
+
+  // The family already acted on a guided layer — continue the story
+  // ("we're watching this with you") instead of dropping it.
+  const inMotion = stack.layers.find(
+    (l) => l.status === 'in_progress' && unlockGuideFor(l.key, 'en') !== null
+  );
+  if (!inMotion) return null;
+  const g = unlockGuideFor(inMotion.key, locale, childName)!;
   return {
-    eyebrow: L('WAYPOINT NOTICED', 'WAYPOINT NOTÓ', 'WAYPOINT NHẬN THẤY'),
+    mode: 'in_motion',
+    eyebrow,
     title: L(
-      `${name} is using ${stack.securedCount} of ${stack.totalCount} benefit layers`,
-      `${name} está usando ${stack.securedCount} de ${stack.totalCount} capas de beneficios`,
-      `${name} đang dùng ${stack.securedCount} / ${stack.totalCount} tầng quyền lợi`
+      `${name}'s ${BAR_LABELS[inMotion.key].en} unlock is in motion`,
+      `El desbloqueo de ${BAR_LABELS[inMotion.key].es} de ${name} está en marcha`,
+      `Tầng ${BAR_LABELS[inMotion.key].vi} của ${name} đang được mở`
     ),
     body: L(
-      `The next one is bigger than it looks: ${guide.title}. ${guide.why}`,
-      `La siguiente es más grande de lo que parece: ${guide.title}. ${guide.why}`,
-      `Tầng tiếp theo lớn hơn vẻ ngoài: ${guide.title}. ${guide.why}`
+      "You already sent the request — it's tracked, and Waypoint is watching. Two weeks of silence earns the follow-up letter, with your request date cited.",
+      'Ya envió la solicitud — está registrada y Waypoint la vigila. Dos semanas de silencio ameritan la carta de seguimiento, citando la fecha de su solicitud.',
+      'Quý vị đã gửi yêu cầu — nó đang được theo dõi và Waypoint canh chừng giúp. Im lặng hai tuần thì gửi thư nhắc, kèm ngày yêu cầu của quý vị.'
     ),
-    ctaLabel: L('See the fastest unlock →', 'Ver el desbloqueo más rápido →', 'Xem cách mở nhanh nhất →'),
-    bars: stack.layers.map((l) => ({
-      key: l.key,
-      label: BAR_LABELS[l.key][locale],
-      status: l.status,
-    })),
+    ctaLabel: L('Track the request →', 'Seguir la solicitud →', 'Theo dõi yêu cầu →'),
+    bars,
     securedCount: stack.securedCount,
     totalCount: stack.totalCount,
-    guide,
-    citation: guide.citation,
+    guide: g,
+    citation: g.citation,
   };
 }
