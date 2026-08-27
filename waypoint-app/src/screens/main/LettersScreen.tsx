@@ -52,7 +52,7 @@ import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 export default function LettersScreen() {
   const { family, updateFamily } = useFamily();
-  const { children } = useChildren(family?.id);
+  const { children, updateChild } = useChildren(family?.id);
   const { contacts } = useContacts(family?.id);
   const { showToast } = useToast();
   const { locale } = useI18n();
@@ -257,11 +257,21 @@ export default function LettersScreen() {
         tracked = !!created;
       }
     }
+    // Sending the deeming letter IS applying — reflect it on the Resource
+    // Stack without asking the family to also flip a status. Best effort;
+    // the tracked request above is the derivation fallback either way.
+    if (
+      template?.key === 'medi_cal_deeming' &&
+      primaryChild &&
+      primaryChild.medi_cal_status !== 'active'
+    ) {
+      updateChild(primaryChild.id, { medi_cal_status: 'applied' }).catch(() => undefined);
+    }
     const deadline = next.track
       ? deadlineFor(next.track.requestType, new Date().toISOString().slice(0, 10))
       : null;
     setSentMoment({ next, deadline, tracked });
-  }, [saveDraftOnce, showToast, template, primaryChild?.first_name, primaryChild?.id, requests, createRequest, locale]);
+  }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale]);
 
   const handleCopy = useCallback(async () => {
     if (!draft) return;

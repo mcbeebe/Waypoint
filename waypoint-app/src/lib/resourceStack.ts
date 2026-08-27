@@ -53,6 +53,13 @@ export interface StackLayer {
   lever: { screen: string; params?: Record<string, string> } | null;
 }
 
+/**
+ * Tracker-row title the deeming letter creates (sentNext) — the stack
+ * treats an open request with this title as Medi-Cal in progress, so a
+ * sent letter is reflected even before any status field is set.
+ */
+export const MEDI_CAL_DEEMING_REQUEST_TITLE = 'Medi-Cal institutional deeming referral';
+
 export interface StackInput {
   ageYears: number | null;
   rcStatus: RcStatus | null | undefined;
@@ -62,6 +69,8 @@ export interface StackInput {
   ssiStatus?: BenefitStatus | null;
   /** children.sdp_step (0–8); null = not started. */
   sdpStep?: number | null;
+  /** An open deeming request is tracked (letter sent) — reads as applied. */
+  mediCalRequested?: boolean;
 }
 
 export interface DerivedStack {
@@ -105,7 +114,13 @@ export function deriveResourceStack(
 ): DerivedStack {
   const L = picker(locale);
   const { ageYears, rcStatus, iepStatus } = input;
-  const mediCal = input.mediCalStatus ?? 'unknown';
+  const mediCalRaw = input.mediCalStatus ?? 'unknown';
+  // A tracked deeming request upgrades an unknown/none status to applied —
+  // the family already acted; the stack must not keep asking.
+  const mediCal: BenefitStatus =
+    (mediCalRaw === 'none' || mediCalRaw === 'unknown') && input.mediCalRequested
+      ? 'applied'
+      : mediCalRaw;
   const ihss = input.ihssStatus ?? 'unknown';
   const ssi = input.ssiStatus ?? 'unknown';
   const sdpStep = input.sdpStep ?? null;

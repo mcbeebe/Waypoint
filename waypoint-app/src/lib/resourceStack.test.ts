@@ -76,6 +76,18 @@ describe('deriveResourceStack', () => {
     expect(bare.layers.find((l) => l.key === 'medi_cal')!.status).toBe('available');
   });
 
+  it('a tracked deeming request reads as Medi-Cal in progress', () => {
+    const s = deriveResourceStack({ ...BASE, mediCalRequested: true });
+    expect(s.layers.find((l) => l.key === 'medi_cal')!.status).toBe('in_progress');
+    expect(s.nextUnlock?.key).not.toBe('medi_cal');
+    // Explicit statuses always win over the request signal.
+    expect(
+      deriveResourceStack({ ...BASE, mediCalStatus: 'active', mediCalRequested: true }).layers.find(
+        (l) => l.key === 'medi_cal'
+      )!.status
+    ).toBe('secured');
+  });
+
   it('every layer carries a citation and a status label', () => {
     for (const l of deriveResourceStack(BASE).layers) {
       expect(l.citation.length, l.key).toBeGreaterThan(0);

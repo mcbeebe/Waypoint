@@ -10,8 +10,9 @@ import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFamily, useChildren } from '@/hooks/useFamily';
+import { useRequests } from '@/hooks/useRequests';
 import { useToast } from '@/components/Toast';
-import { deriveResourceStack } from '@/lib/resourceStack';
+import { deriveResourceStack, MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
 import type { StackLayer, StackLayerKey } from '@/lib/resourceStack';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
@@ -30,6 +31,7 @@ const STRINGS: Record<FunnelLocale, {
   unlockCta: string;
   lockedNeeds: (layerTitle: string) => string;
   haveIt: string;
+  startedIt: string;
   saveFailed: string;
   whyTitle: string;
   whyBody: string;
@@ -46,6 +48,7 @@ const STRINGS: Record<FunnelLocale, {
     unlockCta: 'Unlock this layer →',
     lockedNeeds: (layerTitle) => `Locked — needs ${layerTitle}`,
     haveIt: 'We already have this ✓',
+    startedIt: "We've started this — mark in progress",
     saveFailed: "Couldn't save that — please try again in a moment.",
     whyTitle: 'Why the order matters.',
     whyBody:
@@ -63,6 +66,7 @@ const STRINGS: Record<FunnelLocale, {
     unlockCta: 'Desbloquear esta capa →',
     lockedNeeds: (layerTitle) => `Bloqueado — necesita ${layerTitle}`,
     haveIt: 'Ya lo tenemos ✓',
+    startedIt: 'Ya lo empezamos — marcar en proceso',
     saveFailed: 'No se pudo guardar — inténtelo de nuevo en un momento.',
     whyTitle: 'Por qué importa el orden.',
     whyBody:
@@ -80,6 +84,7 @@ const STRINGS: Record<FunnelLocale, {
     unlockCta: 'Mở tầng này →',
     lockedNeeds: (layerTitle) => `Chưa mở — cần ${layerTitle}`,
     haveIt: 'Chúng tôi đã có ✓',
+    startedIt: 'Chúng tôi đã bắt đầu — đánh dấu đang tiến hành',
     saveFailed: 'Không lưu được — vui lòng thử lại sau giây lát.',
     whyTitle: 'Vì sao thứ tự quan trọng.',
     whyBody:
@@ -108,6 +113,19 @@ export default function ResourceStackScreen() {
   const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
 
+  // An open tracked deeming request reads as applied — a sent letter must
+  // show here as In progress without the family flipping anything.
+  const { requests } = useRequests(family?.id);
+  const mediCalRequested = useMemo(
+    () =>
+      requests.some(
+        (r) =>
+          r.title === MEDI_CAL_DEEMING_REQUEST_TITLE &&
+          (r.status === 'requested' || r.status === 'in_progress' || r.status === 'granted')
+      ),
+    [requests]
+  );
+
   const stack = useMemo(
     () =>
       deriveResourceStack(
@@ -119,10 +137,11 @@ export default function ResourceStackScreen() {
           ihssStatus: child?.ihss_status,
           ssiStatus: child?.ssi_status,
           sdpStep: child?.sdp_step,
+          mediCalRequested,
         },
         funnelLocale
       ),
-    [child, funnelLocale]
+    [child, funnelLocale, mediCalRequested]
   );
 
   const openLever = (layer: StackLayer) => {
@@ -130,12 +149,12 @@ export default function ResourceStackScreen() {
     (navigation as any).navigate(layer.lever.screen, layer.lever.params);
   };
 
-  const markHave = async (layer: StackLayer) => {
+  const markStatus = async (layer: StackLayer, status: 'active' | 'applied') => {
     const field = SELF_REPORT_FIELD[layer.key];
     if (!child || !field || saving) return;
     setSaving(true);
     try {
-      const ok = await updateChild(child.id, { [field]: 'active' });
+      const ok = await updateChild(child.id, { [field]: status });
       // A failed save must be loud — a silent no-op reads as a dead button.
       if (!ok) showToast(S.saveFailed, 'error');
     } finally {
@@ -209,20 +228,37 @@ export default function ResourceStackScreen() {
           </Pressable>
         )}
         {canSelfReport && (
-          <Pressable
-            style={({ pressed }) => [styles.haveBtn, (pressed || saving) && styles.pressedDim]}
-            hitSlop={8}
-            disabled={saving}
-            accessibilityRole="button"
-            accessibilityLabel={S.haveIt}
-            onPress={(e) => {
-              // Don't let the tap also fire the card's navigation (web).
-              (e as { stopPropagation?: () => void })?.stopPropagation?.();
-              markHave(layer);
-            }}
-          >
-            <Text style={styles.haveBtnText}>{S.haveIt}</Text>
-          </Pressable>
+          <View style={styles.selfReportRow}>
+            {layer.status === 'available' && (
+              <Pressable
+                style={({ pressed }) => [styles.haveBtn, (pressed || saving) && styles.pressedDim]}
+                hitSlop={8}
+                disabled={saving}
+                accessibilityRole="button"
+                accessibilityLabel={S.startedIt}
+                onPress={(e) => {
+                  // Don't let the tap also fire the card's navigation (web).
+                  (e as { stopPropagation?: () => void })?.stopPropagation?.();
+                  markStatus(layer, 'applied');
+                }}
+              >
+                <Text style={styles.haveBtnText}>{S.startedIt}</Text>
+              </Pressable>
+            )}
+            <Pressable
+              style={({ pressed }) => [styles.haveBtn, (pressed || saving) && styles.pressedDim]}
+              hitSlop={8}
+              disabled={saving}
+              accessibilityRole="button"
+              accessibilityLabel={S.haveIt}
+              onPress={(e) => {
+                (e as { stopPropagation?: () => void })?.stopPropagation?.();
+                markStatus(layer, 'active');
+              }}
+            >
+              <Text style={styles.haveBtnText}>{S.haveIt}</Text>
+            </Pressable>
+          </View>
         )}
         <Text style={styles.citation}>ⓘ {layer.citation}</Text>
       </Pressable>
@@ -352,6 +388,7 @@ const styles = StyleSheet.create({
   },
   ctaText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   pressedDim: { opacity: 0.55 },
+  selfReportRow: { gap: spacing.xs },
   haveBtn: { alignSelf: 'flex-start', minHeight: 32, justifyContent: 'center' },
   haveBtnText: {
     color: colors.mid,
