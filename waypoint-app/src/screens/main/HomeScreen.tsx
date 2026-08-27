@@ -373,6 +373,11 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             rcStatus={primaryChild?.rc_status ?? null}
             iepStatus={primaryChild?.iep_status ?? null}
             insurance={family.insurance_carrier}
+            mediCalUnderway={
+              mediCalRequested ||
+              primaryChild?.medi_cal_status === 'applied' ||
+              primaryChild?.medi_cal_status === 'active'
+            }
           />
         )}
 

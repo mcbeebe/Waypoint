@@ -68,11 +68,22 @@ export function useRequests(familyId: string | undefined) {
     async (input: CreateRequestInput): Promise<FamilyRequest | null> => {
       if (!familyId) return null;
       setError(null);
-      const { data, error: insertError } = await supabase
+      let { data, error: insertError } = await supabase
         .from('family_requests')
         .insert({ ...input, family_id: familyId })
         .select()
         .single();
+      // Pre-migration-045 resilience: if the letter link column doesn't
+      // exist yet, tracking the request still must succeed — retry bare.
+      if (insertError && input.communication_id && /communication_id/.test(insertError.message)) {
+        const { communication_id: _dropped, ...bare } = input;
+        void _dropped;
+        ({ data, error: insertError } = await supabase
+          .from('family_requests')
+          .insert({ ...bare, family_id: familyId })
+          .select()
+          .single());
+      }
       if (insertError) {
         setError(insertError.message);
         return null;
