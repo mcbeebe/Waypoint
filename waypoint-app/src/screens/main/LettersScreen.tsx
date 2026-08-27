@@ -253,6 +253,9 @@ export default function LettersScreen() {
           child_id: primaryChild?.id ?? null,
           channel: 'email',
           notes: 'Sent via Waypoint Letters',
+          // Connect the clock to the letter that started it — the tracker
+          // and paper trail describe one event, not two.
+          communication_id: id,
         });
         tracked = !!created;
       }

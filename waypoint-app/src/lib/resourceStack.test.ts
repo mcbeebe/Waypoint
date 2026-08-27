@@ -123,6 +123,7 @@ describe('deriveStackInsight', () => {
   it('renders for the mockup family: Medi-Cal is the fastest unlock', () => {
     const i = deriveStackInsight(BASE, 'en', 'Leo')!;
     expect(i).not.toBeNull();
+    expect(i.mode).toBe('unlock');
     expect(i.guide.layerKey).toBe('medi_cal');
     expect(i.title).toContain('2 of 6');
     expect(i.title).toContain('Leo');
@@ -133,6 +134,15 @@ describe('deriveStackInsight', () => {
   it('moves to IHSS once Medi-Cal is secured', () => {
     const i = deriveStackInsight({ ...BASE, mediCalStatus: 'active' }, 'en', 'Leo')!;
     expect(i.guide.layerKey).toBe('ihss');
+  });
+
+  it('continues the story once the family acted: in-motion mode, CTA to the tracker', () => {
+    const i = deriveStackInsight({ ...BASE, mediCalRequested: true }, 'en', 'Leo')!;
+    expect(i).not.toBeNull();
+    expect(i.mode).toBe('in_motion');
+    expect(i.guide.layerKey).toBe('medi_cal');
+    expect(i.ctaLabel).toContain('Track');
+    expect(i.title).toContain('Leo');
   });
 
   it('stays quiet when the next unlock has no deep-dive guide', () => {

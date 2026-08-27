@@ -146,6 +146,7 @@ describe('resource stack is structurally locale-invariant', () => {
       expect(other.layers.map((l) => l.gets)).not.toEqual(en.layers.map((l) => l.gets));
       const enInsight = deriveStackInsight(input, 'en', 'Teddy')!;
       const otherInsight = deriveStackInsight(input, locale, 'Teddy')!;
+      expect(otherInsight.mode).toBe(enInsight.mode);
       expect(otherInsight.guide.layerKey).toBe(enInsight.guide.layerKey);
       expect(otherInsight.guide.leverTemplate).toBe(enInsight.guide.leverTemplate);
       expect(otherInsight.citation).toBe(enInsight.citation);

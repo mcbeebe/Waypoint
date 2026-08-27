@@ -28,7 +28,7 @@ import {
   type CommunicationKind,
   type CommunicationOrg,
 } from '@/hooks/useCommunications';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useToast } from '@/components/Toast';
 import { showConfirm } from '@/lib/dialogs';
 import { usePremiumGuard } from '@/hooks/usePremiumGuard';
@@ -70,9 +70,13 @@ export default function CommunicationLogScreen() {
     communications, loading, addCommunication, deleteCommunication, markSent,
   } = useCommunications(family?.id ?? '');
   const navigation = useNavigation();
+  const route = useRoute();
+  // A tracker row's "view the letter" lands here with the entry pre-expanded.
+  const highlightId =
+    (route.params as { highlightId?: string } | undefined)?.highlightId ?? null;
 
   const [filter, setFilter] = useState<CommunicationKind | 'all' | 'drafts'>('all');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(highlightId);
   const [showAdd, setShowAdd] = useState(false);
 
   const filtered = useMemo(() => {
