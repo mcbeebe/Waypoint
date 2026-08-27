@@ -13,9 +13,12 @@ import { colors, fonts, spacing, radii } from '@/lib/theme';
 interface InsightCardProps {
   insight: HomeInsight;
   onOpen: (target: HomeInsight['target']) => void;
+  /** "Remind me later" — snoozes the card (label localized by caller's insight). */
+  onSnooze?: () => void;
+  snoozeLabel?: string;
 }
 
-export default function InsightCard({ insight, onOpen }: InsightCardProps) {
+export default function InsightCard({ insight, onOpen, onSnooze, snoozeLabel }: InsightCardProps) {
   return (
     <View style={styles.card}>
       <Text style={styles.eyebrow}>✦ {insight.eyebrow}</Text>
@@ -32,6 +35,16 @@ export default function InsightCard({ insight, onOpen }: InsightCardProps) {
           <Text style={styles.ctaText}>{insight.ctaLabel}</Text>
         </Pressable>
       </View>
+      {onSnooze && (
+        <Pressable
+          style={styles.snooze}
+          onPress={onSnooze}
+          accessibilityRole="button"
+          accessibilityLabel={snoozeLabel ?? 'Remind me later'}
+        >
+          <Text style={styles.snoozeText}>{snoozeLabel ?? 'Remind me later'}</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -65,6 +78,13 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   citation: { color: '#8FA0B5', fontSize: fonts.sizes.xs },
+  snooze: { marginTop: spacing.sm, minHeight: 28, justifyContent: 'center', alignSelf: 'flex-start' },
+  snoozeText: {
+    color: '#8FA0B5',
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
+    textDecorationLine: 'underline',
+  },
   cta: {
     minHeight: 44,
     borderRadius: radii.md,

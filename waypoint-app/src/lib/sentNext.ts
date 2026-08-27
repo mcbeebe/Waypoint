@@ -15,6 +15,7 @@
  */
 import type { RequestType } from '@/lib/requestClocks';
 import type { FunnelLocale } from '@/lib/eligibility';
+import { MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
 
 export interface SentNext {
   /** The headline — earned, specific, never generic confetti. */
@@ -248,7 +249,7 @@ export function sentNextFor(
             'Khi Medi-Cal có hiệu lực, đơn IHSS ở quận hạt là tầng tiếp theo — Waypoint sẽ nhắc quý vị.'
           ),
         ],
-        track: { requestType: 'other', title: 'Medi-Cal institutional deeming referral' },
+        track: { requestType: 'other', title: MEDI_CAL_DEEMING_REQUEST_TITLE },
         followUpDays: 14,
       };
     case 'rc_timeline_followup':

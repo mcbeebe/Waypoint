@@ -12,11 +12,11 @@ import type { FunnelLocale } from '@/lib/eligibility';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 const SHEET_STRINGS: Record<FunnelLocale, {
-  what: string; why: string; how: string; tip: string; close: string; reviewed: string;
+  what: string; why: string; how: string; tip: string; close: string; reviewed: string; later: string;
 }> = {
-  en: { what: 'WHAT', why: 'WHY', how: 'HOW', tip: 'Parent tip.', close: 'Not now', reviewed: 'free feature' },
-  es: { what: 'QUÉ', why: 'POR QUÉ', how: 'CÓMO', tip: 'Consejo de padres.', close: 'Ahora no', reviewed: 'función gratuita' },
-  vi: { what: 'GÌ', why: 'VÌ SAO', how: 'CÁCH', tip: 'Mẹo cho phụ huynh.', close: 'Để sau', reviewed: 'tính năng miễn phí' },
+  en: { what: 'WHAT', why: 'WHY', how: 'HOW', tip: 'Parent tip.', close: 'Not now', reviewed: 'free feature', later: 'Remind me later' },
+  es: { what: 'QUÉ', why: 'POR QUÉ', how: 'CÓMO', tip: 'Consejo de padres.', close: 'Ahora no', reviewed: 'función gratuita', later: 'Recuérdamelo después' },
+  vi: { what: 'GÌ', why: 'VÌ SAO', how: 'CÁCH', tip: 'Mẹo cho phụ huynh.', close: 'Để sau', reviewed: 'tính năng miễn phí', later: 'Nhắc tôi sau' },
 };
 
 interface StackInsightCardProps {
@@ -24,15 +24,25 @@ interface StackInsightCardProps {
   locale: FunnelLocale;
   /** Open the lever letter (template key) — the sheet's primary action. */
   onDraft: (template: string) => void;
+  /** Tap anywhere on the card body → the full Resource Stack view. */
+  onOpenStack?: () => void;
+  /** "Remind me later" — snoozes the card. */
+  onSnooze?: () => void;
 }
 
-export default function StackInsightCard({ insight, locale, onDraft }: StackInsightCardProps) {
+export default function StackInsightCard({ insight, locale, onDraft, onOpenStack, onSnooze }: StackInsightCardProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const S = SHEET_STRINGS[locale];
   const g = insight.guide;
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={styles.card}
+      onPress={onOpenStack}
+      disabled={!onOpenStack}
+      accessibilityRole="button"
+      accessibilityLabel={insight.title}
+    >
       <Text style={styles.eyebrow}>✦ {insight.eyebrow}</Text>
       <View style={styles.bars}>
         {insight.bars.map((b) => (
@@ -61,13 +71,29 @@ export default function StackInsightCard({ insight, locale, onDraft }: StackInsi
         <Text style={styles.citation}>ⓘ {insight.citation}</Text>
         <Pressable
           style={styles.cta}
-          onPress={() => setSheetOpen(true)}
+          onPress={(e) => {
+            (e as { stopPropagation?: () => void })?.stopPropagation?.();
+            setSheetOpen(true);
+          }}
           accessibilityRole="button"
           accessibilityLabel={insight.ctaLabel}
         >
           <Text style={styles.ctaText}>{insight.ctaLabel}</Text>
         </Pressable>
       </View>
+      {onSnooze && (
+        <Pressable
+          style={styles.snooze}
+          onPress={(e) => {
+            (e as { stopPropagation?: () => void })?.stopPropagation?.();
+            onSnooze();
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={S.later}
+        >
+          <Text style={styles.snoozeText}>{S.later}</Text>
+        </Pressable>
+      )}
 
       <Modal
         visible={sheetOpen}
@@ -113,7 +139,7 @@ export default function StackInsightCard({ insight, locale, onDraft }: StackInsi
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </Pressable>
   );
 }
 
@@ -164,6 +190,13 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   citation: { color: '#8FA0B5', fontSize: fonts.sizes.xs, flexShrink: 1 },
+  snooze: { marginTop: spacing.sm, minHeight: 28, justifyContent: 'center', alignSelf: 'flex-start' },
+  snoozeText: {
+    color: '#8FA0B5',
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
+    textDecorationLine: 'underline',
+  },
   cta: {
     minHeight: 44,
     borderRadius: radii.md,

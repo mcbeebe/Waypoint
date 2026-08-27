@@ -30,7 +30,9 @@ import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/componen
 import InsightCard from '@/components/InsightCard';
 import StackInsightCard from '@/components/StackInsightCard';
 import { deriveHomeInsight } from '@/lib/insights';
-import { deriveStackInsight } from '@/lib/resourceStack';
+import { deriveStackInsight, MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
+import { useRequests } from '@/hooks/useRequests';
+import { snoozeFor, isSnoozed } from '@/lib/snooze';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
@@ -124,7 +126,18 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
     [primaryChild, diagnoses.length, funnelLocale]
   );
   // Resource Stack edition of the same card — takes the slot when the next
-  // unlock has a deep-dive guide (Medi-Cal deeming, IHSS).
+  // unlock has a deep-dive guide (Medi-Cal deeming, IHSS). An open tracked
+  // deeming request counts as applied, so a sent letter is reflected.
+  const { requests: familyRequests } = useRequests(family?.id);
+  const mediCalRequested = useMemo(
+    () =>
+      familyRequests.some(
+        (r) =>
+          r.title === MEDI_CAL_DEEMING_REQUEST_TITLE &&
+          (r.status === 'requested' || r.status === 'in_progress' || r.status === 'granted')
+      ),
+    [familyRequests]
+  );
   const stackInsight = useMemo(
     () =>
       primaryChild
@@ -137,13 +150,30 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
               ihssStatus: primaryChild.ihss_status,
               ssiStatus: primaryChild.ssi_status,
               sdpStep: primaryChild.sdp_step,
+              mediCalRequested,
             },
             funnelLocale,
             primaryChild.first_name
           )
         : null,
-    [primaryChild, funnelLocale]
+    [primaryChild, funnelLocale, mediCalRequested]
   );
+
+  // "Remind me later" — per-device snooze on the Waypoint-noticed slot.
+  const [insightSnoozed, setInsightSnoozed] = useState<boolean>(false);
+  useEffect(() => {
+    isSnoozed('home_insight').then(setInsightSnoozed);
+  }, []);
+  const snoozeInsight = () => {
+    setInsightSnoozed(true);
+    snoozeFor('home_insight', 7);
+  };
+  const snoozeLabel =
+    funnelLocale === 'es'
+      ? 'Recuérdamelo después'
+      : funnelLocale === 'vi'
+        ? 'Nhắc tôi sau'
+        : 'Remind me later';
   const { deadlines } = useDeadlines({ familyId: family?.id ?? '' });
   const { summary: expenseSummary } = useExpenses({ familyId: family?.id ?? '' });
 
@@ -285,11 +315,13 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
         {/* Waypoint noticed — the highest-leverage unused entitlement. The
             Resource Stack edition wins the slot when a deep-dive unlock
             exists; the generic card covers the other stories. */}
-        {stackInsight ? (
+        {insightSnoozed ? null : stackInsight ? (
           <StackInsightCard
             insight={stackInsight}
             locale={funnelLocale}
             onDraft={(template) => (navigation as any).navigate('Letters', { template })}
+            onOpenStack={() => (navigation as any).navigate('ResourceStack')}
+            onSnooze={snoozeInsight}
           />
         ) : insight ? (
           <InsightCard
@@ -297,6 +329,8 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             onOpen={(target) =>
               (navigation as any).navigate(target.screen, target.params)
             }
+            onSnooze={snoozeInsight}
+            snoozeLabel={snoozeLabel}
           />
         ) : null}
 
