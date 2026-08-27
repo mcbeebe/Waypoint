@@ -27,6 +27,8 @@ export interface GapInput {
   iepStatus: string | null;
   /** families.insurance_carrier: 'private' | 'medicaid' | 'both' | 'none' | free text */
   insurance: string | null;
+  /** Medi-Cal deeming already underway or in place — suppresses the Medi-Cal gap cards */
+  mediCalUnderway?: boolean;
   /** Contents of kind='gap' family memories (AI-noticed, family-specific) */
   memoryGaps: string[];
 }
@@ -85,7 +87,7 @@ export function detectGaps(input: GapInput): GapPrompt[] {
 
   // No public coverage at all
   if (insurance === 'none') {
-    gaps.push({
+    if (!input.mediCalUnderway) gaps.push({
       id: 'no-insurance',
       emoji: '🏥',
       title: 'Your child likely qualifies for Medi-Cal',
@@ -94,8 +96,10 @@ export function detectGaps(input: GapInput): GapPrompt[] {
     });
   }
 
-  // Private-only insurance: missing the Medi-Cal secondary everyone qualifies for
-  if (insurance === 'private') {
+  // Private-only insurance: missing the Medi-Cal secondary everyone
+  // qualifies for. Suppressed once the deeming request is underway — the
+  // stack card owns that story from there.
+  if (insurance === 'private' && !input.mediCalUnderway) {
     gaps.push({
       id: 'deeming-waiver',
       emoji: '💳',

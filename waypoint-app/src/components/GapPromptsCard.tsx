@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
 import { detectGaps, type GapInput, type GapPrompt } from '@/lib/gapRules';
+import { snoozeFor, isSnoozed } from '@/lib/snooze';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 const DISMISSED_KEY = 'waypoint_dismissed_gaps';
@@ -24,6 +25,8 @@ interface GapPromptsCardProps {
   rcStatus: string | null;
   iepStatus: string | null;
   insurance: string | null;
+  /** Deeming underway/secured — Medi-Cal gap cards yield to the stack story */
+  mediCalUnderway?: boolean;
 }
 
 export default function GapPromptsCard(props: GapPromptsCardProps) {
@@ -51,7 +54,7 @@ export default function GapPromptsCard(props: GapPromptsCardProps) {
       .then(({ data }) => setMemoryGaps((data ?? []).map((m: { content: string }) => m.content)));
   }, [props.familyId]);
 
-  const gaps = useMemo(() => {
+  const candidates = useMemo(() => {
     if (dismissed === null) return [];
     const input: GapInput = {
       childAgeYears: props.childAgeYears,
@@ -59,10 +62,32 @@ export default function GapPromptsCard(props: GapPromptsCardProps) {
       rcStatus: props.rcStatus,
       iepStatus: props.iepStatus,
       insurance: props.insurance,
+      mediCalUnderway: props.mediCalUnderway,
       memoryGaps,
     };
-    return detectGaps(input).filter((g) => !dismissed.has(g.id)).slice(0, MAX_SHOWN);
+    return detectGaps(input).filter((g) => !dismissed.has(g.id));
   }, [props, memoryGaps, dismissed]);
+
+  // "Remind me later": per-gap, per-device snooze (7 days).
+  const [snoozed, setSnoozed] = useState<Set<string> | null>(null);
+  useEffect(() => {
+    let live = true;
+    Promise.all(candidates.map((g) => isSnoozed(`gap_${g.id}`))).then((flags) => {
+      if (live)
+        setSnoozed(new Set(candidates.filter((_, i) => flags[i]).map((g) => g.id)));
+    });
+    return () => {
+      live = false;
+    };
+  }, [candidates]);
+
+  const gaps = useMemo(
+    () =>
+      snoozed === null
+        ? []
+        : candidates.filter((g) => !snoozed.has(g.id)).slice(0, MAX_SHOWN),
+    [candidates, snoozed]
+  );
 
   const handleDismiss = useCallback(async (gap: GapPrompt) => {
     setDismissed((prev) => {
@@ -71,6 +96,11 @@ export default function GapPromptsCard(props: GapPromptsCardProps) {
       AsyncStorage.setItem(DISMISSED_KEY, JSON.stringify([...next])).catch(() => {});
       return next;
     });
+  }, []);
+
+  const handleSnooze = useCallback((gap: GapPrompt) => {
+    snoozeFor(`gap_${gap.id}`, 7);
+    setSnoozed((prev) => new Set([...(prev ?? []), gap.id]));
   }, []);
 
   const handleAsk = useCallback((gap: GapPrompt) => {
@@ -102,14 +132,24 @@ export default function GapPromptsCard(props: GapPromptsCardProps) {
             </TouchableOpacity>
           </View>
           <Text style={styles.body}>{gap.body}</Text>
-          <TouchableOpacity
-            style={styles.askBtn}
-            onPress={() => handleAsk(gap)}
-            accessibilityRole="button"
-            accessibilityLabel="Ask Waypoint about this"
-          >
-            <Text style={styles.askBtnText}>Ask Waypoint about this →</Text>
-          </TouchableOpacity>
+          <View style={styles.actionsRow}>
+            <TouchableOpacity
+              style={styles.askBtn}
+              onPress={() => handleAsk(gap)}
+              accessibilityRole="button"
+              accessibilityLabel="Ask Waypoint about this"
+            >
+              <Text style={styles.askBtnText}>Ask Waypoint about this →</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.snoozeBtn}
+              onPress={() => handleSnooze(gap)}
+              accessibilityRole="button"
+              accessibilityLabel={`Remind me later: ${gap.title}`}
+            >
+              <Text style={styles.snoozeText}>Remind me later</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ))}
     </View>
@@ -171,7 +211,6 @@ const styles = StyleSheet.create({
   },
   askBtn: {
     alignSelf: 'flex-start',
-    marginTop: spacing.sm,
     backgroundColor: colors.teal,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
@@ -183,5 +222,19 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     color: colors.white,
     fontWeight: fonts.weights.semibold as '600',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+    flexWrap: 'wrap',
+  },
+  snoozeBtn: { minHeight: 38, justifyContent: 'center' },
+  snoozeText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+    fontWeight: fonts.weights.semibold as '600',
+    textDecorationLine: 'underline',
   },
 });
