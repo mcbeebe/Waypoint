@@ -1,0 +1,14 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1560, "title": "1 · RC map — life after authorization" },
+    { "file": "Ladder.dc.html", "x": 490, "y": 0, "w": 390, "h": 1320, "title": "2 · RC — the escalation ladder" },
+    { "file": "SchoolMap.dc.html", "x": 980, "y": 0, "w": 390, "h": 1560, "title": "3 · School map — check the data" }
+  ],
+  "annotations": [
+    { "id": "note-gap", "x": 0, "y": -320, "w": 320, "text": "THE GAP THIS CLOSES (your ask, Aug 28)\nBoth maps ended at \"services authorized.\" Real life starts after: Is delivery matching the promise? What lanes exist besides traditional? What's the ladder when it goes wrong?\n\nSame honesty rules as everything shipped: real clocks only, every claim cited, one lever per stage." },
+    { "id": "note-verify", "x": 490, "y": -320, "w": 300, "text": "CITATIONS TO VERIFY AT BUILD (before any copy ships — the provenance guard enforces registration mechanically):\n· Ed Code §56345(a)(3) progress-report cadence\n· W&I §4710.5 appeal windows (60d / 30d aid-paid-pending)\n· §4731 20-working-day response\n· 34 CFR §300.148 10-business-day notice\n· current DDS scope of participant-directed services in traditional POS" },
+    { "id": "note-open-questions", "x": 980, "y": -320, "w": 320, "text": "OPEN QUESTIONS — your call before I build:\n1 · Pathways compare: RC map only, or a school variant too (district services vs NPA vs 504-only)?\n2 · Should \"Check the data\" auto-create a recurring tracker reminder each grading period?\n3 · Escalation ladder: inline stage card (artboard 1, compact) or the full ladder screen (artboard 2)? Mockup shows both — pick one or keep both (card links to ladder)." },
+    { "id": "note-build", "x": 1470, "y": 0, "w": 300, "text": "BUILD PLAN AFTER YOUR GO\n1 · Content + provenance: new stages trilingual (en/es/vi), progress_data_request letter + sent moment, pathway data in a pure module; register every citation.\n2 · Pathways compare component on the RC map, PathDecider beneath.\n3 · Derivation: RC active + IPP confirmed → \"Living with services\"; school active → \"Check the data\"." }
+  ],
+  "launch": { "view": "canvas" }
+}
