@@ -1,8 +1,8 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1500, "title": "A · Front pocket (recommended)" },
-    { "file": "ConceptB.dc.html", "x": 490, "y": 0, "w": 390, "h": 1060, "title": "B · Five doors" },
-    { "file": "ConceptC.dc.html", "x": 980, "y": 0, "w": 390, "h": 1180, "title": "C · Shortcuts first" }
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1240, "title": "A · Front pocket (recommended)" },
+    { "file": "ConceptB.dc.html", "x": 490, "y": 0, "w": 390, "h": 990, "title": "B · Five doors" },
+    { "file": "ConceptC.dc.html", "x": 980, "y": 0, "w": 390, "h": 1030, "title": "C · Shortcuts first" }
   ],
   "annotations": [
     { "id": "note-problem", "x": 0, "y": -330, "w": 320, "text": "THE PROBLEM (your feedback, Aug 28)\n26 identical tiles, flat grid: no hierarchy (Letters = Blog), no grouping (one workflow scattered across three rows), labels without meaning (\"Your Result\"), and 26 choices at once for someone who is already exhausted.\n\nShared by all three concepts: group by job-to-be-done, 44px+ targets, \"Everything else\" collapsed so nothing is lost, and the Quick Actions row is dropped (it duplicates the tab bar exactly)." },
