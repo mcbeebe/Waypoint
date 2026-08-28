@@ -26,6 +26,9 @@ export interface Communication {
   status: CommunicationStatus;
   sent_at: string | null;
   occurred_at: string;
+  /** Gmail thread/message ids when sent or synced via the connected account (046) */
+  gmail_thread_id: string | null;
+  gmail_message_id: string | null;
   created_at: string;
 }
 

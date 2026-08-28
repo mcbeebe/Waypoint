@@ -6,7 +6,7 @@
  * share the whole log as text for an advocate or hearing prep.
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import { useFamily } from '@/hooks/useFamily';
+import { useFamily, useChildren } from '@/hooks/useFamily';
+import { gmailStatus, gmailSyncReplies, type GmailStatus } from '@/lib/gmail';
+import { connectGmailWeb } from '@/lib/googleAuth';
+import GmailReplyModal from '@/components/GmailReplyModal';
 import {
   useCommunications,
   type Communication,
@@ -67,8 +70,10 @@ export default function CommunicationLogScreen() {
   const { family } = useFamily();
   const { showToast } = useToast();
   const {
-    communications, loading, addCommunication, deleteCommunication, markSent,
+    communications, loading, addCommunication, deleteCommunication, markSent, refetch,
   } = useCommunications(family?.id ?? '');
+  const { children } = useChildren(family?.id);
+  const primaryChild = children.find((c) => c.is_primary) ?? children[0];
   const navigation = useNavigation();
   const route = useRoute();
   // A tracker row's "view the letter" lands here with the entry pre-expanded.
@@ -78,6 +83,50 @@ export default function CommunicationLogScreen() {
   const [filter, setFilter] = useState<CommunicationKind | 'all' | 'drafts'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(highlightId);
   const [showAdd, setShowAdd] = useState(false);
+
+  // ── Gmail: connection status, reply sync, in-thread reply modal ──
+  const [gmail, setGmail] = useState<GmailStatus>({ connected: false, gmail: false, email: null });
+  const [syncing, setSyncing] = useState(false);
+  const [replyThread, setReplyThread] = useState<Communication[] | null>(null);
+  useEffect(() => {
+    gmailStatus().then(setGmail);
+  }, []);
+
+  const checkReplies = useCallback(async () => {
+    if (syncing) return;
+    setSyncing(true);
+    const result = await gmailSyncReplies();
+    setSyncing(false);
+    if (!result.ok) {
+      showToast(
+        result.error === 'reconnect_required'
+          ? 'Gmail needs to be reconnected — tap Connect Gmail.'
+          : "Couldn't check for replies — please try again.",
+        'error'
+      );
+      if (result.error === 'reconnect_required') setGmail((g) => ({ ...g, gmail: false }));
+      return;
+    }
+    if (result.newReplies > 0) {
+      await refetch();
+      showToast(
+        `${result.newReplies} new repl${result.newReplies === 1 ? 'y' : 'ies'} pulled into your paper trail.`,
+        'success'
+      );
+    } else {
+      showToast('No new replies yet — we checked every tracked thread.', 'info');
+    }
+  }, [syncing, refetch, showToast]);
+
+  const openReply = useCallback(
+    (item: Communication) => {
+      const thread = communications
+        .filter((c) => c.gmail_thread_id && c.gmail_thread_id === item.gmail_thread_id)
+        .sort((a, b) => (a.sent_at ?? a.occurred_at).localeCompare(b.sent_at ?? b.occurred_at));
+      setReplyThread(thread.length > 0 ? thread : [item]);
+    },
+    [communications]
+  );
 
   const filtered = useMemo(() => {
     if (filter === 'all') return communications;
@@ -174,6 +223,35 @@ export default function CommunicationLogScreen() {
               <Ionicons name="share-outline" size={16} color={colors.teal} />
             </TouchableOpacity>
           )}
+          {Platform.OS === 'web' && (
+            gmail.gmail ? (
+              <TouchableOpacity
+                style={styles.gmailBtn}
+                onPress={checkReplies}
+                disabled={syncing}
+                accessibilityRole="button"
+                accessibilityLabel="Check Gmail for new replies"
+              >
+                <Ionicons name="refresh" size={14} color={colors.teal} />
+                <Text style={styles.gmailBtnText}>
+                  {syncing ? 'Checking…' : 'Check replies'}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.gmailBtn}
+                onPress={async () => {
+                  const r = await connectGmailWeb('/');
+                  if (!r.success) showToast(r.error ?? "Couldn't start the Google connection.", 'error');
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Connect Gmail to send in-thread and track replies"
+              >
+                <Ionicons name="mail-outline" size={14} color={colors.teal} />
+                <Text style={styles.gmailBtnText}>Connect Gmail</Text>
+              </TouchableOpacity>
+            )
+          )}
         </View>
       </View>
 
@@ -203,6 +281,11 @@ export default function CommunicationLogScreen() {
                       <Text style={styles.draftBadgeText}>DRAFT</Text>
                     </View>
                   )}
+                  {item.direction === 'incoming' && (
+                    <View style={styles.replyBadge}>
+                      <Text style={styles.replyBadgeText}>REPLY</Text>
+                    </View>
+                  )}
                 </View>
                 <Text style={styles.entryMeta}>
                   {[
@@ -223,6 +306,16 @@ export default function CommunicationLogScreen() {
             {expandedId === item.id && (
               <>
                 {item.body ? <Text style={styles.entryText}>{item.body}</Text> : null}
+                {gmail.gmail && item.gmail_thread_id && (
+                  <TouchableOpacity
+                    style={styles.replyBtn}
+                    onPress={() => openReply(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Draft a reply in this thread with Waypoint"
+                  >
+                    <Text style={styles.replyBtnText}>✨ Draft a reply with Waypoint</Text>
+                  </TouchableOpacity>
+                )}
                 {item.status === 'draft' && (
                   <View style={styles.draftActions}>
                     <TouchableOpacity
@@ -288,6 +381,20 @@ export default function CommunicationLogScreen() {
           const ok = await addCommunication(entry);
           showToast(ok ? 'Added to your paper trail' : "Couldn't save — try again.", ok ? 'success' : 'error');
           if (ok) setShowAdd(false);
+        }}
+      />
+
+      <GmailReplyModal
+        visible={!!replyThread}
+        thread={replyThread ?? []}
+        childName={primaryChild?.first_name}
+        parentName={
+          [family?.parent_first_name, family?.parent_last_name].filter(Boolean).join(' ') || null
+        }
+        onClose={() => setReplyThread(null)}
+        onSent={() => {
+          refetch();
+          showToast('Reply sent — added to your paper trail.', 'success');
         }}
       />
     </SafeAreaView>
@@ -485,6 +592,41 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
     letterSpacing: 0.5,
   },
+  replyBadge: {
+    backgroundColor: '#E0F2FE',
+    borderRadius: radii.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  replyBadgeText: {
+    fontSize: 9,
+    color: '#0369A1',
+    fontWeight: fonts.weights.bold as '700',
+    letterSpacing: 0.5,
+  },
+  gmailBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 36,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    borderColor: colors.teal,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.white,
+  },
+  gmailBtnText: { fontSize: fonts.sizes.sm, color: colors.teal, fontWeight: fonts.weights.semibold as '600' },
+  replyBtn: {
+    marginTop: spacing.sm,
+    minHeight: 40,
+    borderRadius: radii.md,
+    backgroundColor: colors.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    alignSelf: 'flex-start',
+  },
+  replyBtnText: { color: colors.white, fontSize: fonts.sizes.sm, fontWeight: fonts.weights.bold as '700' },
   draftActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, flexWrap: 'wrap' },
   markSentBtn: {
     backgroundColor: '#D1FAE5',
