@@ -114,6 +114,7 @@ The AI engine must be empathetic, actionable, and legally accurate. It should fe
 - **Commit style:** Conventional commits (`feat:`, `fix:`, `docs:`, `chore:`)
 - **Commit after:** Each working increment
 - **Ship automatically (owner preference, Aug 2026):** when a work increment is complete and ALL gates pass (`npx tsc --noEmit`, `npx vitest run`, `npx eslint . --ext .ts,.tsx --quiet` from `waypoint-app/`), open a PR to `main` and merge it without waiting for a further ask. Use a merge commit (preserve history). Don't merge with failing or unrun gates.
+- **Plan & mock up first (owner preference, Aug 2026):** for NEW user-facing features or flows, deliver a short plan plus design-canvas mockups (Roadmap/mockups/, app design tokens) and wait for the owner's go before building. Bug fixes, copy tweaks, and small refinements to already-shipped surfaces proceed straight to code under the auto-ship rule.
 - **Note:** `gas-mvp/` has a legacy nested `.git/` directory that should be removed (all history is in the parent repo)
 
 ## Development Notes
