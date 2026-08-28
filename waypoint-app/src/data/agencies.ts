@@ -51,7 +51,7 @@ export const AGENCIES: Agency[] = [
     whyMatters: 'School services are an entitlement, not a gift. Your child has a RIGHT to be evaluated.',
     services: ['Psychoeducational evaluation (free)', 'IEP with measurable goals', 'Speech, OT, PT, counseling', 'Behavioral support / aide', 'Assistive technology', 'Transition services (16+)'],
     rights: ['Equal IEP team member', 'Bring anyone to meeting', 'Request IEP meeting at ANY time', 'Request IEE at district expense', 'Don\'t have to sign same day'],
-    watchOut: 'Schools often offer the minimum. Come prepared. If they refuse, demand Prior Written Notice.',
+    watchOut: 'Schools often offer the minimum. Come prepared. If they refuse, request Prior Written Notice.',
   },
   {
     key: 'insurance',
