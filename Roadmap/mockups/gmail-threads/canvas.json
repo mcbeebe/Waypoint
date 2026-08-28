@@ -1,0 +1,14 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 940, "title": "1 · Letters — Send now with Gmail" },
+    { "file": "PaperTrail.dc.html", "x": 490, "y": 0, "w": 390, "h": 1120, "title": "2 · Paper Trail — replies sync in" },
+    { "file": "ReplySheet.dc.html", "x": 980, "y": 0, "w": 390, "h": 1020, "title": "3 · Reply composer — AI draft, in-thread send" }
+  ],
+  "annotations": [
+    { "id": "note-flow", "x": 0, "y": -300, "w": 320, "text": "THE LOOP (shipped as v1 — this canvas is the review surface; redline anything and it changes)\n\n1 · Send a letter through your own Gmail — one tap, replies tracked on the thread id.\n2 · 'Check replies' pulls the agency's responses into the Paper Trail as REPLY entries.\n3 · 'Draft a reply with Waypoint' proposes the response; edit, then send — threaded, no copy-paste." },
+    { "id": "note-security", "x": 490, "y": -300, "w": 300, "text": "SECURITY POSTURE\n· Google refresh token stays server-side (owner-only table, edge function holds the client secret)\n· Only threads Waypoint started are read — never the whole inbox\n· AI treats thread text as quoted material, not instructions" },
+    { "id": "note-caveats", "x": 980, "y": -300, "w": 300, "text": "HONEST CAVEATS (pilot)\n· Google shows an 'unverified app' warning at consent — expected pre-CASA\n· Testing mode expires the grant ~7 days; reconnect is one tap\n· Public rollout of Gmail scopes later requires Google's CASA review" },
+    { "id": "note-open-questions", "x": 1470, "y": 0, "w": 300, "text": "OPEN DESIGN QUESTIONS — your call:\n· Should 'Check replies' also run automatically on app open?\n· Should a new REPLY ping the Home screen (a 'Lilia replied' card)?\n· Reply tone: match the letter tone bar (warm/professional/strong)?\n· Should incoming replies auto-run the Email Analyzer (red flags, deadlines)?" }
+  ],
+  "launch": { "view": "canvas" }
+}
