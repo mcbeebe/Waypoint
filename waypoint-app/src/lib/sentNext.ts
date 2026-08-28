@@ -252,6 +252,75 @@ export function sentNextFor(
         track: { requestType: 'other', title: MEDI_CAL_DEEMING_REQUEST_TITLE },
         followUpDays: 14,
       };
+    case 'delivery_plan_request':
+      return {
+        celebration: L(
+          'You just turned a missing service into a tracked request.',
+          'Acaba de convertir un servicio faltante en una solicitud con seguimiento.',
+          'Quý vị vừa biến dịch vụ còn thiếu thành một yêu cầu được theo dõi.'
+        ),
+        did: L(
+          `Authorized hours the Regional Center doesn't deliver are still owed — a vendor waitlist doesn't pause the obligation (W&I §4648). Asking warmly, in writing, starts the record and keeps your coordinator on your side.`,
+          `Las horas autorizadas que el Centro Regional no entrega se siguen debiendo — una lista de espera del proveedor no pausa la obligación (W&I §4648). Pedir con calidez, por escrito, inicia el expediente y mantiene a su coordinador/a de su lado.`,
+          `Số giờ đã duyệt mà Trung tâm Khu vực chưa cung cấp vẫn là nghĩa vụ của họ — danh sách chờ không tạm dừng nghĩa vụ đó (W&I §4648). Đề nghị thân thiện, bằng văn bản, bắt đầu hồ sơ và giữ điều phối viên đứng về phía quý vị.`
+        ),
+        expectations: [
+          L(
+            'Expect a delivery plan or an alternative-vendor option from your coordinator — this is a normal, answerable ask.',
+            'Espere un plan de entrega o una opción de proveedor alternativo de su coordinador/a — es una petición normal y contestable.',
+            'Điều phối viên sẽ đưa kế hoạch cung cấp hoặc phương án nhà cung cấp thay thế — đây là đề nghị bình thường, có thể trả lời.'
+          ),
+          L(
+            'Keep logging authorized vs delivered hours — the gap itself is your evidence if this ever escalates.',
+            'Siga registrando horas autorizadas vs. entregadas — la brecha misma es su evidencia si esto llega a escalar.',
+            'Tiếp tục ghi giờ được duyệt so với giờ thực nhận — chính khoảng thiếu hụt là bằng chứng nếu việc này phải leo thang.'
+          ),
+          L(
+            'No fixed clock on this ask (honestly) — 2 weeks of silence earns the follow-up, and the 30-day IPP review is the accelerator.',
+            'Esta petición no tiene plazo fijo (honestamente) — 2 semanas de silencio ameritan el seguimiento, y la revisión del IPP de 30 días es el acelerador.',
+            'Đề nghị này không có thời hạn cố định (thành thật) — im lặng 2 tuần thì gửi thư nhắc, và quyền họp IPP trong 30 ngày là đòn bẩy.'
+          ),
+        ],
+        track: { requestType: 'other', title: 'Service delivery plan request' },
+        followUpDays: 14,
+      };
+    case 'progress_data_request':
+      return {
+        celebration: L(
+          'You just asked for the numbers the IEP promised.',
+          'Acaba de pedir los números que el IEP prometió.',
+          'Quý vị vừa yêu cầu những con số mà IEP đã hứa.'
+        ),
+        did: L(
+          'Progress reports on every goal are due at least as often as report cards, and service logs show minutes delivered vs the IEP — checking is normal parenting, and your friendly ask reads that way.',
+          'Los informes de progreso de cada meta se deben entregar al menos tan seguido como las boletas, y los registros de servicio muestran minutos entregados vs. el IEP — verificar es crianza normal, y su petición amistosa se lee así.',
+          'Báo cáo tiến bộ cho từng mục tiêu phải có ít nhất thường xuyên như phiếu điểm, và nhật ký dịch vụ cho thấy số phút thực nhận so với IEP — kiểm tra là việc làm cha mẹ bình thường, và lời đề nghị thân thiện của quý vị thể hiện đúng như vậy.'
+        ),
+        expectations: [
+          L(
+            'Records must arrive within 5 business days of your written request — Ed Code §56504. Waypoint is tracking it.',
+            'Los registros deben llegar dentro de 5 días hábiles de su solicitud escrita — Ed Code §56504. Waypoint le da seguimiento.',
+            'Hồ sơ phải đến trong 5 ngày làm việc kể từ yêu cầu bằng văn bản — Ed Code §56504. Waypoint đang theo dõi.'
+          ),
+          L(
+            '"Making progress" without a number is not a report — compare the data against the baselines written in the IEP.',
+            '"Está progresando" sin un número no es un informe — compare los datos con las líneas base escritas en el IEP.',
+            '"Đang tiến bộ" mà không có con số thì không phải báo cáo — hãy so dữ liệu với mức nền ghi trong IEP.'
+          ),
+          L(
+            'Minutes short of the IEP are owed back (compensatory education); slow progress is evidence for more services, never for lower goals.',
+            'Los minutos por debajo del IEP se deben compensar (educación compensatoria); el progreso lento es evidencia para más servicios, nunca para metas más bajas.',
+            'Số phút thiếu so với IEP phải được bù (giáo dục bù đắp); tiến bộ chậm là bằng chứng cần thêm dịch vụ, không bao giờ là lý do hạ mục tiêu.'
+          ),
+          L(
+            'Ask again each grading period — a pattern in the data is what moves an IEP team.',
+            'Pida de nuevo cada período de calificaciones — un patrón en los datos es lo que mueve al equipo del IEP.',
+            'Hãy hỏi lại mỗi kỳ học — xu hướng trong dữ liệu chính là điều làm nhóm IEP hành động.'
+          ),
+        ],
+        track: { requestType: 'other', title: 'Progress data + service logs request' },
+        followUpDays: 7,
+      };
     case 'rc_timeline_followup':
       return {
         celebration: L(

@@ -15,6 +15,7 @@ import {
   getRcStages,
   getSchoolStages,
   getSdpFork,
+  getServiceLanes,
   deriveStageIndex,
   deriveSchoolStageIndex,
   sdpAvailable,
@@ -56,6 +57,8 @@ const STRINGS: Record<FunnelLocale, {
   ippAddDoc: string;
   saveFailed: string;
   sdpJourneyCta: string;
+  ladderCta: string;
+  lanesTitle: string;
 }> = {
   en: {
     title: 'How the Regional Center works',
@@ -93,6 +96,8 @@ const STRINGS: Record<FunnelLocale, {
     ippAddDoc: 'Add the IPP document',
     saveFailed: "Couldn't save that — please try again in a moment.",
     sdpJourneyCta: 'See the full journey, step by step →',
+    ladderCta: 'Climb the ladder, rung by rung →',
+    lanesTitle: 'Two lanes to receive services',
   },
   es: {
     title: 'Cómo funciona el Centro Regional',
@@ -130,6 +135,8 @@ const STRINGS: Record<FunnelLocale, {
     ippAddDoc: 'Agregar el documento del IPP',
     saveFailed: 'No se pudo guardar — inténtelo de nuevo en un momento.',
     sdpJourneyCta: 'Ver el camino completo, paso a paso →',
+    ladderCta: 'Suba la escalera, peldaño a peldaño →',
+    lanesTitle: 'Dos carriles para recibir servicios',
   },
   vi: {
     title: 'Trung tâm Khu vực hoạt động thế nào',
@@ -167,6 +174,8 @@ const STRINGS: Record<FunnelLocale, {
     ippAddDoc: 'Thêm tài liệu IPP',
     saveFailed: 'Không lưu được — vui lòng thử lại sau giây lát.',
     sdpJourneyCta: 'Xem toàn bộ hành trình, từng bước →',
+    ladderCta: 'Leo thang, từng nấc một →',
+    lanesTitle: 'Hai làn nhận dịch vụ',
   },
 };
 
@@ -367,6 +376,20 @@ export default function ProcessMapScreen() {
                 </View>
               )
             )}
+            {stage.key === 'rc_escalation' && (
+              <Pressable
+                style={[styles.lever, state === 'current' && styles.leverPrimary]}
+                onPress={() => (navigation as any).navigate('EscalationLadder')}
+                accessibilityRole="button"
+                accessibilityLabel={S.ladderCta}
+              >
+                <Text
+                  style={[styles.leverText, state === 'current' && styles.leverTextPrimary]}
+                >
+                  🪜 {S.ladderCta}
+                </Text>
+              </Pressable>
+            )}
             {stage.leverTemplate && state !== 'done' && (
               <Pressable
                 style={[styles.lever, state === 'current' && styles.leverPrimary]}
@@ -397,6 +420,7 @@ export default function ProcessMapScreen() {
             </View>
           </View>
           <Text style={styles.citation}>ⓘ {sdpFork.citation}</Text>
+          <ServiceLanesCompare locale={funnelLocale} title={S.lanesTitle} />
           {renderStageActions(sdpFork)}
           <Pressable
             style={[styles.lever, styles.leverPrimary]}
@@ -425,6 +449,43 @@ export default function ProcessMapScreen() {
         <Text style={styles.trustText}>{S.trust}</Text>
       </View>
     </ScrollView>
+  );
+}
+
+/**
+ * "Two lanes to receive services" (Process Map Depth) — traditional POS vs
+ * Self-Determination side by side, with participant-directed services named
+ * as the middle lane. Lane data is trilingual in lib/processMap.ts.
+ */
+function ServiceLanesCompare({ locale, title }: { locale: FunnelLocale; title: string }) {
+  const { lanes, middleLane, citation } = getServiceLanes(locale);
+  return (
+    <View style={styles.lanes}>
+      <Text style={styles.lanesTitle}>{title}</Text>
+      <View style={styles.lanesRow}>
+        {lanes.map((lane) => (
+          <View
+            key={lane.key}
+            style={[styles.lane, lane.key === 'sdp' && styles.laneSdp]}
+          >
+            <Text style={[styles.laneTitle, lane.key === 'sdp' && styles.laneTitleSdp]}>
+              {lane.title}
+            </Text>
+            <Text style={styles.laneSummary}>{lane.summary}</Text>
+            {lane.pros.map((p) => (
+              <Text key={p} style={styles.lanePro}>+ {p}</Text>
+            ))}
+            {lane.cons.map((c) => (
+              <Text key={c} style={styles.laneCon}>− {c}</Text>
+            ))}
+          </View>
+        ))}
+      </View>
+      <View style={styles.laneMiddle}>
+        <Text style={styles.laneMiddleText}>{middleLane}</Text>
+      </View>
+      <Text style={styles.citation}>ⓘ {citation}</Text>
+    </View>
   );
 }
 
@@ -651,6 +712,30 @@ const styles = StyleSheet.create({
     color: colors.coral,
     marginBottom: spacing.sm,
   },
+  lanes: { marginTop: spacing.md, gap: spacing.sm },
+  lanesTitle: { fontSize: fonts.sizes.md, fontWeight: fonts.weights.bold, color: colors.navy },
+  lanesRow: { flexDirection: 'row', gap: spacing.sm },
+  lane: {
+    flex: 1,
+    backgroundColor: colors.light,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  laneSdp: { borderColor: colors.teal, borderWidth: 2, backgroundColor: colors.white },
+  laneTitle: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.extrabold, color: colors.navy },
+  laneTitleSdp: { color: colors.teal },
+  laneSummary: { fontSize: fonts.sizes.xs, color: colors.dark, lineHeight: 16 },
+  lanePro: { fontSize: fonts.sizes.xs, color: semantic.success, fontWeight: fonts.weights.semibold, lineHeight: 16 },
+  laneCon: { fontSize: fonts.sizes.xs, color: semantic.warning, fontWeight: fonts.weights.semibold, lineHeight: 16 },
+  laneMiddle: {
+    backgroundColor: semantic.infoBg,
+    borderRadius: radii.sm,
+    padding: spacing.md,
+  },
+  laneMiddleText: { fontSize: fonts.sizes.xs, color: colors.dark, lineHeight: 17 },
   decider: {
     marginTop: spacing.lg,
     borderTopWidth: 1,

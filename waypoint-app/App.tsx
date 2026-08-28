@@ -77,6 +77,7 @@ const linking: LinkingOptions<RootStackParamList> = {
               HomeMain: '',
               Journey: 'journey',
               ProcessMap: 'how-it-works',
+              EscalationLadder: 'escalation-ladder',
               EligibilityResult: 'your-result',
               FundedOffer: 'free-help',
               RequestTracker: 'requests',

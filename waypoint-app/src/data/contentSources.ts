@@ -174,6 +174,69 @@ export const CONTENT_SOURCES: ContentSource[] = [
       'A parent who disagrees with a district assessment may obtain an independent educational evaluation at public expense unless the district initiates and prevails at a due-process hearing; §56501 provides the due-process forum.',
   },
   {
+    key: 'wic_4648',
+    title: 'Welfare & Institutions Code §4648(a) (securing IPP services)',
+    covers: ['W&I §4646.5 · §4648(a)'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4648.',
+    verifiedOn: '2026-08-28',
+    claim:
+      'Once the IPP is developed, the regional center must secure the services and supports it lists — including contracting with alternative providers when needed — so a vendor waitlist does not suspend the obligation to deliver.',
+  },
+  {
+    key: 'wic_4710_5',
+    title: 'Welfare & Institutions Code §4710.5 (appeal windows)',
+    covers: ['W&I §4710.5', 'W&I §4710.5 · §4731'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5.',
+    verifiedOn: '2026-08-28',
+    claim:
+      'An appeal of a regional center decision must be filed within 60 days of the notice of action; filing within 30 days continues existing services during the appeal (aid paid pending).',
+  },
+  {
+    key: 'wic_4731',
+    title: 'Welfare & Institutions Code §4731 (rights-violation complaint)',
+    covers: ['W&I §4731'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4731.',
+    verifiedOn: '2026-08-28',
+    claim:
+      'A consumer or representative may file a rights-violation complaint with the regional center director, who must respond with a written proposed resolution within 20 working days; unresolved complaints escalate to DDS.',
+  },
+  {
+    key: 'edc_56345a3',
+    title: 'Education Code §56345(a)(3) (progress reporting) · §56504 (records)',
+    covers: ['Ed Code §56345(a)(3) · §56504'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56345.',
+    verifiedOn: '2026-08-28',
+    claim:
+      'The IEP must state how progress toward each annual goal is measured and provide periodic progress reports at least as often as report cards (concurrent with their issuance); §56504 provides records within 5 business days of a written request.',
+  },
+  {
+    key: 'cfr_300_148',
+    title: '34 CFR §300.148 (unilateral placement notice)',
+    covers: ['Ed Code §56329(b) · §56501 · 34 CFR §300.148'],
+    url: 'https://www.ecfr.gov/current/title-34/subtitle-B/chapter-III/part-300/subpart-B/subject-group-ECFRc2669ba9c45f0d6/section-300.148',
+    verifiedOn: '2026-08-28',
+    claim:
+      'Reimbursement for a unilateral private placement may be reduced or denied unless the parents gave written notice to the district at least 10 business days before removing the child (or stated the rejection at the most recent IEP meeting); §56329(b)/§56501 cover IEE and due process as before.',
+  },
+  {
+    key: 'dds_pds_faq',
+    title: 'DDS Participant-Directed Services FAQ (2020)',
+    covers: ['W&I §4685.8 · DDS PDS FAQ'],
+    url: 'https://www.dds.ca.gov/wp-content/uploads/2020/10/Participant-DirectedServices_Self-Advocate-Families_FAQ_10052020.pdf',
+    verifiedOn: '2026-08-28',
+    claim:
+      'Within traditional POS, a participant-directed model is available for respite, day care, non-medical transportation, nursing, and day services where the regional center offers it — the family chooses who provides, with an FMS; SDP itself is §4685.8.',
+  },
+  {
+    key: 'ocra_drc',
+    title: "OCRA — Office of Clients' Rights Advocacy (Disability Rights California)",
+    covers: ['OCRA · Disability Rights California'],
+    url: 'https://www.disabilityrightsca.org/what-we-do/programs/office-of-clients-rights-advocacy-ocra',
+    verifiedOn: '2026-08-28',
+    claim:
+      "OCRA, run by Disability Rights California under contract with DDS, provides a free Clients' Rights Advocate for the clients of every one of the 21 regional centers; advocates are independent of the regional center.",
+  },
+  {
     key: 'hcbs_deeming',
     title: 'Medi-Cal HCBS (DD) waiver — institutional deeming',
     covers: ['HCBS waiver deeming'],

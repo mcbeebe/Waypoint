@@ -11,9 +11,11 @@ import {
   getRcStages,
   getSchoolStages,
   getSdpFork,
+  getServiceLanes,
   deriveSchoolStageIndex,
   deriveStageIndex,
 } from './processMap';
+import { getEscalationRungs } from './escalationLadder';
 import { decidePath, getPathQuestions } from './pathDecision';
 import { deriveHomeInsight } from './insights';
 import { sentNextFor } from './sentNext';
@@ -67,20 +69,56 @@ describe('process map is structurally locale-invariant', () => {
     });
   }
 
-  it('a confirmed IPP moves "you are here" past the IPP stage', () => {
+  it('a confirmed IPP lands "you are here" on living-with-services', () => {
     expect(deriveStageIndex('active')).toBe(2);
     expect(deriveStageIndex('active', null)).toBe(2);
-    expect(deriveStageIndex('active', true)).toBe(3);
+    expect(deriveStageIndex('active', true)).toBe(4);
+    expect(getRcStages('en')[4].key).toBe('rc_delivery');
     expect(deriveStageIndex('applied', true)).toBe(1);
   });
 
-  it('school "you are here" derives from IEP status', () => {
+  it('school "you are here" derives from IEP status; active lands on check-the-data', () => {
     expect(deriveSchoolStageIndex('no')).toBe(0);
     expect(deriveSchoolStageIndex('unknown')).toBe(0);
     expect(deriveSchoolStageIndex('eval_done')).toBe(2);
-    expect(deriveSchoolStageIndex('active')).toBe(3);
+    expect(deriveSchoolStageIndex('active')).toBe(4);
+    expect(getSchoolStages('en')[4].key).toBe('school_data');
     expect(deriveSchoolStageIndex(null)).toBe(0);
   });
+});
+
+describe('escalation ladder is structurally locale-invariant', () => {
+  const en = getEscalationRungs('en');
+  it('climbs collaborative → firm → formal → advocate, in that order', () => {
+    expect(en.map((r) => r.tone)).toEqual(['collaborative', 'firm', 'formal', 'advocate']);
+    expect(en.map((r) => r.n)).toEqual([1, 2, 3, 4]);
+    // The tone rule (owner, Aug 2026): the first rung never demands.
+    expect(en[0].title.toLowerCase()).not.toContain('demand');
+    expect(en[0].body.toLowerCase()).not.toContain('demand');
+  });
+  for (const locale of ['es', 'vi'] as const) {
+    it(locale, () => {
+      const other = getEscalationRungs(locale);
+      expect(other.map((r) => r.key)).toEqual(en.map((r) => r.key));
+      expect(other.map((r) => r.tone)).toEqual(en.map((r) => r.tone));
+      expect(other.map((r) => r.citation)).toEqual(en.map((r) => r.citation));
+      expect(other.map((r) => r.leverTemplate)).toEqual(en.map((r) => r.leverTemplate));
+      expect(other.map((r) => r.title)).not.toEqual(en.map((r) => r.title));
+    });
+  }
+});
+
+describe('service lanes are structurally locale-invariant', () => {
+  const en = getServiceLanes('en');
+  for (const locale of ['es', 'vi'] as const) {
+    it(locale, () => {
+      const other = getServiceLanes(locale);
+      expect(other.lanes.map((l) => l.key)).toEqual(en.lanes.map((l) => l.key));
+      expect(other.citation).toBe(en.citation);
+      expect(other.lanes.map((l) => l.pros.length)).toEqual(en.lanes.map((l) => l.pros.length));
+      expect(other.middleLane).not.toBe(en.middleLane);
+    });
+  }
 });
 
 describe('path decision is structurally locale-invariant', () => {
@@ -161,6 +199,7 @@ describe('sent moment is structurally locale-invariant', () => {
   const KEYS = [
     'sdp_info_request', 'ipp_review_request', 'assessment_request',
     'noa_request', 'records_request', 'rc_timeline_followup', 'medi_cal_deeming',
+    'delivery_plan_request', 'progress_data_request',
   ];
   for (const locale of ['es', 'vi'] as const) {
     it(locale, () => {
