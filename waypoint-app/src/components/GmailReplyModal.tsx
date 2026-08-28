@@ -4,7 +4,7 @@
  * sends — in-thread, no copy-paste. The draft is always editable before
  * anything is sent; nothing goes out without an explicit tap.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,15 @@ import {
 } from 'react-native';
 import type { Communication } from '@/hooks/useCommunications';
 import { draftGmailReply, gmailSend } from '@/lib/gmail';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { analyzeEmail, type EmailAnalysis } from '@/lib/letters';
+import { TONE_OPTIONS, type DraftTone } from '@/lib/lettersCatalog';
+import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+
+const SEVERITY_COLOR: Record<'high' | 'medium' | 'low', string> = {
+  high: semantic.danger,
+  medium: semantic.warning,
+  low: colors.mid,
+};
 
 /** "Lilia Talavera <lilia@rceb.org>" → "lilia@rceb.org" */
 function emailOf(contact: string | null): string {
@@ -48,9 +56,14 @@ export default function GmailReplyModal({
   const [guidance, setGuidance] = useState('');
   const [draft, setDraft] = useState('');
   const [toOverride, setToOverride] = useState('');
+  const [tone, setTone] = useState<DraftTone>('professional');
   const [drafting, setDrafting] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Waypoint's read of the incoming message — runs once per reply.
+  const [analysis, setAnalysis] = useState<EmailAnalysis | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzedId, setAnalyzedId] = useState<string | null>(null);
 
   const threadText = useMemo(
     () =>
@@ -67,6 +80,19 @@ export default function GmailReplyModal({
   const parsedTo = emailOf(lastIncoming?.contact ?? null);
   const to = (toOverride.trim() || parsedTo).trim();
 
+  // Auto-run the Email Analyzer on the incoming message (owner decision #4):
+  // red flags and deadlines surface before the parent even reads it.
+  useEffect(() => {
+    if (!visible || !lastIncoming?.body || lastIncoming.id === analyzedId) return;
+    setAnalyzedId(lastIncoming.id);
+    setAnalysis(null);
+    setAnalyzing(true);
+    analyzeEmail(lastIncoming.body).then((result) => {
+      setAnalyzing(false);
+      if (result.analysis) setAnalysis(result.analysis);
+    });
+  }, [visible, lastIncoming, analyzedId]);
+
   const generate = async () => {
     setDrafting(true);
     setError(null);
@@ -75,6 +101,7 @@ export default function GmailReplyModal({
       instructions: guidance.trim() || undefined,
       childName: childName ?? undefined,
       senderName: parentName ?? undefined,
+      tone,
     });
     setDrafting(false);
     if (result.ok && result.reply) setDraft(result.reply);
@@ -113,6 +140,51 @@ export default function GmailReplyModal({
           </Text>
 
           <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
+            {analyzing && (
+              <View style={styles.readBox}>
+                <ActivityIndicator size="small" color={colors.teal} />
+                <Text style={styles.readLoading}>Waypoint is reading their reply…</Text>
+              </View>
+            )}
+            {analysis && (
+              <View style={styles.readBox}>
+                <Text style={styles.readLabel}>WAYPOINT'S READ</Text>
+                <Text style={styles.readSummary}>{analysis.summary}</Text>
+                {analysis.red_flags.map((f, i) => (
+                  <Text key={`f${i}`} style={styles.readItem}>
+                    <Text style={{ color: SEVERITY_COLOR[f.severity], fontWeight: fonts.weights.bold }}>
+                      ⚑ {f.severity.toUpperCase()}
+                    </Text>{' '}
+                    {f.flag}
+                    {f.law_cited ? ` (${f.law_cited})` : ''}
+                  </Text>
+                ))}
+                {analysis.action_items.map((a, i) => (
+                  <Text key={`a${i}`} style={styles.readItem}>
+                    ▸ {a.action}
+                    {a.deadline ? ` — ${a.deadline}` : ''}
+                  </Text>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.toneRow}>
+              {TONE_OPTIONS.map((t) => (
+                <Pressable
+                  key={t.key}
+                  style={[styles.tonePill, tone === t.key && styles.tonePillActive]}
+                  onPress={() => setTone(t.key)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Reply tone: ${t.label}`}
+                  accessibilityState={{ selected: tone === t.key }}
+                >
+                  <Text style={[styles.tonePillText, tone === t.key && styles.tonePillTextActive]}>
+                    {t.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
             {!parsedTo && (
               <TextInput
                 style={styles.input}
@@ -243,4 +315,33 @@ const styles = StyleSheet.create({
   cancelText: { color: colors.mid, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold },
   error: { color: '#DC2626', fontSize: fonts.sizes.sm, marginTop: spacing.sm },
   dim: { opacity: 0.6 },
+  readBox: {
+    marginTop: spacing.sm,
+    backgroundColor: semantic.infoBg,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  readLabel: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.extrabold,
+    letterSpacing: 1,
+    color: semantic.info,
+  },
+  readLoading: { fontSize: fonts.sizes.sm, color: colors.mid },
+  readSummary: { fontSize: fonts.sizes.md, color: colors.dark, lineHeight: 20 },
+  readItem: { fontSize: fonts.sizes.sm, color: colors.dark, lineHeight: 19 },
+  toneRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm, flexWrap: 'wrap' },
+  tonePill: {
+    borderRadius: radii.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    paddingHorizontal: spacing.md,
+    minHeight: 34,
+    justifyContent: 'center',
+  },
+  tonePillActive: { backgroundColor: colors.navy, borderColor: colors.navy },
+  tonePillText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold, color: colors.dark },
+  tonePillTextActive: { color: colors.white },
 });
