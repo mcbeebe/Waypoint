@@ -185,7 +185,7 @@ export function sentNextFor(
             'Trong lúc chờ, hãy tiếp tục lưu hồ sơ dịch vụ; yêu cầu của quý vị không hề tạm dừng.'
           ),
         ],
-        track: { requestType: 'authorization', title: 'Written Notice of Action demanded' },
+        track: { requestType: 'authorization', title: 'Written Notice of Action requested' },
         followUpDays: 10,
       };
     case 'records_request':

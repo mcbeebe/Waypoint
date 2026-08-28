@@ -8,6 +8,15 @@ Is it the right amount? What lanes exist besides the default? What's the
 escalation ladder when it's going wrong? The maps should answer all four —
 with the same honesty rules (real clocks, citations, one lever per stage).
 
+**Tone rule (owner, Aug 28): first steps are always friendly and
+collaborative — "ask" or "request," never "demand."** The coordinator and
+case manager are years-long relationships; opening warm keeps the door open
+and makes the written record look reasonable if escalation ever becomes
+necessary. Tone firms up only rung by rung, as asks go unanswered —
+matching the AI engine's existing collaborative → assertive → adversarial
+calibration. Every first-contact lever and CTA in this feature drafts
+collaborative by default.
+
 ## Regional Center map — two new stages + a pathways compare
 
 **New stage 5 · "Living with services — check the delivery."**
@@ -15,8 +24,9 @@ The IPP promises hours; vendors deliver (or don't). Content: compare
 authorized hours vs delivered hours (ask the provider for service logs);
 vendor waitlists don't suspend the RC's IPP obligation — the RC must find
 an alternative vendor or another way to deliver; log gaps in the paper
-trail. Lever: `rc_request` follow-up ("service authorized on X is not
-being delivered — provide a delivery plan or alternative vendor").
+trail. Lever: `rc_request` follow-up, drafted as a collaborative ask
+("the hours authorized on X aren't reaching us yet — can you help us with
+a delivery plan or an alternative vendor?").
 Clock (honest): none fixed; the annual IPP review is the backstop and the
 30-day requested-review rule is the accelerator.
 
@@ -34,12 +44,15 @@ DDS PDS scope at build time.
 CTA: "Compare lanes for Teddy" → PathDecider (exists) + SDP journey.
 
 **New stage 6 · "Not working? The escalation ladder."** Four rungs, in
-order, each with its lever:
-1. Put it in writing + request the IPP review (30-day clock — exists).
-2. Demand the NOA, then **appeal it — 60 days** (aid paid pending if filed
-   within 30) → verify W&I §4710.5 exact windows at build.
+order, each with its lever — and its own tone (collaborative → firm →
+formal → advocate):
+1. Friendly written ask + request the IPP review (30-day clock — exists).
+   Tone: collaborative.
+2. Request the written NOA, then **appeal it if refused — 60 days** (aid
+   paid pending if filed within 30) → verify W&I §4710.5 exact windows at
+   build. Tone: firm but professional.
 3. **§4731 complaint** to the RC director — response due within 20 working
-   days (template exists: `dds_4731_complaint`).
+   days (template exists: `dds_4731_complaint`). Tone: formal.
 4. Free advocates: **OCRA** (Office of Clients' Rights Advocacy) at every
    RC + Disability Rights California — say plainly these are free.
 
@@ -52,9 +65,11 @@ progress reporting at least as often as report cards (verify Ed Code
 IEP minutes — shortfalls are compensable); slow/no progress on goals is
 evidence for more services, not a reason to lower goals; if the district
 can't produce data, that's the red flag. Lever: NEW letter template
-`progress_data_request` — asks for current progress on every goal +
-service logs for the last grading period (5-business-day records clock
-applies). Default request drafted at build.
+`progress_data_request` — a friendly, collaborative ask to the case
+manager for current progress on every goal + service logs for the last
+grading period (5-business-day records clock applies). Checking on
+progress is normal parenting, not an accusation — the draft reads that
+way. Default request drafted at build.
 
 **New panel · "If the district can't deliver."** The options most families
 are never told, one line each:

@@ -98,6 +98,8 @@ Waypoint operates in the **California disability services ecosystem**:
 
 The AI engine must be empathetic, actionable, and legally accurate. It should feel like talking to "a friend who happens to be a disability rights attorney."
 
+**Escalation tone rule (owner preference, Aug 2026):** anywhere the app helps a family raise a problem with an agency, the first step is always friendly and collaborative — "ask" or "request," never "demand." Tone firms up only step by step as asks go unanswered (collaborative → assertive → adversarial). This applies to letter templates, CTAs, stage copy, and AI drafts alike.
+
 ## Environment Variables
 
 ### gas-mvp

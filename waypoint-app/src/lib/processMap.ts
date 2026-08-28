@@ -138,8 +138,8 @@ export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
       ),
       leverTemplate: 'noa_request',
       leverLabel: L(
-        'Demand a written Notice of Action',
-        'Exigir una Notificación de Acción por escrito',
+        'Request the written Notice of Action',
+        'Solicitar la Notificación de Acción por escrito',
         'Yêu cầu Thông báo Hành động bằng văn bản'
       ),
       actionKeys: [],
@@ -252,8 +252,8 @@ export function getSchoolStages(locale: FunnelLocale = 'en'): ProcessStage[] {
       ),
       leverTemplate: 'pwn_request',
       leverLabel: L(
-        'Demand Prior Written Notice',
-        'Exigir Notificación Previa por Escrito',
+        'Request Prior Written Notice',
+        'Solicitar Notificación Previa por Escrito',
         'Yêu cầu Thông báo Trước bằng Văn bản'
       ),
       actionKeys: [],

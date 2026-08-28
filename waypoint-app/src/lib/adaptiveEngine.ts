@@ -367,7 +367,7 @@ export function generateDeepRCActions(
     actions.push(build({
       key: 'rc_service_appeal', priority: 'urgent', category: 'regional_center',
       title: '⚠️ Appeal RC service denial',
-      subtitle: 'Demand written Notice of Action (NOA). 30 days to request Fair Hearing.',
+      subtitle: 'Request the written Notice of Action (NOA). 30 days to request Fair Hearing.',
       agency: 'RC / OAH', deadline: 'Within 30 days of NOA',
       talkingPoints: [
         'I need written NOA with specific reasons.',
@@ -486,7 +486,7 @@ export function generateDeepInsuranceActions(issueType: string, ctx: AdaptiveCon
   if (issueType === 'no_providers') {
     actions.push(build({
       key: 'ins_network', priority: 'high', category: 'insurance',
-      title: 'Demand out-of-network authorization',
+      title: 'Request out-of-network authorization',
       subtitle: 'If no in-network providers within reasonable distance/wait time, insurance MUST authorize out-of-network at in-network rates.',
       agency: 'Insurance / DMHC',
       talkingPoints: [
