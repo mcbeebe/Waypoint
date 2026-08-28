@@ -6,6 +6,7 @@ import {
   phaseToActions,
   phaseQuestion,
   entityLever,
+  entityStanding,
 } from './journeyActions';
 import type { JourneyPhase } from '@/data/types';
 
@@ -118,5 +119,40 @@ describe('entityLever — every journey row has a real destination or an honest 
 
   it('unmappable rows return null, not a wrong guess', () => {
     expect(entityLever({ name: 'Attorney', action: 'Consult on due process', time: 'As needed' })).toBeNull();
+  });
+});
+
+describe('entityStanding — the journey map agrees with the resource stack', () => {
+  const standings = {
+    rcStatus: 'active' as const,
+    iepStatus: 'active' as const,
+    mediCalStatus: 'unknown' as const,
+    ihssStatus: 'unknown' as const,
+    ssiStatus: 'none' as const,
+    mediCalRequested: true,
+  };
+
+  it('secured systems read as in place', () => {
+    expect(entityStanding('Regional Center', standings)).toBe('in_place');
+    expect(entityStanding('School District', standings)).toBe('in_place');
+  });
+
+  it('a tracked deeming request upgrades Medi-Cal to in motion', () => {
+    expect(entityStanding('Medi-Cal', standings)).toBe('in_motion');
+    expect(entityStanding('Medi-Cal', { ...standings, mediCalRequested: false })).toBeNull();
+  });
+
+  it('unknown standings stay null — the generic prompt is honest there', () => {
+    expect(entityStanding('IHSS', standings)).toBeNull();
+    expect(entityStanding('SSI', standings)).toBeNull();
+    expect(entityStanding('CalABLE', standings)).toBeNull();
+    expect(entityStanding('Pediatrician', standings)).toBeNull();
+  });
+
+  it('applied / eval_done read as in motion', () => {
+    expect(entityStanding('Regional Center', { ...standings, rcStatus: 'applied' })).toBe('in_motion');
+    expect(entityStanding('School District', { ...standings, iepStatus: 'eval_done' })).toBe('in_motion');
+    expect(entityStanding('IHSS', { ...standings, ihssStatus: 'applied' })).toBe('in_motion');
+    expect(entityStanding('SSI / Medi-Cal', { ...standings, ssiStatus: 'active', mediCalStatus: 'active', mediCalRequested: false })).toBe('in_place');
   });
 });

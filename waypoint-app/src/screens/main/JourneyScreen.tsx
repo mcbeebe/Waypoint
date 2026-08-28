@@ -22,7 +22,9 @@ import {
   getJourneyKeyForDiagnosis,
   getPhaseIndexForAge,
 } from '@/data/journeyMaps';
-import { entityLever } from '@/lib/journeyActions';
+import { entityLever, entityStanding } from '@/lib/journeyActions';
+import { useRequests } from '@/hooks/useRequests';
+import { MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
 import { useI18n } from '@/i18n';
 import { Card } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
@@ -61,6 +63,25 @@ export default function JourneyScreen() {
   );
   const years = ageYears(primaryChild?.date_of_birth ?? null);
   const currentPhase = getPhaseIndexForAge(years, journey);
+
+  // Live standings so the map agrees with the Resource Stack: rows for
+  // systems the family already secured say so instead of "Do this".
+  const { requests: familyRequests } = useRequests(family?.id);
+  const mediCalRequested = useMemo(
+    () => familyRequests.some(r => r.title === MEDI_CAL_DEEMING_REQUEST_TITLE),
+    [familyRequests]
+  );
+  const standings = useMemo(
+    () => ({
+      rcStatus: primaryChild?.rc_status,
+      iepStatus: primaryChild?.iep_status,
+      mediCalStatus: primaryChild?.medi_cal_status,
+      ihssStatus: primaryChild?.ihss_status,
+      ssiStatus: primaryChild?.ssi_status,
+      mediCalRequested,
+    }),
+    [primaryChild, mediCalRequested]
+  );
 
   const [expanded, setExpanded] = useState<number | null>(null);
   const openIndex = expanded ?? currentPhase;
@@ -181,6 +202,7 @@ export default function JourneyScreen() {
 
                       {phase.entities.map((e, j) => {
                         const lever = entityLever(e);
+                        const standing = entityStanding(e.name, standings);
                         return (
                           <TouchableOpacity
                             key={j}
@@ -200,7 +222,33 @@ export default function JourneyScreen() {
                             accessibilityRole="button"
                             accessibilityLabel={`${e.name}: ${e.action}. ${lever?.type === 'letter' ? 'Opens a pre-drafted letter.' : 'Opens the next step.'}`}
                           >
-                            <Text style={[styles.entityName, { fontSize: sz(13) }]}>{e.name}</Text>
+                            <View style={styles.entityNameRow}>
+                              <Text style={[styles.entityName, { fontSize: sz(13) }]}>{e.name}</Text>
+                              {standing && (
+                                <View
+                                  style={[
+                                    styles.standingChip,
+                                    standing === 'in_place'
+                                      ? styles.standingInPlace
+                                      : styles.standingInMotion,
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.standingChipText,
+                                      { fontSize: sz(10) },
+                                      standing === 'in_place'
+                                        ? styles.standingInPlaceText
+                                        : styles.standingInMotionText,
+                                    ]}
+                                  >
+                                    {standing === 'in_place'
+                                      ? esUI ? '✓ En marcha' : viUI ? '✓ Đang có' : '✓ In place'
+                                      : esUI ? 'En curso' : viUI ? 'Đang xử lý' : 'In progress'}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
                             <Text style={[styles.entityAction, { fontSize: sz(13) }]}>{e.action}</Text>
                             <View style={styles.entityFoot}>
                               <Text style={[styles.entityTime, { fontSize: sz(11), color: phase.color }]}>
@@ -209,7 +257,9 @@ export default function JourneyScreen() {
                               <Text style={[styles.entityGo, { fontSize: sz(11), color: phase.color }]}>
                                 {lever?.type === 'letter'
                                   ? esUI ? '✉️ Redactar la carta →' : viUI ? '✉️ Soạn thư →' : '✉️ Draft the letter →'
-                                  : esUI ? 'Hacer esto →' : viUI ? 'Làm việc này →' : 'Do this →'}
+                                  : standing === 'in_place'
+                                    ? esUI ? 'Protegerlo →' : viUI ? 'Bảo vệ nó →' : 'Protect it →'
+                                    : esUI ? 'Hacer esto →' : viUI ? 'Làm việc này →' : 'Do this →'}
                               </Text>
                             </View>
                           </TouchableOpacity>
@@ -406,6 +456,22 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
     color: colors.navy,
   },
+  entityNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  standingChip: {
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  standingInPlace: { backgroundColor: semantic.successBg },
+  standingInMotion: { backgroundColor: semantic.warningBg },
+  standingChipText: { fontWeight: fonts.weights.bold as '700', letterSpacing: 0.3 },
+  standingInPlaceText: { color: semantic.success },
+  standingInMotionText: { color: semantic.warning },
   entityAction: {
     color: colors.dark,
     marginTop: 1,

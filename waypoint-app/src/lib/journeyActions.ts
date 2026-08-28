@@ -9,7 +9,13 @@
  */
 
 import type { JourneyEntity, JourneyPhase } from '@/data/types';
-import type { ActionCategory, ActionPriority } from '@/types/database';
+import type {
+  ActionCategory,
+  ActionPriority,
+  BenefitStatus,
+  IepStatus,
+  RcStatus,
+} from '@/types/database';
 
 /** Which part of the system an entity belongs to. */
 export function entityCategory(entityName: string): ActionCategory {
@@ -99,6 +105,40 @@ export function entityLever(entity: JourneyEntity): EntityLever | null {
   if (category === 'insurance') return { type: 'screen', screen: 'Insurance' };
   if (category === 'benefits') return { type: 'screen', screen: 'Agencies' };
   if (category === 'medical') return { type: 'screen', screen: 'Providers' };
+  return null;
+}
+
+/**
+ * The child's live standing with an entity — so the journey map agrees with
+ * the Resource Stack instead of contradicting it (owner feedback, Aug 2026:
+ * "the data should flow through"). Null = unknown, keep the generic prompt.
+ */
+export type EntityStanding = 'in_place' | 'in_motion';
+
+export interface EntityStandings {
+  rcStatus?: RcStatus | null;
+  iepStatus?: IepStatus | null;
+  mediCalStatus?: BenefitStatus | null;
+  ihssStatus?: BenefitStatus | null;
+  ssiStatus?: BenefitStatus | null;
+  /** A deeming request is already sent and tracked (upgrades unknown → in motion). */
+  mediCalRequested?: boolean;
+}
+
+export function entityStanding(
+  entityName: string,
+  s: EntityStandings
+): EntityStanding | null {
+  const n = entityName.toLowerCase();
+  const benefit = (b?: BenefitStatus | null, requested?: boolean): EntityStanding | null =>
+    b === 'active' ? 'in_place' : b === 'applied' || requested ? 'in_motion' : null;
+  if (/medi-?cal/.test(n)) return benefit(s.mediCalStatus, s.mediCalRequested);
+  if (/ihss/.test(n)) return benefit(s.ihssStatus);
+  if (/ssi|ssa|social security/.test(n)) return benefit(s.ssiStatus);
+  if (/regional center|early start/.test(n))
+    return s.rcStatus === 'active' ? 'in_place' : s.rcStatus === 'applied' ? 'in_motion' : null;
+  if (/school|district|iep\b/.test(n))
+    return s.iepStatus === 'active' ? 'in_place' : s.iepStatus === 'eval_done' ? 'in_motion' : null;
   return null;
 }
 
