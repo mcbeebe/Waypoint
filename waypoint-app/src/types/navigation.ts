@@ -64,8 +64,8 @@ export type HomeStackParamList = {
     | { template?: string; question?: string; guidance?: string; draftBody?: string }
     | undefined;
   EmailAnalyzer: undefined;
-  /** Paper trail; highlightId auto-expands the entry a tracker row links to */
-  CommunicationLog: { highlightId?: string } | undefined;
+  /** Paper trail; highlightId auto-expands an entry; openReplyId opens its reply composer */
+  CommunicationLog: { highlightId?: string; openReplyId?: string } | undefined;
   Providers: undefined;
   Services: undefined;
   Insurance: undefined;

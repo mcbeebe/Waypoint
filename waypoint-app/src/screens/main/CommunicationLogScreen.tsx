@@ -22,7 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useFamily, useChildren } from '@/hooks/useFamily';
-import { gmailStatus, gmailSyncReplies, type GmailStatus } from '@/lib/gmail';
+import { gmailStatus, gmailSyncReplies, autoSyncReplies, type GmailStatus } from '@/lib/gmail';
 import { connectGmailWeb } from '@/lib/googleAuth';
 import GmailReplyModal from '@/components/GmailReplyModal';
 import {
@@ -76,9 +76,13 @@ export default function CommunicationLogScreen() {
   const primaryChild = children.find((c) => c.is_primary) ?? children[0];
   const navigation = useNavigation();
   const route = useRoute();
-  // A tracker row's "view the letter" lands here with the entry pre-expanded.
-  const highlightId =
-    (route.params as { highlightId?: string } | undefined)?.highlightId ?? null;
+  // A tracker row's "view the letter" lands here with the entry pre-expanded;
+  // the Home reply card lands here with the reply composer already open.
+  const routeParams = route.params as
+    | { highlightId?: string; openReplyId?: string }
+    | undefined;
+  const highlightId = routeParams?.highlightId ?? routeParams?.openReplyId ?? null;
+  const openReplyId = routeParams?.openReplyId ?? null;
 
   const [filter, setFilter] = useState<CommunicationKind | 'all' | 'drafts'>('all');
   const [expandedId, setExpandedId] = useState<string | null>(highlightId);
@@ -89,8 +93,38 @@ export default function CommunicationLogScreen() {
   const [syncing, setSyncing] = useState(false);
   const [replyThread, setReplyThread] = useState<Communication[] | null>(null);
   useEffect(() => {
-    gmailStatus().then(setGmail);
+    gmailStatus().then((s) => {
+      setGmail(s);
+      // Owner decision #1: check for replies automatically on open
+      // (session-throttled so navigation doesn't hammer Gmail; quiet
+      // unless something new actually arrived).
+      if (s.gmail) {
+        autoSyncReplies().then((r) => {
+          if (r.newReplies > 0) {
+            refetch();
+            showToast(
+              `${r.newReplies} new repl${r.newReplies === 1 ? 'y' : 'ies'} pulled into your paper trail.`,
+              'success'
+            );
+          }
+        });
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Home reply card hand-off: open the composer for the named reply once
+  // the data is here.
+  const [openedReplyId, setOpenedReplyId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!openReplyId || openReplyId === openedReplyId || communications.length === 0) return;
+    const item = communications.find((c) => c.id === openReplyId);
+    if (item?.gmail_thread_id) {
+      setOpenedReplyId(openReplyId);
+      openReply(item);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openReplyId, openedReplyId, communications]);
 
   const checkReplies = useCallback(async () => {
     if (syncing) return;

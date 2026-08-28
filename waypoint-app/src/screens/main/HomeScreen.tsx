@@ -32,6 +32,10 @@ import StackInsightCard from '@/components/StackInsightCard';
 import { deriveHomeInsight } from '@/lib/insights';
 import { deriveStackInsight, MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
 import { useRequests } from '@/hooks/useRequests';
+import { useCommunications } from '@/hooks/useCommunications';
+import { findUnansweredReply } from '@/lib/replyInbox';
+import { autoSyncReplies } from '@/lib/gmail';
+import ReplyCard from '@/components/ReplyCard';
 import { snoozeFor, isSnoozed } from '@/lib/snooze';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
@@ -158,6 +162,22 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
         : null,
     [primaryChild, funnelLocale, mediCalRequested]
   );
+
+  // Agency replies (owner decisions #1/#2): auto-sync Gmail threads on
+  // open, and spotlight the newest unanswered reply above everything.
+  const { communications, refetch: refetchComms } = useCommunications(family?.id ?? '');
+  useEffect(() => {
+    autoSyncReplies().then((r) => {
+      if (r.newReplies > 0) refetchComms();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const unanswered = useMemo(() => findUnansweredReply(communications), [communications]);
+  const [replySnoozed, setReplySnoozed] = useState(false);
+  useEffect(() => {
+    if (!unanswered) return;
+    isSnoozed(`reply_${unanswered.reply.id}`).then(setReplySnoozed);
+  }, [unanswered]);
 
   // "Remind me later" — per-device snooze on the Waypoint-noticed slot.
   const [insightSnoozed, setInsightSnoozed] = useState<boolean>(false);
@@ -315,6 +335,23 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
         {/* Waypoint noticed — the highest-leverage unused entitlement. The
             Resource Stack edition wins the slot when a deep-dive unlock
             exists; the generic card covers the other stories. */}
+        {/* An agency replied and the ball is in the family's court —
+            the most time-sensitive card on Home */}
+        {unanswered && !replySnoozed && (
+          <ReplyCard
+            unanswered={unanswered}
+            onDraft={() =>
+              (navigation as any).navigate('CommunicationLog', {
+                openReplyId: unanswered.reply.id,
+              })
+            }
+            onLater={() => {
+              snoozeFor(`reply_${unanswered.reply.id}`, 2);
+              setReplySnoozed(true);
+            }}
+          />
+        )}
+
         {insightSnoozed ? null : stackInsight ? (
           <StackInsightCard
             insight={stackInsight}

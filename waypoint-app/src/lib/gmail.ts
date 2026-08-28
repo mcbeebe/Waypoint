@@ -79,12 +79,29 @@ export async function gmailSyncReplies(): Promise<{ ok: boolean; newReplies: num
   }
 }
 
+/**
+ * Auto-sync guard: screens call this on mount; it actually syncs at most
+ * once per interval per app session so navigation doesn't hammer Gmail.
+ */
+let lastAutoSyncAt = 0;
+export async function autoSyncReplies(
+  minIntervalMs = 5 * 60 * 1000
+): Promise<{ ran: boolean; newReplies: number }> {
+  if (Date.now() - lastAutoSyncAt < minIntervalMs) return { ran: false, newReplies: 0 };
+  lastAutoSyncAt = Date.now();
+  const status = await gmailStatus();
+  if (!status.gmail) return { ran: false, newReplies: 0 };
+  const result = await gmailSyncReplies();
+  return { ran: true, newReplies: result.ok ? result.newReplies : 0 };
+}
+
 /** Waypoint's recommended reply to a thread, ready to edit and send. */
 export async function draftGmailReply(input: {
   thread: string;
   instructions?: string;
   senderName?: string;
   childName?: string;
+  tone?: 'warm' | 'professional' | 'strong';
 }): Promise<{ ok: boolean; reply?: string; error?: string }> {
   try {
     const resp = await authedPost(AI_FN_URL, { action: 'draft-reply', ...input });
