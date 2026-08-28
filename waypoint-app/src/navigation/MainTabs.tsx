@@ -30,6 +30,7 @@ import InsuranceScreen from '@/screens/main/InsuranceScreen';
 import JourneyPhaseScreen from '@/screens/main/JourneyPhaseScreen';
 import ProcessMapScreen from '@/screens/main/ProcessMapScreen';
 import SdpJourneyScreen from '@/screens/main/SdpJourneyScreen';
+import EscalationLadderScreen from '@/screens/main/EscalationLadderScreen';
 import ResourceStackScreen from '@/screens/main/ResourceStackScreen';
 import EligibilityResultScreen from '@/screens/main/EligibilityResultScreen';
 import FundedOfferScreen from '@/screens/main/FundedOfferScreen';
@@ -254,6 +255,7 @@ function HomeStack() {
       <HomeStackNav.Screen name="JourneyPhase" component={JourneyPhaseScreen} options={{ title: 'This Stage' }} />
       <HomeStackNav.Screen name="ProcessMap" component={ProcessMapScreen} options={{ title: 'How the System Works' }} />
       <HomeStackNav.Screen name="SdpJourney" component={SdpJourneyScreen} options={{ title: 'Self-Determination Journey' }} />
+      <HomeStackNav.Screen name="EscalationLadder" component={EscalationLadderScreen} options={{ title: 'When Services Aren’t Working' }} />
       <HomeStackNav.Screen name="ResourceStack" component={ResourceStackScreen} options={{ title: 'Resource Stack' }} />
       <HomeStackNav.Screen name="EligibilityResult" component={EligibilityResultScreen} options={{ title: 'Your Result' }} />
       <HomeStackNav.Screen name="FundedOffer" component={FundedOfferScreen} options={{ title: 'Free Help' }} />

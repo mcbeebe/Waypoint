@@ -43,6 +43,8 @@ export type HomeStackParamList = {
   ProcessMap: { system?: 'rc' | 'school' } | undefined;
   /** SDP enrollment stepper, steps 0–8 per DDS D-2026-SDP-002 */
   SdpJourney: undefined;
+  /** RC escalation ladder — four rungs, collaborative first (depth plan) */
+  EscalationLadder: undefined;
   /** The six benefit layers, foundation-up (Resource Stack plan, phase 4) */
   ResourceStack: undefined;
   /** Eligibility-first result — the funnel's answer screen (PRD W-B: B1) */

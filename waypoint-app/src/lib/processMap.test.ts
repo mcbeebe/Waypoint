@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { RC_STAGES, SDP_FORK, deriveStageIndex, sdpAvailable } from './processMap';
+import { RC_STAGES, SCHOOL_STAGES, SDP_FORK, deriveStageIndex, sdpAvailable } from './processMap';
+import { ESCALATION_RUNGS } from './escalationLadder';
 import { LETTER_TEMPLATES } from './lettersCatalog';
 
 describe('processMap', () => {
@@ -19,15 +20,20 @@ describe('processMap', () => {
 
   it('every lever points at a real letter template', () => {
     const keys = new Set(LETTER_TEMPLATES.map((t) => t.key));
-    for (const stage of [...RC_STAGES, SDP_FORK]) {
+    for (const stage of [...RC_STAGES, ...SCHOOL_STAGES, SDP_FORK]) {
       if (stage.leverTemplate) {
         expect(keys.has(stage.leverTemplate), `${stage.key} → ${stage.leverTemplate}`).toBe(true);
+      }
+    }
+    for (const rung of ESCALATION_RUNGS) {
+      if (rung.leverTemplate) {
+        expect(keys.has(rung.leverTemplate), `${rung.key} → ${rung.leverTemplate}`).toBe(true);
       }
     }
   });
 
   it('every stage states its clock honestly (never empty)', () => {
-    for (const stage of [...RC_STAGES, SDP_FORK]) {
+    for (const stage of [...RC_STAGES, ...SCHOOL_STAGES, SDP_FORK]) {
       expect(stage.clock.length).toBeGreaterThan(10);
       expect(stage.citation.length).toBeGreaterThan(0);
     }
