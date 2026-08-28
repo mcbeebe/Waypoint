@@ -314,7 +314,12 @@ serve(async (req: Request) => {
     // Free-tier Navigator cap — keep in sync with FREE_NAVIGATOR_MONTHLY_LIMIT
     // in src/lib/entitlements.ts (the client shows the same number).
     const FREE_NAVIGATOR_MONTHLY_LIMIT = 30;
-    let isPremium = false;
+    // Paywall enforcement (owner decision, Aug 2026: off while the owner
+    // dogfoods — everyone resolves Premium). Flip to true at launch together
+    // with FLAGS.paywall in src/lib/flags.ts (the client-side twin). The
+    // daily anti-abuse ceiling below stays on regardless.
+    const PAYWALL_ENFORCED = false;
+    let isPremium = !PAYWALL_ENFORCED;
     let family: {
       id: string;
       ai_consent_at: string | null;
@@ -353,7 +358,7 @@ serve(async (req: Request) => {
       // ─── Tier resolution (W-E: E2/E3/E4) ──────────────────────────
       // A live entitlement row = Premium; none = free tier. Resolved
       // server-side so gates can't be bypassed by a modified client.
-      if (family?.id) {
+      if (PAYWALL_ENFORCED && family?.id) {
         const today = new Date().toISOString().slice(0, 10);
         const { data: grants } = await supabase
           .from('entitlements')

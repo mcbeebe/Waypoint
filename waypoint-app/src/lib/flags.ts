@@ -10,4 +10,11 @@ export const FLAGS = {
    * for a vulnerable population is a safety risk, per the locked plan decision.
    */
   community: false,
+  /**
+   * Premium paywall enforcement (owner decision, Aug 2026: off while the
+   * owner dogfoods — everyone resolves as Premium). Flip to true at launch,
+   * together with PAYWALL_ENFORCED in supabase/functions/ai-proxy/index.ts
+   * (the server-side twin that gates AI actions and the monthly cap).
+   */
+  paywall: false,
 } as const;

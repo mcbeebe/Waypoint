@@ -5,6 +5,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { FLAGS } from '@/lib/flags';
 import { resolveEntitlement } from '@/lib/entitlements';
 import type { ResolvedEntitlement } from '@/lib/entitlements';
 
@@ -14,12 +15,19 @@ interface UseEntitlementReturn extends ResolvedEntitlement {
 }
 
 const FREE: ResolvedEntitlement = { isPremium: false, sponsorType: null, sponsorLabel: null };
+const UNGATED: ResolvedEntitlement = { isPremium: true, sponsorType: null, sponsorLabel: null };
 
 export function useEntitlement(familyId: string | undefined): UseEntitlementReturn {
-  const [resolved, setResolved] = useState<ResolvedEntitlement>(FREE);
-  const [loading, setLoading] = useState(true);
+  const [resolved, setResolved] = useState<ResolvedEntitlement>(FLAGS.paywall ? FREE : UNGATED);
+  const [loading, setLoading] = useState(FLAGS.paywall);
 
   const refetch = useCallback(async () => {
+    // Paywall off (FLAGS.paywall): everyone is Premium — no fetch needed.
+    if (!FLAGS.paywall) {
+      setResolved(UNGATED);
+      setLoading(false);
+      return;
+    }
     if (!familyId) {
       setResolved(FREE);
       setLoading(false);
