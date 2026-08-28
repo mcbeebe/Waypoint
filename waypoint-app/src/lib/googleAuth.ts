@@ -15,26 +15,36 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
 
 /**
- * Calendar only — Gmail scopes removed so the OAuth app can be published
- * without Google's restricted-scope (CASA) verification. Email features
- * use Gmail compose URLs / mailto instead of the API.
+ * Default connection is Calendar only — publishable without Google's
+ * restricted-scope (CASA) verification. Gmail scopes are an OPT-IN deep
+ * connection (connectGmailWeb) for families who want in-thread sending
+ * and reply tracking; on an unverified OAuth app Google shows a warning
+ * screen and, in Testing mode, expires refresh tokens after ~7 days.
  */
 export const GOOGLE_API_SCOPES = [
   'https://www.googleapis.com/auth/calendar',
 ];
 
+export const GMAIL_API_SCOPES = [
+  ...GOOGLE_API_SCOPES,
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/gmail.readonly',
+];
+
 const ACCESS_TOKEN_KEY = 'waypoint_google_web_access_token';
 const ACCESS_EXPIRY_KEY = 'waypoint_google_web_access_expiry';
+/** Scopes we asked for before the OAuth redirect (JS state dies at redirect). */
+const REQUESTED_SCOPES_KEY = 'waypoint_google_requested_scopes';
 const FN_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/google-auth`;
 
-function oauthOptions(redirectPath: string) {
+function oauthOptions(redirectPath: string, scopes: string[] = GOOGLE_API_SCOPES) {
   const origin =
     typeof window !== 'undefined' && window.location?.origin
       ? window.location.origin
       : undefined;
   return {
     redirectTo: origin ? `${origin}${redirectPath}` : undefined,
-    scopes: GOOGLE_API_SCOPES.join(' '),
+    scopes: scopes.join(' '),
     // offline + consent → Google returns a refresh token we can store
     queryParams: { access_type: 'offline', prompt: 'consent' },
   };
@@ -60,11 +70,39 @@ export async function signInWithGoogleWeb(): Promise<{ success: boolean; error?:
  * enabled in Supabase Auth settings.
  */
 export async function connectGoogleWeb(): Promise<{ success: boolean; error?: string }> {
+  await AsyncStorage.setItem(REQUESTED_SCOPES_KEY, GOOGLE_API_SCOPES.join(' ')).catch(
+    () => undefined
+  );
   const { error } = await supabase.auth.linkIdentity({
     provider: 'google',
     options: oauthOptions('/profile'),
   });
   return error ? { success: false, error: error.message } : { success: true };
+}
+
+/**
+ * CONNECT (or upgrade to) Gmail — the deep connection: send letters
+ * in-thread and sync agency replies. Works whether or not Google is
+ * already linked: linkIdentity for a first connection, signInWithOAuth
+ * re-consent when the identity is already on the account.
+ */
+export async function connectGmailWeb(
+  redirectPath = '/'
+): Promise<{ success: boolean; error?: string }> {
+  await AsyncStorage.setItem(REQUESTED_SCOPES_KEY, GMAIL_API_SCOPES.join(' ')).catch(
+    () => undefined
+  );
+  const options = oauthOptions(redirectPath, GMAIL_API_SCOPES);
+  const { error } = await supabase.auth.linkIdentity({ provider: 'google', options });
+  if (!error) return { success: true };
+  if (/already linked|identity_already_exists/i.test(error.message)) {
+    const { error: reErr } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options,
+    });
+    return reErr ? { success: false, error: reErr.message } : { success: true };
+  }
+  return { success: false, error: error.message };
 }
 
 /**
@@ -87,11 +125,15 @@ export async function captureGoogleTokens(session: {
     }
     if (session.provider_refresh_token && session.user) {
       const googleIdentity = session.user.identities?.find((i) => i.provider === 'google');
+      // Record the scopes this consent actually asked for (persisted
+      // across the redirect); default to the base calendar connection.
+      const requested = await AsyncStorage.getItem(REQUESTED_SCOPES_KEY).catch(() => null);
+      await AsyncStorage.removeItem(REQUESTED_SCOPES_KEY).catch(() => undefined);
       await supabase.from('google_accounts').upsert({
         user_id: session.user.id,
         refresh_token: session.provider_refresh_token,
         google_email: googleIdentity?.identity_data?.email ?? null,
-        scopes: GOOGLE_API_SCOPES.join(' '),
+        scopes: requested || GOOGLE_API_SCOPES.join(' '),
       });
     }
   } catch (err) {

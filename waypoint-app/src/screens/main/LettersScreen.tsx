@@ -20,6 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import { useFamily, useChildren } from '@/hooks/useFamily';
+import { gmailStatus, gmailSend } from '@/lib/gmail';
 import { useToast } from '@/components/Toast';
 import AIConsentModal from '@/components/AIConsentModal';
 import Button from '@/components/Button';
@@ -214,6 +215,14 @@ export default function LettersScreen() {
     tracked: boolean;
   } | null>(null);
 
+  // ── Send directly through the connected Gmail account (Aug 27) —
+  // marks the draft sent, stores the thread id so replies sync back.
+  const [gmailReady, setGmailReady] = useState(false);
+  const [gmailSending, setGmailSending] = useState(false);
+  useEffect(() => {
+    if (Platform.OS === 'web') gmailStatus().then((s) => setGmailReady(s.gmail));
+  }, []);
+
   /** The parent confirms it actually went out. */
   const handleMarkSent = useCallback(async () => {
     const id = savedIdRef.current ?? (await saveDraftOnce());
@@ -329,6 +338,35 @@ export default function LettersScreen() {
         composeEnv
       )
     : null;
+
+  const handleSendWithGmail = useCallback(async () => {
+    const to = outgoing?.recipient.contact?.email;
+    if (!draft || !to || gmailSending) return;
+    setGmailSending(true);
+    try {
+      const id = savedIdRef.current ?? (await saveDraftOnce());
+      if (!id) {
+        showToast("Couldn't save the draft — please try again.", 'error');
+        return;
+      }
+      const result = await gmailSend({
+        to,
+        subject: outgoing?.subject ?? '',
+        body: draft,
+        communicationId: id,
+      });
+      if (!result.ok) {
+        showToast(result.error ?? 'Gmail send failed — try Open in Gmail instead.', 'error');
+        return;
+      }
+      // The function marked the row sent + stored thread ids; run the
+      // sent moment + clock tracking exactly as a manual send would.
+      await handleMarkSent();
+      showToast('Sent through Gmail — replies will sync to your paper trail.', 'success');
+    } finally {
+      setGmailSending(false);
+    }
+  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent]);
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
@@ -554,6 +592,23 @@ export default function LettersScreen() {
               </View>
             )}
 
+            {gmailReady && outgoing?.recipient.contact?.email && (
+              <TouchableOpacity
+                style={styles.gmailSendBtn}
+                onPress={handleSendWithGmail}
+                disabled={gmailSending}
+                accessibilityRole="button"
+                accessibilityLabel="Send this letter now through your connected Gmail"
+              >
+                {gmailSending ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <Text style={styles.gmailSendText}>
+                    📨 Send now with Gmail — replies tracked
+                  </Text>
+                )}
+              </TouchableOpacity>
+            )}
             <View style={styles.actionRow}>
               <Button title="Copy" onPress={handleCopy} variant="primary" />
               <Button title={target?.label ?? 'Open in Mail app'} onPress={handleSend} variant="outline" />
@@ -846,6 +901,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   actionRow: { flexDirection: 'row', gap: spacing.sm },
+  gmailSendBtn: {
+    minHeight: 48,
+    borderRadius: radii.md,
+    backgroundColor: colors.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  gmailSendText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   sentMoment: { gap: spacing.sm },
   sentCelebration: {
     fontSize: fonts.sizes.lg,

@@ -61,6 +61,10 @@ jobs:
         if: steps.token.outputs.present == 'true'
         run: supabase functions deploy google-auth --project-ref "$SUPABASE_PROJECT_ID"
 
+      - name: Deploy gmail
+        if: steps.token.outputs.present == 'true'
+        run: supabase functions deploy gmail --project-ref "$SUPABASE_PROJECT_ID"
+
       - name: Deploy stripe-webhook
         if: steps.token.outputs.present == 'true'
         # verify_jwt=false comes from supabase/config.toml — Stripe can't send
