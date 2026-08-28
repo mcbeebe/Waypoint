@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+    a { color: #0891B2; } a:hover { color: #0E7490; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1180px; background: #F8FAFC; display: flex; flex-direction: column; gap: 12px; padding: 20px 16px 24px 16px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
+
+  <!-- Shortcuts -->
+  <div style="display: flex; align-items: baseline; justify-content: space-between">
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: 1px; color: #64748B">YOUR SHORTCUTS</div>
+    <div style="font-size: 11px; color: #94A3B8">learns from what you use</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; min-height: 64px; box-sizing: border-box">
+      <div style="width: 38px; height: 38px; border-radius: 11px; background: #E0F2FE; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><polyline points="3 7 12 13 21 7"></polyline></svg>
+      </div>
+      <div style="font-size: 14px; font-weight: 700; color: #1B2A4A">Letters</div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; min-height: 64px; box-sizing: border-box">
+      <div style="width: 38px; height: 38px; border-radius: 11px; background: #FDF3E3; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><line x1="12" y1="13" x2="12" y2="8.5"></line><line x1="12" y1="13" x2="15" y2="14.5"></line><line x1="9" y1="2.5" x2="15" y2="2.5"></line></svg>
+      </div>
+      <div>
+        <div style="font-size: 14px; font-weight: 700; color: #1B2A4A">Requests</div>
+        <div style="font-size: 11px; font-weight: 700; color: #B45309">2 running</div>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; min-height: 64px; box-sizing: border-box">
+      <div style="width: 38px; height: 38px; border-radius: 11px; background: #E0F2FE; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8 L20 8 L19 20 L5 20 Z"></path><polyline points="4 8 6 4 18 4 20 8"></polyline><path d="M9 12 a3 3 0 0 0 6 0"></path></svg>
+      </div>
+      <div>
+        <div style="font-size: 14px; font-weight: 700; color: #1B2A4A">Paper Trail</div>
+        <div style="font-size: 11px; font-weight: 700; color: #0369A1">1 reply</div>
+      </div>
+    </div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 14px; display: flex; align-items: center; gap: 12px; min-height: 64px; box-sizing: border-box">
+      <div style="width: 38px; height: 38px; border-radius: 11px; background: #FFF1E7; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8 L12 4 L22 8 L12 12 Z"></path><path d="M6 10 L6 15 C6 16.5 8.5 18 12 18 C15.5 18 18 16.5 18 15 L18 10"></path><line x1="22" y1="8" x2="22" y2="13"></line></svg>
+      </div>
+      <div style="font-size: 14px; font-weight: 700; color: #1B2A4A">IEP Hub</div>
+    </div>
+  </div>
+
+  <!-- Compact grouped rows -->
+  <div style="font-size: 12px; font-weight: 800; letter-spacing: 1px; color: #64748B; margin-top: 12px">ALL TOOLS</div>
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; display: flex; flex-direction: column">
+    <div style="padding: 11px 14px 5px 14px; font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #0891B2">UNDERSTAND THE SYSTEM</div>
+    <div style="display: flex; align-items: center; padding: 0 14px; min-height: 44px; border-bottom: 1px solid #F1F5F9">
+      <div style="font-size: 14px; font-weight: 600; color: #1B2A4A; flex: 1">How the system works — RC · School</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </div>
+    <div style="display: flex; align-items: center; padding: 0 14px; min-height: 44px; border-bottom: 1px solid #F1F5F9">
+      <div style="font-size: 14px; font-weight: 600; color: #1B2A4A; flex: 1">Teddy's Journey &amp; Resource Stack</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </div>
+    <div style="display: flex; align-items: center; padding: 0 14px; min-height: 44px; border-bottom: 1px solid #F1F5F9">
+      <div style="font-size: 14px; font-weight: 600; color: #1B2A4A; flex: 1">Agencies &amp; your result</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </div>
+    <div style="padding: 11px 14px 5px 14px; font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #0E9F6E">MONEY &amp; BENEFITS</div>
+    <div style="display: flex; align-items: center; padding: 0 14px; min-height: 44px; border-bottom: 1px solid #F1F5F9">
+      <div style="font-size: 14px; font-weight: 600; color: #1B2A4A; flex: 1">What the RC can fund</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </div>
+    <div style="display: flex; align-items: center; padding: 0 14px; min-height: 44px; border-bottom: 1px solid #F1F5F9">
+      <div style="font-size: 14px; font-weight: 600; color: #1B2A4A; flex: 1">Expenses, taxes &amp; insurance</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </div>
+    <div style="padding: 11px 14px 5px 14px; font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #F97316">TEDDY'S RECORDS</div>
+    <div style="display: flex; align-items: center; padding: 0 14px; min-height: 44px; border-bottom: 1px solid #F1F5F9">
+      <div style="font-size: 14px; font-weight: 600; color: #1B2A4A; flex: 1">Documents</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </div>
+    <div style="display: flex; align-items: center; padding: 0 14px; min-height: 44px">
+      <div style="font-size: 14px; font-weight: 600; color: #1B2A4A; flex: 1">Care team &amp; health</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; min-height: 48px">
+    <div style="font-size: 14px; font-weight: 600; color: #0891B2">More tools</div>
+    <div style="font-size: 12px; color: #64748B">Resources · Blog · Family · Insights · more</div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+  </div>
+
+  <div style="background: #EFF6FF; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #334155">
+    <span style="font-weight: 700; color: #2563EB">Why shortcuts first.</span> The four things you actually use sit one tap away and adapt over time (sensible defaults before the app learns). Below, compact rows keep everything reachable without the visual weight of 26 tiles. The tradeoff: compact rows drop the teaching descriptions Concept A carries.
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

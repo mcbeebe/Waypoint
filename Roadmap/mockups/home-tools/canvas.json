@@ -1,0 +1,15 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1500, "title": "A · Front pocket (recommended)" },
+    { "file": "ConceptB.dc.html", "x": 490, "y": 0, "w": 390, "h": 1060, "title": "B · Five doors" },
+    { "file": "ConceptC.dc.html", "x": 980, "y": 0, "w": 390, "h": 1180, "title": "C · Shortcuts first" }
+  ],
+  "annotations": [
+    { "id": "note-problem", "x": 0, "y": -330, "w": 320, "text": "THE PROBLEM (your feedback, Aug 28)\n26 identical tiles, flat grid: no hierarchy (Letters = Blog), no grouping (one workflow scattered across three rows), labels without meaning (\"Your Result\"), and 26 choices at once for someone who is already exhausted.\n\nShared by all three concepts: group by job-to-be-done, 44px+ targets, \"Everything else\" collapsed so nothing is lost, and the Quick Actions row is dropped (it duplicates the tab bar exactly)." },
+    { "id": "note-a", "x": 0, "y": -130, "w": 300, "text": "A · FRONT POCKET — recommended\nList rows with one-line plain-language descriptions: the row teaches the app while you scan. Live counts (2 running · 1 reply) where they exist. Search on top.\nTradeoff: longer page; fewer items per screen than a grid." },
+    { "id": "note-b", "x": 490, "y": -130, "w": 300, "text": "B · FIVE DOORS\nFive hub cards, five choices, the calmest Home; the workhorse hub is full-width with live counts. Bottom of the artboard shows what a hub opens into.\nTradeoff: every tool is one extra tap away; hub screens are new surfaces to build." },
+    { "id": "note-c", "x": 980, "y": -130, "w": 300, "text": "C · SHORTCUTS FIRST\nFour personalized shortcut tiles (learned from usage, sensible defaults first), then compact grouped rows.\nTradeoff: compact rows lose the teaching descriptions; personalization needs a small usage-tracking increment." },
+    { "id": "note-build", "x": 1470, "y": 0, "w": 300, "text": "AFTER YOUR PICK\n1 · toolsCatalog.ts — every destination with group, label, description, route (trilingual, tested)\n2 · HomeScreen swap (Ionicons stay; these SVGs map 1:1)\n3 · \"Everything else\" screen — A-Z, searchable, so all 26 destinations stay reachable\n4 · If C: AsyncStorage tap-counts pick the shortcut four.\n\nMix-and-match is fine — e.g. A's action section with C's shortcuts row on top." }
+  ],
+  "launch": { "view": "canvas" }
+}
