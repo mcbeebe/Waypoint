@@ -35,6 +35,7 @@ import ResourceStackScreen from '@/screens/main/ResourceStackScreen';
 import EligibilityResultScreen from '@/screens/main/EligibilityResultScreen';
 import FundedOfferScreen from '@/screens/main/FundedOfferScreen';
 import RequestTrackerScreen from '@/screens/main/RequestTrackerScreen';
+import RequestCaseScreen from '@/screens/main/RequestCaseScreen';
 import PricingScreen from '@/screens/main/PricingScreen';
 import HealthRecordsScreen from '@/screens/main/HealthRecordsScreen';
 import FamilySharingScreen from '@/screens/main/FamilySharingScreen';
@@ -260,6 +261,7 @@ function HomeStack() {
       <HomeStackNav.Screen name="EligibilityResult" component={EligibilityResultScreen} options={{ title: 'Your Result' }} />
       <HomeStackNav.Screen name="FundedOffer" component={FundedOfferScreen} options={{ title: 'Free Help' }} />
       <HomeStackNav.Screen name="RequestTracker" component={RequestTrackerScreen} options={{ title: 'Requests & Clocks' }} />
+      <HomeStackNav.Screen name="RequestCase" component={RequestCaseScreen} options={{ title: 'Case File' }} />
       <HomeStackNav.Screen name="Pricing" component={PricingScreen} options={{ title: 'Free & Premium' }} />
       <HomeStackNav.Screen name="Agencies" component={AgenciesScreen} options={{ title: 'Agency Directory' }} />
       <HomeStackNav.Screen name="Reimbursables" component={ReimbursablesScreen} options={{ title: 'RC Funding Guide' }} />

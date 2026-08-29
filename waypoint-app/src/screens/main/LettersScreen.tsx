@@ -39,10 +39,14 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useI18n } from '@/i18n';
 import { trackDraftUsed } from '@/lib/analytics';
-import { logCommunication, markCommunicationSent } from '@/hooks/useCommunications';
+import {
+  logCommunication,
+  markCommunicationSent,
+  attachCommunicationToRequest,
+} from '@/hooks/useCommunications';
 import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
-import { sentNextFor } from '@/lib/sentNext';
+import { sentNextFor, trackFor } from '@/lib/sentNext';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
 import { deadlineFor } from '@/lib/requestClocks';
@@ -184,6 +188,10 @@ export default function LettersScreen() {
   const [savedId, setSavedId] = useState<string | null>(null);
   const [markedSent, setMarkedSent] = useState(false);
 
+  // A lever letter launched from a case file carries its request along, so
+  // the new letter lands on the same thread instead of starting a stray one.
+  const routeRequestId = route.params?.requestId ?? null;
+
   const saveDraftOnce = useCallback(async (): Promise<string | null> => {
     if (!draft || !template || !family?.id) return null;
     if (loggedDraftRef.current === draft) return savedIdRef.current;
@@ -199,13 +207,14 @@ export default function LettersScreen() {
         outgoingOrgRef.current ?? ORG_BY_TEMPLATE[template.key] ?? 'other',
       contact: outgoingContactRef.current ?? undefined,
       status: 'draft',
+      request_id: routeRequestId ?? undefined,
     });
     savedIdRef.current = id;
     setSavedId(id);
     setMarkedSent(false);
     return id;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, template, family?.id]);
+  }, [draft, template, family?.id, routeRequestId]);
 
   // The sent moment (owner feedback): a send deserves a congratulation,
   // the next step, and honest expectations — plus automatic clock tracking.
@@ -245,20 +254,27 @@ export default function LettersScreen() {
       return;
     }
     // Open the tracked request (once): the Request Tracker owns the clock
-    // from here. An existing live row of the same title is not duplicated.
+    // from here. An existing live row of the same title is not duplicated,
+    // and a letter sent FROM a case never opens a second clock row.
     let tracked = false;
-    if (next.track) {
-      const already = requests.some(
+    const track = trackFor(next, routeRequestId);
+    if (routeRequestId) {
+      tracked = true; // the case that launched this letter already owns the clock
+    } else if (track) {
+      const existing = requests.find(
         (r) =>
-          r.title === next.track!.title &&
+          r.title === track.title &&
           (r.status === 'requested' || r.status === 'in_progress')
       );
-      if (already) {
+      if (existing) {
         tracked = true;
+        // Re-sending from the catalog: the letter still belongs to the live
+        // request's case thread. Best-effort, like the founding stamp.
+        attachCommunicationToRequest(id, existing.id);
       } else {
         const created = await createRequest({
-          request_type: next.track.requestType,
-          title: next.track.title,
+          request_type: track.requestType,
+          title: track.title,
           requested_on: new Date().toISOString().slice(0, 10),
           child_id: primaryChild?.id ?? null,
           channel: 'email',
@@ -268,6 +284,9 @@ export default function LettersScreen() {
           communication_id: id,
         });
         tracked = !!created;
+        // The founding letter joins its own case thread (047) — the 045
+        // communication_id link above stays as the pre-047 fallback.
+        if (created) attachCommunicationToRequest(id, created.id);
       }
     }
     // Sending the deeming letter IS applying — reflect it on the Resource
@@ -280,11 +299,11 @@ export default function LettersScreen() {
     ) {
       updateChild(primaryChild.id, { medi_cal_status: 'applied' }).catch(() => undefined);
     }
-    const deadline = next.track
-      ? deadlineFor(next.track.requestType, new Date().toISOString().slice(0, 10))
+    const deadline = track
+      ? deadlineFor(track.requestType, new Date().toISOString().slice(0, 10))
       : null;
     setSentMoment({ next, deadline, tracked });
-  }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale]);
+  }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId]);
 
   const handleCopy = useCallback(async () => {
     if (!draft) return;
@@ -397,6 +416,11 @@ export default function LettersScreen() {
     setTemplate(null);
     setQuestion('');
     setChatGuidance(null);
+    // The case link belongs to the letter that was launched from the case —
+    // a NEW letter started here must not inherit it.
+    if (route.params?.requestId) {
+      navigation.setParams({ requestId: undefined });
+    }
   };
 
   return (

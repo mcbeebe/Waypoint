@@ -16,12 +16,13 @@ import {
   getToolDoors,
   searchTools,
   searchPlaceholder,
-  requestsBadge,
   replyBadge,
   lettersDescription,
 } from '@/lib/toolsCatalog';
+import { caseBadge } from '@/lib/requestCase';
 import type { ToolBadge, ToolEntry, DoorKey } from '@/lib/toolsCatalog';
 import type { FamilyRequest } from '@/hooks/useRequests';
+import type { Communication } from '@/hooks/useCommunications';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
@@ -65,6 +66,9 @@ interface ToolsAreaProps {
   /** Selected child's first name (multi-child switching is the Home header's ChildPicker). */
   selectedChildName: string | null;
   requests: FamilyRequest[];
+  /** For the case-aware Requests badge (a reply on a tracked request beats a bare count). */
+  communications: Communication[];
+  /** An unanswered reply that belongs to NO tracked request (badge the job: tracked ones badge Requests). */
   hasUnansweredReply: boolean;
   childAgeYears: number | null;
 }
@@ -72,6 +76,7 @@ interface ToolsAreaProps {
 export default function ToolsArea({
   selectedChildName,
   requests,
+  communications,
   hasUnansweredReply,
   childAgeYears,
 }: ToolsAreaProps) {
@@ -122,7 +127,9 @@ export default function ToolsArea({
   const hasAnyRequest = requests.length > 0;
   const badges: Record<string, ToolBadge | null> = {
     letters: null,
-    requests: requestsBadge(requests, funnelLocale),
+    // Case-aware: a reply on a tracked request badges Requests (it's the
+    // moment to act), then overdue beats due-soon beats waiting.
+    requests: caseBadge(requests, communications, funnelLocale),
     sent_received: replyBadge(hasUnansweredReply, funnelLocale),
   };
 
