@@ -1,9 +1,19 @@
 name: Deploy to GitHub Pages
 
+# Publishes docs/ (the Supabase-backed web MVP — docs/ here is a deploy
+# directory, NOT documentation) to GitHub Pages.
+#
+# The automatic trigger was `push: branches: [dev]`. There is no `dev` branch
+# in this repo and there is no evidence there ever was one, so that trigger
+# had never fired: every deploy of this site has been a manual dispatch, and
+# the workflow silently implied otherwise.
+#
+# Rather than repoint it at `main` — which would start auto-publishing a
+# directory nobody has deployed automatically before, without knowing whether
+# its current contents are release-ready — the dead trigger is removed and
+# this stays explicitly manual. Repointing it at `main` is a decision for the
+# owner, not a side effect of a cleanup.
 on:
-  push:
-    branches: [dev]
-    paths: [docs/**]
   workflow_dispatch:
 
 permissions:

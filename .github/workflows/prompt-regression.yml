@@ -30,9 +30,20 @@ jobs:
         env:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.WAYPOINT_SUPABASE_URL }}
           WAYPOINT_JWT: ${{ secrets.WAYPOINT_QA_JWT }}
+        # Missing secrets FAIL. They used to `exit 0`, which made a green run
+        # indistinguishable from a run that never happened — and since these
+        # secrets have never been configured (the QA account is still an open
+        # ops item in ROADMAP.md), every green tick this suite has ever shown
+        # was the skip path. A regression suite that reports success while
+        # executing nothing is worse than no suite at all.
         run: |
-          if [ -z "$EXPO_PUBLIC_SUPABASE_URL" ] || [ -z "$WAYPOINT_JWT" ]; then
-            echo "Secrets not configured — skipping (set WAYPOINT_SUPABASE_URL and WAYPOINT_QA_JWT)."
-            exit 0
+          missing=""
+          [ -z "$EXPO_PUBLIC_SUPABASE_URL" ] && missing="$missing WAYPOINT_SUPABASE_URL"
+          [ -z "$WAYPOINT_JWT" ] && missing="$missing WAYPOINT_QA_JWT"
+          if [ -n "$missing" ]; then
+            echo "::error::Prompt regression cannot run — missing secret(s):$missing"
+            echo "Create the dedicated QA account (a signed-in family user with AI consent),"
+            echo "then add the secrets under Settings → Secrets and variables → Actions."
+            exit 1
           fi
           node scripts/prompt-regression.mjs
