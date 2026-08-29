@@ -107,6 +107,47 @@ letter), and Tools stays nearly intact.
 | The Ledger | 30 | — | — | Cut (same engine as TNRT, weaker execution) |
 | Four Editions | 29 | — | — | Cut (feasibility) |
 
+## How everything else stays reachable under A (owner question, Aug 29)
+
+Concept A changes what Home **leads** with — it deletes nothing from
+navigation. Three access speeds, matched to how often families need things:
+
+1. **Zero taps, always on screen:** the One Thing card (deep-links into
+   today's job — a reply opens its case file, a deadline opens the letter);
+   the tell-Waypoint row (live search over all 20 tools + crisis vocabulary
+   + Ask-AI fallthrough — the "nothing found" dead end dies); and the
+   **unchanged five-tab bar** (Home · Ask AI · Actions · Calendar ·
+   Profile) — every stack behind those tabs is untouched.
+2. **One tap — the Everything-else layer:** This week (→ Calendar), Waiting
+   (open requests vs their clocks → case files), Later (every set-aside
+   item with its return date and Undo — better than today's invisible
+   snoozes), Contacts (RC tap-to-call / write), and the **hybrid-v2 Tools
+   area verbatim** — the three action rows with live badges plus the four
+   doors. The layer remembers being open, so a browsing-minded parent can
+   pin it expanded and Home reads like today's Tools page with one smart
+   card on top.
+3. **Search-first for the monthly-or-rarer tools:** typing (or voice, in
+   es/vi) was always faster than hunting a grid; unmatched text goes to
+   the Navigator with the exact words.
+
+Every current Home surface is accounted for in the access map on the
+canvas (the "nothing is lost" inventory): reply/deadline/noticed cards →
+the One Thing slot; Today card → This week; RC card → Contacts; financial
+snapshot → Money door; Journey/Process Map → Understand door; progress
+ring → Actions tab; the cut cards (empathy, tutorial, mood check-in,
+profile nudge) die per the audit, with their one useful function (the
+"I'm stuck" wizard) moving into the composer.
+
+**The daily flow** (four boards on the canvas): the normal morning is a
+45-second check — since-line → One Thing → do it or "Not today" → earned
+calm state → close the app guilt-free, because event-driven push makes
+patrolling unnecessary. Reply days start from the push and end on the
+case file. Heavy days triage by skipping (each skip lands in Later with
+Undo), with the Waiting ledger and the unchanged Actions/Calendar tabs
+for density. "I need something now" is type-or-talk. The honest trade:
+incidental discovery drops one tap; the card's question/opportunity
+classes and the layer's true-count summary line carry that load.
+
 ## Recommendation
 
 **Build The Next Right Thing, borrowing the two best organs from the others:**
