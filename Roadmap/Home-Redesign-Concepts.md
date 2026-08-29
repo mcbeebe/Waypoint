@@ -211,6 +211,12 @@ Sizing, publishing workflow, and whether articles are authored, AI-drafted
 then human-reviewed, or both, are open — worth their own short plan before
 any of it is built.
 
+> **Superseded for delivery:** the three-phase sketch below was the shape of
+> the build before the prototype rounds. The current, authoritative plan is
+> **`Roadmap/Home-Rebuild-Plan.md`** — eight phases, with dependencies,
+> storage decisions and risks. This section stays for the reasoning that
+> produced the recommendation.
+
 ## Recommendation
 
 **Build The Next Right Thing, borrowing the two best organs from the others:**
