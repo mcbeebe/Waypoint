@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   MAX_PINS,
+  encodePins,
+  hasChosen,
   SUGGEST_AFTER,
   addPin,
   defaultPins,
@@ -125,6 +127,58 @@ describe('locale parity', () => {
       expect(other.heading).not.toBe(en.heading);
       expect(other.suggestTitle('Documents')).not.toBe(en.suggestTitle('Documents'));
       expect(other.suggestBody('Documents', 3)).toContain('3');
+    }
+  });
+});
+
+describe('the never-chosen signal survives the column default', () => {
+  it('reads the SQL default as "this family has never chosen"', () => {
+    // `tool_pins jsonb not null default '[]'` puts an array in every row, so
+    // a bare array cannot mean a choice — reading it as one shipped every
+    // family an empty toolbox and pushed the three action tools two taps away.
+    expect(hasChosen([])).toBe(false);
+    expect(hasChosen(null)).toBe(false);
+    expect(hasChosen(undefined)).toBe(false);
+    expect(hasChosen(['letters'])).toBe(false);
+  });
+
+  it('reads the object the app writes as a real choice — including empty', () => {
+    expect(hasChosen(encodePins([]))).toBe(true);
+    expect(hasChosen(encodePins(['letters']))).toBe(true);
+  });
+
+  it('round-trips through encode and normalize', () => {
+    const stored = encodePins(['letters', 'documents']);
+    expect(normalizePins(stored, VALID)).toEqual(['letters', 'documents']);
+  });
+
+  it('still reads a bare array, so anything written before this keeps working', () => {
+    expect(normalizePins(['letters'], VALID)).toEqual(['letters']);
+  });
+
+  it('is not fooled by an object of the wrong shape', () => {
+    expect(hasChosen({ v: 1 })).toBe(false);
+    expect(hasChosen({ pins: 'letters' })).toBe(false);
+    expect(normalizePins({ v: 1, pins: 'nope' }, VALID)).toEqual([]);
+  });
+});
+
+describe('the copy promises only the scope the app can keep', () => {
+  it('never claims a co-parent will see the tiles', () => {
+    // useFamily still resolves families by user_id, so "for everyone in your
+    // family" is a promise the app cannot keep today.
+    for (const loc of ['en', 'es', 'vi'] as const) {
+      const s = pinStrings(loc);
+      const blob = `${s.emptyHint} ${s.suggestBody('Documents', 3)}`;
+      expect(blob).not.toMatch(/everyone in your family|toda su familia|cả gia đình/);
+    }
+  });
+
+  it('has a cap message distinct from the empty-grid hint', () => {
+    for (const loc of ['en', 'es', 'vi'] as const) {
+      const s = pinStrings(loc);
+      expect(s.capHint).not.toBe(s.emptyHint);
+      expect(s.deviceOnly.length).toBeGreaterThan(0);
     }
   });
 });

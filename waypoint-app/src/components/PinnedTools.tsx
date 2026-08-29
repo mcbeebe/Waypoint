@@ -8,7 +8,7 @@
  *
  * All of the rules live in `lib/toolPins.ts`; this renders them.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -42,6 +42,12 @@ export default function PinnedTools({ pins, locale, onNotice }: PinnedToolsProps
   }, [catalog]);
 
   const tiles = pins.pins.map((k) => byKey[k]).filter(Boolean) as ToolEntry[];
+  // Removing the last tile used to unmount the Done button while `editing`
+  // stayed true, which left the card stuck in edit mode — and edit mode
+  // suppresses the suggestion — until the app restarted.
+  useEffect(() => {
+    if (editing && tiles.length === 0 && !pins.loading) setEditing(false);
+  }, [editing, tiles.length, pins.loading]);
   const suggested = pins.suggestion ? byKey[pins.suggestion] : null;
 
   const open = (tool: ToolEntry) => {
@@ -58,7 +64,7 @@ export default function PinnedTools({ pins, locale, onNotice }: PinnedToolsProps
     <View style={styles.wrap}>
       <View style={styles.head}>
         <Text style={[styles.heading, { fontSize: sz(11) }]}>{s.heading.toUpperCase()}</Text>
-        {tiles.length > 0 && (
+        {(tiles.length > 0 || editing) && (
           <Pressable
             onPress={() => setEditing((e) => !e)}
             style={styles.editButton}
@@ -73,9 +79,11 @@ export default function PinnedTools({ pins, locale, onNotice }: PinnedToolsProps
       </View>
 
       {tiles.length === 0 ? (
-        <Text style={[styles.hint, { fontSize: sz(12.5), lineHeight: sz(18) }]}>
-          {s.emptyHint}
-        </Text>
+        pins.loading ? null : (
+          <Text style={[styles.hint, { fontSize: sz(12.5), lineHeight: sz(18) }]}>
+            {s.emptyHint}
+          </Text>
+        )
       ) : (
         <View style={styles.grid}>
           {tiles.map((tool) => (
@@ -90,7 +98,7 @@ export default function PinnedTools({ pins, locale, onNotice }: PinnedToolsProps
                 <Ionicons name={tool.icon as never} size={22} color={colors.teal} />
                 <Text
                   style={[styles.tileLabel, { fontSize: sz(11.5), lineHeight: sz(15) }]}
-                  numberOfLines={2}
+                  numberOfLines={3}
                 >
                   {tool.label}
                 </Text>
@@ -98,7 +106,12 @@ export default function PinnedTools({ pins, locale, onNotice }: PinnedToolsProps
               {editing && (
                 <Pressable
                   style={styles.remove}
-                  onPress={() => void pins.unpin(tool.key)}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  onPress={() =>
+                    void pins.unpin(tool.key).then((message) => {
+                      if (message) onNotice?.(message);
+                    })
+                  }
                   accessibilityRole="button"
                   accessibilityLabel={`${s.unpin}: ${tool.label}`}
                 >
@@ -146,7 +159,13 @@ export default function PinnedTools({ pins, locale, onNotice }: PinnedToolsProps
 
       {editing && tiles.length >= MAX_PINS && (
         <Text style={[styles.hint, { fontSize: sz(12), lineHeight: sz(17) }]}>
-          {s.emptyHint}
+          {s.capHint}
+        </Text>
+      )}
+      {/* Says which storage it got, on every screen that shows the tiles. */}
+      {!pins.shared && !pins.loading && (
+        <Text style={[styles.hint, { fontSize: sz(11.5), lineHeight: sz(16) }]}>
+          {s.deviceOnly}
         </Text>
       )}
     </View>
@@ -164,6 +183,7 @@ const styles = StyleSheet.create({
   tileWrap: { width: '31%' },
   tile: {
     minHeight: 76,
+    flexGrow: 1,
     backgroundColor: colors.white,
     borderRadius: radii.md,
     borderWidth: 1,

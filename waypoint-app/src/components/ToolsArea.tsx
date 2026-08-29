@@ -147,10 +147,18 @@ export default function ToolsArea({
   const renderRow = (tool: ToolEntry, opts?: { description?: string; compact?: boolean }) => {
     const badge = badges[tool.key] ?? null;
     const description = opts?.description ?? tool.description;
-    return (
+    const pinnable = pinnedKeys && onTogglePin;
+    // The star is a SIBLING of the row, not a child: a Pressable with its own
+    // accessibilityLabel groups its subtree, so a nested button is invisible
+    // to VoiceOver and TalkBack.
+    const inner = (
       <Pressable
-        key={tool.key}
-        style={({ pressed }) => [styles.row, opts?.compact && styles.rowCompact, pressed && styles.pressed]}
+        style={({ pressed }) => [
+          styles.row,
+          pinnable && styles.rowWithPin,
+          opts?.compact && styles.rowCompact,
+          pressed && styles.pressed,
+        ]}
         onPress={() => goTo(tool)}
         accessibilityRole="button"
         accessibilityLabel={`${tool.label}. ${description}`}
@@ -173,28 +181,33 @@ export default function ToolsArea({
           </View>
           <Text style={styles.rowDescription}>{description}</Text>
         </View>
+        {/* The chevron stays: the row still goes somewhere. */}
+        <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+      </Pressable>
+    );
+
+    if (!pinnable) return <View key={tool.key}>{inner}</View>;
+    const isPinned = pinnedKeys!.includes(tool.key);
+    return (
+      <View key={tool.key} style={styles.rowWrap}>
+        {inner}
         {/* Pin from wherever the tool is — a family should not have to find
             a settings screen to put something on top. */}
-        {pinnedKeys && onTogglePin ? (
-          <Pressable
-            onPress={() => onTogglePin(tool.key, pinnedKeys.includes(tool.key))}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            style={styles.pinButton}
-            accessibilityRole="button"
-            accessibilityLabel={`${
-              pinnedKeys.includes(tool.key) ? S.unpin : S.pin
-            }: ${tool.label}`}
-          >
-            <Ionicons
-              name={pinnedKeys.includes(tool.key) ? 'star' : 'star-outline'}
-              size={18}
-              color={pinnedKeys.includes(tool.key) ? colors.teal : colors.mid}
-            />
-          </Pressable>
-        ) : (
-          <Ionicons name="chevron-forward" size={16} color={colors.mid} />
-        )}
-      </Pressable>
+        <Pressable
+          onPress={() => onTogglePin!(tool.key, isPinned)}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          style={styles.pinButton}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isPinned }}
+          accessibilityLabel={`${isPinned ? S.unpin : S.pin}: ${tool.label}`}
+        >
+          <Ionicons
+            name={isPinned ? 'star' : 'star-outline'}
+            size={18}
+            color={isPinned ? colors.teal : colors.mid}
+          />
+        </Pressable>
+      </View>
     );
   };
 
@@ -289,6 +302,8 @@ export default function ToolsArea({
 }
 
 const styles = StyleSheet.create({
+  rowWrap: { flexDirection: 'row', alignItems: 'center' },
+  rowWithPin: { flex: 1 },
   pinButton: { minWidth: 32, minHeight: 32, alignItems: 'center', justifyContent: 'center' },
   searchBox: {
     flexDirection: 'row',

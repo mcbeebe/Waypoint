@@ -32,15 +32,42 @@ export const DEFAULT_PINS = ['letters', 'requests', 'sent_received'] as const;
 export const SUGGEST_AFTER = 3;
 
 /**
+ * What the column holds once a family has actually chosen.
+ *
+ * The column is `not null default '[]'::jsonb`, so a bare array cannot mean
+ * "never chosen" — Postgres writes one into every row. This app therefore
+ * writes an OBJECT, and reads a bare array as the untouched default. Without
+ * that distinction the defaults were unreachable and every family — new and
+ * existing — opened an empty toolbox.
+ */
+export interface StoredPins {
+  v: 1;
+  pins: string[];
+}
+
+export function encodePins(pins: string[]): StoredPins {
+  return { v: 1, pins };
+}
+
+/** True once the family has made a choice — including "I removed them all". */
+export function hasChosen(raw: unknown): boolean {
+  return !!raw && typeof raw === 'object' && !Array.isArray(raw) &&
+    Array.isArray((raw as { pins?: unknown }).pins);
+}
+
+/**
  * `families.tool_pins` is jsonb written by this app and read back through
  * PostgREST — but a hand-edited row, a failed migration, or a renamed tool
  * must not crash Home. Anything unrecognised is dropped, not guessed at.
+ * Accepts both the stored object and a bare array (the column default, and
+ * anything written before the object form).
  */
 export function normalizePins(raw: unknown, validKeys: Iterable<string>): string[] {
   const valid = new Set(validKeys);
-  if (!Array.isArray(raw)) return [];
+  const list = hasChosen(raw) ? (raw as StoredPins).pins : raw;
+  if (!Array.isArray(list)) return [];
   const out: string[] = [];
-  for (const item of raw) {
+  for (const item of list) {
     if (typeof item !== 'string') continue;
     if (!valid.has(item)) continue;
     if (out.includes(item)) continue;
@@ -123,6 +150,8 @@ export function suggestPin(input: SuggestInput): string | null {
 
 export interface PinStrings {
   heading: string;
+  capHint: string;
+  deviceOnly: string;
   edit: string;
   done: string;
   pin: string;
@@ -138,22 +167,35 @@ export function pinStrings(locale: FunnelLocale = 'en'): PinStrings {
   const L = picker(locale);
   return {
     heading: L('Your tools', 'Sus herramientas', 'Công cụ của quý vị'),
+    capHint: L(
+      `Six tiles is the most that fit. Remove one to make room for another.`,
+      `Seis accesos es el máximo que cabe. Quite uno para hacer sitio a otro.`,
+      `Tối đa sáu ô. Hãy bỏ một ô để có chỗ cho ô khác.`
+    ),
+    deviceOnly: L(
+      'These tiles are saved on this device only.',
+      'Estos accesos están guardados solo en este dispositivo.',
+      'Các ô này chỉ được lưu trên thiết bị này.'
+    ),
     edit: L('Edit', 'Editar', 'Sửa'),
     done: L('Done', 'Listo', 'Xong'),
     pin: L('Pin to your tools', 'Fijar a sus herramientas', 'Ghim vào công cụ'),
     unpin: L('Remove from your tools', 'Quitar de sus herramientas', 'Bỏ khỏi công cụ'),
+    // Scope stated honestly: pins follow the account across its devices.
+    // They do NOT reach a co-parent yet — `useFamily` still resolves families
+    // by user_id, which migration 048's own header says out loud.
     emptyHint: L(
-      'Pin the tools you use most and they appear here, for everyone in your family.',
-      'Fije las herramientas que más usa y aparecerán aquí, para toda su familia.',
-      'Ghim những công cụ quý vị dùng nhiều nhất, chúng sẽ hiện ở đây cho cả gia đình.'
+      'Pin the tools you use most and they appear here, on every device you sign in on.',
+      'Fije las herramientas que más usa y aparecerán aquí, en cada dispositivo donde inicie sesión.',
+      'Ghim những công cụ quý vị dùng nhiều nhất; chúng sẽ hiện ở đây trên mọi thiết bị quý vị đăng nhập.'
     ),
     suggestTitle: (label) =>
       L(`Pin ${label}?`, `¿Fijar ${label}?`, `Ghim ${label}?`),
     suggestBody: (label, opens) =>
       L(
-        `You have opened ${label} ${opens} times. Pinning puts it on top for everyone in your family.`,
-        `Ha abierto ${label} ${opens} veces. Fijarlo lo pone arriba para toda su familia.`,
-        `Quý vị đã mở ${label} ${opens} lần. Ghim sẽ đưa nó lên đầu cho cả gia đình.`
+        `You have opened ${label} ${opens} times. Pinning puts it on top.`,
+        `Ha abierto ${label} ${opens} veces. Fijarlo lo pone arriba.`,
+        `Quý vị đã mở ${label} ${opens} lần. Ghim sẽ đưa nó lên đầu.`
       ),
     suggestYes: L('Pin it', 'Fijarlo', 'Ghim'),
     suggestNo: L('No thanks', 'No, gracias', 'Không, cảm ơn'),

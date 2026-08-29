@@ -254,6 +254,44 @@ after either answer.
 Pins degrade the same way deferrals do: without migration 048 they fall back
 to the device and the screen says "saved on this device only".
 
+**The adversarial review then found eighteen defects. The worst inverted the
+whole feature:**
+
+- **The defaults were unreachable, so every family would have opened an empty
+  toolbox.** `tool_pins jsonb not null default '[]'` puts an array in every
+  row, so "is this an array?" can never mean "has this family chosen?" — and
+  because Home had just shed its inline tools drawer, Letters, Requests and
+  Sent & Received went two taps away for *everyone*. The app now writes an
+  object (`{"v":1,"pins":[…]}`) and reads a bare array as the untouched
+  default. Pinned by tests.
+- **Concurrent writes clobbered the whole column** — a second device with a
+  stale list would evict the other parent's tiles, which is the eviction the
+  cap exists to prevent, arriving through the back door. Every write now
+  re-reads the row and applies the change to what is actually there.
+- **A pin that saved nowhere reported success.** The AsyncStorage fallback
+  swallowed its own failure, so a tile could appear, survive the session and
+  vanish at next launch. Failures now revert and say so.
+- **Device pins were discarded** the first time the column answered, with no
+  hoist — the machinery `useDeferrals` already had.
+- **The copy promised "for everyone in your family"** in three languages, a
+  scope the app cannot deliver: `useFamily` still resolves families by
+  `user_id`. It now promises what is true — every device you sign in on.
+- **A screen-reader user could not pin anything.** The star was nested inside
+  an accessible row, so it was unreachable — and the star is the only way to
+  pin. It is a sibling now.
+- **Two hook instances clobbered each other's open counts**, which made the
+  three-open suggestion threshold effectively unreachable for anyone who used
+  both screens.
+- Plus: the delete control was 24pt against the repo's own 44pt minimum; edit
+  mode became unexitable when the last tile was removed; the full grid showed
+  the empty-grid hint; unpinning immediately re-suggested the same tool; the
+  cap refusal was announced where nobody would see it; Tools ignored the
+  selected child and fetched diagnoses it never used; and the one door to the
+  whole toolbox was hardcoded English.
+
+The gap the review named as highest-leverage stands: `useToolPins` and
+`useDeferrals` have no hook-level tests, and most of the above lived there.
+
 ### Phase 5 — Ask absorbs Learn, and the bar becomes four tabs
 
 **New:** `lib/learnLibrary.ts` (guides, articles, glossary — trilingual, with

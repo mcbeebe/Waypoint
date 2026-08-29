@@ -85,11 +85,15 @@ $$;
 alter table public.home_deferrals enable row level security;
 
 -- ── Pinned tools (phase 4) ──────────────────────────────────────────────────
--- A json array of tool keys from lib/toolsCatalog. Capped at six by the app,
--- not the database: the cap is a design choice about a tile grid, and a
--- constraint here would turn a future re-design into a migration.
+-- Written by the app as {"v":1,"pins":["letters",...]} — an OBJECT, not a
+-- bare array, because `not null default '[]'` means an array cannot mean
+-- "this family has never chosen". The app reads a bare array as the untouched
+-- default and seeds its three starter tiles; it reads the object as a real
+-- choice, including the empty one. Capped at six by the app, not the
+-- database: the cap is a design choice about a tile grid, and a constraint
+-- here would turn a future re-design into a migration.
 alter table public.families
   add column if not exists tool_pins jsonb not null default '[]'::jsonb;
 
 comment on column public.families.tool_pins is
-  'Tools promoted to Home tiles — one shared set per family. App-capped at six.';
+  'Tools promoted to Home tiles, as {"v":1,"pins":[...]}. A bare array is the untouched default and means the family has never chosen. App-capped at six.';

@@ -38,13 +38,20 @@ import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
-import { percentageLabel } from '@/lib/accessibility';
+import { announce, percentageLabel } from '@/lib/accessibility';
 import PinnedTools from '@/components/PinnedTools';
 import { useToolPins } from '@/hooks/useToolPins';
 import { getAllTools } from '@/lib/toolsCatalog';
 import { lookupRC } from '@/data/regionalCenters';
 import type { RcStatus, IepStatus } from '@/types/database';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
+
+/** The one door to the whole toolbox — it must not be the only English string. */
+const ALL_TOOLS_LABEL: Record<FunnelLocale, string> = {
+  en: 'All tools',
+  es: 'Todas las herramientas',
+  vi: 'Tất cả công cụ',
+};
 
 /** Remembers "Everything" vs "Waypoint only" between visits */
 const AGENDA_SCOPE_KEY = 'waypoint_agenda_scope';
@@ -133,6 +140,13 @@ function HomeScreenInner({
   } = useCommunications(family?.id ?? '');
   const toolKeys = useMemo(() => getAllTools('en').map((t) => t.key), []);
   const toolPins = useToolPins(family?.id, toolKeys, funnelLocale);
+  // Rendered beside the tiles, not inside the child-card block the other
+  // notice lives in — a family with no child record would never have seen it.
+  const [toolNotice, setToolNotice] = useState<string | null>(null);
+  const sayToolNotice = (message: string) => {
+    setToolNotice(message);
+    announce(message);
+  };
   const { deadlines, loading: deadlinesLoading, error: deadlinesError } = useDeadlines({
     familyId: family?.id ?? '',
   });
@@ -541,14 +555,19 @@ function HomeScreenInner({
 
         {/* Tools became a place (phase 4): Home shows the tiles this family
             pinned, and the whole toolbox is one tap behind them. */}
-        <PinnedTools pins={toolPins} locale={funnelLocale} onNotice={setNotice} />
+        <PinnedTools pins={toolPins} locale={funnelLocale} onNotice={sayToolNotice} />
+        {!!toolNotice && (
+          <Text style={styles.notice} accessibilityRole="alert">
+            {toolNotice}
+          </Text>
+        )}
         <TouchableOpacity
           style={styles.allTools}
           onPress={() => (navigation as any).navigate('Tools')}
           accessibilityRole="button"
-          accessibilityLabel="Open all tools"
+          accessibilityLabel={ALL_TOOLS_LABEL[funnelLocale]}
         >
-          <Text style={styles.allToolsText}>All tools ›</Text>
+          <Text style={styles.allToolsText}>{ALL_TOOLS_LABEL[funnelLocale]} ›</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

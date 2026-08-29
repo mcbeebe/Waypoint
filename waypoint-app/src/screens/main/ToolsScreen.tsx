@@ -10,7 +10,10 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
+import { useFamily, useChildren } from '@/hooks/useFamily';
+import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
+import { useToast } from '@/components/Toast';
+import { announce } from '@/lib/accessibility';
 import { useRequests } from '@/hooks/useRequests';
 import { useCommunications } from '@/hooks/useCommunications';
 import { useToolPins } from '@/hooks/useToolPins';
@@ -27,13 +30,34 @@ import { colors, fonts, radii, semantic, spacing } from '@/lib/theme';
 export default function ToolsScreen() {
   const { family } = useFamily();
   const { children } = useChildren(family?.id);
-  const child = children[0] ?? null;
-  const { diagnoses } = useDiagnoses(child?.id);
+  return (
+    <SelectedChildProvider childRecords={children}>
+      <ToolsScreenInner family={family} />
+    </SelectedChildProvider>
+  );
+}
+
+function ToolsScreenInner({ family }: { family: ReturnType<typeof useFamily>['family'] }) {
+  // The Records door and the age-aware search placeholder are about ONE
+  // child; taking children[0] showed a 15-year-old's parent Early Start copy.
+  const { selectedChild: child } = useSelectedChild();
   const { locale } = useI18n();
   const funnelLocale = toFunnelLocale(locale);
   const { scale } = useTextScale();
   const sz = (n: number) => Math.round(n * scale);
   const [notice, setNotice] = useState<string | null>(null);
+  const { showToast } = useToast();
+
+  /**
+   * The star that triggers a refusal can be anywhere down a 23-tool list, and
+   * `accessibilityRole="alert"` does not announce on its own in React Native.
+   * A cap that refuses silently is a cap the parent never learns about.
+   */
+  const say = (message: string) => {
+    setNotice(message);
+    showToast(message, 'error');
+    announce(message);
+  };
 
   const validKeys = useMemo(() => getAllTools('en').map((t) => t.key), []);
   const pins = useToolPins(family?.id, validKeys, funnelLocale);
@@ -50,33 +74,27 @@ export default function ToolsScreen() {
   const togglePin = (key: string, pinned: boolean) => {
     setNotice(null);
     if (pinned) {
-      void pins.unpin(key);
+      void pins.unpin(key).then((message) => {
+        if (message) say(message);
+      });
       return;
     }
     void pins.pin(key).then((message) => {
-      if (message) setNotice(message);
+      if (message) say(message);
     });
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <PinnedTools pins={pins} locale={funnelLocale} onNotice={setNotice} />
+        <ChildPicker />
+        <PinnedTools pins={pins} locale={funnelLocale} onNotice={say} />
         {!!notice && (
           <Text
             style={[styles.notice, { fontSize: sz(12.5), lineHeight: sz(18) }]}
             accessibilityRole="alert"
           >
             {notice}
-          </Text>
-        )}
-        {!pins.shared && !pins.loading && (
-          <Text style={[styles.scopeNote, { fontSize: sz(11.5), lineHeight: sz(16) }]}>
-            {funnelLocale === 'es'
-              ? 'Estos accesos están guardados solo en este dispositivo.'
-              : funnelLocale === 'vi'
-                ? 'Các ô này chỉ được lưu trên thiết bị này.'
-                : 'These tiles are saved on this device only.'}
           </Text>
         )}
         <ToolsArea
