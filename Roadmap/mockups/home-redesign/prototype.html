@@ -1,0 +1,927 @@
+<title>The Next Right Thing</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+  /* ── Harness: a device viewer. Deliberately single-theme (studio dark) so
+     the light Waypoint app inside reads as the artifact under review. ── */
+  :root {
+    --studio: #0D1420;
+    --studio-2: #16202F;
+    --studio-line: #26344A;
+    --studio-ink: #E7EEF6;
+    --studio-mid: #93A6BC;
+    --studio-accent: #35C0DC;
+    /* App tokens — copied from waypoint-app/src/lib/theme.ts */
+    --navy: #1B2A4A; --teal: #0891B2; --coral: #F97316; --sage: #10B981;
+    --dark: #334155; --mid: #64748B; --light: #F8FAFC; --white: #FFFFFF;
+    --border: #E2E8F0;
+    --ok: #0E9F6E; --ok-bg: #E6F7F1;
+    --warn: #B45309; --warn-bg: #FDF3E3;
+    --danger: #DC2626; --danger-bg: #FEE2E2;
+    --info: #2563EB; --info-bg: #EFF6FF;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--studio); color: var(--studio-ink);
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .harness { max-width: 460px; margin: 0 auto; padding: 12px 12px 40px; }
+  .h-head { padding: 0 6px 4px; }
+  .h-eyebrow { font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--studio-accent); font-weight: 700; }
+  .h-title { font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.22rem; font-weight: 800; margin: 3px 0 4px; color: #FFF; line-height: 1.15; }
+  .h-sub { font-size: .85rem; color: var(--studio-mid); margin: 0; line-height: 1.45; }
+  .h-sub b { color: var(--studio-ink); font-weight: 600; }
+
+  .scenarios { display: flex; gap: 6px; overflow-x: auto; padding: 10px 6px 8px; scrollbar-width: none; }
+  .scenarios::-webkit-scrollbar { display: none; }
+  .scn {
+    flex: none; border: 1px solid var(--studio-line); background: var(--studio-2);
+    color: var(--studio-mid); border-radius: 999px; padding: 7px 14px;
+    font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .scn[aria-pressed="true"] { background: var(--studio-accent); border-color: var(--studio-accent); color: #06222B; }
+  .scn:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 2px; }
+  .scn-note { font-size: .78rem; color: var(--studio-mid); padding: 0 6px 10px; line-height: 1.45; min-height: 3.2em; }
+  .scn-note b { color: var(--studio-ink); }
+
+  /* ── Phone ── */
+  .phone {
+    background: #000; border-radius: 34px; padding: 8px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.55), 0 0 0 1px #2A3648;
+  }
+  .screen {
+    background: var(--light); border-radius: 27px; overflow: hidden;
+    height: 700px; max-height: calc(100dvh - 90px); min-height: 520px;
+    display: flex; flex-direction: column; position: relative;
+    color: var(--dark); font-size: 15px; line-height: 1.45;
+    font-family: -apple-system, 'Segoe UI', Roboto, system-ui, sans-serif;
+  }
+  .statusbar {
+    background: var(--white); padding: 8px 18px 4px; display: flex; justify-content: space-between;
+    font-size: 12px; font-weight: 700; color: var(--navy); flex: none;
+  }
+  .viewport { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .pad { padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* App type + primitives */
+  /* :where() zeroes this reset's specificity so every component class below
+     wins on its own merits instead of losing to a type+class selector. */
+  :where(.screen button) { font: inherit; cursor: pointer; border: none; background: none; color: inherit; text-align: left; }
+  .screen button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 8px; }
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+  .kicker { font-size: 10.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; border-radius: 6px; padding: 3px 8px; display: inline-block; }
+  .k-reply { background: var(--info-bg); color: #0369A1; }
+  .k-overdue { background: var(--danger-bg); color: var(--danger); }
+  .k-today { background: var(--warn-bg); color: var(--warn); }
+  .k-question { background: #F1F5F9; color: #475569; }
+  .k-op { background: var(--ok-bg); color: var(--ok); }
+  .k-resume { background: #EDE9FE; color: #6D28D9; }
+  .k-calm { background: var(--ok-bg); color: var(--ok); }
+  .btn-primary {
+    display: flex; align-items: center; justify-content: center; width: 100%;
+    min-height: 48px; border-radius: 12px; background: var(--teal); color: #FFF;
+    font-size: 16px; font-weight: 800; padding: 0 14px; text-align: center;
+  }
+  .btn-primary:active { background: #0E7490; }
+  .btn-ghost {
+    display: block; width: 100%; text-align: center; color: var(--mid);
+    font-size: 13px; padding: 9px 4px; min-height: 36px;
+  }
+  .btn-outline {
+    display: flex; align-items: center; justify-content: center; width: 100%;
+    min-height: 44px; border-radius: 12px; border: 1px solid var(--teal);
+    color: var(--teal); font-weight: 700; font-size: 15px; background: var(--white);
+  }
+
+  /* Header */
+  .greet { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .greet h1 { font-size: 21px; font-weight: 800; color: var(--navy); margin: 0; letter-spacing: -.01em; }
+  .since { font-size: 12.5px; color: #475569; margin: 3px 0 0; }
+  .since b { color: var(--navy); }
+  .avatar { flex: none; width: 38px; height: 38px; border-radius: 999px; background: var(--teal); color: #FFF; display: grid; place-items: center; font-weight: 800; }
+
+  /* One Thing card */
+  .onething { border: 2px solid var(--teal); border-radius: 16px; background: var(--white); padding: 16px; box-shadow: 0 4px 16px rgba(8,145,178,.10); display: flex; flex-direction: column; gap: 10px; }
+  .onething.calm { border-color: #A7D9C9; box-shadow: none; }
+  .ot-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .ot-title { font-size: 19.5px; font-weight: 800; color: var(--navy); line-height: 1.28; margin: 0; }
+  .ot-why { font-size: 13.5px; color: #475569; margin: 0; }
+  .ot-why b { color: var(--navy); }
+  .speaker { flex: none; width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; color: var(--mid); background: #F1F5F9; font-size: 15px; }
+  .cite { font-size: 11.5px; color: var(--mid); background: #F1F5F9; border-radius: 6px; padding: 2px 7px; display: inline-block; }
+  .answers { display: flex; flex-direction: column; gap: 8px; }
+  .answers button { min-height: 46px; border-radius: 12px; border: 1px solid var(--border); background: var(--white); font-size: 15.5px; font-weight: 700; color: var(--navy); text-align: center; display: grid; place-items: center; }
+  .answers button:active { background: var(--light); }
+
+  /* Composer */
+  .composer { display: flex; align-items: center; gap: 9px; background: var(--white); border: 1px solid var(--border); border-radius: 12px; min-height: 48px; padding: 0 12px; }
+  .composer input { flex: 1; border: none; outline: none; font: inherit; font-size: 14px; color: var(--dark); background: none; min-width: 0; padding: 12px 0; }
+  .composer input::placeholder { color: #94A3B8; }
+  .mic { flex: none; color: var(--teal); font-size: 16px; }
+  .results { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .res-row { display: flex; align-items: center; gap: 10px; padding: 11px 13px; width: 100%; border-bottom: 1px solid #F1F5F9; }
+  .res-row:last-child { border-bottom: none; }
+  .res-row:active { background: var(--light); }
+  .res-ico { flex: none; width: 30px; height: 30px; border-radius: 9px; background: #E0F2FE; display: grid; place-items: center; font-size: 14px; }
+  .res-t { font-size: 14px; font-weight: 700; color: var(--navy); }
+  .res-d { font-size: 12px; color: #64748B; margin-top: 1px; }
+  .res-ask { padding: 12px 13px; font-size: 13.5px; color: var(--teal); font-weight: 700; width: 100%; }
+
+  /* Everything-else layer */
+  .layer { background: var(--white); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .layer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 13px 14px; background: #F1F5F9; width: 100%; }
+  .layer-head span { font-size: 13.5px; font-weight: 700; color: var(--navy); }
+  .layer-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 15px; }
+  .sec-label { font-size: 10.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: #475569; margin-bottom: 6px; }
+  .line { font-size: 13.5px; color: var(--dark); padding: 5px 0; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; width: 100%; }
+  .line b { color: var(--navy); }
+  .src { font-size: 11px; color: #94A3B8; white-space: nowrap; }
+  .undo { font-size: 12.5px; font-weight: 800; color: var(--teal); flex: none; }
+  .privacy { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #64748B; }
+  .empty { font-size: 13px; color: var(--mid); font-style: italic; }
+
+  .tools { border: 1px solid var(--border); border-radius: 11px; overflow: hidden; }
+  .trow { display: flex; align-items: center; gap: 11px; padding: 11px 12px; width: 100%; border-bottom: 1px solid #F1F5F9; }
+  .trow:last-child { border-bottom: none; }
+  .trow:active { background: var(--light); }
+  .tico { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 15px; background: #E0F2FE; }
+  .tbody { flex: 1; min-width: 0; }
+  .ttitle { font-size: 14px; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .tdesc { font-size: 12px; color: #475569; line-height: 1.35; margin-top: 1px; }
+  .badge { font-size: 10px; font-weight: 800; border-radius: 999px; padding: 1px 8px; }
+  .b-warn { background: var(--warn-bg); color: var(--warn); }
+  .b-danger { background: var(--danger-bg); color: var(--danger); }
+  .b-info { background: var(--info-bg); color: #0369A1; }
+  .chev { flex: none; color: #94A3B8; font-size: 13px; }
+  .door-body { background: var(--light); }
+  .door-body .trow { padding-left: 32px; }
+
+  /* Detail screens */
+  .navbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--white); border-bottom: 1px solid var(--border); flex: none; }
+  .navbar .back { font-size: 14px; font-weight: 700; color: var(--teal); padding: 6px 4px; }
+  .navbar .nav-t { font-size: 14.5px; font-weight: 800; color: var(--navy); }
+  .h2 { font-size: 17px; font-weight: 800; color: var(--navy); margin: 0; }
+  .meta { font-size: 12.5px; color: var(--mid); }
+  .chip-clock { border-radius: 8px; padding: 9px 12px; font-size: 12.5px; font-weight: 700; }
+  .c-over { background: var(--danger-bg); color: var(--danger); }
+  .c-run { background: var(--warn-bg); color: var(--warn); }
+  .rungs { display: flex; align-items: center; gap: 5px; }
+  .rung { width: 25px; height: 25px; border-radius: 999px; display: grid; place-items: center; font-size: 11px; font-weight: 800; background: var(--light); border: 1px solid var(--border); color: var(--mid); flex: none; }
+  .rung.on { background: var(--navy); border-color: var(--navy); color: #FFF; }
+  .rung.cur { border: 2px solid var(--teal); }
+  .rung-line { height: 2px; background: var(--border); width: 14px; flex: none; }
+  .rung-line.on { background: var(--navy); }
+  .rung-lbl { font-size: 11.5px; color: var(--mid); }
+  .rung-lbl.cur { color: var(--navy); font-weight: 800; }
+  .ev { padding: 10px 0; border-top: 1px solid #F1F5F9; display: flex; gap: 9px; }
+  .ev:first-of-type { border-top: none; }
+  .ev-emoji { font-size: 15px; }
+  .ev-s { font-size: 13.5px; font-weight: 600; color: var(--dark); }
+  .ev-m { font-size: 11.5px; color: var(--mid); margin-top: 2px; }
+  .prov { font-size: 9px; font-weight: 800; letter-spacing: .03em; border-radius: 5px; padding: 2px 6px; flex: none; align-self: flex-start; }
+  .p-gmail { background: #E0F2FE; color: #0369A1; }
+  .p-prompt { background: #D1FAE5; color: #047857; }
+  .p-mem { background: var(--warn-bg); color: #92400E; }
+  .draft { background: var(--light); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-size: 13px; line-height: 1.55; color: var(--dark); white-space: pre-wrap; }
+  .stub { text-align: center; padding: 30px 20px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .stub .em { font-size: 32px; }
+  .stub h3 { font-size: 16px; font-weight: 800; color: var(--navy); margin: 0; }
+  .stub p { font-size: 13.5px; color: var(--mid); margin: 0; max-width: 34ch; line-height: 1.5; }
+
+  /* Tab bar */
+  .tabbar { display: flex; background: var(--white); border-top: 1px solid var(--border); flex: none; padding-bottom: 4px; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 2px 5px; font-size: 10px; font-weight: 700; color: #94A3B8; }
+  .tab .ti { font-size: 17px; line-height: 1; }
+  .tab[aria-current="page"] { color: var(--teal); }
+
+  /* Sheet + toast */
+  .sheet-wrap { position: absolute; inset: 0; background: rgba(15,23,42,.45); display: flex; align-items: flex-end; z-index: 20; }
+  .sheet { background: var(--white); width: 100%; border-radius: 18px 18px 0 0; padding: 18px 16px 22px; max-height: 82%; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .sheet h3 { font-size: 16.5px; font-weight: 800; color: var(--navy); margin: 0; }
+  .ladder { display: flex; flex-direction: column; gap: 4px; }
+  .lrow { display: flex; align-items: center; gap: 9px; padding: 7px 9px; border-radius: 9px; font-size: 13px; }
+  .lrow.hit { background: #E0F2FE; }
+  .lrow.hit .lname { color: #0369A1; font-weight: 800; }
+  .lnum { width: 20px; height: 20px; border-radius: 999px; background: #F1F5F9; color: var(--mid); font-size: 10.5px; font-weight: 800; display: grid; place-items: center; flex: none; }
+  .lrow.hit .lnum { background: #0369A1; color: #FFF; }
+  .lname { flex: 1; color: var(--dark); }
+  .lstate { font-size: 11px; color: #94A3B8; }
+  .toast { position: absolute; left: 14px; right: 14px; bottom: 74px; background: var(--navy); color: #FFF; border-radius: 12px; padding: 11px 14px; font-size: 13.5px; font-weight: 600; z-index: 30; box-shadow: 0 8px 24px rgba(0,0,0,.28); }
+
+  .caption { font-size: .8rem; color: var(--studio-mid); text-align: center; padding: 14px 10px 0; line-height: 1.5; }
+  .caption b { color: var(--studio-ink); }
+  @media (prefers-reduced-motion: no-preference) {
+    .onething, .results, .layer-body, .toast { animation: rise .18s ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="harness">
+  <div class="h-head">
+    <p class="h-eyebrow">Home redesign · concept A · clickable prototype</p>
+    <h1 class="h-title">The Next Right Thing</h1>
+    <p class="h-sub">A working model of the one-card Home — <b>tap anything.</b> Switch days below to see the same design under different pressure.</p>
+  </div>
+
+  <div class="scenarios" role="group" aria-label="Choose a day">
+    <button class="scn" data-scn="reply" aria-pressed="true">A reply arrived</button>
+    <button class="scn" data-scn="heavy" aria-pressed="false">Heavy morning</button>
+    <button class="scn" data-scn="quiet" aria-pressed="false">Quiet day</button>
+    <button class="scn" data-scn="dayone" aria-pressed="false">Day one</button>
+  </div>
+  <p class="scn-note" id="scnNote"></p>
+
+  <div class="phone">
+    <div class="screen">
+      <div class="statusbar"><span>9:41</span><span>Waypoint prototype</span></div>
+      <div class="viewport" id="viewport"></div>
+      <nav class="tabbar" id="tabbar"></nav>
+      <div id="overlay"></div>
+    </div>
+  </div>
+
+  <p class="caption">Prototype only — no real data, nothing sends. Colors and type come from <b>waypoint-app/src/lib/theme.ts</b>; the tools and doors are the live catalog you shipped in hybrid v2.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ───────────────── The priority ladder (the engine's contract) ───────────────── */
+  const LADDER = [
+    { cls: 'resume',   name: 'Unfinished work you left' },
+    { cls: 'crisis',   name: 'Something you told us happened today' },
+    { cls: 'overdue',  name: 'A legal deadline that has passed' },
+    { cls: 'reply',    name: 'An agency replied and is waiting on you' },
+    { cls: 'today',    name: 'Something happening today' },
+    { cls: 'clock',    name: 'A clock inside its warning window' },
+    { cls: 'question', name: 'One question we need answered' },
+    { cls: 'op',       name: 'One verified thing you may be owed' }
+  ];
+  const RANK = Object.fromEntries(LADDER.map((l, i) => [l.cls, i]));
+  const KICKER_CLASS = { resume: 'k-resume', crisis: 'k-overdue', overdue: 'k-overdue', reply: 'k-reply', today: 'k-today', clock: 'k-today', question: 'k-question', op: 'k-op' };
+
+  /* ───────────────── Tools — the live hybrid-v2 catalog ───────────────── */
+  const ACTIONS = [
+    { key: 'letters', icon: '✉️', label: 'Letters', desc: 'Ask in writing — we write it with you. Said no on the phone? Start here.', terms: 'letter request appeal they said no denied refuse no carta write ask writing' },
+    { key: 'requests', icon: '⏱', label: 'Requests & Deadlines', desc: 'Every ask, tracked against its legal deadline', terms: 'deadline clock waiting no answer overdue tracker request status' },
+    { key: 'trail', icon: '🗂', label: 'Sent & Received', desc: 'Every email and reply, dated — your receipts', terms: 'paper trail email reply sent record proof receipts log a call log call meeting note' }
+  ];
+  const DOORS = [
+    { key: 'understand', icon: '🧭', tint: '#EDF0F7', title: 'Understand the system', contents: 'Regional Center · School (IEP) · Transition & 18', tools: [
+      { key: 'process_rc', icon: '🧭', label: 'How the Regional Center works', desc: 'Every step, its legal deadline, and the letter that moves it', terms: 'regional center ipp lanterman escalation rc' },
+      { key: 'process_school', icon: '🏫', label: 'How the school system works', desc: 'From evaluation to IEP to checking the data', terms: 'school iep district evaluation 504' },
+      { key: 'journey', icon: '🗺', label: 'The journey, age by age', desc: 'The road ahead — including transition and turning 18', terms: 'journey transition turning 18 adult ages resource stack' },
+      { key: 'eligibility', icon: '✅', label: 'What your child likely qualifies for', desc: 'Your eligibility result, with sources', terms: 'qualify eligible result eligibility' },
+      { key: 'agencies', icon: '🏢', label: 'Agencies & contacts', desc: 'Who does what — and how to reach them', terms: 'agency contact phone who number call' }
+    ]},
+    { key: 'money', icon: '💰', tint: '#E6F7F1', title: 'Money & benefits', contents: 'Diapers & equipment · Respite money · Medi-Cal & IHSS', tools: [
+      { key: 'rc_funding', icon: '💰', label: 'What the Regional Center can fund', desc: 'Diapers, equipment, respite, camps — money most families miss', terms: 'diapers stroller equipment respite camp gear reimburse funding money' },
+      { key: 'benefits', icon: '📚', label: 'Medi-Cal, IHSS & the benefits stack', desc: 'Each benefit unlocks the next — see which ones you have', terms: 'medi-cal medical ihss ssi benefits deeming' },
+      { key: 'insurance', icon: '🛡', label: 'Insurance', desc: 'Authorizations and appeals', terms: 'insurance authorization denial appeal' },
+      { key: 'expenses', icon: '🧾', label: 'Expenses & tax report', desc: 'Track spending; the yearly medical-deduction report', terms: 'expense tax spending receipts deduction' }
+    ]},
+    { key: 'records', icon: '📁', tint: '#FFF1E7', title: "Teddy's records", contents: 'Documents · IEP · Health · Care team', tools: [
+      { key: 'documents', icon: '📁', label: 'Documents', desc: 'The IPP, the IEP, assessments — analyzed for you', terms: 'document upload ipp file report' },
+      { key: 'iep_hub', icon: '🎓', label: 'IEP goals & timeline', desc: 'Goals, minutes, and the meetings ahead', terms: 'iep goals meeting minutes' },
+      { key: 'health', icon: '🩺', label: 'Health records', desc: 'Diagnoses, medications, visits', terms: 'health medical diagnosis medication' },
+      { key: 'care_team', icon: '🧑‍⚕️', label: 'Care team & services', desc: 'Providers and the services they deliver', terms: 'provider therapist service care team' }
+    ]},
+    { key: 'more', icon: '⋯', tint: '#EFF6FF', title: 'Everything else', contents: 'Resources · Blog · Family · Insights · more', tools: [
+      { key: 'resources', icon: '📖', label: 'Resource library', desc: 'Guides and knowledge base', terms: 'resource guide library' },
+      { key: 'email_check', icon: '🔍', label: 'Email analyzer', desc: "Paste any agency email — we'll read between the lines", terms: 'analyze email read' },
+      { key: 'services', icon: '📊', label: 'Services', desc: 'Hours authorized vs delivered', terms: 'services hours authorized delivered' },
+      { key: 'insights', icon: '📈', label: 'Insights', desc: 'Patterns across your requests and spending', terms: 'insights stats patterns' },
+      { key: 'family', icon: '👨‍👩‍👧', label: 'Family sharing', desc: 'Give a co-parent or advocate access', terms: 'family share access co-parent advocate' },
+      { key: 'premium', icon: '⭐', label: 'Premium', desc: 'What free includes, what Premium adds', terms: 'premium price upgrade cost' }
+    ]}
+  ];
+  const ALL_TOOLS = ACTIONS.concat(DOORS.flatMap(d => d.tools));
+  const CRISIS_WORDS = ['school called', 'suspended', 'suspension', 'expelled', 'police', 'restraint', 'restrained', 'injury', 'hurt', 'hospital', 'crisis', 'emergency', 'called the police', 'seclusion'];
+
+  /* ───────────────── Scenarios ───────────────── */
+  const SCENARIOS = {
+    reply: {
+      note: 'The most common event day. Waypoint pulled the reply from Gmail overnight and pushed once — <b>the push is the patrol.</b> Tap the card, then try “Not today” to see what was ranked behind it.',
+      greeting: 'Good evening, Maria', since: 'Since Tuesday: <b>1 new</b> — Lilia Talavera replied.',
+      initial: 'M', child: 'Teddy',
+      items: [
+        { id: 'r1', cls: 'reply', kicker: 'New reply — received yesterday, Aug 28',
+          title: "Lilia replied about Teddy's standing frame",
+          why: 'Because it arrived from Lilia\'s email yesterday and the ball is in your court. <b>Nothing sends until you press Send.</b>',
+          cta: "Read Lilia's reply", go: 'case', defer: 'Back tomorrow morning' },
+        { id: 'r2', cls: 'clock', kicker: 'Clock running — 6 days left',
+          title: 'The district owes an assessment plan by Sep 12',
+          why: 'Because you asked on Aug 28 and the law gives them 15 calendar days.', cite: 'Ed Code §56321',
+          cta: 'See the request', go: 'requests', defer: 'Back in 3 days' },
+        { id: 'r3', cls: 'op', kicker: 'Worth checking — 2 minutes',
+          title: 'Teddy may qualify for respite hours you are not using',
+          why: 'Because you told us Teddy has a Regional Center case and no respite on record. The first step is a friendly written request to your Service Coordinator.',
+          cta: 'See what respite covers', go: 'tool:rc_funding', defer: 'Back next week' }
+      ],
+      week: [{ d: 'Tue Sep 2', t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' }, { d: 'Thu Sep 4', t: 'Insurance appeal window closes', s: 'Waypoint' }],
+      waiting: [{ t: 'IEP evaluation — assessment plan due Sep 12', s: 'Ed Code §56321' }, { t: 'Standing frame — waiting on RCEB since Aug 12', s: 'no legal clock' }],
+      badges: { requests: { text: '1 new reply', cls: 'b-info' }, trail: null }
+    },
+    heavy: {
+      note: 'Three things are live at once. The card never stacks them — it ranks them. <b>Tap “Not today” twice</b> and watch the queue advance in place, then open Later to undo a skip.',
+      greeting: 'Good morning, Maria', since: 'Since yesterday: <b>2 changes</b> — a clock passed, and an appointment moved.',
+      initial: 'M', child: 'Teddy',
+      items: [
+        { id: 'h0', cls: 'resume', kicker: 'You stopped partway — 2 of 3 answers saved',
+          title: 'Finish the letter you started Tuesday',
+          why: 'Because your draft to RCEB is saved and unsent. Picking it up beats starting over.',
+          cta: 'Open the draft', go: 'letter', defer: 'Back tomorrow morning' },
+        { id: 'h1', cls: 'overdue', kicker: 'Deadline passed — day 41 of 30',
+          title: 'RCEB missed the deadline for your IPP meeting',
+          why: 'Because you asked on Jul 19 and the law gives them 30 days. A friendly follow-up citing the date usually moves things in days.', cite: 'W&I §4646.5(b)',
+          cta: 'Send the friendly follow-up', go: 'letter', defer: 'Back tomorrow morning' },
+        { id: 'h2', cls: 'today', kicker: 'Today — 3:00 PM',
+          title: 'OT session for Teddy at Bay Pediatric Therapy',
+          why: 'Because it is on the calendar you connected, today.',
+          cta: 'See today', go: 'calendar', defer: 'Back tomorrow morning' },
+        { id: 'h3', cls: 'question', kicker: 'A question — 20 seconds',
+          title: 'Does Teddy have an IEP in place right now?',
+          why: 'Your answer decides which deadline Waypoint watches next. “Not sure” is fine.',
+          answers: ['Yes, he has one', 'No, not yet', "I'm not sure"],
+          resolved: { title: 'Then the district owes you an assessment plan', why: 'A written request starts a 15-day clock. We write it with you — friendly first.', cite: 'Ed Code §56321', cta: 'Write the request', go: 'letter' },
+          defer: 'Back next week' }
+      ],
+      week: [{ d: 'Today', t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' }, { d: 'Fri Sep 5', t: 'IPP meeting (if RCEB confirms)', s: 'Waypoint' }],
+      waiting: [{ t: 'IPP meeting — 11 days past the legal deadline', s: 'W&I §4646.5(b)' }, { t: 'Respite increase — no movement in 21 days', s: 'no legal clock' }],
+      badges: { requests: { text: '1 overdue', cls: 'b-danger' }, trail: null }
+    },
+    quiet: {
+      note: 'Nothing has a clock on it. This is the state most designs get wrong — Waypoint <b>says so plainly and gives permission to close the app</b>, instead of inventing a card to fill the space.',
+      greeting: 'Good morning, Maria', since: 'Since Tuesday: <b>nothing new.</b> The district owes a reply by Sep 12.',
+      initial: 'M', child: 'Teddy',
+      items: [],
+      calm: { title: 'Nothing has a clock on it today.', body: "Your school request is tracked — Waypoint will tell you if <b>Sep 12</b> passes without a reply. You can close the app.", foot: 'Gmail checked 6:32 AM · Calendar synced · deadlines stored on your phone' },
+      week: [{ d: 'Tue Sep 2', t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' }],
+      waiting: [{ t: 'IEP evaluation — assessment plan due Sep 12', s: 'Ed Code §56321' }],
+      preDeferred: [{ id: 'q1', title: 'IHSS eligibility check', ret: 'Returns Monday' }],
+      badges: { requests: { text: 'due Fri', cls: 'b-warn' }, trail: null }
+    },
+    dayone: {
+      note: 'Minute zero, straight out of onboarding — <b>no tutorial modal, no empty dashboard.</b> One question teaches the app by using it; answering flips the card in place to the first real step.',
+      greeting: 'Good evening, Maria', since: "Waypoint checked Teddy's basics.",
+      initial: 'M', child: 'Teddy',
+      items: [
+        { id: 'd1', cls: 'question', kicker: 'A question — 20 seconds',
+          title: 'Does Teddy already get Regional Center services?',
+          why: 'Your answer decides Waypoint\'s first step. Not sure is fine — most families are.',
+          answers: ['Yes, we have a case', 'No, not yet', "I'm not sure"],
+          resolved: { title: "Then Teddy's first step is an intake request to RCEB", why: 'A written request starts an enforceable clock: 120 days to an eligibility decision. We write it with you — friendly first, always.', cite: 'W&I §4643', cta: 'Write the request with me', go: 'letter' },
+          defer: 'Back tomorrow morning' }
+      ],
+      week: [], waiting: [],
+      badges: { requests: null, trail: null },
+      firstRun: true
+    }
+  };
+
+  /* ───────────────── State ───────────────── */
+  const LS = 'waypoint.proto.layer';
+  let S;
+  function readLayerPref() { try { return localStorage.getItem(LS) === '1'; } catch (e) { return false; } }
+  function writeLayerPref(v) { try { localStorage.setItem(LS, v ? '1' : '0'); } catch (e) {} }
+
+  function reset(name) {
+    const scn = SCENARIOS[name];
+    S = {
+      scn: name, data: scn, tab: 'home', stack: [],
+      deferred: {}, done: {}, answered: {}, sessionSkips: 0,
+      layer: readLayerPref(), door: null, query: '', sheet: null, toast: null
+    };
+    (scn.preDeferred || []).forEach(d => { S.deferred[d.id] = d.ret; });
+    if (scn.preDeferred) S.deferredExtra = scn.preDeferred;
+    render();
+  }
+
+  function topItem() {
+    const live = S.data.items.filter(i => !S.deferred[i.id] && !S.done[i.id]);
+    live.sort((a, b) => RANK[a.cls] - RANK[b.cls]);
+    return live[0] || null;
+  }
+  function laterList() {
+    const out = [];
+    S.data.items.forEach(i => { if (S.deferred[i.id]) out.push({ id: i.id, title: i.title, ret: S.deferred[i.id] }); });
+    (S.deferredExtra || []).forEach(d => { if (S.deferred[d.id]) out.push({ id: d.id, title: d.title, ret: d.ret }); });
+    return out;
+  }
+
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  function toast(msg) {
+    S.toast = msg; render();
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => { S.toast = null; render(); }, 2600);
+  }
+  function push(screen, params) { S.stack.push({ screen: screen, params: params || {} }); render(); scrollTop(); }
+  function pop() { S.stack.pop(); render(); }
+  function scrollTop() { const v = document.getElementById('viewport'); if (v) v.scrollTop = 0; }
+
+  /* ───────────────── Home ───────────────── */
+  function viewHome() {
+    const d = S.data;
+    const item = topItem();
+    const results = S.query.trim() ? searchTools(S.query) : null;
+    const crisis = S.query.trim() && CRISIS_WORDS.some(w => S.query.toLowerCase().includes(w));
+
+    let card;
+    if (item && item.answers && !S.answered[item.id]) card = questionCard(item);
+    else if (item && item.answers) card = resolvedCard(item);
+    else if (item) card = actionCard(item);
+    else card = calmCard();
+
+    return `
+      <div class="pad">
+        <div class="greet">
+          <div>
+            <h1>${d.greeting}</h1>
+            <p class="since">${d.since}</p>
+          </div>
+          <div class="avatar">${d.initial}</div>
+        </div>
+
+        ${card}
+
+        <div class="composer">
+          <span aria-hidden="true">🔎</span>
+          <input id="q" value="${esc(S.query)}" placeholder="School called? They said no? Something else — tell Waypoint." aria-label="Search or tell Waypoint what happened">
+          <span class="mic" aria-hidden="true">🎙</span>
+        </div>
+
+        <div id="below">${results ? searchPanel(results, crisis) : layerBlock()}</div>
+      </div>`;
+  }
+
+  /** The composer owns the keyboard: typing repaints only what sits below it. */
+  function renderBelow() {
+    const host = document.getElementById('below');
+    if (!host) return;
+    const q = S.query.trim();
+    const crisis = q && CRISIS_WORDS.some(w => S.query.toLowerCase().includes(w));
+    host.innerHTML = q ? searchPanel(searchTools(S.query), crisis) : layerBlock();
+  }
+
+  function actionCard(i) {
+    return `
+      <section class="onething">
+        <div class="ot-top">
+          <span class="kicker ${KICKER_CLASS[i.cls]}">${esc(i.kicker)}</span>
+          <button class="speaker" data-act="speak" aria-label="Read this card aloud">🔊</button>
+        </div>
+        <h2 class="ot-title">${esc(i.title)}</h2>
+        <p class="ot-why">${i.why}</p>
+        ${i.cite ? `<span class="cite">${esc(i.cite)} ›</span>` : ''}
+        <button class="btn-primary" data-act="do" data-id="${i.id}">${esc(i.cta)}</button>
+        <button class="btn-ghost" data-act="defer" data-id="${i.id}">Not today — show the next thing</button>
+        <button class="btn-ghost" data-act="why" style="padding-top:0;color:#94A3B8">How Waypoint decides what comes first</button>
+      </section>`;
+  }
+
+  function questionCard(i) {
+    return `
+      <section class="onething">
+        <div class="ot-top">
+          <span class="kicker k-question">${esc(i.kicker)}</span>
+          <button class="speaker" data-act="speak" aria-label="Read this card aloud">🔊</button>
+        </div>
+        <h2 class="ot-title">${esc(i.title)}</h2>
+        <p class="ot-why">${i.why}</p>
+        <div class="answers">
+          ${i.answers.map((a, n) => `<button data-act="answer" data-id="${i.id}" data-n="${n}">${esc(a)}</button>`).join('')}
+        </div>
+        <button class="btn-ghost" data-act="defer" data-id="${i.id}">Not today — show the next thing</button>
+      </section>`;
+  }
+
+  function resolvedCard(i) {
+    const r = i.resolved;
+    return `
+      <section class="onething">
+        <div class="ot-top">
+          <span class="kicker k-op">Because you told us: ${esc(S.answered[i.id])}</span>
+          <button class="speaker" data-act="speak" aria-label="Read this card aloud">🔊</button>
+        </div>
+        <h2 class="ot-title">${esc(r.title)}</h2>
+        <p class="ot-why">${r.why}</p>
+        ${r.cite ? `<span class="cite">${esc(r.cite)} ›</span>` : ''}
+        <button class="btn-primary" data-act="do" data-id="${i.id}">${esc(r.cta)}</button>
+        <button class="btn-ghost" data-act="defer" data-id="${i.id}">Not today — show the next thing</button>
+      </section>`;
+  }
+
+  function calmCard() {
+    // Only skips made in this session count — a request the family set aside
+    // last week is not "everything for today".
+    const skipped = S.sessionSkips > 0 && !Object.keys(S.done).length;
+    const foot = 'Gmail checked 6:32 AM · Calendar synced · deadlines stored on your phone';
+    // Honest about which quiet this is: finished, set aside, or genuinely clear.
+    const c = skipped
+      ? { title: "That's everything for today.",
+          body: 'The rest is set aside, not gone — it is listed below in <b>Later</b> with the day each one comes back, and Undo if you want it now.',
+          foot: foot }
+      : (Object.keys(S.done).length ? {
+          title: 'Done. That was the most important thing today.',
+          body: 'Nothing else has a clock on it. Waypoint keeps watching your open requests — you can close the app.',
+          foot: foot
+        } : (S.data.calm || {
+          title: 'Nothing has a clock on it today.',
+          body: 'Waypoint keeps watching your open requests — you can close the app.',
+          foot: foot
+        }));
+    return `
+      <section class="onething calm">
+        <span class="kicker k-calm">All quiet — checked today</span>
+        <h2 class="ot-title">${c.title}</h2>
+        <p class="ot-why">${c.body}</p>
+        <p class="meta" style="font-size:11.5px">${esc(c.foot)}</p>
+        <button class="btn-ghost" data-act="why" style="color:#94A3B8">How Waypoint decides what comes first</button>
+      </section>`;
+  }
+
+  function searchTools(q) {
+    const terms = q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').split(/\s+/).filter(Boolean);
+    return ALL_TOOLS.filter(t => {
+      const hay = (t.label + ' ' + t.desc + ' ' + t.terms).toLowerCase();
+      return terms.every(term => hay.indexOf(term) > -1);
+    });
+  }
+
+  function searchPanel(results, crisis) {
+    if (crisis) {
+      return `<div class="results">
+        <button class="res-row" data-act="crisis">
+          <span class="res-ico" style="background:#FEE2E2">🚨</span>
+          <span class="tbody"><span class="res-t">Something happened today</span><span class="res-d">Two questions, then your rights in this exact moment</span></span>
+          <span class="chev">›</span>
+        </button>
+        ${results.slice(0, 3).map(toolRow).join('')}
+      </div>`;
+    }
+    if (!results.length) {
+      return `<div class="results">
+        <button class="res-ask" data-act="ask">Nothing matched. Ask Waypoint this exactly → “${esc(S.query)}”</button>
+      </div>`;
+    }
+    return `<div class="results">
+      ${results.slice(0, 5).map(toolRow).join('')}
+      <button class="res-ask" data-act="ask">Not it? Ask Waypoint this exactly →</button>
+    </div>`;
+  }
+  function toolRow(t) {
+    return `<button class="res-row" data-act="tool" data-key="${t.key}">
+      <span class="res-ico">${t.icon}</span>
+      <span class="tbody"><span class="res-t">${esc(t.label)}</span><span class="res-d">${esc(t.desc)}</span></span>
+      <span class="chev">›</span>
+    </button>`;
+  }
+
+  function layerBlock() {
+    const d = S.data, later = laterList();
+    const counts = [];
+    if (d.week.length) counts.push(d.week.length + ' this week');
+    if (d.waiting.length) counts.push(d.waiting.length === 1 ? '1 waiting on an agency' : d.waiting.length + ' waiting on agencies');
+    counts.push('Tools');
+    const summary = d.firstRun && !d.week.length && !d.waiting.length
+      ? 'Everything else: Tools — explore when you\'re ready'
+      : 'Everything else: ' + counts.join(' · ');
+
+    if (!S.layer) {
+      return `<div class="layer"><button class="layer-head" data-act="layer"><span>${esc(summary)}</span><span class="chev">⌄</span></button></div>`;
+    }
+    return `<div class="layer">
+      <button class="layer-head" data-act="layer"><span>${esc(summary)}</span><span class="chev">⌃</span></button>
+      <div class="layer-body">
+        <div class="privacy"><span aria-hidden="true">🔒</span> Private to your family — never shared with any agency. Your records export any time.</div>
+
+        <div>
+          <div class="sec-label">This week</div>
+          ${d.week.length ? d.week.map(w => `<button class="line" data-act="stub" data-t="Calendar" data-b="Your full agenda lives in the Calendar tab — nothing about it changed."><span><b>${esc(w.d)}</b> · ${esc(w.t)}</span><span class="src">${esc(w.s)}</span></button>`).join('')
+            : '<p class="empty">Nothing scheduled yet.</p>'}
+        </div>
+
+        <div>
+          <div class="sec-label">Waiting on an agency</div>
+          ${d.waiting.length ? d.waiting.map(w => `<button class="line" data-act="go-case"><span>${esc(w.t)} ›</span><span class="src">${esc(w.s)}</span></button>`).join('')
+            : '<p class="empty">Nothing tracked yet — the card will offer your first request.</p>'}
+        </div>
+
+        <div>
+          <div class="sec-label">Later — set aside by you</div>
+          ${later.length ? later.map(l => `<div class="line"><span>${esc(l.title)}<br><span class="src">${esc(l.ret)}</span></span><button class="undo" data-act="undo" data-id="${l.id}">Undo</button></div>`).join('')
+            : '<p class="empty">Nothing set aside. Anything you skip lands here with its return date.</p>'}
+        </div>
+
+        <div>
+          <div class="sec-label">Contacts</div>
+          <div class="line" style="align-items:center">
+            <span><b>Regional Center of the East Bay</b></span>
+            <span style="display:flex;gap:6px;flex:none">
+              <button class="badge b-info" style="padding:5px 11px" data-act="stub" data-t="Calling RCEB" data-b="On a real phone this dials (510) 618-6100 straight away. Every number in Waypoint is a tap-to-call link.">📞 Call</button>
+              <button class="badge b-warn" style="padding:5px 11px" data-act="go-letter">✉️ Write</button>
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <div class="sec-label">Tools</div>
+          <div class="tools">
+            ${ACTIONS.map(a => {
+              const b = (S.data.badges || {})[a.key === 'trail' ? 'trail' : a.key];
+              return `<button class="trow" data-act="tool" data-key="${a.key}">
+                <span class="tico">${a.icon}</span>
+                <span class="tbody"><span class="ttitle">${esc(a.label)}${b ? `<span class="badge ${b.cls}">${esc(b.text)}</span>` : ''}</span><span class="tdesc">${esc(a.desc)}</span></span>
+                <span class="chev">›</span>
+              </button>`;
+            }).join('')}
+          </div>
+          <div class="tools" style="margin-top:8px">
+            ${DOORS.map(dr => `
+              <button class="trow" data-act="door" data-key="${dr.key}">
+                <span class="tico" style="background:${dr.tint}">${dr.icon}</span>
+                <span class="tbody"><span class="ttitle">${esc(dr.title)}</span><span class="tdesc">${esc(dr.contents)}</span></span>
+                <span class="chev">${S.door === dr.key ? '⌃' : '⌄'}</span>
+              </button>
+              ${S.door === dr.key ? `<div class="door-body">${dr.tools.map(t => `
+                <button class="trow" data-act="tool" data-key="${t.key}">
+                  <span class="tbody"><span class="ttitle">${esc(t.label)}</span><span class="tdesc">${esc(t.desc)}</span></span>
+                  <span class="chev">›</span>
+                </button>`).join('')}</div>` : ''}
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ───────────────── Detail screens ───────────────── */
+  function viewCase() {
+    return `
+      <div class="pad">
+        <div class="card" style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+            <div><h2 class="h2">Standing frame for Teddy</h2><p class="meta" style="margin:2px 0 0">Service request · Regional Center</p></div>
+            <span class="badge b-warn" style="padding:4px 10px">In progress</span>
+          </div>
+          <p class="meta">Asked by phone <b>Aug 12</b> · logged in Waypoint Aug 12</p>
+          <div class="chip-clock c-run">⏱ No statutory clock on this one — your written record is the pressure</div>
+          <div class="rungs">
+            <span class="rung on">1</span><span class="rung-line on"></span>
+            <span class="rung on cur">2</span><span class="rung-line"></span>
+            <span class="rung">3</span>
+          </div>
+          <div style="display:flex;gap:22px"><span class="rung-lbl">Ask</span><span class="rung-lbl cur">Follow up</span><span class="rung-lbl">Formal</span></div>
+        </div>
+
+        <div class="card" style="border-color:#2563EB;background:#F0F9FF;display:flex;flex-direction:column;gap:9px">
+          <div style="font-size:14.5px;font-weight:800;color:var(--navy)">💬 They replied — the ball is in your court</div>
+          <div style="font-size:13.5px">“Re: Standing frame request — we can look at this at the next IPP…”</div>
+          <button class="btn-primary" data-act="draft">✨ Read it &amp; draft your response</button>
+        </div>
+
+        <div>
+          <div class="sec-label" style="padding:0 2px 4px">Your record so far</div>
+          <div class="card">
+            <div class="ev"><span class="ev-emoji">📞</span><span class="tbody"><span class="ev-s">Called Lilia about the standing frame</span><span class="ev-m">Aug 12, 2026 · Regional Center</span></span><span class="prov p-prompt">Logged promptly</span></div>
+            <div class="ev"><span class="ev-emoji">✉️</span><span class="tbody"><span class="ev-s">Sent: Request for a standing frame assessment</span><span class="ev-m">Aug 26, 2026 · Regional Center</span></span><span class="prov p-gmail">Gmail · dated</span></div>
+            <div class="ev"><span class="ev-emoji">📥</span><span class="tbody"><span class="ev-s">Re: Request for a standing frame assessment</span><span class="ev-m">Aug 28, 2026 · received</span></span><span class="prov p-gmail">Gmail · dated</span></div>
+          </div>
+        </div>
+        <p class="meta" style="padding:0 2px">This is the Request Case File — already built and shipped. The new Home simply hands off to it.</p>
+        <button class="btn-outline" data-act="home">Back to Home</button>
+      </div>`;
+  }
+
+  function viewDraft() {
+    return `
+      <div class="pad">
+        <p class="meta">Waypoint read the thread and proposed this. Edit anything — <b>nothing sends until you press Send.</b></p>
+        <div class="draft">Hi Lilia,
+
+Thank you for getting back to me about Teddy's standing frame.
+
+Rather than wait for the next IPP, could we start the assessment now? Teddy's PT recommended it in June, and each month without it costs him standing time.
+
+Could you let me know by Friday what the assessment needs? Happy to gather anything on my end.
+
+Thank you for your help,
+Maria</div>
+        <div class="card" style="display:flex;gap:8px;align-items:center;background:var(--warn-bg);border-color:#E9C983">
+          <span>🤝</span><span style="font-size:12.5px;color:#92600A">Friendly first. If this goes unanswered, Waypoint offers the firmer follow-up — not before.</span>
+        </div>
+        <button class="btn-primary" data-act="sent">Send it</button>
+        <button class="btn-ghost" data-act="back">Keep editing later</button>
+      </div>`;
+  }
+
+  function viewLetter() {
+    return `
+      <div class="pad">
+        <p class="meta">Letters · friendly follow-up</p>
+        <div class="draft">Dear Regional Center of the East Bay,
+
+On July 19 I requested an IPP meeting for my son Teddy. Welfare &amp; Institutions Code §4646.5(b) asks that the meeting be held within 30 days of that request.
+
+I have not yet heard back, so I wanted to check in and ask when we can get it scheduled. If something is missing on my end, please let me know and I will send it right away.
+
+Thank you for your help,
+Maria</div>
+        <div class="card" style="display:flex;gap:8px;align-items:center;background:var(--ok-bg);border-color:#A7D9C9">
+          <span>⏱</span><span style="font-size:12.5px;color:#0F7B5F">When you send it, Waypoint tracks the clock and files it on this request's case record.</span>
+        </div>
+        <button class="btn-primary" data-act="sent">Send it</button>
+        <button class="btn-ghost" data-act="back">Not yet — go back</button>
+      </div>`;
+  }
+
+  function viewCrisis() {
+    return `
+      <div class="pad">
+        <div class="card" style="border-color:#DC2626;background:#FEF2F2">
+          <div style="font-size:15px;font-weight:800;color:#991B1B">Something happened today</div>
+          <p style="font-size:13.5px;color:#7F1D1D;margin:6px 0 0">Two questions, then exactly what you can ask for today. No lecture, no reading.</p>
+        </div>
+        <div class="card"><div style="font-size:14.5px;font-weight:700;color:var(--navy)">1 · Was Teddy sent home or kept out of class?</div>
+          <div class="answers" style="margin-top:10px"><button>Yes</button><button>No</button></div></div>
+        <div class="card"><div style="font-size:14.5px;font-weight:700;color:var(--navy)">2 · Did anyone mention a suspension?</div>
+          <div class="answers" style="margin-top:10px"><button>Yes</button><button>Not sure</button></div></div>
+        <p class="meta">In the real app your answers produce your rights for this exact moment — and the friendly email that puts today on the record before memories fade.</p>
+        <button class="btn-outline" data-act="home">Back to Home</button>
+      </div>`;
+  }
+
+  function viewAsk() {
+    return `
+      <div class="pad">
+        <p class="meta">Ask Waypoint · your words, carried over</p>
+        <div class="card" style="background:#EEF2F7;border:none"><div style="font-size:14px;color:var(--navy)">“${esc(S.stack[S.stack.length - 1].params.q || '')}”</div></div>
+        <div class="card" style="display:flex;gap:9px">
+          <span style="font-size:16px">🧭</span>
+          <div style="font-size:13.5px;line-height:1.55">The Navigator answers here, knowing Teddy's age, his Regional Center, and every request you have open — <b>the exact words you typed are never thrown away.</b> This is the same thread as the Ask AI tab.</div>
+        </div>
+        <p class="meta">Today, an unmatched search dead-ends on “Nothing found.” That was one of the ten confirmed audit failures.</p>
+        <button class="btn-outline" data-act="home">Back to Home</button>
+      </div>`;
+  }
+
+  function viewStub(p) {
+    return `<div class="pad"><div class="stub">
+      <div class="em">${esc(p.em || '🧭')}</div>
+      <h3>${esc(p.t)}</h3>
+      <p>${esc(p.b)}</p>
+    </div>
+    <button class="btn-outline" data-act="home">Back to Home</button></div>`;
+  }
+
+  function viewTab() {
+    const map = {
+      ask: { em: '💬', t: 'Ask Waypoint', b: 'The AI Navigator, unchanged. Home conversations continue here — same thread, same engine.' },
+      actions: { em: '✅', t: 'Your action plan', b: 'Every step, with progress. This is where the progress ring lives now — off Home, where a 0% ring used to greet newcomers with guilt.' },
+      calendar: { em: '📅', t: 'Calendar & expenses', b: 'The full agenda, every source, plus expenses and the tax report. Home shows only what is due; the depth lives here, unchanged.' },
+      profile: { em: '👤', t: 'Teddy & your family', b: 'Children, agencies, language, sharing. Reached from the avatar on Home or this tab — exactly as today.' }
+    };
+    return viewStub(map[S.tab]);
+  }
+
+  /* ───────────────── Chrome ───────────────── */
+  function tabbar() {
+    const tabs = [['home', '🏠', 'Home'], ['ask', '💬', 'Ask AI'], ['actions', '✅', 'Actions'], ['calendar', '📅', 'Calendar'], ['profile', '👤', 'Profile']];
+    return tabs.map(t => `<button class="tab" data-act="tab" data-key="${t[0]}" ${S.tab === t[0] && !S.stack.length ? 'aria-current="page"' : ''}>
+      <span class="ti" aria-hidden="true">${t[1]}</span><span>${t[2]}</span></button>`).join('');
+  }
+
+  function sheetHTML() {
+    const item = topItem();
+    const hit = item ? item.cls : null;
+    return `<div class="sheet-wrap" data-act="closesheet"><div class="sheet" data-stop="1">
+      <h3>How Waypoint decides what comes first</h3>
+      <p style="font-size:13.5px;color:#475569;margin:0">One published order, the same every day. Waypoint shows the highest thing that is true right now — never a guess about what you care about.</p>
+      <div class="ladder">
+        ${LADDER.map((l, i) => {
+          const mine = S.data.items.filter(x => x.cls === l.cls);
+          let state = '—';
+          if (l.cls === hit) state = 'showing now';
+          else if (mine.some(x => S.done[x.id])) state = 'done today';
+          else if (mine.some(x => S.deferred[x.id])) state = 'set aside';
+          else if (mine.length) state = 'in the queue';
+          return `<div class="lrow ${l.cls === hit ? 'hit' : ''}">
+            <span class="lnum">${i + 1}</span>
+            <span class="lname">${esc(l.name)}</span>
+            <span class="lstate">${state}</span>
+          </div>`;
+        }).join('')}
+        <div class="lrow ${!item ? 'hit' : ''}"><span class="lnum">✓</span><span class="lname">Nothing time-bound — the calm state</span><span class="lstate">${!item ? 'showing now' : '—'}</span></div>
+      </div>
+      <button class="btn-outline" data-act="closesheet">Got it</button>
+    </div></div>`;
+  }
+
+  /* ───────────────── Render ───────────────── */
+  function render() {
+    const vp = document.getElementById('viewport');
+    const top = S.stack[S.stack.length - 1];
+    let body, nav = '';
+
+    if (!top) {
+      body = S.tab === 'home' ? viewHome() : viewTab();
+    } else {
+      const titles = { case: 'Case file', draft: 'Draft a reply', letter: 'Letters', crisis: 'Right now', ask: 'Ask Waypoint', stub: top.params.t || '' };
+      nav = `<div class="navbar"><button class="back" data-act="back">‹ Back</button><span class="nav-t">${esc(titles[top.screen] || '')}</span></div>`;
+      body = top.screen === 'case' ? viewCase()
+           : top.screen === 'draft' ? viewDraft()
+           : top.screen === 'letter' ? viewLetter()
+           : top.screen === 'crisis' ? viewCrisis()
+           : top.screen === 'ask' ? viewAsk()
+           : viewStub(top.params);
+    }
+
+    vp.innerHTML = nav + body;
+    document.getElementById('tabbar').innerHTML = tabbar();
+    document.getElementById('overlay').innerHTML =
+      (S.sheet ? sheetHTML() : '') + (S.toast ? `<div class="toast">${esc(S.toast)}</div>` : '');
+    document.getElementById('scnNote').innerHTML = S.data.note;
+  }
+
+  /* ───────────────── Events ───────────────── */
+  document.addEventListener('click', function (e) {
+    const scn = e.target.closest('.scn');
+    if (scn) {
+      document.querySelectorAll('.scn').forEach(b => b.setAttribute('aria-pressed', String(b === scn)));
+      reset(scn.dataset.scn);
+      return;
+    }
+    const el = e.target.closest('[data-act]');
+    if (!el) return;
+    if (el.dataset.stop) return;
+    const act = el.dataset.act, id = el.dataset.id;
+
+    if (act === 'defer') {
+      const item = S.data.items.find(i => i.id === id);
+      S.deferred[id] = item.defer || 'Back tomorrow';
+      S.sessionSkips++;
+      render();
+      toast('Set aside — ' + (item.defer || 'back tomorrow') + '. It is in Later, with Undo.');
+      return;
+    }
+    if (act === 'undo') {
+      delete S.deferred[id]; render(); toast('Back in the queue.'); return;
+    }
+    if (act === 'answer') {
+      const item = S.data.items.find(i => i.id === id);
+      S.answered[id] = item.answers[+el.dataset.n].toLowerCase();
+      render(); return;
+    }
+    if (act === 'do') {
+      const item = S.data.items.find(i => i.id === id);
+      const go = (S.answered[id] && item.resolved) ? item.resolved.go : item.go;
+      S.pendingDone = id;
+      if (go === 'case') push('case');
+      else if (go === 'letter') push('letter');
+      else if (go === 'requests') push('stub', { em: '⏱', t: 'Requests & Deadlines', b: 'Every ask you have in flight, against its legal clock. Tapping one opens its case file.' });
+      else if (go === 'calendar') { S.stack = []; S.tab = 'calendar'; render(); }
+      else if (go && go.indexOf('tool:') === 0) openTool(go.slice(5));
+      return;
+    }
+    if (act === 'draft') { push('draft'); return; }
+    if (act === 'sent') {
+      if (S.pendingDone) { S.done[S.pendingDone] = true; S.pendingDone = null; }
+      S.stack = []; render();
+      toast('Sent — filed on the case record. 🎉');
+      return;
+    }
+    if (act === 'go-case') { push('case'); return; }
+    if (act === 'go-letter') { push('letter'); return; }
+    if (act === 'crisis') { push('crisis'); return; }
+    if (act === 'ask') { push('ask', { q: S.query }); return; }
+    if (act === 'tool') { openTool(el.dataset.key); return; }
+    if (act === 'stub') { push('stub', { t: el.dataset.t, b: el.dataset.b, em: '🧭' }); return; }
+    if (act === 'door') { S.door = S.door === el.dataset.key ? null : el.dataset.key; render(); return; }
+    if (act === 'layer') { S.layer = !S.layer; writeLayerPref(S.layer); render(); return; }
+    if (act === 'why') { S.sheet = true; render(); return; }
+    if (act === 'closesheet') { S.sheet = null; render(); return; }
+    if (act === 'back') { pop(); return; }
+    if (act === 'home') { S.stack = []; S.tab = 'home'; render(); scrollTop(); return; }
+    if (act === 'tab') { S.stack = []; S.tab = el.dataset.key; render(); scrollTop(); return; }
+    if (act === 'speak') { toast('🔊 Reading the card aloud — every card is speakable.'); return; }
+  });
+
+  function openTool(key) {
+    const t = ALL_TOOLS.find(x => x.key === key);
+    if (!t) return;
+    if (key === 'letters') { push('letter'); return; }
+    if (key === 'requests') { push('stub', { em: '⏱', t: 'Requests & Deadlines', b: 'Every ask you have in flight, against its legal clock. Tapping one opens its case file.' }); return; }
+    if (key === 'trail') { push('stub', { em: '🗂', t: 'Sent & Received', b: 'Every letter, call and reply, dated, with how each one was recorded. Your receipts.' }); return; }
+    push('stub', { em: t.icon, t: t.label, b: t.desc + ' — this screen already exists in Waypoint today, unchanged by the redesign.' });
+  }
+
+  document.addEventListener('input', function (e) {
+    if (e.target.id !== 'q') return;
+    S.query = e.target.value;
+    renderBelow();
+  });
+
+  reset('reply');
+})();
+</script>
