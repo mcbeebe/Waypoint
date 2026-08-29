@@ -26,6 +26,16 @@ describe('deriveHomeInsight', () => {
     const i = deriveHomeInsight(input({ rcStatus: 'applied' }));
     expect(i?.key).toBe('rc_clock');
     expect(i?.target.screen).toBe('RequestTracker');
+    expect(i?.body).toContain('120 days');
+    expect(i?.citation).toBe('W&I §4643');
+  });
+
+  it('an applied family with an under-3 child gets the 45-day Early Start clock, never 120', () => {
+    const i = deriveHomeInsight(input({ rcStatus: 'applied', ageYears: 1 }));
+    expect(i?.key).toBe('rc_clock');
+    expect(i?.body).toContain('45 days');
+    expect(i?.body).not.toContain('120');
+    expect(i?.citation).toBe('34 CFR §303.310 · Early Start');
   });
 
   it('diagnosed but not applied → the RC entitlement', () => {
