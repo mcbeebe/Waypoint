@@ -171,7 +171,12 @@ classes and the layer's true-count summary line carry that load.
   cheapest deflection from paid AI calls. *Actions and Calendar merge into
   Plan* — tasks and dates were never two questions, the card queue already
   surfaces the urgent plan items, and Expenses/Tax move to Tools → Money
-  where the catalog already listed them.
+  where the catalog already listed them. **The full calendar survives the
+  merge:** Plan carries a List / Month switch, and Month is a real grid —
+  opening on the month holding your next item, today marked, appointment
+  and legal-deadline dots distinguished, tap-a-day detail, month nav and a
+  Today jump. Waypoint's own deadlines sit beside the connected calendar,
+  never instead of it.
 - **Why four and not five:** with no users yet, take the reversible option.
   Four keeps the fifth slot free, so Learn can be promoted on evidence
   (high library engagement, low ask volume) instead of taste — and removing

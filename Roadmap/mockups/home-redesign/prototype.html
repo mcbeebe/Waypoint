@@ -174,6 +174,26 @@
   .door-body { background: var(--light); }
   .door-body .trow { padding-left: 32px; }
 
+  .seg { display: flex; background: #EBEFF4; border-radius: 11px; padding: 3px; gap: 3px; }
+  .seg button { flex: 1; text-align: center; border-radius: 9px; padding: 8px 4px; font-size: 13px; font-weight: 700; color: var(--mid); }
+  .seg button[aria-pressed="true"] { background: var(--white); color: var(--navy); box-shadow: 0 1px 3px rgba(15,23,42,.10); }
+  .calhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .calnav { width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; background: #F1F5F9; color: var(--navy); font-size: 16px; font-weight: 800; }
+  .calnav[disabled] { opacity: .35; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .dow { text-align: center; font-size: 9.5px; font-weight: 800; color: var(--mid); padding: 2px 0 4px; }
+  .day { aspect-ratio: 1 / 1; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12.5px; color: var(--dark); background: var(--white); border: 1.5px solid transparent; }
+  .day.out { background: none; }
+  .day.today { border-color: var(--teal); font-weight: 800; color: var(--navy); }
+  .day.sel { background: var(--navy); color: var(--white); }
+  .dots { display: flex; gap: 2px; height: 5px; align-items: center; }
+  .dot { width: 5px; height: 5px; border-radius: 999px; background: var(--teal); display: inline-block; }
+  .dot.dl { background: var(--danger); }
+  .day.sel .dot { background: var(--white); }
+  .callegend { display: flex; align-items: center; gap: 12px; margin-top: 9px; font-size: 11px; color: var(--mid); }
+  .callegend span { display: flex; align-items: center; gap: 5px; }
+  .callegend .editlink { margin-left: auto; }
+
   .statusline { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
     background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
     font-size: 13px; font-weight: 600; color: var(--dark); }
@@ -448,6 +468,12 @@
       week: [{ d: 'Tue Sep 2', t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' }, { d: 'Thu Sep 4', t: 'Insurance appeal window closes', s: 'Waypoint' }],
       waiting: [{ t: 'IEP evaluation — assessment plan due Sep 12', s: 'Ed Code §56321' }, { t: 'Standing frame — waiting on RCEB since Aug 12', s: 'no legal clock' }],
       plan: [{ t: "Gather Teddy's PT notes for the standing-frame file", d: false }, { t: 'Ask the school for the last progress data', d: false }, { t: 'Log the June call with Lilia', d: true }],
+      cal: [
+        { m: 8, d: 2, t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' },
+        { m: 8, d: 4, t: 'Insurance appeal window closes', s: 'Waypoint' },
+        { m: 8, d: 12, t: 'Assessment plan due from the district', s: 'Ed Code §56321', dl: true },
+        { m: 7, d: 28, t: 'Lilia replied about the standing frame', s: 'Gmail' }
+      ],
       badges: { requests: { text: '1 new reply', cls: 'b-info' }, trail: null }
     },
     heavy: {
@@ -477,6 +503,11 @@
       week: [{ d: 'Today', t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' }, { d: 'Fri Sep 5', t: 'IPP meeting (if RCEB confirms)', s: 'Waypoint' }],
       waiting: [{ t: 'IPP meeting — 11 days past the legal deadline', s: 'W&I §4646.5(b)' }, { t: 'Respite increase — no movement in 21 days', s: 'no legal clock' }],
       plan: [{ t: 'Finish the follow-up letter to RCEB', d: false }, { t: 'Bring the IPP binder to Friday', d: false }, { t: 'Send the school your consent form', d: true }],
+      cal: [
+        { m: 7, d: 29, t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' },
+        { m: 7, d: 18, t: 'IPP meeting was due — 30-day clock', s: 'W&I §4646.5(b)', dl: true },
+        { m: 8, d: 5, t: 'IPP meeting (if RCEB confirms)', s: 'Waypoint' }
+      ],
       badges: { requests: { text: '1 overdue', cls: 'b-danger' }, trail: null }
     },
     quiet: {
@@ -488,6 +519,10 @@
       week: [{ d: 'Tue Sep 2', t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' }],
       waiting: [{ t: 'IEP evaluation — assessment plan due Sep 12', s: 'Ed Code §56321' }],
       plan: [{ t: 'Upload the IPP so Waypoint can read it', d: false }, { t: 'Add Teddy’s OT to your care team', d: true }],
+      cal: [
+        { m: 8, d: 2, t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' },
+        { m: 8, d: 12, t: 'Assessment plan due from the district', s: 'Ed Code §56321', dl: true }
+      ],
       preDeferred: [{ id: 'q1', title: 'IHSS eligibility check', ret: 'Returns Monday' }],
       badges: { requests: { text: 'due Fri', cls: 'b-warn' }, trail: null }
     },
@@ -503,7 +538,7 @@
           resolved: { title: "Then Teddy's first step is an intake request to RCEB", why: 'A written request starts an enforceable clock: 120 days to an eligibility decision. We write it with you — friendly first, always.', cite: 'W&I §4643', cta: 'Write the request with me', go: 'letter' },
           defer: 'Back tomorrow morning' }
       ],
-      week: [], waiting: [], plan: [],
+      week: [], waiting: [], plan: [], cal: [],
       badges: { requests: null, trail: null },
       firstRun: true
     }
@@ -519,6 +554,9 @@
   let S;
   function readGroups() { try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) { return {}; } }
   function writeGroups() { try { localStorage.setItem(LS, JSON.stringify({ cal: S.calOpen, tools: S.toolsOpen })); } catch (e) {} }
+  const PV_LS = 'waypoint.proto.planview';
+  function readPlanView() { try { return localStorage.getItem(PV_LS) === 'month' ? 'month' : 'list'; } catch (e) { return 'list'; } }
+  function writePlanView() { try { localStorage.setItem(PV_LS, S.planView); } catch (e) {} }
   function readBar() { try { return localStorage.getItem(BAR_LS) === '5' ? 5 : 4; } catch (e) { return 4; } }
   function writeBar(v) { try { localStorage.setItem(BAR_LS, String(v)); } catch (e) {} }
   function readPins() { try { const v = JSON.parse(localStorage.getItem(PINS_LS)); return Array.isArray(v) ? v : null; } catch (e) { return null; } }
@@ -533,6 +571,7 @@
       pins: readPins() || DEFAULT_PINS.slice(), editPins: false,
       opens: {}, noSuggest: {}, cardOpen: true, menu: false,
       tabMode: keepBar, steps: {},
+      planView: readPlanView(), calM: null, calDay: null,
       calOpen: !!readGroups().cal, toolsOpen: !!readGroups().tools,
       door: null, query: '', sheet: null, toast: null
     };
@@ -737,6 +776,65 @@
   }
 
   /* ── Plan: what I need to do, and when (Actions + Calendar, merged) ── */
+  const TODAY = { m: 7, d: 29, y: 2026 };   // the prototype's "today": Aug 29, 2026
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DOW = ['S','M','T','W','T','F','S'];
+
+  /** The month to open on: where the next item lives, else today's. */
+  function defaultMonth() {
+    const cal = S.data.cal || [];
+    const next = cal.filter(e => e.m > TODAY.m || (e.m === TODAY.m && e.d >= TODAY.d))
+                    .sort((a, b) => (a.m - b.m) || (a.d - b.d))[0];
+    return next ? next.m : TODAY.m;
+  }
+
+  function viewMonth() {
+    const m = S.calM === null ? defaultMonth() : S.calM;
+    const cal = S.data.cal || [];
+    const first = new Date(TODAY.y, m, 1).getDay();
+    const days = new Date(TODAY.y, m + 1, 0).getDate();
+    const cells = [];
+    for (let i = 0; i < first; i++) cells.push(null);
+    for (let d = 1; d <= days; d++) cells.push(d);
+
+    const on = d => cal.filter(e => e.m === m && e.d === d);
+    const sel = S.calDay;
+    const selEvents = sel ? on(sel) : [];
+
+    return `
+      <div class="card">
+        <div class="calhead">
+          <button class="calnav" data-act="cal-m" data-n="${m - 1}" aria-label="Previous month" ${m <= 0 ? 'disabled' : ''}>‹</button>
+          <b style="font-size:15px;color:var(--navy)">${MONTHS[m]} ${TODAY.y}</b>
+          <button class="calnav" data-act="cal-m" data-n="${m + 1}" aria-label="Next month" ${m >= 11 ? 'disabled' : ''}>›</button>
+        </div>
+        <div class="grid" style="margin-top:8px">
+          ${DOW.map(d => `<div class="dow">${d}</div>`).join('')}
+          ${cells.map(d => {
+            if (d === null) return `<div class="day out"></div>`;
+            const evs = on(d);
+            const isToday = m === TODAY.m && d === TODAY.d;
+            return `<button class="day ${isToday ? 'today' : ''} ${sel === d ? 'sel' : ''}" data-act="cal-d" data-n="${d}"
+              aria-label="${MONTHS[m]} ${d}${evs.length ? ', ' + evs.length + ' item' + (evs.length > 1 ? 's' : '') : ''}">
+              <span>${d}</span>
+              <span class="dots">${evs.slice(0, 3).map(e => `<span class="dot ${e.dl ? 'dl' : ''}"></span>`).join('')}</span>
+            </button>`;
+          }).join('')}
+        </div>
+        <div class="callegend">
+          <span><span class="dot"></span> appointment</span>
+          <span><span class="dot dl"></span> legal deadline</span>
+          ${m !== TODAY.m ? `<button class="editlink" data-act="cal-m" data-n="${TODAY.m}">Today</button>` : ''}
+        </div>
+      </div>
+
+      ${sel ? `<div class="card">
+        <div class="sec-label">${MONTHS[m]} ${sel}</div>
+        ${selEvents.length ? selEvents.map(e => `<div class="line"><span>${e.dl ? '⏱ ' : ''}<b>${esc(e.t)}</b></span><span class="src">${esc(e.s)}</span></div>`).join('')
+          : '<p class="empty" style="margin:0">Nothing on this day.</p>'}
+      </div>` : `<p class="meta" style="padding:0 2px">Tap any day to see what is on it. Every source is shown — Waypoint deadlines sit beside the calendar you connected, never instead of it.</p>`}`;
+  }
+
   function viewPlanTab() {
     const d = S.data, later = laterList();
     const today = d.week.filter(w => /today/i.test(w.d));
@@ -746,7 +844,12 @@
 
     return `<div class="pad">
       <h2 class="h2">Your plan</h2>
-      <p class="meta">Everything you need to do and every date it hangs on — one list, whether or not it has a day attached.</p>
+      <p class="meta">Everything you need to do and every date it hangs on — as a list, or as the full month.</p>
+      <div class="seg" role="group" aria-label="Plan view">
+        <button data-act="planview" data-v="list" aria-pressed="${S.planView === 'list'}">List</button>
+        <button data-act="planview" data-v="month" aria-pressed="${S.planView === 'month'}">Month</button>
+      </div>
+      ${S.planView === 'month' ? viewMonth() : `
 
       ${nothing ? `<div class="card"><p class="empty" style="margin:0">Nothing to do and nothing scheduled. When you ask an agency for something, its clock appears here.</p></div>` : ''}
 
@@ -777,7 +880,8 @@
         ${later.map(l => `<div class="line"><span>${esc(l.title)}<br><span class="src">${esc(l.ret)}</span></span><button class="undo" data-act="undo" data-id="${l.id}">Undo</button></div>`).join('')}
       </div>` : ''}
 
-      <p class="meta" style="padding:0 2px">Actions and Calendar merged: tasks and dates were never two questions. Expenses and the tax report moved to <b>Tools → Money &amp; benefits</b>, where they were already listed.</p>
+      `}
+      <p class="meta" style="padding:0 2px">Actions and Calendar merged: tasks and dates were never two questions — and the full month is still here, one tap away. Expenses and the tax report moved to <b>Tools → Money &amp; benefits</b>, where they were already listed.</p>
     </div>`;
   }
 
@@ -1238,6 +1342,9 @@ Maria</div>
       return;
     }
     if (act === 'askq') { push('ask', { q: el.dataset.q }); return; }
+    if (act === 'planview') { S.planView = el.dataset.v; writePlanView(); render(); return; }
+    if (act === 'cal-m') { S.calM = +el.dataset.n; S.calDay = null; render(); return; }
+    if (act === 'cal-d') { const d = +el.dataset.n; S.calDay = S.calDay === d ? null : d; render(); return; }
     if (act === 'why') { S.sheet = true; render(); return; }
     if (act === 'closesheet') { S.sheet = null; render(); return; }
     if (act === 'back') { pop(); return; }
