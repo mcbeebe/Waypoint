@@ -1,0 +1,12 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1500, "title": "Request Case screen" },
+    { "file": "Dossier.dc.html", "x": 490, "y": 0, "w": 480, "h": 1180, "title": "Evidence dossier (print view)" }
+  ],
+  "annotations": [
+    { "id": "note-design", "x": 0, "y": -300, "w": 330, "text": "REQUEST CASE FILE — one request, one thread, one honest clock\nDesign chosen unanimously by a 3-judge panel (parent advocate · staff engineer · legal-aid lens) over evidence-first and minimal-change rivals, with their best ideas grafted in.\n\nSpine: communications.request_id (migration 047) — stamped at send, inherited by Gmail replies via trigger, ambiguity-guarded (a thread serving two requests never auto-attaches). Pure lib/requestCase.ts derives thread order (occurred_at, never the falsely-stamped sent_at), provenance tiers (Gmail-dated / contemporaneous / from memory), and the next lever on the existing 4-rung ladder. Silence climbs the ladder; conversation never does (your tone rule, structural)." },
+    { "id": "note-dossier", "x": 490, "y": -220, "w": 320, "text": "THE DOSSIER\nExact-linked items only in the core table; thread-closure-only items live in a default-excluded 'Related correspondence' section. Attestations state what the packet can and cannot prove — no immutability overclaim (tests enforce this). SHA-256 fingerprint in the footer. Web = real printable PDF in two taps; native = labeled text share until expo-print is approved." },
+    { "id": "note-questions", "x": 970, "y": 0, "w": 320, "text": "OPEN QUESTIONS (plan doc has detail)\n1 · Premium-gate the export? My rec: FREE — it's the trust moment of the product.\n2 · Approve expo-print for native one-tap PDF? My rec: yes, phase 3.\n3 · Manual detach control for off-topic replies — v1.1?\n4 · Who native-speaker-reviews the ES/VI dossier copy?\n5 · Thin-thread copy for phone-first families — 'your record so far', never broken-looking.\n\nBuild: 3 phases, ~6-7 days. Phase 1 data spine + pure logic · Phase 2 case screen + badge-the-job · Phase 3 dossier." }
+  ],
+  "launch": { "view": "canvas" }
+}
