@@ -1,10 +1,12 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1240, "title": "A · Front pocket (recommended)" },
+    { "file": "Hybrid.dc.html", "x": -490, "y": 0, "w": 390, "h": 860, "title": "A+B Hybrid (your lean)" },
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1240, "title": "A · Front pocket" },
     { "file": "ConceptB.dc.html", "x": 490, "y": 0, "w": 390, "h": 990, "title": "B · Five doors" },
     { "file": "ConceptC.dc.html", "x": 980, "y": 0, "w": 390, "h": 1030, "title": "C · Shortcuts first" }
   ],
   "annotations": [
+    { "id": "note-hybrid", "x": -490, "y": -150, "w": 320, "text": "A+B HYBRID — built from your lean (Aug 29)\nA's three action rows stay always-open with their prompts and live counts. Everything below consolidates into four doors (B) that expand IN PLACE — accordion, not new hub screens — so collapsed, the whole page fits one screen with zero scrolling. 'Teddy's records' is shown expanded.\nOne section open at a time; the app remembers your last-open door." },
     { "id": "note-problem", "x": 0, "y": -330, "w": 320, "text": "THE PROBLEM (your feedback, Aug 28)\n26 identical tiles, flat grid: no hierarchy (Letters = Blog), no grouping (one workflow scattered across three rows), labels without meaning (\"Your Result\"), and 26 choices at once for someone who is already exhausted.\n\nShared by all three concepts: group by job-to-be-done, 44px+ targets, \"Everything else\" collapsed so nothing is lost, and the Quick Actions row is dropped (it duplicates the tab bar exactly)." },
     { "id": "note-a", "x": 0, "y": -130, "w": 300, "text": "A · FRONT POCKET — recommended\nList rows with one-line plain-language descriptions: the row teaches the app while you scan. Live counts (2 running · 1 reply) where they exist. Search on top.\nTradeoff: longer page; fewer items per screen than a grid." },
     { "id": "note-b", "x": 490, "y": -130, "w": 300, "text": "B · FIVE DOORS\nFive hub cards, five choices, the calmest Home; the workhorse hub is full-width with live counts. Bottom of the artboard shows what a hub opens into.\nTradeoff: every tool is one extra tap away; hub screens are new surfaces to build." },
