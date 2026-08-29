@@ -41,6 +41,11 @@
   }
   .scn[aria-pressed="true"] { background: var(--studio-accent); border-color: var(--studio-accent); color: #06222B; }
   .scn:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 2px; }
+  .barrow { display: flex; align-items: center; gap: 8px; padding: 2px 6px 10px; }
+  .barrow span { font-size: .72rem; color: var(--studio-mid); letter-spacing: .05em; text-transform: uppercase; font-weight: 700; }
+  .barbtn { border: 1px solid var(--studio-line); background: var(--studio-2); color: var(--studio-mid);
+    border-radius: 999px; padding: 5px 12px; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; }
+  .barbtn[aria-pressed="true"] { background: var(--studio-ink); border-color: var(--studio-ink); color: #0D1420; }
   .scn-note { font-size: .78rem; color: var(--studio-mid); padding: 0 6px 10px; line-height: 1.45; min-height: 3.2em; }
   .scn-note b { color: var(--studio-ink); }
 
@@ -169,6 +174,18 @@
   .door-body { background: var(--light); }
   .door-body .trow { padding-left: 32px; }
 
+  .statusline { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+    background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
+    font-size: 13px; font-weight: 600; color: var(--dark); }
+  .statusline:active { background: var(--light); }
+  .check { display: inline-grid; place-items: center; width: 19px; height: 19px; border-radius: 6px;
+    border: 1.5px solid #CBD5E1; color: #FFF; font-size: 11px; font-weight: 800; vertical-align: -4px; }
+  .check.on { background: var(--ok); border-color: var(--ok); }
+  .struck { color: var(--mid); text-decoration: line-through; }
+  .qchip { border: 1px solid var(--border); background: var(--white); border-radius: 999px;
+    padding: 8px 13px; font-size: 12.5px; font-weight: 600; color: var(--navy); }
+  .qchip:active { background: var(--light); }
+
   /* Pinned tiles — the parent's own kit */
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .tile { position: relative; background: var(--white); border: 1px solid var(--border); border-radius: 13px; padding: 11px 6px 9px; min-height: 86px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
@@ -277,7 +294,7 @@
   <div class="h-head">
     <p class="h-eyebrow">Home redesign · concept A · clickable prototype</p>
     <h1 class="h-title">The Next Right Thing</h1>
-    <p class="h-sub">A working model of the one-card Home — <b>tap anything</b>, including ☆ to pin your own tools. Switch days below to see the same design under different pressure.</p>
+    <p class="h-sub">A working model of the one-card Home — <b>tap anything.</b> Home leads; Tools and Plan are their own tabs. Switch days, or flip the tab bar between four and five.</p>
   </div>
 
   <div class="scenarios" role="group" aria-label="Choose a day">
@@ -287,6 +304,12 @@
     <button class="scn" data-scn="dayone" aria-pressed="false">Day one</button>
   </div>
   <p class="scn-note" id="scnNote"></p>
+
+  <div class="barrow" role="group" aria-label="Tab bar shape">
+    <span>Tab bar</span>
+    <button class="barbtn" data-mode="4" aria-pressed="true">4 tabs · Ask holds the library</button>
+    <button class="barbtn" data-mode="5" aria-pressed="false">5 · split Learn out</button>
+  </div>
 
   <div class="phone">
     <div class="screen">
@@ -424,6 +447,7 @@
       ],
       week: [{ d: 'Tue Sep 2', t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' }, { d: 'Thu Sep 4', t: 'Insurance appeal window closes', s: 'Waypoint' }],
       waiting: [{ t: 'IEP evaluation — assessment plan due Sep 12', s: 'Ed Code §56321' }, { t: 'Standing frame — waiting on RCEB since Aug 12', s: 'no legal clock' }],
+      plan: [{ t: "Gather Teddy's PT notes for the standing-frame file", d: false }, { t: 'Ask the school for the last progress data', d: false }, { t: 'Log the June call with Lilia', d: true }],
       badges: { requests: { text: '1 new reply', cls: 'b-info' }, trail: null }
     },
     heavy: {
@@ -452,6 +476,7 @@
       ],
       week: [{ d: 'Today', t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' }, { d: 'Fri Sep 5', t: 'IPP meeting (if RCEB confirms)', s: 'Waypoint' }],
       waiting: [{ t: 'IPP meeting — 11 days past the legal deadline', s: 'W&I §4646.5(b)' }, { t: 'Respite increase — no movement in 21 days', s: 'no legal clock' }],
+      plan: [{ t: 'Finish the follow-up letter to RCEB', d: false }, { t: 'Bring the IPP binder to Friday', d: false }, { t: 'Send the school your consent form', d: true }],
       badges: { requests: { text: '1 overdue', cls: 'b-danger' }, trail: null }
     },
     quiet: {
@@ -462,6 +487,7 @@
       calm: { title: 'Nothing has a clock on it today.', body: "Your school request is tracked — Waypoint will tell you if <b>Sep 12</b> passes without a reply. You can close the app.", foot: 'Gmail checked 6:32 AM · Calendar synced · deadlines stored on your phone' },
       week: [{ d: 'Tue Sep 2', t: 'OT session — Teddy, 3:00 PM', s: 'Google Calendar' }],
       waiting: [{ t: 'IEP evaluation — assessment plan due Sep 12', s: 'Ed Code §56321' }],
+      plan: [{ t: 'Upload the IPP so Waypoint can read it', d: false }, { t: 'Add Teddy’s OT to your care team', d: true }],
       preDeferred: [{ id: 'q1', title: 'IHSS eligibility check', ret: 'Returns Monday' }],
       badges: { requests: { text: 'due Fri', cls: 'b-warn' }, trail: null }
     },
@@ -477,7 +503,7 @@
           resolved: { title: "Then Teddy's first step is an intake request to RCEB", why: 'A written request starts an enforceable clock: 120 days to an eligibility decision. We write it with you — friendly first, always.', cite: 'W&I §4643', cta: 'Write the request with me', go: 'letter' },
           defer: 'Back tomorrow morning' }
       ],
-      week: [], waiting: [],
+      week: [], waiting: [], plan: [],
       badges: { requests: null, trail: null },
       firstRun: true
     }
@@ -486,22 +512,27 @@
   /* ───────────────── State ───────────────── */
   const LS = 'waypoint.proto.groups';
   const PINS_LS = 'waypoint.proto.pins';
+  const BAR_LS = 'waypoint.proto.bar';
   const DEFAULT_PINS = ['letters', 'requests', 'trail'];
   const SUGGEST_AFTER = 2;  // opens before Waypoint offers to pin it (3 in production)
   const MAX_PINS = 6;
   let S;
   function readGroups() { try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) { return {}; } }
   function writeGroups() { try { localStorage.setItem(LS, JSON.stringify({ cal: S.calOpen, tools: S.toolsOpen })); } catch (e) {} }
+  function readBar() { try { return localStorage.getItem(BAR_LS) === '5' ? 5 : 4; } catch (e) { return 4; } }
+  function writeBar(v) { try { localStorage.setItem(BAR_LS, String(v)); } catch (e) {} }
   function readPins() { try { const v = JSON.parse(localStorage.getItem(PINS_LS)); return Array.isArray(v) ? v : null; } catch (e) { return null; } }
   function writePins() { try { localStorage.setItem(PINS_LS, JSON.stringify(S.pins)); } catch (e) {} }
 
   function reset(name) {
     const scn = SCENARIOS[name];
+    const keepBar = S ? S.tabMode : readBar();
     S = {
       scn: name, data: scn, tab: 'home', stack: [],
       deferred: {}, done: {}, answered: {}, sessionSkips: 0,
       pins: readPins() || DEFAULT_PINS.slice(), editPins: false,
       opens: {}, noSuggest: {}, cardOpen: true, menu: false,
+      tabMode: keepBar, steps: {},
       calOpen: !!readGroups().cal, toolsOpen: !!readGroups().tools,
       door: null, query: '', sheet: null, toast: null
     };
@@ -563,7 +594,7 @@
           <span class="mic" aria-hidden="true">🎙</span>
         </div>
 
-        <div id="below">${results ? searchPanel(results, crisis) : groupsBlock()}</div>
+        <div id="below">${results ? searchPanel(results, crisis) : statusLine()}</div>
       </div>`;
   }
 
@@ -573,7 +604,7 @@
     if (!host) return;
     const q = S.query.trim();
     const crisis = q && CRISIS_WORDS.some(w => S.query.toLowerCase().includes(w));
-    host.innerHTML = q ? searchPanel(searchTools(S.query), crisis) : groupsBlock();
+    host.innerHTML = q ? searchPanel(searchTools(S.query), crisis) : statusLine();
   }
 
   /** Collapsing keeps the job and the action; it drops the reasoning. */
@@ -692,46 +723,72 @@
     </button>`;
   }
 
-  /* Two groups, not one drawer: dates on one side, tools on the other. */
-  function groupsBlock() { return calendarBlock() + toolsBlock(); }
-
-  function calendarBlock() {
+  /* Tools and Plan are tabs now, so Home carries one glanceable line —
+     everything it summarises lives one tap away in the bar. */
+  function statusLine() {
     const d = S.data, later = laterList();
     const bits = [];
-    if (d.week.length) bits.push(d.week.length + ' this week');
-    if (d.waiting.length) bits.push(d.waiting.length === 1 ? '1 waiting on an agency' : d.waiting.length + ' waiting on agencies');
-    if (later.length) bits.push(later.length + ' set aside');
-    const summary = bits.length ? 'Dates & clocks: ' + bits.join(' · ') : 'Dates & clocks — nothing scheduled yet';
+    if (d.week.length) bits.push('📅 ' + d.week.length + ' this week');
+    if (d.waiting.length) bits.push('⏱ ' + (d.waiting.length === 1 ? '1 waiting on an agency' : d.waiting.length + ' waiting on agencies'));
+    if (later.length) bits.push('↩︎ ' + later.length + ' set aside');
+    if (!bits.length) return `<p class="empty" style="padding:2px 4px">Nothing scheduled and nothing waiting. Your plan is in the Plan tab whenever you want it.</p>`;
+    return `<button class="statusline" data-act="tab" data-key="plan">
+      <span>${bits.join(' · ')}</span><span class="chev">›</span></button>`;
+  }
 
-    const head = `<button class="grouphead" data-act="group" data-key="cal">
-      <span class="gem" aria-hidden="true">📅</span><span class="gt">${esc(summary)}</span>
-      <span class="chev">${S.calOpen ? '⌃' : '⌄'}</span></button>`;
-    if (!S.calOpen) return `<div class="layer">${head}</div>`;
+  /* ── Plan: what I need to do, and when (Actions + Calendar, merged) ── */
+  function viewPlanTab() {
+    const d = S.data, later = laterList();
+    const today = d.week.filter(w => /today/i.test(w.d));
+    const rest = d.week.filter(w => !/today/i.test(w.d));
+    const plan = d.plan || [];
+    const nothing = !today.length && !rest.length && !d.waiting.length && !plan.length && !later.length;
 
-    return `<div class="layer">${head}<div class="layer-body">
-      <div>
+    return `<div class="pad">
+      <h2 class="h2">Your plan</h2>
+      <p class="meta">Everything you need to do and every date it hangs on — one list, whether or not it has a day attached.</p>
+
+      ${nothing ? `<div class="card"><p class="empty" style="margin:0">Nothing to do and nothing scheduled. When you ask an agency for something, its clock appears here.</p></div>` : ''}
+
+      ${today.length ? `<div class="card">
+        <div class="sec-label">Today</div>
+        ${today.map(w => `<div class="line"><span><b>${esc(w.t)}</b></span><span class="src">${esc(w.s)}</span></div>`).join('')}
+      </div>` : ''}
+
+      ${rest.length ? `<div class="card">
         <div class="sec-label">This week</div>
-        ${d.week.length ? d.week.map(w => `<button class="line" data-act="tab" data-key="calendar"><span><b>${esc(w.d)}</b> · ${esc(w.t)}</span><span class="src">${esc(w.s)}</span></button>`).join('')
-          : '<p class="empty">Nothing scheduled yet.</p>'}
-      </div>
-      <div>
+        ${rest.map(w => `<div class="line"><span><b>${esc(w.d)}</b> · ${esc(w.t)}</span><span class="src">${esc(w.s)}</span></div>`).join('')}
+      </div>` : ''}
+
+      ${d.waiting.length ? `<div class="card">
         <div class="sec-label">Waiting on an agency</div>
-        ${d.waiting.length ? d.waiting.map(w => `<button class="line" data-act="go-case"><span>${esc(w.t)} ›</span><span class="src">${esc(w.s)}</span></button>`).join('')
-          : '<p class="empty">Nothing tracked yet — the card will offer your first request.</p>'}
-      </div>
-      <div>
+        ${d.waiting.map(w => `<button class="line" data-act="go-case"><span>${esc(w.t)} ›</span><span class="src">${esc(w.s)}</span></button>`).join('')}
+      </div>` : ''}
+
+      ${plan.length ? `<div class="card">
+        <div class="sec-label">Steps with no date yet</div>
+        ${plan.map((t, i) => `<button class="line" data-act="step" data-n="${i}" style="align-items:center">
+          <span><span class="check ${t.d ? 'on' : ''}">${t.d ? '✓' : ''}</span> <span class="${t.d ? 'struck' : ''}">${esc(t.t)}</span></span>
+        </button>`).join('')}
+      </div>` : ''}
+
+      ${later.length ? `<div class="card">
         <div class="sec-label">Later — set aside by you</div>
-        ${later.length ? later.map(l => `<div class="line"><span>${esc(l.title)}<br><span class="src">${esc(l.ret)}</span></span><button class="undo" data-act="undo" data-id="${l.id}">Undo</button></div>`).join('')
-          : '<p class="empty">Nothing set aside. Anything you skip lands here with its return date.</p>'}
-      </div>
-      <button class="allbtn" data-act="tab" data-key="calendar">Open the full calendar →</button>
-    </div></div>`;
+        ${later.map(l => `<div class="line"><span>${esc(l.title)}<br><span class="src">${esc(l.ret)}</span></span><button class="undo" data-act="undo" data-id="${l.id}">Undo</button></div>`).join('')}
+      </div>` : ''}
+
+      <p class="meta" style="padding:0 2px">Actions and Calendar merged: tasks and dates were never two questions. Expenses and the tax report moved to <b>Tools → Money &amp; benefits</b>, where they were already listed.</p>
+    </div>`;
+  }
+
+  /* ── Tools: the toolbox, now a place rather than a drawer ── */
+  function pinnedTools() {
+    return S.pins.map(k => ALL_TOOLS.find(t => t.key === k)).filter(Boolean);
   }
 
   /**
    * The one pin Waypoint offers: a tool opened repeatedly, never pinned,
-   * never declined. Offered in place inside Your tools — never as a popup,
-   * and never twice for the same tool.
+   * never declined. Offered in place — never as a popup, never twice.
    */
   function suggestedPin() {
     for (const k in S.opens) {
@@ -742,22 +799,9 @@
     return null;
   }
 
-  function pinnedTools() {
-    return S.pins.map(k => ALL_TOOLS.find(t => t.key === k)).filter(Boolean);
-  }
+  function viewToolsTab() {
+    const pins = pinnedTools(), badges = S.data.badges || {}, sg = suggestedPin();
 
-  function toolsBlock() {
-    const pins = pinnedTools();
-    const summary = pins.length
-      ? 'Tools: ' + pins.slice(0, 3).map(t => SHORT[t.key] || t.label).join(' · ').replace(/&amp;/g, '&') + (pins.length > 3 ? ' + more' : '')
-      : 'Tools — pin the ones you use';
-
-    const head = `<button class="grouphead" data-act="group" data-key="tools">
-      <span class="gem" aria-hidden="true">🧰</span><span class="gt">${esc(summary)}</span>
-      <span class="chev">${S.toolsOpen ? '⌃' : '⌄'}</span></button>`;
-    if (!S.toolsOpen) return `<div class="layer" style="margin-top:12px">${head}</div>`;
-
-    const badges = S.data.badges || {};
     const tile = t => {
       const b = badges[t.key];
       return `<button class="tile" data-act="tool" data-key="${t.key}">
@@ -767,60 +811,57 @@
         <span class="tlab">${SHORT[t.key] || esc(t.label)}</span>
       </button>`;
     };
-
-    const row = (t, extra) => {
+    const row = t => {
       const b = badges[t.key], on = S.pins.indexOf(t.key) > -1;
       return `<div class="trow">
         <button class="tico" data-act="tool" data-key="${t.key}" aria-label="${esc(t.label)}">${t.icon}</button>
         <button class="tbody" data-act="tool" data-key="${t.key}" style="text-align:left">
           <span class="ttitle">${esc(t.label)}${b ? `<span class="badge ${b.cls}">${esc(b.text)}</span>` : ''}</span>
-          <span class="tdesc">${esc(extra || t.desc)}</span>
+          <span class="tdesc">${esc(t.desc)}</span>
         </button>
         <button class="pin ${on ? 'on' : ''}" data-act="pin" data-key="${t.key}"
           aria-pressed="${on}" aria-label="${on ? 'Unpin' : 'Pin'} ${esc(t.label)}">${on ? '★' : '☆'}</button>
       </div>`;
     };
 
-    return `<div class="layer" style="margin-top:12px">${head}<div class="layer-body">
-      <div>
-        <div class="sec-label subhead"><span>Your tools</span>
-          ${pins.length ? `<button class="editlink" data-act="editpins">${S.editPins ? 'Done' : 'Edit'}</button>` : ''}
+    return `<div class="pad">
+      <div class="subhead">
+        <h2 class="h2">Tools</h2>
+        ${pins.length ? `<button class="editlink" data-act="editpins">${S.editPins ? 'Done' : 'Edit'}</button>` : ''}
+      </div>
+
+      ${sg ? `<div class="suggest">
+        <p>You have opened <b>${esc(sg.label)}</b> ${S.opens[sg.key]} times. Pin it to the top?</p>
+        <div class="row">
+          <button class="sg-yes" data-act="pin" data-key="${sg.key}">Pin it</button>
+          <button class="sg-no" data-act="nosuggest" data-key="${sg.key}">No thanks</button>
         </div>
-        ${(() => { const sg = suggestedPin(); return sg ? `<div class="suggest">
-          <p>You have opened <b>${esc(sg.label)}</b> ${S.opens[sg.key]} times. Pin it to your tools?</p>
-          <div class="row">
-            <button class="sg-yes" data-act="pin" data-key="${sg.key}">Pin it</button>
-            <button class="sg-no" data-act="nosuggest" data-key="${sg.key}">No thanks</button>
-          </div>
-        </div>` : ''; })()}
-        ${pins.length ? `<div class="tiles">
-            ${pins.map(tile).join('')}
-            ${pins.length < MAX_PINS ? `<button class="tile add" data-act="hint"><span class="tem">＋</span><span class="tlab">Pin a tool</span></button>` : ''}
-          </div>`
-          : `<p class="empty">Nothing pinned yet — tap ☆ on any tool below and it lands here as a tile.</p>`}
+      </div>` : ''}
+
+      <div class="sec-label">Your tools</div>
+      ${pins.length ? `<div class="tiles">
+          ${pins.map(tile).join('')}
+          ${pins.length < MAX_PINS ? `<button class="tile add" data-act="hint"><span class="tem">＋</span><span class="tlab">Pin a tool</span></button>` : ''}
+        </div>`
+        : `<p class="empty">Nothing pinned yet — tap ☆ on any tool below and it lands here as a tile.</p>`}
+
+      <div class="sec-label" style="margin-top:6px">Take action</div>
+      <div class="tools">${ACTIONS.map(row).join('')}</div>
+
+      <div class="sec-label" style="margin-top:6px">Browse everything</div>
+      <div class="tools">
+        ${DOORS.map(dr => `
+          <button class="trow" data-act="door" data-key="${dr.key}">
+            <span class="tico" style="background:${dr.tint}">${dr.icon}</span>
+            <span class="tbody"><span class="ttitle">${esc(dr.title)}</span><span class="tdesc">${esc(dr.contents)}</span></span>
+            <span class="chev">${S.door === dr.key ? '⌃' : '⌄'}</span>
+          </button>
+          ${S.door === dr.key ? `<div class="door-body">${dr.tools.map(row).join('')}</div>` : ''}
+        `).join('')}
       </div>
 
-      <div>
-        <div class="sec-label">Take action</div>
-        <div class="tools">${ACTIONS.map(a => row(a)).join('')}</div>
-      </div>
-
-      <div>
-        <div class="sec-label">Browse everything</div>
-        <div class="tools">
-          ${DOORS.map(dr => `
-            <button class="trow" data-act="door" data-key="${dr.key}">
-              <span class="tico" style="background:${dr.tint}">${dr.icon}</span>
-              <span class="tbody"><span class="ttitle">${esc(dr.title)}</span><span class="tdesc">${esc(dr.contents)}</span></span>
-              <span class="chev">${S.door === dr.key ? '⌃' : '⌄'}</span>
-            </button>
-            ${S.door === dr.key ? `<div class="door-body">${dr.tools.map(t => row(t)).join('')}</div>` : ''}
-          `).join('')}
-        </div>
-      </div>
-
-      <div>
-        <div class="sec-label">Contacts</div>
+      <div class="sec-label" style="margin-top:6px">Contacts</div>
+      <div class="card">
         <div class="line" style="align-items:center">
           <span><b>Regional Center of the East Bay</b></span>
           <span style="display:flex;gap:6px;flex:none">
@@ -830,8 +871,57 @@
         </div>
       </div>
 
-      <div class="privacy"><span aria-hidden="true">🔒</span> Private to your family — never shared with any agency. Your records export any time.</div>
-    </div></div>`;
+      <div class="privacy" style="margin-top:4px"><span aria-hidden="true">🔒</span> Private to your family — never shared with any agency. Your records export any time.</div>
+    </div>`;
+  }
+
+  /* ── Ask: the composer, with the library under it ── */
+  const POPULAR = ['What is an IPP?', 'They said no — what now?', 'What can RC money cover?', 'How do I get more respite?'];
+
+  function viewAskTab() {
+    return `<div class="pad">
+      <h2 class="h2">Ask Waypoint</h2>
+      <p class="meta">Answers that know Teddy's age, his Regional Center, and every request you have open. Ask in English, Spanish or Vietnamese.</p>
+      <div class="composer" style="border:2px solid var(--teal)">
+        <span aria-hidden="true">💬</span>
+        <input id="askq" placeholder="Ask anything — or tap a question below" aria-label="Ask Waypoint a question">
+        <span class="mic" aria-hidden="true">🎙</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        ${POPULAR.map(q => `<button class="qchip" data-act="askq" data-q="${esc(q)}">${esc(q)}</button>`).join('')}
+      </div>
+      ${S.tabMode === 4 ? `
+        <div class="sec-label" style="margin-top:10px">Or read it yourself</div>
+        ${learnBody()}` : `
+        <p class="meta" style="margin-top:10px">Guides, articles and the glossary live in the <b>Learn</b> tab.</p>`}
+    </div>`;
+  }
+
+  /** The library itself — shared by the Ask tab (4-tab bar) and Learn (5). */
+  function learnBody() {
+    return `
+      <div class="sec-label">Start with your situation</div>
+      ${LEARN.paths.map(l => `<button class="lcard" data-act="tool" data-key="${l.key}">
+        <span class="lem" aria-hidden="true">${l.em}</span>
+        <span class="tbody">
+          <span class="lt">${esc(l.t)}</span>
+          <span class="ld">${esc(l.d)}</span>
+          ${l.tag ? `<span class="ltag">${esc(l.tag)}</span>` : ''}
+        </span>
+        <span class="chev">›</span>
+      </button>`).join('')}
+
+      <div class="card">
+        <div class="sec-label">Articles</div>
+        ${LEARN.articles.map(a => `<button class="art" data-act="stub" data-t="Article" data-b="${esc(a.t)} — the article library grows here: dozens, then hundreds, seeded from the Entity Navigation Matrix.">
+          <span class="art-t">${esc(a.t)}</span><span class="art-m">${esc(a.m)}</span>
+        </button>`).join('')}
+      </div>
+
+      <div class="card">
+        <div class="sec-label">Plain-English glossary</div>
+        ${LEARN.glossary.map(g => `<div class="gloss"><b>${esc(g[0])}</b><span>${esc(g[1])}</span></div>`).join('')}
+      </div>`;
   }
 
   function viewLearn(asTab) {
@@ -841,35 +931,10 @@
           <h2>Learn how it all works</h2>
           <p>Every system explained in plain English — no jargon quiz, no 40-page PDF. Start where you are; each guide links to the letter that acts on it.</p>
         </div>
-
-        <div class="sec-label" style="margin-top:4px">Start with your situation</div>
-        ${LEARN.paths.map(l => `<button class="lcard" data-act="tool" data-key="${l.key}">
-          <span class="lem" aria-hidden="true">${l.em}</span>
-          <span class="tbody">
-            <span class="lt">${esc(l.t)}</span>
-            <span class="ld">${esc(l.d)}</span>
-            ${l.tag ? `<span class="ltag">${esc(l.tag)}</span>` : ''}
-          </span>
-          <span class="chev">›</span>
-        </button>`).join('')}
-
-        <div class="card">
-          <div class="sec-label">Articles</div>
-          ${LEARN.articles.map(a => `<button class="art" data-act="stub" data-t="Article" data-b="${esc(a.t)} — the blog and resource library live here now, instead of behind two different doors.">
-            <span class="art-t">${esc(a.t)}</span><span class="art-m">${esc(a.m)}</span>
-          </button>`).join('')}
-        </div>
-
-        <div class="card">
-          <div class="sec-label">Plain-English glossary</div>
-          ${LEARN.glossary.map(g => `<div class="gloss"><b>${esc(g[0])}</b><span>${esc(g[1])}</span></div>`).join('')}
-        </div>
-
+        ${learnBody()}
         <div class="card" style="background:var(--info-bg);border-color:#BFDBFE">
           <div style="font-size:13.5px;color:#1E40AF">Still not clear? <b>Ask Waypoint</b> — it answers knowing Teddy's age, his Regional Center, and every request you have open.</div>
         </div>
-
-        <p class="meta" style="padding:0 2px">Learn has its own tab now. It replaces the old “Understand the system” door and pulls in the blog and resource library, so every explanation lives in one place — and it is where the article library grows.</p>
         ${asTab ? '' : '<button class="btn-outline" data-act="home">Back to Home</button>'}
       </div>`;
   }
@@ -994,19 +1059,13 @@ Maria</div>
   }
 
   function viewTab() {
-    const map = {
-      ask: { em: '💬', t: 'Ask Waypoint', b: 'The AI Navigator, unchanged. Home conversations continue here — same thread, same engine.' },
-      actions: { em: '✅', t: 'Your action plan', b: 'Every step, with progress. This is where the progress ring lives now — off Home, where a 0% ring used to greet newcomers with guilt.' },
-      calendar: { em: '📅', t: 'Calendar & expenses', b: 'The full agenda, every source, plus expenses and the tax report. Home shows only what is due; the depth lives here, unchanged.' },
-      settings: { em: '⚙️', t: 'Settings', b: 'Children, agencies, language, sharing and account — now under your initial, top right, instead of taking a tab.' }
-    };
-    return viewStub(map[S.tab] || map.settings);
+    return viewStub({ em: '⚙️', t: 'Settings', b: 'Children, agencies, language, sharing and account — under your initial, top right, instead of taking a tab.' });
   }
 
   /* ───────────────── Chrome ───────────────── */
   function tabbar() {
-    // Profile moved under the avatar (Settings), freeing the fifth slot for Learn.
-    const tabs = [['home', '🏠', 'Home'], ['ask', '💬', 'Ask AI'], ['actions', '✅', 'Actions'], ['calendar', '📅', 'Calendar'], ['learn', '📖', 'Learn']];
+    const four = [['home', '🏠', 'Home'], ['ask', '💬', 'Ask'], ['tools', '🧰', 'Tools'], ['plan', '🗓', 'Plan']];
+    const tabs = S.tabMode === 4 ? four : four.concat([['learn', '📖', 'Learn']]);
     return tabs.map(t => `<button class="tab" data-act="tab" data-key="${t[0]}" ${S.tab === t[0] && !S.stack.length ? 'aria-current="page"' : ''}>
       <span class="ti" aria-hidden="true">${t[1]}</span><span>${t[2]}</span></button>`).join('');
   }
@@ -1060,7 +1119,12 @@ Maria</div>
     let body, nav = '';
 
     if (!top) {
-      body = S.tab === 'home' ? viewHome() : S.tab === 'learn' ? viewLearn(true) : viewTab();
+      body = S.tab === 'home' ? viewHome()
+           : S.tab === 'ask' ? viewAskTab()
+           : S.tab === 'tools' ? viewToolsTab()
+           : S.tab === 'plan' ? viewPlanTab()
+           : S.tab === 'learn' ? viewLearn(true)
+           : viewTab();
     } else {
       const titles = { case: 'Case file', draft: 'Draft a reply', letter: 'Letters', crisis: 'Right now', ask: 'Ask Waypoint', learn: 'Learn', stub: top.params.t || '' };
       nav = `<div class="navbar"><button class="back" data-act="back">‹ Back</button><span class="nav-t">${esc(titles[top.screen] || '')}</span></div>`;
@@ -1082,6 +1146,15 @@ Maria</div>
 
   /* ───────────────── Events ───────────────── */
   document.addEventListener('click', function (e) {
+    const bar = e.target.closest('.barbtn');
+    if (bar) {
+      S.tabMode = +bar.dataset.mode;
+      writeBar(S.tabMode);
+      if (S.tabMode === 4 && S.tab === 'learn') S.tab = 'ask';
+      document.querySelectorAll('.barbtn').forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.mode === S.tabMode)));
+      render();
+      return;
+    }
     const scn = e.target.closest('.scn');
     if (scn) {
       document.querySelectorAll('.scn').forEach(b => b.setAttribute('aria-pressed', String(b === scn)));
@@ -1159,6 +1232,12 @@ Maria</div>
       S.menu = false; S.stack = []; S.tab = 'settings'; render(); scrollTop(); return;
     }
     if (act === 'hint') { toast('Tap ☆ beside any tool below to pin it here.'); return; }
+    if (act === 'step') {
+      const n = +el.dataset.n, list = S.data.plan || [];
+      if (list[n]) { list[n].d = !list[n].d; render(); toast(list[n].d ? 'Done — nice.' : 'Back on the list.'); }
+      return;
+    }
+    if (act === 'askq') { push('ask', { q: el.dataset.q }); return; }
     if (act === 'why') { S.sheet = true; render(); return; }
     if (act === 'closesheet') { S.sheet = null; render(); return; }
     if (act === 'back') { pop(); return; }
@@ -1182,6 +1261,12 @@ Maria</div>
     push('stub', { em: t.icon, t: t.label, b: t.desc + ' — this screen already exists in Waypoint today, unchanged by the redesign.' });
   }
 
+  document.addEventListener('keydown', function (e) {
+    if (e.target.id === 'askq' && e.key === 'Enter' && e.target.value.trim()) {
+      push('ask', { q: e.target.value.trim() });
+    }
+  });
+
   document.addEventListener('input', function (e) {
     if (e.target.id !== 'q') return;
     S.query = e.target.value;
@@ -1189,5 +1274,6 @@ Maria</div>
   });
 
   reset('reply');
+  document.querySelectorAll('.barbtn').forEach(x => x.setAttribute('aria-pressed', String(+x.dataset.mode === S.tabMode)));
 })();
 </script>

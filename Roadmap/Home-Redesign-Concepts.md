@@ -116,9 +116,9 @@ navigation. Three access speeds, matched to how often families need things:
    today's job — a reply opens its case file, a deadline opens the letter);
    the tell-Waypoint row (live search over all 20 tools + crisis vocabulary
    + Ask-AI fallthrough — the "nothing found" dead end dies); and the
-   **five-tab bar** (Home · Ask AI · Actions · Calendar · Learn — see the
-   decisions below; Profile moved under the avatar) — every stack behind
-   those tabs is untouched.
+   **tab bar** (Home · Ask · Tools · Plan — see the decisions below;
+   Profile moved under the avatar, Learn folded into Ask) — every screen
+   behind those tabs is untouched.
 2. **One tap — the Everything-else layer:** This week (→ Calendar), Waiting
    (open requests vs their clocks → case files), Later (every set-aside
    item with its return date and Undo — better than today's invisible
@@ -161,6 +161,24 @@ classes and the layer's true-count summary line carry that load.
 - **Learn takes the fifth tab.** Profile leaves the tab bar and becomes
   **Settings under the avatar** (top right) as a dropdown: child, family,
   settings, language, sharing, plan, sign out.
+- **Superseded the same day — the bar is now four tabs: Home · Ask · Tools ·
+  Plan.** Tools and Plan become real screens, and Home sheds both accordions
+  for a single status line, which is the strongest form of concept A: Home
+  leads with the card, and the permanent map is the bar rather than a drawer.
+  *Ask absorbs the library* (composer on top, guides/articles/glossary
+  below, four popular questions as chips) for two reasons: a bare chat box
+  is a blank page, and the library shown at the moment of asking is also the
+  cheapest deflection from paid AI calls. *Actions and Calendar merge into
+  Plan* — tasks and dates were never two questions, the card queue already
+  surfaces the urgent plan items, and Expenses/Tax move to Tools → Money
+  where the catalog already listed them.
+- **Why four and not five:** with no users yet, take the reversible option.
+  Four keeps the fifth slot free, so Learn can be promoted on evidence
+  (high library engagement, low ask volume) instead of taste — and removing
+  a tab later would retrain muscle memory and read as a downgrade. SEO does
+  not need the tab: the article library ranks from public web routes. The
+  prototype ships a **4/5 toggle** so the split can be felt before it is
+  settled.
 - **The One Thing card is shorter and collapsible** — collapsed keeps the
   kicker, the title and the action, and drops the reasoning (318px → 165px),
   so the whole of Home fits one screen without scrolling.
