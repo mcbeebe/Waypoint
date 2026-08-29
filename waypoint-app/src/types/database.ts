@@ -1,6 +1,8 @@
 // Database types — matches supabase/migrations/001_schema_v1.sql
 
 export interface Family {
+  /** Tools promoted to Home tiles (migration 048) — see lib/toolPins.ts. */
+  tool_pins?: unknown;
   id: string;
   user_id: string;
   parent_first_name: string | null;

@@ -60,6 +60,8 @@ export type HomeStackParamList = {
   JourneyPhase: { journeyKey: string; phaseIndex: number };
   Agencies: undefined;
   Reimbursables: undefined;
+  /** The toolbox as a screen (Home rebuild phase 4). */
+  Tools: undefined;
   /** Moved out of the Calendar tab in the Home rebuild (phase 3). */
   Expenses: undefined;
   TaxReport: undefined;

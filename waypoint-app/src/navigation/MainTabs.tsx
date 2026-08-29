@@ -50,6 +50,7 @@ import ResourcesScreen from '@/screens/main/ResourcesScreen';
 import BlogScreen from '@/screens/main/BlogScreen';
 import ExpensesScreen from '@/screens/main/ExpensesScreen';
 import PlanScreen from '@/screens/main/PlanScreen';
+import ToolsScreen from '@/screens/main/ToolsScreen';
 import TaxReportScreen from '@/screens/main/TaxReportScreen';
 import AgenciesScreen from '@/screens/main/AgenciesScreen';
 import ReimbursablesScreen from '@/screens/main/ReimbursablesScreen';
@@ -266,6 +267,9 @@ function HomeStack() {
       <HomeStackNav.Screen name="Pricing" component={PricingScreen} options={{ title: 'Free & Premium' }} />
       <HomeStackNav.Screen name="Agencies" component={AgenciesScreen} options={{ title: 'Agency Directory' }} />
       <HomeStackNav.Screen name="Reimbursables" component={ReimbursablesScreen} options={{ title: 'RC Funding Guide' }} />
+      {/* Tools became a place in the Home rebuild (phase 4); it gets its own
+          tab in phase 5. */}
+      <HomeStackNav.Screen name="Tools" component={ToolsScreen} options={{ title: 'Tools' }} />
       {/* Moved out of the Calendar tab (phase 3): Tools → Money & benefits
           already listed them, and Plan is about obligations, not spending. */}
       <HomeStackNav.Screen name="Expenses" component={ExpensesScreen} options={{ title: 'Expenses' }} />

@@ -29,8 +29,6 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
 import { useRequests } from '@/hooks/useRequests';
 import { useCommunications } from '@/hooks/useCommunications';
-import { findUnansweredReply } from '@/lib/replyInbox';
-import { activeRequestForReply } from '@/lib/requestCase';
 import { useTriage } from '@/hooks/useTriage';
 import OneThingCard, { LaterList } from '@/components/OneThingCard';
 import SensorLine from '@/components/SensorLine';
@@ -40,11 +38,20 @@ import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
-import { percentageLabel } from '@/lib/accessibility';
-import ToolsArea from '@/components/ToolsArea';
+import { announce, percentageLabel } from '@/lib/accessibility';
+import PinnedTools from '@/components/PinnedTools';
+import { useToolPins } from '@/hooks/useToolPins';
+import { getAllTools } from '@/lib/toolsCatalog';
 import { lookupRC } from '@/data/regionalCenters';
 import type { RcStatus, IepStatus } from '@/types/database';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
+
+/** The one door to the whole toolbox — it must not be the only English string. */
+const ALL_TOOLS_LABEL: Record<FunnelLocale, string> = {
+  en: 'All tools',
+  es: 'Todas las herramientas',
+  vi: 'Tất cả công cụ',
+};
 
 /** Remembers "Everything" vs "Waypoint only" between visits */
 const AGENDA_SCOPE_KEY = 'waypoint_agenda_scope';
@@ -131,17 +138,15 @@ function HomeScreenInner({
     error: commsError,
     refetch: refetchComms,
   } = useCommunications(family?.id ?? '');
-  const unanswered = useMemo(() => findUnansweredReply(communications), [communications]);
-  // Badge the job, not the channel: a reply that belongs to an ACTIVE
-  // tracked request opens its case file; strays and replies on closed
-  // requests go to the generic paper trail. The Tools row still badges it.
-  const replyRequest = useMemo(
-    () =>
-      unanswered
-        ? activeRequestForReply(unanswered.reply, familyRequests, communications)
-        : null,
-    [unanswered, familyRequests, communications]
-  );
+  const toolKeys = useMemo(() => getAllTools('en').map((t) => t.key), []);
+  const toolPins = useToolPins(family?.id, toolKeys, funnelLocale);
+  // Rendered beside the tiles, not inside the child-card block the other
+  // notice lives in — a family with no child record would never have seen it.
+  const [toolNotice, setToolNotice] = useState<string | null>(null);
+  const sayToolNotice = (message: string) => {
+    setToolNotice(message);
+    announce(message);
+  };
   const { deadlines, loading: deadlinesLoading, error: deadlinesError } = useDeadlines({
     familyId: family?.id ?? '',
   });
@@ -548,16 +553,22 @@ function HomeScreenInner({
           </TouchableOpacity>
         )}
 
-        {/* Tools — hybrid v2 (Home Tools Redesign): search, action rows
-            with live badges, and four doors that expand in place */}
-        <Text style={styles.sectionTitle}>Tools</Text>
-        <ToolsArea
-          selectedChildName={primaryChild?.first_name ?? null}
-          requests={familyRequests}
-          communications={communications}
-          hasUnansweredReply={!!unanswered && !replyRequest}
-          childAgeYears={primaryChild ? ageFromDob(primaryChild.date_of_birth) : null}
-        />
+        {/* Tools became a place (phase 4): Home shows the tiles this family
+            pinned, and the whole toolbox is one tap behind them. */}
+        <PinnedTools pins={toolPins} locale={funnelLocale} onNotice={sayToolNotice} />
+        {!!toolNotice && (
+          <Text style={styles.notice} accessibilityRole="alert">
+            {toolNotice}
+          </Text>
+        )}
+        <TouchableOpacity
+          style={styles.allTools}
+          onPress={() => (navigation as any).navigate('Tools')}
+          accessibilityRole="button"
+          accessibilityLabel={ALL_TOOLS_LABEL[funnelLocale]}
+        >
+          <Text style={styles.allToolsText}>{ALL_TOOLS_LABEL[funnelLocale]} ›</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -577,6 +588,16 @@ function StatRow({ count, label, color }: { count: number; label: string; color:
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  allTools: {
+    minHeight: 44,
+    justifyContent: 'center',
+    marginBottom: spacing.base,
+  },
+  allToolsText: {
+    color: colors.teal,
+    fontSize: fonts.sizes.base,
+    fontWeight: fonts.weights.bold,
+  },
   notice: {
     fontSize: fonts.sizes.sm,
     color: semantic.warning,
