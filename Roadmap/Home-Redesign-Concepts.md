@@ -116,8 +116,9 @@ navigation. Three access speeds, matched to how often families need things:
    today's job — a reply opens its case file, a deadline opens the letter);
    the tell-Waypoint row (live search over all 20 tools + crisis vocabulary
    + Ask-AI fallthrough — the "nothing found" dead end dies); and the
-   **unchanged five-tab bar** (Home · Ask AI · Actions · Calendar ·
-   Profile) — every stack behind those tabs is untouched.
+   **five-tab bar** (Home · Ask AI · Actions · Calendar · Learn — see the
+   decisions below; Profile moved under the avatar) — every stack behind
+   those tabs is untouched.
 2. **One tap — the Everything-else layer:** This week (→ Calendar), Waiting
    (open requests vs their clocks → case files), Later (every set-aside
    item with its return date and Undo — better than today's invisible
@@ -147,6 +148,45 @@ Undo), with the Waiting ledger and the unchanged Actions/Calendar tabs
 for density. "I need something now" is type-or-talk. The honest trade:
 incidental discovery drops one tap; the card's question/opportunity
 classes and the layer's true-count summary line carry that load.
+
+## Decisions taken on the prototype (owner, Aug 29)
+
+- **Everything-else splits in two:** *Dates & clocks* (this week · waiting on
+  an agency · later-with-undo · full calendar) and *Tools*.
+- **Pinned tools:** a 3-across tile grid at the top of Tools, ☆ to pin from
+  any row, Edit to remove, cap 6, seeded with the three action tools. **One
+  shared set per family**, not per child. Waypoint **offers one pin** after a
+  tool is opened repeatedly — in place inside Your tools, once per tool,
+  declinable, never a popup.
+- **Learn takes the fifth tab.** Profile leaves the tab bar and becomes
+  **Settings under the avatar** (top right) as a dropdown: child, family,
+  settings, language, sharing, plan, sign out.
+- **The One Thing card is shorter and collapsible** — collapsed keeps the
+  kicker, the title and the action, and drops the reasoning (318px → 165px),
+  so the whole of Home fits one screen without scrolling.
+
+## Learn as the content engine (product direction, not mockup scope)
+
+Learn is not just an IA tidy-up: it is where "Waypoint knows things" becomes
+visible, and the SEO surface for the whole product. The prototype ships a
+shell — five situation-first guides, four sample articles, a plain-English
+glossary. The real build-out is a library of **dozens, then hundreds** of
+articles, and it should be sourced from what we already own rather than
+written from scratch:
+
+- The **Entity Navigation Matrix** (49 deep-dive KB articles) is the seed
+  corpus; each entity already carries citations and next steps.
+- Every article needs the same provenance discipline as the app: a statute
+  or source per claim, a "last reviewed" date, and the collaborative-first
+  tone rule in any letter it recommends.
+- Each article should end in an action that exists — a letter template, a
+  tracked request, a case file — so reading converts to doing.
+- Public routes for SEO, with the in-app Learn tab reading the same content;
+  ES/VI follow the funnel's translation gate.
+
+Sizing, publishing workflow, and whether articles are authored, AI-drafted
+then human-reviewed, or both, are open — worth their own short plan before
+any of it is built.
 
 ## Recommendation
 
