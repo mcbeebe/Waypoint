@@ -39,7 +39,7 @@ import { FLAGS } from '@/lib/flags';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
 import { percentageLabel } from '@/lib/accessibility';
 import ToolsArea from '@/components/ToolsArea';
 import { lookupRC } from '@/data/regionalCenters';
@@ -108,6 +108,8 @@ function HomeScreenInner({
 }) {
   const navigation = useNavigation();
   const [empathyIndex, setEmpathyIndex] = useState(0);
+  /** Honest failure surface for the card's own writes. */
+  const [notice, setNotice] = useState<string | null>(null);
   const { selectedChild } = useSelectedChild();
 
   const primaryChild = selectedChild;
@@ -118,8 +120,17 @@ function HomeScreenInner({
   const { diagnoses } = useDiagnoses(primaryChild?.id);
   const { locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
-  const { requests: familyRequests } = useRequests(family?.id);
-  const { communications, refetch: refetchComms } = useCommunications(family?.id ?? '');
+  const {
+    requests: familyRequests,
+    loading: requestsLoading,
+    error: requestsError,
+  } = useRequests(family?.id);
+  const {
+    communications,
+    loading: commsLoading,
+    error: commsError,
+    refetch: refetchComms,
+  } = useCommunications(family?.id ?? '');
   const unanswered = useMemo(() => findUnansweredReply(communications), [communications]);
   // Badge the job, not the channel: a reply that belongs to an ACTIVE
   // tracked request opens its case file; strays and replies on closed
@@ -131,7 +142,9 @@ function HomeScreenInner({
         : null,
     [unanswered, familyRequests, communications]
   );
-  const { deadlines } = useDeadlines({ familyId: family?.id ?? '' });
+  const { deadlines, loading: deadlinesLoading, error: deadlinesError } = useDeadlines({
+    familyId: family?.id ?? '',
+  });
   const { summary: expenseSummary } = useExpenses({ familyId: family?.id ?? '' });
 
   const activeActions = actions.filter((a) => a.status === 'in_progress');
@@ -167,6 +180,7 @@ function HomeScreenInner({
     ageYears: primaryChild ? ageFromDob(primaryChild.date_of_birth) : null,
     rcStatus: primaryChild?.rc_status ?? null,
     iepStatus: primaryChild?.iep_status ?? null,
+    childId: primaryChild?.id ?? null,
     hasDiagnosis: diagnoses.length > 0,
     mediCalStatus: primaryChild?.medi_cal_status ?? null,
     ihssStatus: primaryChild?.ihss_status ?? null,
@@ -175,7 +189,12 @@ function HomeScreenInner({
     locale: funnelLocale,
     requests: familyRequests,
     communications,
+    deadlines,
     appointments: agendaAppointments,
+    // An empty list because a fetch is in flight — or failed — is not
+    // evidence that nothing needs the family today.
+    loading: requestsLoading || commsLoading || deadlinesLoading,
+    dataFailed: !!(requestsError || commsError || deadlinesError),
     onRepliesSynced: refetchComms,
   });
 
@@ -208,14 +227,29 @@ function HomeScreenInner({
   const answerItem = async (item: TriageItem, value: string) => {
     if (!primaryChild) return;
     let saved = false;
-    if (item.id === 'question:rc_status') {
+    if (item.id.startsWith('question:rc_status')) {
       saved = await updateChild(primaryChild.id, { rc_status: value as RcStatus });
-    } else if (item.id === 'question:iep_status') {
+    } else if (item.id.startsWith('question:iep_status')) {
       saved = await updateChild(primaryChild.id, { iep_status: value as IepStatus });
     }
-    // Only a saved answer counts as work done — a failed write must not let
-    // the calm state claim the day was finished.
-    if (saved) void markActed(item.id);
+    if (!saved) {
+      setNotice("Couldn't save that answer. Check your connection and try again.");
+      return;
+    }
+    // "I'm not sure" is a legal answer that leaves the question true, so the
+    // card would re-render the identical question forever. Setting it aside
+    // is what moves Home on, and it comes back with its return date.
+    if (value === 'unknown') {
+      const ok = await defer(item);
+      if (!ok) setNotice("Couldn't save that. It will still be here.");
+      return;
+    }
+    void markActed(item.id);
+  };
+
+  const deferItem = async (item: TriageItem) => {
+    const ok = await defer(item);
+    if (!ok) setNotice("Couldn't set that aside — it will be here next time.");
   };
 
   // Remembered so the parent isn't re-choosing this every morning
@@ -317,15 +351,24 @@ function HomeScreenInner({
               shared={deferralsShared}
               completedIds={completedIds}
               onAct={actOnItem}
-              onDefer={(item) => { void defer(item); }}
+              onDefer={(item) => { void deferItem(item); }}
               onAnswer={(item, value) => { void answerItem(item, value); }}
             />
+            {!!notice && (
+              <Text style={styles.notice} accessibilityRole="alert">
+                {notice}
+              </Text>
+            )}
             <SensorLine sensor={triage.sensor} />
             <LaterList
               later={triage.later}
               locale={funnelLocale}
               shared={deferralsShared}
-              onUndo={(id) => { void undo(id); }}
+              onUndo={(id) => {
+                void undo(id).then((ok) => {
+                  if (!ok) setNotice("Couldn't bring that back just now.");
+                });
+              }}
             />
           </>
         )}
@@ -534,6 +577,14 @@ function StatRow({ count, label, color }: { count: number; label: string; color:
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  notice: {
+    fontSize: fonts.sizes.sm,
+    color: semantic.warning,
+    backgroundColor: semantic.warningBg,
+    borderRadius: radii.sm,
+    padding: spacing.sm,
+    marginBottom: spacing.base,
+  },
   container: {
     flex: 1,
     backgroundColor: '#F8FAFB',
@@ -623,37 +674,6 @@ const styles = StyleSheet.create({
     color: colors.dark,
     fontStyle: 'italic',
     lineHeight: 20,
-  },
-  alertCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    borderRadius: radii.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    borderLeftWidth: 4,
-    borderLeftColor: '#DC2626',
-  },
-  alertEmoji: {
-    fontSize: 20,
-    marginRight: spacing.sm,
-  },
-  alertContent: {
-    flex: 1,
-  },
-  alertTitle: {
-    fontSize: fonts.sizes.sm,
-    fontWeight: fonts.weights.semibold as '600',
-    color: '#DC2626',
-  },
-  alertSubtitle: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-    marginTop: 2,
-  },
-  alertChevron: {
-    fontSize: 20,
-    color: '#DC2626',
   },
   progressCard: {
     backgroundColor: colors.white,

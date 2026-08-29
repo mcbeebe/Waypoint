@@ -22,7 +22,7 @@ export default function SensorLine({ sensor }: SensorLineProps) {
       <Text
         style={[
           styles.text,
-          { fontSize: Math.round(11.5 * scale) },
+          { fontSize: Math.round(11.5 * scale), lineHeight: Math.round(16 * scale) },
           !sensor.ok && styles.textWarn,
         ]}
       >
@@ -51,7 +51,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.mid,
     fontWeight: fonts.weights.medium,
-    lineHeight: 16,
   },
   textWarn: { color: semantic.warning },
 });

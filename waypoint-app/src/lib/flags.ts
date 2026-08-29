@@ -25,4 +25,10 @@ export const FLAGS = {
    * the real fallback, and this is the kill switch for a bad live pick.
    */
   newHome: true,
+  /**
+   * The crisis rung of the Home ladder ("something happened today"). The
+   * ladder publishes the rung; nothing feeds it until an intake exists, and
+   * the "How Waypoint decides" sheet says "not set up yet" while this is off.
+   */
+  crisisIntake: false,
 } as const;

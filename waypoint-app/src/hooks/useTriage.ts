@@ -1,28 +1,43 @@
 /**
  * The Home triage hook (Roadmap/Home-Rebuild-Plan.md phase 2) — assembles a
  * `TriageInput` from the data Home already loads, runs the published ladder,
- * and owns the two pieces of state the card needs: what was set aside, and
- * what was actually finished today.
+ * and owns the state the card needs: what was set aside, and what was
+ * actually finished today.
  *
  * The screen stays dumb: everything decidable lives in `lib/homeTriage.ts`
  * and `lib/homeCard.ts`, both pure and tested.
+ *
+ * Two things this hook is careful about, because both produced false calm:
+ * - **Absence of data is not absence of obligations.** `loading` and
+ *   `dataFailed` go into the ladder, which then refuses to call the day calm.
+ * - **A check only counts if it happened.** The Gmail stamp is written on a
+ *   typed 'checked' outcome, never merely because a sync was attempted.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { autoSyncReplies, gmailStatus } from '@/lib/gmail';
+import { useFocusEffect } from '@react-navigation/native';
+import { autoSyncReplies } from '@/lib/gmail';
 import { localDay, triageHome, deferUntil } from '@/lib/homeTriage';
 import type {
   TriageInput,
   TriageItem,
   TriageResult,
   TriageAppointment,
+  TriageDeadline,
   TriageDraft,
+  LaterItem,
 } from '@/lib/homeTriage';
 import { resolveCompleted } from '@/lib/homeCard';
 import { useDeferrals } from '@/hooks/useDeferrals';
 import type { FamilyRequest } from '@/hooks/useRequests';
 import type { Communication } from '@/hooks/useCommunications';
-import type { Appointment, RcStatus, IepStatus, BenefitStatus } from '@/types/database';
+import type {
+  Appointment,
+  Deadline,
+  RcStatus,
+  IepStatus,
+  BenefitStatus,
+} from '@/types/database';
 import { MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
 import type { FunnelLocale } from '@/lib/eligibility';
 
@@ -50,6 +65,7 @@ async function readActed(today: string): Promise<string[]> {
 
 export interface UseTriageArgs {
   familyId?: string;
+  childId?: string | null;
   childName?: string | null;
   ageYears?: number | null;
   rcStatus?: RcStatus | null;
@@ -62,8 +78,12 @@ export interface UseTriageArgs {
   locale: FunnelLocale;
   requests: FamilyRequest[];
   communications: Communication[];
+  deadlines: Deadline[];
   appointments: Appointment[];
-  calendarSynced?: boolean;
+  /** True while any of the above is still being fetched. */
+  loading?: boolean;
+  /** True when a fetch failed — an empty list is then not evidence. */
+  dataFailed?: boolean;
   /** Called when a Gmail sync brought new replies in, so the log refetches. */
   onRepliesSynced?: () => void;
 }
@@ -72,12 +92,12 @@ export interface UseTriage {
   result: TriageResult;
   /** Items finished today — the ladder sheet marks their rungs done. */
   completedIds: string[];
-  /** False when set-aside items live only on this device (migration 048 pending). */
+  /** False when set-aside items live only on this device. */
   shared: boolean;
-  /** Set the leading item aside; the next one takes its place immediately. */
-  defer: (item: TriageItem) => Promise<void>;
+  /** Set the leading item aside. False when nothing could be persisted. */
+  defer: (item: TriageItem) => Promise<boolean>;
   /** Bring a set-aside item back now. */
-  undo: (itemId: string) => Promise<void>;
+  undo: (itemId: string) => Promise<boolean>;
   /** Record that the family acted on an item, for the "done" calm state. */
   markActed: (itemId: string) => Promise<void>;
 }
@@ -85,6 +105,7 @@ export interface UseTriage {
 export function useTriage(args: UseTriageArgs): UseTriage {
   const {
     familyId,
+    childId,
     childName,
     ageYears,
     rcStatus,
@@ -97,22 +118,43 @@ export function useTriage(args: UseTriageArgs): UseTriage {
     locale,
     requests,
     communications,
+    deadlines,
     appointments,
-    calendarSynced,
+    loading,
+    dataFailed,
     onRepliesSynced,
   } = args;
 
-  const { deferrals, shared, defer: persistDefer, undo: persistUndo } = useDeferrals(familyId);
+  const {
+    deferrals,
+    titles: deferralTitles,
+    shared,
+    loading: deferralsLoading,
+    defer: persistDefer,
+    undo: persistUndo,
+    refetch: refetchDeferrals,
+  } = useDeferrals(familyId);
   const [acted, setActed] = useState<string[]>([]);
-  // Mirrors `acted` so a tap can read the current list without waiting for a
-  // render, and so the storage write stays out of the state updater.
   const actedRef = useRef<string[]>([]);
-  const [gmail, setGmail] = useState<TriageInput['gmail']>({ connected: false });
-  // `now` is captured once per mount so a render never reshuffles the ladder
-  // underneath a parent mid-tap.
-  const [now] = useState(() => new Date());
+  const [gmail, setGmail] = useState<TriageInput['gmail']>({
+    connected: false,
+    checking: true,
+  });
+  /**
+   * `now` is a state value, not a fresh `new Date()` per render, so the
+   * ladder cannot reshuffle under a parent mid-tap — but it is re-derived
+   * when the screen regains focus, because a phone left open overnight was
+   * otherwise still working from yesterday's calendar date.
+   */
+  const [now, setNow] = useState(() => new Date());
   const today = useMemo(() => localDay(now), [now]);
-  const syncedRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setNow((prev) => (localDay(prev) === localDay(new Date()) ? prev : new Date()));
+      void refetchDeferrals();
+    }, [refetchDeferrals])
+  );
 
   useEffect(() => {
     void readActed(today).then((ids) => {
@@ -121,26 +163,32 @@ export function useTriage(args: UseTriageArgs): UseTriage {
     });
   }, [today]);
 
-  // Gmail provenance: what was checked, and when. An unchecked inbox is said
-  // out loud rather than quietly implied (the sensor line's whole point).
+  // Gmail provenance: what was checked, and when. The outcome is typed
+  // because a failed sync used to be stamped as a successful check.
   useEffect(() => {
-    if (syncedRef.current) return;
-    syncedRef.current = true;
     let cancelled = false;
     (async () => {
-      const status = await gmailStatus();
       const stored = await AsyncStorage.getItem(GMAIL_CHECKED_KEY).catch(() => null);
-      if (cancelled) return;
-      setGmail({ connected: status.gmail, lastCheckedAt: stored });
-      if (!status.gmail) return;
       const sync = await autoSyncReplies();
       if (cancelled) return;
-      if (sync.ran) {
+      if (sync.outcome === 'checked') {
         const stamp = new Date().toISOString();
         AsyncStorage.setItem(GMAIL_CHECKED_KEY, stamp).catch(() => {});
         setGmail({ connected: true, lastCheckedAt: stamp });
         if (sync.newReplies > 0) onRepliesSynced?.();
+        return;
       }
+      if (sync.outcome === 'failed') {
+        setGmail({ connected: true, lastCheckedAt: stored, failed: true });
+        return;
+      }
+      if (sync.outcome === 'throttled') {
+        // Another screen synced within the interval; the stored stamp is
+        // still the truth about when the mailbox was last read.
+        setGmail({ connected: true, lastCheckedAt: stored });
+        return;
+      }
+      setGmail({ connected: false });
     })().catch(() => {
       if (!cancelled) setGmail({ connected: false, failed: true });
     });
@@ -158,6 +206,7 @@ export function useTriage(args: UseTriageArgs): UseTriage {
           id: c.id,
           templateKey: c.template_key,
           subject: c.subject,
+          body: c.body,
           savedAt: c.created_at,
         })),
     [communications]
@@ -173,6 +222,19 @@ export function useTriage(args: UseTriageArgs): UseTriage {
     [appointments]
   );
 
+  const triageDeadlines: TriageDeadline[] = useMemo(
+    () =>
+      deadlines
+        .filter((d) => d.status !== 'completed')
+        .map((d) => ({
+          id: d.id,
+          title: d.title,
+          dueOn: d.due_date.slice(0, 10),
+          kind: d.deadline_type,
+        })),
+    [deadlines]
+  );
+
   // A tracked deeming request reads as applied, so a sent letter is reflected
   // in the stack rather than the family being asked to send it twice.
   const mediCalRequested = useMemo(
@@ -185,10 +247,13 @@ export function useTriage(args: UseTriageArgs): UseTriage {
     [requests]
   );
 
+  const stillLoading = !!loading || deferralsLoading;
+
   const input: TriageInput = useMemo(
     () => ({
       locale,
       now,
+      childId,
       childName,
       ageYears,
       rcStatus,
@@ -201,44 +266,70 @@ export function useTriage(args: UseTriageArgs): UseTriage {
       mediCalRequested,
       requests,
       communications,
+      deadlines: triageDeadlines,
       appointments: triageAppointments,
       drafts,
       deferrals,
       gmail,
-      calendarSynced,
-      // Nothing tracked yet at all — not merely a quiet day.
+      loading: stillLoading,
+      dataFailed,
+      // Nothing tracked yet at all — and only claimable once the records
+      // actually loaded, or a failed fetch reads as a brand-new family.
       firstRun:
+        !stillLoading &&
+        !dataFailed &&
         requests.length === 0 &&
         communications.length === 0 &&
+        triageDeadlines.length === 0 &&
         triageAppointments.length === 0,
     }),
     [
-      locale, now, childName, ageYears, rcStatus, iepStatus, hasDiagnosis,
+      locale, now, childId, childName, ageYears, rcStatus, iepStatus, hasDiagnosis,
       mediCalStatus, ihssStatus, ssiStatus, sdpStep, mediCalRequested,
-      requests, communications, triageAppointments, drafts, deferrals, gmail, calendarSynced,
+      requests, communications, triageDeadlines, triageAppointments, drafts,
+      deferrals, gmail, stillLoading, dataFailed,
     ]
   );
 
   const { result, completedIds } = useMemo(() => {
     // Two passes on purpose: an item only counts as finished when it stopped
-    // being live, so the first pass has to run without any completions.
+    // being live, so the first pass has to run without any completions. And
+    // nothing counts as finished while the records are unread — an empty
+    // list from a failed fetch is not a finished day.
     const dry = triageHome(input);
-    const completed = resolveCompleted(
-      acted,
-      dry.queue.map((i) => i.id),
-      dry.later.map((l) => l.id)
-    );
+    const completed =
+      stillLoading || dataFailed
+        ? {}
+        : resolveCompleted(
+            acted,
+            dry.queue.map((i) => i.id),
+            dry.later.map((l) => l.id)
+          );
     const ids = Object.keys(completed);
+    const base = ids.length ? triageHome({ ...input, completed }) : dry;
+
+    // Set-aside items whose underlying thing no longer generates a candidate
+    // would otherwise vanish from Later — the silent-dismiss failure, one
+    // step removed. The stored title carries them.
+    const listed = new Set(base.later.map((l) => l.id));
+    const orphans: LaterItem[] = Object.entries(deferrals)
+      .filter(([id, returnsOn]) => !listed.has(id) && returnsOn > localDay(now))
+      .filter(([id]) => deferralTitles[id])
+      .map(([id, returnsOn]) => ({
+        id,
+        title: deferralTitles[id],
+        returnsOn,
+        returnLabel: '',
+      }));
+
     return {
-      result: ids.length ? triageHome({ ...input, completed }) : dry,
+      result: orphans.length ? { ...base, later: [...base.later, ...orphans] } : base,
       completedIds: ids,
     };
-  }, [input, acted]);
+  }, [input, acted, stillLoading, dataFailed, deferrals, deferralTitles, now]);
 
   const defer = useCallback(
-    async (item: TriageItem) => {
-      await persistDefer(item.id, deferUntil(item, now), item.title);
-    },
+    async (item: TriageItem) => persistDefer(item.id, deferUntil(item, now), item.title),
     [persistDefer, now]
   );
 

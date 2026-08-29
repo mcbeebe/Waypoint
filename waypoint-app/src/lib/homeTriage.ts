@@ -63,6 +63,12 @@ export const TRIAGE_RANK: Record<TriageClass, number> = TRIAGE_LADDER.reduce(
 const CLOCK_WINDOW_DAYS = 10;
 /** A phoned ask with nothing in writing this long is stale, not escalating. */
 const TODAY_HOUR_CUTOFF = 24;
+/**
+ * A draft is only "work you left" while it is warm. Older than this it is an
+ * abandoned letter, and letting it sit at rung 0 would park it above a passed
+ * statutory deadline every morning until the family deleted it.
+ */
+const RESUME_FRESH_HOURS = 48;
 
 export interface TriageAction {
   /** 'answer' renders the answers inline; the others leave Home. */
@@ -109,8 +115,12 @@ export interface LaterItem {
 }
 
 export interface CalmState {
-  /** Which quiet this is — the copy must not claim the wrong one. */
-  kind: 'done' | 'set_aside' | 'clear' | 'first_run';
+  /**
+   * Which quiet this is — the copy must not claim the wrong one, and
+   * 'unavailable' is not quiet at all: it is Waypoint saying it could not
+   * look. An empty list because the network failed must never read as calm.
+   */
+  kind: 'done' | 'set_aside' | 'clear' | 'first_run' | 'unavailable';
   title: string;
   body: string;
 }
@@ -131,6 +141,8 @@ export interface TriageDraft {
   /** Letter template key, so resuming lands in the right editor. */
   templateKey: string | null;
   subject: string;
+  /** The saved text. Resuming without it would silently start over. */
+  body: string | null;
   savedAt: string;
 }
 
@@ -139,6 +151,15 @@ export interface TriageAppointment {
   title: string;
   /** ISO datetime. */
   startTime: string;
+}
+
+/** A dated obligation from the deadlines table (IEP reviews, auth expiry). */
+export interface TriageDeadline {
+  id: string;
+  title: string;
+  /** ISO calendar date. */
+  dueOn: string;
+  kind: string;
 }
 
 /** Something the family told Waypoint happened today (crisis intake). */
@@ -165,6 +186,8 @@ export interface TriageInput {
   mediCalRequested?: boolean;
   requests?: FamilyRequest[];
   communications?: Communication[];
+  /** The dated obligations the family tracks outside request clocks. */
+  deadlines?: TriageDeadline[];
   appointments?: TriageAppointment[];
   drafts?: TriageDraft[];
   crisis?: TriageCrisis | null;
@@ -172,10 +195,25 @@ export interface TriageInput {
   deferrals?: Record<string, string>;
   /** id → true for things finished today, so calm can say "done". */
   completed?: Record<string, boolean>;
-  gmail?: { connected: boolean; lastCheckedAt?: string | null; failed?: boolean };
-  calendarSynced?: boolean;
+  gmail?: {
+    connected: boolean;
+    lastCheckedAt?: string | null;
+    /** Could not reach Gmail — never the same as "not connected". */
+    failed?: boolean;
+    /** Still checking; the sensor says so rather than guessing. */
+    checking?: boolean;
+  };
+  /**
+   * True while the family's records are still loading, and true when a fetch
+   * failed. Absence of data is not absence of obligations: with either set,
+   * the engine refuses to claim a calm day.
+   */
+  loading?: boolean;
+  dataFailed?: boolean;
   /** True before the family has any tracked history at all. */
   firstRun?: boolean;
+  /** The child these child-scoped items belong to (ids are scoped by it). */
+  childId?: string | null;
 }
 
 export interface TriageResult {
@@ -234,6 +272,7 @@ function resumeItem(input: Required<Pick<TriageInput, 'drafts'>> & { now: Date; 
   const L = picker(input.locale);
   const newest = [...input.drafts].sort((a, b) => b.savedAt.localeCompare(a.savedAt))[0];
   if (!newest) return null;
+  if (hoursBetween(new Date(newest.savedAt), input.now) > RESUME_FRESH_HOURS) return null;
   return {
     id: `resume:${newest.id}`,
     cls: 'resume',
@@ -257,7 +296,12 @@ function resumeItem(input: Required<Pick<TriageInput, 'drafts'>> & { now: Date; 
       kind: 'navigate',
       label: L('Open the draft', 'Abrir el borrador', 'Mở bản nháp'),
       screen: 'Letters',
-      params: newest.templateKey ? { template: newest.templateKey } : undefined,
+      // The saved text goes with it. Without draftBody the editor resets to
+      // the template's generic ask — "picking it up" would start over.
+      params: {
+        ...(newest.templateKey ? { template: newest.templateKey } : {}),
+        ...(newest.body ? { draftBody: newest.body } : {}),
+      },
     },
     deferDays: 1,
     deferLabel: L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai'),
@@ -318,8 +362,8 @@ function clockItems(
           `Họ đã trễ hạn về ${r.title}${who}`
         ),
         why: L(
-          `Because you asked on ${fmtDay(`${r.requested_on}T12:00:00`, locale)} and the law gave them until ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A friendly follow-up citing the date usually moves things in days.`,
-          `Porque pidió el ${fmtDay(`${r.requested_on}T12:00:00`, locale)} y la ley les daba hasta el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Un seguimiento amable citando la fecha suele mover las cosas en días.`,
+          `Because you asked on ${fmtDay(`${r.requested_on}T12:00:00`, locale)} and the law gave them until ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A follow-up that cites the date is the next step.`,
+          `Porque pidió el ${fmtDay(`${r.requested_on}T12:00:00`, locale)} y la ley les daba hasta el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. El siguiente paso es un seguimiento que cite la fecha.`,
           `Vì quý vị đã đề nghị ngày ${fmtDay(`${r.requested_on}T12:00:00`, locale)} và luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Thư nhắc thân thiện nêu ngày thường làm mọi việc chuyển động trong vài ngày.`
         ),
         citation: dl.citation,
@@ -368,6 +412,62 @@ function clockItems(
   return out.sort((a, b) => a.rank - b.rank || a.id.localeCompare(b.id));
 }
 
+/**
+ * The dated obligations that are NOT request clocks: IEP annual reviews and
+ * triennials, insurance authorization expiries, SSI redeterminations. The
+ * deleted Home banner was their only prominent surface — without this the
+ * ladder cannot see them at all, and a triennial ten days out shows nowhere.
+ */
+const DEADLINE_WINDOW_DAYS = 14;
+
+function deadlineItems(
+  deadlines: TriageDeadline[],
+  now: Date,
+  locale: FunnelLocale
+): TriageItem[] {
+  const L = picker(locale);
+  const today = localDay(now);
+  const out: TriageItem[] = [];
+
+  for (const d of deadlines) {
+    const days = Math.round(
+      (new Date(`${d.dueOn}T12:00:00`).getTime() - new Date(`${today}T12:00:00`).getTime()) /
+        MS_PER_DAY
+    );
+    if (days > DEADLINE_WINDOW_DAYS) continue;
+    const due = fmtDay(`${d.dueOn}T12:00:00`, locale);
+    const overdue = days < 0;
+    out.push({
+      id: `${overdue ? 'overdue' : 'clock'}:deadline:${d.id}`,
+      cls: overdue ? 'overdue' : 'clock',
+      rank: overdue ? TRIAGE_RANK.overdue : TRIAGE_RANK.clock,
+      kicker: (overdue
+        ? L(`Date passed — ${-days} days ago`, `Fecha pasada — hace ${-days} días`, `Đã qua — ${-days} ngày trước`)
+        : days === 0
+          ? L('Due today', 'Vence hoy', 'Đến hạn hôm nay')
+          : L(`Coming up — ${days} days`, `Próximo — ${days} días`, `Sắp đến — ${days} ngày`)
+      ).toUpperCase(),
+      title: d.title,
+      why: L(
+        `Because you have this dated ${due} in Waypoint.`,
+        `Porque tiene esto con fecha del ${due} en Waypoint.`,
+        `Vì quý vị có mục này với ngày ${due} trong Waypoint.`
+      ),
+      action: {
+        kind: 'navigate',
+        label: L('Open the calendar', 'Abrir el calendario', 'Mở lịch'),
+        screen: 'CalendarMain',
+        tab: 'Calendar',
+      },
+      deferDays: overdue ? 1 : 3,
+      deferLabel: overdue
+        ? L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai')
+        : L('Back in 3 days', 'Vuelve en 3 días', 'Quay lại sau 3 ngày'),
+    });
+  }
+  return out;
+}
+
 function replyItem(
   requests: FamilyRequest[],
   communications: Communication[],
@@ -401,11 +501,19 @@ function replyItem(
           `${senderName} respondió: ${reply.subject}`,
           `${senderName} đã trả lời: ${reply.subject}`
         ),
-    why: L(
-      `Because it arrived from ${senderName}'s email and the ball is in your court. Nothing sends until you press Send.`,
-      `Porque llegó del correo de ${senderName} y la pelota está en su tejado. Nada se envía hasta que usted pulse Enviar.`,
-      `Vì thư đến từ email của ${senderName} và giờ đến lượt quý vị. Không có gì được gửi cho đến khi quý vị bấm Gửi.`
-    ),
+    why: `${
+      unanswered.snippet
+        ? L(
+            `They wrote: “${unanswered.snippet}…” `,
+            `Escribieron: “${unanswered.snippet}…” `,
+            `Họ viết: “${unanswered.snippet}…” `
+          )
+        : ''
+    }${L(
+      `It arrived from ${senderName}'s email and the ball is in your court. Nothing sends until you press Send.`,
+      `Llegó del correo de ${senderName} y la pelota está en su tejado. Nada se envía hasta que usted pulse Enviar.`,
+      `Thư đến từ email của ${senderName} và giờ đến lượt quý vị. Không có gì được gửi cho đến khi quý vị bấm Gửi.`
+    )}`,
     action: {
       kind: 'navigate',
       label: L(`Read ${senderName}'s reply`, `Leer la respuesta de ${senderName}`, `Đọc thư trả lời của ${senderName}`),
@@ -436,9 +544,9 @@ function todayItems(
       kicker: L(`Today — ${fmtTime(a.startTime, locale)}`, `Hoy — ${fmtTime(a.startTime, locale)}`, `Hôm nay — ${fmtTime(a.startTime, locale)}`).toUpperCase(),
       title: a.title,
       why: L(
-        'Because it is on the calendar you connected, today.',
-        'Porque está en el calendario que conectó, hoy.',
-        'Vì nó nằm trên lịch quý vị đã kết nối, hôm nay.'
+        'Because it is on your Waypoint calendar, today.',
+        'Porque está en su calendario de Waypoint, hoy.',
+        'Vì nó nằm trên lịch Waypoint của quý vị, hôm nay.'
       ),
       action: {
         kind: 'navigate' as const,
@@ -462,10 +570,13 @@ const iepAnswer = (label: string, value: IepStatus): TriageAnswer => ({ label, v
 function questionItem(input: TriageInput, locale: FunnelLocale): TriageItem | null {
   const L = picker(locale);
   const name = input.childName || L('your child', 'su hijo/a', 'con quý vị');
+  // Scoped to the child, or a skip for one sibling silently answers for the
+  // other — and the calm state credits work done on a different child.
+  const scope = input.childId ? `:${input.childId}` : '';
 
   if (input.rcStatus == null || input.rcStatus === 'unknown') {
     return {
-      id: 'question:rc_status',
+      id: `question:rc_status${scope}`,
       cls: 'question',
       rank: TRIAGE_RANK.question,
       kicker: L('A question — 20 seconds', 'Una pregunta — 20 segundos', 'Một câu hỏi — 20 giây').toUpperCase(),
@@ -475,17 +586,27 @@ function questionItem(input: TriageInput, locale: FunnelLocale): TriageItem | nu
         `${name} đã nhận dịch vụ của Trung tâm Khu vực chưa?`
       ),
       why: L(
-        "Your answer decides Waypoint's first step. Not sure is fine — most families are.",
-        'Su respuesta decide el primer paso de Waypoint. No estar segura está bien — la mayoría no lo está.',
-        'Câu trả lời quyết định bước đầu của Waypoint. Không chắc cũng được — hầu hết gia đình đều vậy.'
+        "Your answer decides Waypoint's first step. Not sure is fine — most families are, and Waypoint will help you find out.",
+        'Su respuesta decide el primer paso de Waypoint. No saberlo está bien — a la mayoría le pasa, y Waypoint le ayuda a averiguarlo.',
+        'Câu trả lời quyết định bước đầu của Waypoint. Không chắc cũng được — hầu hết gia đình đều vậy, và Waypoint sẽ giúp quý vị tìm hiểu.'
       ),
       action: { kind: 'answer', label: L('Answer', 'Responder', 'Trả lời') },
       // Values are written straight to children.rc_status, so they must be
       // legal statuses — "no, not yet" is 'known' (aware, no case open).
       answers: [
         rcAnswer(L('Yes, we have a case', 'Sí, tenemos un caso', 'Có, chúng tôi có hồ sơ'), 'active'),
-        rcAnswer(L('No, not yet', 'No, todavía no', 'Chưa'), 'known'),
-        rcAnswer(L("I'm not sure", 'No estoy segura', 'Tôi không chắc'), 'unknown'),
+        rcAnswer(
+          L('We applied, still waiting', 'Solicitamos, seguimos esperando', 'Đã nộp đơn, đang chờ'),
+          'applied'
+        ),
+        // 'known' means "I know which center serves us, no case open" — the
+        // same meaning it carries in onboarding and the profile. The label
+        // has to say that, or the answer records a claim never made.
+        rcAnswer(
+          L('No — I know the center, no case', 'No — conozco el centro, sin caso', 'Chưa — tôi biết trung tâm, chưa có hồ sơ'),
+          'known'
+        ),
+        rcAnswer(L("I'm not sure", 'No lo sé con certeza', 'Tôi không chắc'), 'unknown'),
       ],
       deferDays: 1,
       deferLabel: L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai'),
@@ -494,7 +615,7 @@ function questionItem(input: TriageInput, locale: FunnelLocale): TriageItem | nu
 
   if (input.iepStatus == null || input.iepStatus === 'unknown') {
     return {
-      id: 'question:iep_status',
+      id: `question:iep_status${scope}`,
       cls: 'question',
       rank: TRIAGE_RANK.question,
       kicker: L('A question — 20 seconds', 'Una pregunta — 20 segundos', 'Một câu hỏi — 20 giây').toUpperCase(),
@@ -510,9 +631,12 @@ function questionItem(input: TriageInput, locale: FunnelLocale): TriageItem | nu
       ),
       action: { kind: 'answer', label: L('Answer', 'Responder', 'Trả lời') },
       answers: [
-        iepAnswer(L('Yes, he has one', 'Sí, tiene uno', 'Có'), 'active'),
+        iepAnswer(
+          L(`Yes, ${name} has one`, 'Sí, tiene uno', 'Có'),
+          'active'
+        ),
         iepAnswer(L('No, not yet', 'No, todavía no', 'Chưa'), 'no'),
-        iepAnswer(L("I'm not sure", 'No estoy segura', 'Tôi không chắc'), 'unknown'),
+        iepAnswer(L("I'm not sure", 'No lo sé con certeza', 'Tôi không chắc'), 'unknown'),
       ],
       deferDays: 1,
       deferLabel: L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai'),
@@ -548,9 +672,16 @@ function opportunityItem(input: TriageInput, locale: FunnelLocale): TriageItem |
   );
   const insight = stack
     ? {
-        key: `stack_${stack.guide.layerKey}_${stack.mode}`,
-        title: stack.title,
-        body: stack.body,
+        // Keyed on the LAYER only. With the mode in the id, sending the
+        // request flipped 'unlock' to 'in_motion', no deferral matched, and
+        // an item set aside for a week came back the next morning.
+        key: `stack_${stack.guide.layerKey}`,
+        // The stack card's own headline ("using 1 of 5 benefit layers") was
+        // written to sit above a five-bar chart. Without the bars it is a
+        // claim with its evidence removed, so the guide's own title leads
+        // and the count moves into the body, where it is explained.
+        title: stack.guide.title,
+        body: `${stack.body} ${stack.guide.how}`,
         citation: stack.citation,
         ctaLabel: stack.ctaLabel,
         target: {
@@ -571,7 +702,15 @@ function opportunityItem(input: TriageInput, locale: FunnelLocale): TriageItem |
       );
   if (!insight) return null;
 
-  const because = input.hasDiagnosis
+  // Name the evidence that actually drove the pick. Crediting the diagnosis
+  // for an IHSS or deeming unlock points a parent at the wrong record.
+  const because = stack
+    ? L(
+        `Because of the benefit layers you have told us about — ${stack.securedCount} of ${stack.totalCount} are in place.`,
+        `Por las capas de beneficios que nos ha contado — ${stack.securedCount} de ${stack.totalCount} están en su sitio.`,
+        `Dựa trên các tầng quyền lợi quý vị đã cho biết — ${stack.securedCount}/${stack.totalCount} đã có.`
+      )
+    : input.hasDiagnosis
     ? L(
         `Because you told us about ${input.childName || 'your child'}'s diagnosis and where you are with the Regional Center.`,
         `Porque nos contó sobre el diagnóstico de ${input.childName || 'su hijo/a'} y en qué punto está con el Centro Regional.`,
@@ -584,7 +723,7 @@ function opportunityItem(input: TriageInput, locale: FunnelLocale): TriageItem |
       );
 
   return {
-    id: `opportunity:${insight.key}`,
+    id: `opportunity:${insight.key}${input.childId ? `:${input.childId}` : ''}`,
     cls: 'opportunity',
     rank: TRIAGE_RANK.opportunity,
     kicker: L('Worth checking — 2 minutes', 'Vale la pena revisar — 2 minutos', 'Đáng kiểm tra — 2 phút').toUpperCase(),
@@ -617,17 +756,29 @@ export function sensorLine(input: TriageInput): SensorLine {
   const parts: string[] = [];
   let ok = true;
 
-  if (g?.failed) {
+  if (g?.checking) {
+    // Still looking. Saying "not connected" here told connected families
+    // their Gmail was disconnected on every cold start.
+    parts.push(L('Checking Gmail…', 'Revisando Gmail…', 'Đang kiểm tra Gmail…'));
+  } else if (g?.failed) {
     parts.push(L("Couldn't check Gmail", 'No se pudo revisar Gmail', 'Không kiểm tra được Gmail'));
     ok = false;
   } else if (g?.connected && g.lastCheckedAt) {
-    parts.push(L(
-      `Gmail checked ${fmtTime(g.lastCheckedAt, locale)}`,
-      `Gmail revisado ${fmtTime(g.lastCheckedAt, locale)}`,
-      `Đã kiểm tra Gmail ${fmtTime(g.lastCheckedAt, locale)}`
-    ));
+    // A time with no date reads as today. Anything not from today says which
+    // day it was, so a three-day-old check cannot pass for this morning's.
+    const checked = new Date(g.lastCheckedAt);
+    const sameDay = localDay(checked) === localDay(now);
+    const when = sameDay
+      ? fmtTime(g.lastCheckedAt, locale)
+      : `${fmtDay(g.lastCheckedAt, locale)}, ${fmtTime(g.lastCheckedAt, locale)}`;
+    parts.push(L(`Gmail checked ${when}`, `Gmail revisado ${when}`, `Đã kiểm tra Gmail ${when}`));
+    if (!sameDay) ok = false;
   } else if (g?.connected) {
-    parts.push(L('Gmail connected', 'Gmail conectado', 'Gmail đã kết nối'));
+    parts.push(L(
+      'Gmail connected — not checked yet today',
+      'Gmail conectado — aún no revisado hoy',
+      'Gmail đã kết nối — hôm nay chưa kiểm tra'
+    ));
   } else {
     parts.push(L(
       'Gmail not connected — replies stay outside Waypoint',
@@ -637,15 +788,23 @@ export function sensorLine(input: TriageInput): SensorLine {
     ok = false;
   }
 
-  if (input.calendarSynced) {
-    parts.push(L('Calendar synced', 'Calendario sincronizado', 'Lịch đã đồng bộ'));
+  if (input.dataFailed) {
+    parts.push(L(
+      "Couldn't reach your records",
+      'No se pudo acceder a sus registros',
+      'Không truy cập được hồ sơ của quý vị'
+    ));
+    ok = false;
+  } else {
+    // Says what Waypoint does, not where the bytes live — the old line
+    // claimed deadlines were "stored on your phone", which is false: they
+    // are in your Waypoint account.
+    parts.push(L(
+      'Clocks counted from your records',
+      'Plazos contados desde sus registros',
+      'Thời hạn được tính từ hồ sơ của quý vị'
+    ));
   }
-  parts.push(L(
-    'Deadlines stored on your phone',
-    'Los plazos se guardan en su teléfono',
-    'Thời hạn được lưu trên điện thoại của quý vị'
-  ));
-  void now;
   return { text: parts.join(' · '), ok };
 }
 
@@ -659,17 +818,47 @@ function calmState(
 ): CalmState {
   const L = picker(locale);
   const doneToday = Object.values(input.completed ?? {}).some(Boolean);
+  // Waypoint does NOT send notifications yet (Home-Rebuild-Plan phase 7), so
+  // the calm state cannot promise to tell anyone anything. Until the push
+  // loop ships, it says what is true: the date is tracked, come back and
+  // look. Restore the promise in the same PR that makes it keepable.
   const watching = nextClock
     ? L(
-        `Waypoint will tell you if ${fmtDay(`${nextClock.dueOn}T12:00:00`, locale)} passes without a reply.`,
-        `Waypoint le avisará si pasa el ${fmtDay(`${nextClock.dueOn}T12:00:00`, locale)} sin respuesta.`,
-        `Waypoint sẽ báo cho quý vị nếu qua ${fmtDay(`${nextClock.dueOn}T12:00:00`, locale)} mà không có hồi âm.`
+        `${fmtDay(`${nextClock.dueOn}T12:00:00`, locale)} is the next date Waypoint is counting to. Check back — it will be here.`,
+        `El ${fmtDay(`${nextClock.dueOn}T12:00:00`, locale)} es la próxima fecha que Waypoint cuenta. Vuelva a mirar — estará aquí.`,
+        `${fmtDay(`${nextClock.dueOn}T12:00:00`, locale)} là ngày kế tiếp Waypoint đang đếm tới. Hãy quay lại xem — nó sẽ ở đây.`
       )
     : L(
-        'Waypoint keeps watching your open requests.',
-        'Waypoint sigue vigilando sus solicitudes abiertas.',
-        'Waypoint tiếp tục theo dõi các yêu cầu đang mở của quý vị.'
+        'Waypoint keeps counting the clocks on your open requests.',
+        'Waypoint sigue contando los plazos de sus solicitudes abiertas.',
+        'Waypoint tiếp tục đếm thời hạn cho các yêu cầu đang mở của quý vị.'
       );
+
+  // An empty screen because nothing could be read is not a calm day. This
+  // must come first: firstRun and "done" both read an empty list as fact.
+  if (input.dataFailed || input.loading) {
+    return {
+      kind: 'unavailable',
+      title: input.loading
+        ? L('Checking your records…', 'Revisando sus registros…', 'Đang kiểm tra hồ sơ của quý vị…')
+        : L(
+            "Waypoint couldn't reach your records.",
+            'Waypoint no pudo acceder a sus registros.',
+            'Waypoint không truy cập được hồ sơ của quý vị.'
+          ),
+      body: input.loading
+        ? L(
+            'One moment — Waypoint is counting the clocks.',
+            'Un momento — Waypoint está contando los plazos.',
+            'Chờ một chút — Waypoint đang đếm thời hạn.'
+          )
+        : L(
+            'This is a connection problem, not an all-clear. Nothing has been lost; pull down to try again when you have a signal.',
+            'Es un problema de conexión, no una señal de que todo está bien. No se ha perdido nada; deslice hacia abajo para reintentar cuando tenga señal.',
+            'Đây là sự cố kết nối, không phải dấu hiệu mọi thứ ổn. Không có gì bị mất; hãy kéo xuống để thử lại khi có mạng.'
+          ),
+    };
+  }
 
   if (input.firstRun) {
     return {
@@ -681,7 +870,7 @@ function calmState(
       ),
       body: L(
         'Nothing needs you today. When you ask an agency for something, its clock starts here.',
-        'Nada la necesita hoy. Cuando pida algo a una agencia, su plazo empieza aquí.',
+        'Nada requiere su atención hoy. Cuando pida algo a una agencia, su plazo empieza aquí.',
         'Hôm nay chưa cần quý vị. Khi quý vị đề nghị điều gì với cơ quan, đồng hồ của nó bắt đầu ở đây.'
       ),
     };
@@ -694,7 +883,7 @@ function calmState(
         'Listo. Eso era lo más importante de hoy.',
         'Xong. Đó là điều quan trọng nhất hôm nay.'
       ),
-      body: `${watching} ${L('You can close the app.', 'Puede cerrar la aplicación.', 'Quý vị có thể đóng ứng dụng.')}`,
+      body: `${watching} ${L('Nothing else needs you right now.', 'Nada más requiere su atención ahora.', 'Hiện không còn việc gì cần quý vị.')}`,
     };
   }
   if (laterCount > 0) {
@@ -715,7 +904,7 @@ function calmState(
       'Nada tiene plazo hoy.',
       'Hôm nay không có gì đến hạn.'
     ),
-    body: `${watching} ${L('You can close the app.', 'Puede cerrar la aplicación.', 'Quý vị có thể đóng ứng dụng.')}`,
+    body: `${watching} ${L('Nothing else needs you right now.', 'Nada más requiere su atención ahora.', 'Hiện không còn việc gì cần quý vị.')}`,
   };
 }
 
@@ -739,6 +928,7 @@ export function triageHome(input: TriageInput): TriageResult {
   if (draft) candidates.push(draft);
   if (input.crisis) candidates.push(crisisItem(input.crisis, locale));
   candidates.push(...clockItems(requests, now, locale, input.childName ?? null));
+  candidates.push(...deadlineItems(input.deadlines ?? [], now, locale));
   const reply = replyItem(requests, communications, now, locale);
   if (reply) candidates.push(reply);
   candidates.push(...todayItems(input.appointments ?? [], now, locale));

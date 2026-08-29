@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildLadderSheet,
+  calmKicker,
   cardLabels,
   classOfItemId,
   deferNotice,
@@ -189,6 +190,29 @@ describe('provenance, not praise', () => {
       const sheet = buildLadderSheet({ result, locale: loc });
       const blob = [sheet.title, sheet.intro, ...sheet.rows.map((r) => r.name)].join(' ');
       expect(blob.toUpperCase()).not.toContain('WAYPOINT NOTICED');
+    }
+  });
+});
+
+describe('a rung nothing can fill says so', () => {
+  it('marks crisis "not set up yet" rather than leaving it reading clear', () => {
+    const sheet = buildLadderSheet({ result: triageHome(base()) });
+    const crisis = sheet.rows.find((r) => r.cls === 'crisis')!;
+    expect(crisis.state).toBe('unwired');
+    expect(crisis.stateLabel).toBe('not set up yet');
+  });
+});
+
+describe('the calm card gets an eyebrow, not its own headline shrunk', () => {
+  it('gives every calm kind a short kicker in every locale', () => {
+    const kinds = ['done', 'set_aside', 'clear', 'first_run', 'unavailable'] as const;
+    for (const kind of kinds) {
+      const en = calmKicker(kind, 'en');
+      expect(en).toBe(en.toUpperCase());
+      expect(en.split(' ').length).toBeLessThanOrEqual(3);
+      for (const loc of ['es', 'vi'] as const) {
+        expect(calmKicker(kind, loc).length).toBeGreaterThan(0);
+      }
     }
   });
 });

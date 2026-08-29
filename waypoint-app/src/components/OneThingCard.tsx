@@ -31,7 +31,7 @@ import type {
   TriageClass,
   LaterItem,
 } from '@/lib/homeTriage';
-import { buildLadderSheet, cardLabels, deferNotice, laterLine } from '@/lib/homeCard';
+import { buildLadderSheet, calmKicker, cardLabels, deferNotice, laterLine } from '@/lib/homeCard';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useTextScale } from '@/lib/textSize';
 import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
@@ -111,7 +111,7 @@ export default function OneThingCard({
       {!!item && (
         <Pressable
           onPress={toggle}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           accessibilityRole="button"
           accessibilityLabel={open ? labels.collapse : labels.expand}
         >
@@ -131,19 +131,24 @@ export default function OneThingCard({
         <View style={[styles.card, !open && styles.cardTight]}>
           {head(item.kicker, tint)}
           <Text
-            style={[styles.title, { fontSize: sz(open ? 18 : 16.5) }]}
+            style={[styles.title, { fontSize: sz(open ? 18 : 16.5), lineHeight: sz(open ? 24 : 22) }]}
             numberOfLines={open ? undefined : 2}
           >
             {item.title}
           </Text>
 
           {open && (
-            <>
-              <Text style={[styles.why, { fontSize: sz(13) }]}>{item.why}</Text>
-              {!!item.citation && (
-                <Text style={[styles.citation, { fontSize: sz(11.5) }]}>{item.citation}</Text>
-              )}
-            </>
+            <Text style={[styles.why, { fontSize: sz(13), lineHeight: sz(20) }]}>
+              {item.why}
+            </Text>
+          )}
+          {/* The citation stays with the claim. Hiding the legal basis behind
+              a toggle that persists, while the claim itself stays on screen,
+              would invert the rule the card exists to keep. */}
+          {!!item.citation && (
+            <Text style={[styles.citation, { fontSize: sz(11.5), lineHeight: sz(16) }]}>
+              {item.citation}
+            </Text>
           )}
 
           {item.answers ? (
@@ -156,7 +161,9 @@ export default function OneThingCard({
                   accessibilityRole="button"
                   accessibilityLabel={a.label}
                 >
-                  <Text style={[styles.answerText, { fontSize: sz(14) }]}>{a.label}</Text>
+                  <Text style={[styles.answerText, { fontSize: sz(14), lineHeight: sz(19) }]}>
+                    {a.label}
+                  </Text>
                 </Pressable>
               ))}
             </View>
@@ -167,37 +174,48 @@ export default function OneThingCard({
               accessibilityRole="button"
               accessibilityLabel={item.action.label}
             >
-              <Text style={[styles.ctaText, { fontSize: sz(15) }]}>{item.action.label}</Text>
+              <Text style={[styles.ctaText, { fontSize: sz(15), lineHeight: sz(20) }]}>
+                {item.action.label}
+              </Text>
             </Pressable>
           )}
 
-          {open && (
-            <>
-              <Pressable
-                style={({ pressed }) => [styles.ghost, pressed && styles.dim]}
-                onPress={() => onDefer(item)}
-                accessibilityRole="button"
-                accessibilityLabel={`${labels.notToday}. ${deferNotice(item, { shared }, locale)}`}
-              >
-                <Text style={[styles.ghostText, { fontSize: sz(13) }]}>{labels.notToday}</Text>
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.ghost, pressed && styles.dim]}
-                onPress={() => setSheetVisible(true)}
-                accessibilityRole="button"
-                accessibilityLabel={labels.howWeDecide}
-              >
-                <Text style={[styles.ghostText, styles.ghostFaint, { fontSize: sz(12.5) }]}>
-                  {labels.howWeDecide}
-                </Text>
-              </Pressable>
-            </>
-          )}
+          <Pressable
+            style={({ pressed }) => [styles.ghost, pressed && styles.dim]}
+            onPress={() => onDefer(item)}
+            accessibilityRole="button"
+            accessibilityLabel={`${labels.notToday}. ${deferNotice(item, { shared }, locale)}`}
+          >
+            <Text style={[styles.ghostText, { fontSize: sz(13), lineHeight: sz(18) }]}>
+              {labels.notToday}
+            </Text>
+            {/* The return date is on the button, not only in the screen
+                reader's label — a sighted parent used to learn it only after
+                tapping. */}
+            <Text style={[styles.ghostNote, { fontSize: sz(11.5), lineHeight: sz(16) }]}>
+              {deferNotice(item, { shared }, locale)}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.ghost, pressed && styles.dim]}
+            onPress={() => setSheetVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel={labels.howWeDecide}
+          >
+            <Text
+              style={[styles.ghostText, styles.ghostFaint, { fontSize: sz(12.5), lineHeight: sz(18) }]}
+            >
+              {labels.howWeDecide}
+            </Text>
+          </Pressable>
         </View>
       ) : calm ? (
         <View style={[styles.card, styles.cardCalm]}>
-          {head(calm.title, null)}
-          <Text style={[styles.why, { fontSize: sz(13.5) }]}>{calm.body}</Text>
+          {head(calmKicker(calm.kind, locale), null)}
+          <Text style={[styles.title, { fontSize: sz(18), lineHeight: sz(24) }]}>
+            {calm.title}
+          </Text>
+          <Text style={[styles.why, { fontSize: sz(13.5), lineHeight: sz(20) }]}>{calm.body}</Text>
           <Pressable
             style={({ pressed }) => [styles.ghost, pressed && styles.dim]}
             onPress={() => setSheetVisible(true)}
@@ -255,16 +273,23 @@ function LadderSheet({
           </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.sheetBody}>
-          <Text style={[styles.sheetIntro, { fontSize: sz(13.5) }]}>{sheet.intro}</Text>
+          <Text style={[styles.sheetIntro, { fontSize: sz(13.5), lineHeight: sz(20) }]}>
+            {sheet.intro}
+          </Text>
           {sheet.rows.map((row) => (
             <View
               key={row.cls ?? 'calm'}
               style={[styles.ladderRow, row.state === 'now' && styles.ladderRowHit]}
+              accessible
+              accessibilityRole="text"
+              accessibilityLabel={`${row.position ?? ''} ${row.name}: ${row.stateLabel}`}
             >
               <Text style={[styles.ladderNum, { fontSize: sz(12) }]}>
                 {row.position ?? '✓'}
               </Text>
-              <Text style={[styles.ladderName, { fontSize: sz(13.5) }]}>{row.name}</Text>
+              <Text style={[styles.ladderName, { fontSize: sz(13.5), lineHeight: sz(19) }]}>
+                {row.name}
+              </Text>
               <Text
                 style={[
                   styles.ladderState,
@@ -317,7 +342,10 @@ export function LaterList({
       {later.map((l) => (
         <View key={l.id} style={styles.laterRow}>
           <View style={styles.laterText}>
-            <Text style={[styles.laterTitle, { fontSize: sz(13.5) }]} numberOfLines={2}>
+            <Text
+              style={[styles.laterTitle, { fontSize: sz(13.5), lineHeight: sz(18) }]}
+              numberOfLines={3}
+            >
               {l.title}
             </Text>
             <Text style={[styles.laterWhen, { fontSize: sz(11.5) }]}>
@@ -395,7 +423,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   answerText: { color: colors.navy, fontWeight: fonts.weights.semibold, textAlign: 'center' },
-  ghost: { minHeight: 32, justifyContent: 'center', alignSelf: 'flex-start' },
+  // MIN_TOUCH_TARGET (lib/accessibility.ts) is 44; these were 32 and 36.
+  ghost: {
+    minHeight: 44,
+    justifyContent: 'center',
+    alignSelf: 'stretch',
+    paddingVertical: spacing.xs,
+  },
+  ghostNote: { color: '#94A3B8', fontWeight: fonts.weights.medium },
   ghostText: { color: colors.mid, fontWeight: fonts.weights.semibold },
   ghostFaint: { color: '#94A3B8', fontWeight: fonts.weights.medium },
   dim: { opacity: 0.6 },
@@ -462,6 +497,12 @@ const styles = StyleSheet.create({
   laterText: { flex: 1, gap: 2 },
   laterTitle: { color: colors.navy, fontWeight: fonts.weights.semibold, lineHeight: 18 },
   laterWhen: { color: colors.mid },
-  undo: { minHeight: 36, justifyContent: 'center', paddingHorizontal: spacing.sm },
+  undo: {
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sm,
+  },
   undoText: { color: colors.teal, fontWeight: fonts.weights.bold },
 });

@@ -14,6 +14,7 @@
  *   on it AND it stopped being true. Tapping a button is not completion.
  */
 import type { FunnelLocale } from '@/lib/eligibility';
+import { FLAGS } from '@/lib/flags';
 import {
   TRIAGE_LADDER,
   TRIAGE_RANK,
@@ -21,6 +22,7 @@ import {
   type TriageItem,
   type TriageResult,
   type LaterItem,
+  type CalmState,
 } from '@/lib/homeTriage';
 
 function picker(locale: FunnelLocale) {
@@ -34,7 +36,7 @@ export function classOfItemId(id: string): TriageClass | null {
   return prefix in TRIAGE_RANK ? (prefix as TriageClass) : null;
 }
 
-export type LadderRowState = 'now' | 'queued' | 'later' | 'done' | 'clear';
+export type LadderRowState = 'now' | 'queued' | 'later' | 'done' | 'clear' | 'unwired';
 
 export interface LadderRow {
   /** null on the calm row, which sits below the numbered rungs. */
@@ -81,12 +83,16 @@ function ladderName(cls: TriageClass, locale: FunnelLocale): string {
         'Đồng hồ đang trong khoảng cảnh báo'
       );
     case 'question':
-      return L('One question we need answered', 'Una pregunta que necesitamos', 'Một câu hỏi chúng tôi cần');
+      return L(
+        'One question we need answered',
+        'Una pregunta que necesitamos que responda',
+        'Một câu hỏi chúng tôi cần quý vị trả lời'
+      );
     case 'opportunity':
       return L(
-        'One verified thing you may be owed',
-        'Algo verificado que quizá le corresponde',
-        'Một quyền lợi đã xác minh quý vị có thể được hưởng'
+        'One thing you may be owed, with its citation',
+        'Algo que quizá le corresponde, con su cita legal',
+        'Một quyền lợi quý vị có thể được hưởng, kèm trích dẫn luật'
       );
   }
 }
@@ -95,7 +101,7 @@ function stateLabel(state: LadderRowState, locale: FunnelLocale): string {
   const L = picker(locale);
   switch (state) {
     case 'now':
-      return L('showing now', 'mostrando ahora', 'đang hiển thị');
+      return L('showing now', 'se muestra ahora', 'đang hiển thị');
     case 'queued':
       return L('in the queue', 'en la fila', 'trong hàng chờ');
     case 'later':
@@ -104,6 +110,10 @@ function stateLabel(state: LadderRowState, locale: FunnelLocale): string {
       return L('done today', 'hecho hoy', 'xong hôm nay');
     case 'clear':
       return '—';
+    case 'unwired':
+      // The sheet's whole value is that it can be checked against reality.
+      // A rung with no producer is said out loud, not left reading "—".
+      return L('not set up yet', 'aún no disponible', 'chưa thiết lập');
   }
 }
 
@@ -133,7 +143,8 @@ export function buildLadderSheet(input: LadderSheetInput): LadderSheet {
 
   const rows: LadderRow[] = TRIAGE_LADDER.map((cls, i) => {
     let state: LadderRowState = 'clear';
-    if (cls === leading) state = 'now';
+    if (cls === 'crisis' && !FLAGS.crisisIntake) state = 'unwired';
+    else if (cls === leading) state = 'now';
     else if (queued.has(cls)) state = 'queued';
     else if (later.has(cls)) state = 'later';
     else if (done.has(cls)) state = 'done';
@@ -153,7 +164,7 @@ export function buildLadderSheet(input: LadderSheetInput): LadderSheet {
     name: L(
       'Nothing time-bound — the calm state',
       'Nada con plazo — el estado de calma',
-      'Không có gì gấp — trạng thái yên'
+      'Không có gì đến hạn — trạng thái yên'
     ),
     state: calmState,
     stateLabel: stateLabel(calmState, locale),
@@ -166,9 +177,9 @@ export function buildLadderSheet(input: LadderSheetInput): LadderSheet {
       'Cách Waypoint quyết định điều gì trước'
     ),
     intro: L(
-      'One published order, the same every day. Waypoint shows the highest thing that is true right now — never a guess about what you care about.',
-      'Un orden publicado, igual todos los días. Waypoint muestra lo más alto que es cierto ahora mismo — nunca una suposición sobre lo que a usted le importa.',
-      'Một thứ tự được công bố, giống nhau mỗi ngày. Waypoint hiển thị điều cao nhất đang đúng ngay lúc này — không phải phỏng đoán về điều quý vị quan tâm.'
+      'One published order, the same every day. Waypoint leads with the first thing on this list that is true right now — never a guess about what you care about.',
+      'Un orden publicado, igual todos los días. Waypoint empieza por lo primero de esta lista que sea cierto ahora mismo — nunca una suposición sobre lo que a usted le importa.',
+      'Một thứ tự được công bố, giống nhau mỗi ngày. Waypoint bắt đầu bằng mục đầu tiên trong danh sách này đang đúng ngay lúc này — không phải phỏng đoán về điều quý vị quan tâm.'
     ),
     rows,
     dismissLabel: L('Got it', 'Entendido', 'Đã hiểu'),
@@ -197,15 +208,34 @@ export function resolveCompleted(
   return out;
 }
 
+/**
+ * A short eyebrow for the calm card. Its title is a full sentence and must
+ * render as a title — routing it through the kicker pill made the most
+ * important sentence on the screen the smallest text on it.
+ */
+export function calmKicker(kind: CalmState['kind'], locale: FunnelLocale = 'en'): string {
+  const L = picker(locale);
+  switch (kind) {
+    case 'done':
+      return L('Done today', 'Hecho hoy', 'Xong hôm nay').toUpperCase();
+    case 'set_aside':
+      return L('Set aside', 'Apartado', 'Đã để sang bên').toUpperCase();
+    case 'first_run':
+      return L('First look', 'Primera revisión', 'Lần xem đầu').toUpperCase();
+    case 'unavailable':
+      return L('Not checked', 'Sin revisar', 'Chưa kiểm tra').toUpperCase();
+    case 'clear':
+      return L('Nothing due', 'Nada pendiente', 'Không có gì đến hạn').toUpperCase();
+  }
+}
+
 export interface CardLabels {
   notToday: string;
   howWeDecide: string;
   expand: string;
   collapse: string;
-  readAloud: string;
   undo: string;
   laterHeading: string;
-  whyHeading: string;
 }
 
 export function cardLabels(locale: FunnelLocale = 'en'): CardLabels {
@@ -223,10 +253,8 @@ export function cardLabels(locale: FunnelLocale = 'en'): CardLabels {
     ),
     expand: L('Expand this card', 'Ampliar esta tarjeta', 'Mở rộng thẻ này'),
     collapse: L('Collapse this card', 'Contraer esta tarjeta', 'Thu gọn thẻ này'),
-    readAloud: L('Read this card aloud', 'Leer esta tarjeta en voz alta', 'Đọc to thẻ này'),
     undo: L('Undo', 'Deshacer', 'Hoàn tác'),
     laterHeading: L('Later', 'Más tarde', 'Để sau'),
-    whyHeading: L('Why this', 'Por qué esto', 'Vì sao điều này'),
   };
 }
 

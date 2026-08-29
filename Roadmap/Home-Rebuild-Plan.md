@@ -88,6 +88,51 @@ distinguishes its four kinds.
    would have failed to save and the question returned forever. Answers are now
    typed to their columns and pinned by a test.
 
+**Then three independent adversarial reviews found ~40 verified defects, and
+the fixes changed the phase further:**
+
+5. **The `deadlines` table had no rung.** The deleted banner was its only
+   prominent Home surface, and the ladder's clock rungs read `family_requests`
+   only — so an IEP triennial ten days out, or an authorization expiring in
+   twelve, appeared nowhere. The ladder now reads deadlines too.
+6. **A failed Gmail sync was stamped as a successful check.**
+   `autoSyncReplies` returned `ran: true` whether or not the sync worked, so
+   the sensor line could say "Gmail checked 3:42 PM" over an unread inbox. The
+   outcome is now typed (`checked | failed | throttled | not_connected`), and
+   a check that is not from today prints its date.
+7. **The calm state promised a notification the app cannot send.** "Waypoint
+   will tell you if Sep 19 passes" is phase 7's promise, and phase 7 has not
+   shipped. It now says the date is being counted and to check back — the
+   mitigation this plan's own Risks section named. **Restore the promise in
+   the same PR that makes it keepable.**
+8. **Absence of data read as absence of obligations.** `firstRun` and "done
+   today" both treated an empty array as fact, so an offline morning produced
+   "Nothing needs you today." The ladder now takes `loading` and `dataFailed`
+   and has a fifth calm kind, `unavailable`, that says a connection problem is
+   not an all-clear.
+9. **Deferrals and answers were not child-scoped**, so setting Maya's question
+   aside suppressed Leo's, and answering Maya's could tell Leo's Home the day
+   was done. Ids carry the child.
+10. **A draft never expired.** Rung 0 outranks a passed statutory deadline, so
+    one abandoned letter parked itself above an overdue IPP request every
+    morning. Drafts lead only for 48 hours — and now carry their saved text,
+    which the old action dropped, sending "finish the letter you started" to
+    an empty editor.
+11. **"I'm not sure" re-rendered the identical card forever.** It now sets the
+    question aside with its return date.
+12. **Every failed deferral write was swallowed** — the card advanced, Later
+    showed a return date, and nothing was persisted anywhere. Writes now fall
+    back to the device, revert if even that fails, and tell the family.
+13. Migration 048's policies moved to 027's broadened `family_members OR
+    owner` form, RLS is enabled after the policies exist, and the comment no
+    longer claims a co-parent visibility the app cannot yet resolve.
+14. Copy and accessibility: the calm headline was rendering as a 10.5px
+    eyebrow; the citation and "Not today" were hidden behind a persisted
+    collapse; touch targets were below the repo's own 44pt minimum; line
+    heights did not scale with text size; "Deadlines stored on your phone" was
+    false; "one verified thing you may be owed" claimed verification that does
+    not happen; the crisis rung now reads "not set up yet" instead of "—".
+
 **Deferred out of phase 2, on purpose:**
 
 - **The card has no speaker button.** `expo-speech` is not in the project and
@@ -205,7 +250,18 @@ before any of it is built** — sizing and the authoring workflow are open.
 
 ## Open questions
 
-1. **Ship phase 7 before launch, or soften the calm copy?** (Decide at phase 6.)
+0. **Two the reviews raised that only you can settle:**
+   - **Tone.** The overdue rung says "They missed the deadline on X" and "They
+     owe you an answer". That is description to the parent, not language for
+     the agency — but it is the frame the parent carries into the call. Keep,
+     or soften to a neutral "past due"?
+   - **Legal.** `requestClocks.ts` anchors the W&I §4646.5(b) 30-day IPP clock
+     to the parent's request date. If the statute runs from completion of the
+     assessment instead, every overdue card attaches a correct citation to an
+     incorrectly anchored claim. Worth a lawyer's eye before launch.
+1. **Ship phase 7 before launch, or soften the calm copy?** Softened for now
+   (see change 7 above). The decision that remains is whether push ships
+   before launch or the softened copy is the launch copy.
 2. **Does the crisis class get an intake in this arc,** or stay scaffolded?
    The ladder has the slot; nothing feeds it yet.
 3. **Telemetry:** are you comfortable with anonymous skip-rate and

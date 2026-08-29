@@ -9,6 +9,13 @@
 --    the other never learned it existed. "Later with Undo" is a promise to
 --    the whole family, so the record belongs to the family.
 --
+--    Scope, stated honestly: the policies below follow 027's broadened form
+--    (family_members OR the owning account), so the row is reachable by a
+--    co-parent the day the app can resolve a shared family. It cannot today —
+--    useFamily() still looks up families by user_id, which is an app-wide
+--    limit, not one this table introduces. Until that changes, this is one
+--    account's deferrals on every device it signs in on.
+--
 -- 2. families.tool_pins — the tools a family promoted to tiles. One shared
 --    set per family (owner decision), not per child and not per device.
 --
@@ -37,9 +44,7 @@ create index if not exists home_deferrals_family_idx
   on public.home_deferrals (family_id, returns_on);
 
 comment on table public.home_deferrals is
-  'Home triage "Not today" — one row per set-aside item, with the day it returns. Family-scoped so a co-parent sees what was deferred.';
-
-alter table public.home_deferrals enable row level security;
+  'Home triage "Not today" — one row per set-aside item, with the day it returns. Family-scoped: reachable by the owning account and by family_members once the app resolves shared families.';
 
 do $$
 begin
@@ -48,9 +53,18 @@ begin
      where schemaname = 'public' and tablename = 'home_deferrals'
        and policyname = 'Families manage own deferrals'
   ) then
+    -- The 027 form: a co-parent's family_members row counts, not only the
+    -- owning account. 037's narrow form would have made this table
+    -- owner-only forever, which is the opposite of why it exists.
     create policy "Families manage own deferrals" on public.home_deferrals for all
-      using (family_id in (select id from public.families where user_id = auth.uid()))
-      with check (family_id in (select id from public.families where user_id = auth.uid()));
+      using (
+        family_id in (select family_id from public.family_members where user_id = auth.uid())
+        or family_id in (select id from public.families where user_id = auth.uid())
+      )
+      with check (
+        family_id in (select family_id from public.family_members where user_id = auth.uid())
+        or family_id in (select id from public.families where user_id = auth.uid())
+      );
   end if;
 
   if not exists (
@@ -63,6 +77,12 @@ begin
   end if;
 end
 $$;
+
+-- RLS goes on AFTER the policies exist. Enabling it first leaves a window —
+-- and, if the do-block above fails, a permanent state — where the table is
+-- readable as empty and every write fails with an error the app does not
+-- recognise as "not migrated", so deferrals vanish silently.
+alter table public.home_deferrals enable row level security;
 
 -- ── Pinned tools (phase 4) ──────────────────────────────────────────────────
 -- A json array of tool keys from lib/toolsCatalog. Capped at six by the app,
