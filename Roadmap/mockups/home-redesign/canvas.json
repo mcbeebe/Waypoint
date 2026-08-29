@@ -1,0 +1,14 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1010, "h": 1370, "title": "The brief, the three concepts, the recommendation" },
+    { "file": "NextRightThing.dc.html", "x": 1090, "y": 0, "w": 390, "h": 1720, "title": "A · The Next Right Thing" },
+    { "file": "FrontDesk.dc.html", "x": 1560, "y": 0, "w": 390, "h": 1460, "title": "B · Front Desk" },
+    { "file": "Caseboard.dc.html", "x": 2030, "y": 0, "w": 390, "h": 1620, "title": "C · Caseboard" }
+  ],
+  "annotations": [
+    { "id": "note-a", "x": 1090, "y": -240, "w": 340, "text": "A · THE NEXT RIGHT THING — unanimous №1\nOne card, chosen by a published priority ladder (resume work > crisis > overdue > reply > due today > clock window > one question > one opportunity > earned calm). Both states shown: a reply day, and the calm card that gives permission to close the app. 'Not today' always states when the item returns. Tools survive one tap down in the everything-else layer." },
+    { "id": "note-b", "x": 1560, "y": -240, "w": 340, "text": "B · FRONT DESK — 'the app talks'\nWaypoint's opener is one true dated sentence composed locally (no API call); chips are the parent's turn; anything typed or spoken goes to the Navigator with Home context. Cards exist only where the parent pinned an artifact the conversation produced. The Shelf keeps the silent path first-class." },
+    { "id": "note-c", "x": 2030, "y": -240, "w": 340, "text": "C · CASEBOARD — 'the app shows the true state'\nDated facts only on the board; every derivation quarantined in the Findings drawer with disclosed inputs and a Correct-this control. The sensor line is the provenance contract. The audit's veteran personas (Danielle, Aisha, Rosa) asked for exactly this page." }
+  ],
+  "launch": { "view": "canvas" }
+}
