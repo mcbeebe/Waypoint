@@ -82,7 +82,12 @@ export function deadlineFor(
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const daysRemaining = Math.round((due.getTime() - today.getTime()) / msPerDay);
   return {
-    dueOn: due.toISOString().slice(0, 10),
+    // Local calendar date, never a UTC slice: `due` is built at local
+    // midnight, so toISOString() moved the statutory date back a day on
+    // every UTC+ device — a citation attached to a date the law never gave.
+    dueOn: `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(
+      due.getDate()
+    ).padStart(2, '0')}`,
     daysRemaining,
     overdue: daysRemaining < 0,
     citation: clock.citation,

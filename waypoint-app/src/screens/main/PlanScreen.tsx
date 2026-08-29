@@ -10,16 +10,19 @@
  * this file renders it and routes the taps.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFamily, useChildren } from '@/hooks/useFamily';
+import { useFamily } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useRequests } from '@/hooks/useRequests';
 import { useDeferrals } from '@/hooks/useDeferrals';
+import { useNotifications } from '@/hooks/useNotifications';
+import { expandOccurrences } from '@/lib/recurrence';
+import type { RecurrenceRule } from '@/lib/recurrence';
 import {
   buildMonth,
   buildPlan,
@@ -28,6 +31,7 @@ import {
   monthOfNextItem,
 } from '@/lib/planView';
 import type { PlanEntry, PlanInput } from '@/lib/planView';
+import type { AgendaScope } from '@/lib/agenda';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
@@ -36,6 +40,8 @@ import { colors, fonts, radii, semantic, spacing } from '@/lib/theme';
 
 /** Remembered so a parent who prefers the month is not re-choosing daily. */
 const PLAN_VIEW_KEY = 'waypoint.plan.view';
+/** The same "everything / Waypoint only" preference Home and Calendar use. */
+const SCOPE_KEY = 'waypoint_agenda_scope';
 
 type PlanMode = 'list' | 'month';
 
@@ -54,7 +60,7 @@ function labels(locale: FunnelLocale) {
     viewGroup: L('Plan view', 'Vista del plan', 'Chế độ xem'),
     today: L('Today', 'Hoy', 'Hôm nay'),
     prevMonth: L('Previous month', 'Mes anterior', 'Tháng trước'),
-    nextMonth: L('Next month', 'Mes sau', 'Tháng sau'),
+    nextMonth: L('Next month', 'Mes siguiente', 'Tháng sau'),
     appointment: L('appointment', 'cita', 'cuộc hẹn'),
     deadline: L('deadline', 'plazo', 'thời hạn'),
     nothingOnDay: L('Nothing on this day.', 'Nada este día.', 'Không có gì ngày này.'),
@@ -76,7 +82,26 @@ function labels(locale: FunnelLocale) {
     moved: L(
       'Expenses and the tax report are under Tools → Money & benefits, where they were already listed.',
       'Los gastos y el informe de impuestos están en Herramientas → Dinero y beneficios, donde ya aparecían.',
-      'Chi phí và báo cáo thuế nằm trong Công cụ → Tiền & quyền lợi, nơi chúng đã được liệt kê.'
+      // The door's own Vietnamese label is "Tiền & trợ cấp" — a signpost
+      // naming a door that is not there is worse than no signpost.
+      'Chi phí và báo cáo thuế nằm trong Công cụ → Tiền & trợ cấp, nơi chúng đã được liệt kê.'
+    ),
+    loading: L('Loading your plan…', 'Cargando su plan…', 'Đang tải kế hoạch…'),
+    failedTitle: L(
+      "Waypoint couldn't load your plan.",
+      'Waypoint no pudo cargar su plan.',
+      'Waypoint không tải được kế hoạch của quý vị.'
+    ),
+    failedBody: L(
+      'This is a connection problem, not an empty plan. Pull down to try again.',
+      'Es un problema de conexión, no un plan vacío. Deslice hacia abajo para reintentar.',
+      'Đây là sự cố kết nối, không phải kế hoạch trống. Kéo xuống để thử lại.'
+    ),
+    itemsOnDay: L('items', 'elementos', 'mục'),
+    outsideWindow: L(
+      'Waypoint has not loaded appointments for this month yet — pull down to refresh.',
+      'Waypoint aún no ha cargado las citas de este mes — deslice para actualizar.',
+      'Waypoint chưa tải các cuộc hẹn của tháng này — kéo xuống để làm mới.'
     ),
   };
 }
@@ -84,7 +109,6 @@ function labels(locale: FunnelLocale) {
 export default function PlanScreen() {
   const navigation = useNavigation();
   const { family } = useFamily();
-  const { children } = useChildren(family?.id);
   const { locale } = useI18n();
   const funnelLocale = toFunnelLocale(locale);
   const t = labels(funnelLocale);
@@ -94,7 +118,6 @@ export default function PlanScreen() {
   const [mode, setMode] = useState<PlanMode>('list');
   const [now, setNow] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
-  const [cursor, setCursor] = useState<{ year: number; month: number } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -107,34 +130,95 @@ export default function PlanScreen() {
     AsyncStorage.setItem(PLAN_VIEW_KEY, next).catch(() => {});
   };
 
-  const { actions, refetch: refetchActions } = useActions({ familyId: family?.id ?? '' });
-  const { deadlines, refetch: refetchDeadlines } = useDeadlines({ familyId: family?.id ?? '' });
-  const { requests } = useRequests(family?.id);
-  const { deferrals, titles: deferralTitles } = useDeferrals(family?.id);
-  // A wide window: Plan shows the whole month, not the next seven days.
-  const range = useMemo(() => {
-    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 3, 0, 23, 59, 59);
+  const {
+    actions, loading: actionsLoading, error: actionsError, refetch: refetchActions,
+  } = useActions({ familyId: family?.id ?? '' });
+  const {
+    deadlines, loading: deadlinesLoading, error: deadlinesError, refetch: refetchDeadlines,
+  } = useDeadlines({ familyId: family?.id ?? '' });
+  const {
+    requests, loading: requestsLoading, error: requestsError, refetch: refetchRequests,
+  } = useRequests(family?.id);
+  const {
+    deferrals, titles: deferralTitles, loading: deferralsLoading, refetch: refetchDeferrals,
+  } = useDeferrals(family?.id);
+
+  // The month the grid is showing decides what to fetch. A fixed window let
+  // the grid page into a month whose appointments were never loaded and then
+  // say "Nothing on this day" about a meeting the app has in its database.
+  const [cursor, setCursor] = useState<{ year: number; month: number } | null>(null);
+  const window = useMemo(() => {
+    const anchor = cursor ?? { year: now.getFullYear(), month: now.getMonth() };
+    const start = new Date(anchor.year, anchor.month - 2, 1);
+    const end = new Date(anchor.year, anchor.month + 3, 0, 23, 59, 59);
     return { start: start.toISOString(), end: end.toISOString() };
-  }, [now]);
-  const { appointments, refetch: refetchAppointments } = useAppointments({
-    familyId: family?.id ?? '',
-    dateRange: range,
-  });
+  }, [cursor, now]);
+  const {
+    appointments, loading: appointmentsLoading, error: appointmentsError,
+    refetch: refetchAppointments,
+  } = useAppointments({ familyId: family?.id ?? '', dateRange: window });
+
+  const loading =
+    actionsLoading || deadlinesLoading || requestsLoading || appointmentsLoading || deferralsLoading;
+  const dataFailed = !!(actionsError || deadlinesError || requestsError || appointmentsError);
+
+  // "Everything" vs "Waypoint only" — the same preference Home and the
+  // calendar screen keep, so a parent sets it once.
+  const [scope, setScope] = useState<AgendaScope>('all');
+  useEffect(() => {
+    AsyncStorage.getItem(SCOPE_KEY)
+      .then((v) => { if (v === 'waypoint' || v === 'all') setScope(v); })
+      .catch(() => {});
+  }, []);
+
+  /**
+   * A recurring appointment is stored as one base row; its occurrences are
+   * expanded by whoever displays it. Passing the raw rows through put every
+   * weekly therapy session's FIRST occurrence in "Past due" forever and left
+   * the real sessions off the grid entirely.
+   */
+  const expanded = useMemo(() => {
+    const out: { id: string; title: string; start_time: string; source?: string | null }[] = [];
+    for (const a of appointments) {
+      const rec = a as unknown as {
+        recurrence?: RecurrenceRule | null;
+        recurrence_until?: string | null;
+        end_time?: string | null;
+        source?: string | null;
+      };
+      const occurrences = expandOccurrences(
+        {
+          id: a.id,
+          start_time: a.start_time,
+          end_time: rec.end_time ?? null,
+          recurrence: rec.recurrence ?? null,
+          recurrence_until: rec.recurrence_until ?? null,
+        },
+        window.start,
+        window.end
+      );
+      for (const o of occurrences) {
+        out.push({
+          id: o.occurrenceId,
+          title: a.title,
+          start_time: o.start_time,
+          source: rec.source ?? null,
+        });
+      }
+    }
+    return out;
+  }, [appointments, window]);
 
   const input: PlanInput = useMemo(
     () => ({
       now,
       locale: funnelLocale,
+      scope,
       actions: actions.map((a) => ({
         id: a.id, title: a.title, status: a.status, priority: a.priority,
         due_date: a.due_date, category: a.category,
       })),
-      appointments: appointments.map((a) => ({
-        id: a.id, title: a.title, start_time: a.start_time,
-        appointment_type: a.appointment_type, location: a.location,
-        source: (a as { source?: string | null }).source ?? null,
-      })),
+      appointments: expanded,
       deadlines: deadlines.map((d) => ({
         id: d.id, title: d.title, due_date: d.due_date, status: d.status,
       })),
@@ -142,11 +226,15 @@ export default function PlanScreen() {
         id: r.id, title: r.title, request_type: r.request_type,
         requested_on: r.requested_on, status: r.status,
       })),
-      later: Object.entries(deferrals)
-        .filter(([id]) => deferralTitles[id])
-        .map(([id, returnsOn]) => ({ id, title: deferralTitles[id], returnsOn })),
+      // Every deferral, titled or not — planView dedupes them against what
+      // Plan already lists and drops the ones whose day has come.
+      later: Object.entries(deferrals).map(([id, returnsOn]) => ({
+        id,
+        title: deferralTitles[id] ?? null,
+        returnsOn,
+      })),
     }),
-    [now, funnelLocale, actions, appointments, deadlines, requests, deferrals, deferralTitles]
+    [now, funnelLocale, scope, actions, expanded, deadlines, requests, deferrals, deferralTitles]
   );
 
   const plan = useMemo(() => buildPlan(input), [input]);
@@ -159,12 +247,49 @@ export default function PlanScreen() {
   const grid = useMemo(() => buildMonth(input, month.year, month.month), [input, month]);
   const byDay = useMemo(() => entriesByDay(input), [input]);
 
+  const refreshAll = useCallback(async () => {
+    await Promise.all([
+      refetchActions(),
+      refetchDeadlines(),
+      refetchAppointments(),
+      refetchRequests(),
+      refetchDeferrals(),
+    ]);
+  }, [refetchActions, refetchDeadlines, refetchAppointments, refetchRequests, refetchDeferrals]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setNow(new Date());
-    await Promise.all([refetchActions(), refetchDeadlines(), refetchAppointments()]);
+    await refreshAll();
     setRefreshing(false);
-  }, [refetchActions, refetchDeadlines, refetchAppointments]);
+  }, [refreshAll]);
+
+  // Returning from ActionDetail or the calendar must not leave Plan showing
+  // the state the parent just changed. Also re-derives the day, so a phone
+  // left open overnight stops calling yesterday "today".
+  useFocusEffect(
+    useCallback(() => {
+      setNow((prev) => {
+        const fresh = new Date();
+        return prev.toDateString() === fresh.toDateString() ? prev : fresh;
+      });
+      void refreshAll();
+    }, [refreshAll])
+  );
+
+  /**
+   * Deadline reminders were re-armed by CalendarScreen's mount, and Plan just
+   * took its place as the tab's landing screen — so a parent who lives in
+   * Plan would silently stop getting reminders for anything added since their
+   * last visit to the calendar.
+   */
+  const notificationsSupported = Platform.OS !== 'web';
+  const { hasPermission, scheduleAllReminders } = useNotifications();
+  useEffect(() => {
+    if (!notificationsSupported || !hasPermission || deadlines.length === 0) return;
+    scheduleAllReminders(deadlines.filter((d) => d.status !== 'completed')).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPermission, deadlines, notificationsSupported]);
 
   const open = (entry: PlanEntry) => {
     if (!entry.target) return;
@@ -255,7 +380,22 @@ export default function PlanScreen() {
 
         {mode === 'list' ? (
           <>
-            {plan.isEmpty && (
+            {/* An empty list because a fetch is in flight — or failed — is
+                not evidence that the family owes nothing. This is the same
+                defect the Home card was fixed for one phase earlier. */}
+            {plan.isEmpty && (loading || dataFailed) && (
+              <View style={styles.card}>
+                <Text style={[styles.emptyTitle, { fontSize: sz(15), lineHeight: sz(21) }]}>
+                  {loading ? t.loading : t.failedTitle}
+                </Text>
+                {!loading && (
+                  <Text style={[styles.empty, { fontSize: sz(13.5), lineHeight: sz(20) }]}>
+                    {t.failedBody}
+                  </Text>
+                )}
+              </View>
+            )}
+            {plan.isEmpty && !loading && !dataFailed && (
               <View style={styles.card}>
                 <Text style={[styles.empty, { fontSize: sz(13.5), lineHeight: sz(20) }]}>
                   {plan.emptyLine}
@@ -314,8 +454,8 @@ export default function PlanScreen() {
                       onPress={() => setSelectedDay(selected ? null : cell.dateKey)}
                       accessibilityRole="button"
                       accessibilityLabel={`${formatDay(cell.dateKey!, now, funnelLocale)}${
-                        cell.count ? `, ${cell.count}` : ''
-                      }`}
+                        cell.isToday ? `, ${t.today}` : ''
+                      }${cell.count ? `, ${cell.count} ${t.itemsOnDay}` : ''}`}
                       accessibilityState={{ selected }}
                     >
                       <Text
@@ -375,7 +515,7 @@ export default function PlanScreen() {
                   selectedEntries.map(row)
                 ) : (
                   <Text style={[styles.empty, { fontSize: sz(13.5), lineHeight: sz(20) }]}>
-                    {t.nothingOnDay}
+                    {loading || dataFailed ? t.outsideWindow : t.nothingOnDay}
                   </Text>
                 )}
               </View>
@@ -416,7 +556,7 @@ export default function PlanScreen() {
         </Pressable>
 
         <Text style={[styles.note, { fontSize: sz(12), lineHeight: sz(17) }]}>{t.moved}</Text>
-        {children.length > 1 && <View style={styles.tail} />}
+        <View style={styles.tail} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -455,7 +595,7 @@ const styles = StyleSheet.create({
   sectionLabel: { color: colors.mid, fontWeight: fonts.weights.bold, letterSpacing: 1 },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing.md,
     minHeight: 44,
@@ -464,8 +604,12 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, gap: 2 },
   rowTitle: { color: colors.navy, fontWeight: fonts.weights.semibold },
   rowMeta: { color: colors.mid },
-  rowSource: { color: '#94A3B8', maxWidth: '38%', textAlign: 'right' },
+  // colors.mid passes AA on white (~4.7:1); the old #94A3B8 was 2.6:1 — the
+  // line the "every row shows where it came from" rule depends on was the
+  // least readable text on the screen.
+  rowSource: { color: colors.mid, maxWidth: '42%', textAlign: 'right' },
   empty: { color: colors.mid },
+  emptyTitle: { color: colors.navy, fontWeight: fonts.weights.bold },
   note: { color: colors.mid, paddingHorizontal: spacing.xs },
   dim: { opacity: 0.6 },
 

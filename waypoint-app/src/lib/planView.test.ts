@@ -228,3 +228,77 @@ describe('locale parity', () => {
     }
   });
 });
+
+describe('a day is ordered by real time, not by its localized label', () => {
+  it('puts 9:00 AM before 1:00 PM', () => {
+    const input = base({
+      appointments: [
+        { id: 'pm', title: 'Clinic', start_time: '2026-08-29T13:00:00' },
+        { id: 'am', title: 'IEP meeting', start_time: '2026-08-29T09:00:00' },
+        { id: 'mid', title: 'Therapy', start_time: '2026-08-29T10:00:00' },
+      ],
+    });
+    // Sorting on the formatted string gave 1:00 PM, 10:00 AM, 9:00 AM.
+    expect(allEntries(input).map((e) => e.title)).toEqual([
+      'IEP meeting', 'Therapy', 'Clinic',
+    ]);
+  });
+});
+
+describe('every row that offers a tap can actually get there', () => {
+  it('routes an agency clock through the stack that owns RequestCase', () => {
+    const clock = allEntries(base({ requests: [request()] }))[0];
+    // Plan lives in the Calendar stack; RequestCase is registered in Home's.
+    // Without the tab the navigate is unhandled — silently, in production.
+    expect(clock.target).toEqual({
+      screen: 'RequestCase',
+      tab: 'Home',
+      params: { requestId: 'r1' },
+    });
+  });
+});
+
+describe('set aside is one place, not two', () => {
+  it('does not list a deferred clock under both Waiting and Later', () => {
+    const input = base({
+      requests: [request()],
+      // Home keys deferrals by triage item id.
+      later: [{ id: 'clock:r1', title: 'An answer on IPP meeting', returnsOn: '2026-09-05' }],
+    });
+    const ids = allEntries(input).map((e) => e.id);
+    expect(ids.filter((id) => id.includes('r1'))).toHaveLength(1);
+  });
+
+  it('drops a deferral whose day has already come back', () => {
+    const input = base({
+      later: [{ id: 'x:1', title: 'Already back', returnsOn: '2026-08-20' }],
+    });
+    expect(buildPlan(input).isEmpty).toBe(true);
+  });
+
+  it('still lists a set-aside item that stored no title', () => {
+    const input = base({ later: [{ id: 'x:1', title: null, returnsOn: '2026-09-05' }] });
+    const later = allEntries(input)[0];
+    expect(later.kind).toBe('later');
+    expect(later.title).toBe('Something you set aside');
+  });
+});
+
+describe('the month view never opens in the past', () => {
+  it('stays on this month when the only dated item is long overdue', () => {
+    const stale = base({ deadlines: [deadline({ due_date: '2024-03-06' })] });
+    expect(monthOfNextItem(stale)).toEqual({ year: 2026, month: 7 });
+  });
+});
+
+describe('Spanish reads as Spanish', () => {
+  it('does not put a preposition in front of "Hoy"', () => {
+    const soon = base({
+      locale: 'es',
+      requests: [request({ requested_on: '2026-07-31' })], // due 2026-08-30
+    });
+    const clock = allEntries(soon).find((e) => e.kind === 'clock')!;
+    expect(clock.title).not.toContain('el Mañana');
+    expect(clock.title).not.toContain('el Hoy');
+  });
+});

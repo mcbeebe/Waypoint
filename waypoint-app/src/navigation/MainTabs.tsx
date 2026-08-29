@@ -354,7 +354,10 @@ function CalendarStack() {
   return (
     <CalendarStackNav.Navigator screenOptions={detailHeaderOptions}>
       <CalendarStackNav.Screen name="PlanMain" component={PlanScreen} options={{ headerShown: false }} />
-      <CalendarStackNav.Screen name="CalendarMain" component={CalendarScreen} options={{ title: 'Calendar' }} />
+      {/* headerShown stays false: CalendarScreen draws its own header and
+          top inset, and the stack header would stack a second "Calendar"
+          title above it. */}
+      <CalendarStackNav.Screen name="CalendarMain" component={CalendarScreen} options={{ headerShown: false }} />
     </CalendarStackNav.Navigator>
   );
 }

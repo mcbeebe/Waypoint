@@ -49,7 +49,6 @@ export interface TranslationStrings {
     journey: string;
     askAi: string;
     actions: string;
-    calendar: string;
     plan: string;
     profile: string;
   };

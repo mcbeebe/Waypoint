@@ -179,6 +179,49 @@ Plan opens on the month holding the next item.
    nothing in the app navigated to it, so the tool promising "Expenses & tax
    report" delivered half. Expenses now links to it.
 
+**The adversarial review then found nine verified defects, all fixed:**
+
+- **Recurring appointments were never expanded.** `useAppointments` loads
+  recurring base rows regardless of the window on purpose, and expansion is
+  the consumer's job — so every weekly therapy session showed as its first
+  occurrence, in *Past due*, forever, while the real sessions appeared
+  nowhere and Month opened on the month of the first one. Plan expands
+  occurrences the way `CalendarScreen` does.
+- **Days were sorted by their localized time string**, so 1:00 PM came before
+  9:00 AM. Entries carry an ISO sort key now.
+- **Every "waiting on an agency" row was a dead tap** — `RequestCase` is
+  registered in the Home stack, and a `navigate` from Plan (in the Calendar
+  stack) is silently unhandled in production. The section carrying the legal
+  citations was the one that did nothing.
+- **Plan claimed "nothing to do" while loading and after a failed fetch** —
+  the same defect Home was fixed for one phase earlier, in the tab whose
+  whole job is to be the list of record.
+- **A deferred item was listed twice**, under both its own section and
+  *Later*; items whose return day had passed stayed listed; and an item with
+  no stored title vanished entirely. `planView` now dedupes, expires and
+  falls back.
+- **The month grid said "Nothing on this day"** for months outside the
+  four-month fetch window. The window follows the cursor.
+- **Deep links broke:** `/expenses` and `/tax-report` still pointed into the
+  Calendar stack, and Plan had no URL at all.
+- **`CalendarMain` rendered two stacked headers.**
+- **Deadline push reminders stopped being re-armed** — `CalendarScreen`'s
+  mount was the app's only caller, and Plan took its place as the tab's
+  landing screen.
+
+Plus: statutory due dates shifted a day on any UTC+ device
+(`requestClocks.ts` sliced a UTC ISO string from a local-midnight date — a
+citation on a date the statute never gave); the provenance line failed WCAG
+AA contrast at 2.6:1; pull-to-refresh missed two sections; nothing refetched
+on focus; the "Waypoint only" scope preference was ignored; Spanish read
+"vence el Hoy" and the Vietnamese signpost named a Tools door that does not
+exist under that name.
+
+**Known and not fixed here:** three tests fail under a UTC+ timezone
+(`homeTriage`, `recurrence`, `transitionHours`) — they fail on `main` too, so
+they are pre-existing TZ-fragility rather than this change, but they hint at
+real bugs east of Greenwich and deserve their own pass.
+
 ### Phase 4 — Tools tab, pinned tiles, the suggestion
 
 **New:** `lib/toolPins.ts` — pin list, cap of 6, defaults (the three action

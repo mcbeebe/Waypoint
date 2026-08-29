@@ -40,3 +40,17 @@ describe('REQUEST_LEVERS', () => {
     }
   });
 });
+
+describe('a statutory date is a local calendar date', () => {
+  it('does not shift a day on a UTC+ device', () => {
+    // toISOString() on a local-midnight Date moved the due date back one day
+    // east of Greenwich — a citation attached to a date the law never gave.
+    const dl = deadlineFor('ipp_meeting', '2026-08-20', new Date('2026-08-29T09:00:00'))!;
+    const due = new Date('2026-08-20T12:00:00');
+    due.setDate(due.getDate() + 30);
+    const expected = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(
+      due.getDate()
+    ).padStart(2, '0')}`;
+    expect(dl.dueOn).toBe(expected);
+  });
+});

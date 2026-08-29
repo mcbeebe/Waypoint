@@ -47,10 +47,14 @@ export interface PlanEntry {
   dateKey: string | null;
   /** "Today", "Tue, Sep 1" — null when undated. */
   dayLabel: string | null;
-  /** "9:00 AM" for timed appointments only. */
+  /** "9:00 AM" for timed appointments only — display, never a sort key. */
   time: string | null;
-  /** Completed actions render struck through rather than vanishing. */
-  done: boolean;
+  /**
+   * What actually orders a day: the ISO start for a timed item, else the
+   * date. Sorting on the formatted time put 1:00 PM before 9:00 AM, which
+   * is what a localized string comparison does.
+   */
+  sortKey: string;
   target?: PlanTarget;
   /** Set-aside entries only: the day it comes back. */
   returnsOn?: string;
@@ -90,7 +94,8 @@ export interface PlanRequest {
 
 export interface PlanLater {
   id: string;
-  title: string;
+  /** May be empty when nothing was stored — the list still shows the row. */
+  title: string | null;
   returnsOn: string;
 }
 
@@ -163,7 +168,7 @@ function collectEntries(input: PlanInput): PlanEntry[] {
       dateKey: key,
       dayLabel: formatDay(key, now, locale),
       time: formatTime(a.start_time, locale),
-      done: false,
+      sortKey: a.start_time,
       target: { screen: 'CalendarMain', tab: 'Calendar' },
     });
   }
@@ -179,7 +184,7 @@ function collectEntries(input: PlanInput): PlanEntry[] {
       dateKey: key,
       dayLabel: formatDay(key, now, locale),
       time: null,
-      done: false,
+      sortKey: `${key}T23:59`,
       target: { screen: 'CalendarMain', tab: 'Calendar' },
     });
   }
@@ -195,7 +200,7 @@ function collectEntries(input: PlanInput): PlanEntry[] {
       dateKey: key,
       dayLabel: key ? formatDay(key, now, locale) : null,
       time: null,
-      done: false,
+      sortKey: key ? `${key}T23:59` : '9999',
       target: { screen: 'ActionDetail', tab: 'Tracker', params: { actionId: a.id } },
     });
   }
@@ -225,18 +230,23 @@ function waitingEntries(input: PlanInput): PlanEntry[] {
             `La respuesta sobre ${r.title} está vencida`,
             `Câu trả lời về ${r.title} đã quá hạn`
           )
+        // No preposition before the day: formatDay returns "Hoy"/"Mañana"
+        // for the two commonest cases, and "vence el Hoy" is not Spanish.
         : L(
-            `An answer on ${r.title} is due ${formatDay(dl.dueOn, input.now, locale)}`,
-            `La respuesta sobre ${r.title} vence el ${formatDay(dl.dueOn, input.now, locale)}`,
-            `Câu trả lời về ${r.title} đến hạn ${formatDay(dl.dueOn, input.now, locale)}`
+            `An answer on ${r.title} is due — ${formatDay(dl.dueOn, input.now, locale)}`,
+            `La respuesta sobre ${r.title} vence — ${formatDay(dl.dueOn, input.now, locale)}`,
+            `Câu trả lời về ${r.title} đến hạn — ${formatDay(dl.dueOn, input.now, locale)}`
           ),
       // The citation is the provenance: the family can check the law.
       source: dl.citation,
       dateKey: dl.dueOn,
       dayLabel: formatDay(dl.dueOn, input.now, locale),
       time: null,
-      done: false,
-      target: { screen: 'RequestCase', params: { requestId: r.id } },
+      sortKey: `${dl.dueOn}T00:00`,
+      // RequestCase is registered in the Home stack. Without the tab, a
+      // navigate from Plan (inside the Calendar stack) is simply unhandled —
+      // silently, in production.
+      target: { screen: 'RequestCase', tab: 'Home', params: { requestId: r.id } },
     });
   }
   return out;
@@ -267,9 +277,7 @@ function sortEntries(entries: PlanEntry[]): PlanEntry[] {
     if (a.dateKey && b.dateKey && a.dateKey !== b.dateKey) {
       return a.dateKey.localeCompare(b.dateKey);
     }
-    if (a.time && b.time && a.time !== b.time) return a.time.localeCompare(b.time);
-    if (a.time && !b.time) return -1;
-    if (!a.time && b.time) return 1;
+    if (a.sortKey !== b.sortKey) return a.sortKey.localeCompare(b.sortKey);
     return a.title.localeCompare(b.title);
   });
 }
@@ -298,11 +306,33 @@ export function buildPlan(input: PlanInput): PlanView {
 
   buckets.waiting = sortEntries(waiting);
 
+  // Home keys deferrals by triage item id (`clock:<requestId>`,
+  // `overdue:deadline:<id>`…), and the same obligation is listed here on its
+  // own terms. Without this, tapping "Not today" on an IPP clock showed it
+  // under BOTH "Waiting on an agency" and "Later" in one scroll.
+  const alreadyListed = new Set<string>();
+  for (const key of Object.keys(buckets) as PlanSectionKey[]) {
+    for (const e of buckets[key]) {
+      alreadyListed.add(e.id);
+      // ids are `<class>:<entity>` on Home and `<kind>:<entity>` here, so
+      // compare on the entity too.
+      const tail = e.id.split(':').slice(1).join(':');
+      if (tail) alreadyListed.add(tail);
+    }
+  }
+  const todayKey = dayKey(input.now);
   for (const l of input.later ?? []) {
+    const tail = l.id.split(':').slice(1).join(':');
+    if (alreadyListed.has(l.id) || (tail && alreadyListed.has(tail))) continue;
+    // A deferral whose day has arrived is back on Home; it is not "set aside"
+    // any more, and the device-storage fallback applies no date filter.
+    if (l.returnsOn <= todayKey) continue;
     buckets.later.push({
       id: l.id,
       kind: 'later',
-      title: l.title,
+      title:
+        l.title ||
+        L('Something you set aside', 'Algo que apartó', 'Điều quý vị đã để lại'),
       source: L(
         `Comes back ${formatDay(l.returnsOn, input.now, locale)}`,
         `Vuelve ${formatDay(l.returnsOn, input.now, locale)}`,
@@ -311,7 +341,7 @@ export function buildPlan(input: PlanInput): PlanView {
       dateKey: null,
       dayLabel: null,
       time: null,
-      done: false,
+      sortKey: l.returnsOn,
       returnsOn: l.returnsOn,
     });
   }
@@ -426,7 +456,11 @@ export function buildMonth(input: PlanInput, year: number, month: number): Month
 export function monthOfNextItem(input: PlanInput): { year: number; month: number } {
   const plan = buildPlan(input);
   const key = plan.nextDated?.dateKey;
-  if (!key) return { year: input.now.getFullYear(), month: input.now.getMonth() };
+  // Only ever forward. Opening on a grid two years ago because one item is
+  // long overdue loses the frame of reference entirely.
+  if (!key || key < dayKey(input.now)) {
+    return { year: input.now.getFullYear(), month: input.now.getMonth() };
+  }
   const d = new Date(`${key}T12:00:00`);
   return { year: d.getFullYear(), month: d.getMonth() };
 }
