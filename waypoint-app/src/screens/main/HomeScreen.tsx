@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -553,7 +554,19 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           >
             <Text style={styles.rcLabel}>YOUR REGIONAL CENTER</Text>
             <Text style={styles.rcName}>{rc.name}</Text>
-            <Text style={styles.rcPhone}>📞 {rc.phone}</Text>
+            {/* The phone number actually dials (20-persona audit: the most
+                valuable real-world action on the page failed at the last inch) */}
+            <TouchableOpacity
+              onPress={(e) => {
+                e.stopPropagation?.();
+                Linking.openURL(`tel:${rc.phone.replace(/[^\d+]/g, '')}`).catch(() => {});
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Call ${rc.name} at ${rc.phone}`}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.rcPhone}>📞 {rc.phone} · Tap to call</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
         )}
 

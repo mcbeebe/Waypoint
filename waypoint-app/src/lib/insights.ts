@@ -61,6 +61,11 @@ export function deriveHomeInsight(
   }
 
   if (rcStatus === 'applied') {
+    // Under 3 the family is in Early Start (IDEA Part C): evaluation AND the
+    // initial IFSP meeting are due within 45 days of referral — the 120-day
+    // Lanterman assessment clock is the age-3+ path. Asserting the wrong
+    // clock understates an infant family's rights (20-persona audit, Aug 2026).
+    const earlyStart = ageYears !== null && ageYears < 3;
     return {
       key: 'rc_clock',
       eyebrow,
@@ -69,14 +74,20 @@ export function deriveHomeInsight(
         'Hay un plazo legal corriendo a su favor',
         'Một thời hạn pháp lý đang chạy có lợi cho quý vị'
       ),
-      body: L(
-        `${name}'s assessment must be completed within 120 days of applying. Log the date and Waypoint watches the clock with you.`,
-        `La evaluación de ${name} debe completarse dentro de 120 días de la solicitud. Registre la fecha y Waypoint vigila el plazo con usted.`,
-        `Đánh giá của ${name} phải hoàn tất trong 120 ngày kể từ khi nộp đơn. Ghi lại ngày nộp và Waypoint cùng quý vị canh thời hạn.`
-      ),
+      body: earlyStart
+        ? L(
+            `Early Start must complete ${name}'s evaluation AND hold the first IFSP meeting within 45 days of the referral. Log the date and Waypoint watches the clock with you.`,
+            `Early Start debe completar la evaluación de ${name} Y realizar la primera reunión del IFSP dentro de 45 días de la referencia. Registre la fecha y Waypoint vigila el plazo con usted.`,
+            `Early Start phải hoàn tất đánh giá của ${name} VÀ tổ chức buổi họp IFSP đầu tiên trong 45 ngày kể từ khi giới thiệu. Ghi lại ngày và Waypoint cùng quý vị canh thời hạn.`
+          )
+        : L(
+            `${name}'s assessment must be completed within 120 days of applying. Log the date and Waypoint watches the clock with you.`,
+            `La evaluación de ${name} debe completarse dentro de 120 días de la solicitud. Registre la fecha y Waypoint vigila el plazo con usted.`,
+            `Đánh giá của ${name} phải hoàn tất trong 120 ngày kể từ khi nộp đơn. Ghi lại ngày nộp và Waypoint cùng quý vị canh thời hạn.`
+          ),
       ctaLabel: L('Track the clock →', 'Seguir el plazo →', 'Theo dõi thời hạn →'),
       target: { screen: 'RequestTracker' },
-      citation: 'W&I §4643',
+      citation: earlyStart ? '34 CFR §303.310 · Early Start' : 'W&I §4643',
     };
   }
 

@@ -210,6 +210,15 @@ export const CONTENT_SOURCES: ContentSource[] = [
       'The IEP must state how progress toward each annual goal is measured and provide periodic progress reports at least as often as report cards (concurrent with their issuance); §56504 provides records within 5 business days of a written request.',
   },
   {
+    key: 'cfr_303_310',
+    title: '34 CFR §303.310 (Early Start post-referral timeline)',
+    covers: ['34 CFR §303.310 · Early Start'],
+    url: 'https://www.ecfr.gov/current/title-34/subtitle-B/chapter-III/part-303/subpart-D/subject-group-ECFR821570af41ca511/section-303.310',
+    verifiedOn: '2026-08-29',
+    claim:
+      'Under IDEA Part C, the initial evaluation, initial assessments, and the initial IFSP meeting must be completed within 45 days of the referral (exceptional documented family circumstances excepted).',
+  },
+  {
     key: 'cfr_300_148',
     title: '34 CFR §300.148 (unilateral placement notice)',
     covers: ['Ed Code §56329(b) · §56501 · 34 CFR §300.148'],
