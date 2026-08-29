@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+  </style>
+</helmet>
+<div style="width: 1010px; min-height: 1560px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 32px 36px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.5; display: flex; flex-direction: column; gap: 20px">
+
+  <div>
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: 1.2px; color: #0891B2">CONCEPT A · WHERE EVERYTHING LIVES</div>
+    <div style="font-size: 26px; font-weight: 800; color: #1B2A4A; margin-top: 6px">One card on top — nothing removed from reach</div>
+    <div style="font-size: 14.5px; color: #475569; margin-top: 6px; max-width: 880px">
+      The One Thing card only changes what Home <b>leads</b> with. Every screen in the app keeps its place in the same
+      five-tab structure, and every tool keeps the hybrid-v2 Tools area you just shipped — demoted exactly one tap, never deleted.
+      Three access speeds, by how often a family actually needs each thing:
+    </div>
+  </div>
+
+  <!-- Three access speeds -->
+  <div style="display: flex; gap: 16px">
+    <div style="flex: 1; border: 2px solid #0891B2; border-radius: 14px; padding: 16px; background: #F0FBFC; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; font-weight: 800; color: #FFFFFF; background: #0891B2; border-radius: 6px; padding: 3px 9px; align-self: flex-start">ZERO TAPS · ALWAYS ON SCREEN</div>
+      <div style="font-size: 13.5px"><b style="color:#1B2A4A">The One Thing card</b> — deep-links straight into today's job: a reply opens its case file, a deadline opens the letter, a calendar item opens the day.</div>
+      <div style="font-size: 13.5px"><b style="color:#1B2A4A">The tell-Waypoint row</b> — search + crisis entry + Ask AI in one field. Typing filters all 20 tools live ("diapers" → Money, "they said no" → Letters, "IEP" → IEP tools); anything unmatched goes to the Navigator with the exact words. The "nothing found" dead end no longer exists.</div>
+      <div style="font-size: 13.5px"><b style="color:#1B2A4A">The tab bar — unchanged</b>: Home · Ask AI · Actions · Calendar · Profile. Every stack behind those tabs is untouched.</div>
+    </div>
+    <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; font-weight: 800; color: #475569; background: #F1F5F9; border-radius: 6px; padding: 3px 9px; align-self: flex-start">ONE TAP · THE EVERYTHING-ELSE LAYER</div>
+      <div style="font-size: 13px">One collapsed row with true counts ("2 this week · 1 waiting on the district · Tools") expands in place to:</div>
+      <div style="font-size: 13px">• <b>This week</b> — dated lines → Calendar<br>• <b>Waiting</b> — open requests vs their legal clocks → case files<br>• <b>Later — set aside by you</b> — every deferral, with its return date and Undo<br>• <b>Contacts</b> — RC tap-to-call · write instead<br>• <b>Tools</b> — the hybrid-v2 area <b>verbatim</b>: Letters / Requests &amp; Deadlines / Sent &amp; Received with live badges, plus the four doors (Understand · Money · your child's records · More)</div>
+      <div style="font-size: 12px; color: #64748B">The layer remembers being open — a parent who likes browsing can keep it expanded and Home reads like today's Tools page with one smart card on top.</div>
+    </div>
+    <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; font-weight: 800; color: #475569; background: #F1F5F9; border-radius: 6px; padding: 3px 9px; align-self: flex-start">SEARCH-FIRST · TYPE OR TALK</div>
+      <div style="font-size: 13px">For the other 15 tools a family touches monthly, hunting a grid was never the fast path — typing is. The composer carries the full search vocabulary from hybrid v2 <b>plus</b> the crisis words the audit found missing (suspended, restraint, police, moving, hospital).</div>
+      <div style="font-size: 13px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px">"diapers" → Money door → RC Funding Guide<br>"school called" → crisis intake, two questions<br>"export my records" → Paper Trail share<br>"appeal" → Letters, appeal template</div>
+      <div style="font-size: 12px; color: #64748B">Voice input for parents who don't type English comfortably — same routing, es/vi included.</div>
+    </div>
+  </div>
+
+  <!-- Where each current surface went -->
+  <div>
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.8px; color: #475569; margin-bottom: 8px">EVERY CURRENT HOME SURFACE, ACCOUNTED FOR — THE "NOTHING IS LOST" INVENTORY</div>
+    <table style="border-collapse: collapse; width: 100%; font-size: 12.5px">
+      <tr style="color: #64748B; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px">
+        <td style="padding: 6px 8px; border-bottom: 1px solid #E2E8F0; width: 32%">Today's Home section</td>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #E2E8F0">Where it lives in Concept A</td>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #E2E8F0; width: 14%">Taps</td>
+      </tr>
+      <tr><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Reply card / deadline banner / WAYPOINT NOTICED cards</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9"><b>The One Thing card</b> — same stories, one slot, ranked, deduped, provenance-labeled</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">0</td></tr>
+      <tr><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Tools search field</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Tell-Waypoint row — promoted, plus crisis + AI fallthrough</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">0</td></tr>
+      <tr><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">TAKE ACTION rows + four doors (hybrid v2)</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Everything-else layer → Tools — <b>kept verbatim, badges intact</b></td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">1</td></tr>
+      <tr><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Today / agenda card + scope pills</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Layer → This week (full agenda stays in the Calendar tab; jargon pills die)</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">1</td></tr>
+      <tr><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Regional Center card</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Layer → Contacts (tap-to-call kept) + call-class One Thing actions</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">1</td></tr>
+      <tr><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Financial snapshot ($0 widget)</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Money door (full finance tools); money surfaces on the card only as real dated events</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">1–2</td></tr>
+      <tr><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Journey map band / Process Map / Resource Stack / SDP</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Understand door — exactly where hybrid v2 already put them</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">1–2</td></tr>
+      <tr><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Action-plan progress ring</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Actions tab (its real home); resume-work outranks everything on the card</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">1 (tab)</td></tr>
+      <tr><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Empathy card · tutorial modal · profile nudge · mood check-in</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">Cut by the audit — warmth moves to the earned calm state; "I'm stuck" lives in the composer</td><td style="padding: 5px 8px; border-bottom: 1px solid #F1F5F9">—</td></tr>
+      <tr><td style="padding: 5px 8px">Snoozed / dismissed items (today: invisible)</td><td style="padding: 5px 8px"><b>Better than today:</b> Layer → Later, every set-aside listed with its return date and Undo</td><td style="padding: 5px 8px">1</td></tr>
+    </table>
+  </div>
+
+  <div style="background: #1B2A4A; border-radius: 14px; padding: 16px 20px; color: #E2E8F0; font-size: 13.5px; line-height: 1.55">
+    <b style="color: #7DD3FC">THE HONEST TRADE:</b> incidental discovery drops — a parent no longer trips over all 20 tools while scrolling.
+    The card's question/opportunity classes carry that load instead (one verified suggestion at a time, with its "because"),
+    and the layer's true-count summary line ("1 waiting on the district") advertises what's behind it. Veterans who want
+    density live in Actions and Calendar, which don't change at all.
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
