@@ -26,16 +26,21 @@ export interface GmailStatus {
   connected: boolean;
   gmail: boolean;
   email: string | null;
+  /**
+   * True when we could not reach the function at all (offline, 5xx). The
+   * caller must not read this as "not connected" — Home says which it was.
+   */
+  failed?: boolean;
 }
 
 /** Whether the account is Google-connected and holds Gmail scopes. */
 export async function gmailStatus(): Promise<GmailStatus> {
   try {
     const resp = await authedPost(GMAIL_FN_URL, { action: 'status' });
-    if (!resp.ok) return { connected: false, gmail: false, email: null };
+    if (!resp.ok) return { connected: false, gmail: false, email: null, failed: true };
     return (await resp.json()) as GmailStatus;
   } catch {
-    return { connected: false, gmail: false, email: null };
+    return { connected: false, gmail: false, email: null, failed: true };
   }
 }
 
@@ -84,15 +89,40 @@ export async function gmailSyncReplies(): Promise<{ ok: boolean; newReplies: num
  * once per interval per app session so navigation doesn't hammer Gmail.
  */
 let lastAutoSyncAt = 0;
+
+export type AutoSyncOutcome =
+  /** A sync completed and the mailbox really was read. */
+  | 'checked'
+  /** We tried and could not read it — offline, revoked grant, 5xx. */
+  | 'failed'
+  /** Another screen synced inside the interval; nothing new was read now. */
+  | 'throttled'
+  /** No Gmail connection to check. */
+  | 'not_connected';
+
+/**
+ * The outcome is typed because Home prints it: a sensor line that says
+ * "Gmail checked 3:42 PM" after a failed sync is exactly the false claim the
+ * line exists to prevent. `ran` alone could not tell those apart.
+ */
 export async function autoSyncReplies(
   minIntervalMs = 5 * 60 * 1000
-): Promise<{ ran: boolean; newReplies: number }> {
-  if (Date.now() - lastAutoSyncAt < minIntervalMs) return { ran: false, newReplies: 0 };
+): Promise<{ outcome: AutoSyncOutcome; ran: boolean; newReplies: number }> {
+  if (Date.now() - lastAutoSyncAt < minIntervalMs) {
+    return { outcome: 'throttled', ran: false, newReplies: 0 };
+  }
   lastAutoSyncAt = Date.now();
   const status = await gmailStatus();
-  if (!status.gmail) return { ran: false, newReplies: 0 };
+  if (!status.gmail) {
+    return {
+      outcome: status.failed ? 'failed' : 'not_connected',
+      ran: false,
+      newReplies: 0,
+    };
+  }
   const result = await gmailSyncReplies();
-  return { ran: true, newReplies: result.ok ? result.newReplies : 0 };
+  if (!result.ok) return { outcome: 'failed', ran: true, newReplies: 0 };
+  return { outcome: 'checked', ran: true, newReplies: result.newReplies };
 }
 
 /** Waypoint's recommended reply to a thread, ready to edit and send. */

@@ -1,6 +1,6 @@
 # Home Rebuild — Development Plan
 
-**Date:** Aug 29, 2026 · **Status:** Phase 1 shipped, phases 2–8 planned
+**Date:** Aug 29, 2026 · **Status:** Phases 1–2 shipped, phases 3–8 planned
 **Supersedes** the three-phase sketch at the end of `Home-Redesign-Concepts.md`,
 which predates the four-tab decision, Tools/Plan, pinned tools, Learn, the
 collapsible card and the month view.
@@ -41,7 +41,7 @@ collapsible card and the month view.
 | # | Phase | Size | Ships | Depends on |
 |---|---|---|---|---|
 | 1 | Triage engine | M | ✅ merged (#119) | — |
-| 2 | One Thing card + sensor + deferrals | L | Card replaces the duplicating cards | 1, migration 048 |
+| 2 | One Thing card + sensor + deferrals | L | ✅ merged — card replaces the duplicating cards | 1, migration 048 |
 | 3 | Plan tab (Actions + Calendar, List/Month) | L | Merged tab, month grid | — |
 | 4 | Tools tab + pins + suggestion | M | Tools becomes a place | migration 048 |
 | 5 | Ask absorbs Learn + tab bar reshape | M | Four tabs, account menu | 3, 4 |
@@ -71,6 +71,82 @@ silent shared snoozes: a co-parent must see what the other set aside.
 **Done when:** the card renders every ladder class with real data, "Not today"
 persists and advances, the sheet shows live queue state, and the calm state
 distinguishes its four kinds.
+
+**Shipped, with four changes to what this section planned:**
+
+1. **Migration 048 also carries `families.tool_pins`** (phase 4's column).
+   Migrations are applied by hand; one manual run is better than two.
+2. **`lib/homeCard.ts` was added** — the ladder sheet, the "done means done"
+   rule, and the card copy, trilingual and tested (17 tests). Phase 2 needed a
+   pure module of its own, per the rule that screens stay dumb.
+3. **The benefit-stack insight was grafted onto the opportunity rung.**
+   Deleting `StackInsightCard` would otherwise have dropped a shipped surface:
+   `deriveStackInsight` now wins that rung when an unlock guide exists, exactly
+   as the card used to win the slot — minus its `WAYPOINT NOTICED` eyebrow.
+4. **A phase-1 bug died here.** The Regional Center question offered
+   `rc_status: 'none'`, which the 012 check constraint rejects — the answer
+   would have failed to save and the question returned forever. Answers are now
+   typed to their columns and pinned by a test.
+
+**Then three independent adversarial reviews found ~40 verified defects, and
+the fixes changed the phase further:**
+
+5. **The `deadlines` table had no rung.** The deleted banner was its only
+   prominent Home surface, and the ladder's clock rungs read `family_requests`
+   only — so an IEP triennial ten days out, or an authorization expiring in
+   twelve, appeared nowhere. The ladder now reads deadlines too.
+6. **A failed Gmail sync was stamped as a successful check.**
+   `autoSyncReplies` returned `ran: true` whether or not the sync worked, so
+   the sensor line could say "Gmail checked 3:42 PM" over an unread inbox. The
+   outcome is now typed (`checked | failed | throttled | not_connected`), and
+   a check that is not from today prints its date.
+7. **The calm state promised a notification the app cannot send.** "Waypoint
+   will tell you if Sep 19 passes" is phase 7's promise, and phase 7 has not
+   shipped. It now says the date is being counted and to check back — the
+   mitigation this plan's own Risks section named. **Restore the promise in
+   the same PR that makes it keepable.**
+8. **Absence of data read as absence of obligations.** `firstRun` and "done
+   today" both treated an empty array as fact, so an offline morning produced
+   "Nothing needs you today." The ladder now takes `loading` and `dataFailed`
+   and has a fifth calm kind, `unavailable`, that says a connection problem is
+   not an all-clear.
+9. **Deferrals and answers were not child-scoped**, so setting Maya's question
+   aside suppressed Leo's, and answering Maya's could tell Leo's Home the day
+   was done. Ids carry the child.
+10. **A draft never expired.** Rung 0 outranks a passed statutory deadline, so
+    one abandoned letter parked itself above an overdue IPP request every
+    morning. Drafts lead only for 48 hours — and now carry their saved text,
+    which the old action dropped, sending "finish the letter you started" to
+    an empty editor.
+11. **"I'm not sure" re-rendered the identical card forever.** It now sets the
+    question aside with its return date.
+12. **Every failed deferral write was swallowed** — the card advanced, Later
+    showed a return date, and nothing was persisted anywhere. Writes now fall
+    back to the device, revert if even that fails, and tell the family.
+13. Migration 048's policies moved to 027's broadened `family_members OR
+    owner` form, RLS is enabled after the policies exist, and the comment no
+    longer claims a co-parent visibility the app cannot yet resolve.
+14. Copy and accessibility: the calm headline was rendering as a 10.5px
+    eyebrow; the citation and "Not today" were hidden behind a persisted
+    collapse; touch targets were below the repo's own 44pt minimum; line
+    heights did not scale with text size; "Deadlines stored on your phone" was
+    false; "one verified thing you may be owed" claimed verification that does
+    not happen; the crisis rung now reads "not set up yet" instead of "—".
+
+**Deferred out of phase 2, on purpose:**
+
+- **The card has no speaker button.** `expo-speech` is not in the project and
+  the registry's current version does not match this SDK line; the card is
+  fully labelled for the screen reader instead. Revisit with the accessibility
+  pass.
+- **`lib/gapRules.ts` and `lib/snooze.ts` are now unreferenced** by app code
+  (their consumers were the deleted cards). `gapRules` holds real domain
+  knowledge about which profile gaps matter — **phase 6 should feed the
+  question rung from it** rather than deleting it. `snooze.ts` is superseded by
+  `home_deferrals` and can go with the phase 6 deletion.
+- **Home still duplicates today's appointments** — the `today` rung and
+  `TodayCard` can both show the same 9am IEP meeting. Phase 6 deletes
+  `TodayCard`; until then the duplication stands.
 
 ### Phase 3 — Plan tab (Actions + Calendar merged)
 
@@ -174,7 +250,18 @@ before any of it is built** — sizing and the authoring workflow are open.
 
 ## Open questions
 
-1. **Ship phase 7 before launch, or soften the calm copy?** (Decide at phase 6.)
+0. **Two the reviews raised that only you can settle:**
+   - **Tone.** The overdue rung says "They missed the deadline on X" and "They
+     owe you an answer". That is description to the parent, not language for
+     the agency — but it is the frame the parent carries into the call. Keep,
+     or soften to a neutral "past due"?
+   - **Legal.** `requestClocks.ts` anchors the W&I §4646.5(b) 30-day IPP clock
+     to the parent's request date. If the statute runs from completion of the
+     assessment instead, every overdue card attaches a correct citation to an
+     incorrectly anchored claim. Worth a lawyer's eye before launch.
+1. **Ship phase 7 before launch, or soften the calm copy?** Softened for now
+   (see change 7 above). The decision that remains is whether push ships
+   before launch or the softened copy is the launch copy.
 2. **Does the crisis class get an intake in this arc,** or stay scaffolded?
    The ladder has the slot; nothing feeds it yet.
 3. **Telemetry:** are you comfortable with anonymous skip-rate and

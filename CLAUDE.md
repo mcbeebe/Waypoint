@@ -139,6 +139,13 @@ The AI engine must be empathetic, actionable, and legally accurate. It should fe
 
 **Escalation tone rule (owner preference, Aug 2026):** anywhere the app helps a family raise a problem with an agency, the first step is always friendly and collaborative — "ask" or "request," never "demand." Tone firms up only step by step as asks go unanswered (collaborative → assertive → adversarial). This applies to letter templates, CTAs, stage copy, and AI drafts alike.
 
+The rule also governs how the app **describes an agency to the parent**, not
+only how it addresses the agency (owner decision, Aug 29 2026). Home states the
+status of the answer — "An answer on X is past due" — never an actor who failed
+("They missed the deadline", "They owe you an answer"). The framing a family
+reads first is the one they carry into the phone call, so it starts neutral and
+firms up on the escalation ladder. Pinned by tests in `homeTriage.test.ts`.
+
 ## Environment Variables
 
 ### gas-mvp

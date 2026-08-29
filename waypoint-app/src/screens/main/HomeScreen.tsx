@@ -19,7 +19,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import CheckInCard from '@/components/CheckInCard';
-import GapPromptsCard from '@/components/GapPromptsCard';
 import ProfileCompletionCard from '@/components/ProfileCompletionCard';
 import TodayCard from '@/components/TodayCard';
 import { useAppointments } from '@/hooks/useAppointments';
@@ -28,24 +27,23 @@ import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
-import InsightCard from '@/components/InsightCard';
-import StackInsightCard from '@/components/StackInsightCard';
-import { deriveHomeInsight } from '@/lib/insights';
-import { deriveStackInsight, MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
 import { useRequests } from '@/hooks/useRequests';
 import { useCommunications } from '@/hooks/useCommunications';
 import { findUnansweredReply } from '@/lib/replyInbox';
 import { activeRequestForReply } from '@/lib/requestCase';
-import { autoSyncReplies } from '@/lib/gmail';
-import ReplyCard from '@/components/ReplyCard';
-import { snoozeFor, isSnoozed } from '@/lib/snooze';
+import { useTriage } from '@/hooks/useTriage';
+import OneThingCard, { LaterList } from '@/components/OneThingCard';
+import SensorLine from '@/components/SensorLine';
+import type { TriageAction, TriageItem } from '@/lib/homeTriage';
+import { FLAGS } from '@/lib/flags';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
 import { percentageLabel } from '@/lib/accessibility';
 import ToolsArea from '@/components/ToolsArea';
 import { lookupRC } from '@/data/regionalCenters';
+import type { RcStatus, IepStatus } from '@/types/database';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
 
 /** Remembers "Everything" vs "Waypoint only" between visits */
@@ -92,18 +90,26 @@ const EMPATHY_MESSAGES = [
 
 export default function HomeScreen() {
   const { family } = useFamily();
-  const { children } = useChildren(family?.id);
+  const { children, updateChild } = useChildren(family?.id);
 
   return (
     <SelectedChildProvider childRecords={children}>
-      <HomeScreenInner family={family} />
+      <HomeScreenInner family={family} updateChild={updateChild} />
     </SelectedChildProvider>
   );
 }
 
-function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['family'] }) {
+function HomeScreenInner({
+  family,
+  updateChild,
+}: {
+  family: ReturnType<typeof useFamily>['family'];
+  updateChild: ReturnType<typeof useChildren>['updateChild'];
+}) {
   const navigation = useNavigation();
   const [empathyIndex, setEmpathyIndex] = useState(0);
+  /** Honest failure surface for the card's own writes. */
+  const [notice, setNotice] = useState<string | null>(null);
   const { selectedChild } = useSelectedChild();
 
   const primaryChild = selectedChild;
@@ -114,70 +120,21 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
   const { diagnoses } = useDiagnoses(primaryChild?.id);
   const { locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
-  // "Waypoint noticed" — the one entitlement this profile isn't using yet
-  const insight = useMemo(
-    () =>
-      primaryChild
-        ? deriveHomeInsight(
-            {
-              ageYears: ageFromDob(primaryChild.date_of_birth),
-              rcStatus: primaryChild.rc_status,
-              iepStatus: primaryChild.iep_status,
-              hasDiagnosis: diagnoses.length > 0,
-              childName: primaryChild.first_name,
-            },
-            funnelLocale
-          )
-        : null,
-    [primaryChild, diagnoses.length, funnelLocale]
-  );
-  // Resource Stack edition of the same card — takes the slot when the next
-  // unlock has a deep-dive guide (Medi-Cal deeming, IHSS). An open tracked
-  // deeming request counts as applied, so a sent letter is reflected.
-  const { requests: familyRequests } = useRequests(family?.id);
-  const mediCalRequested = useMemo(
-    () =>
-      familyRequests.some(
-        (r) =>
-          r.title === MEDI_CAL_DEEMING_REQUEST_TITLE &&
-          (r.status === 'requested' || r.status === 'in_progress' || r.status === 'granted')
-      ),
-    [familyRequests]
-  );
-  const stackInsight = useMemo(
-    () =>
-      primaryChild
-        ? deriveStackInsight(
-            {
-              ageYears: ageFromDob(primaryChild.date_of_birth),
-              rcStatus: primaryChild.rc_status,
-              iepStatus: primaryChild.iep_status,
-              mediCalStatus: primaryChild.medi_cal_status,
-              ihssStatus: primaryChild.ihss_status,
-              ssiStatus: primaryChild.ssi_status,
-              sdpStep: primaryChild.sdp_step,
-              mediCalRequested,
-            },
-            funnelLocale,
-            primaryChild.first_name
-          )
-        : null,
-    [primaryChild, funnelLocale, mediCalRequested]
-  );
-
-  // Agency replies (owner decisions #1/#2): auto-sync Gmail threads on
-  // open, and spotlight the newest unanswered reply above everything.
-  const { communications, refetch: refetchComms } = useCommunications(family?.id ?? '');
-  useEffect(() => {
-    autoSyncReplies().then((r) => {
-      if (r.newReplies > 0) refetchComms();
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const {
+    requests: familyRequests,
+    loading: requestsLoading,
+    error: requestsError,
+  } = useRequests(family?.id);
+  const {
+    communications,
+    loading: commsLoading,
+    error: commsError,
+    refetch: refetchComms,
+  } = useCommunications(family?.id ?? '');
   const unanswered = useMemo(() => findUnansweredReply(communications), [communications]);
   // Badge the job, not the channel: a reply that belongs to an ACTIVE
   // tracked request opens its case file; strays and replies on closed
-  // requests go to the generic paper trail.
+  // requests go to the generic paper trail. The Tools row still badges it.
   const replyRequest = useMemo(
     () =>
       unanswered
@@ -185,37 +142,10 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
         : null,
     [unanswered, familyRequests, communications]
   );
-  const [replySnoozed, setReplySnoozed] = useState(false);
-  useEffect(() => {
-    if (!unanswered) return;
-    isSnoozed(`reply_${unanswered.reply.id}`).then(setReplySnoozed);
-  }, [unanswered]);
-
-  // "Remind me later" — per-device snooze on the Waypoint-noticed slot.
-  const [insightSnoozed, setInsightSnoozed] = useState<boolean>(false);
-  useEffect(() => {
-    isSnoozed('home_insight').then(setInsightSnoozed);
-  }, []);
-  const snoozeInsight = () => {
-    setInsightSnoozed(true);
-    snoozeFor('home_insight', 7);
-  };
-  const snoozeLabel =
-    funnelLocale === 'es'
-      ? 'Recuérdamelo después'
-      : funnelLocale === 'vi'
-        ? 'Nhắc tôi sau'
-        : 'Remind me later';
-  const { deadlines } = useDeadlines({ familyId: family?.id ?? '' });
-  const { summary: expenseSummary } = useExpenses({ familyId: family?.id ?? '' });
-
-  const urgentDeadlines = deadlines.filter((d) => {
-    if (d.status === 'completed') return false;
-    const daysLeft = Math.ceil(
-      (new Date(d.due_date).getTime() - new Date().getTime()) / 86400000
-    );
-    return daysLeft <= 14;
+  const { deadlines, loading: deadlinesLoading, error: deadlinesError } = useDeadlines({
+    familyId: family?.id ?? '',
   });
+  const { summary: expenseSummary } = useExpenses({ familyId: family?.id ?? '' });
 
   const activeActions = actions.filter((a) => a.status === 'in_progress');
   const completionPct = stats?.completion_rate ?? 0;
@@ -234,6 +164,94 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
     familyId: family?.id ?? '',
     dateRange: agendaRange,
   });
+  // ── The One Thing (Roadmap/Home-Rebuild-Plan.md phase 2) ──────────────────
+  // One published ladder decides what leads. Everything decidable is in
+  // lib/homeTriage.ts; this screen only renders it and routes the tap.
+  const {
+    result: triage,
+    completedIds,
+    shared: deferralsShared,
+    defer,
+    undo,
+    markActed,
+  } = useTriage({
+    familyId: family?.id,
+    childName: primaryChild?.first_name ?? null,
+    ageYears: primaryChild ? ageFromDob(primaryChild.date_of_birth) : null,
+    rcStatus: primaryChild?.rc_status ?? null,
+    iepStatus: primaryChild?.iep_status ?? null,
+    childId: primaryChild?.id ?? null,
+    hasDiagnosis: diagnoses.length > 0,
+    mediCalStatus: primaryChild?.medi_cal_status ?? null,
+    ihssStatus: primaryChild?.ihss_status ?? null,
+    ssiStatus: primaryChild?.ssi_status ?? null,
+    sdpStep: primaryChild?.sdp_step ?? null,
+    locale: funnelLocale,
+    requests: familyRequests,
+    communications,
+    deadlines,
+    appointments: agendaAppointments,
+    // An empty list because a fetch is in flight — or failed — is not
+    // evidence that nothing needs the family today.
+    loading: requestsLoading || commsLoading || deadlinesLoading,
+    dataFailed: !!(requestsError || commsError || deadlinesError),
+    onRepliesSynced: refetchComms,
+  });
+
+  const followAction = (action: TriageAction) => {
+    if (action.kind === 'call' && action.tel) {
+      Linking.openURL(`tel:${action.tel}`).catch(() => {});
+      return;
+    }
+    if (!action.screen) return;
+    if (action.tab) {
+      // `initial: false` keeps the tab's own list under the pushed screen,
+      // so Back and the tab button both still have somewhere to go.
+      (navigation as any).navigate(action.tab, {
+        screen: action.screen,
+        params: action.params,
+        initial: false,
+      });
+      return;
+    }
+    (navigation as any).navigate(action.screen, action.params);
+  };
+
+  const actOnItem = (item: TriageItem) => {
+    void markActed(item.id);
+    followAction(item.action);
+  };
+
+  // Answering a question card writes the answer straight to the child, so the
+  // ladder's next run is based on it. Nothing is asked twice.
+  const answerItem = async (item: TriageItem, value: string) => {
+    if (!primaryChild) return;
+    let saved = false;
+    if (item.id.startsWith('question:rc_status')) {
+      saved = await updateChild(primaryChild.id, { rc_status: value as RcStatus });
+    } else if (item.id.startsWith('question:iep_status')) {
+      saved = await updateChild(primaryChild.id, { iep_status: value as IepStatus });
+    }
+    if (!saved) {
+      setNotice("Couldn't save that answer. Check your connection and try again.");
+      return;
+    }
+    // "I'm not sure" is a legal answer that leaves the question true, so the
+    // card would re-render the identical question forever. Setting it aside
+    // is what moves Home on, and it comes back with its return date.
+    if (value === 'unknown') {
+      const ok = await defer(item);
+      if (!ok) setNotice("Couldn't save that. It will still be here.");
+      return;
+    }
+    void markActed(item.id);
+  };
+
+  const deferItem = async (item: TriageItem) => {
+    const ok = await defer(item);
+    if (!ok) setNotice("Couldn't set that aside — it will be here next time.");
+  };
+
   // Remembered so the parent isn't re-choosing this every morning
   const [agendaScope, setAgendaScope] = useState<AgendaScope>('all');
   useEffect(() => {
@@ -322,6 +340,39 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           </View>
         )}
 
+        {/* The One Thing — the highest rung that is true right now, with the
+            sensor line saying what was actually checked, and everything set
+            aside listed below with the day it comes back. */}
+        {FLAGS.newHome && (
+          <>
+            <OneThingCard
+              result={triage}
+              locale={funnelLocale}
+              shared={deferralsShared}
+              completedIds={completedIds}
+              onAct={actOnItem}
+              onDefer={(item) => { void deferItem(item); }}
+              onAnswer={(item, value) => { void answerItem(item, value); }}
+            />
+            {!!notice && (
+              <Text style={styles.notice} accessibilityRole="alert">
+                {notice}
+              </Text>
+            )}
+            <SensorLine sensor={triage.sensor} />
+            <LaterList
+              later={triage.later}
+              locale={funnelLocale}
+              shared={deferralsShared}
+              onUndo={(id) => {
+                void undo(id).then((ok) => {
+                  if (!ok) setNotice("Couldn't bring that back just now.");
+                });
+              }}
+            />
+          </>
+        )}
+
         {/* What's on deck today, and the week ahead */}
         {family?.id && (
           <TodayCard
@@ -343,48 +394,6 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             onOpenActions={() => (navigation as any).navigate('Tracker')}
           />
         )}
-
-        {/* Waypoint noticed — the highest-leverage unused entitlement. The
-            Resource Stack edition wins the slot when a deep-dive unlock
-            exists; the generic card covers the other stories. */}
-        {/* An agency replied and the ball is in the family's court —
-            the most time-sensitive card on Home */}
-        {unanswered && !replySnoozed && (
-          <ReplyCard
-            unanswered={unanswered}
-            onDraft={() =>
-              replyRequest
-                ? (navigation as any).navigate('RequestCase', { requestId: replyRequest.id })
-                : (navigation as any).navigate('CommunicationLog', {
-                    openReplyId: unanswered.reply.id,
-                  })
-            }
-            onLater={() => {
-              snoozeFor(`reply_${unanswered.reply.id}`, 2);
-              setReplySnoozed(true);
-            }}
-          />
-        )}
-
-        {insightSnoozed ? null : stackInsight ? (
-          <StackInsightCard
-            insight={stackInsight}
-            locale={funnelLocale}
-            onDraft={(template) => (navigation as any).navigate('Letters', { template })}
-            onOpenStack={() => (navigation as any).navigate('ResourceStack')}
-            onTrack={() => (navigation as any).navigate('RequestTracker')}
-            onSnooze={snoozeInsight}
-          />
-        ) : insight ? (
-          <InsightCard
-            insight={insight}
-            onOpen={(target) =>
-              (navigation as any).navigate(target.screen, target.params)
-            }
-            onSnooze={snoozeInsight}
-            snoozeLabel={snoozeLabel}
-          />
-        ) : null}
 
         {/* Empathy Message */}
         <View
@@ -411,27 +420,6 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           />
         )}
 
-        {/* Proactive "Waypoint noticed" prompts (P3) */}
-        {family?.id && (
-          <GapPromptsCard
-            familyId={family.id}
-            childAgeYears={
-              primaryChild?.date_of_birth
-                ? (Date.now() - new Date(primaryChild.date_of_birth).getTime()) / 31557600000
-                : null
-            }
-            diagnoses={diagnoses.map((d) => d.name)}
-            rcStatus={primaryChild?.rc_status ?? null}
-            iepStatus={primaryChild?.iep_status ?? null}
-            insurance={family.insurance_carrier}
-            mediCalUnderway={
-              mediCalRequested ||
-              primaryChild?.medi_cal_status === 'applied' ||
-              primaryChild?.medi_cal_status === 'active'
-            }
-          />
-        )}
-
         {/* Check-in + frustration deep-dive (wave 2 adaptive engine) */}
         {family?.id && (
           <CheckInCard
@@ -443,29 +431,6 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
             diagnoses={diagnoses.map((d) => d.name)}
             onActionsAdded={refetchActions}
           />
-        )}
-
-        {/* Deadline Alerts */}
-        {urgentDeadlines.length > 0 && (
-          <TouchableOpacity
-            style={styles.alertCard}
-            onPress={() => (navigation as any).navigate('Calendar')}
-            accessibilityRole="button"
-            accessibilityLabel={`${urgentDeadlines.length} upcoming deadline${urgentDeadlines.length !== 1 ? 's' : ''}, tap to view calendar`}
-            accessibilityHint="Opens the calendar screen"
-          >
-            <Text style={styles.alertEmoji}>⚠️</Text>
-            <View style={styles.alertContent}>
-              <Text style={styles.alertTitle}>
-                {urgentDeadlines.length} upcoming deadline{urgentDeadlines.length !== 1 ? 's' : ''}
-              </Text>
-              <Text style={styles.alertSubtitle} numberOfLines={1}>
-                {urgentDeadlines[0].title}
-                {urgentDeadlines.length > 1 ? ` + ${urgentDeadlines.length - 1} more` : ''}
-              </Text>
-            </View>
-            <Text style={styles.alertChevron}>›</Text>
-          </TouchableOpacity>
         )}
 
         {/* Progress Summary — live data */}
@@ -612,6 +577,14 @@ function StatRow({ count, label, color }: { count: number; label: string; color:
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  notice: {
+    fontSize: fonts.sizes.sm,
+    color: semantic.warning,
+    backgroundColor: semantic.warningBg,
+    borderRadius: radii.sm,
+    padding: spacing.sm,
+    marginBottom: spacing.base,
+  },
   container: {
     flex: 1,
     backgroundColor: '#F8FAFB',
@@ -701,37 +674,6 @@ const styles = StyleSheet.create({
     color: colors.dark,
     fontStyle: 'italic',
     lineHeight: 20,
-  },
-  alertCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    borderRadius: radii.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    borderLeftWidth: 4,
-    borderLeftColor: '#DC2626',
-  },
-  alertEmoji: {
-    fontSize: 20,
-    marginRight: spacing.sm,
-  },
-  alertContent: {
-    flex: 1,
-  },
-  alertTitle: {
-    fontSize: fonts.sizes.sm,
-    fontWeight: fonts.weights.semibold as '600',
-    color: '#DC2626',
-  },
-  alertSubtitle: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-    marginTop: 2,
-  },
-  alertChevron: {
-    fontSize: 20,
-    color: '#DC2626',
   },
   progressCard: {
     backgroundColor: colors.white,
