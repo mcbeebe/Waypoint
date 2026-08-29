@@ -1,6 +1,6 @@
 # Home Rebuild — Development Plan
 
-**Date:** Aug 29, 2026 · **Status:** Phases 1–4 shipped, phases 5–8 planned
+**Date:** Aug 29, 2026 · **Status:** Phases 1–5 shipped, phases 6–8 planned
 **Supersedes** the three-phase sketch at the end of `Home-Redesign-Concepts.md`,
 which predates the four-tab decision, Tools/Plan, pinned tools, Learn, the
 collapsible card and the month view.
@@ -44,7 +44,7 @@ collapsible card and the month view.
 | 2 | One Thing card + sensor + deferrals | L | ✅ merged — card replaces the duplicating cards | 1, migration 048 |
 | 3 | Plan tab (Actions + Calendar, List/Month) | L | ✅ merged tab, month grid | — |
 | 4 | Tools tab + pins + suggestion | M | ✅ Tools becomes a place | migration 048 |
-| 5 | Ask absorbs Learn + tab bar reshape | M | Four tabs, account menu | 3, 4 |
+| 5 | Ask absorbs Learn + tab bar reshape | M | ✅ four tabs, account menu | 3, 4 |
 | 6 | Home reduction | M | Home = card + composer + status line | 2, 3, 4, 5 |
 | 7 | The outbound loop (push) | L | "We'll tell you" becomes true | 1 |
 | 8 | Learn content engine | XL | Article library + SEO | 5, own plan |
@@ -304,6 +304,23 @@ bar; `navigation.ts` gains the new routes.
 
 **Done when:** the four tabs are live, the avatar menu reaches everything
 Profile held, and searching "what is an IPP" finds the library.
+
+**Shipped, with two structural decisions this section did not anticipate:**
+
+1. **Both stacks register the same destinations.** A `navigate` bubbles to
+   parents, never to a sibling stack — which is exactly how the Plan tab
+   shipped a section of dead taps in phase 3. So `destinationScreens()` is
+   registered in the Home stack *and* the Tools stack, and a tool row resolves
+   inside whichever tab it was tapped from, each keeping its own back history.
+   `navRegistry.test.ts` now guards every tool, Learn and account-menu target
+   against the registered set, so that defect cannot ship twice.
+2. **The library answers before the AI does.** Typing into Ask searches
+   `learnLibrary` first; if the library already knows, it says so and the AI
+   stays one tap away. Stop words are stripped, so "what is an IPP" finds the
+   glossary rather than everything containing "is".
+
+Ask's five hardcoded suggestion chips are gone, replaced by the library's four
+popular questions — trilingual, and each one tested to actually find something.
 
 ### Phase 6 — Home reduction
 

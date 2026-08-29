@@ -85,7 +85,6 @@ const linking: LinkingOptions<RootStackParamList> = {
               JourneyPhase: 'journey/:journeyKey/:phaseIndex',
               Agencies: 'agencies',
               Reimbursables: 'rc-funding',
-              Tools: 'tools',
               // Moved out of the Calendar tab in the Home rebuild (phase 3);
               // the old /expenses and /tax-report links keep working.
               Expenses: 'expenses',
@@ -112,6 +111,10 @@ const linking: LinkingOptions<RootStackParamList> = {
           Navigator: {
             initialRouteName: 'NavigatorMain',
             screens: { NavigatorMain: 'ask', Resources: 'resources', Blog: 'blog' },
+          },
+          Tools: {
+            initialRouteName: 'ToolsMain',
+            screens: { ToolsMain: 'toolbox' },
           },
           Tracker: {
             initialRouteName: 'TrackerList',

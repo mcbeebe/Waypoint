@@ -49,6 +49,7 @@ export interface TranslationStrings {
     journey: string;
     askAi: string;
     actions: string;
+    tools: string;
     plan: string;
     profile: string;
   };

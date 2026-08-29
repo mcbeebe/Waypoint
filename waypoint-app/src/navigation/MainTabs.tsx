@@ -76,6 +76,7 @@ import type {
   TrackerStackParamList,
   CalendarStackParamList,
   ProfileStackParamList,
+  ToolsStackParamList,
 } from '@/types/navigation';
 
 const Tab = createBottomTabNavigator();
@@ -85,6 +86,7 @@ const NavigatorStackNav = createNativeStackNavigator<NavigatorStackParamList>();
 const TrackerStackNav = createNativeStackNavigator<TrackerStackParamList>();
 const CalendarStackNav = createNativeStackNavigator<CalendarStackParamList>();
 const ProfileStackNav = createNativeStackNavigator<ProfileStackParamList>();
+const ToolsStackNav = createNativeStackNavigator<ToolsStackParamList>();
 
 // Shared header treatment for pushed detail screens
 const detailHeaderOptions: NativeStackNavigationOptions = {
@@ -250,64 +252,89 @@ function ThreadRoute({ route, navigation }: any) {
 
 // ─── Per-tab stacks ─────────────────────────────────────────────────────────
 
-function HomeStack() {
+/**
+ * The screens a tool row can open, registered in EVERY stack that shows tool
+ * rows (Home and Tools).
+ *
+ * Cross-stack `navigate` does not work: a navigate bubbles to PARENTS, so a
+ * tap in the Tools tab aimed at a screen registered only under Home is
+ * silently unhandled — the dead-tap defect the Plan review caught. Both
+ * stacks register the same destinations so a row always resolves inside the
+ * tab it was tapped from, and each tab keeps its own back history.
+ */
+function destinationScreens(Nav: typeof HomeStackNav) {
   return (
-    <HomeStackNav.Navigator screenOptions={detailHeaderOptions}>
-      <HomeStackNav.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
-      <HomeStackNav.Screen name="Journey" component={JourneyScreen} options={{ title: 'Journey Map' }} />
-      <HomeStackNav.Screen name="JourneyPhase" component={JourneyPhaseScreen} options={{ title: 'This Stage' }} />
-      <HomeStackNav.Screen name="ProcessMap" component={ProcessMapScreen} options={{ title: 'How the System Works' }} />
-      <HomeStackNav.Screen name="SdpJourney" component={SdpJourneyScreen} options={{ title: 'Self-Determination Journey' }} />
-      <HomeStackNav.Screen name="EscalationLadder" component={EscalationLadderScreen} options={{ title: 'When Services Aren’t Working' }} />
-      <HomeStackNav.Screen name="ResourceStack" component={ResourceStackScreen} options={{ title: 'Resource Stack' }} />
-      <HomeStackNav.Screen name="EligibilityResult" component={EligibilityResultScreen} options={{ title: 'Your Result' }} />
-      <HomeStackNav.Screen name="FundedOffer" component={FundedOfferScreen} options={{ title: 'Free Help' }} />
-      <HomeStackNav.Screen name="RequestTracker" component={RequestTrackerScreen} options={{ title: 'Requests & Clocks' }} />
-      <HomeStackNav.Screen name="RequestCase" component={RequestCaseScreen} options={{ title: 'Case File' }} />
-      <HomeStackNav.Screen name="Pricing" component={PricingScreen} options={{ title: 'Free & Premium' }} />
-      <HomeStackNav.Screen name="Agencies" component={AgenciesScreen} options={{ title: 'Agency Directory' }} />
-      <HomeStackNav.Screen name="Reimbursables" component={ReimbursablesScreen} options={{ title: 'RC Funding Guide' }} />
-      {/* Tools became a place in the Home rebuild (phase 4); it gets its own
-          tab in phase 5. */}
-      <HomeStackNav.Screen name="Tools" component={ToolsScreen} options={{ title: 'Tools' }} />
+    <>
+      <Nav.Screen name="Journey" component={JourneyScreen} options={{ title: 'Journey Map' }} />
+      <Nav.Screen name="JourneyPhase" component={JourneyPhaseScreen} options={{ title: 'This Stage' }} />
+      <Nav.Screen name="ProcessMap" component={ProcessMapScreen} options={{ title: 'How the System Works' }} />
+      <Nav.Screen name="SdpJourney" component={SdpJourneyScreen} options={{ title: 'Self-Determination Journey' }} />
+      <Nav.Screen name="EscalationLadder" component={EscalationLadderScreen} options={{ title: 'When Services Aren’t Working' }} />
+      <Nav.Screen name="ResourceStack" component={ResourceStackScreen} options={{ title: 'Resource Stack' }} />
+      <Nav.Screen name="EligibilityResult" component={EligibilityResultScreen} options={{ title: 'Your Result' }} />
+      <Nav.Screen name="FundedOffer" component={FundedOfferScreen} options={{ title: 'Free Help' }} />
+      <Nav.Screen name="RequestTracker" component={RequestTrackerScreen} options={{ title: 'Requests & Clocks' }} />
+      <Nav.Screen name="RequestCase" component={RequestCaseScreen} options={{ title: 'Case File' }} />
+      <Nav.Screen name="Pricing" component={PricingScreen} options={{ title: 'Free & Premium' }} />
+      <Nav.Screen name="Agencies" component={AgenciesScreen} options={{ title: 'Agency Directory' }} />
+      <Nav.Screen name="Reimbursables" component={ReimbursablesScreen} options={{ title: 'RC Funding Guide' }} />
       {/* Moved out of the Calendar tab (phase 3): Tools → Money & benefits
           already listed them, and Plan is about obligations, not spending. */}
-      <HomeStackNav.Screen name="Expenses" component={ExpensesScreen} options={{ title: 'Expenses' }} />
-      <HomeStackNav.Screen name="TaxReport" options={{ title: 'Tax Report' }}>
+      <Nav.Screen name="Expenses" component={ExpensesScreen} options={{ title: 'Expenses' }} />
+      <Nav.Screen name="TaxReport" options={{ title: 'Tax Report' }}>
         {() => (
           <PremiumGate feature="Expense & tax reports">
             <TaxReportScreen />
           </PremiumGate>
         )}
-      </HomeStackNav.Screen>
-      <HomeStackNav.Screen name="Insights" component={InsightsScreen} options={{ title: 'Insights' }} />
-      <HomeStackNav.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Documents' }} />
-      <HomeStackNav.Screen name="DocumentAnalysis" component={DocumentAnalysisRoute} options={{ title: 'IEP Review' }} />
-      <HomeStackNav.Screen name="IEPHub" options={{ title: 'IEP Goals & Timeline' }}>
+      </Nav.Screen>
+      <Nav.Screen name="Insights" component={InsightsScreen} options={{ title: 'Insights' }} />
+      <Nav.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Documents' }} />
+      <Nav.Screen name="DocumentAnalysis" component={DocumentAnalysisRoute} options={{ title: 'IEP Review' }} />
+      <Nav.Screen name="IEPHub" options={{ title: 'IEP Goals & Timeline' }}>
         {/* Premium gate (W-E: E3) — server also enforces analyze-iep */}
         {() => (
           <PremiumGate feature="IEP document analysis">
             <IEPHubScreen />
           </PremiumGate>
         )}
-      </HomeStackNav.Screen>
-      <HomeStackNav.Screen name="Letters" component={LettersScreen} options={{ title: 'Letters & Drafts' }} />
-      <HomeStackNav.Screen name="EmailAnalyzer" component={EmailAnalyzerScreen} options={{ title: 'Email Analyzer' }} />
-      <HomeStackNav.Screen name="CommunicationLog" component={CommunicationLogScreen} options={{ title: 'Paper Trail' }} />
-      <HomeStackNav.Screen name="Providers" component={ProvidersScreen} options={{ title: 'Providers' }} />
-      <HomeStackNav.Screen name="Services" component={ServicesScreen} options={{ title: 'Services' }} />
-      <HomeStackNav.Screen name="Insurance" component={InsuranceScreen} options={{ title: 'Insurance Tracker' }} />
-      <HomeStackNav.Screen name="HealthRecords" component={HealthRecordsScreen} options={{ title: 'Health Records' }} />
-      <HomeStackNav.Screen name="FamilySharing" component={FamilySharingScreen} options={{ title: 'Family Sharing' }} />
-      <HomeStackNav.Screen name="ProviderPortal" component={ProviderPortalScreen} options={{ title: 'Provider Portal' }} />
+      </Nav.Screen>
+      <Nav.Screen name="Letters" component={LettersScreen} options={{ title: 'Letters & Drafts' }} />
+      <Nav.Screen name="EmailAnalyzer" component={EmailAnalyzerScreen} options={{ title: 'Email Analyzer' }} />
+      <Nav.Screen name="CommunicationLog" component={CommunicationLogScreen} options={{ title: 'Paper Trail' }} />
+      <Nav.Screen name="Providers" component={ProvidersScreen} options={{ title: 'Providers' }} />
+      <Nav.Screen name="Services" component={ServicesScreen} options={{ title: 'Services' }} />
+      <Nav.Screen name="Insurance" component={InsuranceScreen} options={{ title: 'Insurance Tracker' }} />
+      <Nav.Screen name="HealthRecords" component={HealthRecordsScreen} options={{ title: 'Health Records' }} />
+      <Nav.Screen name="FamilySharing" component={FamilySharingScreen} options={{ title: 'Family Sharing' }} />
+      <Nav.Screen name="ProviderPortal" component={ProviderPortalScreen} options={{ title: 'Provider Portal' }} />
       {FLAGS.community && (
         <>
-          <HomeStackNav.Screen name="Forum" component={ForumRoute} options={{ title: 'Community' }} />
-          <HomeStackNav.Screen name="Thread" component={ThreadRoute} options={{ title: 'Discussion' }} />
-          <HomeStackNav.Screen name="Messages" component={MessagesScreen} options={{ title: 'Messages' }} />
+          <Nav.Screen name="Forum" component={ForumRoute} options={{ title: 'Community' }} />
+          <Nav.Screen name="Thread" component={ThreadRoute} options={{ title: 'Discussion' }} />
+          <Nav.Screen name="Messages" component={MessagesScreen} options={{ title: 'Messages' }} />
         </>
       )}
+    </>
+  );
+}
+
+function HomeStack() {
+  return (
+    <HomeStackNav.Navigator screenOptions={detailHeaderOptions}>
+      <HomeStackNav.Screen name="HomeMain" component={HomeScreen} options={{ headerShown: false }} />
+      {destinationScreens(HomeStackNav)}
     </HomeStackNav.Navigator>
+  );
+}
+
+/** The toolbox tab (Home rebuild phase 5). */
+function ToolsStack() {
+  return (
+    <ToolsStackNav.Navigator screenOptions={detailHeaderOptions}>
+      <ToolsStackNav.Screen name="ToolsMain" component={ToolsScreen} options={{ headerShown: false }} />
+      {destinationScreens(ToolsStackNav as unknown as typeof HomeStackNav)}
+    </ToolsStackNav.Navigator>
   );
 }
 
@@ -458,6 +485,15 @@ export default function MainTabs() {
         }}
       />
       <Tab.Screen
+        name="Tools"
+        component={ToolsStack}
+        options={{
+          tabBarLabel: t.tabs.tools,
+          tabBarIcon: tabIcon('construct-outline', 'construct'),
+          tabBarAccessibilityLabel: t.tabs.tools,
+        }}
+      />
+      <Tab.Screen
         name="Tracker"
         component={TrackerStack}
         options={{
@@ -488,6 +524,12 @@ export default function MainTabs() {
           tabBarLabel: t.tabs.profile,
           tabBarIcon: tabIcon('person-outline', 'person'),
           tabBarAccessibilityLabel: t.tabs.profile,
+          // Four tabs is the point of the redesign, and Profile was the
+          // fifth. It moves under the avatar (components/AccountMenu); the
+          // stack stays registered so every navigate('Profile') and the
+          // /profile deep link keep working.
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
         }}
       />
     </Tab.Navigator>

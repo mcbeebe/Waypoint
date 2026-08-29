@@ -29,6 +29,8 @@ const en: TranslationStrings = {
     askAi: 'Ask AI',
     actions: 'Actions',
     /** The merged Actions + Calendar tab (Home rebuild phase 3). */
+    /** The toolbox tab (Home rebuild phase 5). */
+    tools: 'Tools',
     plan: 'Plan',
     profile: 'Profile',
   },

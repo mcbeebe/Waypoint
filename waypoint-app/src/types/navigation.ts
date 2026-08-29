@@ -32,6 +32,7 @@ export type MainTabParamList = {
   Home: NavigatorScreenParams<HomeStackParamList> | undefined;
   Navigator: NavigatorScreenParams<NavigatorStackParamList> | undefined;
   Tracker: NavigatorScreenParams<TrackerStackParamList> | undefined;
+  Tools: NavigatorScreenParams<ToolsStackParamList> | undefined;
   Calendar: NavigatorScreenParams<CalendarStackParamList> | undefined;
   Profile: NavigatorScreenParams<ProfileStackParamList> | undefined;
 };
@@ -60,8 +61,6 @@ export type HomeStackParamList = {
   JourneyPhase: { journeyKey: string; phaseIndex: number };
   Agencies: undefined;
   Reimbursables: undefined;
-  /** The toolbox as a screen (Home rebuild phase 4). */
-  Tools: undefined;
   /** Moved out of the Calendar tab in the Home rebuild (phase 3). */
   Expenses: undefined;
   TaxReport: undefined;
@@ -113,4 +112,13 @@ export type CalendarStackParamList = {
 
 export type ProfileStackParamList = {
   ProfileMain: undefined;
+};
+
+/**
+ * The Tools tab (Home rebuild phase 5). It registers the same destinations
+ * as the Home stack, because a navigate bubbles to parents, not siblings —
+ * a tool row tapped here has to resolve here.
+ */
+export type ToolsStackParamList = Omit<HomeStackParamList, 'HomeMain'> & {
+  ToolsMain: undefined;
 };
