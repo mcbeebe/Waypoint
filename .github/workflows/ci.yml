@@ -27,5 +27,11 @@ jobs:
       - run: npm ci
       - name: Typecheck
         run: npx tsc --noEmit
+      # CLAUDE.md's ship-it rule names three gates — tsc, vitest, eslint — but
+      # eslint was never actually here, so the third one existed only as a
+      # sentence. It passes clean today (0 errors, 50 warnings), so it goes in
+      # as blocking; the warnings are tracked in initiative 002.
+      - name: Lint
+        run: npm run lint
       - name: Tests
         run: npm test

@@ -44,10 +44,16 @@ __pycache__/
 ~$*
 
 # === Claude internal ===
-.claude/
+# Local session state stays out of git, but .claude/skills/ is versioned
+# institutional knowledge — a skill nobody else can check out is just a
+# note to yourself. (A bare `.claude/` cannot be used here: git will not
+# re-include a path inside an excluded directory.)
+.claude/*
+!.claude/skills/
 
 # === Xcode (generated from Expo attempt) ===
 Waypoint/Waypoint/
 Waypoint/Waypoint.xcodeproj/
 gas-mvp/.claude/
 gmail-threads-flow.html
+waypoint-app/supabase/.temp/

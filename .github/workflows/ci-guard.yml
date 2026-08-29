@@ -1,0 +1,27 @@
+# Companion to ci.yml — DO NOT DELETE without also removing `check` from the
+# branch-protection required checks.
+#
+# ci.yml filters on `paths: ['waypoint-app/**']`, so a PR that touches only
+# docs, Roadmap/, or supabase/ never produces a `check` run. A required status
+# check that never runs does not pass — it stays pending, and the PR can never
+# be merged. That is a deadlock with no in-PR escape.
+#
+# This workflow has the inverse filter and declares a job with the SAME name,
+# so exactly one of the two always runs and the `check` context always exists.
+# The pair is mutually exclusive: never both, never neither.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['waypoint-app/**']
+  pull_request:
+    paths-ignore: ['waypoint-app/**']
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: No app changes in this PR
+        run: echo "No waypoint-app/** changes — the real suite in ci.yml did not need to run."

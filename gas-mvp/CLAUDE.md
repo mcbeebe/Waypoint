@@ -39,7 +39,15 @@ Commit format: `Sprint N: Description (WP-XXX, WP-YYY)`
 
 ## Deployment
 
-Manual copy-paste to Google Apps Script editor (no clasp configured). No build step.
+Manual copy-paste into the Google Apps Script editor. No build step.
+
+**A `.clasp.json` with a real `scriptId` has existed here since March 2026 but
+is not used** — nothing in this repo runs `clasp push`, so a commit here is
+NOT a deploy, and the editor is free to hold code that never reached git.
+Whether to wire clasp up (making deploys committed pushes) or to declare this
+MVP frozen-legacy is an open decision — see
+`../Roadmap/initiatives/README.md`. Until it is made, assume the running code
+and this directory can differ.
 
 ## No External Dependencies
 
