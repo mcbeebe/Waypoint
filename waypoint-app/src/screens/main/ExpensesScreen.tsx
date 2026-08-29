@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import DateInput from '@/components/DateInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useFamily } from '@/hooks/useFamily';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useDocuments } from '@/hooks/useDocuments';
@@ -61,6 +62,7 @@ export default function ExpensesScreen() {
   const { family } = useFamily();
   const familyId = family?.id ?? '';
   const { showToast } = useToast();
+  const navigation = useNavigation();
 
   const [viewMode, setViewMode] = useState<ViewMode>('all');
   const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | undefined>(undefined);
@@ -147,6 +149,18 @@ export default function ExpensesScreen() {
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
+
+      {/* The tax report had no entry point anywhere in the app — the route
+          existed and nothing navigated to it. The tool that promises
+          "Expenses & tax report" now delivers both. */}
+      <TouchableOpacity
+        style={styles.taxReportLink}
+        onPress={() => (navigation as never as { navigate: (n: string) => void }).navigate('TaxReport')}
+        accessibilityRole="button"
+        accessibilityLabel="Open the tax report"
+      >
+        <Text style={styles.taxReportText}>View the tax report ›</Text>
+      </TouchableOpacity>
 
       {/* Summary Bar */}
       <View style={styles.summaryBar}>
@@ -618,6 +632,16 @@ function formatDate(date: string): string {
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  taxReportLink: {
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.base,
+  },
+  taxReportText: {
+    color: colors.teal,
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.bold,
+  },
   container: { flex: 1, backgroundColor: '#F8FAFB' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',

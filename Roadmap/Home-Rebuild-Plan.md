@@ -1,6 +1,6 @@
 # Home Rebuild — Development Plan
 
-**Date:** Aug 29, 2026 · **Status:** Phases 1–2 shipped, phases 3–8 planned
+**Date:** Aug 29, 2026 · **Status:** Phases 1–3 shipped, phases 4–8 planned
 **Supersedes** the three-phase sketch at the end of `Home-Redesign-Concepts.md`,
 which predates the four-tab decision, Tools/Plan, pinned tools, Learn, the
 collapsible card and the month view.
@@ -42,7 +42,7 @@ collapsible card and the month view.
 |---|---|---|---|---|
 | 1 | Triage engine | M | ✅ merged (#119) | — |
 | 2 | One Thing card + sensor + deferrals | L | ✅ merged — card replaces the duplicating cards | 1, migration 048 |
-| 3 | Plan tab (Actions + Calendar, List/Month) | L | Merged tab, month grid | — |
+| 3 | Plan tab (Actions + Calendar, List/Month) | L | ✅ merged tab, month grid | — |
 | 4 | Tools tab + pins + suggestion | M | Tools becomes a place | migration 048 |
 | 5 | Ask absorbs Learn + tab bar reshape | M | Four tabs, account menu | 3, 4 |
 | 6 | Home reduction | M | Home = card + composer + status line | 2, 3, 4, 5 |
@@ -161,6 +161,66 @@ Tools → Money, where `toolsCatalog` already lists them.
 **Done when:** every dated and undated obligation appears exactly once, the
 month grid marks today and distinguishes deadline from appointment, and
 Plan opens on the month holding the next item.
+
+**Shipped, with four departures from this section:**
+
+1. **The list needed a sixth section.** The prototype stopped at "this week",
+   so a deadline three weeks out existed only in the month grid — a dated
+   obligation the list dropped. `Coming up` holds everything past day seven,
+   and `Past due` leads. Pinned by a test that counts every entry exactly once.
+2. **The Actions tab is hidden from the bar now, not at phase 5.** Two tabs
+   answering the same question is the confusion the merge exists to end. The
+   Tracker stack stays registered and Plan links to the full list, so nothing
+   is unreachable; phase 5 only reshapes what remains.
+3. **The full calendar stays behind Plan**, reached from a link on it. Adding,
+   editing, recurrence, reminders and Google sync all live in `CalendarScreen`
+   and none of it survives a merge that replaces the screen.
+4. **The tax report had no entry point at all** — the route was registered and
+   nothing in the app navigated to it, so the tool promising "Expenses & tax
+   report" delivered half. Expenses now links to it.
+
+**The adversarial review then found nine verified defects, all fixed:**
+
+- **Recurring appointments were never expanded.** `useAppointments` loads
+  recurring base rows regardless of the window on purpose, and expansion is
+  the consumer's job — so every weekly therapy session showed as its first
+  occurrence, in *Past due*, forever, while the real sessions appeared
+  nowhere and Month opened on the month of the first one. Plan expands
+  occurrences the way `CalendarScreen` does.
+- **Days were sorted by their localized time string**, so 1:00 PM came before
+  9:00 AM. Entries carry an ISO sort key now.
+- **Every "waiting on an agency" row was a dead tap** — `RequestCase` is
+  registered in the Home stack, and a `navigate` from Plan (in the Calendar
+  stack) is silently unhandled in production. The section carrying the legal
+  citations was the one that did nothing.
+- **Plan claimed "nothing to do" while loading and after a failed fetch** —
+  the same defect Home was fixed for one phase earlier, in the tab whose
+  whole job is to be the list of record.
+- **A deferred item was listed twice**, under both its own section and
+  *Later*; items whose return day had passed stayed listed; and an item with
+  no stored title vanished entirely. `planView` now dedupes, expires and
+  falls back.
+- **The month grid said "Nothing on this day"** for months outside the
+  four-month fetch window. The window follows the cursor.
+- **Deep links broke:** `/expenses` and `/tax-report` still pointed into the
+  Calendar stack, and Plan had no URL at all.
+- **`CalendarMain` rendered two stacked headers.**
+- **Deadline push reminders stopped being re-armed** — `CalendarScreen`'s
+  mount was the app's only caller, and Plan took its place as the tab's
+  landing screen.
+
+Plus: statutory due dates shifted a day on any UTC+ device
+(`requestClocks.ts` sliced a UTC ISO string from a local-midnight date — a
+citation on a date the statute never gave); the provenance line failed WCAG
+AA contrast at 2.6:1; pull-to-refresh missed two sections; nothing refetched
+on focus; the "Waypoint only" scope preference was ignored; Spanish read
+"vence el Hoy" and the Vietnamese signpost named a Tools door that does not
+exist under that name.
+
+**Known and not fixed here:** three tests fail under a UTC+ timezone
+(`homeTriage`, `recurrence`, `transitionHours`) — they fail on `main` too, so
+they are pre-existing TZ-fragility rather than this change, but they hint at
+real bugs east of Greenwich and deserve their own pass.
 
 ### Phase 4 — Tools tab, pinned tiles, the suggestion
 

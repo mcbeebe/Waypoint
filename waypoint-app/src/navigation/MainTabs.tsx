@@ -49,6 +49,7 @@ import CommunicationLogScreen from '@/screens/main/CommunicationLogScreen';
 import ResourcesScreen from '@/screens/main/ResourcesScreen';
 import BlogScreen from '@/screens/main/BlogScreen';
 import ExpensesScreen from '@/screens/main/ExpensesScreen';
+import PlanScreen from '@/screens/main/PlanScreen';
 import TaxReportScreen from '@/screens/main/TaxReportScreen';
 import AgenciesScreen from '@/screens/main/AgenciesScreen';
 import ReimbursablesScreen from '@/screens/main/ReimbursablesScreen';
@@ -265,6 +266,16 @@ function HomeStack() {
       <HomeStackNav.Screen name="Pricing" component={PricingScreen} options={{ title: 'Free & Premium' }} />
       <HomeStackNav.Screen name="Agencies" component={AgenciesScreen} options={{ title: 'Agency Directory' }} />
       <HomeStackNav.Screen name="Reimbursables" component={ReimbursablesScreen} options={{ title: 'RC Funding Guide' }} />
+      {/* Moved out of the Calendar tab (phase 3): Tools → Money & benefits
+          already listed them, and Plan is about obligations, not spending. */}
+      <HomeStackNav.Screen name="Expenses" component={ExpensesScreen} options={{ title: 'Expenses' }} />
+      <HomeStackNav.Screen name="TaxReport" options={{ title: 'Tax Report' }}>
+        {() => (
+          <PremiumGate feature="Expense & tax reports">
+            <TaxReportScreen />
+          </PremiumGate>
+        )}
+      </HomeStackNav.Screen>
       <HomeStackNav.Screen name="Insights" component={InsightsScreen} options={{ title: 'Insights' }} />
       <HomeStackNav.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Documents' }} />
       <HomeStackNav.Screen name="DocumentAnalysis" component={DocumentAnalysisRoute} options={{ title: 'IEP Review' }} />
@@ -333,18 +344,20 @@ function TrackerStack() {
   );
 }
 
+/**
+ * Plan (Home rebuild phase 3): the merged Actions + Calendar tab. Plan is the
+ * tab's landing screen; the full calendar stays behind it, because adding,
+ * editing, recurrence, reminders and Google sync all live there and merging
+ * the two views must not cost the family any of it.
+ */
 function CalendarStack() {
   return (
     <CalendarStackNav.Navigator screenOptions={detailHeaderOptions}>
+      <CalendarStackNav.Screen name="PlanMain" component={PlanScreen} options={{ headerShown: false }} />
+      {/* headerShown stays false: CalendarScreen draws its own header and
+          top inset, and the stack header would stack a second "Calendar"
+          title above it. */}
       <CalendarStackNav.Screen name="CalendarMain" component={CalendarScreen} options={{ headerShown: false }} />
-      <CalendarStackNav.Screen name="Expenses" component={ExpensesScreen} options={{ title: 'Expenses' }} />
-      <CalendarStackNav.Screen name="TaxReport" options={{ title: 'Tax Report' }}>
-        {() => (
-          <PremiumGate feature="Expense & tax reports">
-            <TaxReportScreen />
-          </PremiumGate>
-        )}
-      </CalendarStackNav.Screen>
     </CalendarStackNav.Navigator>
   );
 }
@@ -447,15 +460,21 @@ export default function MainTabs() {
           tabBarLabel: t.tabs.actions,
           tabBarIcon: tabIcon('checkbox-outline', 'checkbox'),
           tabBarAccessibilityLabel: t.tabs.actions,
+          // Merged into Plan (Home rebuild phase 3): the stack stays
+          // registered so action detail and the full list are still
+          // reachable from Plan, but the bar no longer offers two tabs
+          // that answer the same question.
+          tabBarButton: () => null,
+          tabBarItemStyle: { display: 'none' },
         }}
       />
       <Tab.Screen
         name="Calendar"
         component={CalendarStack}
         options={{
-          tabBarLabel: t.tabs.calendar,
+          tabBarLabel: t.tabs.plan,
           tabBarIcon: tabIcon('calendar-outline', 'calendar'),
-          tabBarAccessibilityLabel: t.tabs.calendar,
+          tabBarAccessibilityLabel: t.tabs.plan,
         }}
       />
       <Tab.Screen

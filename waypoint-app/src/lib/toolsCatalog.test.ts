@@ -21,10 +21,13 @@ const HOME_STACK_SCREENS = new Set([
   'Reimbursables', 'Insights', 'Documents', 'IEPHub', 'Letters',
   'EmailAnalyzer', 'CommunicationLog', 'Providers', 'Services', 'Insurance',
   'HealthRecords', 'FamilySharing', 'ProviderPortal',
+  // Moved out of the Calendar tab in the Home rebuild (phase 3): Plan is
+  // about obligations, and Tools → Money already listed these.
+  'Expenses', 'TaxReport',
 ]);
 const TAB_SCREENS: Record<string, Set<string>> = {
   Navigator: new Set(['Resources', 'Blog']),
-  Calendar: new Set(['Expenses', 'TaxReport']),
+  Calendar: new Set(['PlanMain', 'CalendarMain']),
 };
 
 describe('toolsCatalog routes', () => {
