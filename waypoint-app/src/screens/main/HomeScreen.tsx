@@ -29,8 +29,6 @@ import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
 import { useRequests } from '@/hooks/useRequests';
 import { useCommunications } from '@/hooks/useCommunications';
-import { findUnansweredReply } from '@/lib/replyInbox';
-import { activeRequestForReply } from '@/lib/requestCase';
 import { useTriage } from '@/hooks/useTriage';
 import OneThingCard, { LaterList } from '@/components/OneThingCard';
 import SensorLine from '@/components/SensorLine';
@@ -41,7 +39,9 @@ import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
 import { percentageLabel } from '@/lib/accessibility';
-import ToolsArea from '@/components/ToolsArea';
+import PinnedTools from '@/components/PinnedTools';
+import { useToolPins } from '@/hooks/useToolPins';
+import { getAllTools } from '@/lib/toolsCatalog';
 import { lookupRC } from '@/data/regionalCenters';
 import type { RcStatus, IepStatus } from '@/types/database';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
@@ -131,17 +131,8 @@ function HomeScreenInner({
     error: commsError,
     refetch: refetchComms,
   } = useCommunications(family?.id ?? '');
-  const unanswered = useMemo(() => findUnansweredReply(communications), [communications]);
-  // Badge the job, not the channel: a reply that belongs to an ACTIVE
-  // tracked request opens its case file; strays and replies on closed
-  // requests go to the generic paper trail. The Tools row still badges it.
-  const replyRequest = useMemo(
-    () =>
-      unanswered
-        ? activeRequestForReply(unanswered.reply, familyRequests, communications)
-        : null,
-    [unanswered, familyRequests, communications]
-  );
+  const toolKeys = useMemo(() => getAllTools('en').map((t) => t.key), []);
+  const toolPins = useToolPins(family?.id, toolKeys, funnelLocale);
   const { deadlines, loading: deadlinesLoading, error: deadlinesError } = useDeadlines({
     familyId: family?.id ?? '',
   });
@@ -548,16 +539,17 @@ function HomeScreenInner({
           </TouchableOpacity>
         )}
 
-        {/* Tools — hybrid v2 (Home Tools Redesign): search, action rows
-            with live badges, and four doors that expand in place */}
-        <Text style={styles.sectionTitle}>Tools</Text>
-        <ToolsArea
-          selectedChildName={primaryChild?.first_name ?? null}
-          requests={familyRequests}
-          communications={communications}
-          hasUnansweredReply={!!unanswered && !replyRequest}
-          childAgeYears={primaryChild ? ageFromDob(primaryChild.date_of_birth) : null}
-        />
+        {/* Tools became a place (phase 4): Home shows the tiles this family
+            pinned, and the whole toolbox is one tap behind them. */}
+        <PinnedTools pins={toolPins} locale={funnelLocale} onNotice={setNotice} />
+        <TouchableOpacity
+          style={styles.allTools}
+          onPress={() => (navigation as any).navigate('Tools')}
+          accessibilityRole="button"
+          accessibilityLabel="Open all tools"
+        >
+          <Text style={styles.allToolsText}>All tools ›</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -577,6 +569,16 @@ function StatRow({ count, label, color }: { count: number; label: string; color:
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  allTools: {
+    minHeight: 44,
+    justifyContent: 'center',
+    marginBottom: spacing.base,
+  },
+  allToolsText: {
+    color: colors.teal,
+    fontSize: fonts.sizes.base,
+    fontWeight: fonts.weights.bold,
+  },
   notice: {
     fontSize: fonts.sizes.sm,
     color: semantic.warning,

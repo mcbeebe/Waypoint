@@ -20,6 +20,7 @@ import {
   lettersDescription,
 } from '@/lib/toolsCatalog';
 import { caseBadge } from '@/lib/requestCase';
+import { pinStrings } from '@/lib/toolPins';
 import type { ToolBadge, ToolEntry, DoorKey } from '@/lib/toolsCatalog';
 import type { FamilyRequest } from '@/hooks/useRequests';
 import type { Communication } from '@/hooks/useCommunications';
@@ -71,6 +72,12 @@ interface ToolsAreaProps {
   /** An unanswered reply that belongs to NO tracked request (badge the job: tracked ones badge Requests). */
   hasUnansweredReply: boolean;
   childAgeYears: number | null;
+  /** Keys currently pinned — rows offer pin/unpin when this is provided. */
+  pinnedKeys?: string[];
+  /** Returns a message when the pin was refused (the cap). */
+  onTogglePin?: (key: string, pinned: boolean) => void;
+  /** Fires when a tool is opened, feeding the pin suggestion. */
+  onOpened?: (key: string) => void;
 }
 
 export default function ToolsArea({
@@ -79,11 +86,14 @@ export default function ToolsArea({
   communications,
   hasUnansweredReply,
   childAgeYears,
+  pinnedKeys,
+  onTogglePin,
+  onOpened,
 }: ToolsAreaProps) {
   const navigation = useNavigation();
   const { locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
-  const S = STRINGS[funnelLocale];
+  const S = { ...STRINGS[funnelLocale], ...pinStrings(funnelLocale) };
 
   const [query, setQuery] = useState('');
   const [openDoor, setOpenDoor] = useState<DoorKey | null>(null);
@@ -109,6 +119,7 @@ export default function ToolsArea({
   };
 
   const goTo = (tool: ToolEntry) => {
+    onOpened?.(tool.key);
     const { screen, params, tab } = tool.route;
     if (tab) {
       (navigation as any).navigate(tab, { screen, params, initial: false });
@@ -162,7 +173,27 @@ export default function ToolsArea({
           </View>
           <Text style={styles.rowDescription}>{description}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+        {/* Pin from wherever the tool is — a family should not have to find
+            a settings screen to put something on top. */}
+        {pinnedKeys && onTogglePin ? (
+          <Pressable
+            onPress={() => onTogglePin(tool.key, pinnedKeys.includes(tool.key))}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.pinButton}
+            accessibilityRole="button"
+            accessibilityLabel={`${
+              pinnedKeys.includes(tool.key) ? S.unpin : S.pin
+            }: ${tool.label}`}
+          >
+            <Ionicons
+              name={pinnedKeys.includes(tool.key) ? 'star' : 'star-outline'}
+              size={18}
+              color={pinnedKeys.includes(tool.key) ? colors.teal : colors.mid}
+            />
+          </Pressable>
+        ) : (
+          <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+        )}
       </Pressable>
     );
   };
@@ -258,6 +289,7 @@ export default function ToolsArea({
 }
 
 const styles = StyleSheet.create({
+  pinButton: { minWidth: 32, minHeight: 32, alignItems: 'center', justifyContent: 'center' },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',

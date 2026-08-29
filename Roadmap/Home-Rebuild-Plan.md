@@ -1,6 +1,6 @@
 # Home Rebuild — Development Plan
 
-**Date:** Aug 29, 2026 · **Status:** Phases 1–3 shipped, phases 4–8 planned
+**Date:** Aug 29, 2026 · **Status:** Phases 1–4 shipped, phases 5–8 planned
 **Supersedes** the three-phase sketch at the end of `Home-Redesign-Concepts.md`,
 which predates the four-tab decision, Tools/Plan, pinned tools, Learn, the
 collapsible card and the month view.
@@ -43,7 +43,7 @@ collapsible card and the month view.
 | 1 | Triage engine | M | ✅ merged (#119) | — |
 | 2 | One Thing card + sensor + deferrals | L | ✅ merged — card replaces the duplicating cards | 1, migration 048 |
 | 3 | Plan tab (Actions + Calendar, List/Month) | L | ✅ merged tab, month grid | — |
-| 4 | Tools tab + pins + suggestion | M | Tools becomes a place | migration 048 |
+| 4 | Tools tab + pins + suggestion | M | ✅ Tools becomes a place | migration 048 |
 | 5 | Ask absorbs Learn + tab bar reshape | M | Four tabs, account menu | 3, 4 |
 | 6 | Home reduction | M | Home = card + composer + status line | 2, 3, 4, 5 |
 | 7 | The outbound loop (push) | L | "We'll tell you" becomes true | 1 |
@@ -236,6 +236,23 @@ AsyncStorage — a per-device heuristic, not family state.
 **Done when:** pinning from any row lands a tile, Edit removes, the cap holds
 with an honest message, and the suggestion appears once and never returns
 after either answer.
+
+**Shipped, with three departures:**
+
+1. **Tools is a screen, not yet a tab** — the bar reshape stays in phase 5, so
+   `ToolsScreen` is registered on the Home stack and reached from Home. That
+   also reduced Home early: the inline tools drawer is gone, replaced by the
+   family's pinned tiles and one "All tools ›" door.
+2. **The cap refuses rather than evicts.** Six pins is the limit and the
+   seventh is declined out loud with a message. On a list shared by two
+   parents, a pin that silently pushes out another parent's tile is the
+   quiet-overwrite problem in a different costume.
+3. **An empty pin list is a real choice.** The three action tools seed a
+   family that has never chosen; once `tool_pins` exists on the row — even as
+   `[]` — it is honoured, so "I removed them all" is not undone on next load.
+
+Pins degrade the same way deferrals do: without migration 048 they fall back
+to the device and the screen says "saved on this device only".
 
 ### Phase 5 — Ask absorbs Learn, and the bar becomes four tabs
 
