@@ -500,3 +500,32 @@ describe('locale parity across the whole ladder', () => {
     }
   });
 });
+
+describe('Home describes the status, not an actor who failed (owner decision)', () => {
+  it('states an overdue answer neutrally in every locale', () => {
+    const overdue = req({ requested_on: '2026-07-01', title: 'IPP meeting' });
+    for (const loc of ['en', 'es', 'vi'] as const) {
+      const item = triageHome(base({ requests: [overdue], locale: loc })).item!;
+      expect(item.cls).toBe('overdue');
+      // No accusatory subject: the answer is past due, nobody "missed" or
+      // "owes". Tone firms up on the escalation ladder, not on Home.
+      expect(item.title).not.toMatch(/They missed|They owe|No cumplieron|Le deben|Họ đã trễ|Họ nợ/);
+    }
+    expect(triageHome(base({ requests: [overdue] })).item?.title).toContain('is past due');
+  });
+
+  it('states a running clock as a due date, not a debt', () => {
+    const soon = req({ request_type: 'iep_evaluation', requested_on: '2026-08-21' });
+    const item = triageHome(base({ requests: [soon] })).queue.find((i) => i.cls === 'clock')!;
+    expect(item.title).toMatch(/is due/);
+    expect(item.title).not.toMatch(/owe/);
+  });
+
+  it('never claims an outcome it has no data for', () => {
+    const overdue = req({ requested_on: '2026-07-01' });
+    for (const loc of ['en', 'es', 'vi'] as const) {
+      const item = triageHome(base({ requests: [overdue], locale: loc })).item!;
+      expect(item.why).not.toMatch(/usually moves|suele mover|thường làm mọi việc/);
+    }
+  });
+});

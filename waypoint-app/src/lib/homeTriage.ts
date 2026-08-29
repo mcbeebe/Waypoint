@@ -356,15 +356,18 @@ function clockItems(
           `Plazo vencido — hace ${-dl.daysRemaining} días`,
           `Quá hạn — ${-dl.daysRemaining} ngày trước`
         ).toUpperCase(),
+        // Neutral by owner decision (Aug 2026): Home states the status of
+        // the answer, not an actor who failed. The tone a family carries
+        // into the call is set here, and it starts collaborative.
         title: L(
-          `They missed the deadline on ${r.title}${who}`,
-          `No cumplieron el plazo de ${r.title}${who}`,
-          `Họ đã trễ hạn về ${r.title}${who}`
+          `An answer on ${r.title}${who} is past due`,
+          `La respuesta sobre ${r.title}${who} está vencida`,
+          `Câu trả lời về ${r.title}${who} đã quá hạn`
         ),
         why: L(
           `Because you asked on ${fmtDay(`${r.requested_on}T12:00:00`, locale)} and the law gave them until ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A follow-up that cites the date is the next step.`,
           `Porque pidió el ${fmtDay(`${r.requested_on}T12:00:00`, locale)} y la ley les daba hasta el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. El siguiente paso es un seguimiento que cite la fecha.`,
-          `Vì quý vị đã đề nghị ngày ${fmtDay(`${r.requested_on}T12:00:00`, locale)} và luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Thư nhắc thân thiện nêu ngày thường làm mọi việc chuyển động trong vài ngày.`
+          `Vì quý vị đã đề nghị ngày ${fmtDay(`${r.requested_on}T12:00:00`, locale)} và luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Bước tiếp theo là thư nhắc có nêu ngày.`
         ),
         citation: dl.citation,
         action: {
@@ -387,9 +390,9 @@ function clockItems(
           `Đồng hồ đang chạy — còn ${dl.daysRemaining} ngày`
         ).toUpperCase(),
         title: L(
-          `They owe you an answer on ${r.title} by ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}`,
-          `Le deben una respuesta sobre ${r.title} antes del ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}`,
-          `Họ nợ quý vị câu trả lời về ${r.title} trước ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}`
+          `An answer on ${r.title} is due ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}`,
+          `La respuesta sobre ${r.title} vence el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}`,
+          `Câu trả lời về ${r.title} đến hạn ngày ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}`
         ),
         why: L(
           `Because you asked on ${fmtDay(`${r.requested_on}T12:00:00`, locale)} and the law gives them a fixed window.`,
