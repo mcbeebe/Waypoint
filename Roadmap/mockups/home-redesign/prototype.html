@@ -156,6 +156,44 @@
   .door-body { background: var(--light); }
   .door-body .trow { padding-left: 32px; }
 
+  /* Pinned tiles — the parent's own kit */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tile { position: relative; background: var(--white); border: 1px solid var(--border); border-radius: 13px; padding: 11px 6px 9px; min-height: 86px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+  .tile:active { background: var(--light); }
+  .tem { font-size: 21px; line-height: 1; }
+  .tlab { font-size: 11.5px; font-weight: 700; color: var(--navy); line-height: 1.22; }
+  .tbadge { position: absolute; top: 5px; right: 5px; font-size: 8.5px; font-weight: 800; border-radius: 999px; padding: 1px 6px; }
+  .tile.add { border-style: dashed; border-color: #CBD5E1; }
+  .tile.add .tlab { color: var(--mid); font-weight: 600; }
+  .tile .rm { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 999px; background: var(--danger); color: #FFF; font-size: 12px; font-weight: 800; display: grid; place-items: center; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+  .pin { flex: none; width: 30px; height: 30px; display: grid; place-items: center; font-size: 15px; color: #CBD5E1; }
+  .pin.on { color: #F59E0B; }
+  .grouphead { display: flex; align-items: center; gap: 10px; padding: 13px 14px; background: #F1F5F9; width: 100%; }
+  .grouphead .gt { flex: 1; font-size: 13.5px; font-weight: 700; color: var(--navy); }
+  .gem { font-size: 15px; }
+  .editlink { font-size: 12px; font-weight: 800; color: var(--teal); }
+  .subhead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .allbtn { width: 100%; text-align: center; font-size: 13px; font-weight: 700; color: var(--teal); padding: 10px 4px; }
+
+  /* Learn */
+  .lhero { background: var(--navy); color: #E6EDF5; border-radius: 14px; padding: 15px; }
+  .lhero h2 { font-size: 17.5px; font-weight: 800; color: #FFF; margin: 0 0 5px; }
+  .lhero p { font-size: 13px; margin: 0; line-height: 1.5; color: #B9C9DA; }
+  .lcard { display: flex; gap: 11px; align-items: flex-start; width: 100%; background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+  .lcard:active { background: var(--light); }
+  .lem { font-size: 19px; flex: none; }
+  .lt, .ld, .art-t, .art-m, .res-t, .res-d, .ev-s, .ev-m, .tdesc { display: block; }
+  .lt { font-size: 14.5px; font-weight: 700; color: var(--navy); }
+  .ld { font-size: 12.5px; color: #475569; line-height: 1.4; margin-top: 2px; }
+  .ltag { font-size: 9.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--ok); background: var(--ok-bg); border-radius: 5px; padding: 2px 6px; display: inline-block; margin-top: 5px; }
+  .art { display: block; width: 100%; padding: 11px 0; border-top: 1px solid #F1F5F9; }
+  .art:first-child { border-top: none; }
+  .art-t { font-size: 13.5px; font-weight: 600; color: var(--navy); line-height: 1.35; }
+  .art-m { font-size: 11.5px; color: var(--mid); margin-top: 2px; }
+  .gloss { display: flex; gap: 9px; padding: 8px 0; border-top: 1px solid #F1F5F9; font-size: 12.5px; line-height: 1.4; }
+  .gloss:first-child { border-top: none; }
+  .gloss b { color: var(--navy); flex: none; width: 64px; }
+
   /* Detail screens */
   .navbar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--white); border-bottom: 1px solid var(--border); flex: none; }
   .navbar .back { font-size: 14px; font-weight: 700; color: var(--teal); padding: 6px 4px; }
@@ -220,7 +258,7 @@
   <div class="h-head">
     <p class="h-eyebrow">Home redesign · concept A · clickable prototype</p>
     <h1 class="h-title">The Next Right Thing</h1>
-    <p class="h-sub">A working model of the one-card Home — <b>tap anything.</b> Switch days below to see the same design under different pressure.</p>
+    <p class="h-sub">A working model of the one-card Home — <b>tap anything</b>, including ☆ to pin your own tools. Switch days below to see the same design under different pressure.</p>
   </div>
 
   <div class="scenarios" role="group" aria-label="Choose a day">
@@ -268,13 +306,6 @@
     { key: 'trail', icon: '🗂', label: 'Sent & Received', desc: 'Every email and reply, dated — your receipts', terms: 'paper trail email reply sent record proof receipts log a call log call meeting note' }
   ];
   const DOORS = [
-    { key: 'understand', icon: '🧭', tint: '#EDF0F7', title: 'Understand the system', contents: 'Regional Center · School (IEP) · Transition & 18', tools: [
-      { key: 'process_rc', icon: '🧭', label: 'How the Regional Center works', desc: 'Every step, its legal deadline, and the letter that moves it', terms: 'regional center ipp lanterman escalation rc' },
-      { key: 'process_school', icon: '🏫', label: 'How the school system works', desc: 'From evaluation to IEP to checking the data', terms: 'school iep district evaluation 504' },
-      { key: 'journey', icon: '🗺', label: 'The journey, age by age', desc: 'The road ahead — including transition and turning 18', terms: 'journey transition turning 18 adult ages resource stack' },
-      { key: 'eligibility', icon: '✅', label: 'What your child likely qualifies for', desc: 'Your eligibility result, with sources', terms: 'qualify eligible result eligibility' },
-      { key: 'agencies', icon: '🏢', label: 'Agencies & contacts', desc: 'Who does what — and how to reach them', terms: 'agency contact phone who number call' }
-    ]},
     { key: 'money', icon: '💰', tint: '#E6F7F1', title: 'Money & benefits', contents: 'Diapers & equipment · Respite money · Medi-Cal & IHSS', tools: [
       { key: 'rc_funding', icon: '💰', label: 'What the Regional Center can fund', desc: 'Diapers, equipment, respite, camps — money most families miss', terms: 'diapers stroller equipment respite camp gear reimburse funding money' },
       { key: 'benefits', icon: '📚', label: 'Medi-Cal, IHSS & the benefits stack', desc: 'Each benefit unlocks the next — see which ones you have', terms: 'medi-cal medical ihss ssi benefits deeming' },
@@ -293,10 +324,63 @@
       { key: 'services', icon: '📊', label: 'Services', desc: 'Hours authorized vs delivered', terms: 'services hours authorized delivered' },
       { key: 'insights', icon: '📈', label: 'Insights', desc: 'Patterns across your requests and spending', terms: 'insights stats patterns' },
       { key: 'family', icon: '👨‍👩‍👧', label: 'Family sharing', desc: 'Give a co-parent or advocate access', terms: 'family share access co-parent advocate' },
-      { key: 'premium', icon: '⭐', label: 'Premium', desc: 'What free includes, what Premium adds', terms: 'premium price upgrade cost' }
+      { key: 'premium', icon: '⭐', label: 'Premium', desc: 'What free includes, what Premium adds', terms: 'premium price upgrade cost' },
+      { key: 'agencies', icon: '🏢', label: 'Agencies & contacts', desc: 'Who does what — and how to reach them', terms: 'agency contact phone who number call directory' }
     ]}
   ];
-  const ALL_TOOLS = ACTIONS.concat(DOORS.flatMap(d => d.tools));
+  /* Learn — one front door for every explainer, absorbing the old
+     "Understand the system" door plus the blog and resource library. */
+  const LEARN_TOOL = { key: 'learn', icon: '📖', label: 'Learn how it all works', short: 'Learn',
+    desc: 'Each system in plain English, plus articles and a glossary',
+    terms: 'learn understand explain guide blog article glossary what is an ipp iep how does the school work journey transition lanterman eligibility' };
+
+  const LEARN = {
+    paths: [
+      { key: 'process_rc', em: '🧭', t: 'How the Regional Center works', d: 'Intake → eligibility → IPP → services, with every legal deadline and the letter that moves it', tag: 'Your main system' },
+      { key: 'process_school', em: '🏫', t: 'How the school system works', d: 'Evaluation → IEP → progress data → what to do when you disagree', tag: 'Teddy is 7' },
+      { key: 'benefits', em: '📚', t: 'Money & benefits, layer by layer', d: 'Medi-Cal, IHSS, SSI and RC funding — which one unlocks the next', tag: '' },
+      { key: 'journey', em: '🗺', t: 'The journey, age by age', d: "What's coming next, through transition and turning 18", tag: '' },
+      { key: 'eligibility', em: '✅', t: 'What Teddy likely qualifies for', d: 'Your eligibility result, every claim with its source', tag: '' }
+    ],
+    articles: [
+      { t: '“We don’t fund that” — what to do when the Regional Center says no', m: '6 min · updated Aug 2026' },
+      { t: 'The 30-day IPP clock, explained', m: '4 min · W&I §4646.5(b)' },
+      { t: 'Diapers, strollers, camps: what RC money actually covers', m: '7 min' },
+      { t: 'Your first IEP meeting, start to finish', m: '9 min' }
+    ],
+    glossary: [
+      ['IPP', 'Your Regional Center service plan — reviewed at least once a year.'],
+      ['IEP', "The school's written plan for your child's goals and services."],
+      ['NOA', 'Notice of Action — the written decision that starts your appeal rights.'],
+      ['POS', 'Purchase of Service — Regional Center money spent on a service.'],
+      ['SDP', 'Self-Determination — you direct an individual budget instead of RC-chosen vendors.'],
+      ['Early Start', 'Services for children under 3, on a 45-day clock.']
+    ]
+  };
+
+  const SHORT = { letters: 'Letters', requests: 'Deadlines', trail: 'Sent &amp; received', learn: 'Learn',
+    rc_funding: 'RC money', benefits: 'Benefits', documents: 'Documents', iep_hub: 'IEP goals',
+    health: 'Health', care_team: 'Care team', insurance: 'Insurance', expenses: 'Expenses',
+    process_rc: 'RC guide', process_school: 'School guide', journey: 'Journey', eligibility: 'Eligibility',
+    resources: 'Resources', email_check: 'Email check', services: 'Services', insights: 'Insights',
+    family: 'Sharing', premium: 'Premium', agencies: 'Contacts' };
+
+  const GUIDE_TERMS = {
+    process_rc: 'regional center ipp lanterman rc how does it work escalation',
+    process_school: 'school iep district evaluation 504 how does school work',
+    benefits: 'medi-cal medical ihss ssi benefits deeming stack',
+    journey: 'journey transition turning 18 adult ages what next',
+    eligibility: 'qualify eligible eligibility result what does he qualify for'
+  };
+  const GUIDES = LEARN.paths.map(l => ({
+    key: l.key, icon: l.em, label: l.t, desc: l.d, terms: (GUIDE_TERMS[l.key] || '') + ' learn guide explain',
+    guide: true
+  }));
+  // A guide that also exists as a door tool (benefits) keeps one entry only.
+  const DOOR_TOOLS = DOORS.flatMap(d => d.tools);
+  const ALL_TOOLS = ACTIONS.concat([LEARN_TOOL])
+    .concat(GUIDES.filter(g => !DOOR_TOOLS.some(t => t.key === g.key)))
+    .concat(DOOR_TOOLS);
   const CRISIS_WORDS = ['school called', 'suspended', 'suspension', 'expelled', 'police', 'restraint', 'restrained', 'injury', 'hurt', 'hospital', 'crisis', 'emergency', 'called the police', 'seclusion'];
 
   /* ───────────────── Scenarios ───────────────── */
@@ -381,17 +465,24 @@
   };
 
   /* ───────────────── State ───────────────── */
-  const LS = 'waypoint.proto.layer';
+  const LS = 'waypoint.proto.groups';
+  const PINS_LS = 'waypoint.proto.pins';
+  const DEFAULT_PINS = ['letters', 'requests', 'trail', 'learn'];
+  const MAX_PINS = 6;
   let S;
-  function readLayerPref() { try { return localStorage.getItem(LS) === '1'; } catch (e) { return false; } }
-  function writeLayerPref(v) { try { localStorage.setItem(LS, v ? '1' : '0'); } catch (e) {} }
+  function readGroups() { try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) { return {}; } }
+  function writeGroups() { try { localStorage.setItem(LS, JSON.stringify({ cal: S.calOpen, tools: S.toolsOpen })); } catch (e) {} }
+  function readPins() { try { const v = JSON.parse(localStorage.getItem(PINS_LS)); return Array.isArray(v) ? v : null; } catch (e) { return null; } }
+  function writePins() { try { localStorage.setItem(PINS_LS, JSON.stringify(S.pins)); } catch (e) {} }
 
   function reset(name) {
     const scn = SCENARIOS[name];
     S = {
       scn: name, data: scn, tab: 'home', stack: [],
       deferred: {}, done: {}, answered: {}, sessionSkips: 0,
-      layer: readLayerPref(), door: null, query: '', sheet: null, toast: null
+      pins: readPins() || DEFAULT_PINS.slice(), editPins: false,
+      calOpen: !!readGroups().cal, toolsOpen: !!readGroups().tools,
+      door: null, query: '', sheet: null, toast: null
     };
     (scn.preDeferred || []).forEach(d => { S.deferred[d.id] = d.ret; });
     if (scn.preDeferred) S.deferredExtra = scn.preDeferred;
@@ -451,7 +542,7 @@
           <span class="mic" aria-hidden="true">🎙</span>
         </div>
 
-        <div id="below">${results ? searchPanel(results, crisis) : layerBlock()}</div>
+        <div id="below">${results ? searchPanel(results, crisis) : groupsBlock()}</div>
       </div>`;
   }
 
@@ -461,7 +552,7 @@
     if (!host) return;
     const q = S.query.trim();
     const crisis = q && CRISIS_WORDS.some(w => S.query.toLowerCase().includes(w));
-    host.innerHTML = q ? searchPanel(searchTools(S.query), crisis) : layerBlock();
+    host.innerHTML = q ? searchPanel(searchTools(S.query), crisis) : groupsBlock();
   }
 
   function actionCard(i) {
@@ -578,82 +669,170 @@
     </button>`;
   }
 
-  function layerBlock() {
+  /* Two groups, not one drawer: dates on one side, tools on the other. */
+  function groupsBlock() { return calendarBlock() + toolsBlock(); }
+
+  function calendarBlock() {
     const d = S.data, later = laterList();
-    const counts = [];
-    if (d.week.length) counts.push(d.week.length + ' this week');
-    if (d.waiting.length) counts.push(d.waiting.length === 1 ? '1 waiting on an agency' : d.waiting.length + ' waiting on agencies');
-    counts.push('Tools');
-    const summary = d.firstRun && !d.week.length && !d.waiting.length
-      ? 'Everything else: Tools — explore when you\'re ready'
-      : 'Everything else: ' + counts.join(' · ');
+    const bits = [];
+    if (d.week.length) bits.push(d.week.length + ' this week');
+    if (d.waiting.length) bits.push(d.waiting.length === 1 ? '1 waiting on an agency' : d.waiting.length + ' waiting on agencies');
+    if (later.length) bits.push(later.length + ' set aside');
+    const summary = bits.length ? 'Dates & clocks: ' + bits.join(' · ') : 'Dates & clocks — nothing scheduled yet';
 
-    if (!S.layer) {
-      return `<div class="layer"><button class="layer-head" data-act="layer"><span>${esc(summary)}</span><span class="chev">⌄</span></button></div>`;
-    }
-    return `<div class="layer">
-      <button class="layer-head" data-act="layer"><span>${esc(summary)}</span><span class="chev">⌃</span></button>
-      <div class="layer-body">
-        <div class="privacy"><span aria-hidden="true">🔒</span> Private to your family — never shared with any agency. Your records export any time.</div>
+    const head = `<button class="grouphead" data-act="group" data-key="cal">
+      <span class="gem" aria-hidden="true">📅</span><span class="gt">${esc(summary)}</span>
+      <span class="chev">${S.calOpen ? '⌃' : '⌄'}</span></button>`;
+    if (!S.calOpen) return `<div class="layer">${head}</div>`;
 
-        <div>
-          <div class="sec-label">This week</div>
-          ${d.week.length ? d.week.map(w => `<button class="line" data-act="stub" data-t="Calendar" data-b="Your full agenda lives in the Calendar tab — nothing about it changed."><span><b>${esc(w.d)}</b> · ${esc(w.t)}</span><span class="src">${esc(w.s)}</span></button>`).join('')
-            : '<p class="empty">Nothing scheduled yet.</p>'}
+    return `<div class="layer">${head}<div class="layer-body">
+      <div>
+        <div class="sec-label">This week</div>
+        ${d.week.length ? d.week.map(w => `<button class="line" data-act="tab" data-key="calendar"><span><b>${esc(w.d)}</b> · ${esc(w.t)}</span><span class="src">${esc(w.s)}</span></button>`).join('')
+          : '<p class="empty">Nothing scheduled yet.</p>'}
+      </div>
+      <div>
+        <div class="sec-label">Waiting on an agency</div>
+        ${d.waiting.length ? d.waiting.map(w => `<button class="line" data-act="go-case"><span>${esc(w.t)} ›</span><span class="src">${esc(w.s)}</span></button>`).join('')
+          : '<p class="empty">Nothing tracked yet — the card will offer your first request.</p>'}
+      </div>
+      <div>
+        <div class="sec-label">Later — set aside by you</div>
+        ${later.length ? later.map(l => `<div class="line"><span>${esc(l.title)}<br><span class="src">${esc(l.ret)}</span></span><button class="undo" data-act="undo" data-id="${l.id}">Undo</button></div>`).join('')
+          : '<p class="empty">Nothing set aside. Anything you skip lands here with its return date.</p>'}
+      </div>
+      <button class="allbtn" data-act="tab" data-key="calendar">Open the full calendar →</button>
+    </div></div>`;
+  }
+
+  function pinnedTools() {
+    return S.pins.map(k => ALL_TOOLS.find(t => t.key === k)).filter(Boolean);
+  }
+
+  function toolsBlock() {
+    const pins = pinnedTools();
+    const summary = pins.length
+      ? 'Tools: ' + pins.slice(0, 3).map(t => SHORT[t.key] || t.label).join(' · ').replace(/&amp;/g, '&') + (pins.length > 3 ? ' + more' : '')
+      : 'Tools — pin the ones you use';
+
+    const head = `<button class="grouphead" data-act="group" data-key="tools">
+      <span class="gem" aria-hidden="true">🧰</span><span class="gt">${esc(summary)}</span>
+      <span class="chev">${S.toolsOpen ? '⌃' : '⌄'}</span></button>`;
+    if (!S.toolsOpen) return `<div class="layer" style="margin-top:12px">${head}</div>`;
+
+    const badges = S.data.badges || {};
+    const tile = t => {
+      const b = badges[t.key];
+      return `<button class="tile" data-act="tool" data-key="${t.key}">
+        ${S.editPins ? `<span class="rm" data-act="unpin" data-key="${t.key}" role="button" aria-label="Unpin ${esc(t.label)}">✕</span>` : ''}
+        ${b ? `<span class="tbadge ${b.cls}">${esc(b.text)}</span>` : ''}
+        <span class="tem" aria-hidden="true">${t.icon}</span>
+        <span class="tlab">${SHORT[t.key] || esc(t.label)}</span>
+      </button>`;
+    };
+
+    const row = (t, extra) => {
+      const b = badges[t.key], on = S.pins.indexOf(t.key) > -1;
+      return `<div class="trow">
+        <button class="tico" data-act="tool" data-key="${t.key}" aria-label="${esc(t.label)}">${t.icon}</button>
+        <button class="tbody" data-act="tool" data-key="${t.key}" style="text-align:left">
+          <span class="ttitle">${esc(t.label)}${b ? `<span class="badge ${b.cls}">${esc(b.text)}</span>` : ''}</span>
+          <span class="tdesc">${esc(extra || t.desc)}</span>
+        </button>
+        <button class="pin ${on ? 'on' : ''}" data-act="pin" data-key="${t.key}"
+          aria-pressed="${on}" aria-label="${on ? 'Unpin' : 'Pin'} ${esc(t.label)}">${on ? '★' : '☆'}</button>
+      </div>`;
+    };
+
+    return `<div class="layer" style="margin-top:12px">${head}<div class="layer-body">
+      <div>
+        <div class="sec-label subhead"><span>Your tools</span>
+          ${pins.length ? `<button class="editlink" data-act="editpins">${S.editPins ? 'Done' : 'Edit'}</button>` : ''}
         </div>
+        ${pins.length ? `<div class="tiles">
+            ${pins.map(tile).join('')}
+            ${pins.length < MAX_PINS ? `<button class="tile add" data-act="hint"><span class="tem">＋</span><span class="tlab">Pin a tool</span></button>` : ''}
+          </div>`
+          : `<p class="empty">Nothing pinned yet — tap ☆ on any tool below and it lands here as a tile.</p>`}
+      </div>
 
-        <div>
-          <div class="sec-label">Waiting on an agency</div>
-          ${d.waiting.length ? d.waiting.map(w => `<button class="line" data-act="go-case"><span>${esc(w.t)} ›</span><span class="src">${esc(w.s)}</span></button>`).join('')
-            : '<p class="empty">Nothing tracked yet — the card will offer your first request.</p>'}
-        </div>
+      <div>
+        <div class="sec-label">Take action</div>
+        <div class="tools">${ACTIONS.map(a => row(a)).join('')}</div>
+      </div>
 
-        <div>
-          <div class="sec-label">Later — set aside by you</div>
-          ${later.length ? later.map(l => `<div class="line"><span>${esc(l.title)}<br><span class="src">${esc(l.ret)}</span></span><button class="undo" data-act="undo" data-id="${l.id}">Undo</button></div>`).join('')
-            : '<p class="empty">Nothing set aside. Anything you skip lands here with its return date.</p>'}
-        </div>
+      <div>
+        <div class="sec-label">Learn</div>
+        <div class="tools">${row(LEARN_TOOL)}</div>
+      </div>
 
-        <div>
-          <div class="sec-label">Contacts</div>
-          <div class="line" style="align-items:center">
-            <span><b>Regional Center of the East Bay</b></span>
-            <span style="display:flex;gap:6px;flex:none">
-              <button class="badge b-info" style="padding:5px 11px" data-act="stub" data-t="Calling RCEB" data-b="On a real phone this dials (510) 618-6100 straight away. Every number in Waypoint is a tap-to-call link.">📞 Call</button>
-              <button class="badge b-warn" style="padding:5px 11px" data-act="go-letter">✉️ Write</button>
-            </span>
-          </div>
-        </div>
-
-        <div>
-          <div class="sec-label">Tools</div>
-          <div class="tools">
-            ${ACTIONS.map(a => {
-              const b = (S.data.badges || {})[a.key === 'trail' ? 'trail' : a.key];
-              return `<button class="trow" data-act="tool" data-key="${a.key}">
-                <span class="tico">${a.icon}</span>
-                <span class="tbody"><span class="ttitle">${esc(a.label)}${b ? `<span class="badge ${b.cls}">${esc(b.text)}</span>` : ''}</span><span class="tdesc">${esc(a.desc)}</span></span>
-                <span class="chev">›</span>
-              </button>`;
-            }).join('')}
-          </div>
-          <div class="tools" style="margin-top:8px">
-            ${DOORS.map(dr => `
-              <button class="trow" data-act="door" data-key="${dr.key}">
-                <span class="tico" style="background:${dr.tint}">${dr.icon}</span>
-                <span class="tbody"><span class="ttitle">${esc(dr.title)}</span><span class="tdesc">${esc(dr.contents)}</span></span>
-                <span class="chev">${S.door === dr.key ? '⌃' : '⌄'}</span>
-              </button>
-              ${S.door === dr.key ? `<div class="door-body">${dr.tools.map(t => `
-                <button class="trow" data-act="tool" data-key="${t.key}">
-                  <span class="tbody"><span class="ttitle">${esc(t.label)}</span><span class="tdesc">${esc(t.desc)}</span></span>
-                  <span class="chev">›</span>
-                </button>`).join('')}</div>` : ''}
-            `).join('')}
-          </div>
+      <div>
+        <div class="sec-label">Browse everything</div>
+        <div class="tools">
+          ${DOORS.map(dr => `
+            <button class="trow" data-act="door" data-key="${dr.key}">
+              <span class="tico" style="background:${dr.tint}">${dr.icon}</span>
+              <span class="tbody"><span class="ttitle">${esc(dr.title)}</span><span class="tdesc">${esc(dr.contents)}</span></span>
+              <span class="chev">${S.door === dr.key ? '⌃' : '⌄'}</span>
+            </button>
+            ${S.door === dr.key ? `<div class="door-body">${dr.tools.map(t => row(t)).join('')}</div>` : ''}
+          `).join('')}
         </div>
       </div>
-    </div>`;
+
+      <div>
+        <div class="sec-label">Contacts</div>
+        <div class="line" style="align-items:center">
+          <span><b>Regional Center of the East Bay</b></span>
+          <span style="display:flex;gap:6px;flex:none">
+            <button class="badge b-info" style="padding:5px 11px" data-act="stub" data-t="Calling RCEB" data-b="On a real phone this dials (510) 618-6100 straight away. Every number in Waypoint is a tap-to-call link.">📞 Call</button>
+            <button class="badge b-warn" style="padding:5px 11px" data-act="go-letter">✉️ Write</button>
+          </span>
+        </div>
+      </div>
+
+      <div class="privacy"><span aria-hidden="true">🔒</span> Private to your family — never shared with any agency. Your records export any time.</div>
+    </div></div>`;
+  }
+
+  function viewLearn() {
+    return `
+      <div class="pad">
+        <div class="lhero">
+          <h2>Learn how it all works</h2>
+          <p>Every system explained in plain English — no jargon quiz, no 40-page PDF. Start where you are; each guide links to the letter that acts on it.</p>
+        </div>
+
+        <div class="sec-label" style="margin-top:4px">Start with your situation</div>
+        ${LEARN.paths.map(l => `<button class="lcard" data-act="tool" data-key="${l.key}">
+          <span class="lem" aria-hidden="true">${l.em}</span>
+          <span class="tbody">
+            <span class="lt">${esc(l.t)}</span>
+            <span class="ld">${esc(l.d)}</span>
+            ${l.tag ? `<span class="ltag">${esc(l.tag)}</span>` : ''}
+          </span>
+          <span class="chev">›</span>
+        </button>`).join('')}
+
+        <div class="card">
+          <div class="sec-label">Articles</div>
+          ${LEARN.articles.map(a => `<button class="art" data-act="stub" data-t="Article" data-b="${esc(a.t)} — the blog and resource library live here now, instead of behind two different doors.">
+            <span class="art-t">${esc(a.t)}</span><span class="art-m">${esc(a.m)}</span>
+          </button>`).join('')}
+        </div>
+
+        <div class="card">
+          <div class="sec-label">Plain-English glossary</div>
+          ${LEARN.glossary.map(g => `<div class="gloss"><b>${esc(g[0])}</b><span>${esc(g[1])}</span></div>`).join('')}
+        </div>
+
+        <div class="card" style="background:var(--info-bg);border-color:#BFDBFE">
+          <div style="font-size:13.5px;color:#1E40AF">Still not clear? <b>Ask Waypoint</b> — it answers knowing Teddy's age, his Regional Center, and every request you have open.</div>
+        </div>
+
+        <p class="meta" style="padding:0 2px">Learn replaces the old “Understand the system” door and pulls in the blog and resource library, so explanations live in exactly one place.</p>
+        <button class="btn-outline" data-act="home">Back to Home</button>
+      </div>`;
   }
 
   /* ───────────────── Detail screens ───────────────── */
@@ -827,13 +1006,14 @@ Maria</div>
     if (!top) {
       body = S.tab === 'home' ? viewHome() : viewTab();
     } else {
-      const titles = { case: 'Case file', draft: 'Draft a reply', letter: 'Letters', crisis: 'Right now', ask: 'Ask Waypoint', stub: top.params.t || '' };
+      const titles = { case: 'Case file', draft: 'Draft a reply', letter: 'Letters', crisis: 'Right now', ask: 'Ask Waypoint', learn: 'Learn', stub: top.params.t || '' };
       nav = `<div class="navbar"><button class="back" data-act="back">‹ Back</button><span class="nav-t">${esc(titles[top.screen] || '')}</span></div>`;
       body = top.screen === 'case' ? viewCase()
            : top.screen === 'draft' ? viewDraft()
            : top.screen === 'letter' ? viewLetter()
            : top.screen === 'crisis' ? viewCrisis()
            : top.screen === 'ask' ? viewAsk()
+           : top.screen === 'learn' ? viewLearn()
            : viewStub(top.params);
     }
 
@@ -897,8 +1077,25 @@ Maria</div>
     if (act === 'ask') { push('ask', { q: S.query }); return; }
     if (act === 'tool') { openTool(el.dataset.key); return; }
     if (act === 'stub') { push('stub', { t: el.dataset.t, b: el.dataset.b, em: '🧭' }); return; }
-    if (act === 'door') { S.door = S.door === el.dataset.key ? null : el.dataset.key; render(); return; }
-    if (act === 'layer') { S.layer = !S.layer; writeLayerPref(S.layer); render(); return; }
+    if (act === 'door') { S.door = S.door === el.dataset.key ? null : el.dataset.key; renderBelow(); return; }
+    if (act === 'group') {
+      if (el.dataset.key === 'cal') S.calOpen = !S.calOpen; else S.toolsOpen = !S.toolsOpen;
+      writeGroups(); renderBelow(); return;
+    }
+    if (act === 'pin') {
+      const k = el.dataset.key, at = S.pins.indexOf(k);
+      if (at > -1) { S.pins.splice(at, 1); toast('Unpinned.'); }
+      else if (S.pins.length >= MAX_PINS) { toast('That is ' + MAX_PINS + ' tools — unpin one to add another.'); return; }
+      else { S.pins.push(k); toast('Pinned to Your tools.'); }
+      writePins(); renderBelow(); return;
+    }
+    if (act === 'unpin') {
+      const at = S.pins.indexOf(el.dataset.key);
+      if (at > -1) { S.pins.splice(at, 1); writePins(); }
+      renderBelow(); return;
+    }
+    if (act === 'editpins') { S.editPins = !S.editPins; renderBelow(); return; }
+    if (act === 'hint') { toast('Tap ☆ beside any tool below to pin it here.'); return; }
     if (act === 'why') { S.sheet = true; render(); return; }
     if (act === 'closesheet') { S.sheet = null; render(); return; }
     if (act === 'back') { pop(); return; }
@@ -910,9 +1107,14 @@ Maria</div>
   function openTool(key) {
     const t = ALL_TOOLS.find(x => x.key === key);
     if (!t) return;
+    if (key === 'learn') { push('learn'); return; }
     if (key === 'letters') { push('letter'); return; }
     if (key === 'requests') { push('stub', { em: '⏱', t: 'Requests & Deadlines', b: 'Every ask you have in flight, against its legal clock. Tapping one opens its case file.' }); return; }
     if (key === 'trail') { push('stub', { em: '🗂', t: 'Sent & Received', b: 'Every letter, call and reply, dated, with how each one was recorded. Your receipts.' }); return; }
+    if (t.guide) {
+      push('stub', { em: t.icon, t: t.label, b: t.desc + '. This guide already exists in Waypoint — Learn is simply the one front door to it.' });
+      return;
+    }
     push('stub', { em: t.icon, t: t.label, b: t.desc + ' — this screen already exists in Waypoint today, unchanged by the redesign.' });
   }
 
