@@ -1,6 +1,6 @@
 # Home Rebuild — Development Plan
 
-**Date:** Aug 29, 2026 · **Status:** Phase 1 shipped, phases 2–8 planned
+**Date:** Aug 29, 2026 · **Status:** Phases 1–2 shipped, phases 3–8 planned
 **Supersedes** the three-phase sketch at the end of `Home-Redesign-Concepts.md`,
 which predates the four-tab decision, Tools/Plan, pinned tools, Learn, the
 collapsible card and the month view.
@@ -41,7 +41,7 @@ collapsible card and the month view.
 | # | Phase | Size | Ships | Depends on |
 |---|---|---|---|---|
 | 1 | Triage engine | M | ✅ merged (#119) | — |
-| 2 | One Thing card + sensor + deferrals | L | Card replaces the duplicating cards | 1, migration 048 |
+| 2 | One Thing card + sensor + deferrals | L | ✅ merged — card replaces the duplicating cards | 1, migration 048 |
 | 3 | Plan tab (Actions + Calendar, List/Month) | L | Merged tab, month grid | — |
 | 4 | Tools tab + pins + suggestion | M | Tools becomes a place | migration 048 |
 | 5 | Ask absorbs Learn + tab bar reshape | M | Four tabs, account menu | 3, 4 |
@@ -71,6 +71,37 @@ silent shared snoozes: a co-parent must see what the other set aside.
 **Done when:** the card renders every ladder class with real data, "Not today"
 persists and advances, the sheet shows live queue state, and the calm state
 distinguishes its four kinds.
+
+**Shipped, with four changes to what this section planned:**
+
+1. **Migration 048 also carries `families.tool_pins`** (phase 4's column).
+   Migrations are applied by hand; one manual run is better than two.
+2. **`lib/homeCard.ts` was added** — the ladder sheet, the "done means done"
+   rule, and the card copy, trilingual and tested (17 tests). Phase 2 needed a
+   pure module of its own, per the rule that screens stay dumb.
+3. **The benefit-stack insight was grafted onto the opportunity rung.**
+   Deleting `StackInsightCard` would otherwise have dropped a shipped surface:
+   `deriveStackInsight` now wins that rung when an unlock guide exists, exactly
+   as the card used to win the slot — minus its `WAYPOINT NOTICED` eyebrow.
+4. **A phase-1 bug died here.** The Regional Center question offered
+   `rc_status: 'none'`, which the 012 check constraint rejects — the answer
+   would have failed to save and the question returned forever. Answers are now
+   typed to their columns and pinned by a test.
+
+**Deferred out of phase 2, on purpose:**
+
+- **The card has no speaker button.** `expo-speech` is not in the project and
+  the registry's current version does not match this SDK line; the card is
+  fully labelled for the screen reader instead. Revisit with the accessibility
+  pass.
+- **`lib/gapRules.ts` and `lib/snooze.ts` are now unreferenced** by app code
+  (their consumers were the deleted cards). `gapRules` holds real domain
+  knowledge about which profile gaps matter — **phase 6 should feed the
+  question rung from it** rather than deleting it. `snooze.ts` is superseded by
+  `home_deferrals` and can go with the phase 6 deletion.
+- **Home still duplicates today's appointments** — the `today` rung and
+  `TodayCard` can both show the same 9am IEP meeting. Phase 6 deletes
+  `TodayCard`; until then the duplication stands.
 
 ### Phase 3 — Plan tab (Actions + Calendar merged)
 

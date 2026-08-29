@@ -32,6 +32,8 @@ import { deadlineFor } from '@/lib/requestClocks';
 import { buildRequestCase, activeRequestForReply } from '@/lib/requestCase';
 import { findUnansweredReply } from '@/lib/replyInbox';
 import { deriveHomeInsight } from '@/lib/insights';
+import { deriveStackInsight } from '@/lib/resourceStack';
+import type { BenefitStatus } from '@/types/database';
 
 function picker(locale: FunnelLocale) {
   return (en: string, es: string, vi: string) =>
@@ -154,6 +156,13 @@ export interface TriageInput {
   rcStatus?: RcStatus | null;
   iepStatus?: IepStatus | null;
   hasDiagnosis?: boolean;
+  /** Benefit-stack state — the opportunity rung prefers a stack unlock. */
+  mediCalStatus?: BenefitStatus | null;
+  ihssStatus?: BenefitStatus | null;
+  ssiStatus?: BenefitStatus | null;
+  sdpStep?: number | null;
+  /** An open tracked deeming request reads as applied. */
+  mediCalRequested?: boolean;
   requests?: FamilyRequest[];
   communications?: Communication[];
   appointments?: TriageAppointment[];
@@ -442,6 +451,10 @@ function todayItems(
     }));
 }
 
+/** Typed so an answer can never carry a value the column would reject. */
+const rcAnswer = (label: string, value: RcStatus): TriageAnswer => ({ label, value });
+const iepAnswer = (label: string, value: IepStatus): TriageAnswer => ({ label, value });
+
 /**
  * One question — asked only when the answer changes what Waypoint does
  * next. Never a survey, never a profile-completion nag (the audit's #8).
@@ -467,10 +480,12 @@ function questionItem(input: TriageInput, locale: FunnelLocale): TriageItem | nu
         'Câu trả lời quyết định bước đầu của Waypoint. Không chắc cũng được — hầu hết gia đình đều vậy.'
       ),
       action: { kind: 'answer', label: L('Answer', 'Responder', 'Trả lời') },
+      // Values are written straight to children.rc_status, so they must be
+      // legal statuses — "no, not yet" is 'known' (aware, no case open).
       answers: [
-        { label: L('Yes, we have a case', 'Sí, tenemos un caso', 'Có, chúng tôi có hồ sơ'), value: 'active' },
-        { label: L('No, not yet', 'No, todavía no', 'Chưa'), value: 'none' },
-        { label: L("I'm not sure", 'No estoy segura', 'Tôi không chắc'), value: 'unknown' },
+        rcAnswer(L('Yes, we have a case', 'Sí, tenemos un caso', 'Có, chúng tôi có hồ sơ'), 'active'),
+        rcAnswer(L('No, not yet', 'No, todavía no', 'Chưa'), 'known'),
+        rcAnswer(L("I'm not sure", 'No estoy segura', 'Tôi không chắc'), 'unknown'),
       ],
       deferDays: 1,
       deferLabel: L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai'),
@@ -495,9 +510,9 @@ function questionItem(input: TriageInput, locale: FunnelLocale): TriageItem | nu
       ),
       action: { kind: 'answer', label: L('Answer', 'Responder', 'Trả lời') },
       answers: [
-        { label: L('Yes, he has one', 'Sí, tiene uno', 'Có'), value: 'active' },
-        { label: L('No, not yet', 'No, todavía no', 'Chưa'), value: 'no' },
-        { label: L("I'm not sure", 'No estoy segura', 'Tôi không chắc'), value: 'unknown' },
+        iepAnswer(L('Yes, he has one', 'Sí, tiene uno', 'Có'), 'active'),
+        iepAnswer(L('No, not yet', 'No, todavía no', 'Chưa'), 'no'),
+        iepAnswer(L("I'm not sure", 'No estoy segura', 'Tôi không chắc'), 'unknown'),
       ],
       deferDays: 1,
       deferLabel: L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai'),
@@ -513,16 +528,47 @@ function questionItem(input: TriageInput, locale: FunnelLocale): TriageItem | nu
  */
 function opportunityItem(input: TriageInput, locale: FunnelLocale): TriageItem | null {
   const L = picker(locale);
-  const insight = deriveHomeInsight(
+  // The benefit-stack unlock wins the rung when one exists — the same
+  // precedence the shipped Home cards had, so nothing regressed when the
+  // stack card folded into the ladder. Its own eyebrow is discarded:
+  // the kicker below states the class, never "Waypoint noticed".
+  const stack = deriveStackInsight(
     {
       ageYears: input.ageYears ?? null,
       rcStatus: input.rcStatus ?? null,
       iepStatus: input.iepStatus ?? null,
-      hasDiagnosis: !!input.hasDiagnosis,
-      childName: input.childName ?? null,
+      mediCalStatus: input.mediCalStatus ?? null,
+      ihssStatus: input.ihssStatus ?? null,
+      ssiStatus: input.ssiStatus ?? null,
+      sdpStep: input.sdpStep ?? null,
+      mediCalRequested: input.mediCalRequested,
     },
-    locale
+    locale,
+    input.childName ?? null
   );
+  const insight = stack
+    ? {
+        key: `stack_${stack.guide.layerKey}_${stack.mode}`,
+        title: stack.title,
+        body: stack.body,
+        citation: stack.citation,
+        ctaLabel: stack.ctaLabel,
+        target: {
+          // 'unlock' opened the stack; 'in_motion' opened the tracker.
+          screen: stack.mode === 'in_motion' ? 'RequestTracker' : 'ResourceStack',
+          params: undefined as Record<string, string> | undefined,
+        },
+      }
+    : deriveHomeInsight(
+        {
+          ageYears: input.ageYears ?? null,
+          rcStatus: input.rcStatus ?? null,
+          iepStatus: input.iepStatus ?? null,
+          hasDiagnosis: !!input.hasDiagnosis,
+          childName: input.childName ?? null,
+        },
+        locale
+      );
   if (!insight) return null;
 
   const because = input.hasDiagnosis

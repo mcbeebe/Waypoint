@@ -305,3 +305,47 @@ describe('local dates never drift', () => {
     expect(localDay(new Date(2026, 7, 29, 21, 0, 0))).toBe('2026-08-29');
   });
 });
+
+describe('the opportunity rung carries the benefit-stack unlock', () => {
+  it('prefers a stack unlock over the generic insight, without its eyebrow', () => {
+    const result = triageHome(
+      base({ rcStatus: 'active', iepStatus: 'active', mediCalStatus: 'none', ageYears: 7 })
+    );
+    expect(result.item?.cls).toBe('opportunity');
+    expect(result.item?.id.startsWith('opportunity:stack_')).toBe(true);
+    // The stack module's own eyebrow is "WAYPOINT NOTICED" — the banned
+    // string. The ladder must state the class instead.
+    expect(result.item?.kicker.toUpperCase()).not.toContain('WAYPOINT NOTICED');
+    expect(result.item?.why.toUpperCase()).not.toContain('WAYPOINT NOTICED');
+    expect(result.item?.citation).toBeTruthy();
+    expect(['ResourceStack', 'RequestTracker']).toContain(result.item?.action.screen);
+  });
+
+  it('falls back to the generic insight when no unlock guide applies', () => {
+    const result = triageHome(
+      base({ rcStatus: 'known', iepStatus: 'active', hasDiagnosis: true, ageYears: 4 })
+    );
+    if (result.item?.cls === 'opportunity') {
+      expect(result.item.id.startsWith('opportunity:stack_')).toBe(false);
+    }
+  });
+});
+
+describe('a question card never offers an answer the database would reject', () => {
+  const RC_STATUSES = ['unknown', 'known', 'applied', 'active'];
+  const IEP_STATUSES = ['no', 'unknown', 'eval_done', 'active', 'na'];
+
+  it('offers only legal rc_status values', () => {
+    const result = triageHome(base({ rcStatus: null }));
+    const item = result.queue.find((i) => i.id === 'question:rc_status');
+    expect(item?.answers?.length).toBeGreaterThan(0);
+    for (const a of item!.answers!) expect(RC_STATUSES).toContain(a.value);
+  });
+
+  it('offers only legal iep_status values', () => {
+    const result = triageHome(base({ rcStatus: 'active', iepStatus: null }));
+    const item = result.queue.find((i) => i.id === 'question:iep_status');
+    expect(item?.answers?.length).toBeGreaterThan(0);
+    for (const a of item!.answers!) expect(IEP_STATUSES).toContain(a.value);
+  });
+});

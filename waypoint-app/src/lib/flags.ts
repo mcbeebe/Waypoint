@@ -17,4 +17,12 @@ export const FLAGS = {
    * (the server-side twin that gates AI actions and the monthly cap).
    */
   paywall: false,
+  /**
+   * The rebuilt Home (Roadmap/Home-Rebuild-Plan.md): the One Thing card, the
+   * sensor line, and the Later list in place of the stack of competing cards.
+   * Default ON while the owner dogfoods. Turning it off hides the new block;
+   * it does not restore the cards phase 2 deleted — reverting the commit is
+   * the real fallback, and this is the kill switch for a bad live pick.
+   */
+  newHome: true,
 } as const;
