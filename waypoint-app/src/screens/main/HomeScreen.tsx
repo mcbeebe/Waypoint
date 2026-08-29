@@ -42,7 +42,7 @@ import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { percentageLabel } from '@/lib/accessibility';
-import { FLAGS } from '@/lib/flags';
+import ToolsArea from '@/components/ToolsArea';
 import { lookupRC } from '@/data/regionalCenters';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
 
@@ -557,75 +557,15 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           </TouchableOpacity>
         )}
 
-        {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.quickActions}>
-          {[
-            { icon: 'compass-outline', label: 'Ask AI', screen: 'Navigator' },
-            { icon: 'checkbox-outline', label: 'Actions', screen: 'Tracker' },
-            { icon: 'calendar-outline', label: 'Calendar', screen: 'Calendar' },
-            { icon: 'person-outline', label: 'Profile', screen: 'Profile' },
-          ].map(action => (
-            <TouchableOpacity
-              key={action.screen}
-              style={styles.quickAction}
-              onPress={() => (navigation as any).navigate(action.screen)}
-              accessibilityRole="button"
-              accessibilityLabel={action.label}
-            >
-              <Ionicons name={action.icon as never} size={24} color={colors.teal} style={styles.tileIcon} />
-              <Text style={styles.quickActionLabel}>{action.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Tools — entry points to the full feature set */}
+        {/* Tools — hybrid v2 (Home Tools Redesign): search, action rows
+            with live badges, and four doors that expand in place */}
         <Text style={styles.sectionTitle}>Tools</Text>
-        <View style={styles.toolsGrid}>
-          {[
-            { icon: 'business-outline', label: 'Agencies', go: () => (navigation as any).navigate('Agencies') },
-            { icon: 'wallet-outline', label: 'RC Funding', go: () => (navigation as any).navigate('Reimbursables') },
-            { icon: 'map-outline', label: 'Journey', go: () => (navigation as any).navigate('Journey') },
-            { icon: 'compass-outline', label: 'How RC Works', go: () => (navigation as any).navigate('ProcessMap', { system: 'rc' }) },
-            { icon: 'library-outline', label: 'How School Works', go: () => (navigation as any).navigate('ProcessMap', { system: 'school' }) },
-            { icon: 'checkmark-circle-outline', label: 'Your Result', go: () => (navigation as any).navigate('EligibilityResult') },
-            { icon: 'stopwatch-outline', label: 'Requests', go: () => (navigation as any).navigate('RequestTracker') },
-            { icon: 'folder-open-outline', label: 'Documents', go: () => (navigation as any).navigate('Documents') },
-            { icon: 'school-outline', label: 'IEP Hub', go: () => (navigation as any).navigate('IEPHub') },
-            { icon: 'mail-outline', label: 'Letters', go: () => (navigation as any).navigate('Letters') },
-            { icon: 'search-outline', label: 'Email Check', go: () => (navigation as any).navigate('EmailAnalyzer') },
-            { icon: 'file-tray-full-outline', label: 'Paper Trail', go: () => (navigation as any).navigate('CommunicationLog') },
-            { icon: 'book-outline', label: 'Resources', go: () => (navigation as any).navigate('Navigator', { screen: 'Resources', initial: false }) },
-            { icon: 'newspaper-outline', label: 'Blog', go: () => (navigation as any).navigate('Navigator', { screen: 'Blog', initial: false }) },
-            { icon: 'cash-outline', label: 'Expenses', go: () => (navigation as any).navigate('Calendar', { screen: 'Expenses', initial: false }) },
-            { icon: 'receipt-outline', label: 'Tax Report', go: () => (navigation as any).navigate('Calendar', { screen: 'TaxReport', initial: false }) },
-            { icon: 'shield-checkmark-outline', label: 'Insurance', go: () => (navigation as any).navigate('Insurance') },
-            { icon: 'medkit-outline', label: 'Providers', go: () => (navigation as any).navigate('Providers') },
-            { icon: 'layers-outline', label: 'Services', go: () => (navigation as any).navigate('Services') },
-            { icon: 'bar-chart-outline', label: 'Insights', go: () => (navigation as any).navigate('Insights') },
-            { icon: 'star-outline', label: 'Premium', go: () => (navigation as any).navigate('Pricing') },
-            { icon: 'people-outline', label: 'Family', go: () => (navigation as any).navigate('FamilySharing') },
-            { icon: 'fitness-outline', label: 'Health Records', go: () => (navigation as any).navigate('HealthRecords') },
-            { icon: 'briefcase-outline', label: 'Provider Portal', go: () => (navigation as any).navigate('ProviderPortal') },
-            ...(FLAGS.community
-              ? [
-                  { icon: 'chatbubbles-outline', label: 'Community', go: () => (navigation as any).navigate('Forum') },
-                  { icon: 'mail-outline', label: 'Messages', go: () => (navigation as any).navigate('Messages') },
-                ]
-              : []),
-          ].map(tool => (
-            <TouchableOpacity
-              key={tool.label}
-              style={styles.toolTile}
-              onPress={tool.go}
-              accessibilityRole="button"
-              accessibilityLabel={tool.label}
-            >
-              <Ionicons name={tool.icon as never} size={22} color={colors.teal} style={styles.tileIcon} />
-              <Text style={styles.toolLabel} numberOfLines={2}>{tool.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <ToolsArea
+          selectedChildName={primaryChild?.first_name ?? null}
+          requests={familyRequests}
+          hasUnansweredReply={!!unanswered}
+          childAgeYears={primaryChild ? ageFromDob(primaryChild.date_of_birth) : null}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -887,16 +827,6 @@ const styles = StyleSheet.create({
     color: colors.navy,
     marginBottom: spacing.md,
   },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  toolsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
   toolTile: {
     // 4 tiles per row: 4 × 23% + 3 gaps ≈ 100%
     flexBasis: '23%',
@@ -913,14 +843,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  toolLabel: {
-    fontSize: fonts.sizes.xs,
-    fontWeight: fonts.weights.medium as '500',
-    color: colors.dark,
-    textAlign: 'center',
-    lineHeight: 13,
-    marginTop: 2,
-  },
   quickAction: {
     flex: 1,
     backgroundColor: colors.white,
@@ -932,9 +854,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-  },
-  tileIcon: {
-    marginBottom: 4,
   },
   journeyCard: {
     flexDirection: 'row',
@@ -995,11 +914,6 @@ const styles = StyleSheet.create({
     color: colors.teal,
     fontWeight: fonts.weights.medium as '500',
     marginTop: 2,
-  },
-  quickActionLabel: {
-    fontSize: fonts.sizes.xs,
-    fontWeight: fonts.weights.medium as '500',
-    color: colors.dark,
   },
   financeCard: {
     backgroundColor: colors.white,

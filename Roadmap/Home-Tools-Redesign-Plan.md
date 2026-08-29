@@ -72,3 +72,25 @@ Every current destination keeps a home:
 Quick Actions row (Ask AI · Actions · Calendar · Profile) duplicates
 the tab bar exactly — all three concepts drop it and give the space
 back to content. Flag if you want it kept.
+
+## Outcome (Aug 29 2026)
+
+Owner picked the A+B hybrid; a 10-persona × 3-concept simulated stress
+test (see the Caregiver Stress Test artifact) confirmed the structure
+and rewrote the vocabulary. **Built as hybrid v2**: `lib/toolsCatalog.ts`
+(single source: actions, doors, routes, search, age-aware placeholder,
+date/direction badges) + `components/ToolsArea.tsx` (search + privacy
+line, always-open action rows with live badges and a zero-request
+starter state, four accordion doors with remembered state), replacing
+the 26-tile grid and the Quick Actions row on Home. Owner decisions:
+"Paper Trail" survives as English flavor text only; stage-awareness
+shipped at the 80% level (empty states, age-aware search examples,
+transition named on the Understand door); multi-child handled by the
+existing Home ChildPicker (records door follows the selection).
+
+**Scoped follow-up increment (owner-approved): unify request + thread
++ clock.** One request = its letter, its replies, its statutory clock,
+one status view, exportable as a single dated PDF ("will this hold up
+when they lie to me?"). The data model already links these
+(family_requests.communication_id, gmail_thread_id); badge the job,
+not the channel. Plan + mockups first, per the standing rule.
