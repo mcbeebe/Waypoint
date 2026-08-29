@@ -50,6 +50,7 @@ export interface TranslationStrings {
     askAi: string;
     actions: string;
     calendar: string;
+    plan: string;
     profile: string;
   };
 

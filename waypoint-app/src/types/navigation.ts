@@ -60,6 +60,9 @@ export type HomeStackParamList = {
   JourneyPhase: { journeyKey: string; phaseIndex: number };
   Agencies: undefined;
   Reimbursables: undefined;
+  /** Moved out of the Calendar tab in the Home rebuild (phase 3). */
+  Expenses: undefined;
+  TaxReport: undefined;
   Insights: undefined;
   Documents: undefined;
   DocumentAnalysis: { analysis: IEPAnalysisResult; documentId?: string; childId?: string | null };
@@ -101,9 +104,9 @@ export type TrackerStackParamList = {
 };
 
 export type CalendarStackParamList = {
+  /** Plan is the tab's landing screen; the full calendar sits behind it. */
+  PlanMain: undefined;
   CalendarMain: undefined;
-  Expenses: undefined;
-  TaxReport: undefined;
 };
 
 export type ProfileStackParamList = {

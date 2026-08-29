@@ -199,7 +199,7 @@ export function getToolDoors(locale: FunnelLocale = 'en'): ToolDoor[] {
           label: L('Expenses & tax report', 'Gastos e informe de impuestos', 'Chi phí & báo cáo thuế'),
           description: L('Track spending; the yearly medical-deduction report', 'Registre gastos; el informe anual de deducciones médicas', 'Ghi chi tiêu; báo cáo khấu trừ y tế hằng năm'),
           icon: 'receipt-outline',
-          route: { screen: 'Expenses', tab: 'Calendar' },
+          route: { screen: 'Expenses' },
           searchTerms: ['expense', 'tax', 'spending', 'gastos', 'chi phí'],
         },
       ],

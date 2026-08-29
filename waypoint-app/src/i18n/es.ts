@@ -29,6 +29,8 @@ const es: TranslationStrings = {
     askAi: 'Consultar IA',
     actions: 'Acciones',
     calendar: 'Calendario',
+    /** The merged Actions + Calendar tab (Home rebuild phase 3). */
+    plan: 'Plan',
     profile: 'Perfil',
   },
 

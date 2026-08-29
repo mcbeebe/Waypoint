@@ -1,6 +1,6 @@
 # Home Rebuild — Development Plan
 
-**Date:** Aug 29, 2026 · **Status:** Phases 1–2 shipped, phases 3–8 planned
+**Date:** Aug 29, 2026 · **Status:** Phases 1–3 shipped, phases 4–8 planned
 **Supersedes** the three-phase sketch at the end of `Home-Redesign-Concepts.md`,
 which predates the four-tab decision, Tools/Plan, pinned tools, Learn, the
 collapsible card and the month view.
@@ -42,7 +42,7 @@ collapsible card and the month view.
 |---|---|---|---|---|
 | 1 | Triage engine | M | ✅ merged (#119) | — |
 | 2 | One Thing card + sensor + deferrals | L | ✅ merged — card replaces the duplicating cards | 1, migration 048 |
-| 3 | Plan tab (Actions + Calendar, List/Month) | L | Merged tab, month grid | — |
+| 3 | Plan tab (Actions + Calendar, List/Month) | L | ✅ merged tab, month grid | — |
 | 4 | Tools tab + pins + suggestion | M | Tools becomes a place | migration 048 |
 | 5 | Ask absorbs Learn + tab bar reshape | M | Four tabs, account menu | 3, 4 |
 | 6 | Home reduction | M | Home = card + composer + status line | 2, 3, 4, 5 |
@@ -161,6 +161,23 @@ Tools → Money, where `toolsCatalog` already lists them.
 **Done when:** every dated and undated obligation appears exactly once, the
 month grid marks today and distinguishes deadline from appointment, and
 Plan opens on the month holding the next item.
+
+**Shipped, with four departures from this section:**
+
+1. **The list needed a sixth section.** The prototype stopped at "this week",
+   so a deadline three weeks out existed only in the month grid — a dated
+   obligation the list dropped. `Coming up` holds everything past day seven,
+   and `Past due` leads. Pinned by a test that counts every entry exactly once.
+2. **The Actions tab is hidden from the bar now, not at phase 5.** Two tabs
+   answering the same question is the confusion the merge exists to end. The
+   Tracker stack stays registered and Plan links to the full list, so nothing
+   is unreachable; phase 5 only reshapes what remains.
+3. **The full calendar stays behind Plan**, reached from a link on it. Adding,
+   editing, recurrence, reminders and Google sync all live in `CalendarScreen`
+   and none of it survives a merge that replaces the screen.
+4. **The tax report had no entry point at all** — the route was registered and
+   nothing in the app navigated to it, so the tool promising "Expenses & tax
+   report" delivered half. Expenses now links to it.
 
 ### Phase 4 — Tools tab, pinned tiles, the suggestion
 
