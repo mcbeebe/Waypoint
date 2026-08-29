@@ -53,6 +53,8 @@ export type HomeStackParamList = {
   FundedOffer: undefined;
   /** Request/authorization tracker with statutory clocks (PRD W-G: G4) */
   RequestTracker: undefined;
+  /** One request, one thread, one honest clock (Request Case File plan) */
+  RequestCase: { requestId: string };
   /** Free vs Premium + web checkout (PRD W-E: E1) */
   Pricing: undefined;
   JourneyPhase: { journeyKey: string; phaseIndex: number };
@@ -63,7 +65,14 @@ export type HomeStackParamList = {
   DocumentAnalysis: { analysis: IEPAnalysisResult; documentId?: string; childId?: string | null };
   IEPHub: undefined;
   Letters:
-    | { template?: string; question?: string; guidance?: string; draftBody?: string }
+    | {
+        template?: string;
+        question?: string;
+        guidance?: string;
+        draftBody?: string;
+        /** Lever letters launched from a case stamp their log entry with it. */
+        requestId?: string;
+      }
     | undefined;
   EmailAnalyzer: undefined;
   /** Paper trail; highlightId auto-expands an entry; openReplyId opens its reply composer */

@@ -12,8 +12,6 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  TextInput,
-  Modal,
   StyleSheet,
   Platform,
   Share,
@@ -25,40 +23,20 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { gmailStatus, gmailSyncReplies, autoSyncReplies, type GmailStatus } from '@/lib/gmail';
 import { connectGmailWeb } from '@/lib/googleAuth';
 import GmailReplyModal from '@/components/GmailReplyModal';
+import AddEntryModal, { KIND_CONFIG, ORG_LABELS } from '@/components/AddEntryModal';
 import {
   useCommunications,
   type Communication,
   type CommunicationKind,
-  type CommunicationOrg,
 } from '@/hooks/useCommunications';
+import { useRequests } from '@/hooks/useRequests';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useToast } from '@/components/Toast';
 import { showConfirm } from '@/lib/dialogs';
 import { usePremiumGuard } from '@/hooks/usePremiumGuard';
 import EmptyState from '@/components/EmptyState';
-import DateInput from '@/components/DateInput';
 import { SkeletonCard } from '@/components/ui';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
-
-const KIND_CONFIG: Record<CommunicationKind, { label: string; emoji: string }> = {
-  letter: { label: 'Letter', emoji: '📄' },
-  email: { label: 'Email', emoji: '✉️' },
-  call: { label: 'Call', emoji: '📞' },
-  meeting: { label: 'Meeting', emoji: '🤝' },
-  note: { label: 'Note', emoji: '📝' },
-};
-
-const ORG_OPTIONS: Array<{ value: CommunicationOrg; label: string }> = [
-  { value: 'regional_center', label: 'Regional Center' },
-  { value: 'school', label: 'School' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'medical', label: 'Medical' },
-  { value: 'other', label: 'Other' },
-];
-
-const ORG_LABELS: Record<string, string> = Object.fromEntries(
-  ORG_OPTIONS.map((o) => [o.value, o.label])
-);
 
 function formatWhen(iso: string): string {
   const d = new Date(iso);
@@ -72,6 +50,8 @@ export default function CommunicationLogScreen() {
   const {
     communications, loading, addCommunication, deleteCommunication, markSent, refetch,
   } = useCommunications(family?.id ?? '');
+  // Case-file chips: an entry that serves a tracked request links to its case.
+  const { requests } = useRequests(family?.id);
   const { children } = useChildren(family?.id);
   const primaryChild = children.find((c) => c.is_primary) ?? children[0];
   const navigation = useNavigation();
@@ -340,6 +320,26 @@ export default function CommunicationLogScreen() {
             {expandedId === item.id && (
               <>
                 {item.body ? <Text style={styles.entryText}>{item.body}</Text> : null}
+                {(() => {
+                  const linked = item.request_id
+                    ? requests.find((r) => r.id === item.request_id)
+                    : undefined;
+                  return linked ? (
+                    <TouchableOpacity
+                      style={styles.caseLink}
+                      onPress={() =>
+                        (navigation as never as { navigate: (n: string, p?: object) => void }).navigate(
+                          'RequestCase',
+                          { requestId: linked.id }
+                        )
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel={`Open the case file for ${linked.title}`}
+                    >
+                      <Text style={styles.caseLinkText}>🗂 Part of: {linked.title} ›</Text>
+                    </TouchableOpacity>
+                  ) : null;
+                })()}
                 {gmail.gmail && item.gmail_thread_id && (
                   <TouchableOpacity
                     style={styles.replyBtn}
@@ -415,6 +415,7 @@ export default function CommunicationLogScreen() {
           const ok = await addCommunication(entry);
           showToast(ok ? 'Added to your paper trail' : "Couldn't save — try again.", ok ? 'success' : 'error');
           if (ok) setShowAdd(false);
+          return ok;
         }}
       />
 
@@ -445,118 +446,6 @@ function FilterPill({ label, active, onPress }: { label: string; active: boolean
     >
       <Text style={[styles.filterPillText, active && styles.filterPillTextActive]}>{label}</Text>
     </TouchableOpacity>
-  );
-}
-
-function AddEntryModal({
-  visible,
-  onClose,
-  onSave,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  onSave: (entry: {
-    kind: CommunicationKind; subject: string; contact?: string;
-    organization?: CommunicationOrg; body?: string; occurred_at?: string;
-  }) => Promise<void>;
-}) {
-  const [kind, setKind] = useState<CommunicationKind>('call');
-  const [subject, setSubject] = useState('');
-  const [contact, setContact] = useState('');
-  const [organization, setOrganization] = useState<CommunicationOrg>('regional_center');
-  const [body, setBody] = useState('');
-  const [date, setDate] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    if (!subject.trim() || saving) return;
-    setSaving(true);
-    await onSave({
-      kind,
-      subject: subject.trim(),
-      contact: contact.trim() || undefined,
-      organization,
-      body: body.trim() || undefined,
-      occurred_at: /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T12:00:00` : undefined,
-    });
-    setSaving(false);
-    setSubject(''); setContact(''); setBody(''); setDate('');
-  };
-
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalSheet}>
-          <Text style={styles.modalTitle}>Log a communication</Text>
-
-          <View style={styles.kindRow}>
-            {(['call', 'meeting', 'email', 'note'] as CommunicationKind[]).map((k) => (
-              <FilterPill
-                key={k}
-                label={`${KIND_CONFIG[k].emoji} ${KIND_CONFIG[k].label}`}
-                active={kind === k}
-                onPress={() => setKind(k)}
-              />
-            ))}
-          </View>
-
-          <Text style={styles.fieldLabel}>What happened?</Text>
-          <TextInput
-            style={styles.input}
-            value={subject}
-            onChangeText={setSubject}
-            placeholder="e.g., Called RCEB about intake status"
-            placeholderTextColor={colors.mid}
-          />
-
-          <Text style={styles.fieldLabel}>Who / where</Text>
-          <TextInput
-            style={styles.input}
-            value={contact}
-            onChangeText={setContact}
-            placeholder="e.g., Maria Lopez (Service Coordinator)"
-            placeholderTextColor={colors.mid}
-          />
-          <View style={styles.kindRow}>
-            {ORG_OPTIONS.map((o) => (
-              <FilterPill
-                key={o.value}
-                label={o.label}
-                active={organization === o.value}
-                onPress={() => setOrganization(o.value)}
-              />
-            ))}
-          </View>
-
-          <Text style={styles.fieldLabel}>Date (optional — defaults to today)</Text>
-          <DateInput value={date} onChange={setDate} />
-
-          <Text style={styles.fieldLabel}>Notes</Text>
-          <TextInput
-            style={[styles.input, styles.notesInput]}
-            value={body}
-            onChangeText={setBody}
-            multiline
-            textAlignVertical="top"
-            placeholder="What was said, what was promised, names and times…"
-            placeholderTextColor={colors.mid}
-          />
-
-          <TouchableOpacity
-            style={[styles.saveBtn, (!subject.trim() || saving) && styles.saveBtnDisabled]}
-            onPress={handleSave}
-            disabled={!subject.trim() || saving}
-            accessibilityRole="button"
-            accessibilityLabel="Save this entry"
-          >
-            <Text style={styles.saveBtnText}>Save to paper trail</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelBtn} onPress={onClose} accessibilityRole="button">
-            <Text style={styles.cancelBtnText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
   );
 }
 
@@ -697,45 +586,10 @@ const styles = StyleSheet.create({
   },
   deleteLink: { alignSelf: 'flex-start', marginTop: spacing.sm, minHeight: 24, justifyContent: 'center' },
   deleteLinkText: { fontSize: fonts.sizes.xs, color: '#DC2626' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalSheet: {
-    backgroundColor: colors.white,
-    borderTopLeftRadius: radii.xl,
-    borderTopRightRadius: radii.xl,
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
-    maxHeight: '88%',
-  },
-  modalTitle: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold as '700', color: colors.navy, marginBottom: spacing.sm },
-  kindRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 4 },
-  fieldLabel: {
+  caseLink: { alignSelf: 'flex-start', marginTop: spacing.sm, minHeight: 28, justifyContent: 'center' },
+  caseLinkText: {
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.semibold as '600',
-    color: colors.mid,
-    textTransform: 'uppercase',
-    marginTop: spacing.md,
-    marginBottom: 4,
+    color: colors.teal,
   },
-  input: {
-    backgroundColor: colors.light,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.base,
-    fontSize: fonts.sizes.sm,
-    color: colors.dark,
-  },
-  notesInput: { minHeight: 70 },
-  saveBtn: {
-    backgroundColor: colors.teal,
-    borderRadius: radii.md,
-    paddingVertical: spacing.base,
-    alignItems: 'center',
-    marginTop: spacing.md,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  saveBtnDisabled: { opacity: 0.5 },
-  saveBtnText: { fontSize: fonts.sizes.sm, color: colors.white, fontWeight: fonts.weights.semibold as '600' },
-  cancelBtn: { alignSelf: 'center', marginTop: spacing.sm, paddingVertical: 6, minHeight: 24 },
-  cancelBtnText: { fontSize: fonts.sizes.sm, color: colors.mid },
 });

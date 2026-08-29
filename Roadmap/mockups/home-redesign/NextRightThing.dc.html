@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1720px; background: #F8FAFC; display: flex; flex-direction: column; gap: 12px; padding: 20px 16px 24px 16px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
+
+  <!-- Header + since-line -->
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <div>
+      <div style="font-size: 21px; font-weight: 800; color: #1B2A4A">Good evening, Maria</div>
+      <div style="font-size: 12.5px; color: #475569; margin-top: 2px">Since Tuesday: <b>1 new</b> — Lilia Talavera replied.</div>
+    </div>
+    <div style="width: 38px; height: 38px; border-radius: 9999px; background: #0891B2; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 800">M</div>
+  </div>
+
+  <!-- STATE LABEL (mockup chrome, not UI) -->
+  <div style="align-self: flex-start; background: #1B2A4A; color: #FFFFFF; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 800; letter-spacing: 1px">STATE 1 · A REPLY ARRIVED</div>
+
+  <!-- THE ONE THING card -->
+  <div style="background: #FFFFFF; border: 2px solid #0891B2; border-radius: 16px; padding: 18px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 4px 14px rgba(8,145,178,0.10)">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #0369A1; background: #E0F2FE; border-radius: 6px; padding: 3px 8px">NEW REPLY — RECEIVED YESTERDAY, AUG 28</div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" aria-label="Read this card aloud"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#64748B" stroke="none"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+    </div>
+    <div style="font-size: 20px; font-weight: 800; color: #1B2A4A; line-height: 1.3">Lilia replied about Sofía's standing frame</div>
+    <div style="font-size: 13.5px; color: #475569">Why this is first: it arrived from Lilia's email yesterday, and the ball is in your court. Nothing sends until you press Send.</div>
+    <div style="background: #0891B2; color: #FFFFFF; border-radius: 12px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800">Read Lilia's reply</div>
+    <div style="font-size: 13px; color: #64748B; text-align: center; padding: 4px">Not today — show the next thing <span style="color: #94A3B8">(this one returns tomorrow morning)</span></div>
+  </div>
+
+  <!-- Tell-Waypoint row -->
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 14px">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>
+    <div style="flex: 1; font-size: 13.5px; color: #94A3B8">School called? They said no? Something else? Tell Waypoint.</div>
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><line x1="12" y1="18" x2="12" y2="21"></line></svg>
+  </div>
+
+  <!-- Everything else — collapsed row, shown expanded -->
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; overflow: hidden">
+    <div style="padding: 13px 14px; display: flex; align-items: center; justify-content: space-between; background: #F1F5F9">
+      <div style="font-size: 14px; font-weight: 700; color: #1B2A4A">Everything else: 2 this week · 1 waiting on the district · Tools</div>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
+    </div>
+    <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 6px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"><rect x="4" y="9" width="16" height="11" rx="2"></rect><path d="M8 9V6a4 4 0 0 1 8 0v3"></path></svg>
+        <div style="font-size: 11.5px; color: #64748B">Private to your family — never shared with any agency. Your records export any time.</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px">THIS WEEK</div>
+        <div style="font-size: 13.5px; color: #334155; padding: 4px 0">Tue Sep 2 · <b>OT session</b> — Sofía · 3:00 PM <span style="color:#94A3B8">[Google Calendar]</span></div>
+        <div style="font-size: 13.5px; color: #334155; padding: 4px 0">Thu Sep 4 · <b>Insurance appeal window closes</b> — Sofía <span style="color:#94A3B8">[Waypoint]</span></div>
+      </div>
+      <div>
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px">WAITING</div>
+        <div style="font-size: 13.5px; color: #334155">IEP evaluation — the district owes an assessment plan by <b>Sep 12</b> <span style="color:#94A3B8">[Ed Code §56321]</span> ›</div>
+      </div>
+      <div>
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px">LATER — SET ASIDE BY YOU</div>
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <div style="font-size: 13.5px; color: #64748B">IHSS eligibility check — returns Mon (set aside by you, Thu)</div>
+          <div style="font-size: 12.5px; font-weight: 700; color: #0891B2">Undo</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px">CONTACTS</div>
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <div style="font-size: 13.5px; color: #334155">Regional Center of the East Bay</div>
+          <div style="display: flex; gap: 8px">
+            <div style="background: #E6F7F5; color: #0F7B5F; border-radius: 9999px; padding: 5px 12px; font-size: 12.5px; font-weight: 800">📞 Call</div>
+            <div style="background: #E0F2FE; color: #0369A1; border-radius: 9999px; padding: 5px 12px; font-size: 12.5px; font-weight: 800">Write</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #475569; margin-bottom: 6px">TOOLS</div>
+        <div style="border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden">
+          <div style="padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9"><div style="font-size: 13.5px; font-weight: 600; color: #1B2A4A">Letters</div><div style="font-size: 12px; color: #64748B">›</div></div>
+          <div style="padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9"><div style="font-size: 13.5px; font-weight: 600; color: #1B2A4A">Requests &amp; Deadlines <span style="background:#FDF3E3;color:#B45309;border-radius:9999px;padding:1px 8px;font-size:10.5px;font-weight:800">1 waiting</span></div><div style="font-size: 12px; color: #64748B">›</div></div>
+          <div style="padding: 10px 12px; display: flex; justify-content: space-between; align-items: center"><div style="font-size: 13.5px; font-weight: 600; color: #1B2A4A">Sent &amp; Received</div><div style="font-size: 12px; color: #64748B">›</div></div>
+        </div>
+        <div style="font-size: 12px; color: #94A3B8; margin-top: 6px">+ the four doors (Understand · Money · Sofía's records · More) — hybrid v2 kept verbatim</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Second state: the earned calm card -->
+  <div style="align-self: flex-start; background: #1B2A4A; color: #FFFFFF; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 800; letter-spacing: 1px; margin-top: 8px">STATE 2 · EARNED CALM (AFTER THE ACTION, OR NOTHING DUE)</div>
+  <div style="background: #FFFFFF; border: 1px solid #A7D9C9; border-radius: 16px; padding: 18px 16px; display: flex; flex-direction: column; gap: 8px">
+    <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #0F7B5F; background: #E6F7F5; border-radius: 6px; padding: 3px 8px; align-self: flex-start">ALL QUIET — CHECKED TODAY</div>
+    <div style="font-size: 19px; font-weight: 800; color: #1B2A4A; line-height: 1.3">Nothing has a clock on it today.</div>
+    <div style="font-size: 13.5px; color: #475569">Your school request is tracked — Waypoint will tell you if <b>Sep 12</b> passes without a reply. You can close the app.</div>
+    <div style="font-size: 12px; color: #94A3B8">Gmail checked 6:32 AM · Calendar synced · deadlines stored on your phone</div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

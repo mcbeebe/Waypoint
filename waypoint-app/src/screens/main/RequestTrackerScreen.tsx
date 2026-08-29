@@ -14,17 +14,34 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useFamily } from '@/hooks/useFamily';
 import { useRequests, type FamilyRequest } from '@/hooks/useRequests';
+import { useCommunications } from '@/hooks/useCommunications';
+import { buildRequestCase } from '@/lib/requestCase';
 import {
   deadlineFor,
   REQUEST_LEVERS,
   REQUEST_TYPE_LABELS,
   type RequestType,
 } from '@/lib/requestClocks';
+import DateInput from '@/components/DateInput';
 import { useToast } from '@/components/Toast';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+
+/** How the family asked — drives the case file's provenance line. */
+const CHANNEL_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'email', label: '✉️ Email' },
+  { value: 'phone', label: '📞 Phone' },
+  { value: 'in_person', label: '🤝 In person' },
+  { value: 'letter', label: '📄 Letter' },
+];
+
+/** The LOCAL calendar date — toISOString() is UTC and shows "tomorrow" to evening users. */
+function localToday(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
 const ADDABLE_TYPES: RequestType[] = [
   'service_request',
@@ -55,15 +72,45 @@ const STATUS_STYLE: Record<FamilyRequest['status'], { bg: string; fg: string; la
 export default function RequestTrackerScreen() {
   const navigation = useNavigation();
   const { family } = useFamily();
-  const { requests, loading, error, createRequest, updateStatus } = useRequests(family?.id);
+  const {
+    requests, loading, error, createRequest, updateStatus, refetch: refetchRequests,
+  } = useRequests(family?.id);
+  // Case awareness: an unanswered agency reply on a request is the moment
+  // to act, so its card says so. Derivation is shared with the case screen.
+  const { communications, refetch: refetchComms } = useCommunications(family?.id ?? '');
   const { showToast } = useToast();
+
+  // The case screen and this list each hold their own data: refetch on
+  // focus so a status change or send made on the case shows here too.
+  useFocusEffect(
+    React.useCallback(() => {
+      refetchRequests();
+      refetchComms();
+    }, [refetchRequests, refetchComms])
+  );
 
   const [adding, setAdding] = useState(false);
   const [newType, setNewType] = useState<RequestType>('service_request');
   const [newTitle, setNewTitle] = useState('');
+  const [newAskedOn, setNewAskedOn] = useState(localToday());
+  const [newChannel, setNewChannel] = useState('email');
 
-  const openLetter = (template: string) => {
-    (navigation as any).navigate('Letters', { template });
+  const casesById = React.useMemo(() => {
+    const map = new Map<string, ReturnType<typeof buildRequestCase>>();
+    for (const r of requests) {
+      if (r.status === 'requested' || r.status === 'in_progress') {
+        map.set(r.id, buildRequestCase(r, communications));
+      }
+    }
+    return map;
+  }, [requests, communications]);
+
+  const openLetter = (template: string, requestId?: string) => {
+    (navigation as any).navigate('Letters', { template, requestId });
+  };
+
+  const openCase = (requestId: string) => {
+    (navigation as any).navigate('RequestCase', { requestId });
   };
 
   const add = async () => {
@@ -71,15 +118,24 @@ export default function RequestTrackerScreen() {
       showToast('Give the request a short name first.', 'info');
       return;
     }
+    const today = localToday();
+    const askedOn = /^\d{4}-\d{2}-\d{2}$/.test(newAskedOn) ? newAskedOn : today;
     const created = await createRequest({
       request_type: newType,
       title: newTitle.trim(),
-      requested_on: new Date().toISOString().slice(0, 10),
+      requested_on: askedOn,
+      channel: newChannel,
     });
     if (created) {
       setNewTitle('');
+      setNewAskedOn(today);
       setAdding(false);
-      showToast('Tracking it — we watch the clock from here.', 'success');
+      showToast(
+        askedOn < today
+          ? 'Tracking it — the legal clock runs from the day you asked.'
+          : 'Tracking it — we watch the clock from here.',
+        'success'
+      );
     } else {
       showToast('Could not save the request — please try again.', 'error');
     }
@@ -90,11 +146,19 @@ export default function RequestTrackerScreen() {
     const lever = REQUEST_LEVERS[item.request_type];
     const s = STATUS_STYLE[item.status];
     const open = item.status === 'requested' || item.status === 'in_progress';
-    const showLever = open && (deadline?.overdue || !deadline);
-    const showDenialLever = item.status === 'denied';
+    const unansweredReply = casesById.get(item.id)?.unansweredReply ?? null;
+    // Silence-gated here too: while their reply sits unanswered, the move is
+    // to respond (via the case), not to escalate past the conversation.
+    const showLever = open && (deadline?.overdue || !deadline) && !unansweredReply;
+    const showDenialLever = item.status === 'denied' && !unansweredReply;
 
     return (
-      <View style={styles.card}>
+      <Pressable
+        style={styles.card}
+        onPress={() => openCase(item.id)}
+        accessibilityRole="button"
+        accessibilityLabel={`Open the case file for ${item.title}`}
+      >
         <View style={styles.cardHead}>
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>{item.title}</Text>
@@ -109,6 +173,14 @@ export default function RequestTrackerScreen() {
             <Text style={[styles.statusChipText, { color: s.fg }]}>{s.label}</Text>
           </Pressable>
         </View>
+
+        {unansweredReply && (
+          <View style={styles.replyChip}>
+            <Text style={styles.replyChipText} numberOfLines={2}>
+              💬 They replied: “{unansweredReply.subject}” — open the case to respond
+            </Text>
+          </View>
+        )}
 
         {open && deadline && (
           <View
@@ -140,7 +212,7 @@ export default function RequestTrackerScreen() {
           <Pressable
             style={[styles.lever, (deadline?.overdue || showDenialLever) && styles.leverPrimary]}
             onPress={() =>
-              openLetter(showDenialLever ? 'noa_request' : lever.template)
+              openLetter(showDenialLever ? 'noa_request' : lever.template, item.id)
             }
           >
             <Text
@@ -154,21 +226,8 @@ export default function RequestTrackerScreen() {
           </Pressable>
         )}
 
-        {item.communication_id && (
-          <Pressable
-            style={styles.letterLink}
-            onPress={() =>
-              (navigation as any).navigate('CommunicationLog', {
-                highlightId: item.communication_id,
-              })
-            }
-            accessibilityRole="button"
-            accessibilityLabel="View the letter behind this request"
-          >
-            <Text style={styles.letterLinkText}>📄 View the letter in your Paper Trail ›</Text>
-          </Pressable>
-        )}
-      </View>
+        <Text style={styles.caseLinkText}>🗂 Open the case file — thread, clock & next move ›</Text>
+      </Pressable>
     );
   };
 
@@ -233,6 +292,41 @@ export default function RequestTrackerScreen() {
               onChangeText={setNewTitle}
               autoFocus
             />
+            <View style={styles.whenRow}>
+              <Text style={styles.whenLabel}>When did you ask?</Text>
+              <View style={{ flex: 1 }}>
+                <DateInput
+                  value={newAskedOn}
+                  onChange={setNewAskedOn}
+                  accessibilityLabel="The date you asked"
+                  style={styles.input}
+                />
+              </View>
+            </View>
+            <View style={styles.typeRow}>
+              {CHANNEL_OPTIONS.map((c) => (
+                <Pressable
+                  key={c.value}
+                  style={[styles.typePill, newChannel === c.value && styles.typePillActive]}
+                  onPress={() => setNewChannel(c.value)}
+                >
+                  <Text
+                    style={[
+                      styles.typePillText,
+                      newChannel === c.value && styles.typePillTextActive,
+                    ]}
+                  >
+                    {c.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+            {newAskedOn < localToday() && (
+              <Text style={styles.backdateNote}>
+                Two clocks, both honest: their legal deadline runs from the day you asked; your
+                record shows it was logged today.
+              </Text>
+            )}
             <View style={styles.addActions}>
               <Pressable style={[styles.cta, { flex: 1 }]} onPress={add}>
                 <Text style={styles.ctaText}>Track it</Text>
@@ -285,12 +379,21 @@ const styles = StyleSheet.create({
   clockTextRunning: { color: semantic.warning },
   clockTextOverdue: { color: semantic.danger },
   noClock: { fontSize: fonts.sizes.sm, color: colors.mid },
-  letterLink: { minHeight: 32, justifyContent: 'center', alignSelf: 'flex-start' },
-  letterLinkText: {
+  replyChip: {
+    backgroundColor: semantic.infoBg,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  replyChipText: { fontSize: fonts.sizes.sm, color: semantic.info, fontWeight: fonts.weights.semibold },
+  caseLinkText: {
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.semibold,
     color: colors.teal,
   },
+  whenRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  whenLabel: { fontSize: fonts.sizes.sm, color: colors.mid, fontWeight: fonts.weights.semibold },
+  backdateNote: { fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18 },
   lever: {
     minHeight: 44,
     borderRadius: radii.md,

@@ -35,6 +35,20 @@ export interface SentNext {
   followUpDays: number;
 }
 
+/**
+ * The tracker row a send should open — with the case-file guard: a lever
+ * letter launched FROM an existing request (presetRequestId) must never
+ * open a second clock row, whatever the template's default says. One
+ * request, one thread, one clock.
+ */
+export function trackFor(
+  next: SentNext | null,
+  presetRequestId?: string | null
+): SentNext['track'] {
+  if (!next?.track) return null;
+  return presetRequestId ? null : next.track;
+}
+
 export function sentNextFor(
   templateKey: string,
   childName?: string | null,

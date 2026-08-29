@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1460px; background: #F8FAFC; display: flex; flex-direction: column; gap: 12px; padding: 20px 16px 24px 16px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
+
+  <!-- Header strip -->
+  <div style="display: flex; align-items: center; justify-content: space-between">
+    <div style="display: flex; align-items: center; gap: 8px">
+      <div style="font-size: 17px; font-weight: 800; color: #1B2A4A">Rosa</div>
+      <div style="background: #E0F2FE; color: #0369A1; border-radius: 9999px; padding: 3px 10px; font-size: 12px; font-weight: 700">Marco · 7y</div>
+    </div>
+    <div style="width: 38px; height: 38px; border-radius: 9999px; background: #0891B2; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 800">R</div>
+  </div>
+
+  <!-- The opener: Waypoint's turn -->
+  <div style="display: flex; gap: 8px; margin-top: 4px">
+    <div style="width: 30px; height: 30px; border-radius: 9999px; background: #1B2A4A; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0">W</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 4px 16px 16px 16px; padding: 14px 15px; font-size: 16px; color: #1B2A4A; line-height: 1.5">
+      Lilia Talavera replied <b>yesterday</b> about Marco's standing frame — found in the Gmail you connected Aug 3. Want to read it?
+    </div>
+  </div>
+
+  <!-- The reply row: the parent's turn as chips -->
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-left: 38px">
+    <div style="background: #0891B2; color: #FFFFFF; border-radius: 9999px; padding: 11px 16px; font-size: 14px; font-weight: 800">Read Lilia's reply</div>
+    <div style="background: #FFFFFF; border: 1px solid #0891B2; color: #0891B2; border-radius: 9999px; padding: 11px 16px; font-size: 14px; font-weight: 700">Draft a response — nothing sends until you press Send</div>
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; color: #475569; border-radius: 9999px; padding: 11px 16px; font-size: 14px; font-weight: 700">Not now — show me today</div>
+  </div>
+
+  <!-- The three constant chips -->
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-left: 38px; margin-top: 2px">
+    <div style="background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; border-radius: 9999px; padding: 9px 14px; font-size: 13px; font-weight: 800">Something happened today</div>
+    <div style="background: #F1F5F9; color: #334155; border-radius: 9999px; padding: 9px 14px; font-size: 13px; font-weight: 700">What should I do next?</div>
+    <div style="background: #F1F5F9; color: #334155; border-radius: 9999px; padding: 9px 14px; font-size: 13px; font-weight: 700">Show me everything</div>
+  </div>
+
+  <!-- The composer -->
+  <div style="background: #FFFFFF; border: 2px solid #0891B2; border-radius: 14px; min-height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 14px; margin-top: 4px">
+    <div style="flex: 1; font-size: 13.5px; color: #94A3B8">Talk or type — "diapers", "they said no", "IEP"…</div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><line x1="12" y1="18" x2="12" y2="21"></line></svg>
+  </div>
+  <div style="font-size: 11.5px; color: #94A3B8; padding-left: 4px">Hable o escriba en español · Nói hoặc nhập tiếng Việt — Waypoint answers in your language</div>
+
+  <!-- THE DESK: pinned artifacts -->
+  <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #475569; margin-top: 10px">THE DESK — THINGS YOU PINNED</div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 14px 15px; display: flex; flex-direction: column; gap: 6px">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.6px; color: #B45309; background: #FDF3E3; border-radius: 6px; padding: 2px 8px">WATCHED CLOCK</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="#0891B2" stroke="#0891B2" stroke-width="1.5"><path d="M12 17l-5 3 1.5-5.5L4 10.5l5.7-.4L12 5l2.3 5.1 5.7.4-4.5 4 1.5 5.5z"></path></svg>
+    </div>
+    <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">School evaluation request — 6 days left</div>
+    <div style="font-size: 12.5px; color: #64748B">Assessment plan due Sep 12 · Ed Code §56321 · Pinned from your chat · Aug 12</div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 14px 15px; display: flex; flex-direction: column; gap: 6px">
+    <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.6px; color: #0369A1; background: #E0F2FE; border-radius: 6px; padding: 2px 8px; align-self: flex-start">DRAFT — NOTHING SENT YET</div>
+    <div style="font-size: 15px; font-weight: 700; color: #1B2A4A">Draft to Lilia · saved 9:14 PM</div>
+    <div style="font-size: 12.5px; color: #64748B">Opens exactly where you stopped. Pinned from your chat · yesterday</div>
+  </div>
+
+  <!-- THE SHELF -->
+  <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.8px; color: #475569; margin-top: 10px">THE SHELF — EVERY TOOL, NO TALKING NEEDED</div>
+  <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; overflow: hidden">
+    <div style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9">
+      <div><div style="font-size: 14.5px; font-weight: 700; color: #1B2A4A">Letters</div><div style="font-size: 12px; color: #64748B">Ask in writing — we write it with you</div></div>
+      <div style="color: #94A3B8">›</div>
+    </div>
+    <div style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9">
+      <div><div style="font-size: 14.5px; font-weight: 700; color: #1B2A4A">Requests &amp; Deadlines <span style="background:#FEE2E2;color:#DC2626;border-radius:9999px;padding:1px 8px;font-size:10.5px;font-weight:800">1 overdue</span></div><div style="font-size: 12px; color: #64748B">Every ask, tracked against its legal deadline</div></div>
+      <div style="color: #94A3B8">›</div>
+    </div>
+    <div style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center">
+      <div><div style="font-size: 14.5px; font-weight: 700; color: #1B2A4A">Sent &amp; Received</div><div style="font-size: 12px; color: #64748B">Every email and reply, dated — your receipts</div></div>
+      <div style="color: #94A3B8">›</div>
+    </div>
+  </div>
+  <div style="font-size: 12px; color: #94A3B8">+ the four doors (Understand · Money · Marco's records · More)</div>
+
+  <!-- Privacy -->
+  <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"><rect x="4" y="9" width="16" height="11" rx="2"></rect><path d="M8 9V6a4 4 0 0 1 8 0v3"></path></svg>
+    <div style="font-size: 11.5px; color: #64748B">Private to your family — nothing is sent unless you press Send.</div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

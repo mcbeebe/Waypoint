@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+  </style>
+</helmet>
+<div style="width: 1010px; min-height: 1370px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 18px; padding: 32px 36px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.5; display: flex; flex-direction: column; gap: 22px">
+
+  <div>
+    <div style="font-size: 12px; font-weight: 800; letter-spacing: 1.2px; color: #0891B2">HOME REDESIGN · OUTPUT OF THE 20-PERSONA AUDIT · AUG 29, 2026</div>
+    <div style="font-size: 30px; font-weight: 800; color: #1B2A4A; margin-top: 6px">Three concepts. One question: what is Home's job?</div>
+    <div style="font-size: 15px; color: #475569; margin-top: 8px; max-width: 860px">
+      Twenty exhausted-caregiver personas audited every pixel of the current Home page: <b>10 confirmed failures</b>
+      (dead $0 snapshot, blocking English tutorial, canned empathy, duplicate "WAYPOINT NOTICED" cards, no-undo dismissals,
+      jargon pills, false profile nudges, silent snoozes — plus two already fixed: the inert RC phone and the Early Start clock)
+      and an emergent critique: 15 scrollable sections, 7 competing CTAs, and no single job. Five redesign philosophies competed;
+      a 3-judge panel kept the three strongest and most distinct. <b>Every concept below resolves all ten findings</b> — they differ
+      in what Home fundamentally is.
+    </div>
+  </div>
+
+  <!-- Three concept columns -->
+  <div style="display: flex; gap: 18px">
+    <div style="flex: 1; border: 2px solid #0891B2; border-radius: 14px; padding: 18px; background: #F0FBFC; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <div style="font-size: 12px; font-weight: 800; color: #FFFFFF; background: #0891B2; border-radius: 6px; padding: 3px 9px">A · UNANIMOUS №1</div>
+        <div style="font-size: 11px; color: #0369A1; font-weight: 700">"the app decides"</div>
+      </div>
+      <div style="font-size: 19px; font-weight: 800; color: #1B2A4A">The Next Right Thing</div>
+      <div style="font-size: 13px; color: #334155">A deterministic triage engine renders <b>exactly one card</b> — one honest kicker with provenance, one concrete action (calls are tel: links, replies are read-first), one "why this is first," one deferral with a stated return time. Below: one tell-Waypoint input and one collapsed everything-else ledger (Tools kept, one tap down). Calm state is earned and true: "Nothing has a clock on it today. You can close the app."</div>
+      <div style="font-size: 12px; color: #475569"><b>Wins:</b> the 45-second 3am parent · contradictions structurally impossible · TTS-linear · highest feasibility (existing derivations feed the ladder).</div>
+      <div style="font-size: 12px; color: #9A3412"><b>Costs:</b> veterans lose glance density · push loop becomes load-bearing · looks "small" in demos.</div>
+    </div>
+
+    <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <div style="font-size: 12px; font-weight: 800; color: #475569; background: #F1F5F9; border-radius: 6px; padding: 3px 9px">B · TOP-3, ALL JUDGES</div>
+        <div style="font-size: 11px; color: #64748B; font-weight: 700">"the app talks"</div>
+      </div>
+      <div style="font-size: 19px; font-weight: 800; color: #1B2A4A">Front Desk</div>
+      <div style="font-size: 13px; color: #334155">Home is the first two turns of a conversation. Waypoint speaks one true, dated, child-named sentence (or one honest question — never a confident guess). The parent answers by chip, voice, or typing in their language. Cards exist only as artifacts a conversation produced and the parent <b>pinned</b>. Openers and chips compose locally — only free text touches the API. The Tools shelf stays for parents who won't talk to an AI.</div>
+      <div style="font-size: 12px; color: #475569"><b>Wins:</b> trilingual by construction · lowest literacy barrier · crisis entry always one tap · Home and Ask AI become one thread.</div>
+      <div style="font-size: 12px; color: #9A3412"><b>Costs:</b> discovery slows to dialogue pace · veterans must build their own board · free-text latency on rural LTE · forces finishing es/vi app-wide.</div>
+    </div>
+
+    <div style="flex: 1; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <div style="font-size: 12px; font-weight: 800; color: #475569; background: #F1F5F9; border-radius: 6px; padding: 3px 9px">C · TOP-3, ALL JUDGES</div>
+        <div style="font-size: 11px; color: #64748B; font-weight: 700">"the app shows the true state"</div>
+      </div>
+      <div style="font-size: 19px; font-weight: 800; color: #1B2A4A">Caseboard</div>
+      <div style="font-size: 13px; color: #334155">An instrument board of dated facts: one fixed row per live obligation (NEW REPLY → PAST DUE → DUE TODAY → WAITING → STALLED), each with child, source tag, and text state label. A sensor line is the provenance contract. Everything <b>derived</b> is quarantined in a Findings drawer — question-framed, inputs disclosed, correctable. Zero pep, zero pitch, zero demo data.</div>
+      <div style="font-size: 12px; color: #475569"><b>Wins:</b> the burned veteran operator (the audit's unanimous power-user ask) · trust as the product · fact/hypothesis split kills confident-wrong claims.</div>
+      <div style="font-size: 12px; color: #9A3412"><b>Costs:</b> sparse for newcomers · discovery one tap down · most backend work (event log, synced ledgers).</div>
+    </div>
+  </div>
+
+  <!-- Judge table -->
+  <div style="display: flex; gap: 22px; align-items: flex-start">
+    <div style="flex: 1.1">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.8px; color: #475569; margin-bottom: 8px">JUDGE PANEL — 4 CRITERIA, 40 MAX (resolves findings · serves 3am · distinctness · feasibility)</div>
+      <table style="border-collapse: collapse; width: 100%; font-size: 13px">
+        <tr style="color: #64748B; text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.5px"><td style="padding: 6px 8px; border-bottom: 1px solid #E2E8F0">Concept</td><td style="padding: 6px 8px; border-bottom: 1px solid #E2E8F0">J1</td><td style="padding: 6px 8px; border-bottom: 1px solid #E2E8F0">J2</td><td style="padding: 6px 8px; border-bottom: 1px solid #E2E8F0">J3</td><td style="padding: 6px 8px; border-bottom: 1px solid #E2E8F0">Consensus</td></tr>
+        <tr style="background: #F0FBFC"><td style="padding: 6px 8px; font-weight: 800; color: #1B2A4A">The Next Right Thing</td><td style="padding: 6px 8px">35</td><td style="padding: 6px 8px">№1</td><td style="padding: 6px 8px">№1</td><td style="padding: 6px 8px; font-weight: 800; color: #0891B2">Unanimous №1</td></tr>
+        <tr><td style="padding: 6px 8px; font-weight: 700; color: #1B2A4A">Front Desk</td><td style="padding: 6px 8px">32</td><td style="padding: 6px 8px">№3</td><td style="padding: 6px 8px">№2</td><td style="padding: 6px 8px">Top-3, all judges</td></tr>
+        <tr><td style="padding: 6px 8px; font-weight: 700; color: #1B2A4A">Caseboard</td><td style="padding: 6px 8px">31</td><td style="padding: 6px 8px">№2</td><td style="padding: 6px 8px">№3</td><td style="padding: 6px 8px">Top-3, all judges</td></tr>
+        <tr style="color: #94A3B8"><td style="padding: 6px 8px">The Ledger</td><td style="padding: 6px 8px">30</td><td style="padding: 6px 8px">—</td><td style="padding: 6px 8px">—</td><td style="padding: 6px 8px">Cut — same engine as A, weaker execution</td></tr>
+        <tr style="color: #94A3B8"><td style="padding: 6px 8px">Four Editions</td><td style="padding: 6px 8px">29</td><td style="padding: 6px 8px">—</td><td style="padding: 6px 8px">—</td><td style="padding: 6px 8px">Cut — feasibility</td></tr>
+      </table>
+    </div>
+    <div style="flex: 1; background: #1B2A4A; border-radius: 14px; padding: 20px; color: #E2E8F0; display: flex; flex-direction: column; gap: 8px">
+      <div style="font-size: 12px; font-weight: 800; letter-spacing: 1px; color: #7DD3FC">RECOMMENDATION</div>
+      <div style="font-size: 17px; font-weight: 800; color: #FFFFFF">Build A — The Next Right Thing — with two organs grafted in</div>
+      <div style="font-size: 13px; line-height: 1.55">Take Caseboard's <b style="color:#FFFFFF">sensor line</b> (the provenance contract that makes the calm state believable) and Front Desk's <b style="color:#FFFFFF">tell-Waypoint composer</b> (crisis vocabulary + Ask-AI fallthrough). Ship in 3 phases: ① pure triage engine + one card + calm state (the ten findings die here) · ② everything-else ledger with undo + contacts · ③ tell-Waypoint row + the push loop that makes "we'll tell you" true. Caseboard stays on the shelf as a veteran mode — a second renderer over the same engine, not a rework.</div>
+      <div style="font-size: 12.5px; color: #94C7DD">Decision needed: A, B, C, or A+organs. Nothing is built until you pick.</div>
+    </div>
+  </div>
+
+  <div style="font-size: 12px; color: #94A3B8">Full proposal: Roadmap/Home-Redesign-Concepts.md · Phone mockups to the right — each shows the concept's answer to the same day (a reply from Lilia, an overdue IPP clock, a school-eval clock at day 9). The hybrid-v2 Tools area survives in all three.</div>
+
+</div>
+</x-dc>
+</body>
+</html>

@@ -29,6 +29,8 @@ export interface Communication {
   /** Gmail thread/message ids when sent or synced via the connected account (046) */
   gmail_thread_id: string | null;
   gmail_message_id: string | null;
+  /** The tracked family_request this entry serves (047); null = unattached */
+  request_id: string | null;
   created_at: string;
 }
 
@@ -44,6 +46,14 @@ export interface NewCommunication {
   child_id?: string | null;
   /** Defaults to 'sent' — calls and meetings already happened. Drafts pass 'draft'. */
   status?: CommunicationStatus;
+  /** Attach this entry to a tracked request (047). */
+  request_id?: string | null;
+}
+
+/** Strip request_id and retry when the 047 column isn't migrated yet. */
+export function isMissingRequestIdColumn(message: string): boolean {
+  return /request_id/.test(message) &&
+    /does not exist|schema cache|could not find/i.test(message);
 }
 
 /**
@@ -69,11 +79,21 @@ export async function logCommunication(
       occurred_at: entry.occurred_at ?? new Date().toISOString(),
       child_id: entry.child_id ?? null,
     };
-    const { data, error } = await supabase
+    const withRequest = entry.request_id ? { ...row, request_id: entry.request_id } : row;
+    let { data, error } = await supabase
       .from('communications')
-      .insert({ ...row, status, sent_at: status === 'sent' ? new Date().toISOString() : null })
+      .insert({ ...withRequest, status, sent_at: status === 'sent' ? new Date().toISOString() : null })
       .select('id')
       .single();
+
+    // Pre-047 database: the request link is best-effort — log without it.
+    if (error && entry.request_id && isMissingRequestIdColumn(error.message)) {
+      ({ data, error } = await supabase
+        .from('communications')
+        .insert({ ...row, status, sent_at: status === 'sent' ? new Date().toISOString() : null })
+        .select('id')
+        .single());
+    }
 
     // Pre-032 database: still record it, just without the draft/sent state
     if (error && /status|sent_at/i.test(error.message) &&
@@ -89,6 +109,26 @@ export async function logCommunication(
   } catch {
     // best-effort
     return null;
+  }
+}
+
+/**
+ * Stamp a logged letter with the tracked request it founded (047), so the
+ * case file and the paper trail describe one event. Best-effort: a pre-047
+ * database just returns false and the legacy communication_id link carries.
+ */
+export async function attachCommunicationToRequest(
+  communicationId: string,
+  requestId: string
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('communications')
+      .update({ request_id: requestId })
+      .eq('id', communicationId);
+    return !error;
+  } catch {
+    return false;
   }
 }
 
@@ -139,22 +179,31 @@ export function useCommunications(familyId: string) {
 
   const addCommunication = useCallback(async (entry: NewCommunication): Promise<boolean> => {
     try {
-      const { data, error: dbError } = await supabase
+      const row = {
+        family_id: familyId,
+        kind: entry.kind,
+        direction: entry.direction ?? 'outgoing',
+        contact: entry.contact ?? null,
+        organization: entry.organization ?? null,
+        subject: entry.subject,
+        body: entry.body ?? null,
+        template_key: entry.template_key ?? null,
+        occurred_at: entry.occurred_at ?? new Date().toISOString(),
+        child_id: entry.child_id ?? null,
+      };
+      let { data, error: dbError } = await supabase
         .from('communications')
-        .insert({
-          family_id: familyId,
-          kind: entry.kind,
-          direction: entry.direction ?? 'outgoing',
-          contact: entry.contact ?? null,
-          organization: entry.organization ?? null,
-          subject: entry.subject,
-          body: entry.body ?? null,
-          template_key: entry.template_key ?? null,
-          occurred_at: entry.occurred_at ?? new Date().toISOString(),
-          child_id: entry.child_id ?? null,
-        })
+        .insert(entry.request_id ? { ...row, request_id: entry.request_id } : row)
         .select()
         .single();
+      // Pre-047 database: keep the entry, drop the link.
+      if (dbError && entry.request_id && isMissingRequestIdColumn(dbError.message)) {
+        ({ data, error: dbError } = await supabase
+          .from('communications')
+          .insert(row)
+          .select()
+          .single());
+      }
       if (dbError) throw new Error(dbError.message);
       setCommunications((prev) => [data as Communication, ...prev].sort(
         (a, b) => b.occurred_at.localeCompare(a.occurred_at)

@@ -35,6 +35,7 @@ import { deriveStackInsight, MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resour
 import { useRequests } from '@/hooks/useRequests';
 import { useCommunications } from '@/hooks/useCommunications';
 import { findUnansweredReply } from '@/lib/replyInbox';
+import { activeRequestForReply } from '@/lib/requestCase';
 import { autoSyncReplies } from '@/lib/gmail';
 import ReplyCard from '@/components/ReplyCard';
 import { snoozeFor, isSnoozed } from '@/lib/snooze';
@@ -174,6 +175,16 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const unanswered = useMemo(() => findUnansweredReply(communications), [communications]);
+  // Badge the job, not the channel: a reply that belongs to an ACTIVE
+  // tracked request opens its case file; strays and replies on closed
+  // requests go to the generic paper trail.
+  const replyRequest = useMemo(
+    () =>
+      unanswered
+        ? activeRequestForReply(unanswered.reply, familyRequests, communications)
+        : null,
+    [unanswered, familyRequests, communications]
+  );
   const [replySnoozed, setReplySnoozed] = useState(false);
   useEffect(() => {
     if (!unanswered) return;
@@ -342,9 +353,11 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
           <ReplyCard
             unanswered={unanswered}
             onDraft={() =>
-              (navigation as any).navigate('CommunicationLog', {
-                openReplyId: unanswered.reply.id,
-              })
+              replyRequest
+                ? (navigation as any).navigate('RequestCase', { requestId: replyRequest.id })
+                : (navigation as any).navigate('CommunicationLog', {
+                    openReplyId: unanswered.reply.id,
+                  })
             }
             onLater={() => {
               snoozeFor(`reply_${unanswered.reply.id}`, 2);
@@ -576,7 +589,8 @@ function HomeScreenInner({ family }: { family: ReturnType<typeof useFamily>['fam
         <ToolsArea
           selectedChildName={primaryChild?.first_name ?? null}
           requests={familyRequests}
-          hasUnansweredReply={!!unanswered}
+          communications={communications}
+          hasUnansweredReply={!!unanswered && !replyRequest}
           childAgeYears={primaryChild ? ageFromDob(primaryChild.date_of_birth) : null}
         />
       </ScrollView>

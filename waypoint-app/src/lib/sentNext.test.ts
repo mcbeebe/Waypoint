@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sentNextFor } from './sentNext';
+import { sentNextFor, trackFor } from './sentNext';
 import { deadlineFor, REQUEST_TYPE_LABELS } from './requestClocks';
 
 const LEVER_TEMPLATES = [
@@ -42,6 +42,20 @@ describe('sentNextFor', () => {
 
   it('the follow-up letter does not open a duplicate tracked request', () => {
     expect(sentNextFor('rc_timeline_followup')!.track).toBeNull();
+  });
+
+  it('a lever letter sent FROM a case never opens a second clock row', () => {
+    // Both suppression branches: a template whose default is track:null
+    // (rc_timeline_followup), and one that normally opens a row
+    // (noa_request → authorization). With a preset request, neither tracks.
+    expect(trackFor(sentNextFor('rc_timeline_followup'), 'req-1')).toBeNull();
+    const noa = sentNextFor('noa_request')!;
+    expect(noa.track).not.toBeNull(); // sanity: default DOES open a row
+    expect(trackFor(noa, 'req-1')).toBeNull();
+    // …and without a preset request the default behavior is untouched.
+    expect(trackFor(noa, null)).toEqual(noa.track);
+    expect(trackFor(noa, undefined)).toEqual(noa.track);
+    expect(trackFor(null, 'req-1')).toBeNull();
   });
 
   it('celebrations are specific, and the child is named where it matters', () => {
