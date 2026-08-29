@@ -12,12 +12,16 @@
     a { color: #0891B2; } a:hover { color: #0E7490; }
   </style>
 </helmet>
-<div style="width: 390px; min-height: 860px; background: #F8FAFC; display: flex; flex-direction: column; gap: 10px; padding: 20px 16px 24px 16px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
+<div style="width: 390px; min-height: 930px; background: #F8FAFC; display: flex; flex-direction: column; gap: 10px; padding: 20px 16px 24px 16px; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
 
   <!-- Search -->
   <div style="display: flex; align-items: center; gap: 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; min-height: 48px; padding: 0 14px">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg>
-    <div style="font-size: 14px; color: #64748B">Find anything — try "IEP", "respite", "appeal"</div>
+    <div style="font-size: 14px; color: #64748B">Find anything — try "diapers", "IEP", "they said no"</div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 6px">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11 L8 7 a4 4 0 0 1 8 0 L16 11"></path></svg>
+    <div style="font-size: 12px; color: #475569">Private to your family — never shared with any agency.</div>
   </div>
 
   <!-- TAKE ACTION — A's full treatment, always open -->
@@ -29,7 +33,7 @@
       </div>
       <div style="flex: 1; min-width: 0">
         <div style="font-size: 15px; font-weight: 600; color: #1B2A4A">Letters</div>
-        <div style="font-size: 12.5px; color: #64748B">Draft the ask that starts a legal clock</div>
+        <div style="font-size: 13.5px; color: #475569">Ask in writing — we write it with you. Said no on the phone? Start here.</div>
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
     </div>
@@ -39,10 +43,10 @@
       </div>
       <div style="flex: 1; min-width: 0">
         <div style="display: flex; align-items: center; gap: 8px">
-          <div style="font-size: 15px; font-weight: 600; color: #1B2A4A">Requests &amp; Clocks</div>
-          <div style="background: #FDF3E3; border-radius: 9999px; padding: 1px 8px; font-size: 11px; font-weight: 800; color: #B45309">2 RUNNING</div>
+          <div style="font-size: 15px; font-weight: 600; color: #1B2A4A">Requests &amp; Deadlines</div>
+          <div style="background: #FDF3E3; border-radius: 9999px; padding: 1px 8px; font-size: 11px; font-weight: 800; color: #B45309">1 DUE FRI</div>
         </div>
-        <div style="font-size: 12.5px; color: #64748B">Every ask, tracked against its deadline</div>
+        <div style="font-size: 13.5px; color: #475569">Every ask, tracked against its deadline</div>
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
     </div>
@@ -52,17 +56,23 @@
       </div>
       <div style="flex: 1; min-width: 0">
         <div style="display: flex; align-items: center; gap: 8px">
-          <div style="font-size: 15px; font-weight: 600; color: #1B2A4A">Paper Trail</div>
-          <div style="background: #E0F2FE; border-radius: 9999px; padding: 1px 8px; font-size: 11px; font-weight: 800; color: #0369A1">1 REPLY</div>
+          <div style="font-size: 15px; font-weight: 600; color: #1B2A4A">Sent &amp; Received</div>
+          <div style="background: #E0F2FE; border-radius: 9999px; padding: 1px 8px; font-size: 11px; font-weight: 800; color: #0369A1">1 NEW REPLY</div>
         </div>
-        <div style="font-size: 12.5px; color: #64748B">Every email and reply, one record</div>
+        <div style="font-size: 13.5px; color: #475569">Every email and reply, dated — your receipts</div>
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
     </div>
   </div>
 
-  <!-- Consolidated doors — B's consolidation as expandable rows -->
-  <div style="font-size: 12px; font-weight: 800; letter-spacing: 1px; color: #64748B; margin-top: 10px">EVERYTHING FOR TEDDY</div>
+  <!-- Consolidated doors — B's consolidation as expandable rows.
+       Child chips appear only when the family has more than one child;
+       possessive labels and badges follow the selected chip. -->
+  <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px">
+    <div style="background: #1B2A4A; border-radius: 9999px; padding: 4px 14px; font-size: 12.5px; font-weight: 700; color: #FFFFFF">Teddy</div>
+    <div style="border: 1px solid #CBD5E1; border-radius: 9999px; padding: 4px 14px; font-size: 12.5px; font-weight: 700; color: #475569">Marcus</div>
+    <div style="font-size: 11px; color: #64748B; margin-left: 4px">(shown when you have more than one child)</div>
+  </div>
   <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; display: flex; flex-direction: column">
     <div style="display: flex; align-items: center; gap: 12px; padding: 13px 14px; min-height: 48px; border-bottom: 1px solid #F1F5F9">
       <div style="width: 38px; height: 38px; border-radius: 11px; background: #EDF0F7; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
@@ -70,7 +80,7 @@
       </div>
       <div style="flex: 1; min-width: 0">
         <div style="font-size: 15px; font-weight: 600; color: #1B2A4A">Understand the system</div>
-        <div style="font-size: 12px; color: #64748B">How RC &amp; school work · Journey · Agencies</div>
+        <div style="font-size: 13px; color: #475569">Regional Center · School (IEP) · Transition &amp; 18</div>
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
     </div>
@@ -80,7 +90,7 @@
       </div>
       <div style="flex: 1; min-width: 0">
         <div style="font-size: 15px; font-weight: 600; color: #1B2A4A">Money &amp; benefits</div>
-        <div style="font-size: 12px; color: #64748B">RC funding · Expenses &amp; taxes · Insurance</div>
+        <div style="font-size: 13px; color: #475569">Diapers &amp; equipment · Respite money · Medi-Cal &amp; IHSS</div>
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
     </div>
@@ -92,7 +102,7 @@
       </div>
       <div style="flex: 1; min-width: 0">
         <div style="font-size: 15px; font-weight: 600; color: #1B2A4A">Teddy's records</div>
-        <div style="font-size: 12px; color: #64748B">Documents · IEP Hub · Health · Care team</div>
+        <div style="font-size: 13px; color: #475569">Documents · IEP Hub · Health · Care team</div>
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>
     </div>
@@ -100,14 +110,14 @@
       <div style="display: flex; align-items: center; min-height: 44px; border-bottom: 1px solid #EEF2F6">
         <div style="flex: 1">
           <div style="font-size: 14px; font-weight: 600; color: #1B2A4A">Documents &amp; IEP Hub</div>
-          <div style="font-size: 12px; color: #64748B">The IPP, the IEP, assessments — analyzed for you</div>
+          <div style="font-size: 13px; color: #475569">The IPP, the IEP, assessments — analyzed for you</div>
         </div>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
       </div>
       <div style="display: flex; align-items: center; min-height: 44px">
         <div style="flex: 1">
           <div style="font-size: 14px; font-weight: 600; color: #1B2A4A">Care team &amp; health</div>
-          <div style="font-size: 12px; color: #64748B">Providers, services, health records</div>
+          <div style="font-size: 13px; color: #475569">Providers, services, health records</div>
         </div>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
       </div>
@@ -119,14 +129,14 @@
       </div>
       <div style="flex: 1; min-width: 0">
         <div style="font-size: 15px; font-weight: 600; color: #1B2A4A">Everything else</div>
-        <div style="font-size: 12px; color: #64748B">Resources · Blog · Family · Insights · more</div>
+        <div style="font-size: 13px; color: #475569">Resources · Blog · Family · Insights · more</div>
       </div>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
     </div>
   </div>
 
   <div style="background: #EFF6FF; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #334155; margin-top: 8px">
-    <span style="font-weight: 700; color: #2563EB">A's prompts, B's calm.</span> The three action rows keep their teaching descriptions and live counts — always open, because they're the daily work. The four doors below open <b>in place</b> (Teddy's records shown expanded): no new screens, no scroll until you ask for it. Collapsed, the whole page fits one screen.
+    <span style="font-weight: 700; color: #2563EB">Revised after the 10-persona stress test.</span> Idiom labels renamed (Deadlines, Sent &amp; Received), badges now carry dates and direction, the "they said no" moment is claimed by the Letters row, Money speaks in needs (diapers, respite, Medi-Cal &amp; IHSS), descriptions bumped to 13.5px darker gray, child chips for multi-child families, and a privacy line up top. Stage-aware states (newcomer "start here", empty badges) are build behavior, not drawn here.
   </div>
 </div>
 </x-dc>
