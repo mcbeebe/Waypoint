@@ -194,6 +194,20 @@ For those: run **`/adversary`** first, put its memo in the PR, and wait for
 the owner. Approval is a person's, and is not delegable to an agent — nor to
 CI the same session wrote.
 
+**Scoped auto-merge grant (owner decision, Aug 30 2026).** The owner has
+explicitly delegated ONE lane back to the producing session: the **draft-flow
+initiative** (Home triage → the question sheet → the letter draft → send;
+`Roadmap/Draft-Flow-Plan.md`). For draft-flow PRs the session runs the gates,
+runs `/adversary`, posts the memo in the PR, and then **merges its own PR**
+without waiting — the owner's standing approval for that lane. This is the
+owner exercising the person's-approval requirement in advance for a bounded
+initiative, not the agent self-approving. It does **not** widen any other
+line above: money (`stripe-webhook`, entitlements), schema changes and
+migrations, the five Edge Functions, and anything leaving the desk still stop
+here and wait for the owner, even inside the draft flow. The grant is
+draft-flow-scoped; any other family-facing work reverts to the wait rule. The
+owner can widen (to all app code, or everything) or revoke it at any time.
+
 ### Initiatives
 
 Work spanning **≥3 PRs or ≥2 sessions, touching a deploy surface, or changing
