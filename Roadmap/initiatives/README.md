@@ -35,7 +35,8 @@ serve.
 |----|------------|--------|-----|-----------|
 | 001 | SDLC uplevel — real CI gates, honest standing instructions | Open | — | [intent](001-sdlc-uplevel/intent.md) |
 | 002 | Edge Function typechecking + lint warnings to zero | Open | — | [intent](002-lint-warnings-and-edge-functions/intent.md) |
-| 003 | The outbound loop (phase 7) — make the calm-state promise keepable | Open — plan for owner go | — | [intent](003-outbound-loop/intent.md) · [analysis](003-outbound-loop/analysis.md) · [plan](003-outbound-loop/plan.md) |
+| 003 | The outbound loop (phase 7) — make the calm-state promise keepable | Open — Lane A shipped (#135–36), Lane B foundation shipped (#137), server half (7B-3/7B-4) built for owner go | #135, #136, #137 | [intent](003-outbound-loop/intent.md) · [analysis](003-outbound-loop/analysis.md) · [plan](003-outbound-loop/plan.md) |
+| 004 | The Learn content engine (phase 8) — derive ~40 cited articles, a reader, SEO | Open — plan for owner go | — | [intent](004-learn-content-engine/intent.md) · [plan](004-learn-content-engine/plan.md) |
 
 ## Open decisions
 
