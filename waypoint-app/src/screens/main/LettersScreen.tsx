@@ -55,11 +55,17 @@ import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
-/** "Filled from your records" note (draft flow 9c), trilingual. */
-const RECORDS_NOTE: Record<'en' | 'es' | 'vi', (fields: string) => string> = {
-  en: (f) => `Filled from your records: ${f}. Tap to change any of these in your profile.`,
-  es: (f) => `Completado con sus datos: ${f}. Toque para cambiar cualquiera en su perfil.`,
-  vi: (f) => `Điền từ hồ sơ của quý vị: ${f}. Chạm để thay đổi bất kỳ mục nào trong hồ sơ.`,
+/**
+ * "Filled from your records" note (draft flow 9c), trilingual. Deliberately
+ * generic — the specific field labels live only in English in BLANK_FIELDS, so
+ * interpolating them here would splice English into a Spanish/Vietnamese
+ * sentence. This mirrors the mockup ("we filled these in from your records")
+ * and stays honest without a mixed-language list.
+ */
+const RECORDS_NOTE: Record<'en' | 'es' | 'vi', string> = {
+  en: 'We filled in the details we had from your records. Tap to change any of them in your profile.',
+  es: 'Completamos los datos que teníamos de su perfil. Toque para cambiar cualquiera en su perfil.',
+  vi: 'Chúng tôi đã điền các chi tiết có trong hồ sơ của quý vị. Chạm để thay đổi bất kỳ mục nào trong hồ sơ.',
 };
 
 /** Send-gate copy (draft flow 9c-2), trilingual like the rest of this flow. */
@@ -130,6 +136,8 @@ export default function LettersScreen() {
     if (match) {
       setTemplate(match);
       setDraft(null);
+      // New template → the previous draft's records note is no longer true.
+      setFilledFromRecords([]);
     }
     if (route.params?.question) {
       setQuestion(route.params.question);
@@ -152,6 +160,10 @@ export default function LettersScreen() {
     const saved = route.params?.draftBody;
     if (!saved) return;
     setDraft(saved);
+    // A reopened draft never went through fillKnownBlanks, so no records were
+    // filled for THIS text — clear any note left from a prior generated draft,
+    // or it would assert a false provenance over someone else's letter.
+    setFilledFromRecords([]);
     loggedDraftRef.current = saved; // already in the log — don't duplicate it
   }, [route.params?.draftBody]);
   const [tone, setTone] = useState<DraftTone>('professional');
@@ -594,13 +606,9 @@ export default function LettersScreen() {
                 style={styles.recordsNote}
                 onPress={() => (navigation as any).navigate('Home', { screen: 'Profile' })}
                 accessibilityRole="button"
-                accessibilityLabel={RECORDS_NOTE[funnelLocale](
-                  filledFromRecords.join(', ').toLowerCase()
-                )}
+                accessibilityLabel={RECORDS_NOTE[funnelLocale]}
               >
-                <Text style={styles.recordsNoteText}>
-                  {RECORDS_NOTE[funnelLocale](filledFromRecords.join(', ').toLowerCase())}
-                </Text>
+                <Text style={styles.recordsNoteText}>{RECORDS_NOTE[funnelLocale]}</Text>
               </TouchableOpacity>
             )}
             {(() => {
@@ -1021,6 +1029,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   recordsNoteText: { fontSize: fonts.sizes.sm, color: '#155E75', lineHeight: 18 },
   sendGateHint: {

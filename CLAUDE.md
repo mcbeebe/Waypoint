@@ -194,19 +194,29 @@ For those: run **`/adversary`** first, put its memo in the PR, and wait for
 the owner. Approval is a person's, and is not delegable to an agent — nor to
 CI the same session wrote.
 
-**Scoped auto-merge grant (owner decision, Aug 30 2026).** The owner has
-explicitly delegated ONE lane back to the producing session: the **draft-flow
-initiative** (Home triage → the question sheet → the letter draft → send;
-`Roadmap/Draft-Flow-Plan.md`). For draft-flow PRs the session runs the gates,
-runs `/adversary`, posts the memo in the PR, and then **merges its own PR**
-without waiting — the owner's standing approval for that lane. This is the
+**Scoped auto-merge grant (owner decision — a decision record, Aug 30 2026).**
+The owner has explicitly delegated ONE lane back to the producing session: the
+**draft-flow initiative** (Home triage → the question sheet → the letter draft
+→ send; `Roadmap/Draft-Flow-Plan.md`). For draft-flow PRs the session runs the
+gates, runs `/adversary`, posts the memo in the PR, and then **merges its own
+PR** without waiting — the owner's standing approval for that lane. This is the
 owner exercising the person's-approval requirement in advance for a bounded
-initiative, not the agent self-approving. It does **not** widen any other
-line above: money (`stripe-webhook`, entitlements), schema changes and
-migrations, the five Edge Functions, and anything leaving the desk still stop
-here and wait for the owner, even inside the draft flow. The grant is
-draft-flow-scoped; any other family-facing work reverts to the wait rule. The
-owner can widen (to all app code, or everything) or revoke it at any time.
+initiative, not the agent self-approving.
+
+Read it honestly for what it is: a **deliberate loosening of the first and
+strongest stop** — "anything a family sees or that changes advice, tone, or
+legal framing" — for this one lane, since the whole draft flow is family-facing,
+tone-bearing, legal-framing copy. The trade is velocity on a well-mocked,
+heavily-reviewed initiative; the `/adversary` pass stays mandatory precisely
+because the human gate is now standing rather than per-PR.
+
+It does **not** widen any other line: money (`stripe-webhook`, entitlements),
+schema changes and migrations, the five Edge Functions (so a draft-flow PR that
+also touches `functions/gmail` still waits — the narrower stop wins), and
+anything leaving the desk still stop here and wait for the owner, even inside
+the draft flow. The grant is draft-flow-scoped; any other family-facing work
+reverts to the wait rule. The owner can widen (to all app code, or everything)
+or revoke it at any time. This paragraph is the decision record for the grant.
 
 ### Initiatives
 
