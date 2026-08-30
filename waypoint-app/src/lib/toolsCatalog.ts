@@ -111,23 +111,9 @@ export function getToolDoors(locale: FunnelLocale = 'en'): ToolDoor[] {
       icon: 'compass-outline',
       tint: '#EDF0F7',
       color: '#1B2A4A',
+      // The "how the system works" guides (ProcessMap) live in the Learn tab
+      // now — removed here so a guide has one home (owner, Aug 30 2026).
       tools: [
-        {
-          key: 'process_rc',
-          label: L('How the Regional Center works', 'Cómo funciona el Centro Regional', 'Trung tâm Khu vực hoạt động thế nào'),
-          description: L('Every step, its legal deadline, and the letter that moves it', 'Cada paso, su plazo legal y la carta que lo impulsa', 'Từng bước, thời hạn pháp lý và lá thư thúc đẩy'),
-          icon: 'compass-outline',
-          route: { screen: 'ProcessMap', params: { system: 'rc' } },
-          searchTerms: ['regional center', 'ipp', 'lanterman', 'escalation', 'centro regional', 'trung tâm'],
-        },
-        {
-          key: 'process_school',
-          label: L('How the school system works', 'Cómo funciona el sistema escolar', 'Hệ thống trường học hoạt động thế nào'),
-          description: L('From evaluation to IEP to checking the data', 'De la evaluación al IEP y a revisar los datos', 'Từ đánh giá đến IEP và kiểm tra dữ liệu'),
-          icon: 'library-outline',
-          route: { screen: 'ProcessMap', params: { system: 'school' } },
-          searchTerms: ['school', 'iep', 'district', 'evaluation', '504', 'escuela', 'trường'],
-        },
         {
           key: 'eligibility',
           label: L('What your child likely qualifies for', 'Para qué probablemente califica su hijo/a', 'Con quý vị có thể đủ điều kiện gì'),
@@ -166,14 +152,8 @@ export function getToolDoors(locale: FunnelLocale = 'en'): ToolDoor[] {
           route: { screen: 'Reimbursables' },
           searchTerms: ['diapers', 'stroller', 'equipment', 'respite', 'camp', 'gear', 'reimburse', 'funding', 'pañales', 'equipo', 'tã', 'xe đẩy'],
         },
-        {
-          key: 'benefits_stack',
-          label: L('Medi-Cal, IHSS & the benefits stack', 'Medi-Cal, IHSS y la pila de beneficios', 'Medi-Cal, IHSS & các tầng trợ cấp'),
-          description: L('Each benefit unlocks the next — see which ones you have', 'Cada beneficio abre el siguiente — vea cuáles tiene', 'Mỗi trợ cấp mở tầng kế tiếp — xem quý vị có tầng nào'),
-          icon: 'layers-outline',
-          route: { screen: 'ResourceStack' },
-          searchTerms: ['medi-cal', 'medical', 'ihss', 'ssi', 'benefits', 'deeming', 'beneficios', 'trợ cấp'],
-        },
+        // The benefits-stack guide (ResourceStack) lives in the Learn tab now
+        // ("Money and benefits, layer by layer") — one home for a guide.
         {
           key: 'insurance',
           label: L('Insurance', 'Seguro médico', 'Bảo hiểm'),

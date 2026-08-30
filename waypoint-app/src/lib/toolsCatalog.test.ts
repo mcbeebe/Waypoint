@@ -90,8 +90,9 @@ describe('searchTools', () => {
     expect(searchTools('diapers').map((t) => t.key)).toContain('rc_funding');
     expect(searchTools('stroller').map((t) => t.key)).toContain('rc_funding');
     expect(searchTools('paper trail').map((t) => t.key)).toContain('sent_received');
-    // 'journey' left the Tools catalog when Journey became a bottom tab.
-    expect(searchTools('ihss').map((t) => t.key)).toContain('benefits_stack');
+    // 'journey' left the Tools catalog when Journey became a bottom tab, and
+    // the 'how it works' / benefits-stack guides moved to the Learn tab.
+    expect(searchTools('diapers').map((t) => t.key)).toContain('rc_funding');
   });
 
   it('is accent-insensitive and works in Spanish', () => {
