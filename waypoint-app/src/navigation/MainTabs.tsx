@@ -20,6 +20,7 @@ import NavigatorScreen from '@/screens/main/NavigatorScreen';
 import ActionsScreen from '@/screens/main/ActionsScreen';
 import CalendarScreen from '@/screens/main/CalendarScreen';
 import ProfileScreen from '@/screens/main/ProfileScreen';
+import NotificationSettingsScreen from '@/screens/main/NotificationSettingsScreen';
 import ActionDetailScreen from '@/screens/main/ActionDetailScreen';
 import InsightsScreen from '@/screens/main/InsightsScreen';
 import DocumentsScreen from '@/screens/main/DocumentsScreen';
@@ -317,6 +318,7 @@ const DESTINATION_SCREENS: Record<HomeDestination, ScreenSpec> = {
   // back button, and the tab a parent came from stays lit.
   Profile: { title: 'Profile & Settings', component: ProfileScreen },
   ProviderPortal: { title: 'Provider Portal', component: ProviderPortalScreen },
+  NotificationSettings: { title: 'Notifications', component: NotificationSettingsScreen },
 };
 
 const COMMUNITY_SCREENS: Record<(typeof COMMUNITY_DESTINATIONS)[number], ScreenSpec> = {

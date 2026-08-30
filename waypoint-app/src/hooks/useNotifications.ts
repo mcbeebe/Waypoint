@@ -14,8 +14,13 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Deadline } from '@/types/database';
+import { diffReminders, type ReminderSpec } from '@/lib/notificationPolicy';
 
 const NOTIFICATION_IDS_KEY = 'waypoint_notification_ids';
+/** key → scheduled-notification id, for the policy-driven outbound loop
+ *  (phase 7). Kept separate from the legacy deadline map above so the two
+ *  schedulers never fight over the same ids. */
+const REMINDER_MAP_KEY = 'waypoint_reminder_map';
 
 // ─── Configure notification behavior ────────────────────────────────────────
 
@@ -47,6 +52,10 @@ interface UseNotificationsReturn {
   cancelDeadlineReminders: (deadlineId: string) => Promise<void>;
   /** Schedule reminders for all active deadlines */
   scheduleAllReminders: (deadlines: Deadline[]) => Promise<void>;
+  /** Reconcile the device's scheduled reminders against a policy plan (phase 7
+   *  outbound loop). Cancels what the plan dropped, schedules what it added,
+   *  leaves matches untouched. */
+  syncReminders: (specs: ReminderSpec[]) => Promise<void>;
   /** Cancel all scheduled notifications */
   cancelAllReminders: () => Promise<void>;
 }
@@ -56,11 +65,14 @@ interface UseNotificationsReturn {
 export function useNotifications(): UseNotificationsReturn {
   const [hasPermission, setHasPermission] = useState(false);
   const mappingsRef = useRef<NotificationMapping[]>([]);
+  /** spec key → scheduled notification id (phase 7 outbound loop). */
+  const reminderMapRef = useRef<Record<string, string>>({});
 
   // Check current permission status on mount
   useEffect(() => {
     checkPermission();
     loadMappings();
+    loadReminderMap();
   }, []);
 
   async function checkPermission(): Promise<void> {
@@ -84,6 +96,23 @@ export function useNotifications(): UseNotificationsReturn {
       await AsyncStorage.setItem(NOTIFICATION_IDS_KEY, JSON.stringify(mappingsRef.current));
     } catch {
       console.warn('[Notifications] Failed to persist notification mappings');
+    }
+  }
+
+  async function loadReminderMap(): Promise<void> {
+    try {
+      const raw = await AsyncStorage.getItem(REMINDER_MAP_KEY);
+      if (raw) reminderMapRef.current = JSON.parse(raw);
+    } catch {
+      // Non-critical — reminders will re-sync on the next pass.
+    }
+  }
+
+  async function saveReminderMap(): Promise<void> {
+    try {
+      await AsyncStorage.setItem(REMINDER_MAP_KEY, JSON.stringify(reminderMapRef.current));
+    } catch {
+      console.warn('[Notifications] Failed to persist reminder map');
     }
   }
 
@@ -236,11 +265,58 @@ export function useNotifications(): UseNotificationsReturn {
     }
   }, [scheduleDeadlineReminders]);
 
+  /**
+   * Reconcile the device against a policy plan (phase 7 outbound loop). The
+   * plan (from `reminderPlan`) is the desired state; this makes the device
+   * match it by key, touching only the difference.
+   */
+  const syncReminders = useCallback(async (specs: ReminderSpec[]): Promise<void> => {
+    const map = reminderMapRef.current;
+    const { toCancel, toSchedule } = diffReminders(Object.keys(map), specs);
+
+    for (const key of toCancel) {
+      const id = map[key];
+      if (id) {
+        try {
+          await Notifications.cancelScheduledNotificationAsync(id);
+        } catch {
+          // Already fired or cancelled — safe to forget.
+        }
+      }
+      delete map[key];
+    }
+
+    for (const spec of toSchedule) {
+      const when = new Date(spec.fireAt);
+      // Guard: never hand expo a past date (a plan is only as fresh as its
+      // `now`; a slow render could leave a just-past instant in the set).
+      if (when.getTime() <= Date.now()) continue;
+      try {
+        const id = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: spec.title,
+            body: spec.body,
+            data: { ...spec.data, screen: 'Home' },
+            sound: true,
+          },
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: when },
+        });
+        map[spec.key] = id;
+      } catch (err) {
+        console.warn('[Notifications] Failed to schedule reminder:', spec.key, err);
+      }
+    }
+
+    await saveReminderMap();
+  }, []);
+
   /** Cancel all scheduled notifications */
   const cancelAllReminders = useCallback(async (): Promise<void> => {
     await Notifications.cancelAllScheduledNotificationsAsync();
     mappingsRef.current = [];
+    reminderMapRef.current = {};
     await saveMappings();
+    await saveReminderMap();
   }, []);
 
   return {
@@ -249,6 +325,7 @@ export function useNotifications(): UseNotificationsReturn {
     scheduleDeadlineReminders,
     cancelDeadlineReminders,
     scheduleAllReminders,
+    syncReminders,
     cancelAllReminders,
   };
 }

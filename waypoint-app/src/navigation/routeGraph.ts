@@ -41,6 +41,7 @@ export const HOME_DESTINATIONS = [
   'Insights', 'Documents', 'DocumentAnalysis', 'IEPHub', 'Letters',
   'EmailAnalyzer', 'CommunicationLog', 'Providers', 'Services', 'Insurance',
   'HealthRecords', 'FamilySharing', 'Profile', 'ProviderPortal',
+  'NotificationSettings',
 ] as const;
 
 /** Behind the community flag; registered only when it is on. */

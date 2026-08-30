@@ -342,6 +342,18 @@ describe('calm is earned, and says which quiet this is', () => {
     expect(calm.calm?.body).not.toContain('will tell you');
   });
 
+  it('restores the promise once notifications are enabled (phase 7)', () => {
+    const clock = req({ request_type: 'rc_assessment', requested_on: '2026-08-25' });
+    const calm = triageHome(
+      base({ requests: [clock], rcStatus: 'known', hasDiagnosis: false, notificationsEnabled: true })
+    );
+    expect(calm.item).toBeNull();
+    // Now the loop can keep it, so the calm state makes the promise.
+    expect(calm.calm?.body).toContain('will tell you');
+    expect(calm.calm?.body).toContain('close the app');
+    expect(calm.calm?.body).not.toContain('Check back');
+  });
+
   it('refuses to call it calm when the records could not be read', () => {
     const failed = triageHome(base({ dataFailed: true, rcStatus: 'known', hasDiagnosis: false }));
     expect(failed.calm?.kind).toBe('unavailable');

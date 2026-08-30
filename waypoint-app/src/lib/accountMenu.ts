@@ -31,6 +31,12 @@ export function accountMenuItems(locale: FunnelLocale = 'en'): AccountMenuItem[]
       screen: 'Profile',
     },
     {
+      key: 'notifications',
+      icon: 'notifications-outline',
+      label: L('Notifications', 'Notificaciones', 'Thông báo'),
+      screen: 'NotificationSettings',
+    },
+    {
       key: 'family',
       icon: 'people-outline',
       label: L('Family sharing', 'Compartir en familia', 'Chia sẻ với gia đình'),
