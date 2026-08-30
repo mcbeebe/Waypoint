@@ -36,7 +36,7 @@ import { useTriage } from '@/hooks/useTriage';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useNotificationPrefs } from '@/hooks/useNotificationPrefs';
 import { reminderPlan, fmtDate } from '@/lib/notificationPolicy';
-import { registerPushToken } from '@/lib/pushTokens';
+import { registerPushToken, unregisterPushToken } from '@/lib/pushTokens';
 import NotificationPrimingSheet from '@/components/NotificationPrimingSheet';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import OneThingCard, { LaterList } from '@/components/OneThingCard';
@@ -168,12 +168,17 @@ function HomeScreenInner({
   );
   const remindersOn = notifPrefs.enabled && hasPermission;
 
-  // Register this device's Expo push token once permission is granted, so the
-  // server-side reply-push sender (Lane B) can reach it. Idempotent + safe: it
-  // no-ops on web/simulator and when the EAS projectId isn't configured.
+  // Keep this device's server push registration in step with consent (Lane B).
+  // The token's presence IS the consent signal (the master toggle lives only
+  // on-device, invisible to the server), so register when reminders are on and
+  // REMOVE the token when a family with OS permission turns them off in-app —
+  // otherwise the server would keep pushing after an opt-out. Both no-op safely
+  // on web/simulator / without an EAS projectId.
   useEffect(() => {
-    if (hasPermission && family?.id) void registerPushToken(family.id);
-  }, [hasPermission, family?.id]);
+    if (!notifPrefsLoaded || !family?.id) return;
+    if (remindersOn) void registerPushToken();
+    else if (hasPermission) void unregisterPushToken();
+  }, [notifPrefsLoaded, remindersOn, hasPermission, family?.id]);
   // The calm-state promise is a DEADLINE promise ("if <date> passes"), backed
   // by the request-clock reminders — which are gated on the deadlines category.
   // So only make the promise when that category is on, not merely the master.

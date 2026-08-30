@@ -61,6 +61,58 @@ drop trigger if exists set_updated_at on public.push_tokens;
 create trigger set_updated_at before update on public.push_tokens
   for each row execute function public.handle_updated_at();
 
+-- ── Registration RPCs (SECURITY DEFINER) ─────────────────────────────────────
+-- Why not a plain client upsert: a physical device maps to EXACTLY ONE family
+-- at a time, but the same Expo token reappears when the device changes hands
+-- (resold, handed down, a shared household/clinic tablet). A client upsert
+-- can't clear another family's prior claim on that token — RLS forbids it — so
+-- the stale row would survive and the server sender would keep delivering the
+-- PREVIOUS family's private reply pushes to the new holder. For a
+-- disability-services app that is a confidential-correspondence leak between
+-- vulnerable families. These definer functions clear any prior owner of the
+-- token before claiming it, and derive the family from auth.uid() SERVER-SIDE
+-- so a client can never register a token under a family it doesn't own.
+
+create or replace function public.register_push_token(p_token text, p_platform text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  fam uuid;
+begin
+  select id into fam from public.families where user_id = auth.uid() limit 1;
+  if fam is null then
+    return; -- no owned family (e.g. a co-parent) — nothing to register
+  end if;
+  -- One family per device: drop any prior owner of this exact token first.
+  delete from public.push_tokens where expo_token = p_token;
+  insert into public.push_tokens (family_id, expo_token, platform, user_id)
+  values (
+    fam,
+    p_token,
+    case when p_platform in ('ios', 'android', 'web') then p_platform else null end,
+    auth.uid()
+  );
+end;
+$$;
+
+-- Turning notifications off in-app must stop server pushes, but the app's
+-- master toggle lives in on-device storage the server can't see — so the
+-- token's PRESENCE is the consent signal. Removing it on opt-out (and on
+-- sign-out) is how a family withdraws consent for app-closed pushes.
+create or replace function public.unregister_push_token(p_token text)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  delete from public.push_tokens where expo_token = p_token;
+end;
+$$;
+
 -- ── 2. communications.notified_at ────────────────────────────────────────────
 alter table public.communications
   add column if not exists notified_at timestamptz;
@@ -68,7 +120,9 @@ alter table public.communications
 comment on column public.communications.notified_at is
   'When a reply push was sent for this incoming message — fire exactly once (phase 7 Lane B).';
 
--- Partial index the cron sender scans: unnotified incoming replies only.
+-- Partial index the global cron sender scans: unnotified incoming replies,
+-- newest first. Keyed on occurred_at (not family_id) because the poll sweeps
+-- across all families and wants the recent ones.
 create index if not exists communications_unnotified_incoming_idx
-  on public.communications (family_id)
+  on public.communications (occurred_at desc)
   where direction = 'incoming' and notified_at is null;
