@@ -79,6 +79,16 @@ which adds little over Lane A's reconcile.)
 tone-correct push; dedupe holds across runs; owner has hand-applied 050 and
 approved the Edge Function deploy.
 
+**Status (Aug 30 2026): 7B-1/7B-2 shipped (#137, migration 050 applied);
+7B-3/7B-4 BUILT, awaiting owner deploy.** The sender (`push-send`) and the
+cron poller (`poll-replies`) are written with the pure selection/copy brain in
+`src/lib/replyPush.ts` (tested; the Deno `_shared/replyPush.ts` mirror is
+drift-guarded). Migrations 051 (push_tokens.locale) and 052 (pg_cron/pg_net
+schedule) are ready to hand-apply. Owner actions to go live: deploy the two
+functions, set `OUTBOUND_CRON_SECRET` (function) + the matching Vault secrets
+(`project_url`, `outbound_cron_secret`), add `expo.extra.eas.projectId` to
+`app.json`, then apply 051 → 052.
+
 ## Sequence
 
 `intent → analysis → plan (this) → [owner scope go]` →

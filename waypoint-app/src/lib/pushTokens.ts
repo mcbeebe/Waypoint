@@ -56,8 +56,12 @@ async function currentToken(): Promise<string | null> {
  * Register (or refresh) this device's push token for the caller's family. The
  * RPC clears any prior owner of the token first, so a hand-me-down device never
  * keeps delivering the previous family's pushes.
+ *
+ * `locale` is the app language this device is showing, stored on the token so
+ * the server-side reply sender writes the push in the family's own language
+ * (there is no server-readable language preference otherwise). Defaults to 'en'.
  */
-export async function registerPushToken(): Promise<RegisterResult> {
+export async function registerPushToken(locale?: string): Promise<RegisterResult> {
   if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
     return { ok: false, reason: 'unsupported_platform' };
   }
@@ -69,6 +73,7 @@ export async function registerPushToken(): Promise<RegisterResult> {
   const { error } = await supabase.rpc('register_push_token', {
     p_token: token,
     p_platform: platform,
+    p_locale: locale ?? 'en',
   });
   if (error) {
     console.warn('[pushTokens] register failed:', error.message);

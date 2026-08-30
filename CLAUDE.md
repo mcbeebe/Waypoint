@@ -28,9 +28,10 @@ WayPoint/
 │   │   ├── hooks/              # useAuth.ts (Supabase session management)
 │   │   └── types/              # database.ts (schema types), navigation.ts
 │   ├── supabase/
-│   │   ├── migrations/         # 47 sequential SQL files — APPLIED BY HAND
-│   │   └── functions/          # 5 Edge Functions: ai-proxy, gmail, google-auth,
-│   │                           #   delete-account, stripe-webhook (Deno)
+│   │   ├── migrations/         # 52 sequential SQL files — APPLIED BY HAND
+│   │   └── functions/          # 7 Edge Functions: ai-proxy, gmail, google-auth,
+│   │                           #   delete-account, stripe-webhook, push-send,
+│   │                           #   poll-replies (Deno) + _shared/ (phase 7 Lane B)
 │   ├── qa/                     # promptRegression.golden.json — 78-case golden set
 │   └── scripts/                # prompt-regression.mjs, build-pending-migrations.mjs
 │
@@ -107,7 +108,7 @@ npm run build:web   # expo export + postbuild — NOT run in CI
   Code that assumes an unapplied migration ships a silently broken feature —
   this has already happened once (`e0bdcdd`, "Fix empty calendar when
   migration 029 hasn't been applied").
-- **The five Edge Functions are excluded from `tsconfig.json`** and have no
+- **The seven Edge Functions are excluded from `tsconfig.json`** and have no
   tests, yet `deploy-edge-functions.yml` ships them to the production project
   on merge to `main`. Treat every change there as unverified by CI.
 - **`npm test` runs two suites.** `logic` (`*.test.ts`, node) covers the pure
@@ -186,7 +187,7 @@ mechanical changes, and it stays. But it does **not** extend to:
 - anything a family sees or that changes advice, tone, or legal framing;
 - anything touching money (`stripe-webhook`, entitlements);
 - schema changes and migrations;
-- the five Edge Functions (no CI covers them);
+- the seven Edge Functions (no CI covers them);
 - anything leaving the desk — the DDS/vendorization packet, payer-facing
   letters, App Store submission.
 
@@ -211,7 +212,7 @@ heavily-reviewed initiative; the `/adversary` pass stays mandatory precisely
 because the human gate is now standing rather than per-PR.
 
 It does **not** widen any other line: money (`stripe-webhook`, entitlements),
-schema changes and migrations, the five Edge Functions (so a draft-flow PR that
+schema changes and migrations, the seven Edge Functions (so a draft-flow PR that
 also touches `functions/gmail` still waits — the narrower stop wins), and
 anything leaving the desk still stop here and wait for the owner, even inside
 the draft flow. The grant is draft-flow-scoped; any other family-facing work
