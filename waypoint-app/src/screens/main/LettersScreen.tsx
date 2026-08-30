@@ -207,6 +207,10 @@ export default function LettersScreen() {
     // knows, fill it in rather than making the parent type it again.
     const { text, filled } = fillKnownBlanks(result.draft, letterProfile);
     setDraft(text);
+    // A regenerated draft is not the one that was sent — drop any prior
+    // send confirmation so it can't linger over new, unsent text.
+    setMarkedSent(false);
+    setSentMoment(null);
     // Persistent note above the draft instead of a vanishing toast — a parent
     // reviewing the letter later can still see what came from their records.
     setFilledFromRecords(filled);
@@ -727,7 +731,11 @@ export default function LettersScreen() {
             {/* Saving a draft and confirming it went out are different acts —
                 the paper trail should reflect which one happened */}
             <View style={styles.trackBox}>
-              {markedSent && sentMoment ? (
+              {/* The confirmation — and its "logged in your paper trail" claim
+                  — only holds while the draft on screen is still the sent one.
+                  Edit or regenerate after sending and this correctly hides,
+                  rather than asserting a record for text that was never saved. */}
+              {markedSent && sentMoment && loggedDraftRef.current === draft ? (
                 <View style={styles.sentMoment}>
                   <Text style={styles.sentCelebration}>🎉 {sentMoment.next.celebration}</Text>
                   <Text style={styles.sentDid}>{sentMoment.next.did}</Text>
@@ -738,6 +746,18 @@ export default function LettersScreen() {
                       </Text>
                     </View>
                   )}
+                  {/* The third artifact of a send: it's on the record. The clock
+                      (above) and the case (the tracker link below) are the other
+                      two — all three visible in one glance (draft flow 9d). */}
+                  <View style={styles.sentTrailChip}>
+                    <Text style={styles.sentTrailText}>
+                      📁 {locale === 'es'
+                        ? 'Guardada en su expediente — con fecha y hora'
+                        : locale === 'vi'
+                          ? 'Đã lưu vào hồ sơ của quý vị — có ngày giờ'
+                          : "Logged in your paper trail — dated and time-stamped"}
+                    </Text>
+                  </View>
                   <Text style={styles.sentSection}>
                     {locale === 'es' ? 'QUÉ SIGUE AHORA' : locale === 'vi' ? 'ĐIỀU GÌ DIỄN RA TIẾP THEO' : 'WHAT HAPPENS NOW'}
                   </Text>
@@ -772,8 +792,30 @@ export default function LettersScreen() {
                         ? `Không có hồi âm sau ${sentMoment.next.followUpDays} ngày? Hãy quay lại — thư nhắc chỉ cần một chạm.`
                         : `Hear nothing in ${sentMoment.next.followUpDays} days? Come back — the follow-up letter is one tap.`}
                   </Text>
+                  {/* Close the loop the card opened: one tap back to Home. */}
+                  <TouchableOpacity
+                    style={styles.sentDoneButton}
+                    onPress={() => {
+                      // Reset explicitly, don't rely on the pop to unmount —
+                      // so returning to Letters never resurfaces a stale letter.
+                      reset();
+                      (navigation as any).navigate('HomeMain');
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      locale === 'es'
+                        ? 'Listo — volver al inicio'
+                        : locale === 'vi'
+                          ? 'Xong — quay lại Trang chính'
+                          : 'Done — back to Home'
+                    }
+                  >
+                    <Text style={styles.sentDoneButtonText}>
+                      {locale === 'es' ? 'Listo' : locale === 'vi' ? 'Xong' : 'Done'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
-              ) : markedSent ? (
+              ) : markedSent && loggedDraftRef.current === draft ? (
                 <Text style={styles.trackSent}>
                   ✅ Marked as sent — it's in your paper trail
                 </Text>
@@ -1056,6 +1098,14 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   sentClockText: { color: '#92600A', fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
+  sentTrailChip: {
+    backgroundColor: '#E6F7F1',
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  sentTrailText: { color: '#0E7A56', fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
   sentSection: {
     marginTop: spacing.xs,
     fontSize: fonts.sizes.xs,
@@ -1077,6 +1127,17 @@ const styles = StyleSheet.create({
   },
   sentTrackButtonText: { color: colors.white, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.sm },
   sentFollowUp: { fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18 },
+  sentDoneButton: {
+    marginTop: spacing.sm,
+    minHeight: 44,
+    borderRadius: radii.md,
+    backgroundColor: colors.navy,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // White on navy (#FFFFFF on #1B2A4A ≈ 12:1) — clears WCAG AA, unlike the
+  // teal-on-white it replaced (3.68:1).
+  sentDoneButtonText: { color: colors.white, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.base },
   trackBox: {
     backgroundColor: colors.white,
     borderWidth: 1,
