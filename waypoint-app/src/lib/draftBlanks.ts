@@ -98,7 +98,12 @@ export const BLANK_FIELDS: BlankField[] = [
 ];
 
 /** Any bracketed token, e.g. "[school name]" — kept short to avoid matching prose. */
-const BRACKET_RE = /\[([^\]\n]{1,60})\]/g;
+// Any single-line bracketed placeholder, with NO upper length cap: a long
+// descriptive fill like "[Describe the specific limitations …]" is still a
+// blank, and the send gate must catch it (a 60-char cap once let long
+// placeholders through as "no blanks left" → a letter sent with the
+// instruction still in it). Bounded by the next "]" or newline either way.
+const BRACKET_RE = /\[([^\]\n]+)\]/g;
 
 function valueFor(profile: LetterProfile, key: LetterProfileKey): string | null {
   const raw = profile[key];
@@ -189,4 +194,32 @@ export function missingLetterFields(profile: LetterProfile): BlankField[] {
   return BLANK_FIELDS.filter(
     (f) => NUDGE_KEYS.includes(f.key) && !valueFor(profile, f.key)
   );
+}
+
+export interface SendReadiness {
+  /** Distinct bracket blanks still in the draft. */
+  blanksLeft: number;
+  /** No saved recipient to send to. */
+  needsRecipient: boolean;
+  /**
+   * Ready to fire a DIRECT, immediate send (Gmail). False keeps a letter with
+   * "[DATE]" or "[SERVICE]" still in it from going to an agency unedited — the
+   * "Send turns on when it's ready" gate (draft flow phase 9c). Copy and the
+   * open-in-mail path stay available so the parent can finish elsewhere.
+   */
+  canSend: boolean;
+}
+
+/** Whether a draft can be sent directly, and why not. Pure, so it is tested. */
+export function sendReadiness(
+  draft: string,
+  profile: LetterProfile,
+  hasRecipient: boolean
+): SendReadiness {
+  const blanksLeft = analyzeBlanks(draft, profile).remaining.length;
+  return {
+    blanksLeft,
+    needsRecipient: !hasRecipient,
+    canSend: blanksLeft === 0 && hasRecipient,
+  };
 }
