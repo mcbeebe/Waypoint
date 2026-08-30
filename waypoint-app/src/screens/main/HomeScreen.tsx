@@ -1,9 +1,14 @@
 /**
- * Home dashboard screen — ported from GAS MVP renderHome()
- * Shows: greeting, child age badge, progress summary, quick actions
+ * Home (Roadmap/Home-Rebuild-Plan.md phase 6) — reduced to exactly four things:
+ * a greeting, the One Thing card (the single highest-priority next step), a
+ * composer that opens the AI Navigator, and one status line saying what was
+ * checked. Everything the old dashboard stacked here now lives on its own tab —
+ * agenda and progress on Plan, the toolbox on Tools, Agencies and Journey one
+ * tap inside Tools, Profile behind the avatar. The draft flow's engine lives in
+ * useDraftFlow; this screen renders the sheet and reading overlay it drives.
  */
 
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -21,14 +26,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
-import CheckInCard from '@/components/CheckInCard';
-import ProfileCompletionCard from '@/components/ProfileCompletionCard';
-import TodayCard from '@/components/TodayCard';
 import { useAppointments } from '@/hooks/useAppointments';
-import { buildAgenda, type AgendaScope } from '@/lib/agenda';
-import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import { useDeadlines } from '@/hooks/useDeadlines';
-import { useExpenses } from '@/hooks/useExpenses';
 import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/components/ChildPicker';
 import { useRequests } from '@/hooks/useRequests';
 import { useCommunications } from '@/hooks/useCommunications';
@@ -36,22 +35,14 @@ import { useTriage } from '@/hooks/useTriage';
 import OneThingCard, { LaterList } from '@/components/OneThingCard';
 import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
-import { draftHandoff } from '@/lib/draftHandoff';
-import { analyzeEmail } from '@/lib/letters';
-import type { LetterProfile } from '@/lib/draftBlanks';
-import type { RequestType } from '@/lib/requestClocks';
+import { useDraftFlow } from '@/hooks/useDraftFlow';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
 import { FLAGS } from '@/lib/flags';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
-import { announce, percentageLabel } from '@/lib/accessibility';
-import PinnedTools from '@/components/PinnedTools';
 import AccountMenu from '@/components/AccountMenu';
-import { useToolPins } from '@/hooks/useToolPins';
-import { getAllTools } from '@/lib/toolsCatalog';
-import { lookupRC } from '@/data/regionalCenters';
 import type { RcStatus, IepStatus } from '@/types/database';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
 
@@ -67,15 +58,18 @@ const ACCOUNT_HINT: Record<FunnelLocale, string> = {
   vi: 'Mở cài đặt, chia sẻ gia đình, tài liệu và gói đăng ký của quý vị',
 };
 
-/** The one door to the whole toolbox — it must not be the only English string. */
-const ALL_TOOLS_LABEL: Record<FunnelLocale, string> = {
-  en: 'All tools',
-  es: 'Todas las herramientas',
-  vi: 'Tất cả công cụ',
+/** The composer's placeholder and its screen-reader label — the one
+ *  always-there door to the AI Navigator, so it must be fully trilingual. */
+const COMPOSER_PLACEHOLDER: Record<FunnelLocale, string> = {
+  en: 'Ask Waypoint anything…',
+  es: 'Pregúntele lo que sea a Waypoint…',
+  vi: 'Hỏi Waypoint bất cứ điều gì…',
 };
-
-/** Remembers "Everything" vs "Waypoint only" between visits */
-const AGENDA_SCOPE_KEY = 'waypoint_agenda_scope';
+const COMPOSER_LABEL: Record<FunnelLocale, string> = {
+  en: 'Ask the AI Navigator a question',
+  es: 'Hágale una pregunta al Navegador con IA',
+  vi: 'Hỏi Trợ lý AI một câu hỏi',
+};
 
 /** Get time-based greeting (ported from GAS MVP) */
 function getGreeting(): string {
@@ -84,37 +78,6 @@ function getGreeting(): string {
   if (hour < 17) return 'Good afternoon';
   return 'Good evening';
 }
-
-/** Calculate age from DOB */
-function getAgeDisplay(dob: string | null): { display: string; band: string } | null {
-  if (!dob) return null;
-  const birth = new Date(dob);
-  const now = new Date();
-  let years = now.getFullYear() - birth.getFullYear();
-  let months = now.getMonth() - birth.getMonth();
-  if (months < 0) { years--; months += 12; }
-
-  const display = years > 0
-    ? `${years}y ${months}m`
-    : `${months}m`;
-
-  let band = 'Early Start (0-2)';
-  if (years >= 13) band = 'Transition (13-17)';
-  else if (years >= 6) band = 'School Age (6-12)';
-  else if (years >= 3) band = 'Preschool (3-5)';
-
-  return { display, band };
-}
-
-/** Rotating empathy messages (from GAS MVP) */
-const EMPATHY_MESSAGES = [
-  "You're doing an incredible job advocating for your child.",
-  "Every step you take makes a difference for your family.",
-  "You don't have to figure it all out today. One step at a time.",
-  "Your child is lucky to have such a dedicated advocate.",
-  "The path isn't always clear, but you're not walking it alone.",
-  "Remember: knowing your rights is your superpower.",
-];
 
 export default function HomeScreen() {
   const { family } = useFamily();
@@ -135,24 +98,19 @@ function HomeScreenInner({
   updateChild: ReturnType<typeof useChildren>['updateChild'];
 }) {
   const navigation = useNavigation();
-  const [empathyIndex, setEmpathyIndex] = useState(0);
   /** Honest failure surface for the card's own writes. */
   const [notice, setNotice] = useState<string | null>(null);
   const { selectedChild } = useSelectedChild();
 
   const primaryChild = selectedChild;
-  const age = primaryChild ? getAgeDisplay(primaryChild.date_of_birth) : null;
 
-  // Live data from actions + deadlines + expenses
+  // Live actions — triage evidence (task #34). Their load/error state feeds the
+  // calm gate: a slow or failed actions fetch must not read as "nothing needs
+  // you today".
   const {
     actions,
-    stats,
-    // Actions became triage evidence (task #34), so their load/error state now
-    // has to feed the calm gate — a slow or failed actions fetch must not read
-    // as "nothing needs you today".
     loading: actionsLoading,
     error: actionsError,
-    refetch: refetchActions,
   } = useActions({ familyId: family?.id ?? '' });
   const { diagnoses } = useDiagnoses(primaryChild?.id);
   const { locale } = useI18n();
@@ -168,26 +126,13 @@ function HomeScreenInner({
     error: commsError,
     refetch: refetchComms,
   } = useCommunications(family?.id ?? '');
-  const toolKeys = useMemo(() => getAllTools('en').map((t) => t.key), []);
-  const toolPins = useToolPins(family?.id, toolKeys, funnelLocale);
-  // Rendered beside the tiles, not inside the child-card block the other
-  // notice lives in — a family with no child record would never have seen it.
-  const [toolNotice, setToolNotice] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const sayToolNotice = (message: string) => {
-    setToolNotice(message);
-    announce(message);
-  };
   const { deadlines, loading: deadlinesLoading, error: deadlinesError } = useDeadlines({
     familyId: family?.id ?? '',
   });
-  const { summary: expenseSummary } = useExpenses({ familyId: family?.id ?? '' });
 
-  const activeActions = actions.filter((a) => a.status === 'in_progress');
-  const completionPct = stats?.completion_rate ?? 0;
-
-  // Today & week at a glance — the next seven days of appointments, read
-  // alongside the open actions and deadlines this screen already loads
+  // Appointments feed the triage ladder (a same-day appointment can lead) — the
+  // next seven days, read alongside the actions and deadlines already loaded.
   const agendaRange = useMemo(() => {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
@@ -257,37 +202,25 @@ function HomeScreenInner({
     (navigation as any).navigate(action.screen, action.params);
   };
 
-  // The draft flow (phase 9b). Everything the app already knows that letters
-  // ask for; the questions only read childFirstName today, but the handoff to
-  // the Letters screen fills the rest.
-  const letterProfile: LetterProfile = useMemo(
-    () => ({
-      parentFirstName: family?.parent_first_name,
-      parentLastName: family?.parent_last_name,
-      email: family?.email,
-      phone: family?.phone,
-      childFirstName: primaryChild?.first_name,
-      childGrade: primaryChild?.grade,
-      schoolName: primaryChild?.school_name,
-      schoolDistrict: family?.school_district,
-      regionalCenter: family?.regional_center,
-      insurance: family?.insurance_carrier,
-    }),
-    [family, primaryChild]
-  );
-  // The open sheet, with the owning request's type resolved AT OPEN TIME — so a
-  // requests refetch between opening and "Write my letter" can't swap the letter
-  // out from under the parent.
-  const [draft, setDraft] = useState<{
-    item: TriageItem;
-    requestType: RequestType | null;
-    aiSummary?: string;
-  } | null>(null);
-  // While Waypoint reads a reply (9e) before opening the sheet.
-  const [readingReply, setReadingReply] = useState(false);
-  // Bumped on every open (and on cancel) so a slow/timed-out analysis that
-  // resolves late can't pop a stale sheet after the parent moved on.
-  const draftFlowToken = useRef(0);
+  // The draft flow (Roadmap/Draft-Flow-Plan.md phases 9a–9e) — its whole engine
+  // lives in this hook now; Home just renders the sheet and overlay it drives.
+  const {
+    draft,
+    closeDraft,
+    readingReply,
+    letterProfile,
+    openDraftFlow,
+    cancelReadingReply,
+    onDraftComplete,
+  } = useDraftFlow({
+    family,
+    primaryChild,
+    familyRequests,
+    communications,
+    locale: funnelLocale,
+    navigate: (screen, params) => (navigation as any).navigate(screen, params),
+    onNotice: setNotice,
+  });
 
   const actOnItem = (item: TriageItem) => {
     void markActed(item.id);
@@ -297,79 +230,6 @@ function HomeScreenInner({
       return;
     }
     followAction(item.action);
-  };
-
-  /**
-   * Open the question sheet. For a reply (9e), let the AI READ the reply first
-   * and show its reading in the sheet, so the parent answers "what did they
-   * say?" from what the reply actually said. The AI does NOT pre-pick the
-   * answer — classifying a denial into a legal-routing chip from the model's
-   * localized prose isn't reliable (it would fail silently for es/vi and
-   * misfire in English), and a wrong "they said no" routes to a formal notice.
-   * No consent / a failed or slow read just opens the manual sheet.
-   */
-  const openDraftFlow = async (item: TriageItem) => {
-    const token = ++draftFlowToken.current;
-    const reqId = item.action.params?.requestId;
-    const requestType: RequestType | null =
-      (reqId && familyRequests.find((r) => r.id === reqId)?.request_type) || null;
-    const replyId = item.action.params?.replyId;
-    const reply =
-      item.cls === 'reply' && replyId ? communications.find((c) => c.id === replyId) : null;
-
-    if (reply?.body && family?.ai_consent_at) {
-      setReadingReply(true);
-      try {
-        // Bounded: a stalled network must never trap the parent behind the
-        // reading overlay — after 8s we just open the manual sheet.
-        const timeout = new Promise<{ analysis: null; error?: string }>((resolve) =>
-          setTimeout(() => resolve({ analysis: null, error: 'timeout' }), 8000)
-        );
-        const { analysis, error } = await Promise.race([
-          analyzeEmail(reply.body, funnelLocale),
-          timeout,
-        ]);
-        if (token !== draftFlowToken.current) return; // cancelled or superseded
-        if (error && error.toLowerCase().includes('limit')) {
-          setNotice(error); // surface the daily-AI-cap message
-        }
-        if (analysis) {
-          setDraft({ item, requestType, aiSummary: analysis.summary });
-          return;
-        }
-      } catch {
-        /* fall through to the manual sheet */
-      } finally {
-        setReadingReply(false);
-      }
-      if (token !== draftFlowToken.current) return;
-    }
-    setDraft({ item, requestType });
-  };
-
-  /** Dismiss the reading overlay and abandon the in-flight analysis. */
-  const cancelReadingReply = () => {
-    draftFlowToken.current++;
-    setReadingReply(false);
-  };
-
-  // Sheet complete: turn the answers into a prefilled Letters draft.
-  const onDraftComplete = (answers: Record<string, string>) => {
-    const d = draft;
-    setDraft(null);
-    if (!d) return;
-    const h = draftHandoff(d.item, answers, {
-      requestType: d.requestType,
-      profile: letterProfile,
-      locale: funnelLocale,
-    });
-    (navigation as any).navigate('Letters', {
-      template: h.template,
-      question: h.question,
-      guidance: h.guidance,
-      tone: h.tone,
-      requestId: h.requestId,
-    });
   };
 
   // Answering a question card writes the answer straight to the child, so the
@@ -402,39 +262,6 @@ function HomeScreenInner({
     if (!ok) setNotice("Couldn't set that aside — it will be here next time.");
   };
 
-  // Remembered so the parent isn't re-choosing this every morning
-  const [agendaScope, setAgendaScope] = useState<AgendaScope>('all');
-  useEffect(() => {
-    AsyncStorage.getItem(AGENDA_SCOPE_KEY)
-      .then((v) => { if (v === 'waypoint' || v === 'all') setAgendaScope(v); })
-      .catch(() => {});
-  }, []);
-  const changeAgendaScope = (next: AgendaScope) => {
-    setAgendaScope(next);
-    AsyncStorage.setItem(AGENDA_SCOPE_KEY, next).catch(() => {});
-  };
-
-  const agenda = useMemo(
-    () =>
-      buildAgenda({
-        actions,
-        appointments: agendaAppointments,
-        deadlines,
-        now: new Date(),
-        scope: agendaScope,
-      }),
-    [actions, agendaAppointments, deadlines, agendaScope]
-  );
-
-  useEffect(() => {
-    setEmpathyIndex(Math.floor(Math.random() * EMPATHY_MESSAGES.length));
-  }, []);
-
-  const rc = useMemo(
-    () => (family?.zip_code ? lookupRC(family.zip_code) : null),
-    [family?.zip_code]
-  );
-
   // Post-onboarding reveal: open the eligibility result once (B1 — onboarding
   // ends in an answer; it links onward to the Journey Map), then clear the flag
   useEffect(() => {
@@ -450,8 +277,6 @@ function HomeScreenInner({
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* First-visit feature tour — self-hides after completion (AsyncStorage) */}
-      <OnboardingTutorial onComplete={() => {}} />
       {/* Profile left the tab bar in phase 5; everything it held lives here. */}
       <AccountMenu
         visible={menuOpen}
@@ -468,7 +293,7 @@ function HomeScreenInner({
         profile={letterProfile}
         locale={funnelLocale}
         aiSummary={draft?.aiSummary}
-        onClose={() => setDraft(null)}
+        onClose={closeDraft}
         onComplete={onDraftComplete}
       />
       {/* 9e: a brief, honest wait while Waypoint reads the reply before the
@@ -524,24 +349,12 @@ function HomeScreenInner({
           </TouchableOpacity>
         </View>
 
-        {/* Child + Age Badge */}
-        {primaryChild && (
-          <View style={styles.childCard}>
-            <Text style={styles.childName}>
-              {primaryChild.first_name}'s Dashboard
-            </Text>
-            {age && (
-              <View style={styles.ageBadge}>
-                <Text style={styles.ageValue}>{age.display}</Text>
-                <Text style={styles.ageBand}>{age.band}</Text>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* The One Thing — the highest rung that is true right now, with the
-            sensor line saying what was actually checked, and everything set
-            aside listed below with the day it comes back. */}
+        {/* The One Thing — the highest rung that is true right now; the
+            composer beneath it; one status line saying what was checked; and
+            everything set aside listed below with the day it comes back.
+            Phase 6 reduced Home to exactly this: greeting → card → composer →
+            status line. Every card that used to stack here now lives on its
+            own tab — Plan (agenda, progress), Tools, Agencies, Journey. */}
         {FLAGS.newHome && (
           <>
             <OneThingCard
@@ -558,6 +371,20 @@ function HomeScreenInner({
                 {notice}
               </Text>
             )}
+            {/* The composer — the one always-there door to the AI Navigator,
+                so a parent can ask anything without leaving Home first. */}
+            <TouchableOpacity
+              style={styles.composer}
+              onPress={() => (navigation as any).navigate('Navigator')}
+              accessibilityRole="button"
+              accessibilityLabel={COMPOSER_LABEL[funnelLocale]}
+            >
+              <Ionicons name="search" size={18} color={colors.mid} />
+              <Text style={styles.composerText} numberOfLines={1}>
+                {COMPOSER_PLACEHOLDER[funnelLocale]}
+              </Text>
+              <Ionicons name="mic-outline" size={20} color={colors.teal} />
+            </TouchableOpacity>
             <SensorLine sensor={triage.sensor} />
             <LaterList
               later={triage.later}
@@ -571,252 +398,15 @@ function HomeScreenInner({
             />
           </>
         )}
-
-        {/* What's on deck today, and the week ahead */}
-        {family?.id && (
-          <TodayCard
-            agenda={agenda}
-            childName={primaryChild?.first_name}
-            scope={agendaScope}
-            onChangeScope={changeAgendaScope}
-            onOpenAction={(actionId) =>
-              // `initial: false` puts the Actions LIST beneath the detail
-              // screen. Without it the detail becomes the whole stack, and
-              // both Back and the Actions tab have nowhere to go.
-              (navigation as any).navigate('Tracker', {
-                screen: 'ActionDetail',
-                params: { actionId },
-                initial: false,
-              })
-            }
-            onOpenCalendar={() => (navigation as any).navigate('Calendar')}
-            onOpenActions={() => (navigation as any).navigate('Tracker')}
-          />
-        )}
-
-        {/* Empathy Message */}
-        <View
-          style={styles.empathyCard}
-          accessible={true}
-          accessibilityRole="text"
-          accessibilityLabel={`Encouragement: ${EMPATHY_MESSAGES[empathyIndex]}`}
-        >
-          <Text style={styles.empathyText}>
-            {EMPATHY_MESSAGES[empathyIndex]}
-          </Text>
-        </View>
-
-        {/* Finish-your-profile nudge: the details letters keep bracketing */}
-        {family?.id && (
-          <ProfileCompletionCard
-            profile={{
-              parentLastName: family.parent_last_name,
-              phone: family.phone,
-              schoolName: primaryChild?.school_name,
-              childGrade: primaryChild?.grade,
-            }}
-            onOpenProfile={() => (navigation as never as { navigate: (n: string) => void }).navigate('Profile')}
-          />
-        )}
-
-        {/* Check-in + frustration deep-dive (wave 2 adaptive engine) */}
-        {family?.id && (
-          <CheckInCard
-            familyId={family.id}
-            childId={primaryChild?.id ?? null}
-            childName={primaryChild?.first_name}
-            parentName={family.parent_first_name}
-            regionalCenterName={family.regional_center}
-            diagnoses={diagnoses.map((d) => d.name)}
-            onActionsAdded={refetchActions}
-          />
-        )}
-
-        {/* Progress Summary — live data */}
-        <View style={styles.progressCard}>
-          <Text style={styles.progressTitle}>Your Action Plan</Text>
-          <View style={styles.progressRow}>
-            <View
-              style={styles.progressRing}
-              accessible={true}
-              accessibilityRole="text"
-              accessibilityLabel={percentageLabel(completionPct, 'of action items complete')}
-            >
-              <Text style={[styles.progressNumber, completionPct > 0 && { color: colors.sage }]}>
-                {Math.round(completionPct)}%
-              </Text>
-              <Text style={styles.progressLabel}>complete</Text>
-            </View>
-            <View style={styles.progressStats}>
-              <StatRow count={stats?.in_progress_count ?? 0} label="In Progress" color={colors.teal} />
-              <StatRow count={stats?.not_started_count ?? 0} label="To Do" color="#94A3B8" />
-              <StatRow count={stats?.completed_count ?? 0} label="Completed" color={colors.sage} />
-            </View>
-          </View>
-          {activeActions.length > 0 && (
-            <View style={styles.activeSection}>
-              <Text style={styles.activeLabel}>Currently working on:</Text>
-              {activeActions.slice(0, 2).map((a) => (
-                <View key={a.id} style={styles.activeItem}>
-                  <Text style={styles.activeItemDot}>◐</Text>
-                  <Text style={styles.activeItemText} numberOfLines={1}>{a.title}</Text>
-                </View>
-              ))}
-              {activeActions.length > 2 && (
-                <Text style={styles.activeMore}>+{activeActions.length - 2} more</Text>
-              )}
-            </View>
-          )}
-          {stats?.total_actions === 0 && (
-            <Text style={styles.progressHint}>
-              Your personalized action plan will appear here after you chat with the AI Navigator.
-            </Text>
-          )}
-          <TouchableOpacity
-            style={styles.ctaButton}
-            onPress={() => (navigation as any).navigate(stats?.total_actions ? 'Tracker' : 'Navigator')}
-            accessibilityRole="button"
-          >
-            <Text style={styles.ctaText}>
-              {stats?.total_actions ? 'View Actions' : 'Ask AI Navigator'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Financial Summary Widget */}
-        <Text style={styles.sectionTitle}>Financial Snapshot</Text>
-        <View style={styles.financeCard}>
-          <View style={styles.financeRow}>
-            <View style={styles.financeItem}>
-              <Text style={styles.financeValue}>${expenseSummary.monthlyTotal.toFixed(0)}</Text>
-              <Text style={styles.financeLabel}>This Month</Text>
-            </View>
-            <View style={styles.financeItem}>
-              <Text style={[styles.financeValue, { color: '#F59E0B' }]}>
-                ${expenseSummary.totalReimbursementPending.toFixed(0)}
-              </Text>
-              <Text style={styles.financeLabel}>Pending</Text>
-            </View>
-            <View style={styles.financeItem}>
-              <Text style={[styles.financeValue, { color: '#10B981' }]}>
-                ${expenseSummary.totalAmount.toFixed(0)}
-              </Text>
-              <Text style={styles.financeLabel}>YTD Total</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Journey Map link */}
-        <TouchableOpacity
-          style={styles.journeyCard}
-          onPress={() => (navigation as any).navigate('Journey')}
-          accessibilityRole="button"
-          accessibilityLabel="Open your journey map"
-        >
-          <Ionicons name="map-outline" size={22} color={colors.white} style={styles.journeyIcon} />
-          <View style={styles.journeyText}>
-            <Text style={styles.journeyTitle}>Your Journey Map</Text>
-            <Text style={styles.journeySubtitle}>See where you are and what comes next</Text>
-          </View>
-          <Text style={styles.journeyChevron}>›</Text>
-        </TouchableOpacity>
-
-        {/* Regional Center card */}
-        {rc && (
-          <TouchableOpacity
-            style={styles.rcCard}
-            onPress={() => (navigation as any).navigate('Agencies')}
-            accessibilityRole="button"
-            accessibilityLabel={`Your Regional Center: ${rc.name}. Open agency directory.`}
-          >
-            <Text style={styles.rcLabel}>YOUR REGIONAL CENTER</Text>
-            <Text style={styles.rcName}>{rc.name}</Text>
-            {/* The phone number actually dials (20-persona audit: the most
-                valuable real-world action on the page failed at the last inch) */}
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation?.();
-                Linking.openURL(`tel:${rc.phone.replace(/[^\d+]/g, '')}`).catch(() => {});
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={`Call ${rc.name} at ${rc.phone}`}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Text style={styles.rcPhone}>📞 {rc.phone} · Tap to call</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        )}
-
-        {/* Tools became a place (phase 4): Home shows the tiles this family
-            pinned, and the whole toolbox is one tap behind them. */}
-        <PinnedTools pins={toolPins} locale={funnelLocale} onNotice={sayToolNotice} />
-        {!!toolNotice && (
-          <Text style={styles.notice} accessibilityRole="alert">
-            {toolNotice}
-          </Text>
-        )}
-        <TouchableOpacity
-          style={styles.allTools}
-          onPress={() => (navigation as any).navigate('Tools')}
-          accessibilityRole="button"
-          accessibilityLabel={ALL_TOOLS_LABEL[funnelLocale]}
-        >
-          <Text style={styles.allToolsText}>{ALL_TOOLS_LABEL[funnelLocale]} ›</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-/** Small stat row for progress card */
-function StatRow({ count, label, color }: { count: number; label: string; color: string }) {
-  return (
-    <View style={styles.statRow}>
-      <View style={[styles.statDot, { backgroundColor: color }]} />
-      <Text style={styles.statValue}>{count}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
+
 const styles = StyleSheet.create({
-  allTools: {
-    minHeight: 44,
-    justifyContent: 'center',
-    marginBottom: spacing.base,
-  },
-  allToolsText: {
-    color: colors.teal,
-    fontSize: fonts.sizes.base,
-    fontWeight: fonts.weights.bold,
-  },
-  notice: {
-    fontSize: fonts.sizes.sm,
-    color: semantic.warning,
-    backgroundColor: semantic.warningBg,
-    borderRadius: radii.sm,
-    padding: spacing.sm,
-    marginBottom: spacing.base,
-  },
-  readingScrim: {
-    flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  readingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    paddingVertical: spacing.base,
-    paddingHorizontal: spacing.lg,
-    maxWidth: 300,
-  },
-  readingText: { fontSize: fonts.sizes.base, color: colors.navy, fontWeight: fonts.weights.semibold, flexShrink: 1 },
   container: {
     flex: 1,
     backgroundColor: '#F8FAFB',
@@ -857,291 +447,53 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
     color: colors.white,
   },
-  childCard: {
-    backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+  // The composer sits directly under the One Thing card: a search-bar shape
+  // that opens the AI Navigator. Reads as a place to type, not a button.
+  composer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  childName: {
-    fontSize: fonts.sizes.lg,
-    fontWeight: fonts.weights.semibold as '600',
-    color: colors.navy,
-    flex: 1,
-  },
-  ageBadge: {
-    backgroundColor: '#E6F7F5',
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    alignItems: 'center',
-  },
-  ageValue: {
-    fontSize: fonts.sizes.md,
-    fontWeight: fonts.weights.bold as '700',
-    color: colors.teal,
-  },
-  ageBand: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-  },
-  empathyCard: {
-    backgroundColor: '#FFF7ED',
-    borderRadius: radii.lg,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.coral,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  empathyText: {
-    fontSize: fonts.sizes.sm,
-    color: colors.dark,
-    fontStyle: 'italic',
-    lineHeight: 20,
-  },
-  progressCard: {
+    gap: spacing.sm,
+    minHeight: 48,
     backgroundColor: colors.white,
     borderRadius: radii.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  progressTitle: {
-    fontSize: fonts.sizes.lg,
-    fontWeight: fonts.weights.semibold as '600',
-    color: colors.navy,
-    marginBottom: spacing.md,
-  },
-  progressRing: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 4,
+    borderWidth: 1,
     borderColor: colors.border,
+    paddingHorizontal: spacing.base,
+    marginBottom: spacing.md,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  composerText: {
+    flex: 1,
+    fontSize: fonts.sizes.base,
+    color: colors.mid,
+  },
+  notice: {
+    fontSize: fonts.sizes.sm,
+    color: semantic.warning,
+    backgroundColor: semantic.warningBg,
+    borderRadius: radii.sm,
+    padding: spacing.sm,
+    marginBottom: spacing.base,
+  },
+  readingScrim: {
+    flex: 1,
+    backgroundColor: 'rgba(15,23,42,0.35)',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.md,
   },
-  progressNumber: {
-    fontSize: fonts.sizes['2xl'],
-    fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
-  },
-  progressLabel: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-  },
-  progressRow: {
+  readingCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%' as const,
-    marginBottom: spacing.md,
-  },
-  progressStats: {
-    flex: 1,
-    gap: 6,
-  },
-  statRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  statValue: {
-    fontSize: fonts.sizes.sm,
-    fontWeight: fonts.weights.semibold as '600',
-    color: colors.dark,
-    width: 20,
-  },
-  statLabel: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-  },
-  activeSection: {
-    width: '100%' as const,
-    marginBottom: spacing.md,
-  },
-  activeLabel: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-    marginBottom: 4,
-    fontWeight: fonts.weights.medium as '500',
-  },
-  activeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
-  activeItemDot: {
-    fontSize: 12,
-    color: colors.teal,
-  },
-  activeItemText: {
-    fontSize: fonts.sizes.xs,
-    color: colors.dark,
-    flex: 1,
-  },
-  activeMore: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-    fontStyle: 'italic' as const,
-  },
-  progressHint: {
-    fontSize: fonts.sizes.sm,
-    color: colors.mid,
-    textAlign: 'center',
-    marginBottom: spacing.md,
-    lineHeight: 20,
-  },
-  ctaButton: {
-    backgroundColor: colors.teal,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.xl,
+    gap: spacing.sm,
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
     paddingVertical: spacing.base,
+    paddingHorizontal: spacing.lg,
+    maxWidth: 300,
   },
-  ctaText: {
-    fontSize: fonts.sizes.md,
-    fontWeight: fonts.weights.semibold as '600',
-    color: colors.white,
-  },
-  sectionTitle: {
-    fontSize: fonts.sizes.lg,
-    fontWeight: fonts.weights.semibold as '600',
-    color: colors.navy,
-    marginBottom: spacing.md,
-  },
-  toolTile: {
-    // 4 tiles per row: 4 × 23% + 3 gaps ≈ 100%
-    flexBasis: '23%',
-    flexGrow: 1,
-    maxWidth: '24%',
-    backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xs,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  quickAction: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  journeyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.navy,
-    borderRadius: radii.lg,
-    padding: spacing.base,
-    marginBottom: spacing.md,
-  },
-  journeyIcon: {
-    marginRight: spacing.md,
-  },
-  journeyText: {
-    flex: 1,
-  },
-  journeyTitle: {
-    color: colors.white,
-    fontSize: fonts.sizes.md,
-    fontWeight: fonts.weights.bold as '700',
-  },
-  journeySubtitle: {
-    color: '#9FB3C8',
-    fontSize: fonts.sizes.sm,
-    marginTop: 1,
-  },
-  journeyChevron: {
-    color: colors.white,
-    fontSize: 22,
-    marginLeft: spacing.sm,
-  },
-  rcCard: {
-    backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    padding: spacing.base,
-    marginBottom: spacing.md,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.teal,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  rcLabel: {
-    fontSize: 10,
-    fontWeight: fonts.weights.bold as '700',
-    color: colors.mid,
-    letterSpacing: 0.6,
-    marginBottom: 2,
-  },
-  rcName: {
-    fontSize: fonts.sizes.md,
-    fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
-  },
-  rcPhone: {
-    fontSize: fonts.sizes.sm,
-    color: colors.teal,
-    fontWeight: fonts.weights.medium as '500',
-    marginTop: 2,
-  },
-  financeCard: {
-    backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  financeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  financeItem: {
-    alignItems: 'center',
-  },
-  financeValue: {
-    fontSize: fonts.sizes.lg,
-    fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
-  },
-  financeLabel: {
-    fontSize: 10,
-    color: colors.mid,
-    marginTop: 2,
-  },
+  readingText: { fontSize: fonts.sizes.base, color: colors.navy, fontWeight: fonts.weights.semibold, flexShrink: 1 },
 });
