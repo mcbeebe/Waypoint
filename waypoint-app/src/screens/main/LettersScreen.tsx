@@ -55,12 +55,38 @@ import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
+/** Send-gate copy (draft flow 9c-2), trilingual like the rest of this flow. */
+const SEND_GATE: Record<
+  'en' | 'es' | 'vi',
+  { toast: string; a11y: (n: number) => string; hint: (n: number) => string }
+> = {
+  en: {
+    toast: 'Fill the blanks in the draft first — then send.',
+    a11y: (n) => `Fill the ${n} blank${n === 1 ? '' : 's'} above, then send through Gmail`,
+    hint: (n) =>
+      `Fill the ${n} blank${n === 1 ? '' : 's'} above — then Send turns on. You can still Copy or open it in your mail app to finish there.`,
+  },
+  es: {
+    toast: 'Complete los espacios del borrador primero — luego envíe.',
+    a11y: (n) => `Complete ${n} espacio${n === 1 ? '' : 's'} arriba, luego envíe por Gmail`,
+    hint: (n) =>
+      `Complete ${n} espacio${n === 1 ? '' : 's'} arriba — luego se activa Enviar. Aún puede Copiar o abrirlo en su correo para terminar ahí.`,
+  },
+  vi: {
+    toast: 'Hãy điền các chỗ trống trong bản nháp trước — rồi gửi.',
+    a11y: (n) => `Điền ${n} chỗ trống ở trên, rồi gửi qua Gmail`,
+    hint: (n) =>
+      `Điền ${n} chỗ trống ở trên — rồi nút Gửi sẽ bật. Quý vị vẫn có thể Sao chép hoặc mở trong ứng dụng email để hoàn tất.`,
+  },
+};
+
 export default function LettersScreen() {
   const { family, updateFamily } = useFamily();
   const { children, updateChild } = useChildren(family?.id);
   const { contacts } = useContacts(family?.id);
   const { showToast } = useToast();
   const { locale } = useI18n();
+  const sendGate = SEND_GATE[toFunnelLocale(locale)];
   const route = useRoute<RouteProp<HomeStackParamList, 'Letters'>>();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const hasAIConsent = !!family?.ai_consent_at;
@@ -376,7 +402,7 @@ export default function LettersScreen() {
     // Defense in depth — the button is disabled while blanks remain, but never
     // send "[DATE]" straight to an agency even if that guard is bypassed.
     if (!sendReadiness(draft, letterProfile, true).canSend) {
-      showToast('Fill the blanks in the draft first — then send.', 'error');
+      showToast(sendGate.toast, 'error');
       return;
     }
     setGmailSending(true);
@@ -403,7 +429,7 @@ export default function LettersScreen() {
     } finally {
       setGmailSending(false);
     }
-  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile]);
+  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate]);
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
@@ -644,7 +670,7 @@ export default function LettersScreen() {
                   accessibilityState={{ disabled: gmailSending || blanksLeft > 0 }}
                   accessibilityLabel={
                     blanksLeft > 0
-                      ? `Fill the ${blanksLeft} blank${blanksLeft === 1 ? '' : 's'} above, then send through Gmail`
+                      ? sendGate.a11y(blanksLeft)
                       : 'Send this letter now through your connected Gmail'
                   }
                 >
@@ -656,12 +682,7 @@ export default function LettersScreen() {
                     </Text>
                   )}
                 </TouchableOpacity>
-                {blanksLeft > 0 && (
-                  <Text style={styles.sendGateHint}>
-                    Fill the {blanksLeft} blank{blanksLeft === 1 ? '' : 's'} above — then Send turns on.
-                    You can still Copy or open it in your mail app to finish there.
-                  </Text>
-                )}
+                {blanksLeft > 0 && <Text style={styles.sendGateHint}>{sendGate.hint(blanksLeft)}</Text>}
               </>
             )}
             <View style={styles.actionRow}>

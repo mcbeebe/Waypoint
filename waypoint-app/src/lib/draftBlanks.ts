@@ -98,7 +98,12 @@ export const BLANK_FIELDS: BlankField[] = [
 ];
 
 /** Any bracketed token, e.g. "[school name]" — kept short to avoid matching prose. */
-const BRACKET_RE = /\[([^\]\n]{1,60})\]/g;
+// Any single-line bracketed placeholder, with NO upper length cap: a long
+// descriptive fill like "[Describe the specific limitations …]" is still a
+// blank, and the send gate must catch it (a 60-char cap once let long
+// placeholders through as "no blanks left" → a letter sent with the
+// instruction still in it). Bounded by the next "]" or newline either way.
+const BRACKET_RE = /\[([^\]\n]+)\]/g;
 
 function valueFor(profile: LetterProfile, key: LetterProfileKey): string | null {
   const raw = profile[key];

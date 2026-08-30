@@ -137,6 +137,14 @@ describe('sendReadiness — the "Send turns on when it is ready" gate', () => {
     expect(r.canSend).toBe(false);
   });
 
+  it('a long descriptive placeholder is still a blank — no length cap lets it slip through', () => {
+    const longFill =
+      'Dear team, my child needs help [Describe your child\'s specific functional limitations and how the denied service directly addresses each one in detail]. Thank you.';
+    const r = sendReadiness(longFill, {}, true);
+    expect(r.blanksLeft).toBe(1);
+    expect(r.canSend).toBe(false);
+  });
+
   it('a blank that the profile can fill is no longer a blank', () => {
     // "[Child First Name]" resolves from the profile, so it is not left in the draft.
     const filled = fillKnownBlanks('Hello, this is about [Child First Name].', { childFirstName: 'Sofia' });
