@@ -21,6 +21,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { localDay } from '@/lib/homeTriage';
+import { activeUntil, classifyWrite, isMissingSchema, reconcile } from '@/lib/syncState';
 
 const LOCAL_KEY = 'waypoint.home.deferrals';
 
@@ -35,17 +36,12 @@ interface StoredDeferral {
 }
 
 /**
- * True when the failure is migration 048 not being applied yet. Deliberately
- * the same shape as `isMissingRequestIdColumn` (useCommunications) and
- * `noteIfRecurrenceMissing` (useAppointments) — one vocabulary for one class
- * of failure, so a permission error can never be read as a missing table.
+ * True when the failure is migration 048 not being applied yet. The rule
+ * itself lives in `lib/syncState.ts`, where it is tested — including the case
+ * that matters most, an RLS denial that must NOT be read as a missing table.
  */
 export function isMissingDeferralsTable(message: string | undefined): boolean {
-  if (!message) return false;
-  return (
-    /home_deferrals/.test(message) &&
-    /does not exist|schema cache|could not find/i.test(message)
-  );
+  return isMissingSchema(message, 'home_deferrals');
 }
 
 async function readLocal(): Promise<Record<string, StoredDeferral>> {
@@ -63,11 +59,13 @@ async function readLocal(): Promise<Record<string, StoredDeferral>> {
   }
 }
 
-async function writeLocal(rows: Record<string, StoredDeferral>): Promise<void> {
+/** Reports failure rather than swallowing it: a skip saved nowhere is not a skip. */
+async function writeLocal(rows: Record<string, StoredDeferral>): Promise<boolean> {
   try {
     await AsyncStorage.setItem(LOCAL_KEY, JSON.stringify(rows));
+    return true;
   } catch {
-    /* a failed cache write is reported by the caller, not thrown */
+    return false;
   }
 }
 
@@ -111,8 +109,8 @@ export function useDeferrals(familyId: string | undefined): UseDeferrals {
       return;
     }
     setLoading(true);
+    const today = localDay(new Date());
     if (!tableMissing.current) {
-      const today = localDay(new Date());
       const { data, error } = await supabase
         .from('home_deferrals')
         .select('item_id, returns_on, title')
@@ -120,23 +118,28 @@ export function useDeferrals(familyId: string | undefined): UseDeferrals {
         // downloading every deferral the family ever made, forever.
         .gte('returns_on', today)
         .eq('family_id', familyId);
-      if (!error) {
-        const map: Record<string, StoredDeferral> = {};
-        for (const row of (data ?? []) as {
-          item_id: string;
-          returns_on: string;
-          title: string | null;
-        }[]) {
-          map[row.item_id] = { returnsOn: row.returns_on, title: row.title };
-        }
-        // The table exists now. Anything set aside on this device before the
-        // migration landed would otherwise reappear all at once, so move it
-        // up and clear the device copy.
-        const local = await readLocal();
-        const orphans = Object.entries(local).filter(([id]) => !(id in map));
-        if (orphans.length) {
+      if (!error || !isMissingDeferralsTable(error.message)) {
+        const remote = error
+          ? null
+          : Object.fromEntries(
+              ((data ?? []) as { item_id: string; returns_on: string; title: string | null }[]).map(
+                (r) => [r.item_id, { returnsOn: r.returns_on, title: r.title }]
+              )
+            );
+        // What survives a read, and which store it came from, is decided in
+        // lib/syncState.ts — including the rule that a failed read is not
+        // proof of an empty list.
+        const state = reconcile<StoredDeferral>({
+          remote,
+          local: activeUntil(await readLocal(), today),
+          schemaMissing: false,
+        });
+        const hoisted = Object.entries(state.hoist);
+        if (hoisted.length) {
+          // Set aside on this device before the migration landed; without
+          // this they all reappear at once the first time the read works.
           const { error: upErr } = await supabase.from('home_deferrals').upsert(
-            orphans.map(([item_id, v]) => ({
+            hoisted.map(([item_id, v]) => ({
               family_id: familyId,
               item_id,
               returns_on: v.returnsOn,
@@ -144,44 +147,25 @@ export function useDeferrals(familyId: string | undefined): UseDeferrals {
             })),
             { onConflict: 'family_id,item_id' }
           );
-          if (!upErr) {
-            for (const [id, v] of orphans) if (v.returnsOn >= today) map[id] = v;
+          if (!upErr && state.clearLocal) {
             await AsyncStorage.removeItem(LOCAL_KEY).catch(() => {});
           }
         }
-        apply(map);
-        setShared(true);
-        setLoading(false);
-        return;
-      }
-      if (!isMissingDeferralsTable(error.message)) {
-        // A read that failed is not proof that nothing was set aside. Fall
-        // back to whatever this device knows and say the scope is local, so
-        // the card cannot claim a family-wide list it could not load.
-        apply(await readLocal());
-        setShared(false);
+        apply(state.rows);
+        setShared(state.backend === 'family');
         setLoading(false);
         return;
       }
       tableMissing.current = true;
     }
     setShared(false);
-    apply(await readLocal());
+    apply(activeUntil(await readLocal(), today));
     setLoading(false);
   }, [familyId, apply]);
 
   useEffect(() => {
     void fetchDeferrals();
   }, [fetchDeferrals]);
-
-  const persistLocal = useCallback(
-    async (next: Record<string, StoredDeferral>) => {
-      await writeLocal(next);
-      setShared(false);
-      return true;
-    },
-    []
-  );
 
   const defer = useCallback(
     async (itemId: string, returnsOn: string, title?: string) => {
@@ -190,7 +174,12 @@ export function useDeferrals(familyId: string | undefined): UseDeferrals {
       // below if nothing could be written.
       const next = { ...before, [itemId]: { returnsOn, title: title ?? null } };
       apply(next);
-      if (!familyId) return persistLocal(next);
+      if (!familyId) {
+        const ok = await writeLocal(next);
+        if (!ok) apply(before);
+        setShared(false);
+        return ok;
+      }
       if (!tableMissing.current) {
         const { data: auth } = await supabase.auth.getUser();
         const { error } = await supabase.from('home_deferrals').upsert(
@@ -203,20 +192,33 @@ export function useDeferrals(familyId: string | undefined): UseDeferrals {
           },
           { onConflict: 'family_id,item_id' }
         );
-        if (!error) return true;
-        if (isMissingDeferralsTable(error.message)) tableMissing.current = true;
-      }
-      // Any other failure — offline, RLS, a bad row — still gets written
-      // here so the skip survives the session, and `shared` drops so the
-      // card stops claiming the family can see it.
-      try {
-        return await persistLocal(rowsRef.current);
-      } catch {
+        const localSaved = error ? await writeLocal(rowsRef.current) : false;
+        const { result, schemaMissing } = classifyWrite({
+          remoteAttempted: true,
+          remoteError: error?.message ?? null,
+          localSaved,
+          object: 'home_deferrals',
+        });
+        if (schemaMissing) tableMissing.current = true;
+        if (result.kind === 'family') return true;
+        if (result.kind === 'device') {
+          setShared(false);
+          return true;
+        }
+        // Saved nowhere: the optimistic update has to go back, or the card
+        // shows a skip that will not survive the session.
         apply(before);
         return false;
       }
+      const savedLocally = await writeLocal(next);
+      if (!savedLocally) {
+        apply(before);
+        return false;
+      }
+      setShared(false);
+      return true;
     },
-    [familyId, apply, persistLocal]
+    [familyId, apply]
   );
 
   const undo = useCallback(
@@ -225,24 +227,43 @@ export function useDeferrals(familyId: string | undefined): UseDeferrals {
       const next = { ...before };
       delete next[itemId];
       apply(next);
-      if (!familyId) return persistLocal(next);
+      if (!familyId) {
+        const ok = await writeLocal(next);
+        if (!ok) apply(before);
+        setShared(false);
+        return ok;
+      }
       if (!tableMissing.current) {
         const { error } = await supabase
           .from('home_deferrals')
           .delete()
           .eq('family_id', familyId)
           .eq('item_id', itemId);
-        if (!error) return true;
-        if (isMissingDeferralsTable(error.message)) tableMissing.current = true;
-      }
-      try {
-        return await persistLocal(rowsRef.current);
-      } catch {
+        const localSaved = error ? await writeLocal(rowsRef.current) : false;
+        const { result, schemaMissing } = classifyWrite({
+          remoteAttempted: true,
+          remoteError: error?.message ?? null,
+          localSaved,
+          object: 'home_deferrals',
+        });
+        if (schemaMissing) tableMissing.current = true;
+        if (result.kind === 'family') return true;
+        if (result.kind === 'device') {
+          setShared(false);
+          return true;
+        }
         apply(before);
         return false;
       }
+      const savedLocally = await writeLocal(next);
+      if (!savedLocally) {
+        apply(before);
+        return false;
+      }
+      setShared(false);
+      return true;
     },
-    [familyId, apply, persistLocal]
+    [familyId, apply]
   );
 
   const deferrals: DeferralMap = {};
