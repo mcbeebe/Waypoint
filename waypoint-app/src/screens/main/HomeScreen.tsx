@@ -136,7 +136,16 @@ function HomeScreenInner({
   const age = primaryChild ? getAgeDisplay(primaryChild.date_of_birth) : null;
 
   // Live data from actions + deadlines + expenses
-  const { actions, stats, refetch: refetchActions } = useActions({ familyId: family?.id ?? '' });
+  const {
+    actions,
+    stats,
+    // Actions became triage evidence (task #34), so their load/error state now
+    // has to feed the calm gate — a slow or failed actions fetch must not read
+    // as "nothing needs you today".
+    loading: actionsLoading,
+    error: actionsError,
+    refetch: refetchActions,
+  } = useActions({ familyId: family?.id ?? '' });
   const { diagnoses } = useDiagnoses(primaryChild?.id);
   const { locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
@@ -214,9 +223,10 @@ function HomeScreenInner({
     // agenda already renders so an overdue action can reach the card.
     actions,
     // An empty list because a fetch is in flight — or failed — is not
-    // evidence that nothing needs the family today.
-    loading: requestsLoading || commsLoading || deadlinesLoading,
-    dataFailed: !!(requestsError || commsError || deadlinesError),
+    // evidence that nothing needs the family today. Actions are in this gate
+    // now that the ladder reads them (task #34).
+    loading: requestsLoading || commsLoading || deadlinesLoading || actionsLoading,
+    dataFailed: !!(requestsError || commsError || deadlinesError || actionsError),
     onRepliesSynced: refetchComms,
   });
 

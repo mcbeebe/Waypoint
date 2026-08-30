@@ -520,6 +520,10 @@ function actionItems(
       (new Date(`${a.dueOn}T12:00:00`).getTime() - new Date(`${today}T12:00:00`).getTime()) /
         MS_PER_DAY
     );
+    // A malformed date yields NaN; never let that fall through and misclassify
+    // the action as "due today". (The date column makes this unreachable, but
+    // the card must not assert a due date it couldn't parse.)
+    if (Number.isNaN(days)) continue;
     // Overdue or due today only. A future action is Plan-tab work, not the
     // one thing for today.
     if (days > 0) continue;

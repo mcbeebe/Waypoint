@@ -293,7 +293,10 @@ export function answersToRequest(
   const parts: string[] = [];
   for (const q of questions) {
     if (q.id === 'tone') continue;
-    const value = answers[q.id];
+    // Fall back to the question's own suggested value, symmetric with
+    // toneFromAnswers: a parent who accepts the pre-selected chips and submits
+    // must still produce a real request, never an empty one sent to the AI.
+    const value = answers[q.id] ?? q.suggested;
     if (!value) continue;
     if (q.id === 'heard_back') {
       const s = HEARD_BACK_SENTENCE[value];

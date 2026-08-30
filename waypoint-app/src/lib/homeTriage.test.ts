@@ -266,6 +266,12 @@ describe('the ladder can see plan actions (task #34)', () => {
     expect(r.calm?.kind).toBe('clear');
   });
 
+  it('a malformed due date is dropped, never asserted as "due today"', () => {
+    const r = triageHome(base({ ...calmBase, actions: [action({ dueOn: 'not-a-date' })] }));
+    expect(r.calm?.kind).toBe('clear');
+    expect(r.queue.some((i) => i.id.includes('action'))).toBe(false);
+  });
+
   it('completed and dismissed actions are invisible, matching the agenda', () => {
     const r = triageHome(base({
       ...calmBase,

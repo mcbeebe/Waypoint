@@ -100,6 +100,21 @@ describe('rule 3 — every answer changes the letter', () => {
     expect(req.length).toBeGreaterThan(answersToRequest(qs, { heard_back: 'nothing' }).length);
   });
 
+  it('accepting the pre-selected defaults still produces a real request, never empty', () => {
+    // The sheet pre-selects each question's `suggested` chip; a parent who taps
+    // straight through submits {} (or only a tone). answersToRequest must fall
+    // back to those defaults, symmetric with toneFromAnswers — never feed the AI
+    // an empty situation.
+    const overdue = questionsFor(item('overdue'), PROFILE, 'en');
+    expect(answersToRequest(overdue, {}).length).toBeGreaterThan(0);
+    expect(answersToRequest(overdue, { tone: 'warm' }).length).toBeGreaterThan(0);
+    // And it equals explicitly choosing the suggested chip.
+    expect(answersToRequest(overdue, {})).toBe(answersToRequest(overdue, { heard_back: 'nothing' }));
+
+    const reply = questionsFor(item('reply'), PROFILE, 'en');
+    expect(answersToRequest(reply, {}).length).toBeGreaterThan(0);
+  });
+
   it('the tone answer never leaks into the request string', () => {
     const qs = questionsFor(item('overdue'), PROFILE, 'en');
     const req = answersToRequest(qs, { heard_back: 'nothing', tone: 'strong' });
