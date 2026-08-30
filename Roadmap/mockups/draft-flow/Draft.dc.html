@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+    .fill { background: #ECFEFF; border-bottom: 1.5px solid #67E8F9; border-radius: 3px; padding: 0 2px; }
+    .gap  { background: #FDF3E3; border: 1px dashed #F59E0B; border-radius: 4px; padding: 0 5px;
+            color: #B45309; font-weight: 700; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1560px; background: #F8FAFC; display: flex; flex-direction: column; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45">
+
+  <!-- Nav -->
+  <div style="background: #FFFFFF; border-bottom: 1px solid #E2E8F0; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 5 8 12 15 19"></polyline></svg>
+    <div style="flex: 1">
+      <div style="font-size: 16.5px; font-weight: 800; color: #1B2A4A">Your follow-up</div>
+      <div style="font-size: 12px; color: #64748B">To Lilia Talavera &middot; Regional Center of the East Bay</div>
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px 20px 16px; display: flex; flex-direction: column; gap: 12px">
+
+    <div style="align-self: flex-start; background: #1B2A4A; color: #FFFFFF; border-radius: 6px; padding: 2px 8px; font-size: 10px; font-weight: 800; letter-spacing: 1px">DRAFT &middot; GUIDANCE IN THE MOMENT</div>
+
+    <!-- First-view legend -->
+    <div style="background: #ECFEFF; border: 1px solid #A5F3FC; border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="0.9" fill="#0891B2" stroke="none"></circle></svg>
+      <div style="flex: 1">
+        <div style="font-size: 13.5px; color: #155E75; line-height: 1.55">The <span class="fill">tinted parts</span> we filled in from your records. Tap any of them to change it. The rest is Waypoint&rsquo;s standard wording, and the law in it is cited.</div>
+        <div style="font-size: 12.5px; color: #0891B2; font-weight: 700; margin-top: 6px">Got it &mdash; hide this</div>
+      </div>
+    </div>
+
+    <!-- Blocking gap -->
+    <div style="background: #FDF3E3; border: 1px solid #FCD34D; border-radius: 12px; padding: 12px 14px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round"><path d="M12 4 2.5 20h19L12 4Z"></path><line x1="12" y1="10" x2="12" y2="14"></line><circle cx="12" cy="17" r="0.9" fill="#B45309" stroke="none"></circle></svg>
+        <div style="font-size: 13px; font-weight: 800; color: #B45309">One thing left &mdash; then it&rsquo;s ready</div>
+      </div>
+      <div style="font-size: 12.5px; color: #92400E; margin-top: 6px; line-height: 1.5">We don&rsquo;t have your service coordinator&rsquo;s email. Add it once and we&rsquo;ll remember it for next time.</div>
+      <div style="background: #FFFFFF; border: 1px solid #FCD34D; border-radius: 10px; min-height: 44px; display: flex; align-items: center; padding: 0 12px; margin-top: 8px">
+        <div style="font-size: 14px; color: #B45309">Their email address</div>
+      </div>
+    </div>
+
+    <!-- Subject -->
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 14px">
+      <div style="font-size: 10.5px; font-weight: 800; letter-spacing: 0.8px; color: #64748B">SUBJECT</div>
+      <div style="font-size: 14.5px; color: #1B2A4A; font-weight: 600; margin-top: 4px; line-height: 1.45">Following up: IPP review request for <span class="fill">Sof&iacute;a Reyes</span>, submitted <span class="fill">Jul 27, 2026</span></div>
+    </div>
+
+    <!-- The letter -->
+    <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 11px; font-size: 14.5px; line-height: 1.62; color: #334155">
+      <div>Dear <span class="fill">Ms. Talavera</span>,</div>
+      <div>I hope you&rsquo;re doing well. I&rsquo;m writing to follow up on the IPP review meeting I requested for <span class="fill">Sof&iacute;a</span> on <span class="fill">July 27, 2026</span>.</div>
+
+      <!-- The legal paragraph — ours, cited, with guidance beside it -->
+      <div style="border-left: 3px solid #0891B2; background: #F8FDFE; border-radius: 0 8px 8px 0; padding: 10px 12px; margin: 2px 0">
+        <div>Welfare &amp; Institutions Code &sect;4646.5(b) provides that the regional center shall conduct a review of the individual program plan within 30 days of a request. That period ended on <span class="fill">August 26</span>, and I haven&rsquo;t yet heard back about scheduling.</div>
+        <div style="display: flex; align-items: center; gap: 8px; margin-top: 9px; flex-wrap: wrap">
+          <div style="background: #F1F5F9; color: #64748B; border-radius: 6px; padding: 2px 7px; font-size: 11.5px">W&amp;I &sect;4646.5(b)</div>
+          <div style="background: #E6F7F1; color: #0E7A56; border-radius: 6px; padding: 2px 7px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.4px">WAYPOINT&rsquo;S WORDING &mdash; NOT AI</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; margin-top: 8px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.7 9.3a2.4 2.4 0 1 1 3.1 2.7c-.5.2-.8.7-.8 1.3v.4"></path><circle cx="12" cy="16.6" r="0.9" fill="#0891B2" stroke="none"></circle></svg>
+          <div style="font-size: 12.5px; color: #0891B2; font-weight: 700">Why this wording?</div>
+        </div>
+        <div style="background: #ECFEFF; border-radius: 8px; padding: 9px 11px; margin-top: 7px; font-size: 12.5px; color: #155E75; line-height: 1.55">
+          Naming the statute and the date turns a nudge into a record. If this still goes unanswered, that sentence is what a fair hearing request or a &sect;4731 complaint is built on. There is also a <b>7-day</b> path if waiting would put your child&rsquo;s health or safety at risk &mdash; tap to add it.
+        </div>
+      </div>
+
+      <div>Could you let me know a few dates that work for the team? I&rsquo;m flexible and happy to join by phone or video if that&rsquo;s easier.</div>
+
+      <div style="background: #ECFEFF; border-radius: 8px; padding: 9px 11px; border-bottom: 1.5px solid #67E8F9">
+        <span class="fill" style="background: none; border: none; padding: 0">Since Sof&iacute;a&rsquo;s one-to-one aide left in June, the days have been noticeably harder for her, and I&rsquo;d like the team to look at that at the review.</span>
+        <div style="font-size: 11px; color: #0E7490; font-weight: 700; letter-spacing: 0.4px; margin-top: 6px">FROM WHAT YOU TOLD US &middot; TAP TO EDIT</div>
+      </div>
+
+      <div>Thank you for everything you do for <span class="fill">Sof&iacute;a</span>.</div>
+      <div>Warmly,<br><span class="fill">Maria Reyes</span><br><span class="fill">(510) 555-0148</span> &middot; <span class="gap">your email</span></div>
+    </div>
+
+    <!-- Actions -->
+    <div style="min-height: 48px; border-radius: 12px; background: #CBD5E1; display: flex; align-items: center; justify-content: center; gap: 8px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="3" x2="10.5" y2="13.5"></line><polygon points="21 3 14.5 21 10.5 13.5 3 9.5 21 3"></polygon></svg>
+      <div style="color: #FFFFFF; font-weight: 800; font-size: 15.5px">Send</div>
+    </div>
+    <div style="text-align: center; font-size: 12px; color: #B45309; margin-top: -6px">Add their email above and Send turns on.</div>
+
+    <div style="display: flex; gap: 8px">
+      <div style="flex: 1; min-height: 46px; border-radius: 12px; border: 1.5px solid #E2E8F0; background: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 7px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 5H6a2 2 0 0 0-2 2v10"></path></svg>
+        <div style="color: #0891B2; font-weight: 700; font-size: 14px">Copy</div>
+      </div>
+      <div style="flex: 1; min-height: 46px; border-radius: 12px; border: 1.5px solid #E2E8F0; background: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 7px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l5 5v13H6z"></path><polyline points="9 3 9 9 15 9"></polyline></svg>
+        <div style="color: #0891B2; font-weight: 700; font-size: 14px">Save draft</div>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 7px; justify-content: center; padding-top: 2px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"><rect x="4" y="9.5" width="16" height="11" rx="2"></rect><path d="M8 9.5V6.5a4 4 0 0 1 8 0v3"></path></svg>
+      <div style="font-size: 11.5px; color: #64748B">Nothing sends until you press Send.</div>
+    </div>
+
+    <!-- Note -->
+    <div style="margin-top: 8px; border: 1px dashed #CBD5E1; border-radius: 10px; padding: 11px 13px; background: #FFFFFF">
+      <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.9px; color: #94A3B8">MOCKUP NOTE &mdash; WHERE WE BEAT THE LIBRARY</div>
+      <div style="font-size: 12.5px; color: #475569; margin-top: 6px; line-height: 1.6">Undivided would send this parent to an article about IPP timelines. We put the two sentences that matter <b>next to the paragraph they explain</b>, while she is looking at her own letter, with her own dates in it. Same knowledge. A tenth of the distance.</div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

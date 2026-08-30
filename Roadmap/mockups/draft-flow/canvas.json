@@ -1,0 +1,15 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1010, "h": 1560, "title": "The draft flow — plan & proposal" },
+    { "file": "Home.dc.html", "x": 1130, "y": 0, "w": 390, "h": 990, "title": "1 · Home — one decision (Phase 6)", "is_interactive": false },
+    { "file": "Questions.dc.html", "x": 1610, "y": 0, "w": 390, "h": 1760, "title": "2 · The 2–3 questions", "is_interactive": false },
+    { "file": "Draft.dc.html", "x": 2090, "y": 0, "w": 390, "h": 1600, "title": "3 · The draft — guidance in the moment", "is_interactive": false },
+    { "file": "Sent.dc.html", "x": 2570, "y": 0, "w": 390, "h": 1160, "title": "4 · Sent — clock · trail · case file", "is_interactive": false },
+    { "file": "Reply.dc.html", "x": 3050, "y": 0, "w": 390, "h": 1480, "title": "5 · The loop closes — they replied", "is_interactive": false }
+  ],
+  "annotations": [
+    { "id": "flow-order", "x": 1130, "y": -150, "w": 620, "text": "THE FLOW, LEFT TO RIGHT — Home (1) hands off one decision; the questions (2) sharpen the letter with 2–3 taps; the draft (3) puts the law and the guidance beside the words; Send (4) starts the clock and files the evidence; when the answer comes back (5), the same flow runs again, seeded from the reply. Read Main (far left) first for the why." },
+    { "id": "new-vs-shipped", "x": 2090, "y": -150, "w": 850, "text": "WHAT'S ACTUALLY NEW — only draftQuestions.ts and the wiring that skips the template/tone picker. The AI fill, the blank-finder, the statutory clock, the paper trail, the case file and Gmail send are all shipped and tested. This is a wiring phase with one new module — which is why it's affordable right after Phase 6." }
+  ],
+  "launch": { "view": "canvas" }
+}
