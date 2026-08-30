@@ -492,3 +492,30 @@ expensive, and chasing it with one owner and an agent loses.
    The ladder has the slot; nothing feeds it yet.
 3. **Telemetry:** are you comfortable with anonymous skip-rate and
    door-engagement events, so the ladder can be corrected with evidence?
+
+---
+
+## Verified device punch-list (Aug 30, 2026)
+
+A 14-agent workflow root-caused the defects in the owner's Aug 29 device
+screenshots and adversarially verified each. The critical one — a live RLS
+recursion bug — is fixed in `migration 049` and is **not** phase-6 work; it
+awaits the owner's hand-apply. The rest are UI defects on shipped surfaces,
+recorded here so phase 6 (and its neighbours) clean them up rather than
+rediscover them.
+
+| Defect | Where it lives | Verdict | Belongs to |
+|---|---|---|---|
+| **Deferrals say "on this device only" even where 048 is applied** — 048's RLS policy subqueries `family_members`, whose 027 policies self-reference it → Postgres 42P17 infinite recursion → every read/write errors → device fallback. Reproduced in a real PG cluster. | `048` policy; `useDeferrals.ts`, `syncState.ts` | CONFIRMED, high | **migration 049 (owner hand-apply)** |
+| **Home leads with a saved draft while 5 items are overdue** | `homeTriage.ts` never reads actions; `useTriage` never passes them | CONFIRMED | **task #34** (must land before draft flow) |
+| **Tools shows the same 3 tools twice** — pinned tiles duplicate the TAKE ACTION rows because the defaults are exactly those three | `ToolsScreen.tsx`, `PinnedTools.tsx`, `ToolsArea.tsx` | CONFIRMED | phase 6 / audit item 12 |
+| **Plan month legend names "appointment · deadline" but every dot renders teal** — the legend asserts categories the grid doesn't keep (a provenance-rule violation); also the 3-dot cap makes a 5-item day look like a 3-item day | `planView.ts`, `PlanScreen.tsx` | CONFIRMED | phase 6 neighbourhood — honest legend + per-kind dot colour |
+| **"Gmail not connected" reads as a permanent amber error** — a family who chose not to connect Gmail sees a warning forever; a *fact* is styled as a *fault* | `SensorLine.tsx`, `homeTriage.ts` `sensorLine` | CONFIRMED | phase 6 — distinguish "not set up" from "something's wrong" (tone change → owner) |
+| **Resume card title truncates** — "Progress Data Request — Teddy …"; the kicker wraps to two lines | `homeTriage.ts` resume title/kicker, `OneThingCard.tsx` | CONFIRMED | phase 6 / audit item 2 — shorter, still-honest title |
+| **Tools search placeholder clips mid-word** — "…they saic"; longer in es/vi | `ToolsArea.tsx`, `toolsCatalog.ts` `searchPlaceholder` | CONFIRMED | phase 6 — shorter trilingual copy or a layout fix |
+
+None of the UI fixes ship piecemeal now: several overlap phase 6 and the
+Undivided audit's Tools rework, and fixing them ahead of that reshaping is
+churn. The two that touch tone/framing (the Gmail line, the resume title copy)
+are owner-approval items, not auto-ship. `migration 049` is the exception —
+it is a live data-correctness bug, independent of the redesign, and ready now.
