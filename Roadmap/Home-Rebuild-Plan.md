@@ -1,6 +1,6 @@
 # Home Rebuild — Development Plan
 
-**Date:** Aug 29, 2026 · **Status:** Phases 1–5 shipped, phases 6–8 planned
+**Date:** Aug 29, 2026 · **Status:** Phases 1–6 shipped, phases 7–8 planned
 **Supersedes** the three-phase sketch at the end of `Home-Redesign-Concepts.md`,
 which predates the four-tab decision, Tools/Plan, pinned tools, Learn, the
 collapsible card and the month view.
@@ -374,6 +374,41 @@ accordion. Home ends as **greeting → card → composer → one status line**.
 **Done when:** `HomeScreen.tsx` is under ~250 lines and every deleted surface
 is reachable from its new home (verified against the nothing-is-lost
 inventory in `Home-Redesign-Concepts.md`).
+
+**Shipped (Aug 30 2026).** Every card in the shed list is gone; Home renders
+greeting → One Thing card → composer → sensor line (plus the Later list of set-
+aside items). Reachability verified against the four-tab navigation:
+
+- Agenda → **Plan** tab; the action-progress summary (ring, counts, "currently
+  working on") → the **Tracker** (Actions) list, reached from Plan's "Open the
+  full action list." Financial snapshot → Plan / the *Expenses* and
+  *Reimbursables* tools. Toolbox → **Tools** tab.
+- The first-run tour (`OnboardingTutorial`) was in the shed list, but it is an
+  invisible self-hiding overlay that introduces still-current features and backs
+  Profile's "Replay app tour" button — so it is **kept** (mounted on the new
+  Home), not shed. Shedding it would strand that button and drop onboarding.
+- RC card → **Agencies** (a Tools-catalog door) plus call-class triage actions,
+  exactly as the plan foresaw. **Journey** → the *journey* tool; on mobile
+  (where the Journey tab is hidden) this is now its only door, and it resolves
+  because tool taps navigate `('Home', { screen })` into the Home stack, which
+  registers every destination screen.
+- Profile nudge → **Profile**, behind the avatar's Account menu.
+
+**One deliberate loss, for the owner to weigh.** `CheckInCard` (the wave-2
+adaptive check-in / frustration deep-dive) is in the shed list and has **no new
+home** — it was a Home-only surface, not a destination screen, so removing it
+stops the app proactively asking "how's it going?" and adding actions from the
+answer. The right re-home is a *triage rung* (it should compete for attention
+like everything else on the ladder), but that is new ladder logic, not a phase-6
+deletion. Tracked as a follow-up; flag raised in the PR.
+
+**On the ~250-line target.** The literal number predates the draft flow
+(phases 9a–9e), which landed ~150 lines of its own orchestration in Home after
+this plan was written. That engine is now extracted to `hooks/useDraftFlow.ts`,
+which drops Home from 1147 → ~460 lines and makes the flow independently
+testable. The render is exactly the four elements specified; the residual over
+~250 is the draft sheet + reading overlay + styles that legitimately belong to
+Home's own interactions.
 
 ### Phase 7 — The outbound loop
 
