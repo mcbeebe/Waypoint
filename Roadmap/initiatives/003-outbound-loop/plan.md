@@ -68,13 +68,12 @@ shared-secret header), reads un-notified unanswered incoming rows, sends via the
 Expo push API, stamps `notified_at`. Tone-correct copy. **No CI covers Edge
 Functions** — treat as unverified; test by hand against a live project.
 
-### 7B-4 · The trigger — the real decision inside Lane B
-Two options, owner picks (open question #2):
-- **(cheap) sync-time:** fire from `gmail` sync when `newReplies>0`. Only works
-  while the app is open — low marginal value over Lane A's reconcile.
-- **(real) server poll:** a `pg_cron` job → `pg_net` `net.http_post` → a
-  server-side Gmail-sync-and-push Edge Function using stored refresh tokens.
-  This is the true app-closed reply loop and the biggest single lift here.
+### 7B-4 · The trigger — DECIDED: server poll (owner, Aug 30 2026)
+The owner chose the true app-closed loop: a `pg_cron` job → `pg_net`
+`net.http_post` → a server-side Gmail-sync-and-push Edge Function using stored
+refresh tokens. The biggest single lift here, and it fires even when no device
+is open. (The rejected alternative was firing from `gmail` sync at app-open,
+which adds little over Lane A's reconcile.)
 
 **Lane B done when:** a reply arriving with the app closed produces exactly one
 tone-correct push; dedupe holds across runs; owner has hand-applied 050 and

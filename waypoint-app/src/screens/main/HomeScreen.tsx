@@ -36,6 +36,7 @@ import { useTriage } from '@/hooks/useTriage';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useNotificationPrefs } from '@/hooks/useNotificationPrefs';
 import { reminderPlan, fmtDate } from '@/lib/notificationPolicy';
+import { registerPushToken } from '@/lib/pushTokens';
 import NotificationPrimingSheet from '@/components/NotificationPrimingSheet';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import OneThingCard, { LaterList } from '@/components/OneThingCard';
@@ -166,6 +167,13 @@ function HomeScreenInner({
     }, [refreshPermission])
   );
   const remindersOn = notifPrefs.enabled && hasPermission;
+
+  // Register this device's Expo push token once permission is granted, so the
+  // server-side reply-push sender (Lane B) can reach it. Idempotent + safe: it
+  // no-ops on web/simulator and when the EAS projectId isn't configured.
+  useEffect(() => {
+    if (hasPermission && family?.id) void registerPushToken(family.id);
+  }, [hasPermission, family?.id]);
   // The calm-state promise is a DEADLINE promise ("if <date> passes"), backed
   // by the request-clock reminders — which are gated on the deadlines category.
   // So only make the promise when that category is on, not merely the master.
