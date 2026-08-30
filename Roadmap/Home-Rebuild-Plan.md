@@ -394,6 +394,51 @@ before any of it is built** — sizing and the authoring workflow are open.
 
 ---
 
+## Phase 9 — The draft flow (owner brief, Aug 30 2026)
+
+Added after the owner put Waypoint side by side with **Undivided** and set the
+target: *"beat Undivided in user experience and prompting and empowering users;
+serving them up with not only the Next One Thing, but drafting that email,
+verbiage and guiding them."* And the read on the rival: *"Undivided has lots of
+content but their website and app are overwhelming with info. Ours is focused,
+accessible and action oriented."*
+
+The strategic point, stated plainly so later phases do not drift from it:
+**their library is both their advantage and their liability.** A parent at 11pm
+does not need twenty steps, they need the next sentence they have to write. So
+the win condition is not more content. It is the shortest distance between
+"I don't know what to do" and "it's sent."
+
+Four decisions the owner took:
+
+| Decision | Choice | What it rules out |
+|---|---|---|
+| What happens on tap | **Two or three questions, then the draft** | Handing the parent off to a blank editor, and equally, a twenty-step playbook |
+| Where the wording comes from | **Curated template + AI fills the specifics** | AI writing law from scratch; also a static form letter that reads generic |
+| Which "exact words" surface first | **How to answer what they just sent you** | Phone scripts and meeting talking points wait their turn |
+| Order | **Phase 6 first, then the draft flow** | Building the differentiator on top of a Home that is still a dashboard |
+
+What that implies, and what each phase after this must keep true:
+
+1. **The draft is the destination, not a screen two taps away.** The One Thing
+   card currently names the action and hands off. It should end in words.
+2. **The two or three questions are not a form.** They exist because they make
+   the letter sharper *and* because the answers belong in the case file — the
+   same answer that shapes the sentence also becomes evidence.
+3. **Guidance arrives in the moment.** Undivided's rule about giving notice
+   before recording an IEP meeting is good content buried under step 4 of 20.
+   Ours appears beside the line where it matters.
+4. **The skeleton and every legal sentence stay ours and stay cited.** AI fills
+   names, dates and what happened. It does not author law. The provenance
+   registry remains the boundary — see "never assert without evidence".
+5. **Sending leaves evidence.** A clock starts, the letter lands in the paper
+   trail, the case file grows. That is the part a funded competitor cannot copy
+   in a quarter, and today it is invisible.
+
+Where we do **not** compete: Undivided sells human Navigators — the two-face
+avatar pinned to every one of their screens. That is their moat, it is
+expensive, and chasing it with one owner and an agent loses.
+
 ## Decisions this plan takes
 
 | Decision | Choice | Why |
