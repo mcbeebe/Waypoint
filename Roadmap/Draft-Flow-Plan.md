@@ -3,6 +3,10 @@
 **Date:** Aug 30, 2026 · **Status:** draft — awaiting owner go
 **Supersedes:** nothing. **Extends:** `Home-Rebuild-Plan.md` §"Phase 9 — The draft flow"
 (the four decisions recorded there on Aug 29 are inputs here, not up for re-litigation).
+**Sits inside:** `Undivided-Comparison-Aug2026.md` — this draft flow is that
+roadmap's item 10, and its §6 "the one thing" is the flagship demo. Numbers
+below were reconciled against that verified audit (e.g. the template count, and
+the honest fact that the tappable citation UI is unbuilt).
 
 ---
 
@@ -71,7 +75,7 @@ missing is the **assembly**.
 | Piece | Module | State |
 |---|---|---|
 | Which item is next, and why | `lib/homeTriage.ts` | shipped, 27 tests |
-| 19 curated templates, 3 tones | `lib/lettersCatalog.ts` | shipped |
+| 22 curated templates, 3 tones | `lib/lettersCatalog.ts` | shipped |
 | AI fill + the prompt | `lib/letters.ts` → `ai-proxy` | shipped |
 | Fill known blanks from the profile | `lib/draftBlanks.ts` | shipped |
 | Which lever fits which request type | `lib/requestClocks.ts` `REQUEST_LEVERS` | shipped |
@@ -79,12 +83,22 @@ missing is the **assembly**.
 | What to do after you send | `lib/sentNext.ts` | shipped |
 | The paper trail and the case file | `lib/requestCase.ts`, migration 047 | shipped |
 | Sending via Gmail | `lib/gmail.ts`, `gmail` Edge Function | shipped |
-| **The 2–3 questions** | — | **new** |
-| **Card CTA → draft, skipping the picker** | — | **new** |
-| **Guidance in the moment** | — | **new** |
+| The citation *registry* (authority, claim, `verifiedOn`) | `data/contentSources.ts`, `sourceForCitation()` | shipped — but **zero UI consumers** |
+| **The 2–3 questions** | `lib/draftQuestions.ts` | **new** |
+| **Card CTA → draft, skipping the picker** | — | **new wiring** |
+| **The question sheet + draft screen** | — | **new UI** |
+| **Guidance in the moment + a tappable `<Citation>`** | — | **new UI** |
 
-Read that table the right way: this is a **wiring phase with one new module**,
-not a rebuild. That is why it is affordable right after phase 6.
+Read that table the right way: the *logic* is nearly all built — one new pure
+module (`draftQuestions.ts`) and everything downstream already exists and is
+tested. What's genuinely new is the **presentation**: the question sheet, the
+draft screen's in-the-moment guidance, and the tappable `<Citation>` — the
+registry has been waiting for its first real consumer since depth phase 1
+(`sourceForCitation()` has none outside its own tests today). Corrected from an
+earlier "one new module" framing after the competitive audit checked it against
+the code: it is one new *module*, but three new *surfaces*. Still affordable
+right after phase 6 — because none of it is new domain logic — but it is a
+build, not a re-label.
 
 ### 4.2 The questions (the only genuinely new logic)
 
@@ -224,12 +238,21 @@ Phase 6 (Home reduction) ships first — decided Aug 29. Then:
 | # | Ships | Size | Gate |
 |---|---|---|---|
 | 9a | `lib/draftQuestions.ts` + tests, no UI | S | logic suite; locale parity; "every answer changes the letter" |
-| 9b | The question sheet + card CTA rewiring | M | ui suite renders each question shape; navigation test proves the route resolves from Home's own stack |
-| 9c | Draft screen guidance + send confirmation | M | ui suite; blanks block Send; citation renders with the claim |
-| 9d | The reply loop | M | `analyzeEmail` → question seeding; "they said no" → `noa_request` |
+| 9b | The question sheet + card CTA rewiring | M | ui suite renders each question shape; navigation test proves the route resolves from Home's own stack (declare it in `routeGraph.ts`, not a hand-copied mirror) |
+| 9c | The `<Citation>` component + draft-screen guidance | M | ui suite; `sourceForCitation()` gets its first real consumer; the tap opens the authority, the claim and `verifiedOn` |
+| 9d | Send confirmation (clock · trail · case file in one glance) | S | ui suite; blanks block Send; the three artifacts all render |
+| 9e | The reply loop | M | `analyzeEmail` → question seeding; "they said no" → `noa_request` |
 
 Each ships green on `npx tsc --noEmit`, `npx vitest run`,
 `npx eslint . --ext .ts,.tsx --quiet`.
+
+**Honest total:** ~3–4 weeks of build, matching the competitive audit's
+sizing of the same work (its roadmap item 10). The affordability claim is
+about *risk*, not calendar: there is almost no new domain logic to get wrong,
+because the clocks, the fills, the paper trail and the case file are already
+tested. `9c` split the old "guidance + send" phase in two once the audit
+showed the tappable citation is its own unbuilt component, not a chip that
+already renders.
 
 ## 7. Where this stops being auto-shippable
 
