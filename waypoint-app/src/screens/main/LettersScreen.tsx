@@ -738,6 +738,18 @@ export default function LettersScreen() {
                       </Text>
                     </View>
                   )}
+                  {/* The third artifact of a send: it's on the record. The clock
+                      (above) and the case (the tracker link below) are the other
+                      two — all three visible in one glance (draft flow 9d). */}
+                  <View style={styles.sentTrailChip}>
+                    <Text style={styles.sentTrailText}>
+                      📁 {locale === 'es'
+                        ? 'Guardada en su expediente — con fecha y hora'
+                        : locale === 'vi'
+                          ? 'Đã lưu vào hồ sơ của quý vị — có ngày giờ'
+                          : "Logged in your paper trail — dated and time-stamped"}
+                    </Text>
+                  </View>
                   <Text style={styles.sentSection}>
                     {locale === 'es' ? 'QUÉ SIGUE AHORA' : locale === 'vi' ? 'ĐIỀU GÌ DIỄN RA TIẾP THEO' : 'WHAT HAPPENS NOW'}
                   </Text>
@@ -772,6 +784,23 @@ export default function LettersScreen() {
                         ? `Không có hồi âm sau ${sentMoment.next.followUpDays} ngày? Hãy quay lại — thư nhắc chỉ cần một chạm.`
                         : `Hear nothing in ${sentMoment.next.followUpDays} days? Come back — the follow-up letter is one tap.`}
                   </Text>
+                  {/* Close the loop the card opened: one tap back to Home. */}
+                  <TouchableOpacity
+                    style={styles.sentDoneButton}
+                    onPress={() => (navigation as any).navigate('HomeMain')}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      locale === 'es'
+                        ? 'Listo — volver al inicio'
+                        : locale === 'vi'
+                          ? 'Xong — quay lại Trang chính'
+                          : 'Done — back to Home'
+                    }
+                  >
+                    <Text style={styles.sentDoneButtonText}>
+                      {locale === 'es' ? 'Listo' : locale === 'vi' ? 'Xong' : 'Done'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               ) : markedSent ? (
                 <Text style={styles.trackSent}>
@@ -1056,6 +1085,14 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   sentClockText: { color: '#92600A', fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
+  sentTrailChip: {
+    backgroundColor: '#E6F7F1',
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  sentTrailText: { color: '#0E7A56', fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
   sentSection: {
     marginTop: spacing.xs,
     fontSize: fonts.sizes.xs,
@@ -1077,6 +1114,16 @@ const styles = StyleSheet.create({
   },
   sentTrackButtonText: { color: colors.white, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.sm },
   sentFollowUp: { fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18 },
+  sentDoneButton: {
+    marginTop: spacing.sm,
+    minHeight: 44,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    borderColor: colors.teal,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sentDoneButtonText: { color: colors.teal, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.base },
   trackBox: {
     backgroundColor: colors.white,
     borderWidth: 1,
