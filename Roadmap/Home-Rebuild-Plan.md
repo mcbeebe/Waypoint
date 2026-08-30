@@ -12,11 +12,18 @@ collapsible card and the month view.
   architecture: four tabs (Home · Ask · Tools · Plan), pinned tool tiles with
   a suggestion, Learn folded into Ask, Profile under the avatar as Settings,
   a collapsible One Thing card, and Plan carrying a real month calendar.
-- **Phase 1 shipped** (PR #119): `lib/homeTriage.ts` + 27 tests — the ladder,
-  the queue, deferrals, the four calm states, and the sensor line. **No screen
-  consumes it yet**, so app behavior is unchanged.
-- **Everything below is unbuilt.** `HomeScreen.tsx` is still 973 lines and
-  still renders every surface the audit condemned.
+- **Phases 1–6 are shipped and merged** (PRs #119 → #134). The triage engine
+  (`lib/homeTriage.ts`), the One Thing card + sensor line + deferrals, the Plan
+  tab with a real month calendar, the Tools tab, and Learn folded into Ask all
+  landed — and phase 6 reduced `HomeScreen.tsx` from the 973-line surface the
+  audit condemned to ~465 lines rendering exactly four elements (greeting →
+  One Thing card → composer → status line).
+- **Since the plan was written, the tab bar evolved by owner request** (#138):
+  "Ask" was renamed **Learn** (book icon), **Journey** became a first-class
+  bottom tab, and the educational guides were deduped to live only in Learn.
+- **Phases 7–8 remain.** Phase 7 (the outbound loop) has Lane A shipped
+  (#135–#136); Lane B slice 1 is open in #137. Phase 8 (the Learn content
+  engine) is unbuilt and needs its own plan.
 
 ## Rules that constrain every phase
 
