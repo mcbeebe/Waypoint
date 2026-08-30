@@ -239,6 +239,11 @@ export interface TriageInput {
   firstRun?: boolean;
   /** The child these child-scoped items belong to (ids are scoped by it). */
   childId?: string | null;
+  /** True once the family has granted notifications AND left at least one
+   *  category on (phase 7). Only then may the calm state make the promise —
+   *  "Waypoint will tell you if <date> passes" — because only then can it keep
+   *  it. Default/false keeps the honest "check back" wording. */
+  notificationsEnabled?: boolean;
 }
 
 export interface TriageResult {
@@ -249,6 +254,9 @@ export interface TriageResult {
   calm: CalmState | null;
   later: LaterItem[];
   sensor: SensorLine;
+  /** The soonest non-overdue statutory date being counted (YYYY-MM-DD), or
+   *  null. Used to name the date in the notification-permission ask. */
+  nextClockDate: string | null;
 }
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -924,21 +932,35 @@ function calmState(
 ): CalmState {
   const L = picker(locale);
   const doneToday = Object.values(input.completed ?? {}).some(Boolean);
-  // Waypoint does NOT send notifications yet (Home-Rebuild-Plan phase 7), so
-  // the calm state cannot promise to tell anyone anything. Until the push
-  // loop ships, it says what is true: the date is tracked, come back and
-  // look. Restore the promise in the same PR that makes it keepable.
+  // The promise is keepable only once notifications are on (phase 7). When they
+  // are, the calm state can say Waypoint will tell you if the date passes — and
+  // mean it, because notificationPolicy scheduled that reminder. When they are
+  // off, it stays honest: the date is tracked, come back and look.
+  const day = (iso: string) => fmtDay(`${iso}T12:00:00`, locale);
+  const on = !!input.notificationsEnabled;
   const watching = nextClock
-    ? L(
-        `${fmtDay(`${nextClock.dueOn}T12:00:00`, locale)} is the next date Waypoint is counting to. Check back — it will be here.`,
-        `El ${fmtDay(`${nextClock.dueOn}T12:00:00`, locale)} es la próxima fecha que Waypoint cuenta. Vuelva a mirar — estará aquí.`,
-        `${fmtDay(`${nextClock.dueOn}T12:00:00`, locale)} là ngày kế tiếp Waypoint đang đếm tới. Hãy quay lại xem — nó sẽ ở đây.`
-      )
-    : L(
-        'Waypoint keeps counting the clocks on your open requests.',
-        'Waypoint sigue contando los plazos de sus solicitudes abiertas.',
-        'Waypoint tiếp tục đếm thời hạn cho các yêu cầu đang mở của quý vị.'
-      );
+    ? on
+      ? L(
+          `Waypoint will tell you if ${day(nextClock.dueOn)} passes without a reply. You can close the app.`,
+          `Waypoint le avisará si el ${day(nextClock.dueOn)} pasa sin respuesta. Puede cerrar la aplicación.`,
+          `Waypoint sẽ báo cho quý vị nếu ${day(nextClock.dueOn)} trôi qua mà chưa có phản hồi. Quý vị có thể đóng ứng dụng.`
+        )
+      : L(
+          `${day(nextClock.dueOn)} is the next date Waypoint is counting to. Check back — it will be here.`,
+          `El ${day(nextClock.dueOn)} es la próxima fecha que Waypoint cuenta. Vuelva a mirar — estará aquí.`,
+          `${day(nextClock.dueOn)} là ngày kế tiếp Waypoint đang đếm tới. Hãy quay lại xem — nó sẽ ở đây.`
+        )
+    : on
+      ? L(
+          'Waypoint is watching your open requests and will tell you the moment one needs you. You can close the app.',
+          'Waypoint vigila sus solicitudes abiertas y le avisará en cuanto una lo necesite. Puede cerrar la aplicación.',
+          'Waypoint đang theo dõi các yêu cầu đang mở và sẽ báo ngay khi có việc cần quý vị. Quý vị có thể đóng ứng dụng.'
+        )
+      : L(
+          'Waypoint keeps counting the clocks on your open requests.',
+          'Waypoint sigue contando los plazos de sus solicitudes abiertas.',
+          'Waypoint tiếp tục đếm thời hạn cho các yêu cầu đang mở của quý vị.'
+        );
 
   // An empty screen because nothing could be read is not a calm day. This
   // must come first: firstRun and "done" both read an empty list as fact.
@@ -1076,6 +1098,7 @@ export function triageHome(input: TriageInput): TriageResult {
     calm: live.length === 0 ? calmState(input, locale, later.length, nextClock) : null,
     later,
     sensor: sensorLine({ ...input, locale, now }),
+    nextClockDate: nextClock?.dueOn ?? null,
   };
 }
 

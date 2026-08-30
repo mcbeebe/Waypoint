@@ -48,6 +48,7 @@ export const MAIN_LINKING: { screens: Record<string, StackLinking> } = {
         Insurance: 'insurance',
         HealthRecords: 'health-records',
         FamilySharing: 'family',
+        NotificationSettings: 'notifications',
         ProviderPortal: 'provider-portal',
         Forum: 'community',
         Messages: 'messages',

@@ -1,12 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import {
   reminderPlan,
+  diffReminders,
   fmtDate,
   DEFAULT_PREFS,
   MAX_SCHEDULED,
   type PolicyInput,
   type NotifPrefs,
   type PolicyRequest,
+  type ReminderSpec,
 } from './notificationPolicy';
 import type { FunnelLocale } from '@/lib/eligibility';
 
@@ -30,7 +32,6 @@ function req(over: Partial<PolicyRequest> = {}): PolicyRequest {
 function input(over: Partial<PolicyInput> = {}): PolicyInput {
   return {
     requests: [],
-    deadlines: [],
     actions: [],
     now: NOW,
     locale: 'en',
@@ -44,7 +45,7 @@ describe('the master switch and category gates', () => {
     expect(reminderPlan(input({ requests: [req()], prefs: DEFAULT_PREFS }))).toEqual([]);
   });
 
-  it('deadlines-off drops request + deadline reminders but keeps actions', () => {
+  it('deadlines-off drops request-clock reminders but keeps actions', () => {
     const plan = reminderPlan(
       input({
         requests: [req()],
@@ -99,7 +100,6 @@ describe('escalation tone — status of the answer, never blame', () => {
         input({
           locale,
           requests: [req()],
-          deadlines: [{ id: 'd1', title: 'IEP signature', due_date: '2026-02-20', status: 'pending' }],
           actions: [{ id: 'a1', title: 'Call the SC', status: 'in_progress', dueOn: '2026-02-01' }],
         })
       );
@@ -121,7 +121,6 @@ describe('locale parity — same specs, translated prose', () => {
         input({
           locale,
           requests: [req()],
-          deadlines: [{ id: 'd1', title: 'IEP', due_date: '2026-02-20', status: 'pending' }],
           actions: [{ id: 'a1', title: 'Call', status: 'in_progress', dueOn: '2026-02-01' }],
         })
       ).map((s) => ({ key: s.key, category: s.category, fireAt: s.fireAt }));
@@ -186,6 +185,42 @@ describe('closed/decided requests stop generating reminders', () => {
   it('a granted or withdrawn request produces nothing', () => {
     expect(reminderPlan(input({ requests: [req({ status: 'granted' })] }))).toEqual([]);
     expect(reminderPlan(input({ requests: [req({ status: 'withdrawn' })] }))).toEqual([]);
+  });
+});
+
+describe('diffReminders — reconcile device state against the plan', () => {
+  const spec = (key: string): ReminderSpec => ({
+    key,
+    category: 'deadline',
+    fireAt: '2026-02-10T09:00:00.000Z',
+    title: 't',
+    body: 'b',
+    data: { type: 'x' },
+  });
+
+  it('schedules only new keys and cancels only vanished ones; leaves matches alone', () => {
+    const { toCancel, toSchedule } = diffReminders(
+      ['a', 'b', 'c'],
+      [spec('b'), spec('c'), spec('d')]
+    );
+    expect(toCancel).toEqual(['a']); // held but no longer wanted
+    expect(toSchedule.map((s) => s.key)).toEqual(['d']); // wanted but not held
+  });
+
+  it('a moved due date (new dated key) cancels the stale reminder and schedules the new', () => {
+    // The device holds the overdue reminder for the OLD date; the plan now wants
+    // it for a NEW date because requested_on was corrected.
+    const held = ['req:r1:overdue:2026-02-10'];
+    const wanted = [spec('req:r1:overdue:2026-02-17')];
+    const { toCancel, toSchedule } = diffReminders(held, wanted);
+    expect(toCancel).toEqual(['req:r1:overdue:2026-02-10']);
+    expect(toSchedule.map((s) => s.key)).toEqual(['req:r1:overdue:2026-02-17']);
+  });
+
+  it('an unchanged plan is a no-op', () => {
+    const { toCancel, toSchedule } = diffReminders(['a', 'b'], [spec('a'), spec('b')]);
+    expect(toCancel).toEqual([]);
+    expect(toSchedule).toEqual([]);
   });
 });
 

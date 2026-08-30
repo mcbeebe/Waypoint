@@ -9,7 +9,7 @@
  * this screen renders the sheet and reading overlay it drives.
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -24,7 +24,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import { useAppointments } from '@/hooks/useAppointments';
@@ -33,6 +33,10 @@ import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/componen
 import { useRequests } from '@/hooks/useRequests';
 import { useCommunications } from '@/hooks/useCommunications';
 import { useTriage } from '@/hooks/useTriage';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useNotificationPrefs } from '@/hooks/useNotificationPrefs';
+import { reminderPlan, fmtDate } from '@/lib/notificationPolicy';
+import NotificationPrimingSheet from '@/components/NotificationPrimingSheet';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import OneThingCard, { LaterList } from '@/components/OneThingCard';
 import SensorLine from '@/components/SensorLine';
@@ -147,6 +151,26 @@ function HomeScreenInner({
     familyId: family?.id ?? '',
     dateRange: agendaRange,
   });
+  // ── The outbound loop (phase 7, initiative 003) ───────────────────────────
+  // Notification settings + OS permission. The calm state may promise "Waypoint
+  // will tell you if <date> passes" only when both are true.
+  const { prefs: notifPrefs, loaded: notifPrefsLoaded, primed, update: updateNotifPrefs, markPrimed } =
+    useNotificationPrefs();
+  const { hasPermission, requestPermission, refreshPermission, syncReminders } = useNotifications();
+  // Re-read OS permission whenever Home regains focus (returning from the
+  // Settings screen, where the parent may have just granted/revoked it) so the
+  // promise and the loop never run on a stale permission value.
+  useFocusEffect(
+    useCallback(() => {
+      void refreshPermission();
+    }, [refreshPermission])
+  );
+  const remindersOn = notifPrefs.enabled && hasPermission;
+  // The calm-state promise is a DEADLINE promise ("if <date> passes"), backed
+  // by the request-clock reminders — which are gated on the deadlines category.
+  // So only make the promise when that category is on, not merely the master.
+  const promiseKeepable = remindersOn && notifPrefs.deadlines;
+
   // ── The One Thing (Roadmap/Home-Rebuild-Plan.md phase 2) ──────────────────
   // One published ladder decides what leads. Everything decidable is in
   // lib/homeTriage.ts; this screen only renders it and routes the tap.
@@ -183,7 +207,57 @@ function HomeScreenInner({
     loading: requestsLoading || commsLoading || deadlinesLoading || actionsLoading,
     dataFailed: !!(requestsError || commsError || deadlinesError || actionsError),
     onRepliesSynced: refetchComms,
+    notificationsEnabled: promiseKeepable,
   });
+
+  // Keep the device's scheduled reminders in step with the plan (phase 7). When
+  // notifications are on, sync the policy's set; when off, clear everything.
+  // Runs on any change to the date-bearing data or the prefs.
+  useEffect(() => {
+    if (!notifPrefsLoaded) return;
+    if (!remindersOn) {
+      void syncReminders([]);
+      return;
+    }
+    const specs = reminderPlan({
+      requests: familyRequests,
+      actions: actions.map((a) => ({
+        id: a.id,
+        title: a.title,
+        status: a.status,
+        dueOn: a.due_date ? a.due_date.slice(0, 10) : null,
+      })),
+      now: new Date(),
+      locale: funnelLocale,
+      prefs: notifPrefs,
+    });
+    void syncReminders(specs);
+  }, [
+    notifPrefsLoaded,
+    remindersOn,
+    notifPrefs,
+    familyRequests,
+    actions,
+    funnelLocale,
+    syncReminders,
+  ]);
+
+  // The contextual permission ask (7A-3): offer it once, when a family first
+  // has a live clock to watch and hasn't been asked. Declining remembers. An
+  // already-overdue clock counts as live too — that family most needs the
+  // follow-up nudge — so trigger on a time-critical leading item, not only an
+  // upcoming date.
+  const hasLiveClock =
+    triage.nextClockDate != null ||
+    (!!triage.item && ['overdue', 'clock', 'today', 'reply'].includes(triage.item.cls));
+  const showPriming = notifPrefsLoaded && !primed && !notifPrefs.enabled && hasLiveClock;
+  const onEnableNotifs = () => {
+    void markPrimed();
+    void (async () => {
+      const granted = await requestPermission();
+      await updateNotifPrefs({ enabled: granted });
+    })();
+  };
 
   const followAction = (action: TriageAction) => {
     if (action.kind === 'call' && action.tel) {
@@ -287,6 +361,15 @@ function HomeScreenInner({
           tour" button — shedding it would strand that button and drop the
           first-launch tour. */}
       <OnboardingTutorial onComplete={() => {}} />
+      {/* The contextual notification ask (phase 7): shown once, when a live
+          clock first exists, so the OS prompt has a reason behind it. */}
+      <NotificationPrimingSheet
+        visible={showPriming}
+        locale={funnelLocale}
+        dateLabel={triage.nextClockDate ? fmtDate(triage.nextClockDate, funnelLocale) : null}
+        onEnable={onEnableNotifs}
+        onDismiss={() => { void markPrimed(); }}
+      />
       {/* Profile left the tab bar in phase 5; everything it held lives here. */}
       <AccountMenu
         visible={menuOpen}

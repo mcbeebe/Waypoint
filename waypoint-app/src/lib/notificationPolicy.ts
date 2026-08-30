@@ -73,13 +73,6 @@ export interface PolicyRequest {
   requested_on: string;
   status: 'requested' | 'in_progress' | 'granted' | 'denied' | 'withdrawn';
 }
-/** The minimal deadline-row shape. */
-export interface PolicyDeadline {
-  id: string;
-  title: string;
-  due_date: string; // ISO date (YYYY-MM-DD or full ISO)
-  status: string;
-}
 /** The minimal action shape (dueOn already normalized to YYYY-MM-DD | null). */
 export interface PolicyAction {
   id: string;
@@ -90,7 +83,6 @@ export interface PolicyAction {
 
 export interface PolicyInput {
   requests: PolicyRequest[];
-  deadlines: PolicyDeadline[];
   actions: PolicyAction[];
   now: Date;
   locale: FunnelLocale;
@@ -153,7 +145,7 @@ const REQUEST_OPEN = new Set(['requested', 'in_progress']);
  * the past is never scheduled.
  */
 export function reminderPlan(input: PolicyInput): ReminderSpec[] {
-  const { requests, deadlines, actions, now, locale, prefs } = input;
+  const { requests, actions, now, locale, prefs } = input;
   if (!prefs.enabled) return [];
   const L = pick(locale);
   const specs: ReminderSpec[] = [];
@@ -179,9 +171,10 @@ export function reminderPlan(input: PolicyInput): ReminderSpec[] {
       const dl = deadlineFor(r.request_type, r.requested_on, now);
       if (!dl) continue;
       const dateLabel = fmtDate(dl.dueOn, locale);
+      // Keys carry dl.dueOn so a moved deadline reschedules (see diffReminders).
       // T-7 heads-up
       push(
-        `req:${r.id}:t7`,
+        `req:${r.id}:t7:${dl.dueOn}`,
         'deadline',
         fireInstant(dl.dueOn, -7),
         L(`A reply on ${r.title} is due soon`, `Una respuesta sobre ${r.title} vence pronto`, `Phản hồi về ${r.title} sắp đến hạn`),
@@ -192,7 +185,7 @@ export function reminderPlan(input: PolicyInput): ReminderSpec[] {
       );
       // T-1
       push(
-        `req:${r.id}:t1`,
+        `req:${r.id}:t1:${dl.dueOn}`,
         'deadline',
         fireInstant(dl.dueOn, -1),
         L(`A reply on ${r.title} is due tomorrow`, `Una respuesta sobre ${r.title} vence mañana`, `Phản hồi về ${r.title} đến hạn ngày mai`),
@@ -201,7 +194,7 @@ export function reminderPlan(input: PolicyInput): ReminderSpec[] {
       );
       // T+1 — the promise-keeper. The date has passed; state the STATUS, not blame.
       push(
-        `req:${r.id}:overdue`,
+        `req:${r.id}:overdue:${dl.dueOn}`,
         'deadline',
         fireInstant(dl.dueOn, 1),
         L(`An answer on ${r.title} is past due`, `Una respuesta sobre ${r.title} está vencida`, `Câu trả lời về ${r.title} đã quá hạn`),
@@ -213,31 +206,12 @@ export function reminderPlan(input: PolicyInput): ReminderSpec[] {
     }
   }
 
-  // ── Deadline rows (non-request obligations).
-  if (prefs.deadlines) {
-    for (const d of deadlines) {
-      if (d.status === 'completed') continue;
-      const ymd = /^(\d{4}-\d{2}-\d{2})/.exec(d.due_date)?.[1];
-      if (!ymd) continue;
-      const dateLabel = fmtDate(ymd, locale);
-      push(
-        `deadline:${d.id}:t1`,
-        'deadline',
-        fireInstant(ymd, -1),
-        L(`${d.title} is due tomorrow`, `${d.title} vence mañana`, `${d.title} đến hạn ngày mai`),
-        L(`${dateLabel}. Tap to see what it needs.`, `${dateLabel}. Toque para ver qué necesita.`, `${dateLabel}. Chạm để xem cần gì.`),
-        { type: 'deadline_tomorrow' }
-      );
-      push(
-        `deadline:${d.id}:due`,
-        'deadline',
-        fireInstant(ymd, 0),
-        L(`${d.title} is due today`, `${d.title} vence hoy`, `${d.title} đến hạn hôm nay`),
-        L(`Tap to see what it needs.`, `Toque para ver qué necesita.`, `Chạm để xem cần gì.`),
-        { type: 'deadline_due' }
-      );
-    }
-  }
+  // NOTE: stored Deadline rows are deliberately NOT scheduled here — they have
+  // their own mature scheduler (useNotifications.scheduleAllReminders, richer
+  // 30/14/7/1-day lead times) driven from Plan/Calendar. Adding them here would
+  // double-notify one date from two subsystems. The outbound loop's unique job
+  // is the request CLOCKS (which back the promise) and plan ACTIONS, neither of
+  // which the legacy scheduler ever covered.
 
   // ── Plan actions coming due.
   if (prefs.actions) {
@@ -245,7 +219,7 @@ export function reminderPlan(input: PolicyInput): ReminderSpec[] {
       if (!ACTION_OPEN.has(a.status) || !a.dueOn) continue;
       const dateLabel = fmtDate(a.dueOn, locale);
       push(
-        `action:${a.id}:due`,
+        `action:${a.id}:due:${a.dueOn}`,
         'action',
         fireInstant(a.dueOn, 0),
         L(`A plan step is due today: ${a.title}`, `Un paso del plan vence hoy: ${a.title}`, `Một bước kế hoạch đến hạn hôm nay: ${a.title}`),
@@ -259,4 +233,31 @@ export function reminderPlan(input: PolicyInput): ReminderSpec[] {
   // silently drops only the farthest-out (which reschedule on the next open).
   specs.sort((x, y) => x.fireAt.localeCompare(y.fireAt));
   return specs.slice(0, MAX_SCHEDULED);
+}
+
+/**
+ * Reconcile what the device currently holds against what the plan now wants.
+ * Pure so the scheduler's decisions are testable without expo-notifications.
+ *
+ * - `toCancel`: keys the device holds that the plan no longer wants (a date
+ *   changed, a request closed, a reply landed first).
+ * - `toSchedule`: specs the plan wants that the device does not hold yet.
+ * - Unchanged keys are left alone — we never cancel-and-reschedule an identical
+ *   reminder, which would churn ids and risk a gap.
+ *
+ * Identity is the key, and every key encodes its **target date** (see
+ * reminderPlan) — so if a parent edits `requested_on` and a due date moves, the
+ * key changes, the stale reminder is cancelled, and the new one is scheduled.
+ * A key without its date would leave the device holding the old fire time.
+ */
+export function diffReminders(
+  scheduledKeys: string[],
+  specs: ReminderSpec[]
+): { toCancel: string[]; toSchedule: ReminderSpec[] } {
+  const want = new Set(specs.map((s) => s.key));
+  const have = new Set(scheduledKeys);
+  return {
+    toCancel: scheduledKeys.filter((k) => !want.has(k)),
+    toSchedule: specs.filter((s) => !have.has(s.key)),
+  };
 }

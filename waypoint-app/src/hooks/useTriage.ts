@@ -90,6 +90,9 @@ export interface UseTriageArgs {
   dataFailed?: boolean;
   /** Called when a Gmail sync brought new replies in, so the log refetches. */
   onRepliesSynced?: () => void;
+  /** True once notifications are granted + on — lets the calm state make the
+   *  "Waypoint will tell you if <date> passes" promise (phase 7). */
+  notificationsEnabled?: boolean;
 }
 
 export interface UseTriage {
@@ -128,6 +131,7 @@ export function useTriage(args: UseTriageArgs): UseTriage {
     loading,
     dataFailed,
     onRepliesSynced,
+    notificationsEnabled,
   } = args;
 
   const {
@@ -294,6 +298,7 @@ export function useTriage(args: UseTriageArgs): UseTriage {
       gmail,
       loading: stillLoading,
       dataFailed,
+      notificationsEnabled,
       // Nothing tracked yet at all — and only claimable once the records
       // actually loaded, or a failed fetch reads as a brand-new family. An
       // existing plan action counts as history, so a family with actions is
@@ -311,7 +316,7 @@ export function useTriage(args: UseTriageArgs): UseTriage {
       locale, now, childId, childName, ageYears, rcStatus, iepStatus, hasDiagnosis,
       mediCalStatus, ihssStatus, ssiStatus, sdpStep, mediCalRequested,
       requests, communications, triageDeadlines, triageActions, triageAppointments, drafts,
-      deferrals, gmail, stillLoading, dataFailed,
+      deferrals, gmail, stillLoading, dataFailed, notificationsEnabled,
     ]
   );
 
