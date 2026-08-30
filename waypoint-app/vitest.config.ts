@@ -23,7 +23,22 @@ export default defineConfig({
         test: {
           name: 'logic',
           include: ['src/**/*.test.ts'],
+          exclude: ['src/**/*.tz.test.ts'],
           environment: 'node',
+        },
+      },
+      {
+        // Dates, run east of Greenwich. A statutory deadline computed by
+        // slicing a UTC string out of a local-midnight Date is a day early
+        // for every family in a UTC+ timezone — and under the default TZ the
+        // two agree, so the logic suite cannot see it. A mutation sweep
+        // caught this test being decorative; this project is the fix.
+        resolve: { alias: { '@': path.resolve(__dirname, 'src') } },
+        test: {
+          name: 'tz',
+          include: ['src/**/*.tz.test.ts'],
+          environment: 'node',
+          env: { TZ: 'Asia/Ho_Chi_Minh' },
         },
       },
       {
