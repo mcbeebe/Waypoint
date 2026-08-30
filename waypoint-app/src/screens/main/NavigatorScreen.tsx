@@ -45,6 +45,9 @@ import { hideStreamingTrailer, hasRichMeta, type ChatStep } from '@/lib/followup
 import { composeTarget } from '@/lib/emailCompose';
 import { deriveActionTitle } from '@/lib/actionContent';
 import { useI18n } from '@/i18n';
+import LearnPanel from '@/components/LearnPanel';
+import { toFunnelLocale } from '@/lib/eligibility';
+import type { FunnelLocale } from '@/lib/eligibility';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -73,15 +76,6 @@ const META_CATEGORY_TO_ACTION: Record<string, ActionCategory> = {
  */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const asMessageUuid = (id: string): string | undefined => (UUID_RE.test(id) ? id : undefined);
-
-/** Quick-start suggestions shown before first message */
-const SUGGESTIONS = [
-  'How do I get my child evaluated for services?',
-  'My Regional Center denied our request. What can I do?',
-  "What should I know before my child's IEP meeting?",
-  'How does the IPP process work?',
-  'What is the Lanterman Act and how does it help us?',
-];
 
 export default function NavigatorScreen() {
   const { family, updateFamily } = useFamily();
@@ -146,7 +140,8 @@ export default function NavigatorScreen() {
   const { contacts } = useContacts(family?.id);
   const emailableContacts = contacts.filter((c) => c.email);
   const { showToast } = useToast();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const funnelLocale: FunnelLocale = toFunnelLocale(locale);
 
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<NavigatorStackParamList, 'NavigatorMain'>>();
@@ -534,7 +529,12 @@ export default function NavigatorScreen() {
         keyboardVerticalOffset={90}
       >
         {messages.length === 0 ? (
-          <WelcomeView onSuggestion={handleSuggestion} />
+          <WelcomeView
+            onFill={setInputText}
+            onSend={handleSuggestion}
+            locale={funnelLocale}
+            query={inputText}
+          />
         ) : (
           <FlatList
             ref={flatListRef}
@@ -802,27 +802,41 @@ export default function NavigatorScreen() {
 }
 
 /** Welcome view with suggestions — shown before first message */
-function WelcomeView({ onSuggestion }: { onSuggestion: (text: string) => void }) {
+/**
+ * Ask, before anything has been asked: the greeting, then the Learn library
+ * (Home rebuild phase 5). A parent who is looking rather than typing gets the
+ * guides, the articles and the glossary here — and once they start typing,
+ * the library answers first if it already knows.
+ */
+function WelcomeView({
+  onFill,
+  onSend,
+  locale,
+  query,
+}: {
+  /** Puts a question in the composer so the library can answer it first. */
+  onFill: (text: string) => void;
+  /** Sends it to the AI. */
+  onSend: (text: string) => void;
+  locale: FunnelLocale;
+  query: string;
+}) {
   return (
-    <View style={styles.welcomeContainer}>
-      <Text style={styles.welcomeEmoji}>🧭</Text>
-      <Text style={styles.welcomeTitle}>Hi! I'm your AI Navigator.</Text>
-      <Text style={styles.welcomeSubtitle}>
-        I can help you understand your rights, navigate Regional Centers, prepare for IEP
-        meetings, and take concrete next steps for your child.
-      </Text>
-      <Text style={styles.suggestionsLabel}>Try asking:</Text>
-      {SUGGESTIONS.map((text) => (
-        <TouchableOpacity
-          key={text}
-          style={styles.suggestionChip}
-          onPress={() => onSuggestion(text)}
-          accessibilityRole="button"
-        >
-          <Text style={styles.suggestionText}>{text}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
+    <ScrollView
+      contentContainerStyle={styles.welcomeScroll}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.welcomeContainer}>
+        <Text style={styles.welcomeEmoji}>🧭</Text>
+        <Text style={styles.welcomeTitle}>Hi! I'm your AI Navigator.</Text>
+        <Text style={styles.welcomeSubtitle}>
+          I can help you understand your rights, navigate Regional Centers, prepare for IEP
+          meetings, and take concrete next steps for your child.
+        </Text>
+      </View>
+      <LearnPanel locale={locale} query={query} onAsk={onFill} onAskAI={onSend} />
+    </ScrollView>
   );
 }
 
@@ -1461,8 +1475,8 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '700',
   },
+  welcomeScroll: { paddingBottom: spacing.lg },
   welcomeContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
@@ -1485,23 +1499,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: spacing.lg,
-  },
-  suggestionsLabel: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-    fontWeight: fonts.weights.medium as '500',
-    marginBottom: spacing.sm,
-    alignSelf: 'flex-start',
-  },
-  suggestionChip: {
-    width: '100%',
-    backgroundColor: colors.white,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.base,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   followUpRow: {
     flexDirection: 'row',
@@ -1532,11 +1529,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
     paddingTop: 2,
-  },
-  suggestionText: {
-    fontSize: fonts.sizes.sm,
-    color: colors.teal,
-    lineHeight: 18,
   },
   saveActionButton: {
     alignSelf: 'flex-start',

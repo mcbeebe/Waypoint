@@ -40,11 +40,24 @@ import { useI18n } from '@/i18n';
 import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
 import { announce, percentageLabel } from '@/lib/accessibility';
 import PinnedTools from '@/components/PinnedTools';
+import AccountMenu from '@/components/AccountMenu';
 import { useToolPins } from '@/hooks/useToolPins';
 import { getAllTools } from '@/lib/toolsCatalog';
 import { lookupRC } from '@/data/regionalCenters';
 import type { RcStatus, IepStatus } from '@/types/database';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
+
+/** The avatar menu's label and hint — Profile left the bar in phase 5. */
+const ACCOUNT_LABEL: Record<FunnelLocale, string> = {
+  en: 'Your account',
+  es: 'Su cuenta',
+  vi: 'Tài khoản của quý vị',
+};
+const ACCOUNT_HINT: Record<FunnelLocale, string> = {
+  en: 'Opens settings, family sharing, documents and your subscription',
+  es: 'Abre ajustes, compartir en familia, documentos y su suscripción',
+  vi: 'Mở cài đặt, chia sẻ gia đình, tài liệu và gói đăng ký của quý vị',
+};
 
 /** The one door to the whole toolbox — it must not be the only English string. */
 const ALL_TOOLS_LABEL: Record<FunnelLocale, string> = {
@@ -143,6 +156,7 @@ function HomeScreenInner({
   // Rendered beside the tiles, not inside the child-card block the other
   // notice lives in — a family with no child record would never have seen it.
   const [toolNotice, setToolNotice] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const sayToolNotice = (message: string) => {
     setToolNotice(message);
     announce(message);
@@ -307,6 +321,14 @@ function HomeScreenInner({
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* First-visit feature tour — self-hides after completion (AsyncStorage) */}
       <OnboardingTutorial onComplete={() => {}} />
+      {/* Profile left the tab bar in phase 5; everything it held lives here. */}
+      <AccountMenu
+        visible={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onSelect={(item) => (navigation as any).navigate(item.screen, item.params)}
+        locale={funnelLocale}
+        name={family?.parent_first_name ?? null}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -320,9 +342,10 @@ function HomeScreenInner({
           </View>
           <TouchableOpacity
             style={styles.avatar}
-            onPress={() => (navigation as any).navigate('Profile')}
+            onPress={() => setMenuOpen(true)}
             accessibilityRole="button"
-            accessibilityLabel="Open profile"
+            accessibilityLabel={ACCOUNT_LABEL[funnelLocale]}
+            accessibilityHint={ACCOUNT_HINT[funnelLocale]}
           >
             <Text style={styles.avatarText}>
               {(family?.parent_first_name || 'W')[0].toUpperCase()}

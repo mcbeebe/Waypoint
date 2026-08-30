@@ -572,7 +572,7 @@ export default function LettersScreen() {
                   {fixableInProfile.length > 0 && (
                     <TouchableOpacity
                       style={styles.blanksProfileButton}
-                      onPress={() => (navigation as never as { navigate: (n: string) => void }).navigate('Profile')}
+                      onPress={() => (navigation as any).navigate('Home', { screen: 'Profile' })}
                       accessibilityRole="button"
                       accessibilityLabel="Save these details in your profile"
                     >
@@ -605,7 +605,7 @@ export default function LettersScreen() {
                 </Text>
                 {!outgoing.recipient.contact && (
                   <TouchableOpacity
-                    onPress={() => (navigation as never as { navigate: (n: string) => void }).navigate('Profile')}
+                    onPress={() => (navigation as any).navigate('Home', { screen: 'Profile' })}
                     accessibilityRole="button"
                     accessibilityLabel="Save this recipient in Key Contacts"
                   >

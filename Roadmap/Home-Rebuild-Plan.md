@@ -1,6 +1,6 @@
 # Home Rebuild — Development Plan
 
-**Date:** Aug 29, 2026 · **Status:** Phases 1–4 shipped, phases 5–8 planned
+**Date:** Aug 29, 2026 · **Status:** Phases 1–5 shipped, phases 6–8 planned
 **Supersedes** the three-phase sketch at the end of `Home-Redesign-Concepts.md`,
 which predates the four-tab decision, Tools/Plan, pinned tools, Learn, the
 collapsible card and the month view.
@@ -44,7 +44,7 @@ collapsible card and the month view.
 | 2 | One Thing card + sensor + deferrals | L | ✅ merged — card replaces the duplicating cards | 1, migration 048 |
 | 3 | Plan tab (Actions + Calendar, List/Month) | L | ✅ merged tab, month grid | — |
 | 4 | Tools tab + pins + suggestion | M | ✅ Tools becomes a place | migration 048 |
-| 5 | Ask absorbs Learn + tab bar reshape | M | Four tabs, account menu | 3, 4 |
+| 5 | Ask absorbs Learn + tab bar reshape | M | ✅ four tabs, account menu | 3, 4 |
 | 6 | Home reduction | M | Home = card + composer + status line | 2, 3, 4, 5 |
 | 7 | The outbound loop (push) | L | "We'll tell you" becomes true | 1 |
 | 8 | Learn content engine | XL | Article library + SEO | 5, own plan |
@@ -304,6 +304,64 @@ bar; `navigation.ts` gains the new routes.
 
 **Done when:** the four tabs are live, the avatar menu reaches everything
 Profile held, and searching "what is an IPP" finds the library.
+
+**Shipped, with two structural decisions this section did not anticipate:**
+
+1. **Both stacks register the same destinations.** A `navigate` bubbles to
+   parents, never to a sibling stack — which is exactly how the Plan tab
+   shipped a section of dead taps in phase 3. So `destinationScreens()` is
+   registered in the Home stack *and* the Tools stack, and a tool row resolves
+   inside whichever tab it was tapped from, each keeping its own back history.
+   `navRegistry.test.ts` now guards every tool, Learn and account-menu target
+   against the registered set, so that defect cannot ship twice.
+2. **The library answers before the AI does.** Typing into Ask searches
+   `learnLibrary` first; if the library already knows, it says so and the AI
+   stays one tap away. Stop words are stripped, so "what is an IPP" finds the
+   glossary rather than everything containing "is".
+
+Ask's five hardcoded suggestion chips are gone, replaced by the library's four
+popular questions — trilingual, and each one tested to actually find something.
+
+**The adversarial review then found seventeen defects, and the first one was
+the very thing this phase claimed to have prevented:**
+
+- **Every one of the Learn library's nine destinations was a dead tap.** The
+  panel renders in the *Ask* stack, and the shared destinations were
+  registered in Home and Tools — the two stacks that do not contain it. Worse:
+  `navRegistry.test.ts`, written to stop exactly this, assumed every caller
+  sat in Home or Tools and so certified all nine. The lesson is not "register
+  the screens in more stacks", it is **name the tab on every target**, which
+  is now required by the type and checked per-caller by the test.
+- **That reversed the phase-5 structure.** `destinationScreens()` no longer
+  double-registers: one registration, one canonical URL per screen, and
+  cross-tab targets name their tab — which is what `toolsCatalog` already did.
+  It also fixes the URLs the duplication broke (`/tools` had become a dead
+  bookmark one release after shipping, and Tools-tab screens produced
+  unroutable `/Letters`-style paths).
+- **Glossary search results were buttons that did nothing** — `screen: 'Learn'`
+  is not a screen. Two of the four suggested questions surfaced one as the top
+  answer. A definition now carries no target: it is read, not tapped.
+- **The popular-question chips sent immediately**, spending an AI call and
+  unmounting the library before the parent could read it — so the "answers
+  before the AI has to" claim only held if you hand-typed and stopped. Chips
+  fill the composer now.
+- **Search ranked the wrong article first** on two of the four suggested
+  questions, in all three languages, because one decoy phrase in a summary
+  scored the same as a title match. Scoring is field-weighted and word-bounded,
+  and the four questions are pinned by tests in every locale.
+- **Vietnamese words starting with `đ` were amputated** — `đ` is precomposed,
+  so it survived the accent fold and then acted as a separator: "đánh giá"
+  tokenized to `["anh", "gia"]`. That is one of the commonest initials in the
+  language.
+- **Four citations did not support their sentences**, and
+  `contentSources.test.ts` could not see the new module at all. Both fixed —
+  the guard now enumerates `learnLibrary`.
+- **An unevidenced claim about an agency** ("because nothing requires anyone to
+  tell them") is gone, replaced by what is true and useful: generic resources
+  come first, and what the IPP lists, the regional center must secure.
+- **Profile as a hidden tab had no header, no back button, and lit no tab.** It
+  is a stack screen now, so Back works and the tab a parent came from stays
+  lit — the same trap phase 3 set with the Actions tab.
 
 ### Phase 6 — Home reduction
 

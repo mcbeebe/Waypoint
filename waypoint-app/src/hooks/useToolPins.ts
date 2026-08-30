@@ -15,6 +15,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
+import { classifyWrite, isMissingSchema } from '@/lib/syncState';
 import {
   addPin as addPinPure,
   defaultPins,
@@ -30,13 +31,13 @@ const LOCAL_PINS_KEY = 'waypoint.tools.pins';
 const OPENS_KEY = 'waypoint.tools.opens';
 const DECLINED_KEY = 'waypoint.tools.declinedPins';
 
-/** True when the failure is migration 048 not being applied yet. */
+/**
+ * True when the failure is migration 048 not being applied yet. The rule is
+ * in `lib/syncState.ts`, where it is tested — including the case that matters
+ * most: an RLS denial must NOT be read as a missing column.
+ */
 export function isMissingToolPinsColumn(message: string | undefined): boolean {
-  if (!message) return false;
-  return (
-    /tool_pins/.test(message) &&
-    /does not exist|schema cache|could not find/i.test(message)
-  );
+  return isMissingSchema(message, 'tool_pins');
 }
 
 async function readJson<T>(key: string, fallback: T): Promise<T> {
@@ -222,19 +223,25 @@ export function useToolPins(
             .from('families')
             .update({ tool_pins: encodePins(result.pins) })
             .eq('id', familyId);
-          if (!error) {
+          const localSaved = error ? await writeLocal(result.pins) : false;
+          const classified = classifyWrite({
+            remoteAttempted: true,
+            remoteError: error?.message ?? null,
+            localSaved,
+            object: 'tool_pins',
+          });
+          if (classified.schemaMissing) columnMissing.current = true;
+          if (classified.result.kind === 'family') {
             everSaved.current = true;
             return { pins: result.pins, message: null };
           }
-          if (!isMissingToolPinsColumn(error.message)) {
-            // Neither store took it. Nothing was saved anywhere, and the
-            // caller says so rather than showing a tile that will vanish.
-            const local = await writeLocal(result.pins);
-            return local
-              ? { pins: result.pins, message: null }
-              : { pins: before, message: FAILED_MESSAGE[locale] };
+          if (classified.result.kind === 'device') {
+            setShared(false);
+            return { pins: result.pins, message: null };
           }
-          columnMissing.current = true;
+          // Saved nowhere: revert, and say so rather than showing a tile
+          // that will not survive the session.
+          return { pins: before, message: FAILED_MESSAGE[locale] };
         } else if (!isMissingToolPinsColumn(readErr.message)) {
           const result = change(before);
           if (!result.ok) return { pins: before, message: result.message ?? null };

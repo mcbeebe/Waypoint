@@ -13,6 +13,7 @@ import { deadlineFor } from '@/lib/requestClocks';
 import type { RequestType } from '@/lib/requestClocks';
 import { getSdpJourneySteps } from '@/lib/sdpJourney';
 import { deriveResourceStack } from '@/lib/resourceStack';
+import { getGlossary, getLearnArticles } from '@/lib/learnLibrary';
 
 function emittedCitations(): Set<string> {
   const out = new Set<string>();
@@ -43,6 +44,10 @@ function emittedCitations(): Set<string> {
   // SDP journey steps + resource stack layers, both locales
   for (const locale of locales) {
     for (const s of getSdpJourneySteps(locale)) out.add(s.citation);
+    // The Learn library asserts law too; without this the guard could not
+    // see the newest content module at all.
+    for (const a of getLearnArticles(locale)) if (a.citation) out.add(a.citation);
+    for (const g of getGlossary(locale)) if (g.citation) out.add(g.citation);
     for (const rcStatus of ['unknown', 'applied', 'active'] as const)
       for (const l of deriveResourceStack(
         { ageYears: 6, rcStatus, iepStatus: 'active' },
