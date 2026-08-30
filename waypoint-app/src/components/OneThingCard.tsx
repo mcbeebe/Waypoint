@@ -31,6 +31,7 @@ import type {
   TriageClass,
   LaterItem,
 } from '@/lib/homeTriage';
+import Citation from '@/components/Citation';
 import { buildLadderSheet, calmKicker, cardLabels, deferNotice, laterLine } from '@/lib/homeCard';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useTextScale } from '@/lib/textSize';
@@ -144,12 +145,10 @@ export default function OneThingCard({
           )}
           {/* The citation stays with the claim. Hiding the legal basis behind
               a toggle that persists, while the claim itself stays on screen,
-              would invert the rule the card exists to keep. */}
-          {!!item.citation && (
-            <Text style={[styles.citation, { fontSize: sz(11.5), lineHeight: sz(16) }]}>
-              {item.citation}
-            </Text>
-          )}
+              would invert the rule the card exists to keep. Phase 9c: it is now
+              tappable — the authority, the claim, and the verified date behind
+              the grey chip that used to be inert. */}
+          {!!item.citation && <Citation citation={item.citation} locale={locale} fontSize={sz(11.5)} />}
 
           {item.answers ? (
             <View style={styles.answers}>
