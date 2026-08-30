@@ -190,3 +190,31 @@ export function missingLetterFields(profile: LetterProfile): BlankField[] {
     (f) => NUDGE_KEYS.includes(f.key) && !valueFor(profile, f.key)
   );
 }
+
+export interface SendReadiness {
+  /** Distinct bracket blanks still in the draft. */
+  blanksLeft: number;
+  /** No saved recipient to send to. */
+  needsRecipient: boolean;
+  /**
+   * Ready to fire a DIRECT, immediate send (Gmail). False keeps a letter with
+   * "[DATE]" or "[SERVICE]" still in it from going to an agency unedited — the
+   * "Send turns on when it's ready" gate (draft flow phase 9c). Copy and the
+   * open-in-mail path stay available so the parent can finish elsewhere.
+   */
+  canSend: boolean;
+}
+
+/** Whether a draft can be sent directly, and why not. Pure, so it is tested. */
+export function sendReadiness(
+  draft: string,
+  profile: LetterProfile,
+  hasRecipient: boolean
+): SendReadiness {
+  const blanksLeft = analyzeBlanks(draft, profile).remaining.length;
+  return {
+    blanksLeft,
+    needsRecipient: !hasRecipient,
+    canSend: blanksLeft === 0 && hasRecipient,
+  };
+}

@@ -4,6 +4,7 @@ import {
   analyzeBlanks,
   missingLetterFields,
   fieldForToken,
+  sendReadiness,
   type LetterProfile,
 } from './draftBlanks';
 
@@ -112,5 +113,33 @@ describe('missingLetterFields', () => {
 
   it('is empty once the profile is complete', () => {
     expect(missingLetterFields(FULL)).toHaveLength(0);
+  });
+});
+
+describe('sendReadiness — the "Send turns on when it is ready" gate', () => {
+  const clean = 'Dear Ms. Ruiz, I am following up on my request. Thank you.';
+  const withBlank = 'Dear Ms. Ruiz, please respond by [DATE] about [SERVICE]. Thank you.';
+
+  it('a clean draft with a recipient can be sent directly', () => {
+    const r = sendReadiness(clean, {}, true);
+    expect(r).toEqual({ blanksLeft: 0, needsRecipient: false, canSend: true });
+  });
+
+  it('a draft with unfilled bracket blanks cannot be sent directly', () => {
+    const r = sendReadiness(withBlank, {}, true);
+    expect(r.blanksLeft).toBe(2);
+    expect(r.canSend).toBe(false);
+  });
+
+  it('no recipient blocks a direct send even when the draft is clean', () => {
+    const r = sendReadiness(clean, {}, false);
+    expect(r.needsRecipient).toBe(true);
+    expect(r.canSend).toBe(false);
+  });
+
+  it('a blank that the profile can fill is no longer a blank', () => {
+    // "[Child First Name]" resolves from the profile, so it is not left in the draft.
+    const filled = fillKnownBlanks('Hello, this is about [Child First Name].', { childFirstName: 'Sofia' });
+    expect(sendReadiness(filled.text, { childFirstName: 'Sofia' }, true).canSend).toBe(true);
   });
 });

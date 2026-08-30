@@ -5,7 +5,7 @@
  * copy-paste-sendable draft with the family's real details filled in.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -31,7 +31,7 @@ import {
   type DraftTone,
   type LetterTemplate,
 } from '@/lib/letters';
-import { fillKnownBlanks, analyzeBlanks, type LetterProfile } from '@/lib/draftBlanks';
+import { fillKnownBlanks, analyzeBlanks, sendReadiness, type LetterProfile } from '@/lib/draftBlanks';
 import { composeTarget, LONG_BODY_CHARS } from '@/lib/emailCompose';
 import { extractSubject, buildSubject, pickRecipient } from '@/lib/letterAddress';
 import { useContacts } from '@/hooks/useContacts';
@@ -362,9 +362,23 @@ export default function LettersScreen() {
       )
     : null;
 
+  // A letter with unfilled [BRACKET] blanks must not fire a direct send to an
+  // agency (draft flow phase 9c). Copy and Open-in-mail stay available so the
+  // parent can still finish elsewhere.
+  const blanksLeft = useMemo(
+    () => (draft ? analyzeBlanks(draft, letterProfile).remaining.length : 0),
+    [draft, letterProfile]
+  );
+
   const handleSendWithGmail = useCallback(async () => {
     const to = outgoing?.recipient.contact?.email;
     if (!draft || !to || gmailSending) return;
+    // Defense in depth — the button is disabled while blanks remain, but never
+    // send "[DATE]" straight to an agency even if that guard is bypassed.
+    if (!sendReadiness(draft, letterProfile, true).canSend) {
+      showToast('Fill the blanks in the draft first — then send.', 'error');
+      return;
+    }
     setGmailSending(true);
     try {
       const id = savedIdRef.current ?? (await saveDraftOnce());
@@ -389,7 +403,7 @@ export default function LettersScreen() {
     } finally {
       setGmailSending(false);
     }
-  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent]);
+  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile]);
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
@@ -621,21 +635,34 @@ export default function LettersScreen() {
             )}
 
             {gmailReady && outgoing?.recipient.contact?.email && (
-              <TouchableOpacity
-                style={styles.gmailSendBtn}
-                onPress={handleSendWithGmail}
-                disabled={gmailSending}
-                accessibilityRole="button"
-                accessibilityLabel="Send this letter now through your connected Gmail"
-              >
-                {gmailSending ? (
-                  <ActivityIndicator size="small" color={colors.white} />
-                ) : (
-                  <Text style={styles.gmailSendText}>
-                    📨 Send now with Gmail — replies tracked
+              <>
+                <TouchableOpacity
+                  style={[styles.gmailSendBtn, blanksLeft > 0 && styles.gmailSendBtnDisabled]}
+                  onPress={handleSendWithGmail}
+                  disabled={gmailSending || blanksLeft > 0}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: gmailSending || blanksLeft > 0 }}
+                  accessibilityLabel={
+                    blanksLeft > 0
+                      ? `Fill the ${blanksLeft} blank${blanksLeft === 1 ? '' : 's'} above, then send through Gmail`
+                      : 'Send this letter now through your connected Gmail'
+                  }
+                >
+                  {gmailSending ? (
+                    <ActivityIndicator size="small" color={colors.white} />
+                  ) : (
+                    <Text style={styles.gmailSendText}>
+                      📨 Send now with Gmail — replies tracked
+                    </Text>
+                  )}
+                </TouchableOpacity>
+                {blanksLeft > 0 && (
+                  <Text style={styles.sendGateHint}>
+                    Fill the {blanksLeft} blank{blanksLeft === 1 ? '' : 's'} above — then Send turns on.
+                    You can still Copy or open it in your mail app to finish there.
                   </Text>
                 )}
-              </TouchableOpacity>
+              </>
             )}
             <View style={styles.actionRow}>
               <Button title="Copy" onPress={handleCopy} variant="primary" />
@@ -938,6 +965,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   gmailSendText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
+  gmailSendBtnDisabled: { backgroundColor: colors.mid, opacity: 0.6 },
+  sendGateHint: {
+    fontSize: fonts.sizes.sm,
+    color: '#B45309',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginTop: spacing.xs,
+  },
   sentMoment: { gap: spacing.sm },
   sentCelebration: {
     fontSize: fonts.sizes.lg,
