@@ -207,6 +207,10 @@ export default function LettersScreen() {
     // knows, fill it in rather than making the parent type it again.
     const { text, filled } = fillKnownBlanks(result.draft, letterProfile);
     setDraft(text);
+    // A regenerated draft is not the one that was sent — drop any prior
+    // send confirmation so it can't linger over new, unsent text.
+    setMarkedSent(false);
+    setSentMoment(null);
     // Persistent note above the draft instead of a vanishing toast — a parent
     // reviewing the letter later can still see what came from their records.
     setFilledFromRecords(filled);
@@ -727,7 +731,11 @@ export default function LettersScreen() {
             {/* Saving a draft and confirming it went out are different acts —
                 the paper trail should reflect which one happened */}
             <View style={styles.trackBox}>
-              {markedSent && sentMoment ? (
+              {/* The confirmation — and its "logged in your paper trail" claim
+                  — only holds while the draft on screen is still the sent one.
+                  Edit or regenerate after sending and this correctly hides,
+                  rather than asserting a record for text that was never saved. */}
+              {markedSent && sentMoment && loggedDraftRef.current === draft ? (
                 <View style={styles.sentMoment}>
                   <Text style={styles.sentCelebration}>🎉 {sentMoment.next.celebration}</Text>
                   <Text style={styles.sentDid}>{sentMoment.next.did}</Text>
@@ -787,7 +795,12 @@ export default function LettersScreen() {
                   {/* Close the loop the card opened: one tap back to Home. */}
                   <TouchableOpacity
                     style={styles.sentDoneButton}
-                    onPress={() => (navigation as any).navigate('HomeMain')}
+                    onPress={() => {
+                      // Reset explicitly, don't rely on the pop to unmount —
+                      // so returning to Letters never resurfaces a stale letter.
+                      reset();
+                      (navigation as any).navigate('HomeMain');
+                    }}
                     accessibilityRole="button"
                     accessibilityLabel={
                       locale === 'es'
@@ -802,7 +815,7 @@ export default function LettersScreen() {
                     </Text>
                   </TouchableOpacity>
                 </View>
-              ) : markedSent ? (
+              ) : markedSent && loggedDraftRef.current === draft ? (
                 <Text style={styles.trackSent}>
                   ✅ Marked as sent — it's in your paper trail
                 </Text>
@@ -1118,12 +1131,13 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     minHeight: 44,
     borderRadius: radii.md,
-    borderWidth: 1.5,
-    borderColor: colors.teal,
+    backgroundColor: colors.navy,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sentDoneButtonText: { color: colors.teal, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.base },
+  // White on navy (#FFFFFF on #1B2A4A ≈ 12:1) — clears WCAG AA, unlike the
+  // teal-on-white it replaced (3.68:1).
+  sentDoneButtonText: { color: colors.white, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.base },
   trackBox: {
     backgroundColor: colors.white,
     borderWidth: 1,
