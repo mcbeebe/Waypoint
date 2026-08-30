@@ -55,6 +55,19 @@ import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
+/**
+ * "Filled from your records" note (draft flow 9c), trilingual. Deliberately
+ * generic — the specific field labels live only in English in BLANK_FIELDS, so
+ * interpolating them here would splice English into a Spanish/Vietnamese
+ * sentence. This mirrors the mockup ("we filled these in from your records")
+ * and stays honest without a mixed-language list.
+ */
+const RECORDS_NOTE: Record<'en' | 'es' | 'vi', string> = {
+  en: 'We filled in the details we had from your records. Tap to change any of them in your profile.',
+  es: 'Completamos los datos que teníamos de su perfil. Toque para cambiar cualquiera en su perfil.',
+  vi: 'Chúng tôi đã điền các chi tiết có trong hồ sơ của quý vị. Chạm để thay đổi bất kỳ mục nào trong hồ sơ.',
+};
+
 /** Send-gate copy (draft flow 9c-2), trilingual like the rest of this flow. */
 const SEND_GATE: Record<
   'en' | 'es' | 'vi',
@@ -86,7 +99,8 @@ export default function LettersScreen() {
   const { contacts } = useContacts(family?.id);
   const { showToast } = useToast();
   const { locale } = useI18n();
-  const sendGate = SEND_GATE[toFunnelLocale(locale)];
+  const funnelLocale = toFunnelLocale(locale);
+  const sendGate = SEND_GATE[funnelLocale];
   const route = useRoute<RouteProp<HomeStackParamList, 'Letters'>>();
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const hasAIConsent = !!family?.ai_consent_at;
@@ -122,6 +136,8 @@ export default function LettersScreen() {
     if (match) {
       setTemplate(match);
       setDraft(null);
+      // New template → the previous draft's records note is no longer true.
+      setFilledFromRecords([]);
     }
     if (route.params?.question) {
       setQuestion(route.params.question);
@@ -144,11 +160,19 @@ export default function LettersScreen() {
     const saved = route.params?.draftBody;
     if (!saved) return;
     setDraft(saved);
+    // A reopened draft never went through fillKnownBlanks, so no records were
+    // filled for THIS text — clear any note left from a prior generated draft,
+    // or it would assert a false provenance over someone else's letter.
+    setFilledFromRecords([]);
     loggedDraftRef.current = saved; // already in the log — don't duplicate it
   }, [route.params?.draftBody]);
   const [tone, setTone] = useState<DraftTone>('professional');
   const [question, setQuestion] = useState('');
   const [draft, setDraft] = useState<string | null>(null);
+  // What the profile fill supplied (draft flow 9c): shown as a persistent,
+  // honest note above the draft — "these came from your records, tap to change"
+  // — instead of a toast that vanishes before the parent reads the letter.
+  const [filledFromRecords, setFilledFromRecords] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
   const [showConsent, setShowConsent] = useState(false);
 
@@ -183,9 +207,9 @@ export default function LettersScreen() {
     // knows, fill it in rather than making the parent type it again.
     const { text, filled } = fillKnownBlanks(result.draft, letterProfile);
     setDraft(text);
-    if (filled.length > 0) {
-      showToast(`Filled in from your profile: ${filled.join(', ').toLowerCase()}`, 'success');
-    }
+    // Persistent note above the draft instead of a vanishing toast — a parent
+    // reviewing the letter later can still see what came from their records.
+    setFilledFromRecords(filled);
     if (family?.id) {
       // Anonymous usage analytics (fire-and-forget)
       trackDraftUsed(family.id, template.key, family.regional_center ?? undefined);
@@ -456,6 +480,7 @@ export default function LettersScreen() {
     setMarkedSent(false);
     setSentMoment(null);
     setDraft(null);
+    setFilledFromRecords([]);
     setTemplate(null);
     setQuestion('');
     setChatGuidance(null);
@@ -576,6 +601,16 @@ export default function LettersScreen() {
               <Text style={styles.backLink}>‹ Change tone or details</Text>
             </TouchableOpacity>
             <Text style={styles.stepTitle}>Your draft — edit anything, then send</Text>
+            {filledFromRecords.length > 0 && (
+              <TouchableOpacity
+                style={styles.recordsNote}
+                onPress={() => (navigation as any).navigate('Home', { screen: 'Profile' })}
+                accessibilityRole="button"
+                accessibilityLabel={RECORDS_NOTE[funnelLocale]}
+              >
+                <Text style={styles.recordsNoteText}>{RECORDS_NOTE[funnelLocale]}</Text>
+              </TouchableOpacity>
+            )}
             {(() => {
               // Blanks left after the profile fill: show what's still needed,
               // and separate "we could remember this for you" from the ones
@@ -987,6 +1022,17 @@ const styles = StyleSheet.create({
   },
   gmailSendText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   gmailSendBtnDisabled: { backgroundColor: colors.mid, opacity: 0.6 },
+  recordsNote: {
+    backgroundColor: '#ECFEFF',
+    borderWidth: 1,
+    borderColor: '#A5F3FC',
+    borderRadius: radii.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  recordsNoteText: { fontSize: fonts.sizes.sm, color: '#155E75', lineHeight: 18 },
   sendGateHint: {
     fontSize: fonts.sizes.sm,
     color: '#B45309',
