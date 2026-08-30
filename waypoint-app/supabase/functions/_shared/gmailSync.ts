@@ -24,9 +24,12 @@ const GMAIL_SCOPES = [
 const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID') ?? '';
 const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET') ?? '';
 
-/** Bounds so one sweep stays cheap. */
-const MAX_ACCOUNTS = 200;
-const THREADS_PER_ACCOUNT = 25;
+/** Bounds so one sweep finishes well under the edge-function wall clock
+ *  (~150s). Accounts are processed least-recently-synced first and stamped, so
+ *  runs ROTATE through everyone across cycles — no account is ever starved, and
+ *  the per-run work is capped regardless of how many families connect. */
+const MAX_ACCOUNTS = 25;
+const THREADS_PER_ACCOUNT = 15;
 
 interface GmailPayload {
   mimeType?: string;
@@ -182,10 +185,13 @@ export async function syncAllAccounts(
   const userIds = [...familyByUser.keys()];
   if (userIds.length === 0) return { accounts: 0, newReplies: 0 };
 
+  // Least-recently-synced first (nulls = never synced) so runs rotate through
+  // all accounts and never starve the tail; capped per run for the wall clock.
   const { data: accounts } = await supabase
     .from('google_accounts')
     .select('user_id, google_email, refresh_token, scopes')
     .in('user_id', userIds)
+    .order('synced_at', { ascending: true, nullsFirst: true })
     .limit(MAX_ACCOUNTS);
 
   let processed = 0;
@@ -196,14 +202,29 @@ export async function syncAllAccounts(
     refresh_token: string;
     scopes: string | null;
   }[]) {
+    // Stamp synced_at for EVERY account we take this run — processed, skipped
+    // for missing scopes, or a failed token refresh alike — so the rotation
+    // advances and a stuck account can't be re-selected every cycle.
+    const stampSynced = () =>
+      supabase
+        .from('google_accounts')
+        .update({ synced_at: new Date().toISOString() })
+        .eq('user_id', acc.user_id);
+
     const hasGmail = GMAIL_SCOPES.every((s) => (acc.scopes ?? '').includes(s));
-    if (!hasGmail) continue;
     const familyId = familyByUser.get(acc.user_id);
-    if (!familyId) continue;
+    if (!hasGmail || !familyId) {
+      await stampSynced();
+      continue;
+    }
     const token = await accessTokenFor(acc.refresh_token);
-    if (!token) continue;
+    if (!token) {
+      await stampSynced();
+      continue;
+    }
     processed += 1;
     newReplies += await syncFamily(supabase, familyId, acc.google_email ?? '', token);
+    await stampSynced();
   }
   return { accounts: processed, newReplies };
 }

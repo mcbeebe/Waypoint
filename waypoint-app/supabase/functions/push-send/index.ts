@@ -18,6 +18,7 @@
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { runPushSend } from '../_shared/pushSend.ts';
+import { acquireLease, releaseLease } from '../_shared/lease.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -44,10 +45,17 @@ Deno.serve(async (req) => {
     return json({ error: 'unauthorized' }, 401);
   }
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+  // Share the outbound lease with poll-replies so a manual send can't race the
+  // cron into a double-push.
+  if (!(await acquireLease(supabase))) {
+    return json({ ok: true, skipped: 'locked' });
+  }
   try {
     const result = await runPushSend(supabase);
     return json({ ok: true, ...result });
   } catch (e) {
     return json({ error: String(e) }, 500);
+  } finally {
+    await releaseLease(supabase);
   }
 });

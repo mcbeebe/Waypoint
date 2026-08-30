@@ -27,20 +27,24 @@ export function pushLocale(raw: string | null | undefined): PushLocale {
 }
 
 export function pendingReplyPushes(rows: ReplyRow[]): ReplyRow[] {
+  // Key by family AND thread (see canonical src/lib/replyPush.ts): an outgoing
+  // from family B never suppresses family A's incoming on a shared thread id.
+  const key = (r: ReplyRow) => `${r.family_id} ${r.gmail_thread_id}`;
   const laterOutgoingByThread = new Map<string, number>();
   for (const r of rows) {
     if (r.direction !== 'outgoing' || !r.gmail_thread_id) continue;
     const t = Date.parse(r.occurred_at ?? '');
     if (Number.isNaN(t)) continue;
-    const prev = laterOutgoingByThread.get(r.gmail_thread_id);
-    if (prev === undefined || t > prev) laterOutgoingByThread.set(r.gmail_thread_id, t);
+    const k = key(r);
+    const prev = laterOutgoingByThread.get(k);
+    if (prev === undefined || t > prev) laterOutgoingByThread.set(k, t);
   }
 
   return rows.filter((r) => {
     if (r.direction !== 'incoming') return false;
     if (r.notified_at) return false;
     if (!r.gmail_thread_id) return true;
-    const answeredAt = laterOutgoingByThread.get(r.gmail_thread_id);
+    const answeredAt = laterOutgoingByThread.get(key(r));
     if (answeredAt === undefined) return true;
     const inAt = Date.parse(r.occurred_at ?? '');
     if (Number.isNaN(inAt)) return true;

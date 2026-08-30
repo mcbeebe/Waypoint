@@ -20,6 +20,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { syncAllAccounts } from '../_shared/gmailSync.ts';
 import { runPushSend } from '../_shared/pushSend.ts';
+import { acquireLease, releaseLease } from '../_shared/lease.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -46,11 +47,18 @@ Deno.serve(async (req) => {
     return json({ error: 'unauthorized' }, 401);
   }
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+  // Single-flight: if a prior run (or a manual push-send) still holds the lease,
+  // skip rather than double-send. pg_net fires every 5 min and may retry.
+  if (!(await acquireLease(supabase))) {
+    return json({ ok: true, skipped: 'locked' });
+  }
   try {
     const synced = await syncAllAccounts(supabase);
     const sent = await runPushSend(supabase);
     return json({ ok: true, synced, sent });
   } catch (e) {
     return json({ error: String(e) }, 500);
+  } finally {
+    await releaseLease(supabase);
   }
 });

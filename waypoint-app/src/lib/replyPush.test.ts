@@ -59,6 +59,16 @@ describe('pendingReplyPushes', () => {
   it('a reply with no thread id is pending (unmatchable to an answer)', () => {
     expect(pendingReplyPushes([row({ gmail_thread_id: null })])).toHaveLength(1);
   });
+
+  it("another family's outgoing on the same thread id never suppresses this reply", () => {
+    // Tenant isolation: family A has an unanswered incoming; family B happens to
+    // have a later outgoing on the same thread id — it must NOT answer A's.
+    const rows = [
+      row({ id: 'inA', family_id: 'A', gmail_thread_id: 't1', occurred_at: '2026-08-30T12:00:00Z' }),
+      row({ id: 'outB', family_id: 'B', direction: 'outgoing', gmail_thread_id: 't1', occurred_at: '2026-08-30T13:00:00Z' }),
+    ];
+    expect(pendingReplyPushes(rows).map((r) => r.id)).toEqual(['inA']);
+  });
 });
 
 describe('groupByFamily', () => {

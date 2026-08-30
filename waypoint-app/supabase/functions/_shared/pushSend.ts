@@ -22,29 +22,55 @@ const EXPO_PUSH_API = 'https://exp.host/--/api/v2/push/send';
 /** Bound each run so one sweep can't fan out unbounded. */
 const SCAN_LIMIT = 300;
 
+interface PushOutcome {
+  /** At least one device actually accepted the push. */
+  delivered: boolean;
+  /** Tokens Expo reports as gone (DeviceNotRegistered) — prune them. */
+  deadTokens: string[];
+  /** The send call itself failed (network) — nothing decided, retry next run. */
+  transportFailed: boolean;
+}
+
 /**
  * Push for one family: one message per registered device, in that device's
- * language. Returns true only if Expo accepted the batch — the caller stamps
- * notified_at only on success, so a transient failure is retried next run.
+ * language. The Expo API returns HTTP 200 even when individual tickets fail,
+ * so we MUST read the per-ticket statuses: a DeviceNotRegistered token is dead
+ * (reinstall / new phone) and must be pruned, or it "succeeds" forever and the
+ * family silently loses every reply. Delivery is true only if a ticket came
+ * back ok — the caller stamps notified_at only then.
  */
 async function sendFamilyPush(
   tokens: { expo_token: string; locale: string | null }[],
   count: number
-): Promise<boolean> {
+): Promise<PushOutcome> {
   const messages = tokens.map((t) => {
     const copy = replyCopy(count, pushLocale(t.locale));
     return { to: t.expo_token, title: copy.title, body: copy.body, sound: 'default' };
   });
-  if (messages.length === 0) return true;
+  if (messages.length === 0) return { delivered: false, deadTokens: [], transportFailed: false };
   try {
     const resp = await fetch(EXPO_PUSH_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(messages),
     });
-    return resp.ok;
+    if (!resp.ok) return { delivered: false, deadTokens: [], transportFailed: true };
+    const body = await resp.json().catch(() => null);
+    const tickets: { status?: string; details?: { error?: string } }[] = body?.data ?? [];
+    let delivered = false;
+    const deadTokens: string[] = [];
+    tickets.forEach((ticket, i) => {
+      if (ticket?.status === 'ok') delivered = true;
+      else if (ticket?.details?.error === 'DeviceNotRegistered' && tokens[i]) {
+        deadTokens.push(tokens[i].expo_token);
+      }
+    });
+    // A 200 with no parseable tickets: treat as delivered (don't re-spam) but
+    // nothing to prune.
+    if (tickets.length === 0) delivered = true;
+    return { delivered, deadTokens, transportFailed: false };
   } catch {
-    return false;
+    return { delivered: false, deadTokens: [], transportFailed: true };
   }
 }
 
@@ -88,18 +114,35 @@ export async function runPushSend(
       .eq('family_id', familyId);
     const list = (tokens ?? []) as { expo_token: string; locale: string | null }[];
 
-    // No token = notifications off (consent withdrawn) or no device: nothing to
-    // deliver AND nothing to retry, so stamp so the row doesn't re-scan forever
-    // and a later opt-in doesn't retro-push a stale reply. Token present: stamp
-    // only if Expo accepted, so a transient send failure is retried next run.
-    const ok = list.length === 0 ? true : await sendFamilyPush(list, rows.length);
-    if (!ok) continue;
-    if (list.length > 0) pushed += 1;
+    let stamp: boolean;
+    if (list.length === 0) {
+      // No token = notifications off (consent withdrawn) or no device: nothing
+      // to deliver AND nothing to retry, so stamp so the row doesn't re-scan
+      // forever and a later opt-in doesn't retro-push a stale reply.
+      stamp = true;
+    } else {
+      const outcome = await sendFamilyPush(list, rows.length);
+      // Prune tokens Expo says are gone so they don't "succeed" forever and
+      // silently swallow every future reply (H1).
+      if (outcome.deadTokens.length > 0) {
+        await supabase.from('push_tokens').delete().in('expo_token', outcome.deadTokens);
+      }
+      // Transport failure decides nothing — leave unnotified so the next run
+      // retries. Otherwise stamp: either a device took it, or every token was
+      // dead and now pruned (nothing left to deliver to).
+      if (outcome.transportFailed) stamp = false;
+      else stamp = outcome.delivered || outcome.deadTokens.length === list.length;
+      if (outcome.delivered) pushed += 1;
+    }
+    if (!stamp) continue;
 
-    await supabase
+    const { error: stampErr } = await supabase
       .from('communications')
       .update({ notified_at: new Date().toISOString() })
       .in('id', rows.map((r) => r.id));
+    // If the stamp fails after a delivered push, the next run would re-send
+    // (M1) — accept that over losing the notification; surface it in logs.
+    if (stampErr) console.error('[push-send] stamp failed', familyId, stampErr.message);
   }
 
   return { families: byFamily.size, pushed, rows: pending.length };

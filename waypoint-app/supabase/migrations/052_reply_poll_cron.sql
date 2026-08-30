@@ -1,7 +1,10 @@
--- 052: the reply-poll cron (phase 7, Lane B — 7B-4). The true app-closed loop.
+-- 052: reply-poll cron + run infrastructure (phase 7, Lane B — 7B-4). The true
+-- app-closed loop.
 --
--- Schedules a pg_cron job that, every 5 minutes, POSTs to the `poll-replies`
--- Edge Function via pg_net. That function server-side-syncs Gmail for every
+-- Creates: (a) the single-flight lease row the functions use to avoid
+-- double-sending, (b) google_accounts.synced_at, the sweep's rotation cursor,
+-- then (c) a pg_cron job that every 5 minutes POSTs to the `poll-replies` Edge
+-- Function via pg_net. That function server-side-syncs Gmail for every
 -- consenting family and pushes "you have a reply" — no device need be open.
 --
 -- ───────────────────────────────────────────────────────────────────────────
@@ -18,6 +21,30 @@
 -- Apply by hand in the Supabase SQL editor, after 051. Idempotent — re-running
 -- re-points the same named job. No CI covers any of this.
 -- ───────────────────────────────────────────────────────────────────────────
+
+-- ── Run infrastructure the poller needs ──────────────────────────────────────
+
+-- Single-flight lease: a lease ROW (not a session advisory lock, which would
+-- not survive transaction pooling) so two overlapping runs can't double-send.
+-- Acquisition is one atomic UPDATE guarded on locked_until < now(); see
+-- functions/_shared/lease.ts.
+create table if not exists public.outbound_run_lock (
+  id integer primary key,
+  locked_until timestamptz not null default to_timestamp(0)
+);
+insert into public.outbound_run_lock (id, locked_until)
+  values (1, to_timestamp(0))
+  on conflict (id) do nothing;
+-- Only the service role (the Edge Functions) touches this — never a client.
+alter table public.outbound_run_lock enable row level security;
+
+-- Rotation cursor for the Gmail sweep: process least-recently-synced accounts
+-- first and stamp this, so runs rotate through everyone and the tail is never
+-- starved (functions/_shared/gmailSync.ts orders by this).
+alter table public.google_accounts
+  add column if not exists synced_at timestamptz;
+comment on column public.google_accounts.synced_at is
+  'Last time the reply poller swept this account — rotation cursor (phase 7 Lane B).';
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
