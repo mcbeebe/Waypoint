@@ -90,6 +90,19 @@ describe('the library answers before the AI has to', () => {
   it('returns nothing rather than guessing', () => {
     expect(searchLearn('quantum tunnelling')).toEqual([]);
   });
+
+  it('the guides that left the Tools catalog stay findable and navigable here', () => {
+    // When the "how the system works" / benefits-stack guides moved out of the
+    // Tools doors (guides get one home in Learn), ToolsArea began falling
+    // through to searchLearn for those words. This pins the contract it relies
+    // on: each guide word still lands a navigable guide.
+    const nav = (q: string) => searchLearn(q).filter((h) => h.target).map((h) => h.key);
+    expect(nav('ihss')).toContain('benefits');
+    expect(nav('medi-cal')).toContain('benefits');
+    expect(nav('school')).toContain('process_school');
+    expect(nav('iep')).toContain('process_school');
+    expect(nav('regional center')).toContain('process_rc');
+  });
 });
 
 describe('locale parity', () => {
