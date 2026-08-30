@@ -70,3 +70,15 @@ jobs:
         # verify_jwt=false comes from supabase/config.toml — Stripe can't send
         # a Supabase JWT; the function verifies the Stripe-Signature HMAC.
         run: supabase functions deploy stripe-webhook --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Deploy push-send
+        if: steps.token.outputs.present == 'true'
+        # verify_jwt=false (config.toml) — auth is the OUTBOUND_CRON_SECRET
+        # shared secret. Reads _shared/replyPush.ts + _shared/pushSend.ts.
+        run: supabase functions deploy push-send --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Deploy poll-replies
+        if: steps.token.outputs.present == 'true'
+        # verify_jwt=false (config.toml) — the pg_cron/pg_net entry. Reads
+        # _shared/gmailSync.ts + _shared/pushSend.ts.
+        run: supabase functions deploy poll-replies --project-ref "$SUPABASE_PROJECT_ID"
