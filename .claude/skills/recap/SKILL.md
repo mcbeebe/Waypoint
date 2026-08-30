@@ -39,10 +39,13 @@ elsewhere. Re-check, in this order:
 2. **Where things actually stand, and what the evidence is.** For every claim
    of "done", name the proof: a merged PR number, a migration confirmed
    applied, a screenshot of the running app, a passing check on the latest
-   commit. *Unit tests passing does not count as proven* — this repo's suite
-   covers `src/lib` and `src/data` only; there are no component, screen, or
-   end-to-end tests, so nothing in it proves a screen renders. Distinguish
-   written / reviewed / merged / verified in the running app.
+   commit. *A green suite is not proof a family can use the thing.* Since
+   Aug 30 2026 the suite has three projects — `logic` (pure modules), `ui`
+   (components rendered through react-native-web) and `tz` (dates east of
+   Greenwich) — so a component render or a dead tap IS covered. What is still
+   not covered: no screen or end-to-end test mounts a real navigator against
+   real data, and nothing launches the app. Distinguish written / reviewed /
+   merged / verified in the running app.
 3. **What is blocked, split by kind.** Blocked on a **person** (owner
    approval, an App Store review, a DDS response) versus blocked on something
    **technical** (a failing check, a missing secret, an unapplied migration).

@@ -428,10 +428,18 @@ before any of it is built** — sizing and the authoring workflow are open.
      owe you an answer". That is description to the parent, not language for
      the agency — but it is the frame the parent carries into the call. Keep,
      or soften to a neutral "past due"?
-   - **Legal.** `requestClocks.ts` anchors the W&I §4646.5(b) 30-day IPP clock
-     to the parent's request date. If the statute runs from completion of the
-     assessment instead, every overdue card attaches a correct citation to an
-     incorrectly anchored claim. Worth a lawyer's eye before launch.
+   - **Legal — resolved Aug 30 2026, no lawyer needed.** §4646.5(b) reads
+     "the individual program plan shall be reviewed within 30 days after the
+     request is submitted", so anchoring the clock on `requested_on` is
+     correct. The 60-day clock the review worried about belongs to the
+     *initial* IPP after assessment, which is a different provision and not
+     what this card tracks. Owner decision: do not block launch on a lawyer.
+
+     The lookup did find a real omission, now fixed: the same subdivision
+     gives **7 days, not 30**, when the meeting is needed for the child's
+     health and safety or to keep them living at home. The app was telling a
+     family in crisis to wait a month. The Learn article and the IPP glossary
+     entry now carry both halves.
 1. **Ship phase 7 before launch, or soften the calm copy?** Softened for now
    (see change 7 above). The decision that remains is whether push ships
    before launch or the softened copy is the launch copy.

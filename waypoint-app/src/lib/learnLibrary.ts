@@ -194,16 +194,22 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         'El plazo de 30 días del IPP, explicado',
         'Đồng hồ 30 ngày của IPP, giải thích'
       ),
+      // The 7-day path is in the same subdivision as the 30-day one, and it
+      // is the half a family in crisis needs. Leaving it out is not neutral:
+      // it tells a parent to wait a month when the law gives them a week.
       summary: L(
-        'When you ask for an IPP meeting, the Regional Center has 30 days to hold it. The clock runs from your request — which is why the date you asked matters more than anything discussed by telephone.',
-        'Cuando pide una reunión de IPP, el Centro Regional tiene 30 días para realizarla. El plazo corre desde su solicitud — por eso la fecha en que pidió importa más que lo conversado por teléfono.',
-        'Khi quý vị đề nghị họp IPP, Trung tâm Khu vực có 30 ngày để tổ chức. Thời hạn tính từ ngày quý vị đề nghị — vì vậy ngày đề nghị quan trọng hơn bất cứ điều gì trao đổi qua điện thoại.'
+        'When you ask for an IPP review, the Regional Center has 30 days to hold it — and no more than 7 days if the meeting is needed for your child’s health and safety, or to keep them living at home. The clock runs from your request, which is why the date you asked matters more than anything discussed by telephone.',
+        'Cuando pide una revisión del IPP, el Centro Regional tiene 30 días para realizarla — y no más de 7 días si la reunión es necesaria para la salud y seguridad de su hijo/a, o para que siga viviendo en casa. El plazo corre desde su solicitud, por eso la fecha en que pidió importa más que lo conversado por teléfono.',
+        'Khi quý vị đề nghị xem lại IPP, Trung tâm Khu vực có 30 ngày để tổ chức — và không quá 7 ngày nếu buổi họp cần cho sức khỏe và an toàn của con quý vị, hoặc để cháu tiếp tục sống tại nhà. Thời hạn tính từ ngày quý vị đề nghị, vì vậy ngày đề nghị quan trọng hơn bất cứ điều gì trao đổi qua điện thoại.'
       ),
       minutes: 4,
       citation: 'W&I §4646.5(b)',
       actionLabel: L('Track this request', 'Registrar esta solicitud', 'Theo dõi yêu cầu này'),
       target: { screen: 'RequestTracker', tab: 'Home' },
-      terms: ['ipp', '30 days', 'clock', 'meeting', 'plazo', 'thời hạn'],
+      terms: [
+        'ipp', '30 days', '7 days', 'clock', 'meeting', 'urgent', 'health and safety',
+        'plazo', 'urgente', 'salud y seguridad', 'thời hạn', 'khẩn cấp', 'sức khỏe',
+      ],
     },
     {
       key: 'rc_money',
@@ -264,9 +270,9 @@ export function getGlossary(locale: FunnelLocale = 'en'): GlossaryEntry[] {
     {
       term: 'IPP',
       plain: L(
-        'Your Regional Center service plan. You can ask for a review at any time, and a requested review meeting must be held within 30 days.',
-        'Su plan de servicios del Centro Regional. Puede pedir una revisión en cualquier momento, y una reunión de revisión solicitada debe realizarse en 30 días.',
-        'Kế hoạch dịch vụ của Trung tâm Khu vực. Quý vị có thể yêu cầu xem lại bất cứ lúc nào, và buổi họp xem lại được yêu cầu phải diễn ra trong vòng 30 ngày.'
+        'Your Regional Center service plan. You can ask for a review at any time: it must be held within 30 days of your request, or within 7 if waiting would put your child’s health or safety at risk.',
+        'Su plan de servicios del Centro Regional. Puede pedir una revisión en cualquier momento: debe realizarse dentro de 30 días de su solicitud, o dentro de 7 si esperar pondría en riesgo la salud o la seguridad de su hijo/a.',
+        'Kế hoạch dịch vụ của Trung tâm Khu vực. Quý vị có thể yêu cầu xem lại bất cứ lúc nào: phải tổ chức trong vòng 30 ngày kể từ khi đề nghị, hoặc trong vòng 7 ngày nếu chờ đợi sẽ gây rủi ro cho sức khỏe hoặc an toàn của con quý vị.'
       ),
       citation: 'W&I §4646 · §4646.5(b)',
       terms: ['individual program plan', 'plan'],
@@ -418,7 +424,7 @@ export function searchLearn(query: string, locale: FunnelLocale = 'en'): LearnHi
       if (exactFolded === t) best = 12;
       else if (matchesWord(termsHay, t)) best = 6;
       else if (matchesWord(title, t)) best = 4;
-      else if (body.includes(t)) best = 1;
+      else if (matchesWord(body, t)) best = 1;
       if (best > 0) {
         score += best;
         matched += 1;
