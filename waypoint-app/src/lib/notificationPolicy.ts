@@ -33,6 +33,15 @@ export interface NotifPrefs {
   enabled: boolean;
   deadlines: boolean;
   actions: boolean;
+  /**
+   * Separate, explicit consent for Waypoint's servers to read the connected
+   * Gmail account for new replies WHILE THE APP IS CLOSED (Lane B background
+   * sync). Off by default — distinct from wanting push notifications. When off,
+   * reply pushes still fire for replies synced while the app was open; only the
+   * server-side background mailbox read is withheld. On-device reminders (Lane
+   * A) never touch this. Owner decision, Aug 30 2026 (#1/B).
+   */
+  serverSync: boolean;
   /** Quiet-hours window in local hours [start, end); a fire inside it is
    *  pushed to `quietEndHour`. Default 21→8. Set equal to disable. */
   quietStartHour: number;
@@ -43,6 +52,7 @@ export const DEFAULT_PREFS: NotifPrefs = {
   enabled: false,
   deadlines: true,
   actions: true,
+  serverSync: false,
   quietStartHour: 21,
   quietEndHour: 8,
 };

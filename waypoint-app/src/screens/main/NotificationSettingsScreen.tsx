@@ -25,6 +25,9 @@ const S: Record<FunnelLocale, Record<string, string>> = {
     deadlines: 'Deadlines nearing or passed',
     deadlinesHint: 'On-device · works offline',
     actions: 'Plan steps coming due',
+    repliesSection: 'CHECKING FOR REPLIES',
+    serverSync: 'Check for replies while the app is closed',
+    serverSyncHint: 'Lets Waypoint read your connected email on our servers to catch replies when you’re not in the app. Off unless you turn it on.',
     quiet: 'QUIET HOURS',
     dnd: "Don't disturb",
     dndHint: '9:00 PM – 8:00 AM · your time',
@@ -40,6 +43,9 @@ const S: Record<FunnelLocale, Record<string, string>> = {
     deadlines: 'Fechas límite cercanas o vencidas',
     deadlinesHint: 'En el dispositivo · funciona sin conexión',
     actions: 'Pasos del plan por vencer',
+    repliesSection: 'BUSCAR RESPUESTAS',
+    serverSync: 'Buscar respuestas con la app cerrada',
+    serverSyncHint: 'Permite que Waypoint lea su correo conectado en nuestros servidores para detectar respuestas cuando no está en la app. Desactivado salvo que lo active.',
     quiet: 'HORAS DE SILENCIO',
     dnd: 'No molestar',
     dndHint: '9:00 PM – 8:00 AM · su hora',
@@ -55,6 +61,9 @@ const S: Record<FunnelLocale, Record<string, string>> = {
     deadlines: 'Hạn chót sắp đến hoặc đã qua',
     deadlinesHint: 'Trên thiết bị · hoạt động ngoại tuyến',
     actions: 'Các bước kế hoạch sắp đến hạn',
+    repliesSection: 'KIỂM TRA THƯ TRẢ LỜI',
+    serverSync: 'Kiểm tra thư trả lời khi ứng dụng đã đóng',
+    serverSyncHint: 'Cho phép Waypoint đọc email đã kết nối của quý vị trên máy chủ để phát hiện thư trả lời khi quý vị không mở ứng dụng. Tắt trừ khi quý vị bật.',
     quiet: 'GIỜ YÊN LẶNG',
     dnd: 'Không làm phiền',
     dndHint: '9:00 tối – 8:00 sáng · giờ của quý vị',
@@ -130,6 +139,20 @@ export default function NotificationSettingsScreen() {
             label={t.actions}
             value={prefs.actions}
             onValueChange={(v) => update({ actions: v })}
+            disabled={disabled}
+          />
+        </View>
+
+        {/* A SEPARATE, explicit consent (owner #1/B): wanting push is not the
+            same as consenting to a background server-side read of a connected
+            mailbox. Off by default; only this drives the cron's Gmail sweep. */}
+        <Text style={styles.sectionLabel}>{t.repliesSection}</Text>
+        <View style={styles.card}>
+          <Row
+            label={t.serverSync}
+            hint={t.serverSyncHint}
+            value={prefs.serverSync}
+            onValueChange={(v) => update({ serverSync: v })}
             disabled={disabled}
           />
         </View>

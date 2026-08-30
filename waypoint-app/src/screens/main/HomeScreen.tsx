@@ -176,11 +176,12 @@ function HomeScreenInner({
   // on web/simulator / without an EAS projectId.
   useEffect(() => {
     if (!notifPrefsLoaded || !family?.id) return;
-    // Pass the app language so a server push arrives in the family's own
-    // language; re-registers on a language switch (funnelLocale is a dep).
-    if (remindersOn) void registerPushToken(funnelLocale);
+    // Pass the app language (so a server push arrives in the family's own
+    // language) and the background-sync consent (owner #1/B — off by default,
+    // separate from wanting push). Re-registers on a language or consent switch.
+    if (remindersOn) void registerPushToken(funnelLocale, notifPrefs.serverSync);
     else if (hasPermission) void unregisterPushToken();
-  }, [notifPrefsLoaded, remindersOn, hasPermission, family?.id, funnelLocale]);
+  }, [notifPrefsLoaded, remindersOn, hasPermission, family?.id, funnelLocale, notifPrefs.serverSync]);
   // The calm-state promise is a DEADLINE promise ("if <date> passes"), backed
   // by the request-clock reminders — which are gated on the deadlines category.
   // So only make the promise when that category is on, not merely the master.

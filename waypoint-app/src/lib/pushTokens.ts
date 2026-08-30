@@ -60,8 +60,16 @@ async function currentToken(): Promise<string | null> {
  * `locale` is the app language this device is showing, stored on the token so
  * the server-side reply sender writes the push in the family's own language
  * (there is no server-readable language preference otherwise). Defaults to 'en'.
+ *
+ * `serverSync` is the family's SEPARATE, explicit consent for app-closed
+ * server-side Gmail reading (off by default). It rides on the token because the
+ * server can't read the on-device preference otherwise; the cron background-
+ * syncs only families whose token carries it.
  */
-export async function registerPushToken(locale?: string): Promise<RegisterResult> {
+export async function registerPushToken(
+  locale?: string,
+  serverSync?: boolean
+): Promise<RegisterResult> {
   if (Platform.OS !== 'ios' && Platform.OS !== 'android') {
     return { ok: false, reason: 'unsupported_platform' };
   }
@@ -74,6 +82,7 @@ export async function registerPushToken(locale?: string): Promise<RegisterResult
     p_token: token,
     p_platform: platform,
     p_locale: locale ?? 'en',
+    p_server_sync: serverSync ?? false,
   });
   if (error) {
     console.warn('[pushTokens] register failed:', error.message);

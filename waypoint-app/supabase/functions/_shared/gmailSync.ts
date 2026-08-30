@@ -166,8 +166,15 @@ async function syncFamily(
 export async function syncAllAccounts(
   supabase: Supabase
 ): Promise<{ accounts: number; newReplies: number }> {
-  // Only families with a push token (notifications on).
-  const { data: tokenRows } = await supabase.from('push_tokens').select('family_id');
+  // Only families whose token carries the explicit app-closed-sync consent
+  // (owner #1/B). Wanting push is NOT consent to a background server-side
+  // mailbox read; server_sync gates that read specifically. (Reply pushes for
+  // replies synced while the app was open still reach everyone with a token —
+  // that path runs in runPushSend, which is not gated here.)
+  const { data: tokenRows } = await supabase
+    .from('push_tokens')
+    .select('family_id')
+    .eq('server_sync', true);
   const familyIds = [
     ...new Set(((tokenRows ?? []) as { family_id: string }[]).map((t) => t.family_id)),
   ];
