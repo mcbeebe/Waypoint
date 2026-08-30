@@ -37,6 +37,7 @@ import { I18nProvider } from './src/i18n';
 import { TextScaleProvider } from './src/lib/textSize';
 import { colors } from './src/lib/theme';
 import type { RootStackParamList } from './src/types/navigation';
+import { MAIN_LINKING } from './src/navigation/linking';
 
 // URL-per-screen linking (roadmap 0.5 / UX 2): on web this makes browser
 // back/forward work and every screen shareable/bookmarkable; on native it
@@ -66,70 +67,7 @@ const linking: LinkingOptions<RootStackParamList> = {
       },
       Terms: 'terms',
       Privacy: 'privacy',
-      Main: {
-        screens: {
-          Home: {
-            // Deep links to nested screens get the list/root screen placed
-            // beneath them, so Back always has somewhere to go (e.g. opening
-            // /actions/:id directly no longer strands the user).
-            initialRouteName: 'HomeMain',
-            screens: {
-              HomeMain: '',
-              Journey: 'journey',
-              ProcessMap: 'how-it-works',
-              EscalationLadder: 'escalation-ladder',
-              EligibilityResult: 'your-result',
-              FundedOffer: 'free-help',
-              RequestTracker: 'requests',
-              Pricing: 'premium',
-              JourneyPhase: 'journey/:journeyKey/:phaseIndex',
-              Agencies: 'agencies',
-              Reimbursables: 'rc-funding',
-              // Moved out of the Calendar tab in the Home rebuild (phase 3);
-              // the old /expenses and /tax-report links keep working.
-              Expenses: 'expenses',
-              TaxReport: 'tax-report',
-              Profile: 'profile',
-              Insights: 'insights',
-              Documents: 'documents',
-              IEPHub: 'iep',
-              Letters: 'letters',
-              EmailAnalyzer: 'email-analyzer',
-              CommunicationLog: 'paper-trail',
-              Providers: 'providers',
-              Services: 'services',
-              Insurance: 'insurance',
-              HealthRecords: 'health-records',
-              FamilySharing: 'family',
-              ProviderPortal: 'provider-portal',
-              Forum: 'community',
-              Messages: 'messages',
-            },
-          },
-          JourneyTab: {
-            screens: { JourneyMain: 'journey-map' },
-          },
-          Navigator: {
-            initialRouteName: 'NavigatorMain',
-            screens: { NavigatorMain: 'ask', Resources: 'resources', Blog: 'blog' },
-          },
-          Tools: {
-            initialRouteName: 'ToolsMain',
-            // /tools is the URL the previous release shipped; keep it.
-            screens: { ToolsMain: 'tools' },
-          },
-          Tracker: {
-            initialRouteName: 'TrackerList',
-            screens: { TrackerList: 'actions', ActionDetail: 'actions/:actionId' },
-          },
-          Calendar: {
-            // Plan is the tab's landing screen (Home rebuild phase 3); the
-            // full calendar sits behind it and keeps its own URL.
-            initialRouteName: 'PlanMain',
-            screens: { PlanMain: 'plan', CalendarMain: 'calendar' },
-          },
-        },
-      },
+      Main: MAIN_LINKING,
     },
   } as unknown as LinkingOptions<RootStackParamList>['config'],
 };

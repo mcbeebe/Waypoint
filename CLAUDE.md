@@ -96,7 +96,7 @@ that material is under `Archive/`.
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
 npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
-npm test            # vitest, 44 files / 474 tests — CI gate
+npm test            # vitest, two projects, 56 files / 671 tests — CI gate
 npm run build:web   # expo export + postbuild — NOT run in CI
 ```
 
@@ -110,6 +110,19 @@ npm run build:web   # expo export + postbuild — NOT run in CI
 - **The five Edge Functions are excluded from `tsconfig.json`** and have no
   tests, yet `deploy-edge-functions.yml` ships them to the production project
   on merge to `main`. Treat every change there as unverified by CI.
+- **`npm test` runs two suites.** `logic` (`*.test.ts`, node) covers the pure
+  modules. `ui` (`*.test.tsx`, jsdom + react-native-web) renders components —
+  it exists because three adversarial reviews in a row found defects the logic
+  suite structurally could not see: a button wired to a screen that does not
+  exist, a control a screen reader cannot reach, a headline rendered as a 10px
+  badge. Native edges are stubbed in `vitest.setup.ui.tsx`; everything asserted
+  on is the real component.
+- **The navigator is built from `src/navigation/routeGraph.ts`.** A `navigate`
+  resolves to PARENTS, never to a sibling stack, so a target is reachable only
+  if the caller's own stack registers it or the call names the tab. Declare
+  screens in the graph — `MainTabs.tsx` maps over it and the types make drift a
+  compile error. A hand-copied mirror of this was tried first and immediately
+  certified nine dead taps.
 - **The classifier prompt is duplicated** in `src/lib/ai.ts` (`classifyIntent`)
   and `scripts/prompt-regression.mjs`, held together only by a "must mirror"
   comment. Change one, change the other, or the regression suite silently

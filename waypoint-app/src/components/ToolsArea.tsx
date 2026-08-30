@@ -121,11 +121,9 @@ export default function ToolsArea({
   const goTo = (tool: ToolEntry) => {
     onOpened?.(tool.key);
     const { screen, params, tab } = tool.route;
-    if (tab) {
-      (navigation as any).navigate(tab, { screen, params, initial: false });
-    } else {
-      (navigation as any).navigate(screen, params);
-    }
+    // Tool rows render in the Home stack AND the Tools tab, and a navigate
+    // bubbles to parents, never to a sibling — so the tab is always named.
+    (navigation as any).navigate(tab ?? 'Home', { screen, params, initial: false });
   };
 
   const actionTools = useMemo(() => getActionTools(funnelLocale), [funnelLocale]);

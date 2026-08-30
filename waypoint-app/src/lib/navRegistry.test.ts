@@ -1,59 +1,61 @@
 /**
  * Nothing-is-lost guard for the Home rebuild.
  *
- * Every destination the redesigned surfaces offer has to resolve to a screen
- * that is actually registered — a `navigate` bubbles to PARENTS, never to a
- * sibling stack, so a route registered only under Home is a silent dead tap
- * from the Tools or Plan tab. That defect shipped once (the Plan tab's
- * agency-clock rows) and is what this file exists to prevent.
+ * React Navigation resolves a `navigate` by walking to PARENTS, never to a
+ * sibling stack. A target is reachable only if the CALLER's own stack
+ * registers it, or the call names the tab that does. Twice now a surface
+ * shipped taps that did nothing: the Plan tab's agency-clock rows, and all
+ * nine of the Learn library's destinations.
  *
- * Update BOTH this list and `navigation/MainTabs.tsx` when a screen moves.
+ * The first version of this file was a hand-copied list of route names, and
+ * it certified those nine — it encoded what the author believed rather than
+ * what the navigator does. It now reads `navigation/routeGraph.ts`, which
+ * `MainTabs.tsx` builds the navigator from, so the two cannot drift.
  */
 import { describe, it, expect } from 'vitest';
 import { accountMenuItems } from './accountMenu';
 import { getLearnLibrary, searchLearn } from './learnLibrary';
 import { getAllTools } from './toolsCatalog';
+import { HOME_DESTINATIONS, ROUTE_GRAPH, resolvesFrom, visibleTabs } from '@/navigation/routeGraph';
+import type { TabName } from '@/navigation/routeGraph';
 
-/** Registered in the Home stack AND the Tools stack (destinationScreens). */
-const SHARED_DESTINATIONS = new Set([
-  'Journey', 'JourneyPhase', 'ProcessMap', 'SdpJourney', 'EscalationLadder',
-  'ResourceStack', 'EligibilityResult', 'FundedOffer', 'RequestTracker',
-  'RequestCase', 'Pricing', 'Agencies', 'Reimbursables', 'Expenses', 'TaxReport',
-  'Insights', 'Documents', 'DocumentAnalysis', 'IEPHub', 'Letters',
-  'EmailAnalyzer', 'CommunicationLog', 'Providers', 'Services', 'Insurance',
-  'HealthRecords', 'FamilySharing', 'ProviderPortal', 'Profile',
-]);
+describe('the graph itself', () => {
+  it('shows a parent exactly four tabs', () => {
+    expect(visibleTabs()).toEqual(['Home', 'Navigator', 'Tools', 'Calendar']);
+  });
 
-/** Tab-level route names on the bottom bar (visible or registered-but-hidden). */
-const TABS: Record<string, Set<string>> = {
-  Home: new Set(['HomeMain', ...SHARED_DESTINATIONS]),
-  Tools: new Set(['ToolsMain', ...SHARED_DESTINATIONS]),
-  Navigator: new Set(['NavigatorMain', 'Resources', 'Blog']),
-  Tracker: new Set(['TrackerList', 'ActionDetail']),
-  Calendar: new Set(['PlanMain', 'CalendarMain']),
-};
+  it('registers each stack’s initial route in that stack', () => {
+    for (const [tab, stack] of Object.entries(ROUTE_GRAPH)) {
+      expect(stack.screens, `${tab}`).toContain(stack.initial);
+    }
+  });
 
-/**
- * Resolution is relative to the stack the CALLER sits in. A bare screen name
- * resolves only inside that caller's own stack; anything else needs a tab.
- * The first version of this helper assumed every caller was in Home or
- * Tools, which is how it certified nine dead taps in the Ask stack.
- */
-function resolves(screen: string, callerTab: string, tab?: string): boolean {
-  if (tab) return TABS[tab]?.has(screen) ?? false;
-  return TABS[callerTab]?.has(screen) ?? false;
-}
+  it('never registers the same screen in two stacks', () => {
+    // Double registration means two mounted copies and two URLs for one
+    // screen, only one of which routes. Naming the tab is the alternative.
+    const seen = new Map<string, string>();
+    for (const [tab, stack] of Object.entries(ROUTE_GRAPH)) {
+      for (const screen of stack.screens) {
+        expect(seen.has(screen), `${screen} in ${seen.get(screen)} and ${tab}`).toBe(false);
+        seen.set(screen, tab);
+      }
+    }
+  });
+});
 
 describe('the avatar menu reaches everything the Profile tab held', () => {
+  // The avatar is on Home, so its items resolve in the Home stack.
+  const CALLER: TabName = 'Home';
+
   it('names a real destination for every item', () => {
-    // The avatar lives on Home, so its items resolve in the Home stack.
     for (const item of accountMenuItems()) {
-      expect(resolves(item.screen, 'Home'), `${item.key} → ${item.screen}`).toBe(true);
+      expect(resolvesFrom(CALLER, item), `${item.key} → ${item.screen}`).toBe(true);
     }
   });
 
   it('keeps Profile itself reachable now that it left the bar', () => {
     expect(accountMenuItems().some((i) => i.screen === 'Profile')).toBe(true);
+    expect(HOME_DESTINATIONS).toContain('Profile');
   });
 
   it('offers the same items in every language', () => {
@@ -69,24 +71,22 @@ describe('the avatar menu reaches everything the Profile tab held', () => {
 
 describe('the Learn library never offers a dead tap', () => {
   // LearnPanel renders inside the Ask stack, which registers none of these.
-  const CALLER = 'Navigator';
+  const CALLER: TabName = 'Navigator';
 
   it('names an explicit tab on every target', () => {
     const lib = getLearnLibrary();
     for (const target of [...lib.paths, ...lib.articles].map((e) => e.target)) {
-      // Without a tab the navigate bubbles to the tab navigator and the root
-      // stack, matches nothing, and is silently dropped in production.
       expect(target.tab, `${target.screen} has no tab`).toBeTruthy();
     }
   });
 
-  it('points every path and article at a screen registered in that tab', () => {
+  it('resolves every path and article from the stack it is rendered in', () => {
     const lib = getLearnLibrary();
     for (const p of lib.paths) {
-      expect(resolves(p.target.screen, CALLER, p.target.tab), `path ${p.key}`).toBe(true);
+      expect(resolvesFrom(CALLER, p.target), `path ${p.key}`).toBe(true);
     }
     for (const a of lib.articles) {
-      expect(resolves(a.target.screen, CALLER, a.target.tab), `article ${a.key}`).toBe(true);
+      expect(resolvesFrom(CALLER, a.target), `article ${a.key}`).toBe(true);
     }
   });
 
@@ -97,17 +97,31 @@ describe('the Learn library never offers a dead tap', () => {
   });
 });
 
-describe('every tool resolves from BOTH stacks that show tool rows', () => {
-  it('registers each tool destination in Home and in Tools', () => {
+describe('every tool resolves from both surfaces that show tool rows', () => {
+  it('lands from Home and from the Tools tab', () => {
     for (const tool of getAllTools('en')) {
-      const { screen, tab } = tool.route;
-      if (tab) {
-        expect(TABS[tab]?.has(screen), `${tool.key} → ${tab}/${screen}`).toBe(true);
-      } else {
-        // No tab means "the stack I am in" — and tool rows render in both.
-        expect(resolves(screen, 'Home'), `${tool.key} → Home/${screen}`).toBe(true);
-        expect(resolves(screen, 'Tools'), `${tool.key} → Tools/${screen}`).toBe(true);
-      }
+      // Both surfaces navigate with `tab ?? 'Home'`, so a route with no tab
+      // is a Home-stack route reached by name.
+      const target = { screen: tool.route.screen, tab: tool.route.tab ?? 'Home' };
+      expect(resolvesFrom('Home', target), `${tool.key} from Home`).toBe(true);
+      expect(resolvesFrom('Tools', target), `${tool.key} from Tools`).toBe(true);
     }
+  });
+});
+
+describe('a bare screen name only works inside its own stack', () => {
+  it('does not resolve a Home screen from the Ask stack', () => {
+    // This is the defect that shipped: the assertion that would have caught it.
+    expect(resolvesFrom('Navigator', { screen: 'ProcessMap' })).toBe(false);
+    expect(resolvesFrom('Navigator', { screen: 'ProcessMap', tab: 'Home' })).toBe(true);
+  });
+
+  it('does not resolve a Home screen from the Tools stack', () => {
+    expect(resolvesFrom('Tools', { screen: 'Letters' })).toBe(false);
+    expect(resolvesFrom('Tools', { screen: 'Letters', tab: 'Home' })).toBe(true);
+  });
+
+  it('refuses a screen that is registered nowhere', () => {
+    expect(resolvesFrom('Home', { screen: 'Learn' })).toBe(false);
   });
 });

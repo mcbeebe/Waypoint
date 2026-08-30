@@ -53,11 +53,9 @@ export default function PinnedTools({ pins, locale, onNotice }: PinnedToolsProps
   const open = (tool: ToolEntry) => {
     pins.noteOpened(tool.key);
     const { screen, params, tab } = tool.route;
-    if (tab) {
-      (navigation as any).navigate(tab, { screen, params, initial: false });
-      return;
-    }
-    (navigation as any).navigate(screen, params);
+    // The tiles render on Home and in the Tools tab; naming the tab is what
+    // makes a tap land in either.
+    (navigation as any).navigate(tab ?? 'Home', { screen, params, initial: false });
   };
 
   return (
