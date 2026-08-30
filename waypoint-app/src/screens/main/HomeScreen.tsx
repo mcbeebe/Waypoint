@@ -12,6 +12,8 @@ import {
   ScrollView,
   StyleSheet,
   Linking,
+  Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,6 +36,8 @@ import OneThingCard, { LaterList } from '@/components/OneThingCard';
 import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { draftHandoff } from '@/lib/draftHandoff';
+import { analyzeEmail } from '@/lib/letters';
+import { replyReadFromAnalysis } from '@/lib/draftQuestions';
 import type { LetterProfile } from '@/lib/draftBlanks';
 import type { RequestType } from '@/lib/requestClocks';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
@@ -274,21 +278,57 @@ function HomeScreenInner({
   // The open sheet, with the owning request's type resolved AT OPEN TIME — so a
   // requests refetch between opening and "Write my letter" can't swap the letter
   // out from under the parent.
-  const [draft, setDraft] = useState<{ item: TriageItem; requestType: RequestType | null } | null>(
-    null
-  );
+  const [draft, setDraft] = useState<{
+    item: TriageItem;
+    requestType: RequestType | null;
+    initialAnswers?: Record<string, string>;
+    aiSummary?: string;
+  } | null>(null);
+  // While Waypoint reads a reply (9e) before opening the sheet.
+  const [readingReply, setReadingReply] = useState(false);
 
   const actOnItem = (item: TriageItem) => {
     void markActed(item.id);
     // A draftable card opens the question sheet over Home instead of leaving it.
     if (item.action.kind === 'draft') {
-      const reqId = item.action.params?.requestId;
-      const requestType: RequestType | null =
-        (reqId && familyRequests.find((r) => r.id === reqId)?.request_type) || null;
-      setDraft({ item, requestType });
+      void openDraftFlow(item);
       return;
     }
     followAction(item.action);
+  };
+
+  // Open the question sheet. For a reply (9e), let the AI read the reply first
+  // so "What did they say?" comes pre-answered — the parent confirms it, so a
+  // conservative guess is fine, and a null/failed/consent-less read just opens
+  // the sheet with the manual default.
+  const openDraftFlow = async (item: TriageItem) => {
+    const reqId = item.action.params?.requestId;
+    const requestType: RequestType | null =
+      (reqId && familyRequests.find((r) => r.id === reqId)?.request_type) || null;
+    const replyId = item.action.params?.replyId;
+    const reply =
+      item.cls === 'reply' && replyId ? communications.find((c) => c.id === replyId) : null;
+
+    if (reply?.body && family?.ai_consent_at) {
+      setReadingReply(true);
+      try {
+        const { analysis } = await analyzeEmail(reply.body, funnelLocale);
+        if (analysis) {
+          setDraft({
+            item,
+            requestType,
+            initialAnswers: { reply_read: replyReadFromAnalysis(analysis) },
+            aiSummary: analysis.summary,
+          });
+          return;
+        }
+      } catch {
+        /* fall through to the manual sheet */
+      } finally {
+        setReadingReply(false);
+      }
+    }
+    setDraft({ item, requestType });
   };
 
   // Sheet complete: turn the answers into a prefilled Letters draft.
@@ -405,9 +445,27 @@ function HomeScreenInner({
         item={draft?.item ?? null}
         profile={letterProfile}
         locale={funnelLocale}
+        initialAnswers={draft?.initialAnswers}
+        aiSummary={draft?.aiSummary}
         onClose={() => setDraft(null)}
         onComplete={onDraftComplete}
       />
+      {/* 9e: a brief, honest wait while Waypoint reads the reply before the
+          sheet opens pre-answered. */}
+      <Modal visible={readingReply} transparent animationType="fade">
+        <View style={styles.readingScrim}>
+          <View style={styles.readingCard}>
+            <ActivityIndicator size="small" color={colors.teal} />
+            <Text style={styles.readingText}>
+              {funnelLocale === 'es'
+                ? 'Waypoint está leyendo su respuesta…'
+                : funnelLocale === 'vi'
+                  ? 'Waypoint đang đọc thư trả lời…'
+                  : 'Waypoint is reading their reply…'}
+            </Text>
+          </View>
+        </View>
+      </Modal>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -708,6 +766,23 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     marginBottom: spacing.base,
   },
+  readingScrim: {
+    flex: 1,
+    backgroundColor: 'rgba(15,23,42,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  readingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    paddingVertical: spacing.base,
+    paddingHorizontal: spacing.lg,
+    maxWidth: 300,
+  },
+  readingText: { fontSize: fonts.sizes.base, color: colors.navy, fontWeight: fonts.weights.semibold, flexShrink: 1 },
   container: {
     flex: 1,
     backgroundColor: '#F8FAFB',

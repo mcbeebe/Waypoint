@@ -5,6 +5,7 @@ import {
   toneFromAnswers,
   suggestedTone,
   isDraftable,
+  replyReadFromAnalysis,
 } from './draftQuestions';
 import type { TriageItem, TriageClass } from './homeTriage';
 import type { FunnelLocale } from '@/lib/eligibility';
@@ -177,5 +178,49 @@ describe('rule 5 — trilingual with locale parity: same shape, different prose'
     const without = questionsFor(item('overdue'), {}, 'en').find((q) => q.id === 'note')!;
     expect(withName.freeform?.placeholder).toContain('Teddy');
     expect(without.freeform?.placeholder).not.toContain('Teddy');
+  });
+});
+
+describe('replyReadFromAnalysis — 9e: the AI reads the reply, we pre-answer the chip', () => {
+  function analysis(over: Record<string, unknown> = {}) {
+    return {
+      summary: '',
+      sender_type: 'regional_center',
+      tone_assessment: 'neutral',
+      red_flags: [],
+      action_items: [],
+      rights_at_stake: [],
+      suggested_response: '',
+      offer_to_draft: null,
+      ...over,
+    } as never;
+  }
+
+  it('an explicit denial reads as "said no"', () => {
+    expect(replyReadFromAnalysis(analysis({ summary: 'The regional center denied the request for respite.' }))).toBe('said_no');
+    expect(replyReadFromAnalysis(analysis({ summary: 'They are unable to approve additional hours at this time.' }))).toBe('said_no');
+  });
+
+  it('a request for more from the parent reads as "need more"', () => {
+    expect(replyReadFromAnalysis(analysis({ action_items: [{ action: 'Send the assessment', urgency: 'high' }] }))).toBe('need_more');
+    expect(replyReadFromAnalysis(analysis({ summary: 'They need additional documentation before deciding.' }))).toBe('need_more');
+  });
+
+  it('a clear yes reads as "agreed"', () => {
+    expect(replyReadFromAnalysis(analysis({ summary: 'The meeting has been scheduled and the service was approved.' }))).toBe('agreed');
+  });
+
+  it('is conservative — an unclear reply stays "unclear", never a wrong "said no"', () => {
+    expect(replyReadFromAnalysis(analysis({ summary: 'They acknowledged receipt and will follow up.' }))).toBe('unclear');
+    // "no" as a bare word in prose must NOT trip the denial read.
+    expect(replyReadFromAnalysis(analysis({ summary: 'There is no need to worry; they are reviewing it.' }))).toBe('unclear');
+  });
+
+  it('denial takes priority over an action item (route to the written notice)', () => {
+    const a = analysis({
+      summary: 'The district denied the evaluation request.',
+      action_items: [{ action: 'Respond', urgency: 'high' }],
+    });
+    expect(replyReadFromAnalysis(a)).toBe('said_no');
   });
 });
