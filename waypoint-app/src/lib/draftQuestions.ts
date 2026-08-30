@@ -26,7 +26,6 @@ import type { FunnelLocale } from '@/lib/eligibility';
 import type { DraftTone } from '@/lib/lettersCatalog';
 import type { TriageClass, TriageItem } from '@/lib/homeTriage';
 import type { LetterProfile } from '@/lib/draftBlanks';
-import type { EmailAnalysis } from '@/lib/letters';
 
 function picker(locale: FunnelLocale) {
   return (en: string, es: string, vi: string) =>
@@ -312,43 +311,4 @@ export function answersToRequest(
     }
   }
   return parts.join(' ');
-}
-
-/** The four "what did they say?" answers, matching replyReadQuestion's values. */
-export type ReplyReadValue = 'agreed' | 'need_more' | 'said_no' | 'unclear';
-
-/**
- * Turn the AI's reading of a reply (analyzeEmail) into a best-guess answer for
- * "What did they say?" (draft flow 9e). This is a SUGGESTION the parent
- * confirms — analyzeEmail has no verdict field, so we read its structured
- * signals conservatively and fall back to 'unclear' rather than guess wrong:
- * a wrong "said no" would route to a Notice-of-Action letter the situation may
- * not call for, so denial must be clearly present, not merely possible.
- */
-export function replyReadFromAnalysis(a: EmailAnalysis): ReplyReadValue {
-  const hay = [
-    a.summary,
-    a.tone_assessment,
-    ...a.red_flags.map((f) => f.flag),
-  ]
-    .join(' ')
-    .toLowerCase();
-
-  // A denial is the highest-stakes read (it routes to the written-notice
-  // letter), so require explicit denial language.
-  if (/\b(denied|denies|denial|declin|rejected|will not approve|cannot approve|unable to (approve|authorize|provide|fund)|not able to (approve|authorize|provide))\b/.test(hay)) {
-    return 'said_no';
-  }
-  // They need something from the parent to proceed.
-  if (
-    a.action_items.length > 0 ||
-    /\b(please (provide|send|submit)|we (need|require)|need(s)? (more|additional)|missing|resubmit|complete the)\b/.test(hay)
-  ) {
-    return 'need_more';
-  }
-  // A clear yes.
-  if (/\b(approved|approving|granted|will schedule|has been scheduled|we agree|authorized|accepted)\b/.test(hay)) {
-    return 'agreed';
-  }
-  return 'unclear';
 }

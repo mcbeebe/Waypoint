@@ -24,9 +24,8 @@ interface DraftQuestionsSheetProps {
   item: TriageItem | null;
   profile: LetterProfile;
   locale: FunnelLocale;
-  /** Pre-selected answers (9e): the AI's read of a reply seeds "what did they say?". */
-  initialAnswers?: Record<string, string>;
-  /** The AI's one-line reading of the reply, shown so the parent can confirm. */
+  /** The AI's one-line reading of the reply (9e), shown so the parent answers
+   *  from what the reply actually said rather than from memory. */
   aiSummary?: string;
   onClose: () => void;
   onComplete: (answers: Record<string, string>) => void;
@@ -64,7 +63,6 @@ export default function DraftQuestionsSheet({
   item,
   profile,
   locale,
-  initialAnswers,
   aiSummary,
   onClose,
   onComplete,
@@ -90,11 +88,9 @@ export default function DraftQuestionsSheet({
     if (seededFor.current === item.id) return;
     const seed: Record<string, string> = {};
     for (const q of questions) if (q.suggested) seed[q.id] = q.suggested;
-    // The AI's read of a reply (9e) pre-selects the answer over the default.
-    if (initialAnswers) Object.assign(seed, initialAnswers);
     setAnswers(seed);
     seededFor.current = item.id;
-  }, [item, questions, initialAnswers]);
+  }, [item, questions]);
 
   if (!item) return null;
 
@@ -120,7 +116,9 @@ export default function DraftQuestionsSheet({
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             {!!aiSummary && (
               <View style={styles.aiSummary}>
-                <Text style={styles.aiSummaryLabel}>{SUMMARY_LABEL[locale]}</Text>
+                <Text style={styles.aiSummaryLabel} accessibilityRole="header">
+                  {SUMMARY_LABEL[locale]}
+                </Text>
                 <Text style={styles.aiSummaryText}>{aiSummary}</Text>
               </View>
             )}

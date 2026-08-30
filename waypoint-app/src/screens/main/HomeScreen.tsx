@@ -3,12 +3,13 @@
  * Shows: greeting, child age badge, progress summary, quick actions
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
   TouchableOpacity,
+  Pressable,
   ScrollView,
   StyleSheet,
   Linking,
@@ -37,7 +38,6 @@ import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { draftHandoff } from '@/lib/draftHandoff';
 import { analyzeEmail } from '@/lib/letters';
-import { replyReadFromAnalysis } from '@/lib/draftQuestions';
 import type { LetterProfile } from '@/lib/draftBlanks';
 import type { RequestType } from '@/lib/requestClocks';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
@@ -281,11 +281,13 @@ function HomeScreenInner({
   const [draft, setDraft] = useState<{
     item: TriageItem;
     requestType: RequestType | null;
-    initialAnswers?: Record<string, string>;
     aiSummary?: string;
   } | null>(null);
   // While Waypoint reads a reply (9e) before opening the sheet.
   const [readingReply, setReadingReply] = useState(false);
+  // Bumped on every open (and on cancel) so a slow/timed-out analysis that
+  // resolves late can't pop a stale sheet after the parent moved on.
+  const draftFlowToken = useRef(0);
 
   const actOnItem = (item: TriageItem) => {
     void markActed(item.id);
@@ -297,11 +299,17 @@ function HomeScreenInner({
     followAction(item.action);
   };
 
-  // Open the question sheet. For a reply (9e), let the AI read the reply first
-  // so "What did they say?" comes pre-answered — the parent confirms it, so a
-  // conservative guess is fine, and a null/failed/consent-less read just opens
-  // the sheet with the manual default.
+  /**
+   * Open the question sheet. For a reply (9e), let the AI READ the reply first
+   * and show its reading in the sheet, so the parent answers "what did they
+   * say?" from what the reply actually said. The AI does NOT pre-pick the
+   * answer — classifying a denial into a legal-routing chip from the model's
+   * localized prose isn't reliable (it would fail silently for es/vi and
+   * misfire in English), and a wrong "they said no" routes to a formal notice.
+   * No consent / a failed or slow read just opens the manual sheet.
+   */
   const openDraftFlow = async (item: TriageItem) => {
+    const token = ++draftFlowToken.current;
     const reqId = item.action.params?.requestId;
     const requestType: RequestType | null =
       (reqId && familyRequests.find((r) => r.id === reqId)?.request_type) || null;
@@ -312,14 +320,21 @@ function HomeScreenInner({
     if (reply?.body && family?.ai_consent_at) {
       setReadingReply(true);
       try {
-        const { analysis } = await analyzeEmail(reply.body, funnelLocale);
+        // Bounded: a stalled network must never trap the parent behind the
+        // reading overlay — after 8s we just open the manual sheet.
+        const timeout = new Promise<{ analysis: null; error?: string }>((resolve) =>
+          setTimeout(() => resolve({ analysis: null, error: 'timeout' }), 8000)
+        );
+        const { analysis, error } = await Promise.race([
+          analyzeEmail(reply.body, funnelLocale),
+          timeout,
+        ]);
+        if (token !== draftFlowToken.current) return; // cancelled or superseded
+        if (error && error.toLowerCase().includes('limit')) {
+          setNotice(error); // surface the daily-AI-cap message
+        }
         if (analysis) {
-          setDraft({
-            item,
-            requestType,
-            initialAnswers: { reply_read: replyReadFromAnalysis(analysis) },
-            aiSummary: analysis.summary,
-          });
+          setDraft({ item, requestType, aiSummary: analysis.summary });
           return;
         }
       } catch {
@@ -327,8 +342,15 @@ function HomeScreenInner({
       } finally {
         setReadingReply(false);
       }
+      if (token !== draftFlowToken.current) return;
     }
     setDraft({ item, requestType });
+  };
+
+  /** Dismiss the reading overlay and abandon the in-flight analysis. */
+  const cancelReadingReply = () => {
+    draftFlowToken.current++;
+    setReadingReply(false);
   };
 
   // Sheet complete: turn the answers into a prefilled Letters draft.
@@ -445,16 +467,28 @@ function HomeScreenInner({
         item={draft?.item ?? null}
         profile={letterProfile}
         locale={funnelLocale}
-        initialAnswers={draft?.initialAnswers}
         aiSummary={draft?.aiSummary}
         onClose={() => setDraft(null)}
         onComplete={onDraftComplete}
       />
       {/* 9e: a brief, honest wait while Waypoint reads the reply before the
-          sheet opens pre-answered. */}
-      <Modal visible={readingReply} transparent animationType="fade">
-        <View style={styles.readingScrim}>
-          <View style={styles.readingCard}>
+          sheet opens. Bounded (8s) and dismissable — tap anywhere or Android
+          back to skip straight to the manual sheet. */}
+      <Modal
+        visible={readingReply}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelReadingReply}
+      >
+        <Pressable
+          style={styles.readingScrim}
+          onPress={cancelReadingReply}
+          accessibilityRole="button"
+          accessibilityLabel={
+            funnelLocale === 'es' ? 'Omitir' : funnelLocale === 'vi' ? 'Bỏ qua' : 'Skip'
+          }
+        >
+          <View style={styles.readingCard} accessible accessibilityViewIsModal>
             <ActivityIndicator size="small" color={colors.teal} />
             <Text style={styles.readingText}>
               {funnelLocale === 'es'
@@ -464,7 +498,7 @@ function HomeScreenInner({
                   : 'Waypoint is reading their reply…'}
             </Text>
           </View>
-        </View>
+        </Pressable>
       </Modal>
       <ScrollView
         contentContainerStyle={styles.scrollContent}

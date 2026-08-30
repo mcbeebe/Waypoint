@@ -118,23 +118,6 @@ describe('DraftQuestionsSheet', () => {
     expect(screen.getByText('They declined the request and cited caseload.')).toBeTruthy();
   });
 
-  it('pre-selects the AI-suggested answer, and it flows through on submit (9e)', () => {
-    const onComplete = vi.fn();
-    render(
-      <DraftQuestionsSheet
-        visible
-        item={item('reply')}
-        profile={PROFILE}
-        locale="en"
-        initialAnswers={{ reply_read: 'said_no' }}
-        onComplete={onComplete}
-        onClose={() => {}}
-      />
-    );
-    fireEvent.click(screen.getByLabelText('Write my letter'));
-    expect(onComplete.mock.calls[0][0].reply_read).toBe('said_no');
-  });
-
   it('renders nothing when there is no item', () => {
     const { container } = render(
       <DraftQuestionsSheet
