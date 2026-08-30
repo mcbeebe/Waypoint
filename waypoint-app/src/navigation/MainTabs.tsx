@@ -397,7 +397,9 @@ function JourneyStack() {
       <JourneyStackNav.Screen
         name="JourneyMain"
         component={JourneyScreen}
-        options={{ title: 'Journey Map', headerBackVisible: false }}
+        // No native header: JourneyScreen draws its own navy hero, like every
+        // other tab root. (Without this the visible tab shows a double header.)
+        options={{ headerShown: false }}
       />
     </JourneyStackNav.Navigator>
   );
