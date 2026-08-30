@@ -89,6 +89,7 @@ const linking: LinkingOptions<RootStackParamList> = {
               // the old /expenses and /tax-report links keep working.
               Expenses: 'expenses',
               TaxReport: 'tax-report',
+              Profile: 'profile',
               Insights: 'insights',
               Documents: 'documents',
               IEPHub: 'iep',
@@ -114,7 +115,8 @@ const linking: LinkingOptions<RootStackParamList> = {
           },
           Tools: {
             initialRouteName: 'ToolsMain',
-            screens: { ToolsMain: 'toolbox' },
+            // /tools is the URL the previous release shipped; keep it.
+            screens: { ToolsMain: 'tools' },
           },
           Tracker: {
             initialRouteName: 'TrackerList',
@@ -125,9 +127,6 @@ const linking: LinkingOptions<RootStackParamList> = {
             // full calendar sits behind it and keeps its own URL.
             initialRouteName: 'PlanMain',
             screens: { PlanMain: 'plan', CalendarMain: 'calendar' },
-          },
-          Profile: {
-            screens: { ProfileMain: 'profile' },
           },
         },
       },

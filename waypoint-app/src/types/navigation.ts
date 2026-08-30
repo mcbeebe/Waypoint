@@ -34,7 +34,6 @@ export type MainTabParamList = {
   Tracker: NavigatorScreenParams<TrackerStackParamList> | undefined;
   Tools: NavigatorScreenParams<ToolsStackParamList> | undefined;
   Calendar: NavigatorScreenParams<CalendarStackParamList> | undefined;
-  Profile: NavigatorScreenParams<ProfileStackParamList> | undefined;
 };
 
 export type HomeStackParamList = {
@@ -87,6 +86,8 @@ export type HomeStackParamList = {
   HealthRecords: undefined;
   FamilySharing: undefined;
   ProviderPortal: undefined;
+  /** Left the tab bar in phase 5; a stack screen now, so Back works. */
+  Profile: undefined;
   // Community — registered only when FLAGS.community is true
   Forum: undefined;
   Thread: { thread: ForumThread };
@@ -108,10 +109,6 @@ export type CalendarStackParamList = {
   /** Plan is the tab's landing screen; the full calendar sits behind it. */
   PlanMain: undefined;
   CalendarMain: undefined;
-};
-
-export type ProfileStackParamList = {
-  ProfileMain: undefined;
 };
 
 /**

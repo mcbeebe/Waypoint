@@ -30,7 +30,12 @@ function strings(locale: FunnelLocale) {
     articles: L('Read about it', 'Léalo', 'Đọc thêm'),
     glossary: L('What the words mean', 'Qué significan las palabras', 'Các từ này nghĩa là gì'),
     found: L('Waypoint already knows this', 'Waypoint ya sabe esto', 'Waypoint đã biết điều này'),
-    askAnyway: L('Ask Waypoint instead', 'Preguntar a Waypoint', 'Hỏi Waypoint'),
+    noMatch: L(
+      'Nothing in the library matches that',
+      'Nada en la biblioteca coincide con eso',
+      'Thư viện không có mục nào khớp'
+    ),
+    askAnyway: L('Ask Waypoint instead →', 'Preguntar a Waypoint →', 'Hỏi Waypoint →'),
     minutes: (n: number) => L(`${n} min read`, `${n} min de lectura`, `đọc ${n} phút`),
     showAll: L('Show the whole library', 'Ver toda la biblioteca', 'Xem toàn bộ thư viện'),
     showLess: L('Show less', 'Ver menos', 'Thu gọn'),
@@ -41,11 +46,13 @@ interface LearnPanelProps {
   locale: FunnelLocale;
   /** What the parent has typed, so the library can answer first. */
   query?: string;
-  /** Fills the composer with a popular question. */
+  /** Fills the composer with a popular question — it does not send it. */
   onAsk: (question: string) => void;
+  /** Sends what the parent typed to the AI. */
+  onAskAI: (question: string) => void;
 }
 
-export default function LearnPanel({ locale, query, onAsk }: LearnPanelProps) {
+export default function LearnPanel({ locale, query, onAsk, onAskAI }: LearnPanelProps) {
   const navigation = useNavigation();
   const { scale } = useTextScale();
   const sz = (n: number) => Math.round(n * scale);
@@ -58,29 +65,21 @@ export default function LearnPanel({ locale, query, onAsk }: LearnPanelProps) {
     [query, locale]
   );
 
+  /**
+   * Every target names its tab. This panel renders inside the Ask stack, and
+   * a `navigate` bubbles to PARENTS, never to a sibling — so a bare screen
+   * name here is silently unhandled in production.
+   */
   const go = (target: LearnTarget) => {
-    if (target.screen === 'Learn') return; // the glossary is read in place
-    if (target.tab) {
-      (navigation as any).navigate(target.tab, {
-        screen: target.screen,
-        params: target.params,
-        initial: false,
-      });
-      return;
-    }
-    (navigation as any).navigate(target.screen, target.params);
+    (navigation as any).navigate(target.tab, {
+      screen: target.screen,
+      params: target.params,
+      initial: false,
+    });
   };
 
-  const hitRow = (hit: LearnHit) => (
-    <Pressable
-      key={`${hit.kind}:${hit.key}`}
-      style={({ pressed }) => [styles.row, pressed && styles.dim]}
-      onPress={() => go(hit.target)}
-      accessibilityRole="button"
-      accessibilityLabel={`${hit.title}. ${hit.detail}${
-        hit.actionLabel ? `. ${hit.actionLabel}` : ''
-      }`}
-    >
+  const hitRow = (hit: LearnHit) => {
+    const body = (
       <View style={styles.rowText}>
         <Text style={[styles.rowTitle, { fontSize: sz(14), lineHeight: sz(19) }]}>
           {hit.title}
@@ -99,17 +98,57 @@ export default function LearnPanel({ locale, query, onAsk }: LearnPanelProps) {
           </Text>
         )}
       </View>
-    </Pressable>
-  );
+    );
+    // A definition is the answer. Rendering it as a button that does nothing
+    // is worse than never claiming it was one.
+    if (!hit.target) {
+      return (
+        <View
+          key={`${hit.kind}:${hit.key}`}
+          style={styles.row}
+          accessible
+          accessibilityRole="text"
+        >
+          {body}
+        </View>
+      );
+    }
+    return (
+      <Pressable
+        key={`${hit.kind}:${hit.key}`}
+        style={({ pressed }) => [styles.row, pressed && styles.dim]}
+        onPress={() => go(hit.target!)}
+        accessibilityRole="button"
+        accessibilityLabel={`${hit.title}. ${hit.detail}${
+          hit.actionLabel ? `. ${hit.actionLabel}` : ''
+        }`}
+      >
+        {body}
+      </Pressable>
+    );
+  };
 
   // Typing: the library answers first, and Ask stays one tap away.
-  if (hits.length > 0) {
+  const typing = !!query && query.trim().length > 1;
+  if (typing) {
     return (
       <View style={styles.wrap}>
         <Text style={[styles.sectionLabel, { fontSize: sz(11) }]}>
-          {t.found.toUpperCase()}
+          {(hits.length ? t.found : t.noMatch).toUpperCase()}
         </Text>
-        <View style={styles.card}>{hits.slice(0, 4).map(hitRow)}</View>
+        {hits.length > 0 && (
+          <View style={styles.card}>{hits.slice(0, 4).map(hitRow)}</View>
+        )}
+        <Pressable
+          style={({ pressed }) => [styles.chip, pressed && styles.dim]}
+          onPress={() => onAskAI(query!)}
+          accessibilityRole="button"
+          accessibilityLabel={t.askAnyway}
+        >
+          <Text style={[styles.chipText, { fontSize: sz(13), lineHeight: sz(18) }]}>
+            {t.askAnyway}
+          </Text>
+        </Pressable>
       </View>
     );
   }

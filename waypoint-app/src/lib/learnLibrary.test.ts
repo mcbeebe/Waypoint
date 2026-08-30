@@ -155,3 +155,62 @@ describe('provenance, not praise', () => {
     }
   });
 });
+
+describe('the search puts the right answer first, in every language', () => {
+  const top = (q: string, loc: 'en' | 'es' | 'vi') => searchLearn(q, loc)[0];
+
+  it('answers a phone denial with the denial article, not the clock article', () => {
+    // The clock article's summary once contained "said on the phone", and
+    // flat substring scoring let that decoy win.
+    expect(top('They said no on the phone — now what?', 'en').key).toBe('rc_said_no');
+    expect(top('Dijeron que no por teléfono — ¿y ahora?', 'es').key).toBe('rc_said_no');
+    expect(top('Họ từ chối qua điện thoại — giờ sao?', 'vi').key).toBe('rc_said_no');
+  });
+
+  it('answers a money question with the money article', () => {
+    expect(top('What can the Regional Center pay for?', 'en').key).toBe('rc_money');
+    expect(top('¿Qué puede pagar el Centro Regional?', 'es').key).toBe('rc_money');
+    expect(top('Trung tâm Khu vực có thể chi trả cho gì?', 'vi').key).toBe('rc_money');
+  });
+
+  it('answers an evaluation question with the IEP article', () => {
+    expect(top('How do I ask for an IEP evaluation?', 'en').key).toBe('first_iep');
+    expect(top('¿Cómo pido una evaluación de IEP?', 'es').key).toBe('first_iep');
+    expect(top('Làm sao để đề nghị đánh giá IEP?', 'vi').key).toBe('first_iep');
+  });
+
+  it('does not amputate a Vietnamese word that starts with đ', () => {
+    // đ is precomposed, so NFD leaves it and the tokenizer treated it as a
+    // separator: "đánh giá" became ["anh", "gia"] and matched nothing useful.
+    expect(top('đánh giá', 'vi').key).toBe('first_iep');
+    expect(top('tã', 'vi').key).toBe('rc_money');
+  });
+
+  it('matches whole words, so "no" does not match "notice"', () => {
+    const hits = searchLearn('no');
+    expect(hits.every((h) => h.key !== 'ipp_clock')).toBe(true);
+  });
+});
+
+describe('a target a parent can actually reach', () => {
+  it('names the tab on every path and article', () => {
+    for (const p of getLearnPaths()) expect(p.target.tab).toBe('Home');
+    for (const a of getLearnArticles()) expect(a.target.tab).toBe('Home');
+  });
+
+  it('gives a definition no target — it is the answer, not a button', () => {
+    for (const hit of searchLearn('IPP')) {
+      if (hit.kind === 'glossary') expect(hit.target).toBeUndefined();
+      else expect(hit.target?.tab).toBe('Home');
+    }
+  });
+});
+
+describe('the library never asserts what it cannot back', () => {
+  it('does not claim an agency failed, or that no rule requires anything', () => {
+    for (const loc of LOCALES) {
+      const blob = getLearnArticles(loc).map((a) => a.summary).join(' ');
+      expect(blob).not.toMatch(/nothing requires anyone|nada obliga a nadie|không quy định nào buộc/);
+    }
+  });
+});

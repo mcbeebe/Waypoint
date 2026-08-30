@@ -530,7 +530,8 @@ export default function NavigatorScreen() {
       >
         {messages.length === 0 ? (
           <WelcomeView
-            onSuggestion={handleSuggestion}
+            onFill={setInputText}
+            onSend={handleSuggestion}
             locale={funnelLocale}
             query={inputText}
           />
@@ -808,11 +809,15 @@ export default function NavigatorScreen() {
  * the library answers first if it already knows.
  */
 function WelcomeView({
-  onSuggestion,
+  onFill,
+  onSend,
   locale,
   query,
 }: {
-  onSuggestion: (text: string) => void;
+  /** Puts a question in the composer so the library can answer it first. */
+  onFill: (text: string) => void;
+  /** Sends it to the AI. */
+  onSend: (text: string) => void;
   locale: FunnelLocale;
   query: string;
 }) {
@@ -830,7 +835,7 @@ function WelcomeView({
           meetings, and take concrete next steps for your child.
         </Text>
       </View>
-      <LearnPanel locale={locale} query={query} onAsk={onSuggestion} />
+      <LearnPanel locale={locale} query={query} onAsk={onFill} onAskAI={onSend} />
     </ScrollView>
   );
 }
@@ -1472,7 +1477,6 @@ const styles = StyleSheet.create({
   },
   welcomeScroll: { paddingBottom: spacing.lg },
   welcomeContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
@@ -1495,23 +1499,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: spacing.lg,
-  },
-  suggestionsLabel: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-    fontWeight: fonts.weights.medium as '500',
-    marginBottom: spacing.sm,
-    alignSelf: 'flex-start',
-  },
-  suggestionChip: {
-    width: '100%',
-    backgroundColor: colors.white,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.base,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   followUpRow: {
     flexDirection: 'row',
@@ -1542,11 +1529,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
     paddingTop: 2,
-  },
-  suggestionText: {
-    fontSize: fonts.sizes.sm,
-    color: colors.teal,
-    lineHeight: 18,
   },
   saveActionButton: {
     alignSelf: 'flex-start',

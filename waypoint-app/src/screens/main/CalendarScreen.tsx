@@ -334,7 +334,7 @@ export default function CalendarScreen() {
       {needsReconnect && (
         <TouchableOpacity
           style={styles.reconnectBanner}
-          onPress={() => (navigation as never as { navigate: (n: string) => void }).navigate('Profile')}
+          onPress={() => (navigation as any).navigate('Home', { screen: 'Profile' })}
           accessibilityRole="button"
           accessibilityLabel="Reconnect your Google account in Profile"
         >

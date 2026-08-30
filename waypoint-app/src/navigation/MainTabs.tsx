@@ -75,7 +75,6 @@ import type {
   NavigatorStackParamList,
   TrackerStackParamList,
   CalendarStackParamList,
-  ProfileStackParamList,
   ToolsStackParamList,
 } from '@/types/navigation';
 
@@ -85,7 +84,6 @@ const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
 const NavigatorStackNav = createNativeStackNavigator<NavigatorStackParamList>();
 const TrackerStackNav = createNativeStackNavigator<TrackerStackParamList>();
 const CalendarStackNav = createNativeStackNavigator<CalendarStackParamList>();
-const ProfileStackNav = createNativeStackNavigator<ProfileStackParamList>();
 const ToolsStackNav = createNativeStackNavigator<ToolsStackParamList>();
 
 // Shared header treatment for pushed detail screens
@@ -307,6 +305,9 @@ function destinationScreens(Nav: typeof HomeStackNav) {
       <Nav.Screen name="Insurance" component={InsuranceScreen} options={{ title: 'Insurance Tracker' }} />
       <Nav.Screen name="HealthRecords" component={HealthRecordsScreen} options={{ title: 'Health Records' }} />
       <Nav.Screen name="FamilySharing" component={FamilySharingScreen} options={{ title: 'Family Sharing' }} />
+      {/* Profile left the bar in phase 5. As a stack screen it gets a header
+          and a back button, and the tab a parent came from stays lit. */}
+      <Nav.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile & Settings' }} />
       <Nav.Screen name="ProviderPortal" component={ProviderPortalScreen} options={{ title: 'Provider Portal' }} />
       {FLAGS.community && (
         <>
@@ -390,14 +391,6 @@ function CalendarStack() {
           title above it. */}
       <CalendarStackNav.Screen name="CalendarMain" component={CalendarScreen} options={{ headerShown: false }} />
     </CalendarStackNav.Navigator>
-  );
-}
-
-function ProfileStack() {
-  return (
-    <ProfileStackNav.Navigator screenOptions={detailHeaderOptions}>
-      <ProfileStackNav.Screen name="ProfileMain" component={ProfileScreen} options={{ headerShown: false }} />
-    </ProfileStackNav.Navigator>
   );
 }
 
@@ -517,21 +510,7 @@ export default function MainTabs() {
           tabBarAccessibilityLabel: t.tabs.plan,
         }}
       />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileStack}
-        options={{
-          tabBarLabel: t.tabs.profile,
-          tabBarIcon: tabIcon('person-outline', 'person'),
-          tabBarAccessibilityLabel: t.tabs.profile,
-          // Four tabs is the point of the redesign, and Profile was the
-          // fifth. It moves under the avatar (components/AccountMenu); the
-          // stack stays registered so every navigate('Profile') and the
-          // /profile deep link keep working.
-          tabBarButton: () => null,
-          tabBarItemStyle: { display: 'none' },
-        }}
-      />
+
     </Tab.Navigator>
   );
 }

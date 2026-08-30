@@ -28,9 +28,9 @@ const en: TranslationStrings = {
     journey: 'Journey',
     askAi: 'Ask AI',
     actions: 'Actions',
-    /** The merged Actions + Calendar tab (Home rebuild phase 3). */
     /** The toolbox tab (Home rebuild phase 5). */
     tools: 'Tools',
+    /** The merged Actions + Calendar tab (Home rebuild phase 3). */
     plan: 'Plan',
     profile: 'Profile',
   },

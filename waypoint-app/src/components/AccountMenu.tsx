@@ -4,7 +4,7 @@
  *
  * Four tabs is the whole point of the redesign, and Profile was the fifth. It
  * is not a place a parent visits daily, but everything it held has to stay
- * one tap away — settings, sharing, the plan, and the account itself.
+ * one tap away — settings, family sharing, documents, and the subscription.
  */
 import React from 'react';
 import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';

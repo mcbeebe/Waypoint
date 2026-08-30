@@ -322,6 +322,47 @@ Profile held, and searching "what is an IPP" finds the library.
 Ask's five hardcoded suggestion chips are gone, replaced by the library's four
 popular questions — trilingual, and each one tested to actually find something.
 
+**The adversarial review then found seventeen defects, and the first one was
+the very thing this phase claimed to have prevented:**
+
+- **Every one of the Learn library's nine destinations was a dead tap.** The
+  panel renders in the *Ask* stack, and the shared destinations were
+  registered in Home and Tools — the two stacks that do not contain it. Worse:
+  `navRegistry.test.ts`, written to stop exactly this, assumed every caller
+  sat in Home or Tools and so certified all nine. The lesson is not "register
+  the screens in more stacks", it is **name the tab on every target**, which
+  is now required by the type and checked per-caller by the test.
+- **That reversed the phase-5 structure.** `destinationScreens()` no longer
+  double-registers: one registration, one canonical URL per screen, and
+  cross-tab targets name their tab — which is what `toolsCatalog` already did.
+  It also fixes the URLs the duplication broke (`/tools` had become a dead
+  bookmark one release after shipping, and Tools-tab screens produced
+  unroutable `/Letters`-style paths).
+- **Glossary search results were buttons that did nothing** — `screen: 'Learn'`
+  is not a screen. Two of the four suggested questions surfaced one as the top
+  answer. A definition now carries no target: it is read, not tapped.
+- **The popular-question chips sent immediately**, spending an AI call and
+  unmounting the library before the parent could read it — so the "answers
+  before the AI has to" claim only held if you hand-typed and stopped. Chips
+  fill the composer now.
+- **Search ranked the wrong article first** on two of the four suggested
+  questions, in all three languages, because one decoy phrase in a summary
+  scored the same as a title match. Scoring is field-weighted and word-bounded,
+  and the four questions are pinned by tests in every locale.
+- **Vietnamese words starting with `đ` were amputated** — `đ` is precomposed,
+  so it survived the accent fold and then acted as a separator: "đánh giá"
+  tokenized to `["anh", "gia"]`. That is one of the commonest initials in the
+  language.
+- **Four citations did not support their sentences**, and
+  `contentSources.test.ts` could not see the new module at all. Both fixed —
+  the guard now enumerates `learnLibrary`.
+- **An unevidenced claim about an agency** ("because nothing requires anyone to
+  tell them") is gone, replaced by what is true and useful: generic resources
+  come first, and what the IPP lists, the regional center must secure.
+- **Profile as a hidden tab had no header, no back button, and lit no tab.** It
+  is a stack screen now, so Back works and the tab a parent came from stays
+  lit — the same trap phase 3 set with the Actions tab.
+
 ### Phase 6 — Home reduction
 
 Now that Tools and Plan are tabs, Home sheds everything else: `TodayCard` and

@@ -28,9 +28,9 @@ const vi: TranslationStrings = {
     journey: 'Hành trình',
     askAi: 'Hỏi AI',
     actions: 'Hành động',
-    /** The merged Actions + Calendar tab (Home rebuild phase 3). */
     /** The toolbox tab (Home rebuild phase 5). */
     tools: 'Công cụ',
+    /** The merged Actions + Calendar tab (Home rebuild phase 3). */
     plan: 'Kế hoạch',
     profile: 'Hồ sơ',
   },

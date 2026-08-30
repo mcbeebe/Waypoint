@@ -47,18 +47,19 @@ import { lookupRC } from '@/data/regionalCenters';
 import type { RcStatus, IepStatus } from '@/types/database';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
 
-/** The one door to the whole toolbox — it must not be the only English string. */
+/** The avatar menu's label and hint — Profile left the bar in phase 5. */
 const ACCOUNT_LABEL: Record<FunnelLocale, string> = {
   en: 'Your account',
   es: 'Su cuenta',
   vi: 'Tài khoản của quý vị',
 };
 const ACCOUNT_HINT: Record<FunnelLocale, string> = {
-  en: 'Opens settings, family sharing, documents and your plan',
-  es: 'Abre ajustes, compartir en familia, documentos y su plan',
-  vi: 'Mở cài đặt, chia sẻ gia đình, tài liệu và gói của quý vị',
+  en: 'Opens settings, family sharing, documents and your subscription',
+  es: 'Abre ajustes, compartir en familia, documentos y su suscripción',
+  vi: 'Mở cài đặt, chia sẻ gia đình, tài liệu và gói đăng ký của quý vị',
 };
 
+/** The one door to the whole toolbox — it must not be the only English string. */
 const ALL_TOOLS_LABEL: Record<FunnelLocale, string> = {
   en: 'All tools',
   es: 'Todas las herramientas',

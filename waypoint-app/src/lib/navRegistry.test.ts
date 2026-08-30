@@ -11,7 +11,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { accountMenuItems } from './accountMenu';
-import { getLearnLibrary } from './learnLibrary';
+import { getLearnLibrary, searchLearn } from './learnLibrary';
 import { getAllTools } from './toolsCatalog';
 
 /** Registered in the Home stack AND the Tools stack (destinationScreens). */
@@ -21,7 +21,7 @@ const SHARED_DESTINATIONS = new Set([
   'RequestCase', 'Pricing', 'Agencies', 'Reimbursables', 'Expenses', 'TaxReport',
   'Insights', 'Documents', 'DocumentAnalysis', 'IEPHub', 'Letters',
   'EmailAnalyzer', 'CommunicationLog', 'Providers', 'Services', 'Insurance',
-  'HealthRecords', 'FamilySharing', 'ProviderPortal',
+  'HealthRecords', 'FamilySharing', 'ProviderPortal', 'Profile',
 ]);
 
 /** Tab-level route names on the bottom bar (visible or registered-but-hidden). */
@@ -31,20 +31,24 @@ const TABS: Record<string, Set<string>> = {
   Navigator: new Set(['NavigatorMain', 'Resources', 'Blog']),
   Tracker: new Set(['TrackerList', 'ActionDetail']),
   Calendar: new Set(['PlanMain', 'CalendarMain']),
-  Profile: new Set(['ProfileMain']),
 };
 
-function resolves(screen: string, tab?: string): boolean {
+/**
+ * Resolution is relative to the stack the CALLER sits in. A bare screen name
+ * resolves only inside that caller's own stack; anything else needs a tab.
+ * The first version of this helper assumed every caller was in Home or
+ * Tools, which is how it certified nine dead taps in the Ask stack.
+ */
+function resolves(screen: string, callerTab: string, tab?: string): boolean {
   if (tab) return TABS[tab]?.has(screen) ?? false;
-  // No tab named: it must be reachable in whichever stack the caller sits in,
-  // which for every caller here is Home or Tools — both hold the shared set.
-  return SHARED_DESTINATIONS.has(screen) || screen === 'Profile';
+  return TABS[callerTab]?.has(screen) ?? false;
 }
 
 describe('the avatar menu reaches everything the Profile tab held', () => {
   it('names a real destination for every item', () => {
+    // The avatar lives on Home, so its items resolve in the Home stack.
     for (const item of accountMenuItems()) {
-      expect(resolves(item.screen), `${item.key} → ${item.screen}`).toBe(true);
+      expect(resolves(item.screen, 'Home'), `${item.key} → ${item.screen}`).toBe(true);
     }
   });
 
@@ -64,13 +68,31 @@ describe('the avatar menu reaches everything the Profile tab held', () => {
 });
 
 describe('the Learn library never offers a dead tap', () => {
-  it('points every path and article at a registered screen', () => {
+  // LearnPanel renders inside the Ask stack, which registers none of these.
+  const CALLER = 'Navigator';
+
+  it('names an explicit tab on every target', () => {
+    const lib = getLearnLibrary();
+    for (const target of [...lib.paths, ...lib.articles].map((e) => e.target)) {
+      // Without a tab the navigate bubbles to the tab navigator and the root
+      // stack, matches nothing, and is silently dropped in production.
+      expect(target.tab, `${target.screen} has no tab`).toBeTruthy();
+    }
+  });
+
+  it('points every path and article at a screen registered in that tab', () => {
     const lib = getLearnLibrary();
     for (const p of lib.paths) {
-      expect(resolves(p.target.screen, p.target.tab), `path ${p.key}`).toBe(true);
+      expect(resolves(p.target.screen, CALLER, p.target.tab), `path ${p.key}`).toBe(true);
     }
     for (const a of lib.articles) {
-      expect(resolves(a.target.screen, a.target.tab), `article ${a.key}`).toBe(true);
+      expect(resolves(a.target.screen, CALLER, a.target.tab), `article ${a.key}`).toBe(true);
+    }
+  });
+
+  it('gives a glossary answer no target at all, so it is read and not tapped', () => {
+    for (const hit of searchLearn('what is an IPP')) {
+      if (hit.kind === 'glossary') expect(hit.target).toBeUndefined();
     }
   });
 });
@@ -83,8 +105,8 @@ describe('every tool resolves from BOTH stacks that show tool rows', () => {
         expect(TABS[tab]?.has(screen), `${tool.key} → ${tab}/${screen}`).toBe(true);
       } else {
         // No tab means "the stack I am in" — and tool rows render in both.
-        expect(TABS.Home.has(screen), `${tool.key} → Home/${screen}`).toBe(true);
-        expect(TABS.Tools.has(screen), `${tool.key} → Tools/${screen}`).toBe(true);
+        expect(resolves(screen, 'Home'), `${tool.key} → Home/${screen}`).toBe(true);
+        expect(resolves(screen, 'Tools'), `${tool.key} → Tools/${screen}`).toBe(true);
       }
     }
   });
