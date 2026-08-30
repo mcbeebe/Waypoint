@@ -73,13 +73,6 @@ export interface PolicyRequest {
   requested_on: string;
   status: 'requested' | 'in_progress' | 'granted' | 'denied' | 'withdrawn';
 }
-/** The minimal deadline-row shape. */
-export interface PolicyDeadline {
-  id: string;
-  title: string;
-  due_date: string; // ISO date (YYYY-MM-DD or full ISO)
-  status: string;
-}
 /** The minimal action shape (dueOn already normalized to YYYY-MM-DD | null). */
 export interface PolicyAction {
   id: string;
@@ -90,7 +83,6 @@ export interface PolicyAction {
 
 export interface PolicyInput {
   requests: PolicyRequest[];
-  deadlines: PolicyDeadline[];
   actions: PolicyAction[];
   now: Date;
   locale: FunnelLocale;
@@ -153,7 +145,7 @@ const REQUEST_OPEN = new Set(['requested', 'in_progress']);
  * the past is never scheduled.
  */
 export function reminderPlan(input: PolicyInput): ReminderSpec[] {
-  const { requests, deadlines, actions, now, locale, prefs } = input;
+  const { requests, actions, now, locale, prefs } = input;
   if (!prefs.enabled) return [];
   const L = pick(locale);
   const specs: ReminderSpec[] = [];
@@ -214,31 +206,12 @@ export function reminderPlan(input: PolicyInput): ReminderSpec[] {
     }
   }
 
-  // ── Deadline rows (non-request obligations).
-  if (prefs.deadlines) {
-    for (const d of deadlines) {
-      if (d.status === 'completed') continue;
-      const ymd = /^(\d{4}-\d{2}-\d{2})/.exec(d.due_date)?.[1];
-      if (!ymd) continue;
-      const dateLabel = fmtDate(ymd, locale);
-      push(
-        `deadline:${d.id}:t1:${ymd}`,
-        'deadline',
-        fireInstant(ymd, -1),
-        L(`${d.title} is due tomorrow`, `${d.title} vence mañana`, `${d.title} đến hạn ngày mai`),
-        L(`${dateLabel}. Tap to see what it needs.`, `${dateLabel}. Toque para ver qué necesita.`, `${dateLabel}. Chạm để xem cần gì.`),
-        { type: 'deadline_tomorrow' }
-      );
-      push(
-        `deadline:${d.id}:due:${ymd}`,
-        'deadline',
-        fireInstant(ymd, 0),
-        L(`${d.title} is due today`, `${d.title} vence hoy`, `${d.title} đến hạn hôm nay`),
-        L(`Tap to see what it needs.`, `Toque para ver qué necesita.`, `Chạm để xem cần gì.`),
-        { type: 'deadline_due' }
-      );
-    }
-  }
+  // NOTE: stored Deadline rows are deliberately NOT scheduled here — they have
+  // their own mature scheduler (useNotifications.scheduleAllReminders, richer
+  // 30/14/7/1-day lead times) driven from Plan/Calendar. Adding them here would
+  // double-notify one date from two subsystems. The outbound loop's unique job
+  // is the request CLOCKS (which back the promise) and plan ACTIONS, neither of
+  // which the legacy scheduler ever covered.
 
   // ── Plan actions coming due.
   if (prefs.actions) {

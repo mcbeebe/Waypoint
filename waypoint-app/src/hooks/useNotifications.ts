@@ -11,7 +11,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
+import { Platform, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Deadline } from '@/types/database';
 import { diffReminders, type ReminderSpec } from '@/lib/notificationPolicy';
@@ -46,6 +46,8 @@ interface UseNotificationsReturn {
   hasPermission: boolean;
   /** Request notification permission from the user */
   requestPermission: () => Promise<boolean>;
+  /** Re-read OS permission (call when a screen regains focus). */
+  refreshPermission: () => Promise<void>;
   /** Schedule reminders for a single deadline */
   scheduleDeadlineReminders: (deadline: Deadline) => Promise<void>;
   /** Cancel all reminders for a deadline (e.g., on completion) */
@@ -68,17 +70,31 @@ export function useNotifications(): UseNotificationsReturn {
   /** spec key → scheduled notification id (phase 7 outbound loop). */
   const reminderMapRef = useRef<Record<string, string>>({});
 
-  // Check current permission status on mount
+  // Check current permission status on mount, and again whenever the app comes
+  // back to the foreground — a parent can revoke (or grant) notifications in OS
+  // Settings while we're backgrounded, and a stale `true` would keep the calm
+  // state promising delivery the OS now drops (phase-7 review finding).
   useEffect(() => {
     checkPermission();
     loadMappings();
     loadReminderMap();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') checkPermission();
+    });
+    return () => sub.remove();
   }, []);
 
   async function checkPermission(): Promise<void> {
     const { status } = await Notifications.getPermissionsAsync();
     setHasPermission(status === 'granted');
   }
+
+  /** Re-read OS permission on demand (e.g. Home regaining focus after the
+   *  parent changed it on the Settings screen or in OS Settings). */
+  const refreshPermission = useCallback(async (): Promise<void> => {
+    const { status } = await Notifications.getPermissionsAsync();
+    setHasPermission(status === 'granted');
+  }, []);
 
   async function loadMappings(): Promise<void> {
     try {
@@ -269,8 +285,23 @@ export function useNotifications(): UseNotificationsReturn {
    * Reconcile the device against a policy plan (phase 7 outbound loop). The
    * plan (from `reminderPlan`) is the desired state; this makes the device
    * match it by key, touching only the difference.
+   *
+   * SERIALIZED: the HomeScreen effect fires this on every data change, and on a
+   * cold start three fetches settle at different times — without a lock, two
+   * overlapping runs read the same (empty) map and both schedule the same spec,
+   * leaving a duplicate notification whose id the map never recorded (so it can
+   * never be cancelled). Each call waits for the previous to finish, then reads
+   * a fresh map. (Phase-7 review HIGH finding.)
    */
-  const syncReminders = useCallback(async (specs: ReminderSpec[]): Promise<void> => {
+  const chainRef = useRef<Promise<void>>(Promise.resolve());
+  const syncReminders = useCallback((specs: ReminderSpec[]): Promise<void> => {
+    const run = chainRef.current.then(() => doSyncReminders(specs));
+    // Swallow errors on the chain so one failed run can't wedge the queue.
+    chainRef.current = run.catch(() => {});
+    return run;
+  }, []);
+
+  const doSyncReminders = useCallback(async (specs: ReminderSpec[]): Promise<void> => {
     const map = reminderMapRef.current;
     const { toCancel, toSchedule } = diffReminders(Object.keys(map), specs);
 
@@ -322,6 +353,7 @@ export function useNotifications(): UseNotificationsReturn {
   return {
     hasPermission,
     requestPermission,
+    refreshPermission,
     scheduleDeadlineReminders,
     cancelDeadlineReminders,
     scheduleAllReminders,

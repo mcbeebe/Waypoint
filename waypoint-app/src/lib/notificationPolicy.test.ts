@@ -32,7 +32,6 @@ function req(over: Partial<PolicyRequest> = {}): PolicyRequest {
 function input(over: Partial<PolicyInput> = {}): PolicyInput {
   return {
     requests: [],
-    deadlines: [],
     actions: [],
     now: NOW,
     locale: 'en',
@@ -46,7 +45,7 @@ describe('the master switch and category gates', () => {
     expect(reminderPlan(input({ requests: [req()], prefs: DEFAULT_PREFS }))).toEqual([]);
   });
 
-  it('deadlines-off drops request + deadline reminders but keeps actions', () => {
+  it('deadlines-off drops request-clock reminders but keeps actions', () => {
     const plan = reminderPlan(
       input({
         requests: [req()],
@@ -101,7 +100,6 @@ describe('escalation tone — status of the answer, never blame', () => {
         input({
           locale,
           requests: [req()],
-          deadlines: [{ id: 'd1', title: 'IEP signature', due_date: '2026-02-20', status: 'pending' }],
           actions: [{ id: 'a1', title: 'Call the SC', status: 'in_progress', dueOn: '2026-02-01' }],
         })
       );
@@ -123,7 +121,6 @@ describe('locale parity — same specs, translated prose', () => {
         input({
           locale,
           requests: [req()],
-          deadlines: [{ id: 'd1', title: 'IEP', due_date: '2026-02-20', status: 'pending' }],
           actions: [{ id: 'a1', title: 'Call', status: 'in_progress', dueOn: '2026-02-01' }],
         })
       ).map((s) => ({ key: s.key, category: s.category, fireAt: s.fireAt }));

@@ -64,10 +64,6 @@ const S: Record<FunnelLocale, Record<string, string>> = {
   },
 };
 
-/** Quiet hours on = the default 21→8 window; off = start === end (disabled). */
-const QUIET_ON = { quietStartHour: 21, quietEndHour: 8 };
-const QUIET_OFF = { quietStartHour: 0, quietEndHour: 0 };
-
 export default function NotificationSettingsScreen() {
   const { locale } = useI18n();
   const fl = toFunnelLocale(locale);
@@ -105,7 +101,6 @@ export default function NotificationSettingsScreen() {
     }
   }, [requestPermission, t]);
 
-  const quietOn = prefs.quietStartHour !== prefs.quietEndHour;
   const disabled = !loaded || !prefs.enabled;
 
   return (
@@ -139,16 +134,9 @@ export default function NotificationSettingsScreen() {
           />
         </View>
 
-        <Text style={styles.sectionLabel}>{t.quiet}</Text>
-        <View style={styles.card}>
-          <Row
-            label={t.dnd}
-            hint={t.dndHint}
-            value={quietOn}
-            onValueChange={(v) => update(v ? QUIET_ON : QUIET_OFF)}
-            disabled={disabled}
-          />
-        </View>
+        {/* Quiet hours is deferred to Lane B: every Lane-A reminder fires at a
+            civil 9am, so a 9pm–8am window would gate nothing. It becomes a real
+            control once reply pushes (which can arrive at any hour) ship. */}
 
         <Pressable
           style={styles.testRow}

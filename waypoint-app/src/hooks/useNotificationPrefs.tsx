@@ -1,18 +1,22 @@
 /**
- * useNotificationPrefs — the family's notification settings (phase 7 outbound
- * loop), persisted on-device. The pure shape and defaults live in
- * notificationPolicy (`NotifPrefs` / `DEFAULT_PREFS`); this only loads, saves,
- * and exposes them, plus the one-shot "we already offered" flag that keeps the
- * contextual permission ask from re-appearing after it's been dismissed.
+ * Notification preferences (phase 7 outbound loop), shared app-wide via context
+ * so the Settings screen and Home read and write the SAME state. (They mount as
+ * separate stack screens; without a shared store, a change in Settings would
+ * never reach Home's loop or its calm-state promise — Home stays mounted and
+ * its state never re-reads. That split was the phase-7 review's HIGH finding.)
+ *
+ * The pure shape and defaults live in notificationPolicy (`NotifPrefs` /
+ * `DEFAULT_PREFS`); this persists them on-device and exposes the one-shot
+ * "already offered the ask" flag.
  */
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DEFAULT_PREFS, type NotifPrefs } from '@/lib/notificationPolicy';
 
 const PREFS_KEY = 'waypoint_notif_prefs';
 const PRIMED_KEY = 'waypoint_notif_primed';
 
-interface UseNotificationPrefsReturn {
+interface NotificationPrefsValue {
   prefs: NotifPrefs;
   /** False until the stored prefs have been read, so callers don't act on the
    *  default (disabled) state and clobber a real "on". */
@@ -25,7 +29,9 @@ interface UseNotificationPrefsReturn {
   markPrimed: () => Promise<void>;
 }
 
-export function useNotificationPrefs(): UseNotificationPrefsReturn {
+const NotificationPrefsContext = createContext<NotificationPrefsValue | null>(null);
+
+export function NotificationPrefsProvider({ children }: { children: React.ReactNode }) {
   const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_PREFS);
   const [loaded, setLoaded] = useState(false);
   const [primed, setPrimed] = useState(false);
@@ -74,5 +80,17 @@ export function useNotificationPrefs(): UseNotificationPrefsReturn {
     }
   }, []);
 
-  return { prefs, loaded, primed, update, markPrimed };
+  return (
+    <NotificationPrefsContext.Provider value={{ prefs, loaded, primed, update, markPrimed }}>
+      {children}
+    </NotificationPrefsContext.Provider>
+  );
+}
+
+export function useNotificationPrefs(): NotificationPrefsValue {
+  const ctx = useContext(NotificationPrefsContext);
+  if (!ctx) {
+    throw new Error('useNotificationPrefs must be used within a NotificationPrefsProvider');
+  }
+  return ctx;
 }

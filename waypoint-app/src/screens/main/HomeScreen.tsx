@@ -9,7 +9,7 @@
  * this screen renders the sheet and reading overlay it drives.
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -24,7 +24,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useFamily, useChildren, useDiagnoses } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import { useAppointments } from '@/hooks/useAppointments';
@@ -156,8 +156,20 @@ function HomeScreenInner({
   // will tell you if <date> passes" only when both are true.
   const { prefs: notifPrefs, loaded: notifPrefsLoaded, primed, update: updateNotifPrefs, markPrimed } =
     useNotificationPrefs();
-  const { hasPermission, requestPermission, syncReminders } = useNotifications();
-  const notificationsEnabled = notifPrefs.enabled && hasPermission;
+  const { hasPermission, requestPermission, refreshPermission, syncReminders } = useNotifications();
+  // Re-read OS permission whenever Home regains focus (returning from the
+  // Settings screen, where the parent may have just granted/revoked it) so the
+  // promise and the loop never run on a stale permission value.
+  useFocusEffect(
+    useCallback(() => {
+      void refreshPermission();
+    }, [refreshPermission])
+  );
+  const remindersOn = notifPrefs.enabled && hasPermission;
+  // The calm-state promise is a DEADLINE promise ("if <date> passes"), backed
+  // by the request-clock reminders — which are gated on the deadlines category.
+  // So only make the promise when that category is on, not merely the master.
+  const promiseKeepable = remindersOn && notifPrefs.deadlines;
 
   // ── The One Thing (Roadmap/Home-Rebuild-Plan.md phase 2) ──────────────────
   // One published ladder decides what leads. Everything decidable is in
@@ -195,7 +207,7 @@ function HomeScreenInner({
     loading: requestsLoading || commsLoading || deadlinesLoading || actionsLoading,
     dataFailed: !!(requestsError || commsError || deadlinesError || actionsError),
     onRepliesSynced: refetchComms,
-    notificationsEnabled,
+    notificationsEnabled: promiseKeepable,
   });
 
   // Keep the device's scheduled reminders in step with the plan (phase 7). When
@@ -203,13 +215,12 @@ function HomeScreenInner({
   // Runs on any change to the date-bearing data or the prefs.
   useEffect(() => {
     if (!notifPrefsLoaded) return;
-    if (!notificationsEnabled) {
+    if (!remindersOn) {
       void syncReminders([]);
       return;
     }
     const specs = reminderPlan({
       requests: familyRequests,
-      deadlines,
       actions: actions.map((a) => ({
         id: a.id,
         title: a.title,
@@ -223,19 +234,23 @@ function HomeScreenInner({
     void syncReminders(specs);
   }, [
     notifPrefsLoaded,
-    notificationsEnabled,
+    remindersOn,
     notifPrefs,
     familyRequests,
-    deadlines,
     actions,
     funnelLocale,
     syncReminders,
   ]);
 
   // The contextual permission ask (7A-3): offer it once, when a family first
-  // has a live clock to watch and hasn't been asked. Declining remembers.
-  const showPriming =
-    notifPrefsLoaded && !primed && !notifPrefs.enabled && triage.nextClockDate != null;
+  // has a live clock to watch and hasn't been asked. Declining remembers. An
+  // already-overdue clock counts as live too — that family most needs the
+  // follow-up nudge — so trigger on a time-critical leading item, not only an
+  // upcoming date.
+  const hasLiveClock =
+    triage.nextClockDate != null ||
+    (!!triage.item && ['overdue', 'clock', 'today', 'reply'].includes(triage.item.cls));
+  const showPriming = notifPrefsLoaded && !primed && !notifPrefs.enabled && hasLiveClock;
   const onEnableNotifs = () => {
     void markPrimed();
     void (async () => {
