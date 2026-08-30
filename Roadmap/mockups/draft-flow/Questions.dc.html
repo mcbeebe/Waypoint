@@ -1,0 +1,160 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+    .chip { border: 1.5px solid #E2E8F0; background: #FFFFFF; border-radius: 12px; min-height: 46px;
+            display: flex; align-items: center; padding: 0 14px; font-size: 14.5px; color: #334155; }
+    .chip-on { border-color: #0891B2; background: #ECFEFF; color: #0E7490; font-weight: 700; }
+    .sheet { background: #FFFFFF; border-radius: 20px 20px 0 0; padding: 8px 16px 18px 16px;
+             box-shadow: 0 -8px 30px rgba(15,23,42,0.16); display: flex; flex-direction: column; gap: 10px; }
+    .grab { width: 40px; height: 4px; border-radius: 2px; background: #CBD5E1; align-self: center; margin: 4px 0 6px 0; }
+    .qlabel { font-size: 10.5px; font-weight: 800; letter-spacing: 0.9px; color: #0891B2; }
+    .qtext { font-size: 18px; font-weight: 800; color: #1B2A4A; line-height: 1.3; }
+    .state { align-self: flex-start; background: #1B2A4A; color: #FFFFFF; border-radius: 6px;
+             padding: 2px 8px; font-size: 10px; font-weight: 800; letter-spacing: 1px; margin: 0 0 8px 16px; }
+    .peek { padding: 14px 16px 10px 16px; background: #E9EEF4; }
+    .peekcard { background: #FFFFFF; border: 2px solid #C7D5E3; border-radius: 14px; padding: 12px 14px; opacity: 0.55; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1720px; background: #F8FAFC; display: flex; flex-direction: column; box-sizing: border-box; color: #334155; font-size: 15px; line-height: 1.45; padding-bottom: 24px">
+
+  <!-- ============ Q1 ============ -->
+  <div style="padding-top: 14px"><div class="state">1 OF 3 &middot; WHAT HAPPENED</div></div>
+  <div class="peek">
+    <div class="peekcard">
+      <div style="font-size: 10.5px; font-weight: 800; color: #DC2626; letter-spacing: 0.7px">PAST DUE &mdash; 34 DAYS SINCE YOU ASKED</div>
+      <div style="font-size: 16px; font-weight: 800; color: #1B2A4A; margin-top: 5px">An answer on Sof&iacute;a&rsquo;s IPP review is past due</div>
+    </div>
+  </div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div class="qlabel">QUESTION 1 OF 3</div>
+      <div style="display: flex; gap: 4px; align-items: center">
+        <div style="width: 18px; height: 4px; border-radius: 2px; background: #0891B2"></div>
+        <div style="width: 18px; height: 4px; border-radius: 2px; background: #E2E8F0"></div>
+        <div style="width: 18px; height: 4px; border-radius: 2px; background: #E2E8F0"></div>
+      </div>
+    </div>
+    <div class="qtext">What have you heard back so far?</div>
+    <div style="font-size: 12.5px; color: #64748B; margin-top: -4px">This changes what the letter says. It takes one tap.</div>
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px">
+      <div class="chip chip-on">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px"><polyline points="4 12.5 9.5 18 20 6.5"></polyline></svg>
+        Nothing at all
+      </div>
+      <div class="chip">They said they&rsquo;d get back to me</div>
+      <div class="chip">They asked me for something</div>
+      <div class="chip">They said no</div>
+    </div>
+    <div style="min-height: 46px; border-radius: 12px; background: #0891B2; display: flex; align-items: center; justify-content: center; margin-top: 6px">
+      <div style="color: #FFFFFF; font-weight: 700; font-size: 15px">Next</div>
+    </div>
+    <div style="text-align: center; font-size: 12.5px; color: #94A3B8; padding-top: 2px">Close &mdash; nothing is lost</div>
+  </div>
+
+  <div style="height: 22px"></div>
+
+  <!-- ============ Q2 ============ -->
+  <div><div class="state">2 OF 3 &middot; HOW TO SOUND</div></div>
+  <div class="sheet" style="border-radius: 20px; margin: 0 8px; box-shadow: 0 6px 24px rgba(15,23,42,0.10)">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div class="qlabel">QUESTION 2 OF 3</div>
+      <div style="display: flex; gap: 4px; align-items: center">
+        <div style="width: 18px; height: 4px; border-radius: 2px; background: #0891B2"></div>
+        <div style="width: 18px; height: 4px; border-radius: 2px; background: #0891B2"></div>
+        <div style="width: 18px; height: 4px; border-radius: 2px; background: #E2E8F0"></div>
+      </div>
+    </div>
+    <div class="qtext">How do you want to sound?</div>
+    <div style="font-size: 12.5px; color: #64748B; margin-top: -4px">We suggested the middle one because it&rsquo;s been 34 days. Change it freely &mdash; you know them, we don&rsquo;t.</div>
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px">
+      <div class="chip" style="flex-direction: column; align-items: flex-start; justify-content: center; min-height: 58px; padding-top: 8px; padding-bottom: 8px">
+        <div style="font-weight: 700; color: #1B2A4A">Friendly &mdash; a gentle nudge</div>
+        <div style="font-size: 12px; color: #64748B">Short and personal. No legal language.</div>
+      </div>
+      <div class="chip chip-on" style="flex-direction: column; align-items: flex-start; justify-content: center; min-height: 66px; padding-top: 8px; padding-bottom: 8px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12.5 9.5 18 20 6.5"></polyline></svg>
+          <div style="font-weight: 800; color: #0E7490">Firmer &mdash; it&rsquo;s been a while</div>
+          <div style="background: #0891B2; color: #FFFFFF; border-radius: 9999px; padding: 1px 7px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.5px">SUGGESTED</div>
+        </div>
+        <div style="font-size: 12px; color: #0E7490; margin-top: 2px">Organized and clear, names the date and the statute.</div>
+      </div>
+      <div class="chip" style="flex-direction: column; align-items: flex-start; justify-content: center; min-height: 58px; padding-top: 8px; padding-bottom: 8px">
+        <div style="font-weight: 700; color: #1B2A4A">Formal &mdash; I want this on the record</div>
+        <div style="font-size: 12px; color: #64748B">Full citations, an explicit date to respond by.</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: flex-start; gap: 8px; background: #F0FDFF; border: 1px solid #A5F3FC; border-radius: 10px; padding: 10px 12px; margin-top: 2px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16.5"></line><circle cx="12" cy="7.7" r="0.9" fill="#0891B2" stroke="none"></circle></svg>
+      <div style="font-size: 12.5px; color: #155E75; line-height: 1.5">Waypoint always starts friendly and firms up one step at a time. You can go straight to formal &mdash; but a first ask that sounds like a complaint is harder to walk back.</div>
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 4px">
+      <div style="min-height: 46px; min-width: 76px; border-radius: 12px; border: 1.5px solid #E2E8F0; display: flex; align-items: center; justify-content: center; padding: 0 16px">
+        <div style="color: #64748B; font-weight: 700; font-size: 15px">Back</div>
+      </div>
+      <div style="flex: 1; min-height: 46px; border-radius: 12px; background: #0891B2; display: flex; align-items: center; justify-content: center">
+        <div style="color: #FFFFFF; font-weight: 700; font-size: 15px">Next</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 22px"></div>
+
+  <!-- ============ Q3 ============ -->
+  <div><div class="state">3 OF 3 &middot; OPTIONAL</div></div>
+  <div class="sheet" style="border-radius: 20px; margin: 0 8px; box-shadow: 0 6px 24px rgba(15,23,42,0.10)">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <div class="qlabel">QUESTION 3 OF 3 &middot; OPTIONAL</div>
+      <div style="display: flex; gap: 4px; align-items: center">
+        <div style="width: 18px; height: 4px; border-radius: 2px; background: #0891B2"></div>
+        <div style="width: 18px; height: 4px; border-radius: 2px; background: #0891B2"></div>
+        <div style="width: 18px; height: 4px; border-radius: 2px; background: #0891B2"></div>
+      </div>
+    </div>
+    <div class="qtext">Anything you want them to know?</div>
+    <div style="font-size: 12.5px; color: #64748B; margin-top: -4px">Skip this and the letter is still complete. Say it however you like &mdash; we&rsquo;ll put it in properly.</div>
+    <div style="border: 1.5px solid #E2E8F0; background: #FFFFFF; border-radius: 12px; min-height: 88px; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between">
+      <div style="font-size: 14.5px; color: #94A3B8; line-height: 1.5">e.g. &ldquo;Sof&iacute;a&rsquo;s aide left in June and she&rsquo;s been having a hard time since&rdquo;</div>
+      <div style="display: flex; justify-content: flex-end">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0891B2" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><line x1="12" y1="18" x2="12" y2="21"></line></svg>
+      </div>
+    </div>
+    <div style="min-height: 46px; border-radius: 12px; background: #0891B2; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+      <div style="color: #FFFFFF; font-weight: 700; font-size: 15px">Write my letter</div>
+    </div>
+    <div style="display: flex; gap: 8px">
+      <div style="flex: 1; min-height: 44px; display: flex; align-items: center; justify-content: center">
+        <div style="color: #64748B; font-weight: 600; font-size: 13.5px">Back</div>
+      </div>
+      <div style="flex: 1; min-height: 44px; display: flex; align-items: center; justify-content: center">
+        <div style="color: #0891B2; font-weight: 700; font-size: 13.5px">Skip &mdash; write it now</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules note -->
+  <div style="margin: 22px 16px 0 16px; border: 1px dashed #CBD5E1; border-radius: 10px; padding: 12px 14px; background: #FFFFFF">
+    <div style="font-size: 10px; font-weight: 800; letter-spacing: 0.9px; color: #94A3B8">MOCKUP NOTE &mdash; THE FIVE RULES <code style="background:#F1F5F9;padding:1px 5px;border-radius:4px">draftQuestions.ts</code> IS BUILT TO KEEP</div>
+    <div style="font-size: 12.5px; color: #475569; margin-top: 7px; line-height: 1.6">
+      <b>1.</b> Never more than three. A question the profile already answers is not asked &mdash; it is asserted on the draft with a &ldquo;change this&rdquo; tap.<br>
+      <b>2.</b> Chips, not prose. The freeform box is an escape hatch, never the path.<br>
+      <b>3.</b> Every answer changes the letter. A question that doesn&rsquo;t alter the text is decoration and gets deleted &mdash; and that is a test, not a comment.<br>
+      <b>4.</b> Collaborative-first. Tone follows the <i>stage</i>, not the mood: first ask &rarr; friendly, past due &rarr; firmer, formal step &rarr; on the record. Override is one tap.<br>
+      <b>5.</b> Trilingual (en/es/vi) with locale-parity tests, like every other string.
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

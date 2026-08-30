@@ -394,6 +394,51 @@ before any of it is built** — sizing and the authoring workflow are open.
 
 ---
 
+## Phase 9 — The draft flow (owner brief, Aug 30 2026)
+
+Added after the owner put Waypoint side by side with **Undivided** and set the
+target: *"beat Undivided in user experience and prompting and empowering users;
+serving them up with not only the Next One Thing, but drafting that email,
+verbiage and guiding them."* And the read on the rival: *"Undivided has lots of
+content but their website and app are overwhelming with info. Ours is focused,
+accessible and action oriented."*
+
+The strategic point, stated plainly so later phases do not drift from it:
+**their library is both their advantage and their liability.** A parent at 11pm
+does not need twenty steps, they need the next sentence they have to write. So
+the win condition is not more content. It is the shortest distance between
+"I don't know what to do" and "it's sent."
+
+Four decisions the owner took:
+
+| Decision | Choice | What it rules out |
+|---|---|---|
+| What happens on tap | **Two or three questions, then the draft** | Handing the parent off to a blank editor, and equally, a twenty-step playbook |
+| Where the wording comes from | **Curated template + AI fills the specifics** | AI writing law from scratch; also a static form letter that reads generic |
+| Which "exact words" surface first | **How to answer what they just sent you** | Phone scripts and meeting talking points wait their turn |
+| Order | **Phase 6 first, then the draft flow** | Building the differentiator on top of a Home that is still a dashboard |
+
+What that implies, and what each phase after this must keep true:
+
+1. **The draft is the destination, not a screen two taps away.** The One Thing
+   card currently names the action and hands off. It should end in words.
+2. **The two or three questions are not a form.** They exist because they make
+   the letter sharper *and* because the answers belong in the case file — the
+   same answer that shapes the sentence also becomes evidence.
+3. **Guidance arrives in the moment.** Undivided's rule about giving notice
+   before recording an IEP meeting is good content buried under step 4 of 20.
+   Ours appears beside the line where it matters.
+4. **The skeleton and every legal sentence stay ours and stay cited.** AI fills
+   names, dates and what happened. It does not author law. The provenance
+   registry remains the boundary — see "never assert without evidence".
+5. **Sending leaves evidence.** A clock starts, the letter lands in the paper
+   trail, the case file grows. That is the part a funded competitor cannot copy
+   in a quarter, and today it is invisible.
+
+Where we do **not** compete: Undivided sells human Navigators — the two-face
+avatar pinned to every one of their screens. That is their moat, it is
+expensive, and chasing it with one owner and an agent loses.
+
 ## Decisions this plan takes
 
 | Decision | Choice | Why |
@@ -428,10 +473,18 @@ before any of it is built** — sizing and the authoring workflow are open.
      owe you an answer". That is description to the parent, not language for
      the agency — but it is the frame the parent carries into the call. Keep,
      or soften to a neutral "past due"?
-   - **Legal.** `requestClocks.ts` anchors the W&I §4646.5(b) 30-day IPP clock
-     to the parent's request date. If the statute runs from completion of the
-     assessment instead, every overdue card attaches a correct citation to an
-     incorrectly anchored claim. Worth a lawyer's eye before launch.
+   - **Legal — resolved Aug 30 2026, no lawyer needed.** §4646.5(b) reads
+     "the individual program plan shall be reviewed within 30 days after the
+     request is submitted", so anchoring the clock on `requested_on` is
+     correct. The 60-day clock the review worried about belongs to the
+     *initial* IPP after assessment, which is a different provision and not
+     what this card tracks. Owner decision: do not block launch on a lawyer.
+
+     The lookup did find a real omission, now fixed: the same subdivision
+     gives **7 days, not 30**, when the meeting is needed for the child's
+     health and safety or to keep them living at home. The app was telling a
+     family in crisis to wait a month. The Learn article and the IPP glossary
+     entry now carry both halves.
 1. **Ship phase 7 before launch, or soften the calm copy?** Softened for now
    (see change 7 above). The decision that remains is whether push ships
    before launch or the softened copy is the launch copy.
@@ -439,3 +492,30 @@ before any of it is built** — sizing and the authoring workflow are open.
    The ladder has the slot; nothing feeds it yet.
 3. **Telemetry:** are you comfortable with anonymous skip-rate and
    door-engagement events, so the ladder can be corrected with evidence?
+
+---
+
+## Verified device punch-list (Aug 30, 2026)
+
+A 14-agent workflow root-caused the defects in the owner's Aug 29 device
+screenshots and adversarially verified each. The critical one — a live RLS
+recursion bug — is fixed in `migration 049` and is **not** phase-6 work; it
+awaits the owner's hand-apply. The rest are UI defects on shipped surfaces,
+recorded here so phase 6 (and its neighbours) clean them up rather than
+rediscover them.
+
+| Defect | Where it lives | Verdict | Belongs to |
+|---|---|---|---|
+| **Deferrals say "on this device only" even where 048 is applied** — 048's RLS policy subqueries `family_members`, whose 027 policies self-reference it → Postgres 42P17 infinite recursion → every read/write errors → device fallback. Reproduced in a real PG cluster. | `048` policy; `useDeferrals.ts`, `syncState.ts` | CONFIRMED, high | **migration 049 (owner hand-apply)** |
+| **Home leads with a saved draft while 5 items are overdue** | `homeTriage.ts` never reads actions; `useTriage` never passes them | CONFIRMED | **task #34** (must land before draft flow) |
+| **Tools shows the same 3 tools twice** — pinned tiles duplicate the TAKE ACTION rows because the defaults are exactly those three | `ToolsScreen.tsx`, `PinnedTools.tsx`, `ToolsArea.tsx` | CONFIRMED | phase 6 / audit item 12 |
+| **Plan month legend names "appointment · deadline" but every dot renders teal** — the legend asserts categories the grid doesn't keep (a provenance-rule violation); also the 3-dot cap makes a 5-item day look like a 3-item day | `planView.ts`, `PlanScreen.tsx` | CONFIRMED | phase 6 neighbourhood — honest legend + per-kind dot colour |
+| **"Gmail not connected" reads as a permanent amber error** — a family who chose not to connect Gmail sees a warning forever; a *fact* is styled as a *fault* | `SensorLine.tsx`, `homeTriage.ts` `sensorLine` | CONFIRMED | phase 6 — distinguish "not set up" from "something's wrong" (tone change → owner) |
+| **Resume card title truncates** — "Progress Data Request — Teddy …"; the kicker wraps to two lines | `homeTriage.ts` resume title/kicker, `OneThingCard.tsx` | CONFIRMED | phase 6 / audit item 2 — shorter, still-honest title |
+| **Tools search placeholder clips mid-word** — "…they saic"; longer in es/vi | `ToolsArea.tsx`, `toolsCatalog.ts` `searchPlaceholder` | CONFIRMED | phase 6 — shorter trilingual copy or a layout fix |
+
+None of the UI fixes ship piecemeal now: several overlap phase 6 and the
+Undivided audit's Tools rework, and fixing them ahead of that reshaping is
+churn. The two that touch tone/framing (the Gmail line, the resume title copy)
+are owner-approval items, not auto-ship. `migration 049` is the exception —
+it is a live data-correctness bug, independent of the redesign, and ready now.

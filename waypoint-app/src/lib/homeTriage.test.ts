@@ -215,6 +215,86 @@ describe('deferral is honest', () => {
   });
 });
 
+describe('the ladder can see plan actions (task #34)', () => {
+  // A family with only these settings reaches the calm "clear" state, so any
+  // change to calm below is caused by the action, not the fixture.
+  const calmBase = { rcStatus: 'known' as const, iepStatus: 'active' as const, hasDiagnosis: false };
+  function action(over: Partial<NonNullable<TriageInput['actions']>[number]> = {}) {
+    seq += 1;
+    return {
+      id: `a${seq}`, title: 'Call the OT to schedule', status: 'not_started',
+      priority: 'medium', dueOn: '2026-08-20', category: 'regional_center',
+      ...over,
+    };
+  }
+
+  it('an overdue action kills the false calm — it used to say "nothing needs you today"', () => {
+    // Proof the fixture is otherwise calm:
+    expect(triageHome(base(calmBase)).calm?.kind).toBe('clear');
+    // Add one overdue action and the day is no longer calm; the action leads.
+    const r = triageHome(base({ ...calmBase, actions: [action({ dueOn: '2026-08-20' })] }));
+    expect(r.calm).toBeNull();
+    expect(r.item?.cls).toBe('overdue');
+    expect(r.item?.title).toBe('Call the OT to schedule');
+    expect(r.item?.kicker).toContain('OVERDUE');
+  });
+
+  it('the action card opens the action in the Tracker stack, not Home', () => {
+    const a = action({ id: 'act-123', dueOn: '2026-08-20' });
+    const r = triageHome(base({ ...calmBase, actions: [a] }));
+    // A navigate bubbles to Home's parent, never to a sibling stack, so the
+    // action must name the Tracker tab or it resolves nowhere.
+    expect(r.item?.action.tab).toBe('Tracker');
+    expect(r.item?.action.screen).toBe('ActionDetail');
+    expect(r.item?.action.params).toEqual({ actionId: 'act-123' });
+  });
+
+  it('an action due today lands on the today rung, not overdue', () => {
+    const r = triageHome(base({ ...calmBase, actions: [action({ dueOn: '2026-08-29' })] }));
+    expect(r.item?.cls).toBe('today');
+    expect(r.item?.kicker).toContain('DUE TODAY');
+  });
+
+  it('a future action stays on the Plan tab — the ladder leads with what is due now', () => {
+    const r = triageHome(base({ ...calmBase, actions: [action({ dueOn: '2026-09-15' })] }));
+    expect(r.calm?.kind).toBe('clear');
+    expect(r.queue.some((i) => i.id.includes('action'))).toBe(false);
+  });
+
+  it('an undated action is never surfaced (there is no clock to lead with)', () => {
+    const r = triageHome(base({ ...calmBase, actions: [action({ dueOn: null })] }));
+    expect(r.calm?.kind).toBe('clear');
+  });
+
+  it('a malformed due date is dropped, never asserted as "due today"', () => {
+    const r = triageHome(base({ ...calmBase, actions: [action({ dueOn: 'not-a-date' })] }));
+    expect(r.calm?.kind).toBe('clear');
+    expect(r.queue.some((i) => i.id.includes('action'))).toBe(false);
+  });
+
+  it('completed and dismissed actions are invisible, matching the agenda', () => {
+    const r = triageHome(base({
+      ...calmBase,
+      actions: [
+        action({ dueOn: '2026-08-20', status: 'completed' }),
+        action({ dueOn: '2026-08-20', status: 'dismissed' }),
+      ],
+    }));
+    expect(r.calm?.kind).toBe('clear');
+  });
+
+  it('overdue actions rank alongside overdue clocks, above a reply', () => {
+    const r = triageHome(base({
+      ...calmBase,
+      actions: [action({ dueOn: '2026-08-20' })],
+      requests: [req({ requested_on: '2026-07-01' })],
+    }));
+    // Both overdue-tier items lead; the reply (rank 3) never gets above them.
+    expect(r.queue[0].rank).toBe(TRIAGE_RANK.overdue);
+    expect(r.item?.cls).toBe('overdue');
+  });
+});
+
 describe('calm is earned, and says which quiet this is', () => {
   it('nothing tracked and nothing done → clear, with what Waypoint is watching', () => {
     const r = triageHome(base({ requests: [req({ request_type: 'iep_evaluation', requested_on: '2026-08-29' })] , rcStatus: 'active', iepStatus: 'active' }));

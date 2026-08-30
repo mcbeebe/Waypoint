@@ -186,9 +186,10 @@ describe('the search puts the right answer first, in every language', () => {
     expect(top('tã', 'vi').key).toBe('rc_money');
   });
 
-  it('matches whole words, so "no" does not match "notice"', () => {
-    const hits = searchLearn('no');
-    expect(hits.every((h) => h.key !== 'ipp_clock')).toBe(true);
+  it('matches whole words, so a fragment does not match inside one', () => {
+    // "ice" must not match "Notice"; "valuation" must not match "evaluation".
+    expect(searchLearn('ice')).toEqual([]);
+    expect(searchLearn('valuation')).toEqual([]);
   });
 });
 
@@ -212,5 +213,31 @@ describe('the library never asserts what it cannot back', () => {
       const blob = getLearnArticles(loc).map((a) => a.summary).join(' ');
       expect(blob).not.toMatch(/nothing requires anyone|nada obliga a nadie|không quy định nào buộc/);
     }
+  });
+});
+
+describe('the IPP clock article gives a family both halves of the statute', () => {
+  it('names the 7-day path, not only the 30-day one', () => {
+    // W&I §4646.5(b) sets 30 days from the request, "or no later than 7 days
+    // … if necessary for the consumer's health and safety or to maintain the
+    // consumer in their home". Omitting the second half tells a parent in
+    // crisis to wait a month when the law gives them a week.
+    const article = getLearnArticles().find((a) => a.key === 'ipp_clock')!;
+    expect(article.summary).toMatch(/30 days/);
+    expect(article.summary).toMatch(/7 days/);
+    expect(article.summary).toMatch(/health and safety/i);
+    const ipp = getGlossary().find((g) => g.term === 'IPP')!;
+    expect(ipp.plain).toMatch(/7/);
+  });
+
+  it('says it in every language', () => {
+    for (const loc of ['es', 'vi'] as const) {
+      const article = getLearnArticles(loc).find((a) => a.key === 'ipp_clock')!;
+      expect(article.summary).toMatch(/7/);
+    }
+  });
+
+  it('is findable by a parent searching for the urgent path', () => {
+    expect(searchLearn('health and safety').some((h) => h.key === 'ipp_clock')).toBe(true);
   });
 });
