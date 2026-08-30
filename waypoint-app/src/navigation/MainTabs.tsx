@@ -386,10 +386,10 @@ function ToolsStack() {
 }
 
 /**
- * Journey gets its own tab on desktop web (left nav rail has room for it).
- * On mobile the tab is registered but hidden, so the linking config and
- * navigation state stay valid across window resizes; phones keep reaching
- * Journey through Home → Journey.
+ * Journey is a first-class bottom-bar tab on every platform (owner request,
+ * Aug 30 2026). The stack registers only its map root; JourneyScreen's interior
+ * taps name tab:'Home' (see its `goHome`), so phases and entity screens open in
+ * the Home stack where they live — no dead taps from this tab.
  */
 function JourneyStack() {
   return (
@@ -511,8 +511,6 @@ export default function MainTabs() {
           tabBarLabel: t.tabs.journey,
           tabBarIcon: tabIcon('map-outline', 'map'),
           tabBarAccessibilityLabel: t.tabs.journey,
-          // Desktop-only entry: hide from the phone bottom bar
-          ...(isDesktop ? {} : { tabBarButton: () => null, tabBarItemStyle: { display: 'none' } }),
         }}
       />
       <Tab.Screen
@@ -520,7 +518,7 @@ export default function MainTabs() {
         component={NavigatorStack}
         options={{
           tabBarLabel: t.tabs.askAi,
-          tabBarIcon: tabIcon('compass-outline', 'compass'),
+          tabBarIcon: tabIcon('book-outline', 'book'),
           tabBarAccessibilityLabel: t.tabs.askAi,
         }}
       />

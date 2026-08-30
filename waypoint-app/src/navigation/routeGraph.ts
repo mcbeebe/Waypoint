@@ -53,8 +53,10 @@ export const ROUTE_GRAPH: Record<TabName, StackShape> = {
     screens: ['HomeMain', ...HOME_DESTINATIONS],
     visible: true,
   },
-  // Desktop-only entry: the phone bar has no room, and Home reaches Journey.
-  JourneyTab: { initial: 'JourneyMain', screens: ['JourneyMain'], visible: false },
+  // A first-class bottom-bar tab on every platform (owner request, Aug 30 2026).
+  // JourneyScreen's interior taps name tab:'Home', so its phases/entities open
+  // in the Home stack — the tab hosts the map, Back from a detail returns Home.
+  JourneyTab: { initial: 'JourneyMain', screens: ['JourneyMain'], visible: true },
   Navigator: {
     initial: 'NavigatorMain',
     screens: ['NavigatorMain', 'Resources', 'Blog'],

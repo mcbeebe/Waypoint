@@ -42,6 +42,13 @@ function ageYears(dob: string | null): number {
 
 export default function JourneyScreen() {
   const navigation = useNavigation();
+  // JourneyScreen is mounted both in the Home stack AND (owner request) as the
+  // Journey tab's root. Its destination screens (phases, the resource stack,
+  // entity levers) live ONLY in the Home stack, so every interior tap must name
+  // tab:'Home' — a bare navigate from the Journey tab resolves to nothing.
+  // `initial:false` keeps HomeMain beneath, so Back always has somewhere to go.
+  const goHome = (screen: string, params?: Record<string, unknown>) =>
+    (navigation as any).navigate('Home', { screen, params, initial: false });
   const { family } = useFamily();
   const { children } = useChildren(family?.id);
   const primaryChild = children.find(c => c.is_primary) || children[0];
@@ -110,7 +117,7 @@ export default function JourneyScreen() {
         {/* Resource Stack — the six benefit layers, foundation-up */}
         <Pressable
           style={styles.stackEntry}
-          onPress={() => (navigation as any).navigate('ResourceStack')}
+          onPress={() => goHome('ResourceStack')}
           accessibilityRole="button"
         >
           <Text style={styles.stackEntryIcon}>🧱</Text>
@@ -158,7 +165,7 @@ export default function JourneyScreen() {
               <TouchableOpacity
                 style={styles.phaseCardTouch}
                 onPress={() =>
-                  (navigation as any).navigate('JourneyPhase', { journeyKey, phaseIndex: i })
+                  goHome('JourneyPhase', { journeyKey, phaseIndex: i })
                 }
                 accessibilityRole="button"
                 accessibilityLabel={`${phase.label}, ages ${phase.age}${isCurrent ? ', current phase' : ''}. Opens next steps for this stage.`}
@@ -212,11 +219,11 @@ export default function JourneyScreen() {
                               // screen; rows with no single lever open the
                               // stage's next-steps (add-to-plan) screen.
                               if (lever?.type === 'letter') {
-                                (navigation as any).navigate('Letters', { template: lever.template });
+                                goHome('Letters', { template: lever.template });
                               } else if (lever?.type === 'screen') {
-                                (navigation as any).navigate(lever.screen);
+                                goHome(lever.screen);
                               } else {
-                                (navigation as any).navigate('JourneyPhase', { journeyKey, phaseIndex: i });
+                                goHome('JourneyPhase', { journeyKey, phaseIndex: i });
                               }
                             }}
                             accessibilityRole="button"
@@ -280,7 +287,7 @@ export default function JourneyScreen() {
                       <TouchableOpacity
                         style={[styles.nextStepsButton, { borderColor: phase.color }]}
                         onPress={() =>
-                          (navigation as any).navigate('JourneyPhase', { journeyKey, phaseIndex: i })
+                          goHome('JourneyPhase', { journeyKey, phaseIndex: i })
                         }
                         accessibilityRole="button"
                         accessibilityLabel={`Next steps for ${phase.label}`}
