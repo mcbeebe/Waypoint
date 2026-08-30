@@ -25,6 +25,7 @@ import { exportFamilyData } from '@/lib/dataExport';
 import { closeObsoleteActions } from '@/lib/actionReconcile';
 import { lookupRC } from '@/data/regionalCenters';
 import { signOut } from '@/lib/auth';
+import { unregisterPushToken } from '@/lib/pushTokens';
 import {
   connectGoogleWeb,
   disconnectGoogleWeb,
@@ -451,7 +452,12 @@ export default function ProfileScreen() {
 
   const handleSignOut = useCallback(async () => {
     const ok = await showConfirm('Sign Out', 'Are you sure you want to sign out?', 'Sign Out');
-    if (ok) await signOut();
+    if (!ok) return;
+    // Remove this device's push token first (needs the session): signing out is
+    // a consent withdrawal, and it also stops the next signed-in family from
+    // inheriting this device's server pushes (phase 7 Lane B).
+    await unregisterPushToken();
+    await signOut();
   }, []);
 
   if (familyLoading) {

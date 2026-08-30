@@ -90,6 +90,7 @@ declare module 'expo-notifications' {
   }): Promise<NotificationPermissionsStatus>;
   function scheduleNotificationAsync(input: ScheduleNotificationInput): Promise<string>;
   function cancelScheduledNotificationAsync(id: string): Promise<void>;
+  function getExpoPushTokenAsync(options?: { projectId?: string }): Promise<{ data: string }>;
   function cancelAllScheduledNotificationsAsync(): Promise<void>;
 }
 
