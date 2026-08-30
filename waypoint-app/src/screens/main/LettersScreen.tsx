@@ -107,7 +107,10 @@ export default function LettersScreen() {
     // The Navigator conversation's substance rides along so the draft
     // reflects what was actually discussed
     setChatGuidance(route.params?.guidance ?? null);
-  }, [route.params?.template, route.params?.question, route.params?.guidance]);
+    // The draft flow pre-sets the tone the parent chose in the questions.
+    const t = route.params?.tone;
+    if (t === 'warm' || t === 'professional' || t === 'strong') setTone(t);
+  }, [route.params?.template, route.params?.question, route.params?.guidance, route.params?.tone]);
 
   // Reopened from the paper trail: drop the saved text straight into the
   // editor so an unsent draft can be picked back up

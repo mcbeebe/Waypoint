@@ -71,8 +71,11 @@ const TODAY_HOUR_CUTOFF = 24;
 const RESUME_FRESH_HOURS = 48;
 
 export interface TriageAction {
-  /** 'answer' renders the answers inline; the others leave Home. */
-  kind: 'navigate' | 'call' | 'answer';
+  /**
+   * 'answer' renders the answers inline; 'draft' opens the draft-flow question
+   * sheet over Home (phase 9); 'call' dials; 'navigate' leaves Home.
+   */
+  kind: 'navigate' | 'call' | 'answer' | 'draft';
   label: string;
   screen?: string;
   params?: Record<string, string>;
@@ -392,10 +395,12 @@ function clockItems(
           `Vì quý vị đã đề nghị ngày ${fmtDay(`${r.requested_on}T12:00:00`, locale)} và luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Bước tiếp theo là thư nhắc có nêu ngày.`
         ),
         citation: dl.citation,
+        // Phase 9: the card produces a letter, not a request-file view. The
+        // CTA opens the draft-flow question sheet (kind 'draft'); the request
+        // id rides along so the draft attaches to this case.
         action: {
-          kind: 'navigate',
-          label: L('Open this request', 'Abrir esta solicitud', 'Mở yêu cầu này'),
-          screen: 'RequestCase',
+          kind: 'draft',
+          label: L('Draft the follow-up', 'Redactar el seguimiento', 'Soạn thư nhắc'),
           params: { requestId: r.id },
         },
         deferDays: 1,
@@ -423,9 +428,8 @@ function clockItems(
         ),
         citation: dl.citation,
         action: {
-          kind: 'navigate',
-          label: L('See the request', 'Ver la solicitud', 'Xem yêu cầu'),
-          screen: 'RequestCase',
+          kind: 'draft',
+          label: L('Draft the follow-up', 'Redactar el seguimiento', 'Soạn thư nhắc'),
           params: { requestId: r.id },
         },
         deferDays: 3,
@@ -613,12 +617,15 @@ function replyItem(
       `Llegó del correo de ${senderName} y la pelota está en su tejado. Nada se envía hasta que usted pulse Enviar.`,
       `Thư đến từ email của ${senderName} và giờ đến lượt quý vị. Không có gì được gửi cho đến khi quý vị bấm Gửi.`
     )}`,
+    // Phase 9: the reply loop — the CTA drafts the answer rather than only
+    // opening the thread. The reply id (and the owning request, when there is
+    // one) ride along so the answer attaches to the same case.
     action: {
-      kind: 'navigate',
-      label: L(`Read ${senderName}'s reply`, `Leer la respuesta de ${senderName}`, `Đọc thư trả lời của ${senderName}`),
-      // A reply on a tracked request belongs to its case; strays to the trail.
-      screen: owner ? 'RequestCase' : 'CommunicationLog',
-      params: owner ? { requestId: owner.id } : { openReplyId: reply.id },
+      kind: 'draft',
+      label: L('Draft your answer', 'Redactar su respuesta', 'Soạn câu trả lời'),
+      params: owner
+        ? { requestId: owner.id, replyId: reply.id }
+        : { replyId: reply.id },
     },
     deferDays: 1,
     deferLabel: L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai'),

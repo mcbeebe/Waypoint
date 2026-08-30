@@ -32,6 +32,10 @@ import { useCommunications } from '@/hooks/useCommunications';
 import { useTriage } from '@/hooks/useTriage';
 import OneThingCard, { LaterList } from '@/components/OneThingCard';
 import SensorLine from '@/components/SensorLine';
+import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
+import { draftHandoff } from '@/lib/draftHandoff';
+import type { LetterProfile } from '@/lib/draftBlanks';
+import type { RequestType } from '@/lib/requestClocks';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
 import { FLAGS } from '@/lib/flags';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
@@ -249,9 +253,61 @@ function HomeScreenInner({
     (navigation as any).navigate(action.screen, action.params);
   };
 
+  // The draft flow (phase 9b). Everything the app already knows that letters
+  // ask for; the questions only read childFirstName today, but the handoff to
+  // the Letters screen fills the rest.
+  const letterProfile: LetterProfile = useMemo(
+    () => ({
+      parentFirstName: family?.parent_first_name,
+      parentLastName: family?.parent_last_name,
+      email: family?.email,
+      phone: family?.phone,
+      childFirstName: primaryChild?.first_name,
+      childGrade: primaryChild?.grade,
+      schoolName: primaryChild?.school_name,
+      schoolDistrict: family?.school_district,
+      regionalCenter: family?.regional_center,
+      insurance: family?.insurance_carrier,
+    }),
+    [family, primaryChild]
+  );
+  // The open sheet, with the owning request's type resolved AT OPEN TIME — so a
+  // requests refetch between opening and "Write my letter" can't swap the letter
+  // out from under the parent.
+  const [draft, setDraft] = useState<{ item: TriageItem; requestType: RequestType | null } | null>(
+    null
+  );
+
   const actOnItem = (item: TriageItem) => {
     void markActed(item.id);
+    // A draftable card opens the question sheet over Home instead of leaving it.
+    if (item.action.kind === 'draft') {
+      const reqId = item.action.params?.requestId;
+      const requestType: RequestType | null =
+        (reqId && familyRequests.find((r) => r.id === reqId)?.request_type) || null;
+      setDraft({ item, requestType });
+      return;
+    }
     followAction(item.action);
+  };
+
+  // Sheet complete: turn the answers into a prefilled Letters draft.
+  const onDraftComplete = (answers: Record<string, string>) => {
+    const d = draft;
+    setDraft(null);
+    if (!d) return;
+    const h = draftHandoff(d.item, answers, {
+      requestType: d.requestType,
+      profile: letterProfile,
+      locale: funnelLocale,
+    });
+    (navigation as any).navigate('Letters', {
+      template: h.template,
+      question: h.question,
+      guidance: h.guidance,
+      tone: h.tone,
+      requestId: h.requestId,
+    });
   };
 
   // Answering a question card writes the answer straight to the child, so the
@@ -341,6 +397,16 @@ function HomeScreenInner({
         onSelect={(item) => (navigation as any).navigate(item.screen, item.params)}
         locale={funnelLocale}
         name={family?.parent_first_name ?? null}
+      />
+      {/* The draft flow (phase 9b): a "Draft the follow-up" tap opens this over
+          Home; completing it lands on a prefilled Letters draft. */}
+      <DraftQuestionsSheet
+        visible={!!draft}
+        item={draft?.item ?? null}
+        profile={letterProfile}
+        locale={funnelLocale}
+        onClose={() => setDraft(null)}
+        onComplete={onDraftComplete}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
