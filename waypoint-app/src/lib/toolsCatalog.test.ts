@@ -76,11 +76,18 @@ describe('stress-test copy decisions hold', () => {
     expect(letters.description.toLowerCase()).not.toContain('legal clock');
   });
 
-  it('the Money door speaks needs, and Understand names transition', () => {
+  it('door previews describe what is actually behind the door', () => {
     const doors = getToolDoors('en');
-    expect(doors.find((d) => d.key === 'money')!.contents).toContain('Diapers');
-    expect(doors.find((d) => d.key === 'money')!.contents).toContain('IHSS');
-    expect(doors.find((d) => d.key === 'understand')!.contents).toContain('Transition');
+    const money = doors.find((d) => d.key === 'money')!;
+    const understand = doors.find((d) => d.key === 'understand')!;
+    // The preview still speaks needs...
+    expect(money.contents).toContain('Diapers');
+    expect(understand.contents).toContain('Eligibility');
+    // ...but no longer advertises guides that moved to Learn — those would be
+    // dead ends behind the door. (Search still reaches them: ToolsArea falls
+    // through to searchLearn, pinned in learnLibrary.test.)
+    expect(money.contents).not.toContain('IHSS');
+    expect(understand.contents).not.toMatch(/School|Transition/);
   });
 });
 

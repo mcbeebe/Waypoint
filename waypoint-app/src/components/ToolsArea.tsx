@@ -19,6 +19,8 @@ import {
   replyBadge,
   lettersDescription,
 } from '@/lib/toolsCatalog';
+import { searchLearn } from '@/lib/learnLibrary';
+import type { LearnHit } from '@/lib/learnLibrary';
 import { caseBadge } from '@/lib/requestCase';
 import { pinStrings } from '@/lib/toolPins';
 import type { ToolBadge, ToolEntry, DoorKey } from '@/lib/toolsCatalog';
@@ -41,24 +43,28 @@ const STRINGS: Record<FunnelLocale, {
   takeAction: string;
   privacy: string;
   noResults: string;
+  inLearn: string;
   recordsTitle: (name: string) => string;
 }> = {
   en: {
     takeAction: 'TAKE ACTION',
     privacy: 'Private to your family — never shared with any agency.',
     noResults: 'Nothing found — try another word, or ask the AI Navigator.',
+    inLearn: 'GUIDES IN LEARN',
     recordsTitle: (name) => `${name}'s records`,
   },
   es: {
     takeAction: 'TOMAR ACCIÓN',
     privacy: 'Privado para su familia — nunca se comparte con ninguna agencia.',
     noResults: 'No se encontró nada — pruebe otra palabra o pregunte al Navegador.',
+    inLearn: 'GUÍAS EN APRENDER',
     recordsTitle: (name) => `Expedientes de ${name}`,
   },
   vi: {
     takeAction: 'HÀNH ĐỘNG',
     privacy: 'Riêng tư cho gia đình quý vị — không bao giờ chia sẻ với cơ quan nào.',
     noResults: 'Không tìm thấy — thử từ khác, hoặc hỏi Trợ lý AI.',
+    inLearn: 'HƯỚNG DẪN TRONG TÌM HIỂU',
     recordsTitle: (name) => `Hồ sơ của ${name}`,
   },
 };
@@ -126,10 +132,25 @@ export default function ToolsArea({
     (navigation as any).navigate(tab ?? 'Home', { screen, params, initial: false });
   };
 
+  // A Learn guide surfaced in search opens at its own destination (every hit
+  // we show has a target, all tab:'Home' registered screens).
+  const goToLearn = (hit: LearnHit) => {
+    const { screen, params, tab } = hit.target!;
+    (navigation as any).navigate(tab ?? 'Home', { screen, params, initial: false });
+  };
+
   const actionTools = useMemo(() => getActionTools(funnelLocale), [funnelLocale]);
   const doors = useMemo(() => getToolDoors(funnelLocale), [funnelLocale]);
   const results = useMemo(
     () => (query.trim() ? searchTools(query, funnelLocale) : null),
+    [query, funnelLocale]
+  );
+  // The educational guides live in the Learn tab now, so a search for "ihss",
+  // "school" or "iep" would dead-end in Tools. Fall through to the Learn
+  // library so those words still land the parent on the right guide. Only hits
+  // with a navigable target are shown (a glossary term is read in Learn).
+  const learnResults = useMemo(
+    () => (query.trim() ? searchLearn(query, funnelLocale).filter((h) => h.target) : null),
     [query, funnelLocale]
   );
 
@@ -234,13 +255,42 @@ export default function ToolsArea({
       </View>
 
       {results ? (
-        <View style={styles.card}>
-          {results.length === 0 ? (
+        (results.length === 0 && (!learnResults || learnResults.length === 0)) ? (
+          <View style={styles.card}>
             <Text style={styles.noResults}>{S.noResults}</Text>
-          ) : (
-            results.map((t) => renderRow(t))
-          )}
-        </View>
+          </View>
+        ) : (
+          <>
+            {results.length > 0 && (
+              <View style={styles.card}>{results.map((t) => renderRow(t))}</View>
+            )}
+            {learnResults && learnResults.length > 0 && (
+              <>
+                <Text style={styles.sectionLabel}>{S.inLearn}</Text>
+                <View style={styles.card}>
+                  {learnResults.map((hit) => (
+                    <Pressable
+                      key={`learn:${hit.kind}:${hit.key}`}
+                      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+                      onPress={() => goToLearn(hit)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${hit.title}. ${hit.detail}`}
+                    >
+                      <View style={styles.iconChip}>
+                        <Ionicons name="book-outline" size={20} color={colors.teal} />
+                      </View>
+                      <View style={styles.rowBody}>
+                        <Text style={styles.rowTitle}>{hit.title}</Text>
+                        <Text style={styles.rowDescription}>{hit.detail}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            )}
+          </>
+        )
       ) : (
         <>
           {/* Take action — always open */}

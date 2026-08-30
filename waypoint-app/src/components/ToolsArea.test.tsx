@@ -85,6 +85,24 @@ describe('search finds a tool and still routes it correctly', () => {
     fireEvent.click(hit!);
     expect(navigateCalls[0].args[0]).toBe('Home');
   });
+
+  it('falls through to a Learn guide for a word that left the Tools catalog', () => {
+    // "ihss" used to hit the benefits-stack tool; that guide now lives in Learn.
+    // The search must not dead-end — it surfaces the guide, and the guide still
+    // routes to a screen that resolves from both Home and Tools.
+    show();
+    fireEvent.change(screen.getByPlaceholderText(/.+/), { target: { value: 'ihss' } });
+    navigateCalls.length = 0;
+    const guide = screen.getAllByRole('button').find((el) =>
+      (el.getAttribute('aria-label') ?? '').toLowerCase().includes('money and benefits')
+    );
+    expect(guide, 'ihss should surface the benefits guide from Learn').toBeTruthy();
+    fireEvent.click(guide!);
+    const [tab, options] = navigateCalls[0].args as [string, { screen: string }];
+    expect(tab).toBe('Home');
+    expect(resolvesFrom('Home', { screen: options.screen, tab })).toBe(true);
+    expect(resolvesFrom('Tools', { screen: options.screen, tab })).toBe(true);
+  });
 });
 
 describe('pinning from a row', () => {

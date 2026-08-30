@@ -103,10 +103,13 @@ export function getToolDoors(locale: FunnelLocale = 'en'): ToolDoor[] {
     {
       key: 'understand',
       title: L('Understand the system', 'Entender el sistema', 'Hiểu hệ thống'),
+      // Preview names what's actually behind the door. The "how the system
+      // works" guides moved to Learn, so this no longer promises School/IEP or
+      // Transition — search still finds those via the Learn fall-through.
       contents: L(
-        'Regional Center · School (IEP) · Transition & 18',
-        'Centro Regional · Escuela (IEP) · Transición y 18',
-        'Trung tâm Khu vực · Trường học (IEP) · Chuyển tiếp & 18 tuổi'
+        'Eligibility result · Agencies & contacts',
+        'Resultado de elegibilidad · Agencias y contactos',
+        'Kết quả điều kiện · Cơ quan & liên hệ'
       ),
       icon: 'compass-outline',
       tint: '#EDF0F7',
@@ -135,10 +138,12 @@ export function getToolDoors(locale: FunnelLocale = 'en'): ToolDoor[] {
     {
       key: 'money',
       title: L('Money & benefits', 'Dinero y beneficios', 'Tiền & trợ cấp'),
+      // The Medi-Cal/IHSS benefits guide moved to Learn; the preview names the
+      // door's real tools now (search reaches the guide via Learn fall-through).
       contents: L(
-        'Diapers & equipment · Respite money · Medi-Cal & IHSS',
-        'Pañales y equipo · Dinero para relevo · Medi-Cal e IHSS',
-        'Tã & thiết bị · Tiền chăm sóc thay thế · Medi-Cal & IHSS'
+        'Diapers, equipment & respite · Insurance · Expenses & tax',
+        'Pañales, equipo y relevo · Seguro · Gastos e impuestos',
+        'Tã, thiết bị & chăm sóc thay thế · Bảo hiểm · Chi phí & thuế'
       ),
       icon: 'wallet-outline',
       tint: '#E6F7F1',
