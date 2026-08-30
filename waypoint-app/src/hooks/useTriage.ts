@@ -22,6 +22,7 @@ import type {
   TriageInput,
   TriageItem,
   TriageResult,
+  TriageActionItem,
   TriageAppointment,
   TriageDeadline,
   TriageDraft,
@@ -32,6 +33,7 @@ import { useDeferrals } from '@/hooks/useDeferrals';
 import type { FamilyRequest } from '@/hooks/useRequests';
 import type { Communication } from '@/hooks/useCommunications';
 import type {
+  Action,
   Appointment,
   Deadline,
   RcStatus,
@@ -80,6 +82,8 @@ export interface UseTriageArgs {
   communications: Communication[];
   deadlines: Deadline[];
   appointments: Appointment[];
+  /** The family's plan actions — overdue/today ones reach the ladder (#34). */
+  actions: Action[];
   /** True while any of the above is still being fetched. */
   loading?: boolean;
   /** True when a fetch failed — an empty list is then not evidence. */
@@ -120,6 +124,7 @@ export function useTriage(args: UseTriageArgs): UseTriage {
     communications,
     deadlines,
     appointments,
+    actions,
     loading,
     dataFailed,
     onRepliesSynced,
@@ -235,6 +240,21 @@ export function useTriage(args: UseTriageArgs): UseTriage {
     [deadlines]
   );
 
+  // Plan actions the ladder should weigh (task #34). The engine filters to
+  // open + overdue/today itself; passing the whole set keeps firstRun honest.
+  const triageActions: TriageActionItem[] = useMemo(
+    () =>
+      actions.map((a) => ({
+        id: a.id,
+        title: a.title,
+        status: a.status,
+        priority: a.priority,
+        dueOn: a.due_date ? a.due_date.slice(0, 10) : null,
+        category: a.category,
+      })),
+    [actions]
+  );
+
   // A tracked deeming request reads as applied, so a sent letter is reflected
   // in the stack rather than the family being asked to send it twice.
   const mediCalRequested = useMemo(
@@ -267,6 +287,7 @@ export function useTriage(args: UseTriageArgs): UseTriage {
       requests,
       communications,
       deadlines: triageDeadlines,
+      actions: triageActions,
       appointments: triageAppointments,
       drafts,
       deferrals,
@@ -274,19 +295,22 @@ export function useTriage(args: UseTriageArgs): UseTriage {
       loading: stillLoading,
       dataFailed,
       // Nothing tracked yet at all — and only claimable once the records
-      // actually loaded, or a failed fetch reads as a brand-new family.
+      // actually loaded, or a failed fetch reads as a brand-new family. An
+      // existing plan action counts as history, so a family with actions is
+      // never "first run" (and never gets the false-calm empty state).
       firstRun:
         !stillLoading &&
         !dataFailed &&
         requests.length === 0 &&
         communications.length === 0 &&
         triageDeadlines.length === 0 &&
+        triageActions.length === 0 &&
         triageAppointments.length === 0,
     }),
     [
       locale, now, childId, childName, ageYears, rcStatus, iepStatus, hasDiagnosis,
       mediCalStatus, ihssStatus, ssiStatus, sdpStep, mediCalRequested,
-      requests, communications, triageDeadlines, triageAppointments, drafts,
+      requests, communications, triageDeadlines, triageActions, triageAppointments, drafts,
       deferrals, gmail, stillLoading, dataFailed,
     ]
   );

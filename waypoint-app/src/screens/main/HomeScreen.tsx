@@ -210,6 +210,9 @@ function HomeScreenInner({
     communications,
     deadlines,
     appointments: agendaAppointments,
+    // The ladder was blind to plan actions (task #34): pass the same set the
+    // agenda already renders so an overdue action can reach the card.
+    actions,
     // An empty list because a fetch is in flight — or failed — is not
     // evidence that nothing needs the family today.
     loading: requestsLoading || commsLoading || deadlinesLoading,

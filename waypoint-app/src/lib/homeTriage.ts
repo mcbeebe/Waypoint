@@ -162,6 +162,26 @@ export interface TriageDeadline {
   kind: string;
 }
 
+/**
+ * A plan action (the family's to-do items). The ladder was blind to these
+ * (task #34): a family with five overdue actions and nothing else saw
+ * "Nothing needs you today", and no overdue action ever reached the card.
+ * The classification here MIRRORS lib/agenda.ts exactly — same open statuses,
+ * same overdue/today split — so the card and the Plan tab's "5 overdue · 1
+ * today" line can never disagree about the same actions.
+ */
+export interface TriageActionItem {
+  id: string;
+  title: string;
+  /** ActionStatus; only 'not_started' and 'in_progress' are ever surfaced. */
+  status: string;
+  /** ActionPriority; orders which overdue action leads. */
+  priority: string;
+  /** due_date's calendar date, or null. An undated action is not surfaced. */
+  dueOn: string | null;
+  category: string;
+}
+
 /** Something the family told Waypoint happened today (crisis intake). */
 export interface TriageCrisis {
   id: string;
@@ -188,6 +208,8 @@ export interface TriageInput {
   communications?: Communication[];
   /** The dated obligations the family tracks outside request clocks. */
   deadlines?: TriageDeadline[];
+  /** Plan actions — overdue and due-today ones reach the ladder (task #34). */
+  actions?: TriageActionItem[];
   appointments?: TriageAppointment[];
   drafts?: TriageDraft[];
   crisis?: TriageCrisis | null;
@@ -466,6 +488,76 @@ function deadlineItems(
       deferLabel: overdue
         ? L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai')
         : L('Back in 3 days', 'Vuelve en 3 días', 'Quay lại sau 3 ngày'),
+    });
+  }
+  return out;
+}
+
+/**
+ * Open plan actions that are overdue or due today (task #34). The ladder used
+ * to be blind to these entirely: `agenda.ts` counted "5 overdue · 1 today" on
+ * the Plan tab, but the card never saw an action, so a family with only overdue
+ * actions was told "Nothing needs you today". The open-status and overdue/today
+ * split MIRROR `agenda.ts` so the two surfaces can never disagree.
+ *
+ * Undated and future-dated actions are deliberately NOT surfaced here — the
+ * ladder leads with what is due now; everything else lives on the Plan tab.
+ */
+const ACTION_OPEN_STATUSES = new Set(['not_started', 'in_progress']);
+
+function actionItems(
+  actions: TriageActionItem[],
+  now: Date,
+  locale: FunnelLocale
+): TriageItem[] {
+  const L = picker(locale);
+  const today = localDay(now);
+  const out: TriageItem[] = [];
+
+  for (const a of actions) {
+    if (!ACTION_OPEN_STATUSES.has(a.status) || !a.dueOn) continue;
+    const days = Math.round(
+      (new Date(`${a.dueOn}T12:00:00`).getTime() - new Date(`${today}T12:00:00`).getTime()) /
+        MS_PER_DAY
+    );
+    // Overdue or due today only. A future action is Plan-tab work, not the
+    // one thing for today.
+    if (days > 0) continue;
+    const overdue = days < 0;
+    const due = fmtDay(`${a.dueOn}T12:00:00`, locale);
+    out.push({
+      // Stable id so a "Not today" deferral sticks to this action.
+      id: `${overdue ? 'overdue' : 'today'}:action:${a.id}`,
+      cls: overdue ? 'overdue' : 'today',
+      rank: overdue ? TRIAGE_RANK.overdue : TRIAGE_RANK.today,
+      kicker: (overdue
+        ? L(`Overdue — ${-days} days ago`, `Atrasado — hace ${-days} días`, `Quá hạn — ${-days} ngày trước`)
+        : L('Due today', 'Vence hoy', 'Đến hạn hôm nay')
+      ).toUpperCase(),
+      title: a.title,
+      why: overdue
+        ? L(
+            `Because this was due ${due} and isn't checked off yet. It's on your plan.`,
+            `Porque esto vencía el ${due} y aún no está marcado. Está en su plan.`,
+            `Vì mục này đến hạn ${due} và chưa được đánh dấu xong. Nó nằm trong kế hoạch của quý vị.`
+          )
+        : L(
+            `Because it's due today and it's on your plan.`,
+            `Porque vence hoy y está en su plan.`,
+            `Vì mục này đến hạn hôm nay và nằm trong kế hoạch của quý vị.`
+          ),
+      action: {
+        kind: 'navigate',
+        label: L('Open this action', 'Abrir esta acción', 'Mở việc này'),
+        // ActionDetail lives in the Tracker stack, a sibling of Home's — the
+        // call must name the tab or the navigate bubbles to Home's parent and
+        // resolves nowhere.
+        tab: 'Tracker',
+        screen: 'ActionDetail',
+        params: { actionId: a.id },
+      },
+      deferDays: 1,
+      deferLabel: L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai'),
     });
   }
   return out;
@@ -932,6 +1024,7 @@ export function triageHome(input: TriageInput): TriageResult {
   if (input.crisis) candidates.push(crisisItem(input.crisis, locale));
   candidates.push(...clockItems(requests, now, locale, input.childName ?? null));
   candidates.push(...deadlineItems(input.deadlines ?? [], now, locale));
+  candidates.push(...actionItems(input.actions ?? [], now, locale));
   const reply = replyItem(requests, communications, now, locale);
   if (reply) candidates.push(reply);
   candidates.push(...todayItems(input.appointments ?? [], now, locale));
