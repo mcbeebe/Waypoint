@@ -159,19 +159,22 @@ describe('badge the job: a reply routes to its case', () => {
       sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
     });
     const item = triageHome(base({ requests: [r], communications: [origin, reply] })).queue.find((i) => i.cls === 'reply');
-    expect(item?.action.screen).toBe('RequestCase');
+    // Phase 9: a reply on a tracked request drafts the answer, carrying the case.
+    expect(item?.action.kind).toBe('draft');
     expect(item?.action.params?.requestId).toBe(r.id);
+    expect(item?.action.params?.replyId).toBe(reply.id);
     expect(item?.title).toContain('Standing frame');
   });
 
-  it('a stray reply still has somewhere to go', () => {
+  it('a stray reply still drafts an answer, carrying its reply id', () => {
     const stray = comm({
       direction: 'incoming', gmail_thread_id: 'solo', gmail_message_id: 'm9', contact: 'Front Desk <fd@x.org>',
       sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
     });
     const item = triageHome(base({ communications: [stray] })).queue.find((i) => i.cls === 'reply');
-    expect(item?.action.screen).toBe('CommunicationLog');
-    expect(item?.action.params?.openReplyId).toBe(stray.id);
+    expect(item?.action.kind).toBe('draft');
+    expect(item?.action.params?.replyId).toBe(stray.id);
+    expect(item?.action.params?.requestId).toBeUndefined();
   });
 });
 

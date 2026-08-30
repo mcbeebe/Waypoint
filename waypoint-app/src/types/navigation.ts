@@ -75,6 +75,8 @@ export type HomeStackParamList = {
         draftBody?: string;
         /** Lever letters launched from a case stamp their log entry with it. */
         requestId?: string;
+        /** The draft flow pre-sets the tone the parent chose in the questions. */
+        tone?: 'warm' | 'professional' | 'strong';
       }
     | undefined;
   EmailAnalyzer: undefined;
