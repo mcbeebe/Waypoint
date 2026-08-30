@@ -34,11 +34,11 @@ describe('Citation', () => {
     expect(screen.queryByLabelText(/Why this/)).toBeNull();
   });
 
-  it('the verified date is formatted without a Date(), so no timezone can shift it', () => {
-    // 2026-08-23 must read as Aug 23 in every zone (the tz suite proved this class
-    // of bug ships otherwise).
+  it('the verified date is localized but formatted without a Date(), so no timezone can shift it', () => {
+    // 2026-08-23 must read as the 23rd in every zone (the tz suite proved this
+    // class of bug ships otherwise), with a localized month and day-first order.
     render(<Citation citation={REGISTERED} locale="es" />);
     fireEvent.click(screen.getByLabelText(/Por qué — la fuente/));
-    expect(screen.getByText(/Verificado Aug 23, 2026/)).toBeTruthy();
+    expect(screen.getByText(/Verificado 23 ago 2026/)).toBeTruthy();
   });
 });

@@ -392,15 +392,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   why: { color: colors.dark, lineHeight: 20 },
-  citation: {
-    color: colors.mid,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 6,
-    paddingVertical: 2,
-    paddingHorizontal: 7,
-    alignSelf: 'flex-start',
-    overflow: 'hidden',
-  },
   cta: {
     minHeight: 46,
     borderRadius: radii.md,
