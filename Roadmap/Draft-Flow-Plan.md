@@ -1,6 +1,6 @@
 # The Draft Flow — Plan & Proposals
 
-**Date:** Aug 30, 2026 · **Status:** adopted — shipped end to end (9a–9d + reply loop core; 9e `analyzeEmail` seeding optional/unbuilt)
+**Date:** Aug 30, 2026 · **Status:** adopted — shipped end to end (9a–9e)
 **Supersedes:** nothing. **Extends:** `Home-Rebuild-Plan.md` §"Phase 9 — The draft flow"
 (the four decisions recorded there on Aug 29 are inputs here, not up for re-litigation).
 **Sits inside:** `Undivided-Comparison-Aug2026.md` — this draft flow is that
@@ -241,7 +241,7 @@ Phase 6 (Home reduction) ships first — decided Aug 29. Then:
 | 9b | The question sheet + card CTA rewiring | M | ✅ merged (#127) — card CTA → sheet → prefilled draft; the reply loop's "they said no" → PWN (school) / NOA (RC) routing landed here too |
 | 9c | The `<Citation>` component + draft-screen guidance | M | ✅ merged — 9c-1 Citation (#128), 9c-2 send-gate (#129), 9c-3 "filled from your records" note (#130) |
 | 9d | Send confirmation (clock · trail · case file in one glance) | S | ✅ merged (#131) — three artifacts + Done → Home; kept honest (no "we'll watch", push isn't shipped) |
-| 9e | The reply loop | M | Core shipped in 9b (reply CTA → sheet, said-no routing). Remaining polish: **seed the "what did they say?" answer from `analyzeEmail`** so the AI pre-reads the reply — optional enhancement, not built. |
+| 9e | The reply loop | M | ✅ shipped — core in 9b (reply CTA → sheet, said-no routing). 9e: the AI **reads** the reply (`analyzeEmail`) and shows its reading in the sheet so the parent answers from what the reply said; the parent still **picks** the chip. Auto-classifying the answer was built and then removed after adversarial review — deriving legal routing from regex over the model's *localized* prose fails silently for es/vi and misfires in English (`unable to provide` → false denial). **True pre-answering needs a structured, language-independent verdict enum from the `ai-proxy` Edge Function — deferred (owner-only, no CI).** |
 
 **Status (Aug 30 2026): the draft flow is shipped end to end** — card → 2–3
 questions → prefilled draft (tappable Citation, "filled from your records"

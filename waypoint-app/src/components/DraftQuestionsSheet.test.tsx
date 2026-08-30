@@ -102,6 +102,22 @@ describe('DraftQuestionsSheet', () => {
     expect(onComplete.mock.calls[0][0].heard_back).toBe('said_no');
   });
 
+  it('shows the AI\'s reading of the reply when provided (9e)', () => {
+    render(
+      <DraftQuestionsSheet
+        visible
+        item={item('reply')}
+        profile={PROFILE}
+        locale="en"
+        aiSummary="They declined the request and cited caseload."
+        onClose={() => {}}
+        onComplete={() => {}}
+      />
+    );
+    expect(screen.getByText('Waypoint read their reply')).toBeTruthy();
+    expect(screen.getByText('They declined the request and cited caseload.')).toBeTruthy();
+  });
+
   it('renders nothing when there is no item', () => {
     const { container } = render(
       <DraftQuestionsSheet

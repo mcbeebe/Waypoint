@@ -24,9 +24,18 @@ interface DraftQuestionsSheetProps {
   item: TriageItem | null;
   profile: LetterProfile;
   locale: FunnelLocale;
+  /** The AI's one-line reading of the reply (9e), shown so the parent answers
+   *  from what the reply actually said rather than from memory. */
+  aiSummary?: string;
   onClose: () => void;
   onComplete: (answers: Record<string, string>) => void;
 }
+
+const SUMMARY_LABEL: Record<FunnelLocale, string> = {
+  en: 'Waypoint read their reply',
+  es: 'Waypoint leyó su respuesta',
+  vi: 'Waypoint đã đọc thư trả lời',
+};
 
 const STRINGS: Record<FunnelLocale, { title: string; write: string; close: string; skipHint: string }> = {
   en: {
@@ -54,6 +63,7 @@ export default function DraftQuestionsSheet({
   item,
   profile,
   locale,
+  aiSummary,
   onClose,
   onComplete,
 }: DraftQuestionsSheetProps) {
@@ -104,6 +114,14 @@ export default function DraftQuestionsSheet({
           </View>
 
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+            {!!aiSummary && (
+              <View style={styles.aiSummary}>
+                <Text style={styles.aiSummaryLabel} accessibilityRole="header">
+                  {SUMMARY_LABEL[locale]}
+                </Text>
+                <Text style={styles.aiSummaryText}>{aiSummary}</Text>
+              </View>
+            )}
             {questions.map((q) => (
               <View key={q.id} style={styles.question}>
                 <Text style={styles.prompt}>{q.prompt}</Text>
@@ -194,6 +212,21 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.extrabold, color: colors.navy, flex: 1 },
   body: { paddingBottom: spacing.xl, gap: spacing.lg },
+  aiSummary: {
+    backgroundColor: '#ECFEFF',
+    borderWidth: 1,
+    borderColor: '#A5F3FC',
+    borderRadius: radii.md,
+    padding: spacing.md,
+    gap: 2,
+  },
+  aiSummaryLabel: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.extrabold as '800',
+    letterSpacing: 0.6,
+    color: colors.teal,
+  },
+  aiSummaryText: { fontSize: fonts.sizes.sm, color: '#155E75', lineHeight: 19 },
   question: { gap: spacing.sm },
   prompt: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold as '700', color: colors.navy, lineHeight: 24 },
   help: { fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18, marginTop: -2 },
