@@ -35,6 +35,7 @@ serve.
 |----|------------|--------|-----|-----------|
 | 001 | SDLC uplevel — real CI gates, honest standing instructions | Open | — | [intent](001-sdlc-uplevel/intent.md) |
 | 002 | Edge Function typechecking + lint warnings to zero | Open | — | [intent](002-lint-warnings-and-edge-functions/intent.md) |
+| 003 | The outbound loop (phase 7) — make the calm-state promise keepable | Open — plan for owner go | — | [intent](003-outbound-loop/intent.md) · [analysis](003-outbound-loop/analysis.md) · [plan](003-outbound-loop/plan.md) |
 
 ## Open decisions
 

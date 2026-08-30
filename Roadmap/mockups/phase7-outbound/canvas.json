@@ -1,0 +1,12 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 844, "title": "1 · The ask" },
+    { "file": "Notifications.dc.html", "x": 490, "y": 0, "w": 390, "h": 844, "title": "2 · On the lock screen" },
+    { "file": "Settings.dc.html", "x": 980, "y": 0, "w": 390, "h": 844, "title": "3 · Settings" },
+    { "file": "Promise.dc.html", "x": 1470, "y": 0, "w": 390, "h": 844, "title": "4 · The restored promise" }
+  ],
+  "annotations": [
+    { "id": "note", "x": 0, "y": -150, "w": 620, "text": "Phase 7 — The outbound loop. Lane A (recommended first): on-device deadline/clock reminders keep the date-promise with no server. Lane B (orange, separate go): server push for replies. Copy obeys the escalation-tone rule — status of the answer, never blame." }
+  ],
+  "launch": { "view": "canvas" }
+}
