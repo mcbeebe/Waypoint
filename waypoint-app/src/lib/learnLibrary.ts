@@ -130,18 +130,6 @@ export function getLearnPaths(locale: FunnelLocale = 'en'): LearnPath[] {
       terms: ['medi-cal', 'ihss', 'ssi', 'money', 'benefits', 'dinero', 'tiền'],
     },
     {
-      key: 'journey',
-      icon: 'map-outline',
-      title: L('The journey, age by age', 'El camino, edad por edad', 'Hành trình, theo từng độ tuổi'),
-      description: L(
-        "What is coming next, through transition and turning 18.",
-        'Lo que viene después, hasta la transición y los 18 años.',
-        'Điều sắp tới, qua giai đoạn chuyển tiếp và tuổi 18.'
-      ),
-      target: { screen: 'Journey', tab: 'Home' },
-      terms: ['journey', 'transition', 'age 18', 'camino', 'hành trình'],
-    },
-    {
       key: 'escalation',
       icon: 'trending-up-outline',
       title: L(

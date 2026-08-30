@@ -20,8 +20,8 @@ import { HOME_DESTINATIONS, ROUTE_GRAPH, resolvesFrom, visibleTabs } from '@/nav
 import type { TabName } from '@/navigation/routeGraph';
 
 describe('the graph itself', () => {
-  it('shows a parent exactly four tabs', () => {
-    expect(visibleTabs()).toEqual(['Home', 'Navigator', 'Tools', 'Calendar']);
+  it('shows a parent exactly five tabs', () => {
+    expect(visibleTabs()).toEqual(['Home', 'JourneyTab', 'Navigator', 'Tools', 'Calendar']);
   });
 
   it('registers each stack’s initial route in that stack', () => {

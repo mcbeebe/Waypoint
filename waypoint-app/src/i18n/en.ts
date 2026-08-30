@@ -26,7 +26,7 @@ const en: TranslationStrings = {
   tabs: {
     home: 'Home',
     journey: 'Journey',
-    askAi: 'Ask AI',
+    askAi: 'Learn',
     actions: 'Actions',
     /** The toolbox tab (Home rebuild phase 5). */
     tools: 'Tools',

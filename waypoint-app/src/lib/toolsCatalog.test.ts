@@ -90,7 +90,7 @@ describe('searchTools', () => {
     expect(searchTools('diapers').map((t) => t.key)).toContain('rc_funding');
     expect(searchTools('stroller').map((t) => t.key)).toContain('rc_funding');
     expect(searchTools('paper trail').map((t) => t.key)).toContain('sent_received');
-    expect(searchTools('transition').map((t) => t.key)).toContain('journey');
+    // 'journey' left the Tools catalog when Journey became a bottom tab.
     expect(searchTools('ihss').map((t) => t.key)).toContain('benefits_stack');
   });
 

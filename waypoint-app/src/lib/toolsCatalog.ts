@@ -129,18 +129,6 @@ export function getToolDoors(locale: FunnelLocale = 'en'): ToolDoor[] {
           searchTerms: ['school', 'iep', 'district', 'evaluation', '504', 'escuela', 'trường'],
         },
         {
-          key: 'journey',
-          label: L('The journey, age by age', 'El camino, edad por edad', 'Hành trình theo từng độ tuổi'),
-          description: L(
-            'The road ahead — including transition planning and turning 18',
-            'El camino por delante — incluida la transición y los 18 años',
-            'Chặng đường phía trước — gồm chuyển tiếp và tuổi 18'
-          ),
-          icon: 'map-outline',
-          route: { screen: 'Journey' },
-          searchTerms: ['journey', 'transition', 'turning 18', 'adult', 'resource stack', 'ages', 'transición', 'chuyển tiếp'],
-        },
-        {
           key: 'eligibility',
           label: L('What your child likely qualifies for', 'Para qué probablemente califica su hijo/a', 'Con quý vị có thể đủ điều kiện gì'),
           description: L('Your eligibility result, with sources', 'Su resultado de elegibilidad, con fuentes', 'Kết quả điều kiện của quý vị, kèm nguồn'),

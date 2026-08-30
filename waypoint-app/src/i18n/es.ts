@@ -26,7 +26,7 @@ const es: TranslationStrings = {
   tabs: {
     home: 'Inicio',
     journey: 'Trayecto',
-    askAi: 'Consultar IA',
+    askAi: 'Aprender',
     actions: 'Acciones',
     /** The toolbox tab (Home rebuild phase 5). */
     tools: 'Herramientas',
