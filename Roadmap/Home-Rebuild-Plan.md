@@ -379,8 +379,14 @@ inventory in `Home-Redesign-Concepts.md`).
 greeting → One Thing card → composer → sensor line (plus the Later list of set-
 aside items). Reachability verified against the four-tab navigation:
 
-- Agenda & progress → **Plan** tab. Financial snapshot → Plan / the *Expenses*
-  and *Reimbursables* tools. Toolbox → **Tools** tab.
+- Agenda → **Plan** tab; the action-progress summary (ring, counts, "currently
+  working on") → the **Tracker** (Actions) list, reached from Plan's "Open the
+  full action list." Financial snapshot → Plan / the *Expenses* and
+  *Reimbursables* tools. Toolbox → **Tools** tab.
+- The first-run tour (`OnboardingTutorial`) was in the shed list, but it is an
+  invisible self-hiding overlay that introduces still-current features and backs
+  Profile's "Replay app tour" button — so it is **kept** (mounted on the new
+  Home), not shed. Shedding it would strand that button and drop onboarding.
 - RC card → **Agencies** (a Tools-catalog door) plus call-class triage actions,
   exactly as the plan foresaw. **Journey** → the *journey* tool; on mobile
   (where the Journey tab is hidden) this is now its only door, and it resolves

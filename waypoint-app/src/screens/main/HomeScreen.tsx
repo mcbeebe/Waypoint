@@ -3,9 +3,10 @@
  * a greeting, the One Thing card (the single highest-priority next step), a
  * composer that opens the AI Navigator, and one status line saying what was
  * checked. Everything the old dashboard stacked here now lives on its own tab —
- * agenda and progress on Plan, the toolbox on Tools, Agencies and Journey one
- * tap inside Tools, Profile behind the avatar. The draft flow's engine lives in
- * useDraftFlow; this screen renders the sheet and reading overlay it drives.
+ * the agenda on Plan, the action-progress summary on the Tracker (reached from
+ * Plan), the toolbox on Tools, Agencies and Journey one tap inside Tools,
+ * Profile behind the avatar. The draft flow's engine lives in useDraftFlow;
+ * this screen renders the sheet and reading overlay it drives.
  */
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -32,6 +33,7 @@ import { ChildPicker, SelectedChildProvider, useSelectedChild } from '@/componen
 import { useRequests } from '@/hooks/useRequests';
 import { useCommunications } from '@/hooks/useCommunications';
 import { useTriage } from '@/hooks/useTriage';
+import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import OneThingCard, { LaterList } from '@/components/OneThingCard';
 import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
@@ -277,6 +279,14 @@ function HomeScreenInner({
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* First-run feature tour — an invisible, self-hiding overlay (reads its
+          own AsyncStorage flag and renders nothing once completed), so it costs
+          the reduced Home no chrome. Kept through phase 6 because it introduces
+          the app's still-current features (Navigator, Tracker, Plan, Letters),
+          not the deleted dashboard cards, and it backs Profile's "Replay app
+          tour" button — shedding it would strand that button and drop the
+          first-launch tour. */}
+      <OnboardingTutorial onComplete={() => {}} />
       {/* Profile left the tab bar in phase 5; everything it held lives here. */}
       <AccountMenu
         visible={menuOpen}
@@ -354,7 +364,8 @@ function HomeScreenInner({
             everything set aside listed below with the day it comes back.
             Phase 6 reduced Home to exactly this: greeting → card → composer →
             status line. Every card that used to stack here now lives on its
-            own tab — Plan (agenda, progress), Tools, Agencies, Journey. */}
+            own tab — Plan (agenda), Tracker (progress), Tools, Agencies,
+            Journey. */}
         {FLAGS.newHome && (
           <>
             <OneThingCard
