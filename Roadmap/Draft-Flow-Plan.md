@@ -1,6 +1,6 @@
 # The Draft Flow — Plan & Proposals
 
-**Date:** Aug 30, 2026 · **Status:** draft — awaiting owner go
+**Date:** Aug 30, 2026 · **Status:** adopted — shipped end to end (9a–9d + reply loop core; 9e `analyzeEmail` seeding optional/unbuilt)
 **Supersedes:** nothing. **Extends:** `Home-Rebuild-Plan.md` §"Phase 9 — The draft flow"
 (the four decisions recorded there on Aug 29 are inputs here, not up for re-litigation).
 **Sits inside:** `Undivided-Comparison-Aug2026.md` — this draft flow is that
@@ -237,11 +237,20 @@ Phase 6 (Home reduction) ships first — decided Aug 29. Then:
 
 | # | Ships | Size | Gate |
 |---|---|---|---|
-| 9a | `lib/draftQuestions.ts` + tests, no UI | S | logic suite; locale parity; "every answer changes the letter" |
-| 9b | The question sheet + card CTA rewiring | M | ui suite renders each question shape; navigation test proves the route resolves from Home's own stack (declare it in `routeGraph.ts`, not a hand-copied mirror) |
-| 9c | The `<Citation>` component + draft-screen guidance | M | ui suite; `sourceForCitation()` gets its first real consumer; the tap opens the authority, the claim and `verifiedOn` |
-| 9d | Send confirmation (clock · trail · case file in one glance) | S | ui suite; blanks block Send; the three artifacts all render |
-| 9e | The reply loop | M | `analyzeEmail` → question seeding; "they said no" → `noa_request` |
+| 9a | `lib/draftQuestions.ts` + tests, no UI | S | ✅ merged (#126) |
+| 9b | The question sheet + card CTA rewiring | M | ✅ merged (#127) — card CTA → sheet → prefilled draft; the reply loop's "they said no" → PWN (school) / NOA (RC) routing landed here too |
+| 9c | The `<Citation>` component + draft-screen guidance | M | ✅ merged — 9c-1 Citation (#128), 9c-2 send-gate (#129), 9c-3 "filled from your records" note (#130) |
+| 9d | Send confirmation (clock · trail · case file in one glance) | S | ✅ merged (#131) — three artifacts + Done → Home; kept honest (no "we'll watch", push isn't shipped) |
+| 9e | The reply loop | M | Core shipped in 9b (reply CTA → sheet, said-no routing). Remaining polish: **seed the "what did they say?" answer from `analyzeEmail`** so the AI pre-reads the reply — optional enhancement, not built. |
+
+**Status (Aug 30 2026): the draft flow is shipped end to end** — card → 2–3
+questions → prefilled draft (tappable Citation, "filled from your records"
+note, send gate) → send → confirmation → Done → Home. Also shipped alongside:
+task #34 (the ladder now sees plan actions) and migration 049 (the
+`home_deferrals` RLS recursion fix — **awaiting the owner's hand-apply**).
+Every phase went through `/adversary`; the draft-flow lane was owner-delegated
+for self-merge on Aug 30 (see CLAUDE.md). Not yet exercised against real
+Supabase data — unit/ui/adversary only.
 
 Each ships green on `npx tsc --noEmit`, `npx vitest run`,
 `npx eslint . --ext .ts,.tsx --quiet`.
