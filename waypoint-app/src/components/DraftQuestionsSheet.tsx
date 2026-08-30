@@ -8,7 +8,7 @@
  * All decidable logic is in lib/draftQuestions.ts (which questions, the tone
  * default, the request they build); this file only renders and collects taps.
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, Modal, ScrollView, TextInput, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -65,12 +65,22 @@ export default function DraftQuestionsSheet({
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
   // Pre-select each question's suggested chip, so accepting the defaults and
-  // tapping straight through still yields a complete, honest request.
+  // tapping straight through still yields a complete, honest request. Seed ONCE
+  // per opened item: `questions` gets a new identity whenever the family/child
+  // data refetches (its profile dep), and re-seeding then would silently wipe a
+  // half-typed note or a changed chip. Reset on close so reopening seeds fresh.
+  const seededFor = useRef<string | null>(null);
   useEffect(() => {
+    if (!item) {
+      seededFor.current = null;
+      return;
+    }
+    if (seededFor.current === item.id) return;
     const seed: Record<string, string> = {};
     for (const q of questions) if (q.suggested) seed[q.id] = q.suggested;
     setAnswers(seed);
-  }, [questions]);
+    seededFor.current = item.id;
+  }, [item, questions]);
 
   if (!item) return null;
 

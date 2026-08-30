@@ -73,6 +73,35 @@ describe('DraftQuestionsSheet', () => {
     expect(onComplete.mock.calls[0][0].heard_back).toBe('said_no');
   });
 
+  it('a data refetch (new profile identity, same item) does not wipe a changed answer', () => {
+    const onComplete = vi.fn();
+    const it0 = item('overdue');
+    const { rerender } = render(
+      <DraftQuestionsSheet
+        visible
+        item={it0}
+        profile={{ childFirstName: 'Teddy' }}
+        locale="en"
+        onClose={() => {}}
+        onComplete={onComplete}
+      />
+    );
+    fireEvent.click(screen.getByLabelText('They said no'));
+    // Simulate a children/family refetch: a brand-new profile object, same item.
+    rerender(
+      <DraftQuestionsSheet
+        visible
+        item={it0}
+        profile={{ childFirstName: 'Teddy' }}
+        locale="en"
+        onClose={() => {}}
+        onComplete={onComplete}
+      />
+    );
+    fireEvent.click(screen.getByLabelText('Write my letter'));
+    expect(onComplete.mock.calls[0][0].heard_back).toBe('said_no');
+  });
+
   it('renders nothing when there is no item', () => {
     const { container } = render(
       <DraftQuestionsSheet

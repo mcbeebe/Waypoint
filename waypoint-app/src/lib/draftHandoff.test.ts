@@ -31,8 +31,16 @@ describe('templateForDraft — which letter the flow opens', () => {
     expect(templateForDraft(item('overdue'), {}, undefined)).toBe('general');
   });
 
-  it('"they said no" is the load-bearing route — it goes to Notice of Action', () => {
-    expect(templateForDraft(item('reply'), { reply_read: 'said_no' }, null)).toBe('noa_request');
+  it('"they said no" routes to the written-notice instrument for the DENYING agency', () => {
+    // Regional Center denial → Notice of Action; school denial → Prior Written Notice.
+    expect(templateForDraft(item('reply'), { reply_read: 'said_no' }, 'service_request')).toBe('noa_request');
+    expect(templateForDraft(item('reply'), { reply_read: 'said_no' }, 'ipp_meeting')).toBe('noa_request');
+    expect(templateForDraft(item('reply'), { reply_read: 'said_no' }, 'iep_evaluation')).toBe('pwn_request');
+  });
+
+  it('"they said no" with an unknown agency does not guess — it stays a custom letter', () => {
+    expect(templateForDraft(item('reply'), { reply_read: 'said_no' }, null)).toBe('general');
+    expect(templateForDraft(item('reply'), { reply_read: 'said_no' }, undefined)).toBe('general');
   });
 
   it('any other reply is a plain answer', () => {
@@ -67,14 +75,23 @@ describe('draftHandoff — the full package to the Letters screen', () => {
     expect(h.tone).toBe('professional'); // stage default for overdue
   });
 
-  it('the reply loop: "they said no" routes to noa_request and asks for it in writing', () => {
+  it('the reply loop: a Regional Center "no" routes to noa_request and asks for it in writing', () => {
     const h = draftHandoff(
       item('reply', { requestId: 'req-9', replyId: 'c5' }),
       { reply_read: 'said_no' },
-      { profile: PROFILE, locale: 'en' }
+      { requestType: 'service_request', profile: PROFILE, locale: 'en' }
     );
     expect(h.template).toBe('noa_request');
     expect(h.question.toLowerCase()).toContain('appeal');
     expect(h.requestId).toBe('req-9');
+  });
+
+  it('the reply loop: a school "no" routes to the Prior Written Notice, not the RC letter', () => {
+    const h = draftHandoff(
+      item('reply', { requestId: 'req-2', replyId: 'c7' }),
+      { reply_read: 'said_no' },
+      { requestType: 'iep_evaluation', profile: PROFILE, locale: 'en' }
+    );
+    expect(h.template).toBe('pwn_request');
   });
 });

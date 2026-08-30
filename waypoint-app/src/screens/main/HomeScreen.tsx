@@ -271,29 +271,33 @@ function HomeScreenInner({
     }),
     [family, primaryChild]
   );
-  const [draftItem, setDraftItem] = useState<TriageItem | null>(null);
+  // The open sheet, with the owning request's type resolved AT OPEN TIME — so a
+  // requests refetch between opening and "Write my letter" can't swap the letter
+  // out from under the parent.
+  const [draft, setDraft] = useState<{ item: TriageItem; requestType: RequestType | null } | null>(
+    null
+  );
 
   const actOnItem = (item: TriageItem) => {
     void markActed(item.id);
     // A draftable card opens the question sheet over Home instead of leaving it.
     if (item.action.kind === 'draft') {
-      setDraftItem(item);
+      const reqId = item.action.params?.requestId;
+      const requestType: RequestType | null =
+        (reqId && familyRequests.find((r) => r.id === reqId)?.request_type) || null;
+      setDraft({ item, requestType });
       return;
     }
     followAction(item.action);
   };
 
-  // Sheet complete: turn the answers into a prefilled Letters draft. The request
-  // type (for a follow-up) is resolved here, where the requests live.
+  // Sheet complete: turn the answers into a prefilled Letters draft.
   const onDraftComplete = (answers: Record<string, string>) => {
-    const item = draftItem;
-    setDraftItem(null);
-    if (!item) return;
-    const reqId = item.action.params?.requestId;
-    const requestType: RequestType | null =
-      (reqId && familyRequests.find((r) => r.id === reqId)?.request_type) || null;
-    const h = draftHandoff(item, answers, {
-      requestType,
+    const d = draft;
+    setDraft(null);
+    if (!d) return;
+    const h = draftHandoff(d.item, answers, {
+      requestType: d.requestType,
       profile: letterProfile,
       locale: funnelLocale,
     });
@@ -397,11 +401,11 @@ function HomeScreenInner({
       {/* The draft flow (phase 9b): a "Draft the follow-up" tap opens this over
           Home; completing it lands on a prefilled Letters draft. */}
       <DraftQuestionsSheet
-        visible={!!draftItem}
-        item={draftItem}
+        visible={!!draft}
+        item={draft?.item ?? null}
         profile={letterProfile}
         locale={funnelLocale}
-        onClose={() => setDraftItem(null)}
+        onClose={() => setDraft(null)}
         onComplete={onDraftComplete}
       />
       <ScrollView
