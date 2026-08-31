@@ -69,7 +69,9 @@ export default function SupportDetailScreen() {
 
   const { family } = useFamily();
   const { children } = useChildren(family?.id);
-  const childName = children[0]?.first_name ?? null;
+  // The primary child by the house predicate (matches LettersScreen, which this
+  // draft feeds), not a reliance on query ordering.
+  const childName = (children.find((c) => c.is_primary) ?? children[0])?.first_name ?? null;
 
   const support = supportKey ? getFamilySupport(supportKey, fl) : null;
 

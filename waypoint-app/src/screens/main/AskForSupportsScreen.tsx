@@ -55,7 +55,9 @@ export default function AskForSupportsScreen() {
             style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
             onPress={() => (navigation as any).navigate('SupportDetail', { supportKey: s.key })}
             accessibilityRole="button"
-            accessibilityLabel={`${s.name}. ${s.tagline}`}
+            // The catch is the whole point — put it in the accessible name, not
+            // just the sighted chip below.
+            accessibilityLabel={`${s.name}. ${s.tagline} ${CATCH_CHIP[fl]}.`}
           >
             <View style={styles.icon}>
               <Ionicons name={s.icon as any} size={20} color={colors.teal} />
