@@ -422,7 +422,9 @@ describe('every article carries a conversation bridge (Slice A, reframe)', () =>
   it('gives each hand-authored article a primaryQuestion, next questions, and a bridge', () => {
     for (const a of getLearnArticles('en')) {
       expect(a.primaryQuestion.length, `${a.key} primaryQuestion`).toBeGreaterThan(0);
-      expect(a.relatedQuestions.length, `${a.key} relatedQuestions`).toBeGreaterThanOrEqual(4);
+      // The editorial spec's contract is 5–10 next questions.
+      expect(a.relatedQuestions.length, `${a.key} relatedQuestions`).toBeGreaterThanOrEqual(5);
+      expect(a.relatedQuestions.length, `${a.key} relatedQuestions`).toBeLessThanOrEqual(10);
       for (const q of a.relatedQuestions) expect(q.length).toBeGreaterThan(0);
       expect(a.bridge.label.length, `${a.key} bridge.label`).toBeGreaterThan(0);
       expect(a.bridge.blurb.length, `${a.key} bridge.blurb`).toBeGreaterThan(0);
@@ -448,6 +450,7 @@ describe('every article carries a conversation bridge (Slice A, reframe)', () =>
         );
         expect(a.primaryQuestion, `${a.key} ${loc} primaryQuestion`).not.toBe(en[i].primaryQuestion);
         expect(a.bridge.label, `${a.key} ${loc} bridge.label`).not.toBe(en[i].bridge.label);
+        expect(a.bridge.blurb, `${a.key} ${loc} bridge.blurb`).not.toBe(en[i].bridge.blurb);
         expect(a.bridge.seed, `${a.key} ${loc} bridge.seed`).not.toBe(en[i].bridge.seed);
         a.relatedQuestions.forEach((q, k) => {
           expect(q, `${a.key} ${loc} relatedQuestion ${k}`).not.toBe(en[i].relatedQuestions[k]);

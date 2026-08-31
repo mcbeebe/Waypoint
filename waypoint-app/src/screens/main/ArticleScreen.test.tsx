@@ -8,7 +8,7 @@ import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ArticleScreen from './ArticleScreen';
-import { navigateCalls, routeParams, clipboard } from '../../../vitest.setup.ui';
+import { navigateCalls, pushCalls, routeParams, clipboard } from '../../../vitest.setup.ui';
 import { getLearnArticle } from '@/lib/learnLibrary';
 import { resolvesFrom } from '@/navigation/routeGraph';
 
@@ -44,7 +44,7 @@ describe('the Learn reader renders an article end to end', () => {
     expect(navigateCalls).toHaveLength(0);
   });
 
-  it('the conversation bridge hands off to the AI, seeded with the article', () => {
+  it('the bridge PUSHES a seeded chat and keeps the article beneath (Back returns to it)', () => {
     routeParams.articleKey = 'first_iep';
     const a = getLearnArticle('first_iep', 'en')!;
     render(<ArticleScreen />);
@@ -55,12 +55,16 @@ describe('the Learn reader renders an article end to end', () => {
     expect(screen.getByRole('button', { name: a.actionLabel })).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: a.bridge.label }));
-    const call = navigateCalls.at(-1)!.args as [string, { screen: string; params: { ask: string } }];
-    expect(call[0]).toBe('Navigator');
-    expect(call[1].screen).toBe('NavigatorMain');
+    // PUSH, not navigate: a navigate would pop back to NavigatorMain and
+    // discard the article. Push keeps the reader in the stack beneath.
+    expect(navigateCalls).toHaveLength(0);
+    const call = pushCalls.at(-1)!.args as [string, { ask: string }];
+    expect(call[0]).toBe('NavigatorMain');
     // Seeded with the article's opener — never a blank box.
-    expect(call[1].params.ask).toBe(a.bridge.seed);
-    expect(resolvesFrom('Navigator', { screen: 'NavigatorMain', tab: 'Navigator' })).toBe(true);
+    expect(call[1].ask).toBe(a.bridge.seed);
+    // NavigatorMain is registered in the stack Article lives in, so the push
+    // resolves without naming a tab.
+    expect(resolvesFrom('Navigator', { screen: 'NavigatorMain' })).toBe(true);
   });
 
   it('a related question opens the AI with that specific question', () => {
@@ -69,8 +73,9 @@ describe('the Learn reader renders an article end to end', () => {
     render(<ArticleScreen />);
     const q = a.relatedQuestions[0];
     fireEvent.click(screen.getByRole('button', { name: q }));
-    const call = navigateCalls.at(-1)!.args as [string, { params: { ask: string } }];
-    expect(call[1].params.ask).toBe(q);
+    const call = pushCalls.at(-1)!.args as [string, { ask: string }];
+    expect(call[0]).toBe('NavigatorMain');
+    expect(call[1].ask).toBe(q);
   });
 
   it('copies a checklist tool to the clipboard — the thing a parent keeps', async () => {

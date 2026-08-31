@@ -105,11 +105,16 @@ export default function ArticleScreen() {
   /**
    * The conversation bridge — hand the parent to the AI, already seeded with
    * what they were reading (never a blank box). `seed` opens the general
-   * handoff; a tapped related question opens that specific one. Same plumbing
-   * Home's Ask row uses: Navigator → NavigatorMain with an `ask` param.
+   * handoff; a tapped related question opens that specific one.
+   *
+   * PUSH a fresh chat rather than `navigate` to NavigatorMain: the reader and
+   * the chat share the Navigator stack, so a plain navigate would POP back to
+   * NavigatorMain and discard the article. Pushing keeps the article beneath,
+   * so Back returns to it — the article stays "complete," and the fresh screen
+   * starts with isLoading false, so the seed can never land mid-stream.
    */
   const openBridge = (ask: string) => {
-    (navigation as any).navigate('Navigator', { screen: 'NavigatorMain', params: { ask } });
+    (navigation as any).push('NavigatorMain', { ask });
   };
 
   return (

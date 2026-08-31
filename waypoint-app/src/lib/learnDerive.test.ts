@@ -170,6 +170,8 @@ describe('a derived article carries a grounded bridge (Slice A)', () => {
       deriveArticles(loc).forEach((a, i) => {
         expect(a.bridge.label, `${a.key} ${loc} bridge.label`).not.toBe(en[i].bridge.label);
         expect(a.bridge.blurb, `${a.key} ${loc} bridge.blurb`).not.toBe(en[i].bridge.blurb);
+        // Seed = translated frame + the module's own (localized) title.
+        expect(a.bridge.seed, `${a.key} ${loc} bridge.seed`).not.toBe(en[i].bridge.seed);
       });
     }
   });

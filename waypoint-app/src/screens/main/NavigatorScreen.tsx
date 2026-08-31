@@ -151,6 +151,9 @@ export default function NavigatorScreen() {
   // question here; send it once, gated by consent like any other message.
   useEffect(() => {
     const ask = route.params?.ask;
+    // While a message is streaming, HOLD the seed rather than dropping it —
+    // isLoading is a dep, so this re-fires and sends once the stream finishes.
+    // (Without it, a seed arriving mid-stream was lost with no error.)
     if (!ask || isLoading) return;
     navigation.setParams({ ask: undefined });
     if (!hasAIConsent) {
@@ -160,7 +163,7 @@ export default function NavigatorScreen() {
     }
     sendMessage(ask);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route.params?.ask]);
+  }, [route.params?.ask, isLoading]);
   const [showTonePicker, setShowTonePicker] = useState(false);
   const [savingMessageId, setSavingMessageId] = useState<string | null>(null);
   // Step-save tracking, keyed "messageId|action" so the same step text in
