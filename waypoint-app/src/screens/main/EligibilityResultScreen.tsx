@@ -26,6 +26,7 @@ const STRINGS: Record<FunnelLocale, {
   ctaMap: string;
   footerNote: string;
   yourChild: string;
+  familyLink: string;
 }> = {
   en: {
     eyebrow: 'YOUR RESULT',
@@ -41,6 +42,7 @@ const STRINGS: Record<FunnelLocale, {
     ctaMap: 'See how to get these →',
     footerNote: 'Free. No card. We never sell your data.',
     yourChild: 'Your child',
+    familyLink: 'See the family supports you can ask for →',
   },
   es: {
     eyebrow: 'SU RESULTADO',
@@ -56,6 +58,7 @@ const STRINGS: Record<FunnelLocale, {
     ctaMap: 'Vea cómo obtenerlos →',
     footerNote: 'Gratis. Sin tarjeta. Nunca vendemos sus datos.',
     yourChild: 'Su hijo/a',
+    familyLink: 'Vea los apoyos familiares que puede pedir →',
   },
   vi: {
     eyebrow: 'KẾT QUẢ CỦA QUÝ VỊ',
@@ -71,6 +74,7 @@ const STRINGS: Record<FunnelLocale, {
     ctaMap: 'Xem cách nhận các quyền lợi này →',
     footerNote: 'Miễn phí. Không cần thẻ. Chúng tôi không bao giờ bán dữ liệu của quý vị.',
     yourChild: 'Con quý vị',
+    familyLink: 'Xem các hỗ trợ gia đình quý vị có thể đề nghị →',
   },
 };
 
@@ -148,6 +152,21 @@ export default function EligibilityResultScreen() {
               <Text style={styles.citation}>
                 ⓘ {card.citation} · {S.reviewed} {card.reviewedOn}
               </Text>
+              {/* The RC card names "family services" — make them reachable: the
+                  tier of supports a family has to ask for (initiative 005-C).
+                  Only when enrolled: the destination presupposes an IPP to write
+                  the need into, so a not-yet-client (likely/review) doesn't see
+                  a door to a screen that assumes standing they don't have. */}
+              {card.key === 'regional_center' && card.status === 'enrolled' && (
+                <Pressable
+                  style={({ pressed }) => [styles.familyLink, pressed && { opacity: 0.6 }]}
+                  onPress={() => (navigation as any).navigate('AskForSupports')}
+                  accessibilityRole="button"
+                  accessibilityLabel={S.familyLink}
+                >
+                  <Text style={styles.familyLinkText}>{S.familyLink}</Text>
+                </Pressable>
+              )}
             </View>
           );
         })}
@@ -240,6 +259,19 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   citation: { marginTop: spacing.sm, fontSize: fonts.sizes.xs, color: colors.mid },
+  familyLink: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    minHeight: 32,
+    justifyContent: 'center',
+  },
+  familyLinkText: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold as '700',
+    color: colors.teal,
+  },
   trust: { backgroundColor: semantic.infoBg, borderRadius: radii.md, padding: spacing.base },
   trustText: { color: colors.dark, fontSize: fonts.sizes.sm, lineHeight: 19 },
   trustLead: { fontWeight: fonts.weights.bold, color: semantic.info },
