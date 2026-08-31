@@ -35,9 +35,12 @@ import Citation from '@/components/Citation';
 import { buildLadderSheet, calmKicker, cardLabels, deferNotice, laterLine } from '@/lib/homeCard';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useTextScale } from '@/lib/textSize';
-import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
+import { colors, brand, fonts, semantic, spacing, radii } from '@/lib/theme';
 
-/** Kicker tints, one per rung — the same palette as the approved prototype. */
+/** Kicker tints, one per rung — the same palette as the approved prototype.
+ *  These carry URGENCY MEANING (crisis/overdue = danger, today/clock = warning,
+ *  opportunity = success), so they stay semantic through the brand refresh —
+ *  the warm palette repaints chrome, never the signal that says how urgent. */
 const KICKER_TINT: Record<TriageClass, { bg: string; fg: string }> = {
   resume: { bg: '#EDE9FE', fg: '#6D28D9' },
   crisis: { bg: semantic.dangerBg, fg: semantic.danger },
@@ -119,7 +122,7 @@ export default function OneThingCard({
           <Ionicons
             name={open ? 'chevron-up' : 'chevron-down'}
             size={20}
-            color={colors.mid}
+            color={brand.inkFaint}
           />
         </Pressable>
       )}
@@ -268,7 +271,7 @@ function LadderSheet({
             accessibilityRole="button"
             accessibilityLabel={sheet.dismissLabel}
           >
-            <Ionicons name="close" size={24} color={colors.mid} />
+            <Ionicons name="close" size={24} color={brand.inkFaint} />
           </Pressable>
         </View>
         <ScrollView contentContainerStyle={styles.sheetBody}>
@@ -367,35 +370,35 @@ export function LaterList({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 2,
-    borderColor: colors.teal,
+    borderColor: brand.pine,
     borderRadius: radii.lg,
     padding: spacing.base,
     marginBottom: spacing.base,
     gap: spacing.sm,
-    shadowColor: colors.teal,
+    shadowColor: brand.pine,
     shadowOpacity: 0.1,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
   cardTight: { gap: spacing.xs + 3, paddingVertical: spacing.md },
-  cardCalm: { borderColor: '#A7D9C9', shadowOpacity: 0 },
+  cardCalm: { borderColor: brand.sage, shadowOpacity: 0 },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   kicker: { borderRadius: 6, paddingVertical: 3, paddingHorizontal: 8, flexShrink: 1 },
   kickerCalm: { backgroundColor: semantic.successBg },
   kickerText: { fontWeight: fonts.weights.extrabold, letterSpacing: 0.7 },
   title: {
     fontWeight: fonts.weights.extrabold,
-    color: colors.navy,
+    color: brand.ink,
     lineHeight: 24,
   },
-  why: { color: colors.dark, lineHeight: 20 },
+  why: { color: brand.inkSoft, lineHeight: 20 },
   cta: {
     minHeight: 46,
     borderRadius: radii.md,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
@@ -406,13 +409,13 @@ const styles = StyleSheet.create({
     minHeight: 44,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.light,
+    borderColor: brand.border,
+    backgroundColor: brand.paper,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
   },
-  answerText: { color: colors.navy, fontWeight: fonts.weights.semibold, textAlign: 'center' },
+  answerText: { color: brand.ink, fontWeight: fonts.weights.semibold, textAlign: 'center' },
   // MIN_TOUCH_TARGET (lib/accessibility.ts) is 44; these were 32 and 36.
   ghost: {
     minHeight: 44,
@@ -420,12 +423,12 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     paddingVertical: spacing.xs,
   },
-  ghostNote: { color: '#94A3B8', fontWeight: fonts.weights.medium },
-  ghostText: { color: colors.mid, fontWeight: fonts.weights.semibold },
-  ghostFaint: { color: '#94A3B8', fontWeight: fonts.weights.medium },
+  ghostNote: { color: brand.inkFaint, fontWeight: fonts.weights.medium },
+  ghostText: { color: brand.inkFaint, fontWeight: fonts.weights.semibold },
+  ghostFaint: { color: brand.inkFaint, fontWeight: fonts.weights.medium },
   dim: { opacity: 0.6 },
 
-  sheet: { flex: 1, backgroundColor: colors.white },
+  sheet: { flex: 1, backgroundColor: brand.panel },
   sheetHead: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -433,44 +436,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.base,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: brand.border,
     gap: spacing.md,
   },
-  sheetTitle: { flex: 1, fontWeight: fonts.weights.extrabold, color: colors.navy },
+  sheetTitle: { flex: 1, fontWeight: fonts.weights.extrabold, color: brand.ink },
   sheetBody: { padding: spacing.lg, gap: spacing.sm },
-  sheetIntro: { color: colors.dark, lineHeight: 20, marginBottom: spacing.sm },
+  sheetIntro: { color: brand.inkSoft, lineHeight: 20, marginBottom: spacing.sm },
   ladderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     paddingVertical: spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: brand.border,
   },
-  ladderRowHit: { backgroundColor: '#ECFEFF', borderRadius: radii.sm, paddingHorizontal: spacing.sm },
+  ladderRowHit: { backgroundColor: brand.pineTint, borderRadius: radii.sm, paddingHorizontal: spacing.sm },
   ladderNum: {
     width: 22,
     textAlign: 'center',
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.bold,
   },
-  ladderName: { flex: 1, color: colors.navy, lineHeight: 19 },
-  ladderState: { color: colors.mid, fontWeight: fonts.weights.semibold },
-  ladderStateHit: { color: colors.teal, fontWeight: fonts.weights.bold },
+  ladderName: { flex: 1, color: brand.ink, lineHeight: 19 },
+  ladderState: { color: brand.inkFaint, fontWeight: fonts.weights.semibold },
+  ladderStateHit: { color: brand.pine, fontWeight: fonts.weights.bold },
   sheetDone: {
     marginTop: spacing.lg,
     minHeight: 46,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.teal,
+    borderColor: brand.pine,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sheetDoneText: { color: colors.teal, fontWeight: fonts.weights.bold },
+  sheetDoneText: { color: brand.pine, fontWeight: fonts.weights.bold },
 
   laterWrap: { marginBottom: spacing.base, gap: spacing.sm },
   laterHeading: {
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.bold,
     letterSpacing: 1,
   },
@@ -478,15 +481,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     padding: spacing.md,
   },
   laterText: { flex: 1, gap: 2 },
-  laterTitle: { color: colors.navy, fontWeight: fonts.weights.semibold, lineHeight: 18 },
-  laterWhen: { color: colors.mid },
+  laterTitle: { color: brand.ink, fontWeight: fonts.weights.semibold, lineHeight: 18 },
+  laterWhen: { color: brand.inkFaint },
   undo: {
     minHeight: 44,
     minWidth: 44,
@@ -494,5 +497,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.sm,
   },
-  undoText: { color: colors.teal, fontWeight: fonts.weights.bold },
+  undoText: { color: brand.pine, fontWeight: fonts.weights.bold },
 });
