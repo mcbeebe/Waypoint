@@ -27,7 +27,7 @@ import { lookupRC } from '@/data/regionalCenters';
 import { signOut } from '@/lib/auth';
 import { unregisterPushToken } from '@/lib/pushTokens';
 import {
-  connectGoogleWeb,
+  connectGmailWeb,
   disconnectGoogleWeb,
   isGoogleConnectedWeb,
 } from '@/lib/googleAuth';
@@ -362,7 +362,10 @@ export default function ProfileScreen() {
 
   const handleConnectGoogle = useCallback(async () => {
     setGoogleBusy(true);
-    const result = await connectGoogleWeb();
+    // The Settings connection is the FULL one — Calendar + Gmail (send +
+    // readonly) in a single consent — so a parent connects everything in one
+    // place instead of hunting for a separate Gmail button (owner, Aug 31).
+    const result = await connectGmailWeb('/profile');
     // On success the browser redirects to Google — this code only runs on failure.
     setGoogleBusy(false);
     if (!result.success) {
@@ -378,7 +381,7 @@ export default function ProfileScreen() {
   const handleDisconnectGoogle = useCallback(async () => {
     const ok = await showConfirm(
       'Disconnect Google?',
-      'Calendar sync will stop working until you reconnect.',
+      'Calendar sync, sending, and reply tracking will stop working until you reconnect.',
       'Disconnect',
       true
     );
@@ -917,8 +920,8 @@ export default function ProfileScreen() {
             <View style={styles.card}>
               <Text style={styles.privacyStatus}>
                 {googleStatus.connected
-                  ? `Connected as ${googleStatus.email ?? 'your Google account'}. Waypoint can sync your calendar and send emails you approve.`
-                  : 'Connect Google to sync appointments to your calendar and send emails to schools and agencies from Waypoint.'}
+                  ? `Connected as ${googleStatus.email ?? 'your Google account'}. Waypoint can sync your calendar, send emails you approve, and track replies from schools and agencies.`
+                  : 'Connect Google to sync appointments to your calendar, send emails to schools and agencies, and track their replies — all from Waypoint.'}
               </Text>
               <Button
                 title={
@@ -926,7 +929,7 @@ export default function ProfileScreen() {
                     ? 'Working…'
                     : googleStatus.connected
                       ? 'Disconnect Google'
-                      : 'Connect Google'
+                      : 'Connect Google (Calendar + Gmail)'
                 }
                 onPress={googleStatus.connected ? handleDisconnectGoogle : handleConnectGoogle}
                 variant="outline"
