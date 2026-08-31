@@ -60,7 +60,26 @@ export type ArticleBlock =
   | { kind: 'para'; text: string }
   | { kind: 'heading'; text: string }
   | { kind: 'steps'; items: string[] }
-  | { kind: 'callout'; text: string };
+  | { kind: 'callout'; text: string }
+  // A "tool" the parent KEEPS — the utility-over-prose bet (owner framework,
+  // Aug 2026). Copyable to their notes. A checklist is ticked items; a script
+  // is words to say on the phone or in person. An EMAIL is never a tool here —
+  // it is the article's end-action, which opens the real draft-and-send flow
+  // (the Letters composer), so nothing is copy-pasted that Waypoint can send.
+  | { kind: 'checklist'; label: string; items: string[] }
+  | { kind: 'script'; label: string; text: string };
+
+/**
+ * The caregiver's journey (owner framework, Aug 2026). Learn is organized by
+ * WHERE a parent is, not by topic. Optional so derived/legacy articles compose
+ * without one; the library groups by it when present.
+ */
+export type LearnStage =
+  | 'noticing'      // "Something isn't right"
+  | 'seeking_help'  // "I need help"
+  | 'overwhelmed'   // "I'm overwhelmed"
+  | 'advocating'    // "I'm advocating"
+  | 'now_what';     // "Now what"
 
 export interface LearnArticle {
   key: string;
@@ -81,6 +100,12 @@ export interface LearnArticle {
    * owner stamps it as part of approving the content (8-2 pipeline).
    */
   reviewedOn?: string;
+  /**
+   * Where in the journey a parent reading this is (owner framework, Aug 2026).
+   * Optional so derived and legacy articles compose without one; the Learn
+   * panel groups by it when present.
+   */
+  stage?: LearnStage;
   /** What to do next. Every article ends in something the app can do. */
   actionLabel: string;
   target: LearnTarget;
@@ -222,7 +247,22 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
             'Đề nghị trước, cứng rắn sau. Yêu cầu đầu tiên chỉ là “xin hãy ghi quyết định bằng văn bản.” Giọng điệu chỉ cứng rắn hơn nếu không được trả lời.'
           ),
         },
+        {
+          kind: 'checklist',
+          label: L(
+            'Write these down while the call is fresh',
+            'Anote esto mientras la llamada está fresca',
+            'Ghi lại những điều này khi cuộc gọi còn mới'
+          ),
+          items: [
+            L('The date and time you called', 'La fecha y hora en que llamó', 'Ngày và giờ quý vị gọi'),
+            L('The name of the person who said no', 'El nombre de la persona que dijo que no', 'Tên người đã từ chối'),
+            L('The exact service they denied', 'El servicio exacto que negaron', 'Dịch vụ cụ thể họ đã từ chối'),
+            L('The reason they gave, in their words', 'El motivo que dieron, con sus palabras', 'Lý do họ đưa ra, theo lời của họ'),
+          ],
+        },
       ],
+      stage: 'advocating',
       actionLabel: L(
         'Ask for it in writing',
         'Pedirlo por escrito',
@@ -273,7 +313,30 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
             'Yêu cầu qua điện thoại không để lại ngày nào để dựa vào. Hãy ghi bằng văn bản, ghi lại ngày, và mốc 30 (hoặc 7) ngày bắt đầu từ một ngày quý vị chứng minh được.'
           ),
         },
+        {
+          kind: 'checklist',
+          label: L(
+            'Keep this with your request',
+            'Guarde esto con su solicitud',
+            'Giữ điều này cùng với yêu cầu của quý vị'
+          ),
+          items: [
+            L('The date you sent the request', 'La fecha en que envió la solicitud', 'Ngày quý vị gửi yêu cầu'),
+            L(
+              'Whether you asked for the 7-day urgent track',
+              'Si pidió la vía urgente de 7 días',
+              'Quý vị có đề nghị cách khẩn cấp 7 ngày hay không'
+            ),
+            L('The service or change you asked to review', 'El servicio o cambio que pidió revisar', 'Dịch vụ hoặc thay đổi quý vị đề nghị xem lại'),
+            L(
+              'The date 30 (or 7) days out, on your calendar',
+              'La fecha a 30 (o 7) días, en su calendario',
+              'Ngày 30 (hoặc 7) ngày sau, trên lịch của quý vị'
+            ),
+          ],
+        },
       ],
+      stage: 'advocating',
       actionLabel: L('Track this request', 'Registrar esta solicitud', 'Theo dõi yêu cầu này'),
       target: { screen: 'RequestTracker', tab: 'Home' },
       terms: [
@@ -325,7 +388,38 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
             'Hãy chuẩn bị được hỏi trước về bảo hiểm, nhà trường và các “nguồn lực chung” khác. Đó là quy trình, không phải sự từ chối — gia đình biết điều này sẽ xem đó là một bước, không phải câu từ chối.'
           ),
         },
+        {
+          kind: 'checklist',
+          label: L(
+            'Bring this to the IPP meeting',
+            'Lleve esto a la reunión del IPP',
+            'Mang điều này đến buổi họp IPP'
+          ),
+          items: [
+            L(
+              'The specific need — diapers, respite, camp, equipment',
+              'La necesidad específica — pañales, relevo, campamento, equipo',
+              'Nhu cầu cụ thể — tã, chăm sóc thay thế, trại hè, thiết bị'
+            ),
+            L(
+              'What you have already tried (insurance, school)',
+              'Lo que ya intentó (seguro, escuela)',
+              'Những gì quý vị đã thử (bảo hiểm, nhà trường)'
+            ),
+            L(
+              'Why those did not cover it',
+              'Por qué esos no lo cubrieron',
+              'Vì sao những nguồn đó không chi trả'
+            ),
+            L(
+              'Ask to have the need written into the IPP',
+              'Pida que la necesidad quede escrita en el IPP',
+              'Đề nghị ghi nhu cầu vào IPP'
+            ),
+          ],
+        },
       ],
+      stage: 'seeking_help',
       actionLabel: L('See what you can ask for', 'Ver qué puede pedir', 'Xem quý vị có thể đề nghị gì'),
       target: { screen: 'Reimbursables', tab: 'Home' },
       // The words a parent actually types when asking about money.
@@ -374,7 +468,38 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
             'Hãy mang theo điều duy nhất nhà trường đáp lại: hồ sơ của chính quý vị về việc đã đề nghị gì và khi nào. Giữ giọng thân thiện và rõ ràng — một đề nghị có ghi ngày — và để dòng thời gian thuyết phục.'
           ),
         },
+        {
+          kind: 'checklist',
+          label: L(
+            'Bring these to the IEP meeting',
+            'Lleve esto a la reunión del IEP',
+            'Mang những điều này đến buổi họp IEP'
+          ),
+          items: [
+            L(
+              'Your dated written request for evaluation',
+              'Su solicitud de evaluación por escrito, con fecha',
+              'Yêu cầu đánh giá bằng văn bản có ghi ngày của quý vị'
+            ),
+            L(
+              'Any private reports or evaluations you have',
+              'Cualquier informe o evaluación privada que tenga',
+              'Bất kỳ báo cáo hoặc đánh giá riêng nào quý vị có'
+            ),
+            L(
+              'A short list of what you see at home',
+              'Una lista breve de lo que observa en casa',
+              'Danh sách ngắn về những gì quý vị thấy ở nhà'
+            ),
+            L(
+              'Your top three concerns, written down',
+              'Sus tres preocupaciones principales, por escrito',
+              'Ba mối lo hàng đầu của quý vị, viết ra'
+            ),
+          ],
+        },
       ],
+      stage: 'seeking_help',
       actionLabel: L(
         'Write the evaluation request',
         'Escribir la solicitud de evaluación',
