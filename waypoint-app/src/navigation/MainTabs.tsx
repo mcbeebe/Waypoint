@@ -29,7 +29,6 @@ import DocumentAnalysisScreen from '@/screens/main/DocumentAnalysisScreen';
 import ProvidersScreen from '@/screens/main/ProvidersScreen';
 import ServicesScreen from '@/screens/main/ServicesScreen';
 import InsuranceScreen from '@/screens/main/InsuranceScreen';
-import JourneyPhaseScreen from '@/screens/main/JourneyPhaseScreen';
 import ProcessMapScreen from '@/screens/main/ProcessMapScreen';
 import SdpJourneyScreen from '@/screens/main/SdpJourneyScreen';
 import EscalationLadderScreen from '@/screens/main/EscalationLadderScreen';
@@ -275,7 +274,6 @@ interface ScreenSpec {
 
 const DESTINATION_SCREENS: Record<HomeDestination, ScreenSpec> = {
   Journey: { title: 'Journey Map', component: JourneyScreen },
-  JourneyPhase: { title: 'This Stage', component: JourneyPhaseScreen },
   ProcessMap: { title: 'How the System Works', component: ProcessMapScreen },
   SdpJourney: { title: 'Self-Determination Journey', component: SdpJourneyScreen },
   EscalationLadder: { title: 'When Services Aren’t Working', component: EscalationLadderScreen },

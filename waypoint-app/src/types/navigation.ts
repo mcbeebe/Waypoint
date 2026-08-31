@@ -57,7 +57,6 @@ export type HomeStackParamList = {
   RequestCase: { requestId: string };
   /** Free vs Premium + web checkout (PRD W-E: E1) */
   Pricing: undefined;
-  JourneyPhase: { journeyKey: string; phaseIndex: number };
   Agencies: undefined;
   Reimbursables: undefined;
   /** Moved out of the Calendar tab in the Home rebuild (phase 3). */

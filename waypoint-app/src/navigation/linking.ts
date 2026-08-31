@@ -29,7 +29,6 @@ export const MAIN_LINKING: { screens: Record<string, StackLinking> } = {
         FundedOffer: 'free-help',
         RequestTracker: 'requests',
         Pricing: 'premium',
-        JourneyPhase: 'journey/:journeyKey/:phaseIndex',
         Agencies: 'agencies',
         Reimbursables: 'rc-funding',
         AskForSupports: 'supports-to-ask-for',
