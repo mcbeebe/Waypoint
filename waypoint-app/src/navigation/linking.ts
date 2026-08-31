@@ -32,6 +32,8 @@ export const MAIN_LINKING: { screens: Record<string, StackLinking> } = {
         JourneyPhase: 'journey/:journeyKey/:phaseIndex',
         Agencies: 'agencies',
         Reimbursables: 'rc-funding',
+        AskForSupports: 'supports-to-ask-for',
+        SupportDetail: 'supports-to-ask-for/:supportKey',
         // Moved out of the Calendar tab in the Home rebuild (phase 3);
         // the old /expenses and /tax-report links keep working.
         Expenses: 'expenses',

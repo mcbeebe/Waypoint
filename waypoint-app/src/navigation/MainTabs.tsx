@@ -57,6 +57,8 @@ import ToolsScreen from '@/screens/main/ToolsScreen';
 import TaxReportScreen from '@/screens/main/TaxReportScreen';
 import AgenciesScreen from '@/screens/main/AgenciesScreen';
 import ReimbursablesScreen from '@/screens/main/ReimbursablesScreen';
+import AskForSupportsScreen from '@/screens/main/AskForSupportsScreen';
+import SupportDetailScreen from '@/screens/main/SupportDetailScreen';
 import JourneyScreen from '@/screens/main/JourneyScreen';
 import IEPHubScreen from '@/screens/main/IEPHubScreen';
 import PremiumGate from '@/components/PremiumGate';
@@ -285,6 +287,8 @@ const DESTINATION_SCREENS: Record<HomeDestination, ScreenSpec> = {
   Pricing: { title: 'Free & Premium', component: PricingScreen },
   Agencies: { title: 'Agency Directory', component: AgenciesScreen },
   Reimbursables: { title: 'RC Funding Guide', component: ReimbursablesScreen },
+  AskForSupports: { title: 'Supports You Can Ask For', component: AskForSupportsScreen },
+  SupportDetail: { title: 'Support', component: SupportDetailScreen },
   // Moved out of the Calendar tab (phase 3): Tools → Money & benefits already
   // listed them, and Plan is about obligations, not spending.
   Expenses: { title: 'Expenses', component: ExpensesScreen },

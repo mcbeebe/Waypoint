@@ -37,7 +37,8 @@ export interface StackShape {
 export const HOME_DESTINATIONS = [
   'Journey', 'JourneyPhase', 'ProcessMap', 'SdpJourney', 'EscalationLadder',
   'ResourceStack', 'EligibilityResult', 'FundedOffer', 'RequestTracker',
-  'RequestCase', 'Pricing', 'Agencies', 'Reimbursables', 'Expenses', 'TaxReport',
+  'RequestCase', 'Pricing', 'Agencies', 'Reimbursables', 'AskForSupports',
+  'SupportDetail', 'Expenses', 'TaxReport',
   'Insights', 'Documents', 'DocumentAnalysis', 'IEPHub', 'Letters',
   'EmailAnalyzer', 'CommunicationLog', 'Providers', 'Services', 'Insurance',
   'HealthRecords', 'FamilySharing', 'Profile', 'ProviderPortal',

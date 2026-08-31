@@ -636,7 +636,8 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         ),
       },
       actionLabel: L('See the supports you can ask for', 'Ver los apoyos que puede pedir', 'Xem các hỗ trợ quý vị có thể đề nghị'),
-      target: { screen: 'Reimbursables', tab: 'Home' },
+      // Repointed from the Reimbursables placeholder to the new destination (005-B).
+      target: { screen: 'AskForSupports', tab: 'Home' },
       terms: [
         'sibling', 'siblings', 'sibshop', 'sibshops', 'brother', 'sister', 'counseling',
         'therapy', 'family support', 'hermano', 'hermana', 'hermanos', 'consejería',
