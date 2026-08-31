@@ -13,7 +13,16 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
 import { useToast } from '@/components/Toast';
 import { getJourneyByKey } from '@/data/journeyMaps';
-import { phaseToActions, phaseQuestion } from '@/lib/journeyActions';
+import {
+  phaseToActions,
+  phaseQuestion,
+  entityStanding,
+  entityExplainer,
+  cadenceNote,
+  entityGuide,
+  entityStepQuestion,
+  type EntityStandings,
+} from '@/lib/journeyActions';
 import { useTextScale } from '@/lib/textSize';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -38,7 +47,33 @@ export default function JourneyPhaseScreen() {
   const drafts = useMemo(() => phaseToActions(phase, childName), [phase, childName]);
 
   const [addedIndexes, setAddedIndexes] = useState<Set<number>>(new Set());
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // The child's live standings, so a step the family already has (an active
+  // IEP, an active IPP) shows "In place" from the PROFILE — no manual check
+  // needed (owner feedback, Aug 2026). Same shape JourneyScreen builds.
+  const standings: EntityStandings = useMemo(
+    () => ({
+      rcStatus: primaryChild?.rc_status,
+      iepStatus: primaryChild?.iep_status,
+      mediCalStatus: primaryChild?.medi_cal_status,
+      ihssStatus: primaryChild?.ihss_status,
+      ssiStatus: primaryChild?.ssi_status,
+    }),
+    [primaryChild]
+  );
+
+  /** Ask the Navigator about one step, seeded with just that step. */
+  const askAboutStep = useCallback(
+    (entity: (typeof phase.entities)[number]) => {
+      navigation.navigate('Navigator', {
+        screen: 'NavigatorMain',
+        params: { ask: entityStepQuestion(entity, phase, journey.title, childName) },
+      });
+    },
+    [navigation, phase, journey.title, childName]
+  );
 
   const addOne = useCallback(
     async (index: number) => {
@@ -143,30 +178,87 @@ export default function JourneyPhaseScreen() {
         {drafts.map((draft, i) => {
           const entity = phase.entities[i];
           const added = addedIndexes.has(i);
+          const open = expandedIndex === i;
+          const standing = entityStanding(entity.name, standings);
+          const explainer = entityExplainer(entity.name);
+          const cadence = cadenceNote(entity.time ?? '');
+          const guide = entityGuide(entity);
           return (
             <View key={`${entity.name}-${i}`} style={styles.stepCard}>
-              <View style={styles.stepBody}>
-                <Text style={[styles.stepWho, { color: phase.color, fontSize: sz(11) }]}>
-                  {entity.name.toUpperCase()}
-                  {entity.time ? ` · ${entity.time}` : ''}
-                </Text>
-                <Text style={[styles.stepAction, { fontSize: sz(14.5), lineHeight: sz(20) }]}>
-                  {entity.action}
-                </Text>
+              <View style={styles.stepRow}>
+                {/* Tapping the body expands "learn more"; the + stays its own target. */}
+                <TouchableOpacity
+                  style={styles.stepBody}
+                  onPress={() => setExpandedIndex(open ? null : i)}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: open }}
+                  accessibilityLabel={`${entity.name}: ${entity.action}. ${open ? 'Hide' : 'Show'} details.`}
+                >
+                  <Text style={[styles.stepWho, { color: phase.color, fontSize: sz(11) }]}>
+                    {entity.name.toUpperCase()}
+                    {entity.time ? ` · ${entity.time}` : ''}
+                  </Text>
+                  <Text style={[styles.stepAction, { fontSize: sz(14.5), lineHeight: sz(20) }]}>
+                    {entity.action}
+                  </Text>
+                  <View style={styles.stepMetaRow}>
+                    {standing && (
+                      <View style={[styles.standChip, standing === 'in_place' ? styles.standInPlace : styles.standInMotion]}>
+                        <Text style={[styles.standChipText, standing === 'in_place' ? styles.standInPlaceText : styles.standInMotionText]}>
+                          {standing === 'in_place' ? '✓ In place' : 'In progress'}
+                        </Text>
+                      </View>
+                    )}
+                    <Text style={[styles.learnMore, { color: phase.color }]}>
+                      {open ? 'Hide' : 'Learn more'} {open ? '▲' : '▼'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.addButton, added && styles.addButtonDone]}
+                  onPress={() => addOne(i)}
+                  disabled={busy || added}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    added ? `${entity.action} already added` : `Add "${entity.action}" to my plan`
+                  }
+                >
+                  <Text style={[styles.addButtonText, added && styles.addButtonTextDone]}>
+                    {added ? '✓' : '＋'}
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={[styles.addButton, added && styles.addButtonDone]}
-                onPress={() => addOne(i)}
-                disabled={busy || added}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  added ? `${entity.action} already added` : `Add "${entity.action}" to my plan`
-                }
-              >
-                <Text style={[styles.addButtonText, added && styles.addButtonTextDone]}>
-                  {added ? '✓' : '＋'}
-                </Text>
-              </TouchableOpacity>
+
+              {open && (
+                <View style={styles.stepDetail}>
+                  {!!explainer && (
+                    <Text style={[styles.detailText, { fontSize: sz(13.5), lineHeight: sz(20) }]}>{explainer}</Text>
+                  )}
+                  {!!cadence && (
+                    <Text style={[styles.detailCadence, { fontSize: sz(12.5), lineHeight: sz(18) }]}>{cadence}</Text>
+                  )}
+                  <View style={styles.detailActions}>
+                    {guide && (
+                      <TouchableOpacity
+                        style={styles.detailLink}
+                        onPress={() => navigation.navigate(guide.screen, guide.params)}
+                        accessibilityRole="button"
+                        accessibilityLabel={guide.label}
+                      >
+                        <Text style={[styles.detailLinkText, { color: phase.color }]}>📘 {guide.label} ›</Text>
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                      style={styles.detailLink}
+                      onPress={() => askAboutStep(entity)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Ask Waypoint about ${entity.name}: ${entity.action}`}
+                    >
+                      <Text style={[styles.detailLinkText, { color: colors.teal }]}>🧭 Ask Waypoint about this step ›</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </View>
           );
         })}
@@ -261,9 +353,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   stepCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
     backgroundColor: colors.white,
     borderRadius: radii.md,
     borderWidth: 1,
@@ -271,9 +360,30 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: 6,
   },
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   stepBody: { flex: 1 },
   stepWho: { fontWeight: fonts.weights.bold as '700', letterSpacing: 0.4 },
   stepAction: { color: colors.dark, marginTop: 3 },
+  stepMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 6 },
+  standChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radii.full },
+  standInPlace: { backgroundColor: '#D1FAE5' },
+  standInMotion: { backgroundColor: '#FEF3C7' },
+  standChipText: { fontSize: 11, fontWeight: fonts.weights.bold as '700' },
+  standInPlaceText: { color: '#047857' },
+  standInMotionText: { color: '#92400E' },
+  learnMore: { fontSize: 11.5, fontWeight: fonts.weights.semibold as '600' },
+  stepDetail: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    gap: 6,
+  },
+  detailText: { color: colors.dark },
+  detailCadence: { color: colors.mid },
+  detailActions: { marginTop: 4, gap: 4 },
+  detailLink: { minHeight: 40, justifyContent: 'center' },
+  detailLinkText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold as '600' },
   addButton: {
     width: 36,
     height: 36,

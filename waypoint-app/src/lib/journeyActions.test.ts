@@ -7,7 +7,12 @@ import {
   phaseQuestion,
   entityLever,
   entityStanding,
+  entityExplainer,
+  cadenceNote,
+  entityGuide,
+  entityStepQuestion,
 } from './journeyActions';
+import { resolvesFrom } from '@/navigation/routeGraph';
 import type { JourneyPhase } from '@/data/types';
 
 const PHASE: JourneyPhase = {
@@ -154,5 +159,39 @@ describe('entityStanding — the journey map agrees with the resource stack', ()
     expect(entityStanding('School District', { ...standings, iepStatus: 'eval_done' })).toBe('in_motion');
     expect(entityStanding('IHSS', { ...standings, ihssStatus: 'applied' })).toBe('in_motion');
     expect(entityStanding('SSI / Medi-Cal', { ...standings, ssiStatus: 'active', mediCalStatus: 'active', mediCalRequested: false })).toBe('in_place');
+  });
+});
+
+describe('step "learn more" derivations (This Stage depth)', () => {
+  it('explains the common entities and returns null for the unknown', () => {
+    expect(entityExplainer('School District')).toMatch(/IEP/);
+    expect(entityExplainer('Regional Center')).toMatch(/IPP/);
+    expect(entityExplainer('IHSS')).toMatch(/hours/i);
+    expect(entityExplainer('CalABLE')).toMatch(/save|benefits/i);
+    expect(entityExplainer('Some Novel Entity')).toBeNull();
+  });
+
+  it('reads cadence in plain language', () => {
+    expect(cadenceNote('Yearly')).toMatch(/every year/i);
+    expect(cadenceNote('45 days')).toMatch(/clock/i);
+    expect(cadenceNote('Any time')).toMatch(/no deadline/i);
+    expect(cadenceNote('')).toBe('');
+  });
+
+  it('points each category at a guide screen that resolves from Home', () => {
+    for (const name of ['School District', 'Regional Center', 'IHSS', 'Insurance']) {
+      const g = entityGuide({ name, action: 'x', time: 'Yearly' });
+      expect(g, name).not.toBeNull();
+      expect(resolvesFrom('Home', { screen: g!.screen })).toBe(true);
+    }
+    // A general entity has no dedicated guide — the card still offers Ask.
+    expect(entityGuide({ name: 'Something else', action: 'x', time: '' })).toBeNull();
+  });
+
+  it('seeds a step-specific question naming the entity and the stage', () => {
+    const q = entityStepQuestion(PHASE.entities[0], PHASE, 'Autism', 'Teddy');
+    expect(q).toContain(PHASE.entities[0].name);
+    expect(q).toContain(PHASE.label);
+    expect(q).toContain('Teddy');
   });
 });
