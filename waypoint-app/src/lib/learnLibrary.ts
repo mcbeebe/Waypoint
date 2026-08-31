@@ -536,8 +536,109 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
       // The words a parent actually types when asking about money.
       terms: [
         'diapers', 'respite', 'camp', 'equipment', 'funding', 'fund', 'pay', 'pays',
-        'cover', 'covers', 'money', 'pañales', 'pagar', 'paga', 'cubre', 'dinero',
-        'tã', 'chi trả', 'trả', 'tiền',
+        'cover', 'covers', 'money', 'sibling', 'sibshop', 'pañales', 'pagar', 'paga',
+        'cubre', 'dinero', 'tã', 'chi trả', 'trả', 'tiền',
+      ],
+    },
+    {
+      key: 'sibling_support',
+      title: L(
+        'Sibling support: the Regional Center help most families never hear about',
+        'Apoyo para hermanos: la ayuda del Centro Regional de la que casi nadie se entera',
+        'Hỗ trợ anh chị em: sự trợ giúp của Trung tâm Khu vực mà hầu hết gia đình chưa nghe đến'
+      ),
+      // The catch, stated plainly: it exists, it's free, and it's invisible
+      // until you ask — because it has to tie to a need in the IPP first.
+      summary: L(
+        'The Regional Center can fund Sibshops, sibling counseling, respite for 1:1 time, family recreation, and parent training — for the brothers and sisters. The catch: it isn’t automatic. It has to connect to an identified need in the IPP, so it’s about asking, not assuming.',
+        'El Centro Regional puede financiar Sibshops, consejería para hermanos, relevo para tiempo a solas, recreación familiar y capacitación para padres — para los hermanos. El detalle: no es automático. Tiene que conectarse con una necesidad identificada en el IPP, así que se trata de pedir, no de suponer.',
+        'Trung tâm Khu vực có thể tài trợ Sibshops, tư vấn cho anh chị em, chăm sóc thay thế để có thời gian riêng, giải trí gia đình và huấn luyện cha mẹ — cho anh chị em. Điều cần lưu ý: nó không tự động. Nó phải gắn với một nhu cầu được xác định trong IPP, nên đây là chuyện đề nghị, không phải mặc định có sẵn.'
+      ),
+      minutes: 5,
+      citation: 'W&I §4646.5 · §4648(a)',
+      body: [
+        {
+          kind: 'para',
+          text: L(
+            'When a child has a disability, their brothers and sisters carry something too — and the Regional Center can help. Sibshops (peer groups made just for siblings), counseling for a sibling’s own adjustment, respite that frees up one-on-one time, inclusive family recreation, and parent training on the sibling relationship can all be funded.',
+            'Cuando un niño tiene una discapacidad, sus hermanos también cargan con algo — y el Centro Regional puede ayudar. Sibshops (grupos de pares hechos para hermanos), consejería para la adaptación de un hermano, relevo que libera tiempo a solas, recreación familiar inclusiva y capacitación para padres sobre la relación entre hermanos pueden financiarse.',
+            'Khi một trẻ có khuyết tật, anh chị em của bé cũng gánh vác điều gì đó — và Trung tâm Khu vực có thể giúp. Sibshops (nhóm bạn dành riêng cho anh chị em), tư vấn cho sự thích nghi của anh chị em, chăm sóc thay thế giúp có thời gian riêng, giải trí gia đình hòa nhập, và huấn luyện cha mẹ về mối quan hệ anh chị em đều có thể được tài trợ.'
+          ),
+        },
+        {
+          kind: 'callout',
+          text: L(
+            'The catch: it’s not automatic. A coordinator rarely offers it. It has to connect to an identified need in the IPP — so the move is getting that need written into the plan.',
+            'El detalle: no es automático. Un coordinador rara vez lo ofrece. Tiene que conectarse con una necesidad identificada en el IPP — así que el paso es lograr que esa necesidad quede escrita en el plan.',
+            'Điều cần lưu ý: nó không tự động. Điều phối viên hiếm khi đề nghị. Nó phải gắn với một nhu cầu được xác định trong IPP — nên việc cần làm là đưa nhu cầu đó vào kế hoạch.'
+          ),
+        },
+        {
+          kind: 'para',
+          text: L(
+            'What the IPP lists, the Regional Center has to secure. So sibling support starts the same way every family support does: name the need, ask to have it written into the plan, and request the support by name.',
+            'Lo que el IPP incluye, el Centro Regional debe conseguirlo. Así que el apoyo para hermanos empieza igual que todo apoyo familiar: nombre la necesidad, pida que quede escrita en el plan y solicite el apoyo por su nombre.',
+            'Điều gì IPP ghi, Trung tâm Khu vực phải bảo đảm. Vì vậy hỗ trợ anh chị em bắt đầu như mọi hỗ trợ gia đình khác: nêu nhu cầu, đề nghị ghi vào kế hoạch, và yêu cầu hỗ trợ theo tên.'
+          ),
+        },
+        {
+          kind: 'checklist',
+          label: L(
+            'Bring this to the IPP meeting',
+            'Lleve esto a la reunión del IPP',
+            'Mang điều này đến buổi họp IPP'
+          ),
+          items: [
+            L(
+              'The sibling’s need — anxious, withdrawn, or carrying too much',
+              'La necesidad del hermano — ansioso, retraído o cargando demasiado',
+              'Nhu cầu của anh chị em — lo lắng, thu mình hoặc gánh quá nhiều'
+            ),
+            L(
+              'That you’d like it noted as a family need in the plan',
+              'Que le gustaría que se anote como una necesidad familiar en el plan',
+              'Rằng quý vị muốn ghi nhận đó là nhu cầu của gia đình trong kế hoạch'
+            ),
+            L(
+              'The support you’re asking for by name — a Sibshop, counseling, respite',
+              'El apoyo que pide por su nombre — un Sibshop, consejería, relevo',
+              'Hỗ trợ quý vị đề nghị theo tên — một Sibshop, tư vấn, chăm sóc thay thế'
+            ),
+          ],
+        },
+      ],
+      stage: 'advocating',
+      primaryQuestion: L(
+        'Can the Regional Center fund support for my child’s siblings?',
+        '¿El Centro Regional puede financiar apoyo para los hermanos de mi hijo?',
+        'Trung tâm Khu vực có thể tài trợ hỗ trợ cho anh chị em của con tôi không?'
+      ),
+      relatedQuestions: [
+        L('What is a Sibshop?', '¿Qué es un Sibshop?', 'Sibshop là gì?'),
+        L('Can a sibling get counseling through the Regional Center?', '¿Un hermano puede recibir consejería a través del Centro Regional?', 'Anh chị em có thể nhận tư vấn qua Trung tâm Khu vực không?'),
+        L('How do I get a family need written into the IPP?', '¿Cómo agrego una necesidad familiar al IPP?', 'Làm sao để ghi một nhu cầu gia đình vào IPP?'),
+        L('Does respite count as sibling support?', '¿El relevo cuenta como apoyo para hermanos?', 'Chăm sóc thay thế có tính là hỗ trợ anh chị em không?'),
+        L('What if the coordinator says it’s not offered?', '¿Y si el coordinador dice que no se ofrece?', 'Nếu điều phối viên nói không có thì sao?'),
+      ],
+      bridge: {
+        label: L('Help me ask for sibling support', 'Ayúdame a pedir apoyo para hermanos', 'Giúp tôi đề nghị hỗ trợ anh chị em'),
+        blurb: L(
+          'Tell me what your other child is going through and I’ll help you make the case.',
+          'Dígame por lo que está pasando su otro hijo/a y le ayudaré a presentar el caso.',
+          'Hãy cho tôi biết con còn lại của quý vị đang trải qua điều gì và tôi sẽ giúp trình bày.'
+        ),
+        seed: L(
+          'I want to ask the Regional Center for sibling support for my child’s brother or sister.',
+          'Quiero pedirle al Centro Regional apoyo para el hermano o la hermana de mi hijo/a.',
+          'Tôi muốn đề nghị Trung tâm Khu vực hỗ trợ cho anh chị em của con tôi.'
+        ),
+      },
+      actionLabel: L('See the supports you can ask for', 'Ver los apoyos que puede pedir', 'Xem các hỗ trợ quý vị có thể đề nghị'),
+      target: { screen: 'Reimbursables', tab: 'Home' },
+      terms: [
+        'sibling', 'siblings', 'sibshop', 'sibshops', 'brother', 'sister', 'counseling',
+        'therapy', 'family support', 'hermano', 'hermana', 'hermanos', 'consejería',
+        'anh chị em', 'anh', 'chị', 'em', 'tư vấn', 'hỗ trợ gia đình',
       ],
     },
     {
