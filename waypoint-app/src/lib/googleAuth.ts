@@ -63,13 +63,34 @@ export async function signInWithGoogleWeb(): Promise<{ success: boolean; error?:
   return error ? { success: false, error: error.message } : { success: true };
 }
 
-/** Does the signed-in user already have a Google identity on their account? */
-async function hasGoogleIdentity(): Promise<boolean> {
+/**
+ * The Google identity already on this account, read from the LOCAL session —
+ * `getSession()` is served from storage, no network call, so a transient auth
+ * API failure can't misroute the connect (a wrong read that fell back to
+ * linkIdentity would drop an already-linked user straight back into the 422
+ * loop this fixes). Returns null when Google isn't linked yet.
+ */
+async function linkedGoogleIdentity(): Promise<{ email: string | null } | null> {
   try {
-    const { data } = await supabase.auth.getUserIdentities();
-    return !!data?.identities?.some((i) => i.provider === 'google');
+    const { data } = await supabase.auth.getSession();
+    const identities = (data.session?.user?.identities ?? []) as Array<{
+      provider: string;
+      identity_data?: { email?: string };
+    }>;
+    const google = identities.find((i) => i.provider === 'google');
+    return google ? { email: google.identity_data?.email ?? null } : null;
   } catch {
-    return false;
+    return null;
+  }
+}
+
+/** The Gmail/Calendar scopes already stored, so a connect never NARROWS them. */
+async function storedScopes(): Promise<string[]> {
+  try {
+    const { data } = await supabase.from('google_accounts').select('scopes').maybeSingle();
+    return data?.scopes ? String(data.scopes).split(' ').filter(Boolean) : [];
+  } catch {
+    return [];
   }
 }
 
@@ -90,17 +111,31 @@ async function hasGoogleIdentity(): Promise<boolean> {
  * signInWithOAuth is the path that works for an already-linked account (both
  * `access_type: offline` and `prompt: consent` are set, so Google returns a
  * fresh refresh token, which captureGoogleTokens then persists).
+ *
+ * Two guards on the re-consent path:
+ *  - request the UNION of already-granted and desired scopes, so the base
+ *    Calendar connect can never narrow an existing Gmail grant (which the gmail
+ *    edge function reads straight off the stored `scopes` column).
+ *  - pass `login_hint` with the linked Google email, so the account chooser
+ *    pre-selects the right account and a re-consent doesn't silently switch to
+ *    a different Google account.
  */
 async function startGoogleConnect(
   redirectPath: string,
-  scopes: string[]
+  desiredScopes: string[]
 ): Promise<{ success: boolean; error?: string }> {
+  const scopes = Array.from(new Set([...(await storedScopes()), ...desiredScopes]));
   await AsyncStorage.setItem(REQUESTED_SCOPES_KEY, scopes.join(' ')).catch(() => undefined);
-  const options = oauthOptions(redirectPath, scopes);
-  const linked = await hasGoogleIdentity();
-  const { error } = linked
-    ? await supabase.auth.signInWithOAuth({ provider: 'google', options })
-    : await supabase.auth.linkIdentity({ provider: 'google', options });
+  const google = await linkedGoogleIdentity();
+  const base = oauthOptions(redirectPath, scopes);
+  if (google) {
+    const options = google.email
+      ? { ...base, queryParams: { ...base.queryParams, login_hint: google.email } }
+      : base;
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options });
+    return error ? { success: false, error: error.message } : { success: true };
+  }
+  const { error } = await supabase.auth.linkIdentity({ provider: 'google', options: base });
   return error ? { success: false, error: error.message } : { success: true };
 }
 
