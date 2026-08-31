@@ -11,7 +11,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { ChatMeta, ChatStep, ChatResource } from '@/lib/followups';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
 
 const CATEGORY_LABELS: Record<string, string> = {
   'regional-center': 'Regional Center',
@@ -71,7 +71,7 @@ export default function ChatMetaCards({
       )}
 
       {meta.rights && (
-        <NoteCard icon="scale-outline" color="#6366F1" bg="#EEF2FF" title="Your right" text={meta.rights} />
+        <NoteCard icon="scale-outline" color={brand.pine} bg={brand.pineTint} title="Your right" text={meta.rights} />
       )}
       {meta.context && (
         <NoteCard icon="bulb-outline" color="#B45309" bg="#FEF3C7" title="Good to know" text={meta.context} />
@@ -117,7 +117,7 @@ function StepsCard({
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.cardTitleRow}>
-          <Ionicons name="footsteps-outline" size={16} color={colors.teal} />
+          <Ionicons name="footsteps-outline" size={16} color={brand.pine} />
           <Text style={styles.cardTitle}>Your next steps</Text>
         </View>
         {onSaveAll && steps.length > 1 && !allSaved && (
@@ -163,7 +163,7 @@ function StepsCard({
                 <Ionicons
                   name={saved ? 'checkmark' : 'add'}
                   size={16}
-                  color={saved ? colors.white : colors.teal}
+                  color={saved ? colors.white : brand.pine}
                 />
               </TouchableOpacity>
             )}
@@ -214,7 +214,7 @@ function ResourcesCard({ resources }: { resources: ChatResource[] }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardTitleRow}>
-        <Ionicons name="people-outline" size={16} color={colors.teal} />
+        <Ionicons name="people-outline" size={16} color={brand.pine} />
         <Text style={styles.cardTitle}>Who can help</Text>
       </View>
       {resources.map((r, i) => (
@@ -229,7 +229,7 @@ function ResourcesCard({ resources }: { resources: ChatResource[] }) {
                 accessibilityRole="button"
                 accessibilityLabel={`Call ${r.name} at ${r.phone}`}
               >
-                <Ionicons name="call-outline" size={13} color={colors.teal} />
+                <Ionicons name="call-outline" size={13} color={brand.pine} />
                 <Text style={styles.resourceLinkText}>{r.phone}</Text>
               </TouchableOpacity>
             )}
@@ -240,7 +240,7 @@ function ResourcesCard({ resources }: { resources: ChatResource[] }) {
                 accessibilityRole="button"
                 accessibilityLabel={`Open ${r.name} website`}
               >
-                <Ionicons name="open-outline" size={13} color={colors.teal} />
+                <Ionicons name="open-outline" size={13} color={brand.pine} />
                 <Text style={styles.resourceLinkText} numberOfLines={1}>
                   {r.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
                 </Text>
@@ -264,14 +264,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   categoryBadge: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radii.sm,
   },
   categoryBadgeText: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.medium as '500',
   },
   urgentBadge: {
@@ -289,11 +289,11 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.semibold as '600',
   },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.md,
     padding: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -310,11 +310,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.semibold as '600',
-    color: colors.navy,
+    color: brand.ink,
   },
   saveAllText: {
     fontSize: fonts.sizes.xs,
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.semibold as '600',
   },
   stepRow: {
@@ -324,20 +324,20 @@ const styles = StyleSheet.create({
   },
   stepRowBorder: {
     borderTopWidth: 1,
-    borderTopColor: colors.light,
+    borderTopColor: brand.paper,
   },
   stepNum: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#E6F7F5',
+    backgroundColor: brand.pineTint,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 1,
   },
   stepNumText: {
     fontSize: fonts.sizes.xs,
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.bold as '700',
   },
   stepBody: {
@@ -345,32 +345,32 @@ const styles = StyleSheet.create({
   },
   stepAction: {
     fontSize: fonts.sizes.sm,
-    color: colors.dark,
+    color: brand.inkSoft,
     lineHeight: 19,
   },
   stepMeta: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginTop: 2,
   },
   scriptBox: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderRadius: radii.sm,
     padding: spacing.sm,
     marginTop: 6,
     borderLeftWidth: 3,
-    borderLeftColor: colors.teal,
+    borderLeftColor: brand.pine,
   },
   scriptLabel: {
     fontSize: 10,
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.semibold as '600',
     textTransform: 'uppercase',
     marginBottom: 2,
   },
   scriptText: {
     fontSize: fonts.sizes.xs,
-    color: colors.dark,
+    color: brand.inkSoft,
     fontStyle: 'italic',
     lineHeight: 17,
   },
@@ -379,13 +379,13 @@ const styles = StyleSheet.create({
     height: 26,
     borderRadius: 13,
     borderWidth: 1,
-    borderColor: colors.teal,
+    borderColor: brand.pine,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 1,
   },
   stepSaveBtnDone: {
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
   },
   noteCard: {
     flexDirection: 'row',
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
   },
   noteText: {
     fontSize: fonts.sizes.xs,
-    color: colors.dark,
+    color: brand.inkSoft,
     lineHeight: 17,
   },
   resourceRow: {
@@ -416,11 +416,11 @@ const styles = StyleSheet.create({
   resourceName: {
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.medium as '500',
-    color: colors.dark,
+    color: brand.inkSoft,
   },
   resourceHow: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginTop: 1,
   },
   resourceLinks: {
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   },
   resourceLinkText: {
     fontSize: fonts.sizes.xs,
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.medium as '500',
     maxWidth: 180,
   },
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     borderRadius: radii.md,
     paddingVertical: spacing.base,
     paddingHorizontal: spacing.md,
