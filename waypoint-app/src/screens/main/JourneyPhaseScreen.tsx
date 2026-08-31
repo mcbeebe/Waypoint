@@ -54,7 +54,10 @@ export default function JourneyPhaseScreen() {
   // state — the local Set reset on remount, so the + reverted and re-added a
   // duplicate (owner, Aug 31). A step matches by its deterministic title; a
   // dismissed action doesn't count as on-plan.
-  const plannedTitles = useMemo(() => onPlanTitles(actions), [actions]);
+  const plannedTitles = useMemo(
+    () => onPlanTitles(actions, primaryChild?.id),
+    [actions, primaryChild?.id]
+  );
   const isAdded = useCallback(
     (index: number) => addedIndexes.has(index) || plannedTitles.has(drafts[index]?.title),
     [addedIndexes, plannedTitles, drafts]

@@ -405,6 +405,14 @@ export default function PlanScreen() {
     const mon = MONTHS[funnelLocale][Number(m[2]) - 1] ?? m[2];
     return funnelLocale === 'vi' ? `${Number(m[3])} ${mon}` : `${mon} ${Number(m[3])}`;
   };
+  // created_at is a UTC timestamptz; render it in the LOCAL calendar day so an
+  // evening add doesn't read as tomorrow (fmtDue's UTC-prefix parse would).
+  const fmtAdded = (iso: string) => {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const mon = MONTHS[funnelLocale][d.getMonth()] ?? '';
+    return funnelLocale === 'vi' ? `${d.getDate()} ${mon}` : `${mon} ${d.getDate()}`;
+  };
 
   const actionRow = (a: (typeof actions)[number]) => {
     const isDone = a.status === 'completed';
@@ -421,7 +429,7 @@ export default function PlanScreen() {
     const dueMeta = a.due_date ? `${t.due} ${fmtDue(a.due_date)}` : '';
     // When it joined the plan (owner, Aug 31) — created_at is an ISO timestamp,
     // fmtDue reads its date prefix.
-    const addedMeta = a.created_at ? `${t.added} ${fmtDue(a.created_at)}` : '';
+    const addedMeta = a.created_at ? `${t.added} ${fmtAdded(a.created_at)}` : '';
     const meta = [dueMeta, addedMeta].filter(Boolean).join('  ·  ');
     return (
       <Pressable

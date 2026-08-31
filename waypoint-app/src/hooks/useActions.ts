@@ -145,28 +145,34 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
     };
 
     try {
-      // Dedup (owner, Aug 31): the journey "+" and "Add all" re-fire on every
-      // visit — their local "added" state resets on remount — and this insert
-      // was unconditional, so identical steps stacked up as duplicate "To do"
-      // rows. Before inserting, return an existing OPEN action with the same
-      // child + title instead. A completed or dismissed one does NOT block a
-      // fresh add (a yearly task can come back). Fixes every insert caller.
-      let dupQuery = supabase
-        .from('actions')
-        .select('*')
-        .eq('family_id', familyId)
-        .eq('title', newAction.title as string)
-        .in('status', ['not_started', 'in_progress'])
-        .limit(1);
-      dupQuery = data.child_id
-        ? dupQuery.eq('child_id', data.child_id)
-        : dupQuery.is('child_id', null);
-      const { data: dupRows } = await retryQuery(() => dupQuery);
-      const existing = (dupRows as Action[] | null)?.[0];
-      if (existing) {
-        // Make sure it's in local state, but never insert a duplicate.
-        setActions((prev) => (prev.some((a) => a.id === existing.id) ? prev : [existing, ...prev]));
-        return existing;
+      // Dedup (owner, Aug 31) — SYSTEM adds only. The journey "+" and "Add all"
+      // re-fire on every visit (their local "added" state resets on remount)
+      // and this insert was unconditional, so identical steps stacked up as
+      // duplicate "To do" rows. Before inserting a `system` action, return an
+      // existing OPEN one with the same child + title instead. Scoped to
+      // `system` on purpose: a manual or AI-navigator add of the same title is
+      // a distinct action the parent meant to create (its own description, due
+      // date), so those paths are never deduped. A completed or dismissed one
+      // does NOT block a fresh add (a yearly task can come back).
+      if ((newAction.source ?? 'manual') === 'system') {
+        let dupQuery = supabase
+          .from('actions')
+          .select('*')
+          .eq('family_id', familyId)
+          .eq('title', newAction.title as string)
+          .eq('source', 'system')
+          .in('status', ['not_started', 'in_progress'])
+          .limit(1);
+        dupQuery = data.child_id
+          ? dupQuery.eq('child_id', data.child_id)
+          : dupQuery.is('child_id', null);
+        const { data: dupRows } = await retryQuery(() => dupQuery);
+        const existing = (dupRows as Action[] | null)?.[0];
+        if (existing) {
+          // Make sure it's in local state, but never insert a duplicate.
+          setActions((prev) => (prev.some((a) => a.id === existing.id) ? prev : [existing, ...prev]));
+          return existing;
+        }
       }
 
       const { data: created, error: dbError } = await retryQuery(() =>

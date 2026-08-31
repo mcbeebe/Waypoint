@@ -1,49 +1,60 @@
 /**
  * Plan membership (owner, Aug 31 2026) — the reconcile that stops the journey
- * "＋" from re-adding a step that's already on the plan.
+ * "＋" from re-adding a step already on the plan. It MUST agree with
+ * createAction's dedup key (open · source 'system' · same child), or the UI
+ * masks the ＋ for a child who doesn't have the step — the multi-child defect
+ * an adversary pass caught.
  */
 import { describe, it, expect } from 'vitest';
 import { onPlanTitles } from './planMembership';
 import type { Action } from '@/types/database';
 
-const act = (title: string, status: Action['status']): Pick<Action, 'title' | 'status'> => ({
+type A = Pick<Action, 'title' | 'status' | 'source' | 'child_id'>;
+const act = (title: string, status: Action['status'], source: Action['source'], child_id: string | null): A => ({
   title,
   status,
+  source,
+  child_id,
 });
 
-describe('onPlanTitles reflects what is OPEN on the plan', () => {
-  it('includes not_started and in_progress actions by title', () => {
-    const titles = onPlanTitles([
-      act('School District: Annual IEP reviews', 'not_started'),
-      act('Regional Center: Annual IPP review', 'in_progress'),
-    ]);
-    expect(titles.has('School District: Annual IEP reviews')).toBe(true);
-    expect(titles.has('Regional Center: Annual IPP review')).toBe(true);
+const IEP = 'School District: Annual IEP reviews';
+
+describe('onPlanTitles reflects what is OPEN on the plan for a given child', () => {
+  it('includes open system actions for the matching child', () => {
+    const titles = onPlanTitles([act(IEP, 'not_started', 'system', 'childA')], 'childA');
+    expect(titles.has(IEP)).toBe(true);
   });
 
-  it('excludes dismissed actions — a step set aside can be added again', () => {
-    const titles = onPlanTitles([act('IHSS: Annual hour reassessment', 'dismissed')]);
-    expect(titles.has('IHSS: Annual hour reassessment')).toBe(false);
+  it('does NOT count a SIBLING’s identical-title action — the multi-child bug', () => {
+    // The title is child-independent, so B's open step must not mask A's ＋.
+    const titles = onPlanTitles([act(IEP, 'not_started', 'system', 'childB')], 'childA');
+    expect(titles.has(IEP), 'child A should still be addable').toBe(false);
   });
 
-  it('excludes completed actions — a recurring task can come back next cycle', () => {
-    const titles = onPlanTitles([act('Regional Center: Annual IPP review', 'completed')]);
-    expect(titles.has('Regional Center: Annual IPP review')).toBe(false);
+  it('does NOT count a manual or AI action of the same title — different intent', () => {
+    const rows = [
+      act(IEP, 'not_started', 'manual', 'childA'),
+      act(IEP, 'not_started', 'ai_navigator', null),
+    ];
+    expect(onPlanTitles(rows, 'childA').has(IEP)).toBe(false);
   });
 
-  it('is empty for an empty plan (so nothing reads as already-added)', () => {
-    expect(onPlanTitles([]).size).toBe(0);
+  it('excludes dismissed and completed — a set-aside or recurring step can return', () => {
+    expect(onPlanTitles([act(IEP, 'dismissed', 'system', 'childA')], 'childA').has(IEP)).toBe(false);
+    expect(onPlanTitles([act(IEP, 'completed', 'system', 'childA')], 'childA').has(IEP)).toBe(false);
   });
 
-  it('dedupes identical titles into one set entry', () => {
-    // The exact bug: the same step inserted many times. The set collapses them,
-    // so one open copy reads as "on your plan".
-    const titles = onPlanTitles([
-      act('School District: Annual IEP reviews', 'not_started'),
-      act('School District: Annual IEP reviews', 'not_started'),
-      act('School District: Annual IEP reviews', 'not_started'),
-    ]);
-    expect(titles.size).toBe(1);
-    expect(titles.has('School District: Annual IEP reviews')).toBe(true);
+  it('matches the family (null-child) scope symmetrically', () => {
+    expect(onPlanTitles([act(IEP, 'in_progress', 'system', null)], null).has(IEP)).toBe(true);
+    expect(onPlanTitles([act(IEP, 'in_progress', 'system', 'childA')], null).has(IEP)).toBe(false);
+  });
+
+  it('collapses identical open rows for the same child into one', () => {
+    const rows = [
+      act(IEP, 'not_started', 'system', 'childA'),
+      act(IEP, 'not_started', 'system', 'childA'),
+      act(IEP, 'not_started', 'system', 'childA'),
+    ];
+    expect(onPlanTitles(rows, 'childA').size).toBe(1);
   });
 });
