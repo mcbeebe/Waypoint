@@ -136,6 +136,31 @@ export default function JourneyScreen() {
           <Text style={styles.stackEntryGo}>→</Text>
         </Pressable>
 
+        {/* Your Result — the eligibility snapshot, same card shape as the stack
+            above (owner request, Aug 31 2026). Opens in the Home stack, where
+            EligibilityResult is registered. */}
+        <Pressable
+          style={styles.stackEntry}
+          onPress={() => goHome('EligibilityResult')}
+          accessibilityRole="button"
+          accessibilityLabel={esUI ? 'Su resultado' : viUI ? 'Kết quả của quý vị' : 'Your Result'}
+        >
+          <Text style={styles.stackEntryIcon}>🎯</Text>
+          <View style={styles.stackEntryBody}>
+            <Text style={[styles.stackEntryTitle, { fontSize: sz(15) }]}>
+              {esUI ? 'Su resultado' : viUI ? 'Kết quả của quý vị' : 'Your Result'}
+            </Text>
+            <Text style={[styles.stackEntrySub, { fontSize: sz(12.5) }]}>
+              {esUI
+                ? 'Para qué puede calificar su hijo/a — con la regla detrás de cada punto.'
+                : viUI
+                  ? 'Con quý vị có thể đủ điều kiện cho gì — kèm quy định của từng mục.'
+                  : 'What your child may qualify for — with the rule behind each one.'}
+            </Text>
+          </View>
+          <Text style={styles.stackEntryGo}>→</Text>
+        </Pressable>
+
         {/* Intro */}
         <Card>
           <Text style={[styles.intro, { fontSize: sz(14.5), lineHeight: sz(22) }]}>

@@ -150,3 +150,29 @@ describe('provenance coverage the 8-2 review must close', () => {
     expect(uncovered, 'unregistered derived citations').toEqual([]);
   });
 });
+
+describe('a derived article carries a grounded bridge (Slice A)', () => {
+  it('sets primaryQuestion to the title, leaves relatedQuestions for the human pass, and seeds from the title', () => {
+    for (const a of deriveArticles('en')) {
+      expect(a.primaryQuestion, `${a.key} primaryQuestion`).toBe(a.title);
+      // The harness does not fabricate next-questions — 8-2 authors them.
+      expect(a.relatedQuestions, `${a.key} relatedQuestions`).toEqual([]);
+      expect(a.bridge.label.length, `${a.key} bridge.label`).toBeGreaterThan(0);
+      expect(a.bridge.blurb.length, `${a.key} bridge.blurb`).toBeGreaterThan(0);
+      // Seed is grounded in the module's own title — nothing new asserted.
+      expect(a.bridge.seed, `${a.key} bridge.seed`).toContain(a.title);
+    }
+  });
+
+  it('translates the derived bridge across locales', () => {
+    const en = deriveArticles('en');
+    for (const loc of ['es', 'vi'] as const) {
+      deriveArticles(loc).forEach((a, i) => {
+        expect(a.bridge.label, `${a.key} ${loc} bridge.label`).not.toBe(en[i].bridge.label);
+        expect(a.bridge.blurb, `${a.key} ${loc} bridge.blurb`).not.toBe(en[i].bridge.blurb);
+        // Seed = translated frame + the module's own (localized) title.
+        expect(a.bridge.seed, `${a.key} ${loc} bridge.seed`).not.toBe(en[i].bridge.seed);
+      });
+    }
+  });
+});
