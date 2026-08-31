@@ -6,9 +6,10 @@
  * seeds the search with a real query, so a parent sees what Waypoint can do
  * before they've typed a word.
  *
- * Each `seed` is a genuine query the Home search already answers (an article, a
- * guide, a tool, or — always — the AI). Pure and trilingual so parity and the
- * "no dead starter" invariant are unit-testable; HomeScreen just renders them.
+ * Each `seed` is a genuine query the Home search answers with the RIGHT result
+ * (an article or tool — and always the AI as a floor). Pure and trilingual so
+ * parity, "no dead starter", and "the seed finds its intended article" are all
+ * unit-testable; HomeScreen just renders them.
  */
 import type { FunnelLocale } from '@/lib/eligibility';
 
@@ -25,13 +26,6 @@ export interface HomeStarter {
   label: string;
   /** The query it drops into the search box. */
   seed: string;
-  /**
-   * True for a starter whose rich result depends on content not yet on this
-   * branch (sibling support ships in initiative 005). It never dead-ends — the
-   * AI answers it today — so the "every starter resolves in the library" test
-   * skips only these, and they light up on their own once the content lands.
-   */
-  pendingContent?: boolean;
 }
 
 export function getHomeStarters(locale: FunnelLocale = 'en'): HomeStarter[] {
@@ -54,13 +48,18 @@ export function getHomeStarters(locale: FunnelLocale = 'en'): HomeStarter[] {
       icon: 'people-circle-outline',
       label: L('Sibling support', 'Apoyo para hermanos', 'Hỗ trợ anh chị em'),
       seed: L('sibling support', 'apoyo para hermanos', 'hỗ trợ anh chị em'),
-      pendingContent: true,
     },
     {
       key: 'respite',
       icon: 'bed-outline',
       label: L('Respite', 'Relevo', 'Chăm sóc thay thế'),
-      seed: L('respite', 'relevo', 'respite'),
+      // The seed is the word the FUNDING article indexes, not the label. In
+      // Spanish that's "respiro" (its summary), not the more common "relevo"
+      // (which the sibling-support article's summary also uses, so "relevo"
+      // would open the wrong article). In Vietnamese the native phrase
+      // "chăm sóc thay thế" top-resolves to the sibling article too, so the
+      // seed stays "respite" — the word that reliably lands the funding guide.
+      seed: L('respite', 'respiro', 'respite'),
     },
   ];
 }

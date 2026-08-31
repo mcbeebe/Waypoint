@@ -3,8 +3,9 @@
  *
  * HomeScreen is too data-heavy to render in the ui suite, so — like
  * homeSearch.test.ts — this pins the contract the chips depend on: every
- * starter is a real query the search answers (no dead chip), and the set is in
- * full trilingual parity.
+ * starter is a real query the search answers with the RIGHT result (not just
+ * *a* result — the "relevo → sibling article" miss an adversary caught), and
+ * the set is in full trilingual parity.
  */
 import { describe, it, expect } from 'vitest';
 import { getHomeStarters } from './homeStarters';
@@ -12,6 +13,14 @@ import { searchLearn } from './learnLibrary';
 import { searchToolsForHome } from './toolsCatalog';
 
 const LOCALES = ['en', 'es', 'vi'] as const;
+
+/** The article or tool each starter is meant to surface, for the relevance check. */
+const INTENDED: Record<string, { learn?: string; tool?: string }> = {
+  said_no: { learn: 'rc_said_no' },
+  read_iep: { tool: 'analyze_iep' },
+  sibling_support: { learn: 'sibling_support' },
+  respite: { learn: 'rc_money' },
+};
 
 describe('the starters are real, tappable openers', () => {
   it('offers four, each with an icon, a label and a seed', () => {
@@ -26,45 +35,60 @@ describe('the starters are real, tappable openers', () => {
     }
   });
 
-  it('never seeds a dead search — every evergreen starter resolves in every language', () => {
-    // A starter that isn't pendingContent must land a real hit (article, guide,
-    // or tool) so the chip shows something, not an empty panel. Sibling support
-    // is pendingContent (its article ships in initiative 005) — it never
-    // dead-ends because the AI always answers, so it's excluded here and lights
-    // up on its own once the content lands.
+  it('seeds the RIGHT result in every language — not just any hit', () => {
+    // >0 isn't enough: a seed that resolves to the wrong article is a worse
+    // failure than a blank one, because it looks like it worked. Each seed must
+    // surface its intended article (or tool) among the hits.
     for (const loc of LOCALES) {
       for (const s of getHomeStarters(loc)) {
-        if (s.pendingContent) continue;
-        const hits = searchLearn(s.seed, loc).length + searchToolsForHome(s.seed, loc).length;
-        expect(hits, `${loc}: "${s.seed}" (${s.key}) found nothing`).toBeGreaterThan(0);
+        const want = INTENDED[s.key];
+        const learn = searchLearn(s.seed, loc).map((h) => h.key);
+        const tools = searchToolsForHome(s.seed, loc).map((h) => h.key);
+        if (want.learn) {
+          expect(learn, `${loc}: "${s.seed}" (${s.key}) should surface ${want.learn}`).toContain(
+            want.learn
+          );
+        }
+        if (want.tool) {
+          expect(tools, `${loc}: "${s.seed}" (${s.key}) should surface ${want.tool}`).toContain(
+            want.tool
+          );
+        }
       }
     }
   });
 });
 
 describe('full trilingual parity', () => {
-  it('gives every locale the same keys, icons and pending flags', () => {
+  it('gives every locale the same keys and icons', () => {
     const en = getHomeStarters('en');
     for (const loc of ['es', 'vi'] as const) {
       const other = getHomeStarters(loc);
       expect(other.map((s) => s.key)).toEqual(en.map((s) => s.key));
       expect(other.map((s) => s.icon)).toEqual(en.map((s) => s.icon));
-      expect(other.map((s) => !!s.pendingContent)).toEqual(en.map((s) => !!s.pendingContent));
     }
   });
 
-  it('translates the label and the seed rather than repeating English', () => {
+  it('translates the label rather than repeating English', () => {
     const en = getHomeStarters('en');
     for (const loc of ['es', 'vi'] as const) {
       getHomeStarters(loc).forEach((s, i) => {
         expect(s.label, `${s.key} ${loc} label`).not.toBe(en[i].label);
-        // The seed is what a parent in that language would actually type.
-        // (Respite's VI seed stays "respite" — that's the word the funding
-        // article indexes — so this asserts the label, and the seed only where
-        // a native word exists.)
-        if (s.key !== 'respite' || loc !== 'vi') {
-          expect(s.seed, `${s.key} ${loc} seed`).not.toBe(en[i].seed);
-        }
+      });
+    }
+  });
+
+  it('translates the seed too — except respite, whose seed is the indexing word', () => {
+    // The respite seed is deliberately the funding article's indexing word, not
+    // a native-language translation: the ES "relevo" and the VI native phrase
+    // both top-resolve to the sibling article instead. So the label is native,
+    // the seed is what reliably lands the funding guide. Every OTHER starter's
+    // seed is a real translation.
+    const en = getHomeStarters('en');
+    for (const loc of ['es', 'vi'] as const) {
+      getHomeStarters(loc).forEach((s, i) => {
+        if (s.key === 'respite') return;
+        expect(s.seed, `${s.key} ${loc} seed`).not.toBe(en[i].seed);
       });
     }
   });

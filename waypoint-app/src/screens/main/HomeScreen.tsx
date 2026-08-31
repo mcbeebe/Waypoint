@@ -142,12 +142,19 @@ const PLAN_RESULT: Record<FunnelLocale, string> = {
   vi: 'Đến kế hoạch hành động của tôi',
 };
 
-/** Get time-based greeting (ported from GAS MVP) */
-function getGreeting(): string {
+/** Time-based greeting, in the family's own language (ported from GAS MVP,
+ *  localized in the Home refresh). */
+const GREETING: Record<FunnelLocale, { morning: string; afternoon: string; evening: string }> = {
+  en: { morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening' },
+  es: { morning: 'Buenos días', afternoon: 'Buenas tardes', evening: 'Buenas noches' },
+  vi: { morning: 'Chào buổi sáng', afternoon: 'Chào buổi chiều', evening: 'Chào buổi tối' },
+};
+function getGreeting(locale: FunnelLocale): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
+  const g = GREETING[locale];
+  if (hour < 12) return g.morning;
+  if (hour < 17) return g.afternoon;
+  return g.evening;
 }
 
 export default function HomeScreen() {
@@ -587,7 +594,7 @@ function HomeScreenInner({
               <Text style={styles.wordmark}>WAYPOINT</Text>
             </View>
             <Text style={styles.greeting}>
-              {getGreeting()}
+              {getGreeting(funnelLocale)}
               {family?.parent_first_name ? `, ${family.parent_first_name}` : ''} 👋
             </Text>
             <ChildPicker />
