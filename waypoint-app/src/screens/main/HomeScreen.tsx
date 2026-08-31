@@ -54,7 +54,7 @@ import { FLAGS } from '@/lib/flags';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
-import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
+import { colors, brand, fonts, semantic, spacing, radii } from '@/lib/theme';
 import AccountMenu from '@/components/AccountMenu';
 import { Brandmark } from '@/components/Brandmark';
 import type { RcStatus, IepStatus } from '@/types/database';
@@ -569,7 +569,7 @@ function HomeScreenInner({
           }
         >
           <View style={styles.readingCard} accessible accessibilityViewIsModal>
-            <ActivityIndicator size="small" color={colors.teal} />
+            <ActivityIndicator size="small" color={brand.pine} />
             <Text style={styles.readingText}>
               {funnelLocale === 'es'
                 ? 'Waypoint está leyendo su respuesta…'
@@ -646,20 +646,20 @@ function HomeScreenInner({
                 and tappable starters so the box is never blank. */}
             <View style={styles.askCard}>
               <View style={styles.composer}>
-                <Ionicons name="search" size={20} color={colors.teal} />
+                <Ionicons name="search" size={20} color={brand.pine} />
                 <TextInput
                   style={styles.composerInput}
                   value={homeQuery}
                   onChangeText={setHomeQuery}
                   placeholder={COMPOSER_PLACEHOLDER[funnelLocale]}
-                  placeholderTextColor={colors.mid}
+                  placeholderTextColor={brand.inkFaint}
                   returnKeyType="search"
                   onSubmitEditing={askAI}
                   accessibilityLabel={COMPOSER_LABEL[funnelLocale]}
                 />
                 {homeQuery.length > 0 && (
                   <Pressable onPress={() => setHomeQuery('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear">
-                    <Ionicons name="close-circle" size={18} color={colors.mid} />
+                    <Ionicons name="close-circle" size={18} color={brand.inkFaint} />
                   </Pressable>
                 )}
                 <Pressable
@@ -683,7 +683,7 @@ function HomeScreenInner({
                       accessibilityRole="button"
                       accessibilityLabel={s.label}
                     >
-                      <Ionicons name={s.icon as any} size={13} color={colors.teal} />
+                      <Ionicons name={s.icon as any} size={13} color={brand.pine} />
                       <Text style={styles.chipText}>{s.label}</Text>
                     </Pressable>
                   ))}
@@ -700,9 +700,9 @@ function HomeScreenInner({
                 accessibilityRole="button"
                 accessibilityLabel={PLAN_SHORTCUT[funnelLocale]}
               >
-                <Ionicons name="clipboard-outline" size={18} color={colors.teal} />
+                <Ionicons name="clipboard-outline" size={18} color={brand.pine} />
                 <Text style={styles.planShortcutText}>{PLAN_SHORTCUT[funnelLocale]}</Text>
-                <Ionicons name="arrow-forward" size={16} color={colors.mid} />
+                <Ionicons name="arrow-forward" size={16} color={brand.inkFaint} />
               </Pressable>
             )}
 
@@ -718,12 +718,12 @@ function HomeScreenInner({
                     accessibilityRole="button"
                     accessibilityLabel={`${tool.label}. ${tool.description}`}
                   >
-                    <Ionicons name={tool.icon as any} size={18} color={colors.teal} />
+                    <Ionicons name={tool.icon as any} size={18} color={brand.pine} />
                     <View style={styles.resultBody}>
                       <Text style={styles.resultTitle} numberOfLines={1}>{tool.label}</Text>
                       <Text style={styles.resultKind}>{TOOL_KIND[funnelLocale]}</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+                    <Ionicons name="chevron-forward" size={16} color={brand.inkFaint} />
                   </Pressable>
                 ))}
                 {/* When the query reads as plan intent, offer the Plan tab too —
@@ -735,11 +735,11 @@ function HomeScreenInner({
                     accessibilityRole="button"
                     accessibilityLabel={PLAN_RESULT[funnelLocale]}
                   >
-                    <Ionicons name="clipboard-outline" size={18} color={colors.teal} />
+                    <Ionicons name="clipboard-outline" size={18} color={brand.pine} />
                     <View style={styles.resultBody}>
                       <Text style={styles.resultTitle} numberOfLines={1}>{PLAN_RESULT[funnelLocale]}</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+                    <Ionicons name="chevron-forward" size={16} color={brand.inkFaint} />
                   </Pressable>
                 )}
                 {homeHits.map((hit) =>
@@ -753,7 +753,7 @@ function HomeScreenInner({
                       accessibilityRole="text"
                       accessibilityLabel={`${hit.title}: ${hit.detail}`}
                     >
-                      <Ionicons name="book-outline" size={18} color={colors.teal} />
+                      <Ionicons name="book-outline" size={18} color={brand.pine} />
                       <View style={styles.resultBody}>
                         <Text style={styles.resultTitle}>{hit.title}</Text>
                         <Text style={styles.resultDefn}>{hit.detail}</Text>
@@ -770,13 +770,13 @@ function HomeScreenInner({
                       <Ionicons
                         name={hit.kind === 'path' ? 'compass-outline' : 'document-text-outline'}
                         size={18}
-                        color={colors.teal}
+                        color={brand.pine}
                       />
                       <View style={styles.resultBody}>
                         <Text style={styles.resultTitle} numberOfLines={1}>{hit.title}</Text>
                         <Text style={styles.resultKind}>{HINT_KINDS[funnelLocale][hit.kind]}</Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+                      <Ionicons name="chevron-forward" size={16} color={brand.inkFaint} />
                     </Pressable>
                   )
                 )}
@@ -787,11 +787,11 @@ function HomeScreenInner({
                   accessibilityRole="button"
                   accessibilityLabel={`${ASK_AI_ROW[funnelLocale]}: ${homeQuery.trim()}`}
                 >
-                  <Ionicons name="sparkles-outline" size={18} color={colors.teal} />
+                  <Ionicons name="sparkles-outline" size={18} color={brand.pine} />
                   <Text style={styles.askAiText} numberOfLines={1}>
                     {ASK_AI_ROW[funnelLocale]} — “{homeQuery.trim()}”
                   </Text>
-                  <Ionicons name="arrow-forward" size={16} color={colors.teal} />
+                  <Ionicons name="arrow-forward" size={16} color={brand.pine} />
                 </Pressable>
               </View>
             )}
@@ -819,7 +819,7 @@ function HomeScreenInner({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFB',
+    backgroundColor: brand.paper,
   },
   scrollContent: {
     padding: spacing.lg,
@@ -834,8 +834,9 @@ const styles = StyleSheet.create({
   headerLeft: {
     flex: 1,
   },
-  // The compass wordmark — the "GPS for the journey" identity, on the screen a
-  // family opens most. Small, so it frames the greeting rather than shouting.
+  // The Waypoint marker + wordmark — the "GPS for the journey" identity, on the
+  // screen a family opens most. Small, so it frames the greeting rather than
+  // shouting.
   brandmark: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -846,19 +847,19 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.extrabold as '800',
     letterSpacing: 1.2,
-    color: colors.navy,
+    color: brand.ink,
   },
   greeting: {
     fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
     marginBottom: 4,
   },
   avatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -867,13 +868,13 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
     color: colors.white,
   },
-  // The branded surface the composer sits on — a faint teal wash, the palette
+  // The branded surface the composer sits on — a faint pine wash, the palette
   // used once so this reads as "Waypoint's brain" while the rest stays calm.
   askCard: {
-    backgroundColor: '#F0FAFC',
+    backgroundColor: brand.pineTint,
     borderRadius: radii.xl,
     borderWidth: 1,
-    borderColor: '#D8ECF1',
+    borderColor: brand.border,
     padding: spacing.sm + 2,
     marginBottom: spacing.md,
   },
@@ -884,13 +885,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     minHeight: 60,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.lg,
     borderWidth: 1.5,
-    borderColor: '#B9E2EC',
+    borderColor: brand.borderStrong,
     paddingLeft: spacing.base,
     paddingRight: spacing.xs + 2,
-    shadowColor: colors.teal,
+    shadowColor: brand.pine,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.14,
     shadowRadius: 10,
@@ -899,19 +900,19 @@ const styles = StyleSheet.create({
   composerInput: {
     flex: 1,
     fontSize: 16,
-    color: colors.navy,
+    color: brand.ink,
     paddingVertical: 0,
   },
   askBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     minHeight: 44,
   },
-  askBtnPressed: { backgroundColor: '#0E7490' },
+  askBtnPressed: { backgroundColor: brand.pineDeep },
   askBtnText: {
     color: colors.white,
     fontSize: fonts.sizes.md,
@@ -929,38 +930,38 @@ const styles = StyleSheet.create({
   },
   starterHint: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.semibold as '600',
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 1,
-    borderColor: '#D6E6EC',
+    borderColor: brand.border,
     borderRadius: radii.full,
     paddingVertical: spacing.xs + 2,
     paddingHorizontal: spacing.md,
   },
-  chipPressed: { backgroundColor: '#E0F2F7' },
+  chipPressed: { backgroundColor: brand.pineTint },
   chipText: {
     fontSize: fonts.sizes.sm,
-    color: colors.dark,
+    color: brand.inkSoft,
     fontWeight: fonts.weights.semibold as '600',
   },
   mindPrompt: {
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
     marginBottom: spacing.sm,
     letterSpacing: -0.2,
   },
   results: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     marginTop: -spacing.xs,
     marginBottom: spacing.md,
     overflow: 'hidden',
@@ -973,21 +974,21 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.base,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: brand.border,
   },
-  resultPressed: { backgroundColor: '#F8FAFC' },
+  resultPressed: { backgroundColor: brand.pineTint },
   resultBody: { flex: 1 },
-  resultTitle: { fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: colors.navy },
-  resultDefn: { fontSize: fonts.sizes.sm, color: colors.dark, marginTop: 2, lineHeight: fonts.sizes.sm * 1.45 },
+  resultTitle: { fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: brand.ink },
+  resultDefn: { fontSize: fonts.sizes.sm, color: brand.inkSoft, marginTop: 2, lineHeight: fonts.sizes.sm * 1.45 },
   resultKind: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginTop: 1,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
-  askAiRow: { backgroundColor: '#F0FBFD' },
-  askAiText: { flex: 1, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: colors.teal },
+  askAiRow: { backgroundColor: brand.pineTint },
+  askAiText: { flex: 1, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: brand.pine },
   planShortcut: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -997,12 +998,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     marginTop: spacing.sm,
     marginBottom: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
   },
-  planShortcutText: { flex: 1, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: colors.navy },
+  planShortcutText: { flex: 1, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: brand.ink },
   notice: {
     fontSize: fonts.sizes.sm,
     color: semantic.warning,
@@ -1021,11 +1022,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.lg,
     paddingVertical: spacing.base,
     paddingHorizontal: spacing.lg,
     maxWidth: 300,
   },
-  readingText: { fontSize: fonts.sizes.base, color: colors.navy, fontWeight: fonts.weights.semibold, flexShrink: 1 },
+  readingText: { fontSize: fonts.sizes.base, color: brand.ink, fontWeight: fonts.weights.semibold, flexShrink: 1 },
 });

@@ -8,7 +8,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { SensorLine as SensorLineModel } from '@/lib/homeTriage';
 import { useTextScale } from '@/lib/textSize';
-import { colors, fonts, semantic, spacing } from '@/lib/theme';
+import { brand, fonts, semantic, spacing } from '@/lib/theme';
 
 interface SensorLineProps {
   sensor: SensorLineModel;
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   dotWarn: { backgroundColor: semantic.warning },
   text: {
     flex: 1,
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.medium,
   },
   textWarn: { color: semantic.warning },
