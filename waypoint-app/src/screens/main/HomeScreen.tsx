@@ -46,6 +46,7 @@ import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { useDraftFlow } from '@/hooks/useDraftFlow';
 import { searchLearn, type LearnHit } from '@/lib/learnLibrary';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { looksLikePlanQuery } from '@/lib/planQuery';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
 import { FLAGS } from '@/lib/flags';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
@@ -99,6 +100,19 @@ const COMPOSER_LABEL: Record<FunnelLocale, string> = {
   en: 'Ask the AI Navigator a question',
   es: 'Hágale una pregunta al Navegador con IA',
   vi: 'Hỏi Trợ lý AI một câu hỏi',
+};
+
+/** The pinned shortcut under the composer, and its in-results twin — both jump
+ *  to the Plan tab (the action plan). Owner request, Aug 31 2026. */
+const PLAN_SHORTCUT: Record<FunnelLocale, string> = {
+  en: 'My action plan',
+  es: 'Mi plan de acción',
+  vi: 'Kế hoạch hành động của tôi',
+};
+const PLAN_RESULT: Record<FunnelLocale, string> = {
+  en: 'Go to my action plan',
+  es: 'Ir a mi plan de acción',
+  vi: 'Đến kế hoạch hành động của tôi',
 };
 
 /** Get time-based greeting (ported from GAS MVP) */
@@ -230,6 +244,12 @@ function HomeScreenInner({
     });
     setHomeQuery('');
   }, [homeQuery, navigation]);
+
+  /** Jump to the action plan — the Plan tab (Calendar stack → PlanMain). */
+  const openPlan = useCallback(() => {
+    (navigation as any).navigate('Calendar', { screen: 'PlanMain' });
+    setHomeQuery('');
+  }, [navigation]);
 
   /** Open a hit: an article opens the reader, a guide opens its screen, a bare
    *  definition (no target) hands the word to the AI to explain. */
@@ -578,8 +598,39 @@ function HomeScreenInner({
               )}
             </View>
 
+            {/* Pinned shortcut to the action plan — always here under the
+                composer when not mid-search, so it never has to be searched for. */}
+            {!searching && (
+              <Pressable
+                style={({ pressed }) => [styles.planShortcut, pressed && styles.resultPressed]}
+                onPress={openPlan}
+                accessibilityRole="button"
+                accessibilityLabel={PLAN_SHORTCUT[funnelLocale]}
+              >
+                <Ionicons name="clipboard-outline" size={18} color={colors.teal} />
+                <Text style={styles.planShortcutText}>{PLAN_SHORTCUT[funnelLocale]}</Text>
+                <Ionicons name="arrow-forward" size={16} color={colors.mid} />
+              </Pressable>
+            )}
+
             {searching && (
               <View style={styles.results}>
+                {/* When the query reads as plan intent, offer the Plan tab
+                    first — before the library hits. */}
+                {looksLikePlanQuery(homeQuery) && (
+                  <Pressable
+                    style={({ pressed }) => [styles.resultRow, pressed && styles.resultPressed]}
+                    onPress={openPlan}
+                    accessibilityRole="button"
+                    accessibilityLabel={PLAN_RESULT[funnelLocale]}
+                  >
+                    <Ionicons name="clipboard-outline" size={18} color={colors.teal} />
+                    <View style={styles.resultBody}>
+                      <Text style={styles.resultTitle} numberOfLines={1}>{PLAN_RESULT[funnelLocale]}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+                  </Pressable>
+                )}
                 {homeHits.map((hit) =>
                   // A definition IS the answer — show it inline and don't route
                   // (the library's own rule). Only navigable hits get a chevron.
@@ -759,6 +810,21 @@ const styles = StyleSheet.create({
   },
   askAiRow: { backgroundColor: '#F0FBFD' },
   askAiText: { flex: 1, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: colors.teal },
+  planShortcut: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    minHeight: MIN_TOUCH_TARGET,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.base,
+    marginTop: spacing.sm,
+    marginBottom: spacing.md,
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  planShortcutText: { flex: 1, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: colors.navy },
   notice: {
     fontSize: fonts.sizes.sm,
     color: semantic.warning,
