@@ -24,6 +24,7 @@ import {
   entityStepQuestion,
   type EntityStandings,
 } from '@/lib/journeyActions';
+import { onPlanTitles } from '@/lib/planMembership';
 import { useTextScale } from '@/lib/textSize';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -38,7 +39,7 @@ export default function JourneyPhaseScreen() {
   const primaryChild = children.find((c) => c.is_primary) || children[0];
   const childName = primaryChild?.first_name ?? null;
 
-  const { createAction } = useActions({ familyId: family?.id ?? '' });
+  const { createAction, actions } = useActions({ familyId: family?.id ?? '' });
   const { showToast } = useToast();
   const { scale } = useTextScale();
   const sz = (n: number) => Math.round(n * scale);
@@ -48,6 +49,24 @@ export default function JourneyPhaseScreen() {
   const drafts = useMemo(() => phaseToActions(phase, childName), [phase, childName]);
 
   const [addedIndexes, setAddedIndexes] = useState<Set<number>>(new Set());
+
+  // "Already on the plan" reconciled from the REAL actions list, not just local
+  // state — the local Set reset on remount, so the + reverted and re-added a
+  // duplicate (owner, Aug 31). A step matches by its deterministic title; a
+  // dismissed action doesn't count as on-plan.
+  const plannedTitles = useMemo(() => onPlanTitles(actions), [actions]);
+  const isAdded = useCallback(
+    (index: number) => addedIndexes.has(index) || plannedTitles.has(drafts[index]?.title),
+    [addedIndexes, plannedTitles, drafts]
+  );
+  const anyPlanned = useMemo(
+    () => addedIndexes.size > 0 || drafts.some((d) => plannedTitles.has(d.title)),
+    [addedIndexes, drafts, plannedTitles]
+  );
+  /** Jump to the Action Plan (the Plan tab). */
+  const openPlan = useCallback(() => {
+    navigation.navigate('Calendar', { screen: 'PlanMain' });
+  }, [navigation]);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -80,7 +99,7 @@ export default function JourneyPhaseScreen() {
 
   const addOne = useCallback(
     async (index: number) => {
-      if (busy || addedIndexes.has(index)) return;
+      if (busy || isAdded(index)) return;
       setBusy(true);
       const draft = drafts[index];
       const created = await createAction({
@@ -99,7 +118,7 @@ export default function JourneyPhaseScreen() {
         showToast("Couldn't add that — please try again.", 'error');
       }
     },
-    [busy, addedIndexes, drafts, createAction, primaryChild?.id, showToast]
+    [busy, isAdded, drafts, createAction, primaryChild?.id, showToast]
   );
 
   const addAll = useCallback(async () => {
@@ -107,7 +126,7 @@ export default function JourneyPhaseScreen() {
     setBusy(true);
     let added = 0;
     for (let i = 0; i < drafts.length; i++) {
-      if (addedIndexes.has(i)) continue;
+      if (isAdded(i)) continue;
       const d = drafts[i];
       const created = await createAction({
         title: d.title,
@@ -125,7 +144,7 @@ export default function JourneyPhaseScreen() {
       added > 0 ? `${added} step${added === 1 ? '' : 's'} added to your plan` : "Couldn't add these — please try again.",
       added > 0 ? 'success' : 'error'
     );
-  }, [busy, drafts, addedIndexes, createAction, primaryChild?.id, showToast]);
+  }, [busy, drafts, isAdded, createAction, primaryChild?.id, showToast]);
 
   const askAI = useCallback(() => {
     navigation.navigate('Navigator', {
@@ -180,7 +199,7 @@ export default function JourneyPhaseScreen() {
 
         {drafts.map((draft, i) => {
           const entity = phase.entities[i];
-          const added = addedIndexes.has(i);
+          const added = isAdded(i);
           const open = expandedIndex === i;
           // Suppress on combined "A / B" rows — a single-system chip there is
           // ambiguous (which system is "active"?).
@@ -220,19 +239,26 @@ export default function JourneyPhaseScreen() {
                     </Text>
                   </View>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.addButton, added && styles.addButtonDone]}
-                  onPress={() => addOne(i)}
-                  disabled={busy || added}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    added ? `${entity.action} already added` : `Add "${entity.action}" to my plan`
-                  }
-                >
-                  <Text style={[styles.addButtonText, added && styles.addButtonTextDone]}>
-                    {added ? '✓' : '＋'}
-                  </Text>
-                </TouchableOpacity>
+                {added ? (
+                  <View
+                    style={styles.onPlanPill}
+                    accessible
+                    accessibilityRole="text"
+                    accessibilityLabel={`${entity.action} is on your Action Plan`}
+                  >
+                    <Text style={styles.onPlanPillText}>✓ On plan</Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => addOne(i)}
+                    disabled={busy}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Add "${entity.action}" to my plan`}
+                  >
+                    <Text style={styles.addButtonText}>＋</Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               {open && (
@@ -268,6 +294,26 @@ export default function JourneyPhaseScreen() {
             </View>
           );
         })}
+
+        {/* Once anything from this stage is on the plan, a persistent card to go
+            see it — beyond the transient "Added" toast (owner, Aug 31). */}
+        {anyPlanned && (
+          <TouchableOpacity
+            style={styles.seePlanCard}
+            onPress={openPlan}
+            accessibilityRole="button"
+            accessibilityLabel="See your Action Plan"
+          >
+            <Text style={styles.seePlanIcon}>📋</Text>
+            <View style={styles.seePlanBody}>
+              <Text style={[styles.seePlanTitle, { fontSize: sz(14) }]}>See your Action Plan</Text>
+              <Text style={[styles.seePlanSub, { fontSize: sz(12) }]}>
+                Track, schedule and check off what you added.
+              </Text>
+            </View>
+            <Text style={[styles.seePlanChevron, { color: colors.teal }]}>›</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Milestone */}
         {phase.milestone ? (
@@ -400,9 +446,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addButtonDone: { backgroundColor: '#D1FAE5' },
   addButtonText: { fontSize: 17, color: colors.white, fontWeight: '700' },
-  addButtonTextDone: { color: '#047857' },
+  // The persistent "already on your plan" flag — reconciled from the real
+  // actions list, so it survives leaving and returning (no re-add).
+  onPlanPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    borderRadius: radii.full,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  onPlanPillText: { fontSize: fonts.sizes.xs, fontWeight: fonts.weights.bold as '700', color: '#047857' },
+  seePlanCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: '#EFF9FB',
+    borderWidth: 1,
+    borderColor: '#B9E2EC',
+    borderRadius: radii.md,
+    padding: spacing.base,
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  seePlanIcon: { fontSize: 20 },
+  seePlanBody: { flex: 1 },
+  seePlanTitle: { fontWeight: fonts.weights.bold as '700', color: colors.navy },
+  seePlanSub: { color: colors.mid, marginTop: 2 },
+  seePlanChevron: { fontSize: 22, fontWeight: fonts.weights.bold as '700' },
   milestoneCard: {
     backgroundColor: '#ECFDF5',
     borderRadius: radii.md,
