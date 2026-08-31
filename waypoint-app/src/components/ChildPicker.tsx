@@ -9,7 +9,7 @@ import React, { useState, useEffect, useCallback, createContext, useContext } fr
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Child } from '@/types/database';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { brand, fonts, spacing, radii } from '@/lib/theme';
 
 const SELECTED_CHILD_KEY = 'waypoint_selected_child_id';
 
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   trigger: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -140,13 +140,13 @@ const styles = StyleSheet.create({
   },
   triggerText: {
     fontSize: fonts.sizes.sm,
-    color: colors.navy,
+    color: brand.ink,
     fontWeight: fonts.weights.medium as '500',
     maxWidth: 120,
   },
   triggerArrow: {
     fontSize: 8,
-    color: colors.mid,
+    color: brand.inkFaint,
   },
   dropdown: {
     position: 'absolute',
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     marginTop: 4,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.md,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
   },
   option: {
     flexDirection: 'row',
@@ -172,21 +172,21 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   optionSelected: {
-    backgroundColor: '#E6F7F5',
+    backgroundColor: brand.pineTint,
   },
   optionText: {
     fontSize: fonts.sizes.sm,
-    color: colors.dark,
+    color: brand.inkSoft,
     flex: 1,
   },
   optionTextSelected: {
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.medium as '500',
   },
   primaryBadge: {
     fontSize: 9,
-    color: colors.mid,
-    backgroundColor: colors.light,
+    color: brand.inkFaint,
+    backgroundColor: brand.paper,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: radii.sm,

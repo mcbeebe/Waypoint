@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { sourceForCitation } from '@/data/contentSources';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useTextScale } from '@/lib/textSize';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { brand, fonts, spacing, radii } from '@/lib/theme';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 
 interface CitationProps {
@@ -85,7 +85,7 @@ export default function Citation({ citation, locale, fontSize = 11.5 }: Citation
         accessibilityRole="button"
         accessibilityLabel={`${citation}. ${t.why}`}
       >
-        <Ionicons name="shield-checkmark-outline" size={sz(13)} color={colors.mid} style={styles.chipIcon} />
+        <Ionicons name="shield-checkmark-outline" size={sz(13)} color={brand.inkFaint} style={styles.chipIcon} />
         <Text style={[styles.chipText, { fontSize, lineHeight: Math.round(fontSize * 1.4) }]}>
           {citation}
         </Text>
@@ -106,7 +106,7 @@ export default function Citation({ citation, locale, fontSize = 11.5 }: Citation
                   {source.claim}
                 </Text>
                 <View style={styles.verifiedRow}>
-                  <Ionicons name="checkmark-circle-outline" size={sz(15)} color={colors.sage} />
+                  <Ionicons name="checkmark-circle-outline" size={sz(15)} color={brand.sageInk} />
                   <Text style={[styles.verified, { fontSize: sz(fonts.sizes.sm) }]}>
                     {t.verified(fmtISO(source.verifiedOn, locale))}
                   </Text>
@@ -117,7 +117,7 @@ export default function Citation({ citation, locale, fontSize = 11.5 }: Citation
                   accessibilityRole="link"
                   accessibilityLabel={t.read}
                 >
-                  <Ionicons name="open-outline" size={sz(16)} color={colors.teal} />
+                  <Ionicons name="open-outline" size={sz(16)} color={brand.pine} />
                   <Text style={[styles.readText, { fontSize: sz(fonts.sizes.base) }]}>{t.read}</Text>
                 </Pressable>
                 <Pressable
@@ -141,50 +141,50 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: '#F1F5F9',
+    backgroundColor: brand.pineTint,
     borderRadius: 6,
     paddingVertical: 3,
     paddingHorizontal: 7,
   },
   chipIcon: { marginRight: 4 },
-  chipText: { color: colors.mid },
+  chipText: { color: brand.inkFaint },
   scrim: { flex: 1, backgroundColor: 'rgba(15,23,42,0.35)', justifyContent: 'flex-end' },
   sheetWrap: { width: '100%' },
   sheet: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
     maxHeight: '85%',
     paddingHorizontal: spacing.lg,
   },
-  grabber: { width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border, alignSelf: 'center', marginTop: spacing.sm },
+  grabber: { width: 40, height: 4, borderRadius: 2, backgroundColor: brand.border, alignSelf: 'center', marginTop: spacing.sm },
   body: { paddingVertical: spacing.base, gap: spacing.sm },
   cite: {
     alignSelf: 'flex-start',
-    backgroundColor: '#F1F5F9',
-    color: colors.mid,
+    backgroundColor: brand.pineTint,
+    color: brand.inkFaint,
     borderRadius: 6,
     paddingVertical: 2,
     paddingHorizontal: 7,
     overflow: 'hidden',
   },
-  title: { fontWeight: fonts.weights.extrabold, color: colors.navy },
-  claim: { color: colors.dark },
+  title: { fontWeight: fonts.weights.extrabold, color: brand.ink },
+  claim: { color: brand.inkSoft },
   verifiedRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
-  verified: { color: colors.sage, fontWeight: fonts.weights.semibold as '600' },
+  verified: { color: brand.sageInk, fontWeight: fonts.weights.semibold as '600' },
   readBtn: {
     minHeight: MIN_TOUCH_TARGET,
     borderRadius: radii.md,
     borderWidth: 1.5,
-    borderColor: colors.teal,
+    borderColor: brand.pine,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
     marginTop: spacing.sm,
   },
-  readText: { color: colors.teal, fontWeight: fonts.weights.bold as '700' },
+  readText: { color: brand.pine, fontWeight: fonts.weights.bold as '700' },
   closeBtn: { minHeight: MIN_TOUCH_TARGET, alignItems: 'center', justifyContent: 'center' },
-  closeText: { color: colors.mid, fontWeight: fonts.weights.semibold as '600' },
+  closeText: { color: brand.inkFaint, fontWeight: fonts.weights.semibold as '600' },
   dim: { opacity: 0.6 },
 });
