@@ -142,6 +142,101 @@ export function entityStanding(
   return null;
 }
 
+/**
+ * A chip label for a standing that names the SYSTEM state as a fact ("IEP
+ * active", "Regional Center in progress") rather than "✓ In place" — which,
+ * placed on a specific next-step card, wrongly reads as "this step is done"
+ * (a false claim on deadline-bearing steps like a transition IEP). A factual
+ * system-state label is true regardless of what the step asks the family to do.
+ */
+export function standingLabel(entityName: string, standing: EntityStanding): string {
+  const n = entityName.toLowerCase();
+  const sys = /medi-?cal/.test(n)
+    ? 'Medi-Cal'
+    : /ihss/.test(n)
+      ? 'IHSS'
+      : /\bssi\b|\bssa\b|social security/.test(n)
+        ? 'SSI'
+        : /regional center|early start/.test(n)
+          ? 'Regional Center'
+          : /school|district|iep\b/.test(n)
+            ? 'IEP'
+            : 'This';
+  return standing === 'in_place' ? `${sys} active` : `${sys} in progress`;
+}
+
+/**
+ * The "learn more" a step card expands to (owner request, Aug 2026). Derived,
+ * not hand-authored per map instance: a keyword lookup on the entity name gives
+ * a specific plain-language "why this matters", falling back to a category-level
+ * line, then to null. So one small table covers every entity across every
+ * journey map. English, matching the (currently English-only) journey content.
+ */
+const ENTITY_EXPLAINERS: { match: RegExp; why: string }[] = [
+  { match: /\biep\b|school district|504/, why: 'The IEP is the school’s binding plan for your child. It is reviewed every year and fully reassessed every three years — each review is your opening to update goals and add or protect services.' },
+  // Early Start (under-3) is built on an IFSP, not an IPP — match it first so
+  // the 0–3 Regional Center row doesn't get the IPP explainer by mistake.
+  { match: /early start|ifsp|birth ?to ?three/, why: 'Early Start is Regional Center services for children under three, organized around an IFSP — the Individualized Family Service Plan. Reviews keep it matched to how fast your child is changing at this age.' },
+  { match: /\bipp\b|regional center|service coordinator/, why: 'The IPP is your Regional Center service plan. Reviewing it keeps goals current and is how new or increased funding gets written in — services flow from what the IPP lists.' },
+  { match: /insurance|health plan|authoriz|re-?auth/, why: 'Insurers re-authorize therapies on a clock. A lapsed authorization can pause services mid-stream, so tracking the renewal date protects the hours your child already has.' },
+  { match: /ihss/, why: 'IHSS hours are reassessed every year. Documenting your child’s needs before the review is how you protect the hours you have — and make the case for more.' },
+  { match: /calable|able account/, why: 'A CalABLE account lets your child save without losing benefits eligibility. There is no deadline — but opening one early is the first concrete step of long-term financial planning.' },
+  { match: /medi-?cal/, why: 'Medi-Cal is the coverage many other supports build on. Keeping it active — and renewing on time — keeps the layers above it in place.' },
+  { match: /\bssi\b|social security|\bssa\b/, why: 'SSI is a monthly benefit for eligible children and, at 18, is re-determined against adult criteria. Knowing that timing avoids a gap in income and the Medi-Cal that can come with it.' },
+  // Guardianship only — narrowed from a broad /18|adult|transition/, which was
+  // catching medical "Adult neurology / CCS → adult programs" rows.
+  { match: /conservator|guardianship|supported decision/, why: 'Turning 18 changes who can legally make decisions. Conservatorship — or a lighter alternative like supported decision-making — takes months to arrange, so families start well before the birthday.' },
+];
+
+export function entityExplainer(entityName: string): string | null {
+  const n = entityName.toLowerCase();
+  return ENTITY_EXPLAINERS.find((e) => e.match.test(n))?.why ?? null;
+}
+
+/** Plain-language read of the entity's cadence, from its `time` field. */
+export function cadenceNote(time: string): string {
+  const t = (time ?? '').toLowerCase();
+  if (!t.trim()) return '';
+  if (/any ?time|as needed/.test(t)) return 'No deadline — do it whenever you’re ready.';
+  if (/(\d+)\s*day/.test(t)) return `There’s a clock on this: ${time}. The date you act is what starts it.`;
+  if (/3 ?yr|triennial|three year/.test(t)) return `Comes around on a schedule: ${time}.`;
+  if (/year|annual/.test(t)) return `This comes back every year (${time}) — worth a standing reminder.`;
+  if (/ongoing|every/.test(t)) return `Recurring: ${time}. Track the next date so it doesn’t lapse.`;
+  return `Typical timing: ${time}.`;
+}
+
+/** The Learn guide most relevant to a step, so "learn more" can go deeper.
+ *  Category-based, pointing only at screens that resolve from the Home stack. */
+export function entityGuide(entity: JourneyEntity): { screen: string; params?: Record<string, string>; label: string } | null {
+  switch (entityCategory(entity.name)) {
+    case 'regional_center':
+      return { screen: 'ProcessMap', params: { system: 'rc' }, label: 'How the Regional Center works' };
+    case 'iep':
+      return { screen: 'ProcessMap', params: { system: 'school' }, label: 'How the school system works' };
+    case 'benefits':
+      return { screen: 'ResourceStack', label: 'Money and benefits, layer by layer' };
+    case 'insurance':
+      return { screen: 'Insurance', label: 'Your insurance details' };
+    default:
+      return null;
+  }
+}
+
+/** A question that seeds the Navigator about ONE step, not the whole stage. */
+export function entityStepQuestion(
+  entity: JourneyEntity,
+  phase: JourneyPhase,
+  journeyTitle: string,
+  childName?: string | null
+): string {
+  const who = childName ?? 'my child';
+  return (
+    `For ${who}, in the "${phase.label}" stage of the ${journeyTitle} journey: ` +
+    `the step is "${entity.name} — ${entity.action}"${entity.time ? ` (${entity.time})` : ''}. ` +
+    `What exactly should I do, what’s the deadline, and what do families commonly miss on this one?`
+  );
+}
+
 /** A question that gets the Navigator answering about this exact stage. */
 export function phaseQuestion(
   phase: JourneyPhase,

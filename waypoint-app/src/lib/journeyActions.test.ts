@@ -7,7 +7,13 @@ import {
   phaseQuestion,
   entityLever,
   entityStanding,
+  standingLabel,
+  entityExplainer,
+  cadenceNote,
+  entityGuide,
+  entityStepQuestion,
 } from './journeyActions';
+import { resolvesFrom } from '@/navigation/routeGraph';
 import type { JourneyPhase } from '@/data/types';
 
 const PHASE: JourneyPhase = {
@@ -154,5 +160,64 @@ describe('entityStanding — the journey map agrees with the resource stack', ()
     expect(entityStanding('School District', { ...standings, iepStatus: 'eval_done' })).toBe('in_motion');
     expect(entityStanding('IHSS', { ...standings, ihssStatus: 'applied' })).toBe('in_motion');
     expect(entityStanding('SSI / Medi-Cal', { ...standings, ssiStatus: 'active', mediCalStatus: 'active', mediCalRequested: false })).toBe('in_place');
+  });
+});
+
+describe('step "learn more" derivations (This Stage depth)', () => {
+  it('explains the common entities and returns null for the unknown', () => {
+    expect(entityExplainer('School District')).toMatch(/IEP/);
+    expect(entityExplainer('Regional Center')).toMatch(/IPP/);
+    expect(entityExplainer('IHSS')).toMatch(/hours/i);
+    expect(entityExplainer('CalABLE')).toMatch(/save|benefits/i);
+    expect(entityExplainer('Some Novel Entity')).toBeNull();
+  });
+
+  it('reads cadence in plain language', () => {
+    expect(cadenceNote('Yearly')).toMatch(/every year/i);
+    expect(cadenceNote('45 days')).toMatch(/clock/i);
+    expect(cadenceNote('Any time')).toMatch(/no deadline/i);
+    expect(cadenceNote('')).toBe('');
+  });
+
+  it('points each category at a guide screen that resolves from Home', () => {
+    for (const name of ['School District', 'Regional Center', 'IHSS', 'Insurance']) {
+      const g = entityGuide({ name, action: 'x', time: 'Yearly' });
+      expect(g, name).not.toBeNull();
+      expect(resolvesFrom('Home', { screen: g!.screen })).toBe(true);
+    }
+    // A general entity has no dedicated guide — the card still offers Ask.
+    expect(entityGuide({ name: 'Something else', action: 'x', time: '' })).toBeNull();
+  });
+
+  it('seeds a step-specific question naming the entity and the stage', () => {
+    const q = entityStepQuestion(PHASE.entities[0], PHASE, 'Autism', 'Teddy');
+    expect(q).toContain(PHASE.entities[0].name);
+    expect(q).toContain(PHASE.label);
+    expect(q).toContain('Teddy');
+  });
+});
+
+describe('standing chip states a system fact, not step completion (adversary fix)', () => {
+  it('names the system state — never "✓ In place" / "done"', () => {
+    expect(standingLabel('School District', 'in_place')).toBe('IEP active');
+    expect(standingLabel('Regional Center', 'in_place')).toBe('Regional Center active');
+    expect(standingLabel('SSA', 'in_place')).toBe('SSI active');
+    expect(standingLabel('IHSS', 'in_motion')).toBe('IHSS in progress');
+    // Whatever it says, it must not claim the STEP is done.
+    for (const s of ['in_place', 'in_motion'] as const) {
+      expect(standingLabel('School District', s).toLowerCase()).not.toMatch(/in place|done|complete|✓/);
+    }
+  });
+
+  it('does not put the IPP explainer on an Early Start (under-3) row', () => {
+    expect(entityExplainer('Regional Center — Early Start intake → IFSP')).toMatch(/IFSP/);
+    expect(entityExplainer('Regional Center — Early Start intake → IFSP')).not.toMatch(/\bIPP\b/);
+  });
+
+  it('does not put the conservatorship explainer on medical "adult" rows', () => {
+    expect(entityExplainer('CCS → Adult programs')).toBeNull();
+    expect(entityExplainer('Adult Neurology — Transfer from pediatric provider')).toBeNull();
+    // A real guardianship row still gets it.
+    expect(entityExplainer('Conservatorship or supported decision-making')).toMatch(/decision/i);
   });
 });
