@@ -20,9 +20,13 @@ import React from 'react';
 import { View } from 'react-native';
 import { brand } from '@/lib/theme';
 
-/** The pin fill for a tone — `ink` on a light ground, white on a dark one. */
+/**
+ * The pin fill for a tone — `ink` on a light ground, true white on a dark one.
+ * `light` is a literal `#FFFFFF`, not the `panel` surface token: the mark's
+ * white is the logo's white, independent of whatever a card surface becomes.
+ */
 export function pinFill(tone: 'ink' | 'light'): string {
-  return tone === 'light' ? brand.panel : brand.ink;
+  return tone === 'light' ? '#FFFFFF' : brand.ink;
 }
 
 interface BrandmarkProps {
@@ -56,7 +60,11 @@ export function Brandmark({ size = 28, tone = 'ink', label }: BrandmarkProps) {
           width: pin,
           height: pin,
           left: (size - pin) / 2,
-          top: size * 0.06,
+          // 0.135 (not 0.06) so the whole rotated pin — top lobe AND tip —
+          // sits INSIDE the size×size box, instead of relying on
+          // overflow:visible (unreliable for out-of-bounds children on
+          // Android). Verified against a rendered screenshot.
+          top: size * 0.135,
           backgroundColor: pinFill(tone),
           borderTopLeftRadius: pinRadius,
           borderTopRightRadius: pinRadius,
@@ -72,7 +80,7 @@ export function Brandmark({ size = 28, tone = 'ink', label }: BrandmarkProps) {
           width: dot,
           height: dot,
           left: (size - dot) / 2,
-          top: size * 0.25,
+          top: size * 0.3275, // centered on the (lowered) pin head
           borderRadius: dot / 2,
           backgroundColor: brand.pine,
         }}

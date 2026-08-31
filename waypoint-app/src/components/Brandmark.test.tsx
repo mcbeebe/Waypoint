@@ -32,7 +32,7 @@ describe('Brandmark — the Waypoint marker', () => {
   // the color from the DOM), so it's tested at the source.
   it('flips the pin fill by tone: ink on light, white on dark', () => {
     expect(pinFill('ink')).toBe(brand.ink);
-    expect(pinFill('light')).toBe(brand.panel);
+    expect(pinFill('light')).toBe('#FFFFFF'); // true white, not the panel surface token
     expect(pinFill('ink')).not.toBe(pinFill('light'));
   });
 });
