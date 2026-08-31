@@ -191,6 +191,22 @@ export function getToolDoors(locale: FunnelLocale = 'en'): ToolDoor[] {
       color: '#F97316',
       tools: [
         {
+          key: 'analyze_iep',
+          label: L('Analyze my IEP', 'Analizar mi IEP', 'Phân tích IEP của tôi'),
+          description: L(
+            'Upload your IEP and get a plain-English review — goals, strengths, and what to ask for',
+            'Suba su IEP y obtenga un resumen en lenguaje claro — metas, fortalezas y qué pedir',
+            'Tải IEP lên và nhận bản tóm tắt dễ hiểu — mục tiêu, điểm mạnh và điều cần đề nghị'
+          ),
+          icon: 'scan-outline',
+          route: { screen: 'Documents' },
+          searchTerms: [
+            'iep', 'analyze', 'analyse', 'read', 'understand', 'review', 'explain', 'goals',
+            'assessment', 'document', 'analizar', 'leer', 'entender', 'revisar', 'metas',
+            'phân tích', 'đọc', 'hiểu', 'mục tiêu',
+          ],
+        },
+        {
           key: 'documents',
           label: L('Documents', 'Documentos', 'Tài liệu'),
           description: L('The IPP, the IEP, assessments — analyzed for you', 'El IPP, el IEP, evaluaciones — analizados para usted', 'IPP, IEP, các đánh giá — được phân tích cho quý vị'),
@@ -326,6 +342,67 @@ export function searchTools(query: string, locale: FunnelLocale = 'en'): ToolEnt
     const hay = norm([t.label, t.description, ...t.searchTerms].join(' '));
     return terms.every((term) => hay.includes(term));
   });
+}
+
+/**
+ * Words that carry no signal in a typed Home question, so a natural-language
+ * query ("help me read my son's IEP") reduces to its real terms ("read", "iep").
+ * Trilingual, incl. the child words a parent naturally uses.
+ */
+const HOME_STOPWORDS = new Set([
+  'help', 'me', 'my', 'the', 'a', 'an', 'to', 'for', 'of', 'how', 'do', 'does', 'i', 'can',
+  'with', 'on', 'and', 'or', 'is', 'are', 'what', 'need', 'please', 'get', 'our', 'we', 'want',
+  'son', 'sons', 'daughter', 'daughters', 'child', 'childs', 'kid', 'kids',
+  'ayuda', 'mi', 'el', 'la', 'los', 'las', 'un', 'una', 'como', 'para', 'de', 'que',
+  'hijo', 'hija', 'necesito', 'por', 'favor',
+  'giup', 'toi', 'cua', 'lam', 'sao', 'con', 'cho',
+]);
+
+/**
+ * Tool search for the HOME composer — unlike `searchTools` (a strict AND match
+ * for the Tools tab's short queries), this drops stop words and matches ANY
+ * remaining term, ranked by hits, so a full sentence surfaces the right tool.
+ * A label / search-term hit outweighs a description-only hit. Highest first.
+ */
+export function searchToolsForHome(query: string, locale: FunnelLocale = 'en'): ToolEntry[] {
+  // đ/Đ don't decompose under NFD, so without this the split would treat them
+  // as separators and shred Vietnamese words like "đọc" into noise fragments.
+  const norm = (s: string) =>
+    s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd');
+  const terms = norm(query)
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 1 && !HOME_STOPWORDS.has(t));
+  if (terms.length === 0) return [];
+  // A query term matches if the haystack contains it, OR an inflected form of a
+  // curated word (query "understanding" matches term "understand").
+  const matches = (hay: string, words: string[], term: string) =>
+    hay.includes(term) || words.some((w) => w.length >= 4 && term.startsWith(w));
+  const scored = getAllTools(locale)
+    .map((t) => {
+      const strong = norm([t.label, ...t.searchTerms].join(' '));
+      const weak = norm(t.description);
+      const strongW = strong.split(/\s+/).filter(Boolean);
+      const weakW = weak.split(/\s+/).filter(Boolean);
+      let score = 0;
+      for (const term of terms) {
+        if (matches(strong, strongW, term)) score += 2;
+        else if (matches(weak, weakW, term)) score += 1;
+      }
+      return { tool: t, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score);
+  // Never show two rows to the same destination (e.g. Analyze-my-IEP and
+  // Documents both open Documents) — keep the higher-scored one.
+  const seen = new Set<string>();
+  const out: ToolEntry[] = [];
+  for (const { tool } of scored) {
+    const dest = `${tool.route.tab ?? 'Home'}:${tool.route.screen}`;
+    if (seen.has(dest)) continue;
+    seen.add(dest);
+    out.push(tool);
+  }
+  return out;
 }
 
 /**

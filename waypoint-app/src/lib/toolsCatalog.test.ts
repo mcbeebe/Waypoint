@@ -4,11 +4,13 @@ import {
   getToolDoors,
   getAllTools,
   searchTools,
+  searchToolsForHome,
   searchPlaceholder,
   requestsBadge,
   replyBadge,
   lettersDescription,
 } from './toolsCatalog';
+import { resolvesFrom } from '@/navigation/routeGraph';
 
 /**
  * Screens the catalog may route to. Mirrors HomeStackParamList (Home
@@ -183,4 +185,62 @@ describe('locale parity', () => {
       );
     });
   }
+});
+
+describe('searchToolsForHome — natural-language tool search for the composer', () => {
+  it('surfaces the IEP analyzer for "help me read my son’s IEP"', () => {
+    const hits = searchToolsForHome('Help me read my sons IEP');
+    expect(hits.length).toBeGreaterThan(0);
+    // The dedicated analyzer should rank first (label + terms both hit).
+    expect(hits[0].key).toBe('analyze_iep');
+  });
+
+  it('drops stop words so a full sentence still finds the tool', () => {
+    // Without stopword dropping, the strict AND match would return nothing.
+    expect(searchToolsForHome('I need help understanding the IEP').some((t) => t.key === 'analyze_iep')).toBe(true);
+    expect(searchToolsForHome('analizar mi IEP', 'es').some((t) => t.key === 'analyze_iep')).toBe(true);
+  });
+
+  it('returns nothing for a query with no real terms', () => {
+    expect(searchToolsForHome('help me please')).toEqual([]);
+    expect(searchToolsForHome('  ')).toEqual([]);
+  });
+
+  it('the analyzer routes somewhere that resolves from Home', () => {
+    const analyzer = getAllTools().find((t) => t.key === 'analyze_iep')!;
+    expect(analyzer.route.screen).toBe('Documents');
+    // No tab → Home stack; Documents is a Home destination.
+    expect(resolvesFrom('Home', { screen: analyzer.route.screen, tab: analyzer.route.tab })).toBe(true);
+  });
+});
+
+describe('searchToolsForHome — adversary fixes', () => {
+  it('never shows two rows to the same destination screen (dedupe)', () => {
+    // analyze_iep and documents both open Documents — only one should surface.
+    const hits = searchToolsForHome('upload my IEP document');
+    const docHits = hits.filter((t) => t.route.screen === 'Documents');
+    expect(docHits.length).toBe(1);
+    expect(docHits[0].key).toBe('analyze_iep'); // the higher-scored front door
+  });
+
+  it('handles Vietnamese đ words without shredding them into noise', () => {
+    // "đọc" (read) must not fragment into "oc" and rank Requests (via "clock").
+    const hits = searchToolsForHome('đọc IEP của con tôi', 'vi');
+    expect(hits[0].key).toBe('analyze_iep');
+    expect(hits.some((t) => t.key === 'requests')).toBe(false);
+  });
+
+  it('matches inflected query words against curated terms', () => {
+    // "understanding" should reach the analyzer via the term "understand".
+    expect(searchToolsForHome('understanding my plan').some((t) => t.key === 'analyze_iep')).toBe(true);
+  });
+
+  it('every tool it can surface routes somewhere that resolves from Home', () => {
+    for (const tool of getAllTools()) {
+      expect(
+        resolvesFrom('Home', { screen: tool.route.screen, tab: tool.route.tab }),
+        `${tool.key} → ${tool.route.tab ?? 'Home'}/${tool.route.screen}`
+      ).toBe(true);
+    }
+  });
 });
