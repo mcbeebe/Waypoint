@@ -58,7 +58,7 @@ export function PageHeader({
             <Ionicons name="chevron-back" size={sz(22)} color={brand.ink} />
           </TouchableOpacity>
         ) : null}
-        {mark ? <Brandmark size={sz(26)} /> : null}
+        {mark ? <Brandmark size={sz(30)} /> : null}
         <Text style={[styles.title, { fontSize: sz(20) }]} numberOfLines={2}>
           {title}
         </Text>
