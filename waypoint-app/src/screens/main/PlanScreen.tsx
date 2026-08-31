@@ -43,7 +43,14 @@ const PLAN_VIEW_KEY = 'waypoint.plan.view';
 /** The same "everything / Waypoint only" preference Home and Calendar use. */
 const SCOPE_KEY = 'waypoint_agenda_scope';
 
-type PlanMode = 'list' | 'month';
+type PlanMode = 'list' | 'month' | 'actions';
+
+/** Short month labels per locale — never via Date's own locale (Hermes-safe). */
+const MONTHS: Record<FunnelLocale, string[]> = {
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  es: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
+  vi: ['thg 1', 'thg 2', 'thg 3', 'thg 4', 'thg 5', 'thg 6', 'thg 7', 'thg 8', 'thg 9', 'thg 10', 'thg 11', 'thg 12'],
+};
 
 function labels(locale: FunnelLocale) {
   const L = (en: string, es: string, vi: string) =>
@@ -57,7 +64,17 @@ function labels(locale: FunnelLocale) {
     ),
     list: L('List', 'Lista', 'Danh sách'),
     month: L('Month', 'Mes', 'Tháng'),
+    actions: L('Action Plan', 'Plan de acción', 'Kế hoạch hành động'),
     viewGroup: L('Plan view', 'Vista del plan', 'Chế độ xem'),
+    due: L('Due', 'Vence', 'Hạn'),
+    statusNotStarted: L('To do', 'Por hacer', 'Cần làm'),
+    statusInProgress: L('In progress', 'En curso', 'Đang làm'),
+    statusCompleted: L('Done', 'Hecho', 'Xong'),
+    actionsEmpty: L(
+      'No steps yet — as Waypoint suggests actions, they’ll appear here.',
+      'Aún no hay pasos — a medida que Waypoint sugiera acciones, aparecerán aquí.',
+      'Chưa có bước nào — khi Waypoint đề xuất hành động, chúng sẽ hiện ở đây.'
+    ),
     today: L('Today', 'Hoy', 'Hôm nay'),
     prevMonth: L('Previous month', 'Mes anterior', 'Tháng trước'),
     nextMonth: L('Next month', 'Mes siguiente', 'Tháng sau'),
@@ -122,7 +139,7 @@ export default function PlanScreen() {
 
   useEffect(() => {
     AsyncStorage.getItem(PLAN_VIEW_KEY)
-      .then((v) => { if (v === 'month' || v === 'list') setMode(v); })
+      .then((v) => { if (v === 'month' || v === 'list' || v === 'actions') setMode(v); })
       .catch(() => {});
   }, []);
   const chooseMode = (next: PlanMode) => {
@@ -344,6 +361,71 @@ export default function PlanScreen() {
     );
   };
 
+  const modeLabel = (m: PlanMode) => (m === 'list' ? t.list : m === 'month' ? t.month : t.actions);
+
+  /** Action Plan segment: open steps first, by due date, completed last. */
+  const rank = (s: string) => (s === 'completed' ? 2 : s === 'in_progress' ? 0 : 1);
+  const planActions = useMemo(
+    () =>
+      [...actions].sort((a, b) => {
+        const r = rank(a.status) - rank(b.status);
+        if (r !== 0) return r;
+        if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
+        if (a.due_date) return -1;
+        if (b.due_date) return 1;
+        return 0;
+      }),
+    [actions]
+  );
+
+  const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const fmtDue = (iso: string) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+    if (!m) return '';
+    const mon = MONTHS[funnelLocale][Number(m[2]) - 1] ?? m[2];
+    return funnelLocale === 'vi' ? `${Number(m[3])} ${mon}` : `${mon} ${Number(m[3])}`;
+  };
+
+  const actionRow = (a: (typeof actions)[number]) => {
+    const isDone = a.status === 'completed';
+    const overdue = !!a.due_date && !isDone && a.due_date < todayISO;
+    const statusLabel = isDone
+      ? t.statusCompleted
+      : a.status === 'in_progress'
+        ? t.statusInProgress
+        : t.statusNotStarted;
+    const dotColor = isDone ? colors.sage : a.status === 'in_progress' ? colors.teal : colors.mid;
+    const meta = a.due_date ? `${t.due} ${fmtDue(a.due_date)}` : '';
+    return (
+      <Pressable
+        key={a.id}
+        style={({ pressed }) => [styles.row, pressed && styles.dim]}
+        onPress={() =>
+          (navigation as any).navigate('Tracker', { screen: 'ActionDetail', params: { actionId: a.id } })
+        }
+        accessibilityRole="button"
+        accessibilityLabel={`${a.title}. ${statusLabel}.${meta ? ` ${meta}` : ''}`}
+      >
+        <View style={[styles.actionDot, { backgroundColor: dotColor }]} />
+        <View style={styles.rowText}>
+          <Text
+            style={[styles.rowTitle, { fontSize: sz(14), lineHeight: sz(19) }, isDone && styles.actionDone]}
+          >
+            {a.title}
+          </Text>
+          {!!meta && (
+            <Text
+              style={[styles.rowMeta, { fontSize: sz(12), lineHeight: sz(16) }, overdue && styles.overdue]}
+            >
+              {meta}
+            </Text>
+          )}
+        </View>
+        <Text style={[styles.rowSource, { fontSize: sz(11.5), lineHeight: sz(16) }]}>{statusLabel}</Text>
+      </Pressable>
+    );
+  };
+
   const selectedEntries = selectedDay ? byDay[selectedDay] ?? [] : [];
 
   return (
@@ -356,23 +438,24 @@ export default function PlanScreen() {
         <Text style={[styles.intro, { fontSize: sz(13), lineHeight: sz(19) }]}>{t.intro}</Text>
 
         <View style={styles.segment} accessibilityRole="tablist" accessibilityLabel={t.viewGroup}>
-          {(['list', 'month'] as const).map((m) => (
+          {(['actions', 'list', 'month'] as const).map((m) => (
             <Pressable
               key={m}
               style={[styles.segmentButton, mode === m && styles.segmentButtonOn]}
               onPress={() => chooseMode(m)}
               accessibilityRole="tab"
               accessibilityState={{ selected: mode === m }}
-              accessibilityLabel={m === 'list' ? t.list : t.month}
+              accessibilityLabel={modeLabel(m)}
             >
               <Text
                 style={[
                   styles.segmentText,
-                  { fontSize: sz(13.5) },
+                  { fontSize: sz(13) },
                   mode === m && styles.segmentTextOn,
                 ]}
+                numberOfLines={1}
               >
-                {m === 'list' ? t.list : t.month}
+                {modeLabel(m)}
               </Text>
             </Pressable>
           ))}
@@ -411,7 +494,7 @@ export default function PlanScreen() {
               </View>
             ))}
           </>
-        ) : (
+        ) : mode === 'month' ? (
           <>
             <View style={styles.card}>
               <View style={styles.monthHead}>
@@ -525,6 +608,23 @@ export default function PlanScreen() {
               </Text>
             )}
           </>
+        ) : (
+          <>
+            {/* Action Plan segment (owner request, Aug 31 2026): the steps
+                themselves, in the Plan screen alongside List and Month. The
+                full-featured list (filters, swipe) stays one tap behind. */}
+            {actionsLoading && planActions.length === 0 ? (
+              <View style={styles.card}>
+                <Text style={[styles.empty, { fontSize: sz(13.5), lineHeight: sz(20) }]}>{t.loading}</Text>
+              </View>
+            ) : planActions.length === 0 ? (
+              <View style={styles.card}>
+                <Text style={[styles.empty, { fontSize: sz(13.5), lineHeight: sz(20) }]}>{t.actionsEmpty}</Text>
+              </View>
+            ) : (
+              <View style={styles.card}>{planActions.map(actionRow)}</View>
+            )}
+          </>
         )}
 
         {/* The full calendar keeps everything Plan does not do: adding,
@@ -608,6 +708,9 @@ const styles = StyleSheet.create({
   // line the "every row shows where it came from" rule depends on was the
   // least readable text on the screen.
   rowSource: { color: colors.mid, maxWidth: '42%', textAlign: 'right' },
+  actionDot: { width: 8, height: 8, borderRadius: 4, marginTop: 7 },
+  actionDone: { color: colors.mid, textDecorationLine: 'line-through' },
+  overdue: { color: colors.coral, fontWeight: fonts.weights.semibold },
   empty: { color: colors.mid },
   emptyTitle: { color: colors.navy, fontWeight: fonts.weights.bold },
   note: { color: colors.mid, paddingHorizontal: spacing.xs },
