@@ -198,7 +198,7 @@ export function getToolDoors(locale: FunnelLocale = 'en'): ToolDoor[] {
             'Suba su IEP y obtenga un resumen en lenguaje claro — metas, fortalezas y qué pedir',
             'Tải IEP lên và nhận bản tóm tắt dễ hiểu — mục tiêu, điểm mạnh và điều cần đề nghị'
           ),
-          icon: 'sparkles-outline',
+          icon: 'scan-outline',
           route: { screen: 'Documents' },
           searchTerms: [
             'iep', 'analyze', 'analyse', 'read', 'understand', 'review', 'explain', 'goals',
@@ -365,25 +365,44 @@ const HOME_STOPWORDS = new Set([
  * A label / search-term hit outweighs a description-only hit. Highest first.
  */
 export function searchToolsForHome(query: string, locale: FunnelLocale = 'en'): ToolEntry[] {
-  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  // đ/Đ don't decompose under NFD, so without this the split would treat them
+  // as separators and shred Vietnamese words like "đọc" into noise fragments.
+  const norm = (s: string) =>
+    s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd');
   const terms = norm(query)
     .split(/[^a-z0-9]+/)
     .filter((t) => t.length > 1 && !HOME_STOPWORDS.has(t));
   if (terms.length === 0) return [];
-  return getAllTools(locale)
+  // A query term matches if the haystack contains it, OR an inflected form of a
+  // curated word (query "understanding" matches term "understand").
+  const matches = (hay: string, words: string[], term: string) =>
+    hay.includes(term) || words.some((w) => w.length >= 4 && term.startsWith(w));
+  const scored = getAllTools(locale)
     .map((t) => {
       const strong = norm([t.label, ...t.searchTerms].join(' '));
       const weak = norm(t.description);
+      const strongW = strong.split(/\s+/).filter(Boolean);
+      const weakW = weak.split(/\s+/).filter(Boolean);
       let score = 0;
       for (const term of terms) {
-        if (strong.includes(term)) score += 2;
-        else if (weak.includes(term)) score += 1;
+        if (matches(strong, strongW, term)) score += 2;
+        else if (matches(weak, weakW, term)) score += 1;
       }
       return { tool: t, score };
     })
     .filter((x) => x.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .map((x) => x.tool);
+    .sort((a, b) => b.score - a.score);
+  // Never show two rows to the same destination (e.g. Analyze-my-IEP and
+  // Documents both open Documents) — keep the higher-scored one.
+  const seen = new Set<string>();
+  const out: ToolEntry[] = [];
+  for (const { tool } of scored) {
+    const dest = `${tool.route.tab ?? 'Home'}:${tool.route.screen}`;
+    if (seen.has(dest)) continue;
+    seen.add(dest);
+    out.push(tool);
+  }
+  return out;
 }
 
 /**
