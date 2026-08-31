@@ -215,6 +215,14 @@ describe('the search puts the right answer first, in every language', () => {
     expect(top('Làm sao để đề nghị đánh giá IEP?', 'vi').key).toBe('first_iep');
   });
 
+  it('answers a sibling query with the sibling article, not the diapers/money one', () => {
+    // The money article once cross-listed 'sibling'/'sibshop' and, on a tie,
+    // its title sorted ahead — so "sibshop" landed the diapers article. The
+    // sibling vocabulary lives only on the dedicated article now.
+    expect(top('sibshop', 'en').key).toBe('sibling_support');
+    expect(top('sibling support', 'en').key).toBe('sibling_support');
+  });
+
   it('does not amputate a Vietnamese word that starts with đ', () => {
     // đ is precomposed, so NFD leaves it and the tokenizer treated it as a
     // separator: "đánh giá" became ["anh", "gia"] and matched nothing useful.
