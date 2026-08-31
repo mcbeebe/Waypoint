@@ -45,6 +45,7 @@ import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { useDraftFlow } from '@/hooks/useDraftFlow';
 import { searchLearn, type LearnHit } from '@/lib/learnLibrary';
+import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
 import { FLAGS } from '@/lib/flags';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
@@ -235,7 +236,11 @@ function HomeScreenInner({
   const openHit = useCallback(
     (hit: LearnHit) => {
       if (hit.kind === 'article') {
-        (navigation as any).navigate('Navigator', { screen: 'Article', params: { articleKey: hit.key } });
+        (navigation as any).navigate('Navigator', {
+          screen: 'Article',
+          params: { articleKey: hit.key },
+          initial: false,
+        });
       } else if (hit.target) {
         (navigation as any).navigate(hit.target.tab, {
           screen: hit.target.screen,
@@ -501,6 +506,9 @@ function HomeScreenInner({
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        // Results render while the keyboard is up; without this the first tap on
+        // a result is swallowed to dismiss the keyboard instead of navigating.
+        keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
         <View style={styles.header}>
@@ -572,26 +580,44 @@ function HomeScreenInner({
 
             {searching && (
               <View style={styles.results}>
-                {homeHits.map((hit) => (
-                  <Pressable
-                    key={`${hit.kind}:${hit.key}`}
-                    style={({ pressed }) => [styles.resultRow, pressed && styles.resultPressed]}
-                    onPress={() => openHit(hit)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${hit.title}. ${hit.detail}`}
-                  >
-                    <Ionicons
-                      name={hit.kind === 'path' ? 'compass-outline' : hit.kind === 'glossary' ? 'book-outline' : 'document-text-outline'}
-                      size={18}
-                      color={colors.teal}
-                    />
-                    <View style={styles.resultBody}>
-                      <Text style={styles.resultTitle} numberOfLines={1}>{hit.title}</Text>
-                      <Text style={styles.resultKind}>{HINT_KINDS[funnelLocale][hit.kind]}</Text>
+                {homeHits.map((hit) =>
+                  // A definition IS the answer — show it inline and don't route
+                  // (the library's own rule). Only navigable hits get a chevron.
+                  hit.kind === 'glossary' ? (
+                    <View
+                      key={`${hit.kind}:${hit.key}`}
+                      style={styles.resultRow}
+                      accessible
+                      accessibilityRole="text"
+                      accessibilityLabel={`${hit.title}: ${hit.detail}`}
+                    >
+                      <Ionicons name="book-outline" size={18} color={colors.teal} />
+                      <View style={styles.resultBody}>
+                        <Text style={styles.resultTitle}>{hit.title}</Text>
+                        <Text style={styles.resultDefn}>{hit.detail}</Text>
+                      </View>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.mid} />
-                  </Pressable>
-                ))}
+                  ) : (
+                    <Pressable
+                      key={`${hit.kind}:${hit.key}`}
+                      style={({ pressed }) => [styles.resultRow, pressed && styles.resultPressed]}
+                      onPress={() => openHit(hit)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${hit.title}. ${hit.detail}`}
+                    >
+                      <Ionicons
+                        name={hit.kind === 'path' ? 'compass-outline' : 'document-text-outline'}
+                        size={18}
+                        color={colors.teal}
+                      />
+                      <View style={styles.resultBody}>
+                        <Text style={styles.resultTitle} numberOfLines={1}>{hit.title}</Text>
+                        <Text style={styles.resultKind}>{HINT_KINDS[funnelLocale][hit.kind]}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+                    </Pressable>
+                  )
+                )}
                 {/* The AI is always the last resort — never a dead end. */}
                 <Pressable
                   style={({ pressed }) => [styles.resultRow, styles.askAiRow, pressed && styles.resultPressed]}
@@ -688,11 +714,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  composerText: {
-    flex: 1,
-    fontSize: fonts.sizes.base,
-    color: colors.mid,
-  },
   composerInput: {
     flex: 1,
     fontSize: fonts.sizes.base,
@@ -719,6 +740,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.base,
     borderTopWidth: 1,
@@ -727,6 +749,7 @@ const styles = StyleSheet.create({
   resultPressed: { backgroundColor: '#F8FAFC' },
   resultBody: { flex: 1 },
   resultTitle: { fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: colors.navy },
+  resultDefn: { fontSize: fonts.sizes.sm, color: colors.dark, marginTop: 2, lineHeight: fonts.sizes.sm * 1.45 },
   resultKind: {
     fontSize: fonts.sizes.xs,
     color: colors.mid,
