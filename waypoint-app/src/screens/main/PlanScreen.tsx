@@ -70,6 +70,7 @@ function labels(locale: FunnelLocale) {
     statusNotStarted: L('To do', 'Por hacer', 'Cần làm'),
     statusInProgress: L('In progress', 'En curso', 'Đang làm'),
     statusCompleted: L('Done', 'Hecho', 'Xong'),
+    statusLocked: L('Locked', 'Bloqueado', 'Đang khóa'),
     actionsEmpty: L(
       'No steps yet — as Waypoint suggests actions, they’ll appear here.',
       'Aún no hay pasos — a medida que Waypoint sugiera acciones, aparecerán aquí.',
@@ -363,20 +364,38 @@ export default function PlanScreen() {
 
   const modeLabel = (m: PlanMode) => (m === 'list' ? t.list : m === 'month' ? t.month : t.actions);
 
-  /** Action Plan segment: open steps first, by due date, completed last. */
+  /**
+   * Action Plan segment ordering, kept coherent with ActionsScreen so the same
+   * "Action Plan" name never means two different lists: DISMISSED steps are
+   * excluded (a cancelled step must never read as "To do"); then in-progress →
+   * to-do → done, and within a status by priority (urgent first), then due date.
+   */
+  const PRIORITY_ORDER: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
   const rank = (s: string) => (s === 'completed' ? 2 : s === 'in_progress' ? 0 : 1);
   const planActions = useMemo(
     () =>
-      [...actions].sort((a, b) => {
-        const r = rank(a.status) - rank(b.status);
-        if (r !== 0) return r;
-        if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
-        if (a.due_date) return -1;
-        if (b.due_date) return 1;
-        return 0;
-      }),
+      actions
+        .filter((a) => a.status !== 'dismissed')
+        .sort((a, b) => {
+          const r = rank(a.status) - rank(b.status);
+          if (r !== 0) return r;
+          const p = (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2);
+          if (p !== 0) return p;
+          if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
+          if (a.due_date) return -1;
+          if (b.due_date) return 1;
+          return 0;
+        }),
+    [actions] // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  /** A step whose prerequisite isn't done yet — shown as locked, not doable,
+   *  matching ActionsScreen (which blocks the status toggle on the same rule). */
+  const completedIds = useMemo(
+    () => new Set(actions.filter((a) => a.status === 'completed').map((a) => a.id)),
     [actions]
   );
+  const isLocked = (a: (typeof actions)[number]) => !!a.depends_on && !completedIds.has(a.depends_on);
 
   const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const fmtDue = (iso: string) => {
@@ -388,20 +407,27 @@ export default function PlanScreen() {
 
   const actionRow = (a: (typeof actions)[number]) => {
     const isDone = a.status === 'completed';
-    const overdue = !!a.due_date && !isDone && a.due_date < todayISO;
+    const locked = !isDone && isLocked(a);
+    const overdue = !!a.due_date && !isDone && !locked && a.due_date < todayISO;
     const statusLabel = isDone
       ? t.statusCompleted
-      : a.status === 'in_progress'
-        ? t.statusInProgress
-        : t.statusNotStarted;
-    const dotColor = isDone ? colors.sage : a.status === 'in_progress' ? colors.teal : colors.mid;
+      : locked
+        ? t.statusLocked
+        : a.status === 'in_progress'
+          ? t.statusInProgress
+          : t.statusNotStarted;
+    const dotColor = isDone ? colors.sage : locked ? colors.border : a.status === 'in_progress' ? colors.teal : colors.mid;
     const meta = a.due_date ? `${t.due} ${fmtDue(a.due_date)}` : '';
     return (
       <Pressable
         key={a.id}
         style={({ pressed }) => [styles.row, pressed && styles.dim]}
         onPress={() =>
-          (navigation as any).navigate('Tracker', { screen: 'ActionDetail', params: { actionId: a.id } })
+          (navigation as any).navigate('Tracker', {
+            screen: 'ActionDetail',
+            params: { actionId: a.id },
+            initial: false,
+          })
         }
         accessibilityRole="button"
         accessibilityLabel={`${a.title}. ${statusLabel}.${meta ? ` ${meta}` : ''}`}
@@ -409,9 +435,14 @@ export default function PlanScreen() {
         <View style={[styles.actionDot, { backgroundColor: dotColor }]} />
         <View style={styles.rowText}>
           <Text
-            style={[styles.rowTitle, { fontSize: sz(14), lineHeight: sz(19) }, isDone && styles.actionDone]}
+            style={[
+              styles.rowTitle,
+              { fontSize: sz(14), lineHeight: sz(19) },
+              isDone && styles.actionDone,
+              locked && styles.actionLocked,
+            ]}
           >
-            {a.title}
+            {locked ? '🔒 ' : ''}{a.title}
           </Text>
           {!!meta && (
             <Text
@@ -710,6 +741,7 @@ const styles = StyleSheet.create({
   rowSource: { color: colors.mid, maxWidth: '42%', textAlign: 'right' },
   actionDot: { width: 8, height: 8, borderRadius: 4, marginTop: 7 },
   actionDone: { color: colors.mid, textDecorationLine: 'line-through' },
+  actionLocked: { color: colors.mid },
   overdue: { color: colors.coral, fontWeight: fonts.weights.semibold },
   empty: { color: colors.mid },
   emptyTitle: { color: colors.navy, fontWeight: fonts.weights.bold },
