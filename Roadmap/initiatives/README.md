@@ -38,6 +38,7 @@ serve.
 | 003 | The outbound loop (phase 7) — make the calm-state promise keepable | Open — Lane A shipped (#135–36), Lane B foundation shipped (#137), server half (7B-3/7B-4) built for owner go | #135, #136, #137 | [intent](003-outbound-loop/intent.md) · [analysis](003-outbound-loop/analysis.md) · [plan](003-outbound-loop/plan.md) |
 | 004 | The Learn content engine (phase 8) — derive ~40 cited articles, a reader, SEO | Open — plan for owner go | — | [intent](004-learn-content-engine/intent.md) · [plan](004-learn-content-engine/plan.md) |
 | 005 | Supports you have to ask for — help parents get RC-funded, non-automatic family supports (sibling support first) via the Resource Stack + Your Result | Open — owner go, building A–D | — | [intent](005-ask-for-supports/intent.md) · [plan](005-ask-for-supports/plan.md) |
+| 006 | Brand refresh — compass mark + navy→teal→sage system + shared `<PageHeader>`/`<BrandCard>` kit, applied surface by surface | Open — owner approved compass + palette; building Phase 1 | — | [intent](006-brand-refresh/intent.md) · [plan](006-brand-refresh/plan.md) |
 
 ## Open decisions
 
