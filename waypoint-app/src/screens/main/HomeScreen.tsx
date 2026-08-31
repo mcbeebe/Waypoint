@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   Pressable,
   ScrollView,
@@ -43,6 +44,8 @@ import OneThingCard, { LaterList } from '@/components/OneThingCard';
 import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { useDraftFlow } from '@/hooks/useDraftFlow';
+import { searchLearn, type LearnHit } from '@/lib/learnLibrary';
+import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
 import { FLAGS } from '@/lib/flags';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
@@ -65,12 +68,32 @@ const ACCOUNT_HINT: Record<FunnelLocale, string> = {
   vi: 'Mở cài đặt, chia sẻ gia đình, tài liệu và gói đăng ký của quý vị',
 };
 
-/** The composer's placeholder and its screen-reader label — the one
- *  always-there door to the AI Navigator, so it must be fully trilingual. */
+/** The friendly invitation above the search, to pull a parent into typing the
+ *  thing on their mind right where they land. Trilingual. */
+const MIND_PROMPT: Record<FunnelLocale, string> = {
+  en: 'Got something on your mind?',
+  es: '¿Tiene algo en mente?',
+  vi: 'Quý vị đang băn khoăn điều gì?',
+};
+
+/** The composer's placeholder and its screen-reader label — now a real search:
+ *  type a worry and get the guide, the article, or the AI. Fully trilingual. */
 const COMPOSER_PLACEHOLDER: Record<FunnelLocale, string> = {
-  en: 'Ask Waypoint anything…',
-  es: 'Pregúntele lo que sea a Waypoint…',
-  vi: 'Hỏi Waypoint bất cứ điều gì…',
+  en: 'Ask or search — “they said no”, “IEP”, “diapers”…',
+  es: 'Pregunte o busque — “dijeron que no”, “IEP”, “pañales”…',
+  vi: 'Hỏi hoặc tìm — “họ từ chối”, “IEP”, “tã”…',
+};
+
+/** The always-present "ask the AI" row and the section label for hits. */
+const ASK_AI_ROW: Record<FunnelLocale, string> = {
+  en: 'Ask Waypoint AI',
+  es: 'Preguntar a la IA de Waypoint',
+  vi: 'Hỏi Trợ lý AI của Waypoint',
+};
+const HINT_KINDS: Record<FunnelLocale, { article: string; path: string; glossary: string }> = {
+  en: { article: 'Read', path: 'How it works', glossary: 'What it means' },
+  es: { article: 'Leer', path: 'Cómo funciona', glossary: 'Qué significa' },
+  vi: { article: 'Đọc', path: 'Cách hoạt động', glossary: 'Nghĩa là gì' },
 };
 const COMPOSER_LABEL: Record<FunnelLocale, string> = {
   en: 'Ask the AI Navigator a question',
@@ -134,6 +157,9 @@ function HomeScreenInner({
     refetch: refetchComms,
   } = useCommunications(family?.id ?? '');
   const [menuOpen, setMenuOpen] = useState(false);
+  // Home search (owner, Aug 31 2026): the composer is a real search now — type
+  // a worry and get the guide, the article, or the AI, right where you land.
+  const [homeQuery, setHomeQuery] = useState('');
   const { deadlines, loading: deadlinesLoading, error: deadlinesError } = useDeadlines({
     familyId: family?.id ?? '',
   });
@@ -185,6 +211,50 @@ function HomeScreenInner({
   // by the request-clock reminders — which are gated on the deadlines category.
   // So only make the promise when that category is on, not merely the master.
   const promiseKeepable = remindersOn && notifPrefs.deadlines;
+
+  // Home search results — the library answers first (a guide, an article, a
+  // definition), and the AI is always one row away. Trimmed to a handful so
+  // Home stays calm; the Learn tab is the full library.
+  const homeHits = useMemo<LearnHit[]>(
+    () => (homeQuery.trim().length > 1 ? searchLearn(homeQuery, funnelLocale).slice(0, 4) : []),
+    [homeQuery, funnelLocale]
+  );
+  const searching = homeQuery.trim().length > 1;
+
+  /** Ask the AI the typed question — the always-available fallback. */
+  const askAI = useCallback(() => {
+    const q = homeQuery.trim();
+    (navigation as any).navigate('Navigator', {
+      screen: 'NavigatorMain',
+      params: q ? { ask: q } : undefined,
+    });
+    setHomeQuery('');
+  }, [homeQuery, navigation]);
+
+  /** Open a hit: an article opens the reader, a guide opens its screen, a bare
+   *  definition (no target) hands the word to the AI to explain. */
+  const openHit = useCallback(
+    (hit: LearnHit) => {
+      if (hit.kind === 'article') {
+        (navigation as any).navigate('Navigator', {
+          screen: 'Article',
+          params: { articleKey: hit.key },
+          initial: false,
+        });
+      } else if (hit.target) {
+        (navigation as any).navigate(hit.target.tab, {
+          screen: hit.target.screen,
+          params: hit.target.params,
+          initial: false,
+        });
+      } else {
+        askAI();
+        return;
+      }
+      setHomeQuery('');
+    },
+    [navigation, askAI]
+  );
 
   // ── The One Thing (Roadmap/Home-Rebuild-Plan.md phase 2) ──────────────────
   // One published ladder decides what leads. Everything decidable is in
@@ -436,6 +506,9 @@ function HomeScreenInner({
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        // Results render while the keyboard is up; without this the first tap on
+        // a result is swallowed to dismiss the keyboard instead of navigating.
+        keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
         <View style={styles.header}>
@@ -480,20 +553,86 @@ function HomeScreenInner({
                 {notice}
               </Text>
             )}
-            {/* The composer — the one always-there door to the AI Navigator,
-                so a parent can ask anything without leaving Home first. */}
-            <TouchableOpacity
-              style={styles.composer}
-              onPress={() => (navigation as any).navigate('Navigator')}
-              accessibilityRole="button"
-              accessibilityLabel={COMPOSER_LABEL[funnelLocale]}
-            >
+            {/* The invitation + the real search. Type a worry right where you
+                land and the library answers first — a guide, an article, or the
+                AI. (Was a dead button that only opened the AI.) */}
+            <Text style={styles.mindPrompt}>{MIND_PROMPT[funnelLocale]}</Text>
+            <View style={styles.composer}>
               <Ionicons name="search" size={18} color={colors.mid} />
-              <Text style={styles.composerText} numberOfLines={1}>
-                {COMPOSER_PLACEHOLDER[funnelLocale]}
-              </Text>
-              <Ionicons name="mic-outline" size={20} color={colors.teal} />
-            </TouchableOpacity>
+              <TextInput
+                style={styles.composerInput}
+                value={homeQuery}
+                onChangeText={setHomeQuery}
+                placeholder={COMPOSER_PLACEHOLDER[funnelLocale]}
+                placeholderTextColor={colors.mid}
+                returnKeyType="search"
+                onSubmitEditing={askAI}
+                accessibilityLabel={COMPOSER_LABEL[funnelLocale]}
+              />
+              {homeQuery.length > 0 ? (
+                <Pressable onPress={() => setHomeQuery('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear">
+                  <Ionicons name="close-circle" size={18} color={colors.mid} />
+                </Pressable>
+              ) : (
+                <Ionicons name="mic-outline" size={20} color={colors.teal} />
+              )}
+            </View>
+
+            {searching && (
+              <View style={styles.results}>
+                {homeHits.map((hit) =>
+                  // A definition IS the answer — show it inline and don't route
+                  // (the library's own rule). Only navigable hits get a chevron.
+                  hit.kind === 'glossary' ? (
+                    <View
+                      key={`${hit.kind}:${hit.key}`}
+                      style={styles.resultRow}
+                      accessible
+                      accessibilityRole="text"
+                      accessibilityLabel={`${hit.title}: ${hit.detail}`}
+                    >
+                      <Ionicons name="book-outline" size={18} color={colors.teal} />
+                      <View style={styles.resultBody}>
+                        <Text style={styles.resultTitle}>{hit.title}</Text>
+                        <Text style={styles.resultDefn}>{hit.detail}</Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <Pressable
+                      key={`${hit.kind}:${hit.key}`}
+                      style={({ pressed }) => [styles.resultRow, pressed && styles.resultPressed]}
+                      onPress={() => openHit(hit)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${hit.title}. ${hit.detail}`}
+                    >
+                      <Ionicons
+                        name={hit.kind === 'path' ? 'compass-outline' : 'document-text-outline'}
+                        size={18}
+                        color={colors.teal}
+                      />
+                      <View style={styles.resultBody}>
+                        <Text style={styles.resultTitle} numberOfLines={1}>{hit.title}</Text>
+                        <Text style={styles.resultKind}>{HINT_KINDS[funnelLocale][hit.kind]}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+                    </Pressable>
+                  )
+                )}
+                {/* The AI is always the last resort — never a dead end. */}
+                <Pressable
+                  style={({ pressed }) => [styles.resultRow, styles.askAiRow, pressed && styles.resultPressed]}
+                  onPress={askAI}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${ASK_AI_ROW[funnelLocale]}: ${homeQuery.trim()}`}
+                >
+                  <Ionicons name="sparkles-outline" size={18} color={colors.teal} />
+                  <Text style={styles.askAiText} numberOfLines={1}>
+                    {ASK_AI_ROW[funnelLocale]} — “{homeQuery.trim()}”
+                  </Text>
+                  <Ionicons name="arrow-forward" size={16} color={colors.teal} />
+                </Pressable>
+              </View>
+            )}
             <SensorLine sensor={triage.sensor} />
             <LaterList
               later={triage.later}
@@ -575,11 +714,51 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  composerText: {
+  composerInput: {
     flex: 1,
     fontSize: fonts.sizes.base,
-    color: colors.mid,
+    color: colors.navy,
+    paddingVertical: 0,
   },
+  mindPrompt: {
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.bold as '700',
+    color: colors.navy,
+    marginBottom: spacing.sm,
+    letterSpacing: -0.2,
+  },
+  results: {
+    backgroundColor: colors.white,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: -spacing.xs,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+  },
+  resultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    minHeight: MIN_TOUCH_TARGET,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  resultPressed: { backgroundColor: '#F8FAFC' },
+  resultBody: { flex: 1 },
+  resultTitle: { fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: colors.navy },
+  resultDefn: { fontSize: fonts.sizes.sm, color: colors.dark, marginTop: 2, lineHeight: fonts.sizes.sm * 1.45 },
+  resultKind: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    marginTop: 1,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  askAiRow: { backgroundColor: '#F0FBFD' },
+  askAiText: { flex: 1, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600', color: colors.teal },
   notice: {
     fontSize: fonts.sizes.sm,
     color: semantic.warning,
