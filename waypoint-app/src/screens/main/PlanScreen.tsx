@@ -67,6 +67,7 @@ function labels(locale: FunnelLocale) {
     actions: L('Action Plan', 'Plan de acción', 'Kế hoạch hành động'),
     viewGroup: L('Plan view', 'Vista del plan', 'Chế độ xem'),
     due: L('Due', 'Vence', 'Hạn'),
+    added: L('Added', 'Agregado', 'Đã thêm'),
     statusNotStarted: L('To do', 'Por hacer', 'Cần làm'),
     statusInProgress: L('In progress', 'En curso', 'Đang làm'),
     statusCompleted: L('Done', 'Hecho', 'Xong'),
@@ -404,6 +405,14 @@ export default function PlanScreen() {
     const mon = MONTHS[funnelLocale][Number(m[2]) - 1] ?? m[2];
     return funnelLocale === 'vi' ? `${Number(m[3])} ${mon}` : `${mon} ${Number(m[3])}`;
   };
+  // created_at is a UTC timestamptz; render it in the LOCAL calendar day so an
+  // evening add doesn't read as tomorrow (fmtDue's UTC-prefix parse would).
+  const fmtAdded = (iso: string) => {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const mon = MONTHS[funnelLocale][d.getMonth()] ?? '';
+    return funnelLocale === 'vi' ? `${d.getDate()} ${mon}` : `${mon} ${d.getDate()}`;
+  };
 
   const actionRow = (a: (typeof actions)[number]) => {
     const isDone = a.status === 'completed';
@@ -417,7 +426,11 @@ export default function PlanScreen() {
           ? t.statusInProgress
           : t.statusNotStarted;
     const dotColor = isDone ? colors.sage : locked ? colors.border : a.status === 'in_progress' ? colors.teal : colors.mid;
-    const meta = a.due_date ? `${t.due} ${fmtDue(a.due_date)}` : '';
+    const dueMeta = a.due_date ? `${t.due} ${fmtDue(a.due_date)}` : '';
+    // When it joined the plan (owner, Aug 31) — created_at is an ISO timestamp,
+    // fmtDue reads its date prefix.
+    const addedMeta = a.created_at ? `${t.added} ${fmtAdded(a.created_at)}` : '';
+    const meta = [dueMeta, addedMeta].filter(Boolean).join('  ·  ');
     return (
       <Pressable
         key={a.id}
@@ -445,10 +458,10 @@ export default function PlanScreen() {
             {locked ? '🔒 ' : ''}{a.title}
           </Text>
           {!!meta && (
-            <Text
-              style={[styles.rowMeta, { fontSize: sz(12), lineHeight: sz(16) }, overdue && styles.overdue]}
-            >
-              {meta}
+            <Text style={[styles.rowMeta, { fontSize: sz(12), lineHeight: sz(16) }]}>
+              {dueMeta ? <Text style={overdue ? styles.overdue : undefined}>{dueMeta}</Text> : null}
+              {dueMeta && addedMeta ? '  ·  ' : null}
+              {addedMeta || null}
             </Text>
           )}
         </View>
