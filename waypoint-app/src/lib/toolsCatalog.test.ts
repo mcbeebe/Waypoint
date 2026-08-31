@@ -4,11 +4,13 @@ import {
   getToolDoors,
   getAllTools,
   searchTools,
+  searchToolsForHome,
   searchPlaceholder,
   requestsBadge,
   replyBadge,
   lettersDescription,
 } from './toolsCatalog';
+import { resolvesFrom } from '@/navigation/routeGraph';
 
 /**
  * Screens the catalog may route to. Mirrors HomeStackParamList (Home
@@ -183,4 +185,31 @@ describe('locale parity', () => {
       );
     });
   }
+});
+
+describe('searchToolsForHome — natural-language tool search for the composer', () => {
+  it('surfaces the IEP analyzer for "help me read my son’s IEP"', () => {
+    const hits = searchToolsForHome('Help me read my sons IEP');
+    expect(hits.length).toBeGreaterThan(0);
+    // The dedicated analyzer should rank first (label + terms both hit).
+    expect(hits[0].key).toBe('analyze_iep');
+  });
+
+  it('drops stop words so a full sentence still finds the tool', () => {
+    // Without stopword dropping, the strict AND match would return nothing.
+    expect(searchToolsForHome('I need help understanding the IEP').some((t) => t.key === 'analyze_iep')).toBe(true);
+    expect(searchToolsForHome('analizar mi IEP', 'es').some((t) => t.key === 'analyze_iep')).toBe(true);
+  });
+
+  it('returns nothing for a query with no real terms', () => {
+    expect(searchToolsForHome('help me please')).toEqual([]);
+    expect(searchToolsForHome('  ')).toEqual([]);
+  });
+
+  it('the analyzer routes somewhere that resolves from Home', () => {
+    const analyzer = getAllTools().find((t) => t.key === 'analyze_iep')!;
+    expect(analyzer.route.screen).toBe('Documents');
+    // No tab → Home stack; Documents is a Home destination.
+    expect(resolvesFrom('Home', { screen: analyzer.route.screen, tab: analyzer.route.tab })).toBe(true);
+  });
 });

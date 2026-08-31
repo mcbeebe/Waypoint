@@ -45,6 +45,7 @@ import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { useDraftFlow } from '@/hooks/useDraftFlow';
 import { searchLearn, type LearnHit } from '@/lib/learnLibrary';
+import { searchToolsForHome, type ToolEntry } from '@/lib/toolsCatalog';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
 import { FLAGS } from '@/lib/flags';
@@ -94,6 +95,12 @@ const HINT_KINDS: Record<FunnelLocale, { article: string; path: string; glossary
   en: { article: 'Read', path: 'How it works', glossary: 'What it means' },
   es: { article: 'Leer', path: 'Cómo funciona', glossary: 'Qué significa' },
   vi: { article: 'Đọc', path: 'Cách hoạt động', glossary: 'Nghĩa là gì' },
+};
+/** The kind label on a tool result row. */
+const TOOL_KIND: Record<FunnelLocale, string> = {
+  en: 'Tool',
+  es: 'Herramienta',
+  vi: 'Công cụ',
 };
 const COMPOSER_LABEL: Record<FunnelLocale, string> = {
   en: 'Ask the AI Navigator a question',
@@ -219,7 +226,26 @@ function HomeScreenInner({
     () => (homeQuery.trim().length > 1 ? searchLearn(homeQuery, funnelLocale).slice(0, 4) : []),
     [homeQuery, funnelLocale]
   );
+  // Tools are searchable from Home too (owner, Aug 31 2026): a query like "help
+  // me read my son's IEP" should surface the IEP analyzer, not only Learn hits.
+  const toolHits = useMemo<ToolEntry[]>(
+    () => (homeQuery.trim().length > 1 ? searchToolsForHome(homeQuery, funnelLocale).slice(0, 2) : []),
+    [homeQuery, funnelLocale]
+  );
   const searching = homeQuery.trim().length > 1;
+
+  /** Open a Tool hit — mirrors ToolsArea: a route with no tab lives on Home. */
+  const openTool = useCallback(
+    (tool: ToolEntry) => {
+      (navigation as any).navigate(tool.route.tab ?? 'Home', {
+        screen: tool.route.screen,
+        params: tool.route.params,
+        initial: false,
+      });
+      setHomeQuery('');
+    },
+    [navigation]
+  );
 
   /** Ask the AI the typed question — the always-available fallback. */
   const askAI = useCallback(() => {
@@ -580,6 +606,24 @@ function HomeScreenInner({
 
             {searching && (
               <View style={styles.results}>
+                {/* Tools first — a direct action (e.g. the IEP analyzer) beats a
+                    guide when the query names something the app can just do. */}
+                {toolHits.map((tool) => (
+                  <Pressable
+                    key={`tool:${tool.key}`}
+                    style={({ pressed }) => [styles.resultRow, pressed && styles.resultPressed]}
+                    onPress={() => openTool(tool)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${tool.label}. ${tool.description}`}
+                  >
+                    <Ionicons name={tool.icon as any} size={18} color={colors.teal} />
+                    <View style={styles.resultBody}>
+                      <Text style={styles.resultTitle} numberOfLines={1}>{tool.label}</Text>
+                      <Text style={styles.resultKind}>{TOOL_KIND[funnelLocale]}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+                  </Pressable>
+                ))}
                 {homeHits.map((hit) =>
                   // A definition IS the answer — show it inline and don't route
                   // (the library's own rule). Only navigable hits get a chevron.
