@@ -10,8 +10,9 @@ describe('looksLikePlanQuery — surfaces the Plan-tab shortcut on plan intent',
       'what should I do',
       'my tasks',
       'task list',
+      'my to-do list',
+      'todo list',
       "what's next",
-      'to-do',
     ]) {
       expect(looksLikePlanQuery(q), q).toBe(true);
     }
@@ -27,7 +28,6 @@ describe('looksLikePlanQuery — surfaces the Plan-tab shortcut on plan intent',
   });
 
   it('does NOT fire on a document "plan" or unrelated queries', () => {
-    // The trap: "IEP plan"/"IPP plan" are documents, not the action list.
     for (const q of [
       'IEP plan',
       'IPP plan',
@@ -39,6 +39,21 @@ describe('looksLikePlanQuery — surfaces the Plan-tab shortcut on plan intent',
       '',
       ' ',
       'a',
+    ]) {
+      expect(looksLikePlanQuery(q), q).toBe(false);
+    }
+  });
+
+  it('matches whole words only — no leaking inside a longer word (adversary F1)', () => {
+    // These are realistic domain queries the substring version wrongly caught:
+    // "to do" inside "to document"/"to download", "my plan" inside "my plans",
+    // "que hago" inside "porque hago".
+    for (const q of [
+      'how to document the IEP meeting',
+      'how to download forms',
+      'my plans for the IEP meeting',
+      'my planner',
+      'porque hago esto',
     ]) {
       expect(looksLikePlanQuery(q), q).toBe(false);
     }

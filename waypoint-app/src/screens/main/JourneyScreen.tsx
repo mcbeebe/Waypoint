@@ -143,6 +143,7 @@ export default function JourneyScreen() {
           style={styles.stackEntry}
           onPress={() => goHome('EligibilityResult')}
           accessibilityRole="button"
+          accessibilityLabel={esUI ? 'Su resultado' : viUI ? 'Kết quả của quý vị' : 'Your Result'}
         >
           <Text style={styles.stackEntryIcon}>🎯</Text>
           <View style={styles.stackEntryBody}>
