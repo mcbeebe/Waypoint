@@ -16,7 +16,7 @@
  * reaches a parent.
  */
 import type { FunnelLocale } from '@/lib/eligibility';
-import type { ArticleBlock, LearnArticle, LearnTarget } from '@/lib/learnLibrary';
+import type { ArticleBlock, ArticleBridge, LearnArticle, LearnTarget } from '@/lib/learnLibrary';
 import { getEscalationRungs } from '@/lib/escalationLadder';
 import { getRcStages, getSchoolStages } from '@/lib/processMap';
 import { deriveResourceStack } from '@/lib/resourceStack';
@@ -106,6 +106,27 @@ function actionForScreen(screen: string, locale: FunnelLocale): string {
  *  something" screen (who to contact), never a loop back to the same map. */
 const NO_LEVER_TARGET: LearnTarget = { screen: 'Agencies', tab: 'Home' };
 
+/**
+ * The conversation bridge for a DERIVED article. The harness does not fabricate
+ * next-questions — good `relatedQuestions` are authored in the 8-2 human pass,
+ * so a derived article carries an empty list until then. The bridge itself is
+ * generic-but-grounded: a fixed invitation plus a seed built from the module's
+ * own (already trilingual) title, so nothing new is asserted. `primaryQuestion`
+ * is the title — the canonical thing this page answers.
+ */
+function deriveBridge(title: string, locale: FunnelLocale): ArticleBridge {
+  const t = L(locale);
+  return {
+    label: t('Help me with my situation', 'Ayúdame con mi situación', 'Giúp tôi với tình huống của tôi'),
+    blurb: t(
+      'Tell me what’s going on and I’ll help you take the next step.',
+      'Dígame qué está pasando y le ayudaré a dar el siguiente paso.',
+      'Hãy cho tôi biết chuyện gì đang xảy ra và tôi sẽ giúp quý vị bước tiếp theo.'
+    ),
+    seed: `${t('I need help with', 'Necesito ayuda con', 'Tôi cần giúp về')}: ${title}`,
+  };
+}
+
 // ─── projectors ──────────────────────────────────────────────────────────────
 
 /** An escalation-ladder rung → an article that ends in its lever letter, or in
@@ -122,6 +143,9 @@ function fromRung(
     key: `ladder_${rung.key}`,
     title: rung.title,
     summary: summarize(rung.body),
+    primaryQuestion: rung.title,
+    relatedQuestions: [],
+    bridge: deriveBridge(rung.title, locale),
     body,
     minutes: readMinutes(rung.body, rung.clock),
     citation: rung.citation || undefined,
@@ -150,6 +174,9 @@ function fromStage(
     key: `${system === 'rc' ? 'rc_stage' : 'school_stage'}_${stage.key}`,
     title: stage.title,
     summary: summarize(stage.body),
+    primaryQuestion: stage.title,
+    relatedQuestions: [],
+    bridge: deriveBridge(stage.title, locale),
     body,
     minutes: readMinutes(stage.body, stage.clock),
     citation: stage.citation || undefined,
@@ -177,6 +204,9 @@ function fromLayer(
     key: `stack_${layer.key}`,
     title: layer.title,
     summary: summarize(layer.gets),
+    primaryQuestion: layer.title,
+    relatedQuestions: [],
+    bridge: deriveBridge(layer.title, locale),
     body: [{ kind: 'para', text: layer.gets }],
     minutes: readMinutes(layer.gets),
     citation: layer.citation || undefined,

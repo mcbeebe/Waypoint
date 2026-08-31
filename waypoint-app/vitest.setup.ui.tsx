@@ -50,11 +50,14 @@ vi.mock('react-native-safe-area-context', () => ({
  * with no tab, aimed at a stack that does not register it.
  */
 export const navigateCalls: { args: unknown[] }[] = [];
+/** push() calls, recorded separately — a push keeps the current screen beneath. */
+export const pushCalls: { args: unknown[] }[] = [];
 /** Route params a screen under test reads via useRoute — set before render. */
 export const routeParams: Record<string, unknown> = {};
 vi.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: (...args: unknown[]) => void navigateCalls.push({ args }),
+    push: (...args: unknown[]) => void pushCalls.push({ args }),
     goBack: () => {},
     setOptions: () => {},
     addListener: () => () => {},
@@ -66,6 +69,7 @@ vi.mock('@react-navigation/native', () => ({
 
 beforeEach(() => {
   navigateCalls.length = 0;
+  pushCalls.length = 0;
   for (const k of Object.keys(routeParams)) delete routeParams[k];
   store.clear();
   clipboard.text = null;

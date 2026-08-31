@@ -31,6 +31,7 @@ const UI: Record<
     copy: string;
     copied: string;
     copyFailed: string;
+    related: string;
   }
 > = {
   en: {
@@ -40,6 +41,7 @@ const UI: Record<
     copy: 'Copy to my notes',
     copied: 'Copied',
     copyFailed: "Couldn't copy — select the text to copy it.",
+    related: 'People also ask',
   },
   es: {
     min: (n) => `${n} min de lectura`,
@@ -48,6 +50,7 @@ const UI: Record<
     copy: 'Copiar a mis notas',
     copied: 'Copiado',
     copyFailed: 'No se pudo copiar — seleccione el texto para copiarlo.',
+    related: 'La gente también pregunta',
   },
   vi: {
     min: (n) => `Đọc ${n} phút`,
@@ -56,6 +59,7 @@ const UI: Record<
     copy: 'Sao chép vào ghi chú',
     copied: 'Đã sao chép',
     copyFailed: 'Không sao chép được — hãy chọn văn bản để sao chép.',
+    related: 'Mọi người cũng hỏi',
   },
 };
 
@@ -98,6 +102,21 @@ export default function ArticleScreen() {
     (navigation as any).navigate(tab, { screen, params, initial: false });
   };
 
+  /**
+   * The conversation bridge — hand the parent to the AI, already seeded with
+   * what they were reading (never a blank box). `seed` opens the general
+   * handoff; a tapped related question opens that specific one.
+   *
+   * PUSH a fresh chat rather than `navigate` to NavigatorMain: the reader and
+   * the chat share the Navigator stack, so a plain navigate would POP back to
+   * NavigatorMain and discard the article. Pushing keeps the article beneath,
+   * so Back returns to it — the article stays "complete," and the fresh screen
+   * starts with isLoading false, so the seed can never land mid-stream.
+   */
+  const openBridge = (ask: string) => {
+    (navigation as any).push('NavigatorMain', { ask });
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -125,6 +144,43 @@ export default function ArticleScreen() {
           ))}
         </View>
 
+        {/* The conversation bridge — the soft "not sure?" door into the AI,
+            seeded with this article's context. The article reads as complete
+            without it (two doors, never forced). */}
+        <View style={styles.bridge}>
+          <Text style={styles.bridgeBlurb}>{article.bridge.blurb}</Text>
+          <Pressable
+            style={({ pressed }) => [styles.bridgeCta, pressed && styles.ctaPressed]}
+            onPress={() => openBridge(article.bridge.seed)}
+            accessibilityRole="button"
+            accessibilityLabel={article.bridge.label}
+          >
+            <Ionicons name="chatbubbles-outline" size={17} color={colors.white} />
+            <Text style={styles.bridgeCtaText}>{article.bridge.label}</Text>
+            <Ionicons name="arrow-forward" size={17} color={colors.white} />
+          </Pressable>
+
+          {article.relatedQuestions.length > 0 && (
+            <View style={styles.related}>
+              <Text style={styles.relatedHead}>{t.related}</Text>
+              {article.relatedQuestions.map((q, i) => (
+                <Pressable
+                  key={i}
+                  style={({ pressed }) => [styles.relatedRow, pressed && styles.relatedRowPressed]}
+                  onPress={() => openBridge(q)}
+                  accessibilityRole="button"
+                  accessibilityLabel={q}
+                >
+                  <Text style={styles.relatedText}>{q}</Text>
+                  <Ionicons name="arrow-forward" size={14} color={colors.teal} />
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* The confident "I know what I need" door — the article's direct
+            end-action (the productAction). */}
         <Pressable
           style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
           onPress={openAction}
@@ -314,6 +370,53 @@ const styles = StyleSheet.create({
   },
   copyBtnPressed: { opacity: 0.6 },
   copyText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.bold as '700', color: colors.teal },
+  bridge: {
+    marginTop: spacing.xl,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: colors.coral,
+    backgroundColor: '#FEF0E6',
+    borderRadius: radii.lg,
+    padding: spacing.base,
+  },
+  bridgeBlurb: {
+    fontSize: fonts.sizes.md,
+    lineHeight: fonts.sizes.md * 1.5,
+    color: colors.navy,
+    marginBottom: spacing.md,
+  },
+  bridgeCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.coral,
+    borderRadius: radii.md,
+    minHeight: MIN_TOUCH_TARGET + 4,
+    paddingHorizontal: spacing.base,
+  },
+  bridgeCtaText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold as '700' },
+  related: { marginTop: spacing.base, gap: spacing.xs },
+  relatedHead: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold as '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.mid,
+    marginBottom: spacing.xs,
+  },
+  relatedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    minHeight: MIN_TOUCH_TARGET,
+    paddingVertical: spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: '#F3D9C4',
+  },
+  relatedRowPressed: { opacity: 0.6 },
+  relatedText: { flex: 1, fontSize: fonts.sizes.md, color: colors.navy, lineHeight: fonts.sizes.md * 1.4 },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -323,7 +426,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     minHeight: MIN_TOUCH_TARGET + 8,
     paddingHorizontal: spacing.lg,
-    marginTop: spacing.xl,
+    marginTop: spacing.md,
   },
   ctaPressed: { opacity: 0.85 },
   ctaText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold as '700' },

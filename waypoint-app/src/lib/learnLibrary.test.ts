@@ -417,3 +417,54 @@ describe('articles carry a tool the parent keeps (phase 8, 8-0b)', () => {
     }
   });
 });
+
+describe('every article carries a conversation bridge (Slice A, reframe)', () => {
+  it('gives each hand-authored article a primaryQuestion, next questions, and a bridge', () => {
+    for (const a of getLearnArticles('en')) {
+      expect(a.primaryQuestion.length, `${a.key} primaryQuestion`).toBeGreaterThan(0);
+      // The editorial spec's contract is 5–10 next questions.
+      expect(a.relatedQuestions.length, `${a.key} relatedQuestions`).toBeGreaterThanOrEqual(5);
+      expect(a.relatedQuestions.length, `${a.key} relatedQuestions`).toBeLessThanOrEqual(10);
+      for (const q of a.relatedQuestions) expect(q.length).toBeGreaterThan(0);
+      expect(a.bridge.label.length, `${a.key} bridge.label`).toBeGreaterThan(0);
+      expect(a.bridge.blurb.length, `${a.key} bridge.blurb`).toBeGreaterThan(0);
+      expect(a.bridge.seed.length, `${a.key} bridge.seed`).toBeGreaterThan(0);
+    }
+  });
+
+  it('is findable by its own primary question — the parent typing the title lands here', () => {
+    for (const loc of LOCALES) {
+      for (const a of getLearnArticles(loc)) {
+        const hits = searchLearn(a.primaryQuestion, loc);
+        expect(hits.some((h) => h.key === a.key), `${a.key} ${loc}: ${a.primaryQuestion}`).toBe(true);
+      }
+    }
+  });
+
+  it('keeps the bridge in locale parity — same next-question count, translated copy', () => {
+    const en = getLearnArticles('en');
+    for (const loc of ['es', 'vi'] as const) {
+      getLearnArticles(loc).forEach((a, i) => {
+        expect(a.relatedQuestions.length, `${a.key} ${loc} relatedQuestions count`).toBe(
+          en[i].relatedQuestions.length
+        );
+        expect(a.primaryQuestion, `${a.key} ${loc} primaryQuestion`).not.toBe(en[i].primaryQuestion);
+        expect(a.bridge.label, `${a.key} ${loc} bridge.label`).not.toBe(en[i].bridge.label);
+        expect(a.bridge.blurb, `${a.key} ${loc} bridge.blurb`).not.toBe(en[i].bridge.blurb);
+        expect(a.bridge.seed, `${a.key} ${loc} bridge.seed`).not.toBe(en[i].bridge.seed);
+        a.relatedQuestions.forEach((q, k) => {
+          expect(q, `${a.key} ${loc} relatedQuestion ${k}`).not.toBe(en[i].relatedQuestions[k]);
+        });
+      });
+    }
+  });
+
+  it('never opens the AI with a demand — the seed stays collaborative', () => {
+    for (const loc of LOCALES) {
+      for (const a of getLearnArticles(loc)) {
+        expect(a.bridge.seed.toLowerCase()).not.toMatch(/\bdemand\b|exigir|yêu sách/);
+        expect(a.bridge.label.toLowerCase()).not.toMatch(/\bdemand\b|exigir|yêu sách/);
+      }
+    }
+  });
+});

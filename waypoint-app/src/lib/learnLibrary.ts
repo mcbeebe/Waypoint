@@ -81,11 +81,47 @@ export type LearnStage =
   | 'advocating'    // "I'm advocating"
   | 'now_what';     // "Now what"
 
+/**
+ * The conversation bridge (reframe, Aug 2026) — the handoff from a static
+ * article into a personalized AI conversation. Required on every article: an
+ * article that only teaches is a dead end. See
+ * `Roadmap/initiatives/004-learn-content-engine/editorial-spec.md`.
+ *
+ * It is an invitation, never a funnel — the article must read as complete if a
+ * parent never taps it (two doors, never forced). Every string is trilingual.
+ */
+export interface ArticleBridge {
+  /** The CTA on the article — "Help me figure out my next step". */
+  label: string;
+  /** One line under it, inviting the parent to type in their own situation. */
+  blurb: string;
+  /**
+   * The opener handed to the AI so it starts already knowing what the parent
+   * was reading — never a blank "ask us anything" box. Phrased as the parent's
+   * first message, so `NavigatorMain` can seed the conversation from it.
+   */
+  seed: string;
+}
+
 export interface LearnArticle {
   key: string;
   title: string;
   /** The two or three sentences a parent needs before the action. */
   summary: string;
+  /**
+   * The one question this article answers, in the parent's words — the title's
+   * spine, and the canonical question the SEO build and the AI both retrieve on.
+   * Required (reframe, Aug 2026).
+   */
+  primaryQuestion: string;
+  /**
+   * The 5–10 questions a parent asks NEXT. Triple duty: the tappable chips when
+   * the AI opens, the JSON-LD FAQPage on the web page, and the flywheel signal
+   * (a high-frequency question no article answers is the next one to write).
+   */
+  relatedQuestions: string[];
+  /** The handoff into the AI. Required — see ArticleBridge. */
+  bridge: ArticleBridge;
   /** The readable article. The `summary` is the card blurb; this is the page. */
   body: ArticleBlock[];
   /** Roughly how long it takes to read — honest, not padded. */
@@ -263,6 +299,31 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         },
       ],
       stage: 'advocating',
+      primaryQuestion: L(
+        'What do I do when the Regional Center says no?',
+        '¿Qué hago cuando el Centro Regional dice que no?',
+        'Tôi phải làm gì khi Trung tâm Khu vực từ chối?'
+      ),
+      relatedQuestions: [
+        L('How do I get a denial in writing?', '¿Cómo consigo la negación por escrito?', 'Làm sao để nhận từ chối bằng văn bản?'),
+        L('What is a Notice of Action?', '¿Qué es un Aviso de Acción?', 'Thông báo Hành động là gì?'),
+        L('How long do I have to appeal?', '¿Cuánto tiempo tengo para apelar?', 'Tôi có bao lâu để kháng nghị?'),
+        L('Can I keep my services during an appeal?', '¿Puedo mantener mis servicios durante una apelación?', 'Tôi có thể giữ dịch vụ trong khi kháng nghị không?'),
+        L('They only said no on the phone — does that count?', 'Solo dijeron que no por teléfono — ¿eso cuenta?', 'Họ chỉ từ chối qua điện thoại — điều đó có tính không?'),
+      ],
+      bridge: {
+        label: L('Help me respond to this no', 'Ayúdame a responder a este no', 'Giúp tôi phản hồi lời từ chối này'),
+        blurb: L(
+          'Tell me what they said and I’ll help you ask for it in writing.',
+          'Dígame qué dijeron y le ayudaré a pedirlo por escrito.',
+          'Hãy cho tôi biết họ nói gì và tôi sẽ giúp quý vị yêu cầu bằng văn bản.'
+        ),
+        seed: L(
+          'The Regional Center told me no and I want to respond.',
+          'El Centro Regional me dijo que no y quiero responder.',
+          'Trung tâm Khu vực đã từ chối tôi và tôi muốn phản hồi.'
+        ),
+      },
       actionLabel: L(
         'Ask for it in writing',
         'Pedirlo por escrito',
@@ -337,6 +398,31 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         },
       ],
       stage: 'advocating',
+      primaryQuestion: L(
+        'How long does the Regional Center have to hold my IPP meeting?',
+        '¿Cuánto tiempo tiene el Centro Regional para hacer mi reunión de IPP?',
+        'Trung tâm Khu vực có bao lâu để tổ chức buổi họp IPP của tôi?'
+      ),
+      relatedQuestions: [
+        L('How do I ask for an IPP review?', '¿Cómo pido una revisión del IPP?', 'Làm sao để đề nghị xem lại IPP?'),
+        L('When can I get a 7-day expedited meeting?', '¿Cuándo puedo obtener una reunión acelerada de 7 días?', 'Khi nào tôi có thể được họp khẩn cấp 7 ngày?'),
+        L('Does my request have to be in writing?', '¿Mi solicitud tiene que ser por escrito?', 'Yêu cầu của tôi có phải bằng văn bản không?'),
+        L('What counts as a health-and-safety emergency?', '¿Qué cuenta como una emergencia de salud y seguridad?', 'Điều gì được coi là khẩn cấp về sức khỏe và an toàn?'),
+        L('What if the 30 days have already passed?', '¿Y si los 30 días ya pasaron?', 'Nếu 30 ngày đã trôi qua thì sao?'),
+      ],
+      bridge: {
+        label: L('Help me start the clock', 'Ayúdame a empezar el plazo', 'Giúp tôi bắt đầu tính thời hạn'),
+        blurb: L(
+          'Tell me what you need reviewed and I’ll help you put the request in writing.',
+          'Dígame qué necesita revisar y le ayudaré a poner la solicitud por escrito.',
+          'Hãy cho tôi biết quý vị cần xem lại điều gì và tôi sẽ giúp viết yêu cầu bằng văn bản.'
+        ),
+        seed: L(
+          'I want to ask for an IPP review and start the clock.',
+          'Quiero pedir una revisión del IPP y empezar el plazo.',
+          'Tôi muốn đề nghị xem lại IPP và bắt đầu tính thời hạn.'
+        ),
+      },
       actionLabel: L('Track this request', 'Registrar esta solicitud', 'Theo dõi yêu cầu này'),
       target: { screen: 'RequestTracker', tab: 'Home' },
       terms: [
@@ -420,6 +506,31 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         },
       ],
       stage: 'seeking_help',
+      primaryQuestion: L(
+        'What can Regional Center money actually pay for?',
+        '¿Qué puede pagar realmente el dinero del Centro Regional?',
+        'Tiền của Trung tâm Khu vực thực sự chi trả cho gì?'
+      ),
+      relatedQuestions: [
+        L('Does the Regional Center pay for diapers?', '¿El Centro Regional paga los pañales?', 'Trung tâm Khu vực có trả tiền tã không?'),
+        L('Can I get respite through the Regional Center?', '¿Puedo obtener relevo a través del Centro Regional?', 'Tôi có thể nhận chăm sóc thay thế qua Trung tâm Khu vực không?'),
+        L('Will they cover a camp or adaptive equipment?', '¿Cubrirán un campamento o equipo adaptado?', 'Họ có chi trả trại hè hoặc thiết bị thích ứng không?'),
+        L('What are “generic resources” and why do they ask?', '¿Qué son los “recursos genéricos” y por qué preguntan?', '“Nguồn lực chung” là gì và vì sao họ hỏi?'),
+        L('How do I get a need added to the IPP?', '¿Cómo agrego una necesidad al IPP?', 'Làm sao để thêm một nhu cầu vào IPP?'),
+      ],
+      bridge: {
+        label: L('Help me figure out what to ask for', 'Ayúdame a saber qué pedir', 'Giúp tôi biết nên đề nghị gì'),
+        blurb: L(
+          'Tell me what your child needs and I’ll help you make the case.',
+          'Dígame qué necesita su hijo/a y le ayudaré a presentar el caso.',
+          'Hãy cho tôi biết con quý vị cần gì và tôi sẽ giúp trình bày.'
+        ),
+        seed: L(
+          'I want to know what the Regional Center can pay for my child.',
+          'Quiero saber qué puede pagar el Centro Regional para mi hijo/a.',
+          'Tôi muốn biết Trung tâm Khu vực có thể chi trả gì cho con tôi.'
+        ),
+      },
       actionLabel: L('See what you can ask for', 'Ver qué puede pedir', 'Xem quý vị có thể đề nghị gì'),
       target: { screen: 'Reimbursables', tab: 'Home' },
       // The words a parent actually types when asking about money.
@@ -500,6 +611,31 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         },
       ],
       stage: 'seeking_help',
+      primaryQuestion: L(
+        'How do I get my child’s first IEP meeting?',
+        '¿Cómo consigo la primera reunión de IEP de mi hijo/a?',
+        'Làm sao để có buổi họp IEP đầu tiên cho con tôi?'
+      ),
+      relatedQuestions: [
+        L('How do I request a school evaluation?', '¿Cómo solicito una evaluación escolar?', 'Làm sao để yêu cầu nhà trường đánh giá?'),
+        L('How long does the school have to respond?', '¿Cuánto tiempo tiene la escuela para responder?', 'Nhà trường có bao lâu để trả lời?'),
+        L('What is an assessment plan?', '¿Qué es un plan de evaluación?', 'Kế hoạch đánh giá là gì?'),
+        L('What should I bring to an IEP meeting?', '¿Qué debo llevar a una reunión de IEP?', 'Tôi nên mang gì đến buổi họp IEP?'),
+        L('What if the school says my child doesn’t qualify?', '¿Y si la escuela dice que mi hijo/a no califica?', 'Nếu nhà trường nói con tôi không đủ điều kiện thì sao?'),
+      ],
+      bridge: {
+        label: L('Help me figure out my next step', 'Ayúdame a saber mi próximo paso', 'Giúp tôi tìm bước tiếp theo'),
+        blurb: L(
+          'Tell me what’s going on at school and I’ll help you prepare.',
+          'Dígame qué pasa en la escuela y le ayudaré a prepararse.',
+          'Hãy cho tôi biết chuyện gì đang xảy ra ở trường và tôi sẽ giúp quý vị chuẩn bị.'
+        ),
+        seed: L(
+          'My child is struggling at school and I think we might need an IEP.',
+          'Mi hijo/a tiene dificultades en la escuela y creo que quizá necesitemos un IEP.',
+          'Con tôi gặp khó khăn ở trường và tôi nghĩ chúng tôi có thể cần một IEP.'
+        ),
+      },
       actionLabel: L(
         'Write the evaluation request',
         'Escribir la solicitud de evaluación',

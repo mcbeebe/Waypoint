@@ -84,6 +84,31 @@ parent finds the door that matches their sentence.
    this is a step not a no, keep it friendly and factual).
 5. **A real end-action** (`target`) the app performs.
 
+## The conversation bridge — required on every article (reframe, Aug 31 2026)
+
+An article that only teaches is a dead end. Every article is **also the first
+move of a conversation**: it answers the general question, then hands the messy,
+personal one to the AI. Four fields, required by schema — no article ships
+without them:
+
+- **`primaryQuestion`** — the one question this article answers, in the parent's
+  words. It *is* the title's spine ("What is an IEP — and does my child need
+  one?") and the canonical question the SEO build and the AI both retrieve on.
+- **`relatedQuestions`** — the 5–10 questions a parent asks *next*. These do
+  triple duty: the tappable chips when the AI opens, the JSON-LD `FAQPage` on
+  the web page, and the flywheel signal (a high-frequency question no article
+  answers is the next article to write).
+- **`bridge`** — the handoff itself: the CTA `label` ("Help me figure out my
+  next step") and the `seed` handed to the AI so it opens *already knowing what
+  the parent was reading*, never a blank "ask us anything" box.
+- **`productAction`** — what the app ultimately does. This is the existing
+  `target` / `actionLabel`: the letter it drafts, the tracker it opens. The
+  bridge routes *through* the AI to this, or the parent takes it directly.
+
+The bridge governs voice too: the handoff is an invitation, never a funnel — a
+parent who just wants the checklist copies it and leaves, and the article must
+read as complete without ever tapping the bridge. **Two doors, never forced.**
+
 An **email is never a `tool`.** A letter or message the parent sends is the
 article's *end-action*: it opens the real draft-and-send flow (the Letters
 composer, backed by connected Gmail), so nothing family-facing is copy-pasted
@@ -114,6 +139,9 @@ Bring this to every content review:
 - [ ] The body ends in a real, reachable action; if it drafts a letter, it uses
       the Letters flow, not a copy block.
 - [ ] There is a keepable tool (checklist or script) the parent can carry.
+- [ ] The conversation bridge is present and complete: a `primaryQuestion`, 5–10
+      `relatedQuestions`, a `bridge` label + AI seed, and a `productAction`. The
+      article still reads as complete if the bridge is never tapped.
 - [ ] The stage matches where such a parent actually is.
 - [ ] Collaborative-first: no "demand", no blame of an actor, no guilt.
 - [ ] The Spanish and Vietnamese say the same thing, at the same reading level —
