@@ -50,6 +50,17 @@ export interface Reimbursable {
   cost: string;
   /** Insider note */
   note: string;
+  /**
+   * A few plain-language bullets — the digestible "what this really means and
+   * how to ask" that doesn't fit the one-line description. Shown in the card's
+   * "More info" dropdown (owner, Aug 31 2026).
+   */
+  moreInfo?: string[];
+  /**
+   * The Learn article this service links to for the full guide. Defaults to the
+   * RC-funding overview (`rc_money`) until a dedicated article is written.
+   */
+  articleKey?: string;
 }
 
 export interface JourneyEntity {
