@@ -153,8 +153,11 @@ export default function EligibilityResultScreen() {
                 ⓘ {card.citation} · {S.reviewed} {card.reviewedOn}
               </Text>
               {/* The RC card names "family services" — make them reachable: the
-                  tier of supports a family has to ask for (initiative 005-C). */}
-              {card.key === 'regional_center' && (
+                  tier of supports a family has to ask for (initiative 005-C).
+                  Only when enrolled: the destination presupposes an IPP to write
+                  the need into, so a not-yet-client (likely/review) doesn't see
+                  a door to a screen that assumes standing they don't have. */}
+              {card.key === 'regional_center' && card.status === 'enrolled' && (
                 <Pressable
                   style={({ pressed }) => [styles.familyLink, pressed && { opacity: 0.6 }]}
                   onPress={() => (navigation as any).navigate('AskForSupports')}

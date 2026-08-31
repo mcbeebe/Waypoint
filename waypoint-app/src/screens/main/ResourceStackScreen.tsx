@@ -226,8 +226,11 @@ export default function ResourceStackScreen() {
         </View>
         <Text style={[styles.cardBody, (locked || later) && styles.cardBodyMuted]}>{layer.gets}</Text>
         {/* The RC layer names "family services" — this door makes them reachable:
-            the tier of supports a family has to ask for (initiative 005-C). */}
-        {layer.key === 'regional_center' && !locked && !later && (
+            the tier of supports a family has to ask for (initiative 005-C). Only
+            once they're a client: the destination presupposes an IPP to write
+            the need into, so it's gated on RC secured (active), not merely
+            unlocked — mirroring how the SDP card waits for consumer status. */}
+        {layer.key === 'regional_center' && secured && (
           <Pressable
             style={({ pressed }) => [styles.askForLink, pressed && styles.pressedDim]}
             onPress={(e) => {
