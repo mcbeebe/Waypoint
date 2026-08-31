@@ -56,6 +56,7 @@ import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { colors, fonts, semantic, spacing, radii } from '@/lib/theme';
 import AccountMenu from '@/components/AccountMenu';
+import { Brandmark } from '@/components/Brandmark';
 import type { RcStatus, IepStatus } from '@/types/database';
 import { SHOW_JOURNEY_FLAG } from '@/screens/onboarding/OnboardingFlow';
 
@@ -590,7 +591,7 @@ function HomeScreenInner({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.brandmark}>
-              <Ionicons name="compass" size={15} color={colors.teal} />
+              <Brandmark size={16} />
               <Text style={styles.wordmark}>WAYPOINT</Text>
             </View>
             <Text style={styles.greeting}>
