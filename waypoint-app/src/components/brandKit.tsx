@@ -39,7 +39,10 @@ export function SectionLabel({ children }: { children: string }) {
  * never carries the meaning by color alone.
  */
 export function ProgressRail({ value, amount }: { value: number; amount: string }) {
-  const clamped = Math.max(0, Math.min(1, value));
+  // Number.isFinite guards NaN/±Infinity — a caller computing `done / total`
+  // hits 0/0 = NaN for an empty section, which would otherwise slip past the
+  // Math.max/min clamp into "NaN%" width and a NaN accessibility value.
+  const clamped = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
   return (
     <View
       accessible

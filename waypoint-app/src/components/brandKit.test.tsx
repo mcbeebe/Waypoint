@@ -46,4 +46,9 @@ describe('ProgressRail', () => {
     rerender(<ProgressRail value={-0.3} amount="none" />);
     expect(screen.getByTestId('progress-fill').style.width).toBe('0%');
   });
+
+  it('treats a NaN value (e.g. 0/0 for an empty section) as 0%, not "NaN%"', () => {
+    render(<ProgressRail value={0 / 0} amount="0 of 0 done" />);
+    expect(screen.getByTestId('progress-fill').style.width).toBe('0%');
+  });
 });
