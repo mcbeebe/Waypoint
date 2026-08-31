@@ -47,7 +47,7 @@ describe('a service expands to digestible detail and links to the full guide', (
     fireEvent.click(screen.getAllByRole('button', { name: /More info about Respite Care/i })[0]);
     expect(screen.getByText(firstBullet)).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: /Read the full guide about Respite Care/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Read the full funding guide/i })[0]);
     expect(navigateCalls).toHaveLength(1);
     const [tab, opts] = navigateCalls[0].args as [string, { screen: string; params: { articleKey: string } }];
     expect(tab).toBe('Navigator');

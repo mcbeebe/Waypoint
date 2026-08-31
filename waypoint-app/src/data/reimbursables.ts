@@ -144,7 +144,7 @@ export const RC_REIMBURSABLES: Reimbursable[] = [
     moreInfo: [
       'You direct an annual budget and choose your own vendors.',
       'More flexible than traditional IPP-purchased services.',
-      'Ask your coordinator about enrollment — rollout varies by RC.',
+      'It’s available statewide to every eligible RC consumer — most families just aren’t told. Ask for a referral to the SCDD orientation to enroll.',
     ],
   },
   {
@@ -155,7 +155,7 @@ export const RC_REIMBURSABLES: Reimbursable[] = [
     note: 'Transition planning starts at age 14.',
     moreInfo: [
       'For adults: support to live independently in their own home.',
-      'Transition planning starts at age 14 — don’t wait for it.',
+      'Regional Center transition planning can start as early as 14 — ask about it early.',
       'The largest expenditure category for adults 22+.',
     ],
   },

@@ -92,6 +92,7 @@ export default function ReimbursablesScreen() {
                 key={s}
                 style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
                 onPress={() => askAI(s)}
+                hitSlop={{ top: 8, bottom: 8 }}
                 accessibilityRole="button"
                 accessibilityLabel={s}
               >
@@ -168,11 +169,14 @@ export default function ReimbursablesScreen() {
                     style={({ pressed }) => [styles.guideLink, pressed && styles.guideLinkPressed]}
                     onPress={() => openGuide(item.articleKey ?? DEFAULT_ARTICLE)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Read the full guide about ${item.name}`}
+                    // Names the funding guide, not the service — every service
+                    // links the funding overview until a dedicated article
+                    // exists, so the label shouldn't promise per-service content.
+                    accessibilityLabel="Read the full funding guide"
                   >
                     <Ionicons name="book-outline" size={sz(15)} color={colors.teal} />
                     <Text style={[styles.guideLinkText, { fontSize: sz(13) }]}>
-                      Read the full guide
+                      Read the full funding guide
                     </Text>
                     <Ionicons name="arrow-forward" size={sz(14)} color={colors.mid} />
                   </Pressable>
@@ -228,7 +232,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.teal,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
-    minHeight: 40,
+    minHeight: 44,
   },
   askBtnPressed: { backgroundColor: '#0E7490' },
   askBtnText: { color: colors.white, fontWeight: fonts.weights.bold as '700' },
@@ -298,7 +302,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#EEF2F6',
     paddingTop: spacing.md,
-    minHeight: 32,
+    minHeight: 44,
     justifyContent: 'center',
   },
   moreToggleText: { color: colors.teal, fontWeight: fonts.weights.bold as '700' },
