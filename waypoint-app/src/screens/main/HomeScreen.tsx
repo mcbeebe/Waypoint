@@ -591,7 +591,7 @@ function HomeScreenInner({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.brandmark}>
-              <Brandmark size={16} />
+              <Brandmark size={22} />
               <Text style={styles.wordmark}>WAYPOINT</Text>
             </View>
             <Text style={styles.greeting}>
@@ -835,18 +835,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // The Waypoint marker + wordmark — the "GPS for the journey" identity, on the
-  // screen a family opens most. Small, so it frames the greeting rather than
-  // shouting.
+  // screen a family opens most. A touch more prominent than before (owner
+  // request) — it frames the greeting without shouting.
   brandmark: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    marginBottom: 4,
+    gap: 7,
+    marginBottom: 5,
   },
   wordmark: {
-    fontSize: fonts.sizes.xs,
+    fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.extrabold as '800',
-    letterSpacing: 1.2,
+    letterSpacing: 1.4,
     color: brand.ink,
   },
   greeting: {
