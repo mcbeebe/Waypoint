@@ -41,10 +41,18 @@ describe('the support detail renders and its CTAs fire the right navigation', ()
 
     fireEvent.click(screen.getByRole('button', { name: /Draft this request for the IPP/i }));
     expect(navigateCalls).toHaveLength(1);
-    const [screenName, params] = navigateCalls[0].args as [string, { template: string; question: string }];
+    const [screenName, params] = navigateCalls[0].args as [
+      string,
+      { template: string; question: string; trackTitle: string },
+    ];
     expect(screenName).toBe('Letters');
-    expect(params.template).toBe('ipp_review_request');
+    // 005-D: the support-specific "add this need to the IPP" letter (its send
+    // opens a tracked request + follow-up clock via sentNextFor).
+    expect(params.template).toBe('ipp_need_request');
     expect(params.question).toContain('Teddy'); // the seeded, name-filled ask
+    // A distinct tracked thread per support, stable (English) across locales —
+    // so a sibling ask and a respite ask don't collapse into one request.
+    expect(params.trackTitle).toBe('IPP need: Sibling support');
   });
 
   it('the "ask Waypoint" CTA seeds the AI with the same ask', () => {

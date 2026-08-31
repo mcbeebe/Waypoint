@@ -199,7 +199,7 @@ describe('sent moment is structurally locale-invariant', () => {
   const KEYS = [
     'sdp_info_request', 'ipp_review_request', 'assessment_request',
     'noa_request', 'records_request', 'rc_timeline_followup', 'medi_cal_deeming',
-    'delivery_plan_request', 'progress_data_request',
+    'delivery_plan_request', 'progress_data_request', 'ipp_need_request',
   ];
   for (const locale of ['es', 'vi'] as const) {
     it(locale, () => {

@@ -227,6 +227,7 @@ export default function LettersScreen() {
     ipp_review_request: 'regional_center', noa_request: 'regional_center',
     rc_timeline_followup: 'regional_center', sdp_info_request: 'regional_center',
     medi_cal_deeming: 'regional_center', delivery_plan_request: 'regional_center',
+    ipp_need_request: 'regional_center',
     iep_email: 'school', iep_prep: 'school', assessment_request: 'school',
     progress_data_request: 'school',
     // records_request can go to either system — the actual recipient's
@@ -315,12 +316,17 @@ export default function LettersScreen() {
     // and a letter sent FROM a case never opens a second clock row.
     let tracked = false;
     const track = trackFor(next, routeRequestId);
+    // A template can serve several distinct asks (the IPP-need letter, one per
+    // support), so the caller can override the constant template title to keep
+    // each its own tracked thread — otherwise two different supports would
+    // collapse into one request and one clock.
+    const trackTitle = (track && route.params?.trackTitle) || track?.title;
     if (routeRequestId) {
       tracked = true; // the case that launched this letter already owns the clock
     } else if (track) {
       const existing = requests.find(
         (r) =>
-          r.title === track.title &&
+          r.title === trackTitle &&
           (r.status === 'requested' || r.status === 'in_progress')
       );
       if (existing) {
@@ -331,7 +337,7 @@ export default function LettersScreen() {
       } else {
         const created = await createRequest({
           request_type: track.requestType,
-          title: track.title,
+          title: trackTitle ?? track.title,
           requested_on: new Date().toISOString().slice(0, 10),
           child_id: primaryChild?.id ?? null,
           channel: 'email',

@@ -5,6 +5,7 @@ import { deadlineFor, REQUEST_TYPE_LABELS } from './requestClocks';
 const LEVER_TEMPLATES = [
   'sdp_info_request', 'ipp_review_request', 'assessment_request',
   'noa_request', 'records_request', 'rc_timeline_followup', 'medi_cal_deeming',
+  'ipp_need_request',
 ];
 
 describe('sentNextFor', () => {
@@ -42,6 +43,22 @@ describe('sentNextFor', () => {
 
   it('the follow-up letter does not open a duplicate tracked request', () => {
     expect(sentNextFor('rc_timeline_followup')!.track).toBeNull();
+  });
+
+  it('the IPP-need request (005-D) tracks with no invented clock, collaborative tone', () => {
+    const n = sentNextFor('ipp_need_request', 'Teddy')!;
+    // Opens a tracked request…
+    expect(n.track?.requestType).toBe('other');
+    expect(n.track?.title.length).toBeGreaterThan(0);
+    // …with the honest soft nudge, never a statutory deadline it doesn't have.
+    expect(deadlineFor(n.track!.requestType, '2026-08-23')).toBeNull();
+    expect(n.followUpDays).toBe(14);
+    // Collaborative-first: never a demand, in any language.
+    for (const loc of ['en', 'es', 'vi'] as const) {
+      const m = sentNextFor('ipp_need_request', 'Teddy', loc)!;
+      const blob = `${m.celebration} ${m.did} ${m.expectations.join(' ')}`.toLowerCase();
+      expect(blob).not.toMatch(/\bdemand\b|exigir|yêu sách/);
+    }
   });
 
   it('a lever letter sent FROM a case never opens a second clock row', () => {

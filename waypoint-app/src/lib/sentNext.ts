@@ -266,6 +266,38 @@ export function sentNextFor(
         track: { requestType: 'other', title: MEDI_CAL_DEEMING_REQUEST_TITLE },
         followUpDays: 14,
       };
+    case 'ipp_need_request':
+      return {
+        celebration: L(
+          'You just asked to get a need written into the plan.',
+          'Acaba de pedir que una necesidad quede escrita en el plan.',
+          'Quý vị vừa đề nghị ghi một nhu cầu vào kế hoạch.'
+        ),
+        did: L(
+          `You asked the Regional Center to add a specific need to ${name}'s IPP — and what the IPP lists is what the RC has to secure.`,
+          `Le pidió al Centro Regional agregar una necesidad específica al IPP de ${name} — y lo que el IPP incluye es lo que el Centro Regional debe conseguir.`,
+          `Quý vị đã đề nghị Trung tâm Khu vực thêm một nhu cầu cụ thể vào IPP của ${name} — và điều IPP ghi là điều Trung tâm Khu vực phải bảo đảm.`
+        ),
+        expectations: [
+          L(
+            'Your Service Coordinator should note the need and talk with you about the support that meets it — often at the next IPP meeting.',
+            'Su coordinador/a de servicios debe anotar la necesidad y hablar con usted sobre el apoyo que la atiende — a menudo en la próxima reunión del IPP.',
+            'Điều phối viên sẽ ghi nhận nhu cầu và trao đổi với quý vị về hỗ trợ đáp ứng — thường tại buổi họp IPP kế tiếp.'
+          ),
+          L(
+            'There is no statutory clock on this request — 2 weeks of silence earns a friendly follow-up.',
+            'Esta solicitud no tiene plazo legal — 2 semanas de silencio ameritan un seguimiento amable.',
+            'Yêu cầu này không có thời hạn pháp lý — im lặng 2 tuần thì nên nhắc nhẹ nhàng.'
+          ),
+          L(
+            'Once it is written into the IPP, the support becomes something the Regional Center has to secure — not a favor.',
+            'Una vez que quede escrito en el IPP, el apoyo se convierte en algo que el Centro Regional debe conseguir — no un favor.',
+            'Khi đã ghi vào IPP, hỗ trợ trở thành điều Trung tâm Khu vực phải bảo đảm — không phải một ân huệ.'
+          ),
+        ],
+        track: { requestType: 'other', title: 'Need added to the IPP (identified need)' },
+        followUpDays: 14,
+      };
     case 'delivery_plan_request':
       return {
         celebration: L(

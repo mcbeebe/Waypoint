@@ -77,6 +77,13 @@ export type HomeStackParamList = {
         requestId?: string;
         /** The draft flow pre-sets the tone the parent chose in the questions. */
         tone?: 'warm' | 'professional' | 'strong';
+        /**
+         * Overrides the tracked-request title on send. A template can serve
+         * several distinct asks (e.g. the IPP-need letter, one per support), so
+         * the caller passes a specific title to keep each its own tracked
+         * thread — otherwise the constant template title would collapse them.
+         */
+        trackTitle?: string;
       }
     | undefined;
   EmailAnalyzer: undefined;
