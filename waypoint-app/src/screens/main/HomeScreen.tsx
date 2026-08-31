@@ -46,6 +46,7 @@ import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { useDraftFlow } from '@/hooks/useDraftFlow';
 import { searchLearn, type LearnHit } from '@/lib/learnLibrary';
 import { searchToolsForHome, type ToolEntry } from '@/lib/toolsCatalog';
+import { getHomeStarters } from '@/lib/homeStarters';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import { looksLikePlanQuery } from '@/lib/planQuery';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
@@ -107,6 +108,25 @@ const COMPOSER_LABEL: Record<FunnelLocale, string> = {
   en: 'Ask the AI Navigator a question',
   es: 'Hágale una pregunta al Navegador con IA',
   vi: 'Hỏi Trợ lý AI một câu hỏi',
+};
+
+/** The explicit "Ask" button inside the composer — makes the AI obviously one
+ *  tap away (it replaces the old, unwired mic icon). Trilingual. */
+const ASK_BTN: Record<FunnelLocale, string> = {
+  en: 'Ask',
+  es: 'Preguntar',
+  vi: 'Hỏi',
+};
+const ASK_BTN_LABEL: Record<FunnelLocale, string> = {
+  en: 'Ask Waypoint AI your question',
+  es: 'Pregúntele a la IA de Waypoint',
+  vi: 'Hỏi Trợ lý AI của Waypoint',
+};
+/** The one-line invitation over the starter chips. */
+const STARTER_HINT: Record<FunnelLocale, string> = {
+  en: 'Not sure where to start? Try',
+  es: '¿No sabe por dónde empezar? Pruebe',
+  vi: 'Chưa biết bắt đầu từ đâu? Thử',
 };
 
 /** The pinned shortcut under the composer, and its in-results twin — both jump
@@ -247,6 +267,9 @@ function HomeScreenInner({
     [homeQuery, funnelLocale]
   );
   const searching = homeQuery.trim().length > 1;
+  // Tappable openers under the composer — tapping one seeds the search, so the
+  // box is never a blank a worried parent has to fill from nothing.
+  const starters = useMemo(() => getHomeStarters(funnelLocale), [funnelLocale]);
 
   /** Open a Tool hit — mirrors ToolsArea: a route with no tab lives on Home. */
   const openTool = useCallback(
@@ -559,8 +582,14 @@ function HomeScreenInner({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.greeting}>{getGreeting()} 👋</Text>
-            <Text style={styles.parentName}>{family?.parent_first_name || 'Welcome'}</Text>
+            <View style={styles.brandmark}>
+              <Ionicons name="compass" size={15} color={colors.teal} />
+              <Text style={styles.wordmark}>WAYPOINT</Text>
+            </View>
+            <Text style={styles.greeting}>
+              {getGreeting()}
+              {family?.parent_first_name ? `, ${family.parent_first_name}` : ''} 👋
+            </Text>
             <ChildPicker />
           </View>
           <TouchableOpacity
@@ -603,24 +632,54 @@ function HomeScreenInner({
                 land and the library answers first — a guide, an article, or the
                 AI. (Was a dead button that only opened the AI.) */}
             <Text style={styles.mindPrompt}>{MIND_PROMPT[funnelLocale]}</Text>
-            <View style={styles.composer}>
-              <Ionicons name="search" size={18} color={colors.mid} />
-              <TextInput
-                style={styles.composerInput}
-                value={homeQuery}
-                onChangeText={setHomeQuery}
-                placeholder={COMPOSER_PLACEHOLDER[funnelLocale]}
-                placeholderTextColor={colors.mid}
-                returnKeyType="search"
-                onSubmitEditing={askAI}
-                accessibilityLabel={COMPOSER_LABEL[funnelLocale]}
-              />
-              {homeQuery.length > 0 ? (
-                <Pressable onPress={() => setHomeQuery('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear">
-                  <Ionicons name="close-circle" size={18} color={colors.mid} />
+            {/* The composer sits on a faint branded surface — Waypoint's palette
+                used once, to mark this as the place you turn a worry into help.
+                Bigger field, an explicit "Ask" button (the AI, one tap away),
+                and tappable starters so the box is never blank. */}
+            <View style={styles.askCard}>
+              <View style={styles.composer}>
+                <Ionicons name="search" size={20} color={colors.teal} />
+                <TextInput
+                  style={styles.composerInput}
+                  value={homeQuery}
+                  onChangeText={setHomeQuery}
+                  placeholder={COMPOSER_PLACEHOLDER[funnelLocale]}
+                  placeholderTextColor={colors.mid}
+                  returnKeyType="search"
+                  onSubmitEditing={askAI}
+                  accessibilityLabel={COMPOSER_LABEL[funnelLocale]}
+                />
+                {homeQuery.length > 0 && (
+                  <Pressable onPress={() => setHomeQuery('')} hitSlop={8} accessibilityRole="button" accessibilityLabel="Clear">
+                    <Ionicons name="close-circle" size={18} color={colors.mid} />
+                  </Pressable>
+                )}
+                <Pressable
+                  style={({ pressed }) => [styles.askBtn, pressed && styles.askBtnPressed]}
+                  onPress={askAI}
+                  accessibilityRole="button"
+                  accessibilityLabel={ASK_BTN_LABEL[funnelLocale]}
+                >
+                  <Ionicons name="sparkles" size={14} color={colors.white} />
+                  <Text style={styles.askBtnText}>{ASK_BTN[funnelLocale]}</Text>
                 </Pressable>
-              ) : (
-                <Ionicons name="mic-outline" size={20} color={colors.teal} />
+              </View>
+              {!searching && (
+                <View style={styles.starters}>
+                  <Text style={styles.starterHint}>{STARTER_HINT[funnelLocale]}</Text>
+                  {starters.map((s) => (
+                    <Pressable
+                      key={s.key}
+                      style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
+                      onPress={() => setHomeQuery(s.seed)}
+                      accessibilityRole="button"
+                      accessibilityLabel={s.label}
+                    >
+                      <Ionicons name={s.icon as any} size={13} color={colors.teal} />
+                      <Text style={styles.chipText}>{s.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
               )}
             </View>
 
@@ -767,15 +826,25 @@ const styles = StyleSheet.create({
   headerLeft: {
     flex: 1,
   },
-  greeting: {
-    fontSize: fonts.sizes.sm,
-    color: colors.mid,
-    marginBottom: 2,
+  // The compass wordmark — the "GPS for the journey" identity, on the screen a
+  // family opens most. Small, so it frames the greeting rather than shouting.
+  brandmark: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 4,
   },
-  parentName: {
-    fontSize: fonts.sizes['2xl'],
+  wordmark: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.extrabold as '800',
+    letterSpacing: 1.2,
+    color: colors.navy,
+  },
+  greeting: {
+    fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold as '700',
     color: colors.navy,
+    marginBottom: 4,
   },
   avatar: {
     width: 44,
@@ -790,30 +859,87 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
     color: colors.white,
   },
-  // The composer sits directly under the One Thing card: a search-bar shape
-  // that opens the AI Navigator. Reads as a place to type, not a button.
+  // The branded surface the composer sits on — a faint teal wash, the palette
+  // used once so this reads as "Waypoint's brain" while the rest stays calm.
+  askCard: {
+    backgroundColor: '#F0FAFC',
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    borderColor: '#D8ECF1',
+    padding: spacing.sm + 2,
+    marginBottom: spacing.md,
+  },
+  // The composer: a bigger search field (60px) that reads as the screen's main
+  // event, with an explicit "Ask" button so the AI is obviously one tap away.
   composer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    minHeight: 48,
+    minHeight: 60,
     backgroundColor: colors.white,
     borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.base,
-    marginBottom: spacing.md,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    borderWidth: 1.5,
+    borderColor: '#B9E2EC',
+    paddingLeft: spacing.base,
+    paddingRight: spacing.xs + 2,
+    shadowColor: colors.teal,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.14,
+    shadowRadius: 10,
     elevation: 2,
   },
   composerInput: {
     flex: 1,
-    fontSize: fonts.sizes.base,
+    fontSize: 16,
     color: colors.navy,
     paddingVertical: 0,
+  },
+  askBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.teal,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    minHeight: 44,
+  },
+  askBtnPressed: { backgroundColor: '#0E7490' },
+  askBtnText: {
+    color: colors.white,
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.bold as '700',
+  },
+  // Starter chips — tappable openers that seed the search so the box is never
+  // blank. Hidden once a search is underway (the results take the space).
+  starters: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm + 2,
+    paddingHorizontal: 2,
+  },
+  starterHint: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    fontWeight: fonts.weights.semibold as '600',
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: '#D6E6EC',
+    borderRadius: radii.full,
+    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.md,
+  },
+  chipPressed: { backgroundColor: '#E0F2F7' },
+  chipText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+    fontWeight: fonts.weights.semibold as '600',
   },
   mindPrompt: {
     fontSize: fonts.sizes.lg,
