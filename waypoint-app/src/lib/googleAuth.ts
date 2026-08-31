@@ -63,46 +63,65 @@ export async function signInWithGoogleWeb(): Promise<{ success: boolean; error?:
   return error ? { success: false, error: error.message } : { success: true };
 }
 
+/** Does the signed-in user already have a Google identity on their account? */
+async function hasGoogleIdentity(): Promise<boolean> {
+  try {
+    const { data } = await supabase.auth.getUserIdentities();
+    return !!data?.identities?.some((i) => i.provider === 'google');
+  } catch {
+    return false;
+  }
+}
+
 /**
- * CONNECT Google to the already-signed-in account (Profile screen).
- * Uses linkIdentity so the email/password user gains the Google identity
- * instead of signing in as a different user. Requires "manual linking"
- * enabled in Supabase Auth settings.
+ * Start a Google connect for the signed-in user, choosing the method the
+ * account's state actually needs:
+ *
+ * - Google NOT yet linked → linkIdentity (adds the Google identity).
+ * - Google ALREADY linked → signInWithOAuth (re-consent as the same user).
+ *
+ * The decision has to be made HERE, before the redirect. linkIdentity on an
+ * already-linked identity does not fail synchronously — it redirects to Google,
+ * the user consents, and only the `/callback` returns `422: Identity is already
+ * linked`. That deferred failure can't be caught after the fact (the old
+ * "retry on error" fallback never fired, because linkIdentity returned no
+ * error to the caller), and it left the user stuck: every attempt 422'd at the
+ * callback, so provider tokens were never captured. Re-consenting via
+ * signInWithOAuth is the path that works for an already-linked account (both
+ * `access_type: offline` and `prompt: consent` are set, so Google returns a
+ * fresh refresh token, which captureGoogleTokens then persists).
  */
-export async function connectGoogleWeb(): Promise<{ success: boolean; error?: string }> {
-  await AsyncStorage.setItem(REQUESTED_SCOPES_KEY, GOOGLE_API_SCOPES.join(' ')).catch(
-    () => undefined
-  );
-  const { error } = await supabase.auth.linkIdentity({
-    provider: 'google',
-    options: oauthOptions('/profile'),
-  });
+async function startGoogleConnect(
+  redirectPath: string,
+  scopes: string[]
+): Promise<{ success: boolean; error?: string }> {
+  await AsyncStorage.setItem(REQUESTED_SCOPES_KEY, scopes.join(' ')).catch(() => undefined);
+  const options = oauthOptions(redirectPath, scopes);
+  const linked = await hasGoogleIdentity();
+  const { error } = linked
+    ? await supabase.auth.signInWithOAuth({ provider: 'google', options })
+    : await supabase.auth.linkIdentity({ provider: 'google', options });
   return error ? { success: false, error: error.message } : { success: true };
 }
 
 /**
+ * CONNECT Google to the already-signed-in account (Profile screen).
+ * Calendar-scoped base connection. Links Google on a first connect, or
+ * re-consents when it is already linked (see startGoogleConnect).
+ */
+export async function connectGoogleWeb(): Promise<{ success: boolean; error?: string }> {
+  return startGoogleConnect('/profile', GOOGLE_API_SCOPES);
+}
+
+/**
  * CONNECT (or upgrade to) Gmail — the deep connection: send letters
- * in-thread and sync agency replies. Works whether or not Google is
- * already linked: linkIdentity for a first connection, signInWithOAuth
- * re-consent when the identity is already on the account.
+ * in-thread and sync agency replies. Links Google on a first connect, or
+ * re-consents (with the Gmail scopes) when it is already linked.
  */
 export async function connectGmailWeb(
   redirectPath = '/'
 ): Promise<{ success: boolean; error?: string }> {
-  await AsyncStorage.setItem(REQUESTED_SCOPES_KEY, GMAIL_API_SCOPES.join(' ')).catch(
-    () => undefined
-  );
-  const options = oauthOptions(redirectPath, GMAIL_API_SCOPES);
-  const { error } = await supabase.auth.linkIdentity({ provider: 'google', options });
-  if (!error) return { success: true };
-  if (/already linked|identity_already_exists/i.test(error.message)) {
-    const { error: reErr } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options,
-    });
-    return reErr ? { success: false, error: reErr.message } : { success: true };
-  }
-  return { success: false, error: error.message };
+  return startGoogleConnect(redirectPath, GMAIL_API_SCOPES);
 }
 
 /**
