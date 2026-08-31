@@ -8,7 +8,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
+import { colors, brand, fonts, spacing, radii, semantic } from '@/lib/theme';
 
 interface AIConsentModalProps {
   visible: boolean;
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     maxHeight: '85%',
   },
   sheet: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
     padding: spacing.xl,
@@ -85,24 +85,24 @@ const styles = StyleSheet.create({
   title: {
     fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
     marginBottom: spacing.md,
   },
   body: {
     fontSize: fonts.sizes.md,
-    color: colors.dark,
+    color: brand.inkSoft,
     lineHeight: 21,
     marginBottom: spacing.md,
   },
   list: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderRadius: radii.md,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
   listItem: {
     fontSize: fonts.sizes.md,
-    color: colors.dark,
+    color: brand.inkSoft,
     lineHeight: 22,
   },
   disclaimer: {
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   acceptButton: {
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     borderRadius: radii.md,
     paddingVertical: spacing.base,
     alignItems: 'center',
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   declineText: {
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.semibold as '600',
   },
 });

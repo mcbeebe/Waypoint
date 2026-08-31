@@ -19,7 +19,7 @@ import {
 import type { LearnHit, LearnTarget } from '@/lib/learnLibrary';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useTextScale } from '@/lib/textSize';
-import { colors, fonts, radii, spacing } from '@/lib/theme';
+import { brand, fonts, radii, spacing } from '@/lib/theme';
 
 function strings(locale: FunnelLocale) {
   const L = (en: string, es: string, vi: string) =>
@@ -194,7 +194,7 @@ export default function LearnPanel({ locale, query, onAsk, onAskAI }: LearnPanel
             accessibilityRole="button"
             accessibilityLabel={`${p.title}. ${p.description}`}
           >
-            <Ionicons name={p.icon as never} size={20} color={colors.teal} />
+            <Ionicons name={p.icon as never} size={20} color={brand.pine} />
             <View style={styles.rowText}>
               <Text style={[styles.rowTitle, { fontSize: sz(14), lineHeight: sz(19) }]}>
                 {p.title}
@@ -203,7 +203,7 @@ export default function LearnPanel({ locale, query, onAsk, onAskAI }: LearnPanel
                 {p.description}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+            <Ionicons name="chevron-forward" size={16} color={brand.inkFaint} />
           </Pressable>
         ))}
       </View>
@@ -275,7 +275,7 @@ export default function LearnPanel({ locale, query, onAsk, onAskAI }: LearnPanel
 const styles = StyleSheet.create({
   wrap: { gap: spacing.sm, paddingHorizontal: spacing.base, paddingBottom: spacing.base },
   sectionLabel: {
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.bold,
     letterSpacing: 1,
     marginTop: spacing.sm,
@@ -284,19 +284,19 @@ const styles = StyleSheet.create({
   chip: {
     minHeight: 44,
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  chipText: { color: colors.navy, fontWeight: fonts.weights.semibold },
+  chipText: { color: brand.ink, fontWeight: fonts.weights.semibold },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     paddingHorizontal: spacing.base,
     paddingVertical: spacing.xs,
   },
@@ -308,20 +308,20 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   rowText: { flex: 1, gap: 3 },
-  rowTitle: { color: colors.navy, fontWeight: fonts.weights.bold },
-  rowDetail: { color: colors.dark },
-  meta: { color: colors.mid },
+  rowTitle: { color: brand.ink, fontWeight: fonts.weights.bold },
+  rowDetail: { color: brand.inkSoft },
+  meta: { color: brand.inkFaint },
   citation: {
-    color: colors.mid,
-    backgroundColor: '#F1F5F9',
+    color: brand.inkFaint,
+    backgroundColor: brand.pineTint,
     borderRadius: 6,
     paddingHorizontal: 6,
     paddingVertical: 1,
     alignSelf: 'flex-start',
     overflow: 'hidden',
   },
-  action: { color: colors.teal, fontWeight: fonts.weights.bold },
+  action: { color: brand.pine, fontWeight: fonts.weights.bold },
   more: { minHeight: 44, justifyContent: 'center' },
-  moreText: { color: colors.teal, fontWeight: fonts.weights.bold },
+  moreText: { color: brand.pine, fontWeight: fonts.weights.bold },
   dim: { opacity: 0.6 },
 });
