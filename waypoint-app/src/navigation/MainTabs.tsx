@@ -50,6 +50,7 @@ import EmailAnalyzerScreen from '@/screens/main/EmailAnalyzerScreen';
 import CommunicationLogScreen from '@/screens/main/CommunicationLogScreen';
 import ResourcesScreen from '@/screens/main/ResourcesScreen';
 import BlogScreen from '@/screens/main/BlogScreen';
+import ArticleScreen from '@/screens/main/ArticleScreen';
 import ExpensesScreen from '@/screens/main/ExpensesScreen';
 import PlanScreen from '@/screens/main/PlanScreen';
 import ToolsScreen from '@/screens/main/ToolsScreen';
@@ -411,6 +412,9 @@ function NavigatorStack() {
       <NavigatorStackNav.Screen name="NavigatorMain" component={NavigatorScreen} options={{ headerShown: false }} />
       <NavigatorStackNav.Screen name="Resources" component={ResourcesScreen} options={{ title: 'Resources' }} />
       <NavigatorStackNav.Screen name="Blog" component={BlogScreen} options={{ title: 'Blog' }} />
+      {/* The Learn reader (phase 8). Empty header title — the screen renders its
+          own headline; the back chevron returns to Learn. */}
+      <NavigatorStackNav.Screen name="Article" component={ArticleScreen} options={{ title: '' }} />
     </NavigatorStackNav.Navigator>
   );
 }

@@ -100,6 +100,7 @@ export type NavigatorStackParamList = {
   NavigatorMain: { ask?: string } | undefined;
   Resources: undefined;
   Blog: undefined;
+  Article: { articleKey: string };
 };
 
 export type TrackerStackParamList = {

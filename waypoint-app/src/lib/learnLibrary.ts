@@ -50,15 +50,37 @@ export interface LearnPath {
   terms: string[];
 }
 
+/**
+ * One block of an article body (phase 8, slice 8-0). A small, typed set the
+ * reader renders consistently and the future SEO build can turn into clean
+ * HTML/JSON-LD — deliberately NOT free markdown, so content stays art-directed.
+ * Every text string is trilingual, built with the same `L()` picker as the rest.
+ */
+export type ArticleBlock =
+  | { kind: 'para'; text: string }
+  | { kind: 'heading'; text: string }
+  | { kind: 'steps'; items: string[] }
+  | { kind: 'callout'; text: string };
+
 export interface LearnArticle {
   key: string;
   title: string;
   /** The two or three sentences a parent needs before the action. */
   summary: string;
+  /** The readable article. The `summary` is the card blurb; this is the page. */
+  body: ArticleBlock[];
   /** Roughly how long it takes to read — honest, not padded. */
   minutes: number;
   /** Legal basis, when the article makes a legal claim. Never translated. */
   citation?: string;
+  /**
+   * ISO date a HUMAN last checked this body against the law it cites. The
+   * reader renders it as a "Reviewed" seal, so it must never be set until that
+   * review actually happened — an AI-drafted body that no one has verified
+   * carries NO reviewedOn (the seal is hidden), rather than a false date. The
+   * owner stamps it as part of approving the content (8-2 pipeline).
+   */
+  reviewedOn?: string;
   /** What to do next. Every article ends in something the app can do. */
   actionLabel: string;
   target: LearnTarget;
@@ -159,14 +181,48 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         '“Chúng tôi không tài trợ khoản đó” — làm gì khi Trung tâm Khu vực từ chối'
       ),
       summary: L(
-        'A spoken no is not a decision. Ask for it in writing: a Notice of Action states the reason and starts the clock on your appeal rights. Most families never ask, and the denial simply stands.',
-        'Un no hablado no es una decisión. Pídalo por escrito: un Aviso de Acción indica el motivo e inicia el plazo de sus derechos de apelación. La mayoría de las familias nunca lo pide, y la negación simplemente queda.',
-        'Lời từ chối bằng miệng không phải là một quyết định. Hãy yêu cầu bằng văn bản: Thông báo Hành động nêu lý do và bắt đầu thời hạn quyền kháng nghị của quý vị. Hầu hết gia đình không yêu cầu, và lời từ chối cứ thế tồn tại.'
+        'A spoken no is not a decision. Ask for it in writing: a Notice of Action states the reason and your right to appeal. Most families never ask, and the denial simply stands.',
+        'Un no hablado no es una decisión. Pídalo por escrito: un Aviso de Acción indica el motivo y su derecho a apelar. La mayoría de las familias nunca lo pide, y la negación simplemente queda.',
+        'Lời từ chối bằng miệng không phải là một quyết định. Hãy yêu cầu bằng văn bản: Thông báo Hành động nêu lý do và quyền kháng nghị của quý vị. Hầu hết gia đình không yêu cầu, và lời từ chối cứ thế tồn tại.'
       ),
       minutes: 6,
       // §4710 is the section that REQUIRES the written Notice of Action;
       // §4710.5 is the appeal window, which this article does not claim.
       citation: 'W&I §4710',
+      body: [
+        {
+          kind: 'para',
+          text: L(
+            'A “no” on the phone is not a decision you can act on — and it is not one you have to accept. When the Regional Center denies, reduces, or ends a service, California law says it owes you that decision in writing.',
+            'Un “no” por teléfono no es una decisión sobre la que pueda actuar, y no es una que tenga que aceptar. Cuando el Centro Regional niega, reduce o termina un servicio, la ley de California dice que le debe esa decisión por escrito.',
+            'Một câu “không” qua điện thoại không phải là quyết định quý vị có thể hành động — và cũng không phải điều quý vị buộc phải chấp nhận. Khi Trung tâm Khu vực từ chối, giảm bớt hoặc chấm dứt một dịch vụ, luật California nói rằng họ nợ quý vị quyết định đó bằng văn bản.'
+          ),
+        },
+        {
+          kind: 'para',
+          text: L(
+            'That written decision is a Notice of Action. It has to state the specific reason for the no, the rule it relies on, and your right to appeal it. Until you have it, there is nothing official to challenge, which is exactly why most families never get one: no one tells them to ask.',
+            'Esa decisión por escrito es un Aviso de Acción. Debe indicar el motivo específico del no, la regla en que se basa y su derecho a apelarla. Hasta que lo tenga, no hay nada oficial que impugnar, y por eso la mayoría de las familias nunca lo recibe: nadie les dice que lo pidan.',
+            'Quyết định bằng văn bản đó là Thông báo Hành động. Nó phải nêu lý do cụ thể của câu từ chối, quy định mà nó dựa vào, và quyền kháng nghị của quý vị. Cho đến khi có nó, không có gì chính thức để phản đối, và đó chính là lý do hầu hết gia đình không bao giờ nhận được: không ai bảo họ yêu cầu.'
+          ),
+        },
+        {
+          kind: 'steps',
+          items: [
+            L('Ask, in writing, for a Notice of Action on the exact service.', 'Pida, por escrito, un Aviso de Acción sobre el servicio exacto.', 'Yêu cầu bằng văn bản một Thông báo Hành động về đúng dịch vụ đó.'),
+            L('Keep your request and its date — it is your proof that you asked.', 'Guarde su solicitud y su fecha — es su prueba de que pidió.', 'Giữ lại yêu cầu và ngày tháng — đó là bằng chứng quý vị đã đề nghị.'),
+            L('When the Notice arrives, read the reason: it tells you what to answer.', 'Cuando llegue el Aviso, lea el motivo: le dice qué responder.', 'Khi Thông báo đến, hãy đọc lý do: nó cho quý vị biết cần trả lời điều gì.'),
+          ],
+        },
+        {
+          kind: 'callout',
+          text: L(
+            'Ask first, firmly second. The first request is simply “please put the decision in writing.” The tone only firms up if it goes unanswered.',
+            'Pida primero, con firmeza después. La primera solicitud es simplemente “por favor pongan la decisión por escrito.” El tono solo se endurece si no hay respuesta.',
+            'Đề nghị trước, cứng rắn sau. Yêu cầu đầu tiên chỉ là “xin hãy ghi quyết định bằng văn bản.” Giọng điệu chỉ cứng rắn hơn nếu không được trả lời.'
+          ),
+        },
+      ],
       actionLabel: L(
         'Ask for it in writing',
         'Pedirlo por escrito',
@@ -192,6 +248,32 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
       ),
       minutes: 4,
       citation: 'W&I §4646.5(b)',
+      body: [
+        {
+          kind: 'para',
+          text: L(
+            'When you ask for an IPP review, the Regional Center has 30 days to hold it. The clock runs from the day you asked — which is why the date of your request matters more than anything said by phone.',
+            'Cuando pide una revisión del IPP, el Centro Regional tiene 30 días para realizarla. El plazo corre desde el día en que pidió — por eso la fecha de su solicitud importa más que lo conversado por teléfono.',
+            'Khi quý vị đề nghị xem lại IPP, Trung tâm Khu vực có 30 ngày để tổ chức. Thời hạn tính từ ngày quý vị đề nghị — vì vậy ngày yêu cầu quan trọng hơn bất cứ điều gì nói qua điện thoại.'
+          ),
+        },
+        {
+          kind: 'callout',
+          text: L(
+            'There is a faster track when the meeting is urgent for your child’s health and safety, or to keep them living at home. If that is your situation, say so in writing and ask for an expedited review.',
+            'Hay una vía más rápida cuando la reunión es urgente para la salud y seguridad de su hijo/a, o para que siga viviendo en casa. Si es su caso, dígalo por escrito y pida una revisión acelerada.',
+            'Có một cách nhanh hơn khi buổi họp khẩn cấp cho sức khỏe và an toàn của con quý vị, hoặc để cháu tiếp tục sống tại nhà. Nếu đúng hoàn cảnh của quý vị, hãy nói rõ bằng văn bản và đề nghị xem xét khẩn cấp.'
+          ),
+        },
+        {
+          kind: 'para',
+          text: L(
+            'A request by phone leaves no date to hold anyone to. Put it in writing, note the day, and the 30- (or 7-) day count begins on a date you can prove.',
+            'Una solicitud por teléfono no deja una fecha a la cual atenerse. Póngala por escrito, anote el día, y la cuenta de 30 (o 7) días empieza en una fecha que puede probar.',
+            'Yêu cầu qua điện thoại không để lại ngày nào để dựa vào. Hãy ghi bằng văn bản, ghi lại ngày, và mốc 30 (hoặc 7) ngày bắt đầu từ một ngày quý vị chứng minh được.'
+          ),
+        },
+      ],
       actionLabel: L('Track this request', 'Registrar esta solicitud', 'Theo dõi yêu cầu này'),
       target: { screen: 'RequestTracker', tab: 'Home' },
       terms: [
@@ -218,6 +300,32 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
       // What the IPP lists, the regional center must secure — which is the
       // claim this article actually makes about funding.
       citation: 'W&I §4646.5 · §4648(a)',
+      body: [
+        {
+          kind: 'para',
+          text: L(
+            'Regional Centers fund more than therapies. Diapers past toilet-training age, adaptive equipment, respite, and camps can all be covered — and these are the supports families most often miss, because no one lists them.',
+            'Los Centros Regionales financian más que terapias. Pañales pasada la edad de aprender a ir al baño, equipo adaptado, relevo y campamentos pueden estar cubiertos — y son los apoyos que las familias más pasan por alto, porque nadie los menciona.',
+            'Trung tâm Khu vực tài trợ nhiều hơn các liệu pháp. Tã sau tuổi tập vệ sinh, thiết bị thích ứng, chăm sóc thay thế và trại hè đều có thể được chi trả — và đây là những hỗ trợ gia đình thường bỏ lỡ nhất, vì không ai liệt kê ra.'
+          ),
+        },
+        {
+          kind: 'para',
+          text: L(
+            'The key is the plan: what the IPP lists, the Regional Center has to secure. So the ask starts by getting the need written into the plan — not by asking for a reimbursement after the fact.',
+            'La clave es el plan: lo que el IPP incluye, el Centro Regional debe conseguirlo. Así que el pedido empieza por lograr que la necesidad quede escrita en el plan — no por pedir un reembolso después.',
+            'Điều then chốt là kế hoạch: điều gì IPP ghi, Trung tâm Khu vực phải bảo đảm. Vì vậy hãy bắt đầu bằng việc đưa nhu cầu vào kế hoạch — không phải xin hoàn tiền sau khi đã chi.'
+          ),
+        },
+        {
+          kind: 'callout',
+          text: L(
+            'Expect to be asked about insurance, school, and other “generic resources” first. That is the process, not a refusal — a family that knows this reads it as a step, not a no.',
+            'Espere que le pregunten primero por el seguro, la escuela y otros “recursos genéricos.” Es el proceso, no un rechazo — una familia que lo sabe lo lee como un paso, no como un no.',
+            'Hãy chuẩn bị được hỏi trước về bảo hiểm, nhà trường và các “nguồn lực chung” khác. Đó là quy trình, không phải sự từ chối — gia đình biết điều này sẽ xem đó là một bước, không phải câu từ chối.'
+          ),
+        },
+      ],
       actionLabel: L('See what you can ask for', 'Ver qué puede pedir', 'Xem quý vị có thể đề nghị gì'),
       target: { screen: 'Reimbursables', tab: 'Home' },
       // The words a parent actually types when asking about money.
@@ -241,6 +349,32 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
       ),
       minutes: 9,
       citation: 'Ed Code §56321',
+      body: [
+        {
+          kind: 'para',
+          text: L(
+            'An IEP starts with an assessment, and the assessment starts with your written request. Once the school has it, the district owes you an assessment plan within 15 days — the document that says what will be tested and asks your consent.',
+            'Un IEP empieza con una evaluación, y la evaluación empieza con su solicitud por escrito. Una vez que la escuela la tiene, el distrito le debe un plan de evaluación en 15 días — el documento que dice qué se evaluará y pide su consentimiento.',
+            'Một IEP bắt đầu bằng việc đánh giá, và việc đánh giá bắt đầu bằng yêu cầu bằng văn bản của quý vị. Khi nhà trường nhận được, học khu nợ quý vị một kế hoạch đánh giá trong vòng 15 ngày — văn bản nêu sẽ kiểm tra gì và xin sự đồng ý của quý vị.'
+          ),
+        },
+        {
+          kind: 'para',
+          text: L(
+            'The meeting follows the assessment — so the date you ask in writing is what sets everything after it in motion. A conversation at pickup does not start the clock; a dated request does.',
+            'La reunión sigue a la evaluación — así que la fecha en que pide por escrito es lo que pone en marcha todo lo demás. Una conversación a la salida no inicia el plazo; una solicitud con fecha sí.',
+            'Buổi họp diễn ra sau khi đánh giá — nên ngày quý vị đề nghị bằng văn bản là điều khởi động mọi thứ tiếp theo. Một cuộc trò chuyện lúc đón con không bắt đầu thời hạn; một yêu cầu có ghi ngày thì có.'
+          ),
+        },
+        {
+          kind: 'callout',
+          text: L(
+            'Bring the one thing schools respond to: your own record of what you asked for and when. Keep it friendly and factual — a dated request — and let the timeline do the persuading.',
+            'Lleve lo único a lo que las escuelas responden: su propio registro de qué pidió y cuándo. Manténgalo amable y factual — una solicitud con fecha — y deje que el calendario persuada.',
+            'Hãy mang theo điều duy nhất nhà trường đáp lại: hồ sơ của chính quý vị về việc đã đề nghị gì và khi nào. Giữ giọng thân thiện và rõ ràng — một đề nghị có ghi ngày — và để dòng thời gian thuyết phục.'
+          ),
+        },
+      ],
       actionLabel: L(
         'Write the evaluation request',
         'Escribir la solicitud de evaluación',
@@ -250,6 +384,14 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
       terms: ['iep', 'evaluation', 'assessment', 'school', 'evaluación', 'đánh giá'],
     },
   ];
+}
+
+/** One article by key, in the given locale, or null — for the reader screen. */
+export function getLearnArticle(
+  key: string,
+  locale: FunnelLocale = 'en'
+): LearnArticle | null {
+  return getLearnArticles(locale).find((a) => a.key === key) ?? null;
 }
 
 export function getGlossary(locale: FunnelLocale = 'en'): GlossaryEntry[] {

@@ -59,7 +59,7 @@ export const MAIN_LINKING: { screens: Record<string, StackLinking> } = {
     },
     Navigator: {
       initialRouteName: 'NavigatorMain',
-      screens: { NavigatorMain: 'ask', Resources: 'resources', Blog: 'blog' },
+      screens: { NavigatorMain: 'ask', Resources: 'resources', Blog: 'blog', Article: 'learn/:articleKey' },
     },
     Tools: {
       initialRouteName: 'ToolsMain',
