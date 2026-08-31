@@ -1,12 +1,63 @@
 # 004 — Build plan: the Learn content engine (phase 8)
 
-**Date:** 2026-08-30 · **Status:** Open — plan for owner go
+**Date:** 2026-08-30 · **Status:** adopted (reframed 2026-08-31)
 **Read `intent.md` first.** This is the comprehensive plan the Home-Rebuild-Plan
 phase-8 row and Undivided item 20 both say must exist before any code.
 
 Everything here is family-facing content and a deploy surface (SEO/web) →
 **every slice waits for the owner** after `/adversary`. Nothing ships on the
 auto-merge grant.
+
+---
+
+## Reframe (owner decision, 2026-08-31) — two doors, one system
+
+The owner reframed the whole initiative, and this is the decision record. The
+blog and the AI chat are **not two products with a widget between them.** They
+are **two interfaces to one knowledge-and-action system:**
+
+- the **blog** is the *knowledge* layer — discover, understand;
+- the **AI** is the *reasoning* layer — personalize, plan;
+- the **app** is the *action + memory* layer — draft, track, remember.
+
+The product is the **continuity** between them: *"Tell us what's going on. We'll
+help you understand it, figure out what to do next, and keep track of it so you
+don't have to explain your child again next week."* The loop is **Discover →
+Understand → Personalize → Plan → Act → Remember → Continue.** Mocked up and
+signed off across three prototypes (front doors → article → the bridge).
+
+Four consequences that change the slices below:
+
+1. **One canonical knowledge layer, not two stores.** The blog (`learnLibrary`)
+   and the AI KB (`knowledge_embeddings`) must retrieve from the *same* record,
+   so the AI can only ever cite an article a parent can also read. This
+   **promotes slice 8-4 (AI-KB unification) from an optional fast-follow to the
+   spine** — it becomes Slice B, its own owner-gated, deploy-surface initiative.
+2. **Articles are conversation starters, not encyclopedia entries.** Reframed
+   titles ("What is an IEP — *and does my child need one?*"), quick-answer-first,
+   and a **required conversation bridge** on every article. See `editorial-spec.md`.
+3. **The AI produces artifacts, not answers.** The keepable checklist and the
+   letter-via-Letters flow (slice **8-0b**, shipped) are the first bricks of
+   exactly this — the earliest instance, not a thing this reframe discards.
+4. **Two doors, never forced.** Browse *and* Ask. The AI sits on top of the
+   content and never replaces navigation; a parent who just wants the checklist
+   gets the checklist.
+
+### Re-sequencing under the reframe
+
+- **Slice A — the conversation bridge (in-app, cheap, build first).** The bridge
+  schema fields on every article, the bridge rendered on the reader, and the
+  handoff wired into the AI with the article's context preloaded. Pure-module-
+  first, fully tested, `/adversary` + owner gate. *This is what's being built now.*
+- **Slice B — the canonical knowledge layer (its own initiative).** AI-KB
+  unification + the static SEO/RAG front doors (was 8-3 + 8-4). Deploy-surface,
+  owner-gated; the front-doors prototype is its spec.
+- Slices **8-1** (derivation harness) and **8-0/8-0b** (reader + tools) already
+  shipped and stand. **8-2** (authoring pipeline + first bodies) and **8-5**
+  (grow to ~40 + measure) continue as the content lane, now feeding both doors.
+
+The original slice catalogue below is kept as the record; Slice A/B are the
+lens the owner adopted for what ships next.
 
 ---
 

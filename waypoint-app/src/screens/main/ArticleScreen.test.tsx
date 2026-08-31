@@ -44,6 +44,35 @@ describe('the Learn reader renders an article end to end', () => {
     expect(navigateCalls).toHaveLength(0);
   });
 
+  it('the conversation bridge hands off to the AI, seeded with the article', () => {
+    routeParams.articleKey = 'first_iep';
+    const a = getLearnArticle('first_iep', 'en')!;
+    render(<ArticleScreen />);
+
+    // The soft invitation is on screen, and the article still ends in its
+    // direct action too (two doors).
+    expect(screen.getByText(a.bridge.blurb)).toBeTruthy();
+    expect(screen.getByRole('button', { name: a.actionLabel })).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: a.bridge.label }));
+    const call = navigateCalls.at(-1)!.args as [string, { screen: string; params: { ask: string } }];
+    expect(call[0]).toBe('Navigator');
+    expect(call[1].screen).toBe('NavigatorMain');
+    // Seeded with the article's opener — never a blank box.
+    expect(call[1].params.ask).toBe(a.bridge.seed);
+    expect(resolvesFrom('Navigator', { screen: 'NavigatorMain', tab: 'Navigator' })).toBe(true);
+  });
+
+  it('a related question opens the AI with that specific question', () => {
+    routeParams.articleKey = 'first_iep';
+    const a = getLearnArticle('first_iep', 'en')!;
+    render(<ArticleScreen />);
+    const q = a.relatedQuestions[0];
+    fireEvent.click(screen.getByRole('button', { name: q }));
+    const call = navigateCalls.at(-1)!.args as [string, { params: { ask: string } }];
+    expect(call[1].params.ask).toBe(q);
+  });
+
   it('copies a checklist tool to the clipboard — the thing a parent keeps', async () => {
     routeParams.articleKey = 'first_iep'; // has a checklist tool
     const a = getLearnArticle('first_iep', 'en')!;
