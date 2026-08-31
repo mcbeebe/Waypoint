@@ -30,4 +30,16 @@ describe('Home search sends every result somewhere that resolves', () => {
     expect(hit, 'a "what is" query returns a definition').toBeTruthy();
     expect(hit!.target, 'a definition is not navigable — Home falls back to the AI').toBeUndefined();
   });
+
+  it('the Home action-plan shortcut resolves — Plan tab (Calendar → PlanMain)', () => {
+    // Both the pinned row and the plan-intent result do
+    // navigate('Calendar', { screen: 'PlanMain' }).
+    expect(resolvesFrom('Home', { screen: 'PlanMain', tab: 'Calendar' })).toBe(true);
+  });
+
+  it('the Journey "Your Result" card resolves — EligibilityResult in the Home stack', () => {
+    // JourneyScreen.goHome does navigate('Home', { screen: 'EligibilityResult' });
+    // it lives in the Home stack, so it resolves from the Journey tab.
+    expect(resolvesFrom('JourneyTab', { screen: 'EligibilityResult', tab: 'Home' })).toBe(true);
+  });
 });
