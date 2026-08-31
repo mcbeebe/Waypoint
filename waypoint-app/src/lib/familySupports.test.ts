@@ -130,13 +130,13 @@ describe('the script reads as the parent’s own', () => {
     expect(filled).not.toContain('{child}');
   });
 
-  it('falls back to a neutral word in the script’s own language when no name', () => {
-    expect(fillScript(getFamilySupport('sibling_support', 'en')!.script, null)).toContain('your child');
-    expect(fillScript(getFamilySupport('sibling_support', 'es')!.script, '')).toContain('su hijo/a');
-    expect(fillScript(getFamilySupport('sibling_support', 'vi')!.script, null)).toContain('con quý vị');
-    // And never leaves the raw placeholder behind.
+  it('falls back to the locale’s neutral word when no name', () => {
+    expect(fillScript(getFamilySupport('sibling_support', 'en')!.script, null, 'en')).toContain('your child');
+    expect(fillScript(getFamilySupport('sibling_support', 'es')!.script, '', 'es')).toContain('su hijo/a');
+    expect(fillScript(getFamilySupport('sibling_support', 'vi')!.script, null, 'vi')).toContain('con quý vị');
+    // And never leaves the raw placeholder behind, in any locale.
     for (const loc of LOCALES) {
-      expect(fillScript(getFamilySupport('sibling_support', loc)!.script, null)).not.toContain('{child}');
+      expect(fillScript(getFamilySupport('sibling_support', loc)!.script, null, loc)).not.toContain('{child}');
     }
   });
 });

@@ -58,8 +58,8 @@ export interface FamilySupport {
    * have recorded.
    */
   ippNeedHook: string;
-  /** POS billing code(s), so a parent can ask by name. Empty when it varies. */
-  code: string;
+  /** POS billing code(s), so a parent can ask by name. Omitted when it varies. */
+  code?: string;
   /** Legal basis. Never translated. */
   citation: string;
   /** Extra plain-language words search should match. */
@@ -87,9 +87,9 @@ export function getFamilySupports(locale: FunnelLocale = 'en'): FamilySupport[] 
         'Sibshops, tư vấn và nhóm cho anh chị em — nhu cầu của các em cũng quan trọng.'
       ),
       whatItIs: L(
-        'The Regional Center can fund Sibshops (peer groups made just for siblings), counseling or therapy for a sibling’s own adjustment, and respite that frees up one-on-one time between you and them. Parent training on supporting the sibling relationship counts too.',
-        'El Centro Regional puede financiar Sibshops (grupos de pares hechos para hermanos), consejería o terapia para la propia adaptación de un hermano, y relevo que libera tiempo a solas entre usted y ellos. La capacitación para padres sobre la relación entre hermanos también cuenta.',
-        'Trung tâm Khu vực có thể tài trợ Sibshops (nhóm bạn dành riêng cho anh chị em), tư vấn hoặc trị liệu cho sự thích nghi của chính người anh chị em, và chăm sóc thay thế giúp có thời gian riêng giữa quý vị và các em. Huấn luyện cha mẹ về mối quan hệ anh chị em cũng được tính.'
+        'When it connects to your child’s own support, the Regional Center can fund Sibshops (peer groups made just for siblings), counseling for a sibling’s adjustment, respite that frees up one-on-one time, and parent training on the sibling relationship. That tie to your child’s needs is what makes it fundable — which is why it runs through the IPP.',
+        'Cuando se conecta con el propio apoyo de su hijo, el Centro Regional puede financiar Sibshops (grupos de pares hechos para hermanos), consejería para la adaptación de un hermano, relevo que libera tiempo a solas, y capacitación para padres sobre la relación entre hermanos. Ese vínculo con las necesidades de su hijo es lo que lo hace financiable — por eso pasa por el IPP.',
+        'Khi nó gắn với việc hỗ trợ chính con quý vị, Trung tâm Khu vực có thể tài trợ Sibshops (nhóm bạn dành riêng cho anh chị em), tư vấn cho sự thích nghi của anh chị em, chăm sóc thay thế giúp có thời gian riêng, và huấn luyện cha mẹ về mối quan hệ anh chị em. Chính mối liên kết với nhu cầu của con quý vị làm cho nó được tài trợ — đó là lý do nó đi qua IPP.'
       ),
       theCatch: L(
         'It’s not automatic. A coordinator rarely offers it. It has to connect to an identified need in the IPP — so the whole move is getting that need written into the plan.',
@@ -123,7 +123,6 @@ export function getFamilySupports(locale: FunnelLocale = 'en'): FamilySupport[] 
         'La adaptación y el bienestar del hermano es una necesidad familiar que afecta el apoyo del niño.',
         'Sự thích nghi và an sinh của anh chị em là nhu cầu gia đình ảnh hưởng đến việc hỗ trợ trẻ.'
       ),
-      code: '',
       citation: RC_CITE,
       terms: [
         'sibling', 'siblings', 'sibshop', 'sibshops', 'brother', 'sister', 'counseling',
@@ -136,14 +135,14 @@ export function getFamilySupports(locale: FunnelLocale = 'en'): FamilySupport[] 
       icon: 'bed-outline',
       name: L('Respite', 'Relevo (respiro)', 'Chăm sóc thay thế'),
       tagline: L(
-        'In-home or out-of-home breaks — the most-used RC service, still often unoffered.',
-        'Descansos en casa o fuera de casa — el servicio del CR más usado, aún poco ofrecido.',
-        'Nghỉ ngơi tại nhà hoặc ngoài nhà — dịch vụ TTKV được dùng nhiều nhất, vẫn ít được đề nghị.'
+        'In-home or out-of-home breaks — one of the most-used RC services, still often unoffered.',
+        'Descansos en casa o fuera de casa — uno de los servicios del CR más usados, aún poco ofrecido.',
+        'Nghỉ ngơi tại nhà hoặc ngoài nhà — một trong những dịch vụ TTKV được dùng nhiều nhất, vẫn ít được đề nghị.'
       ),
       whatItIs: L(
-        'Paid care that gives you a break — in your home or out of it — and can free up one-on-one time with a sibling. The most-used Regional Center service statewide.',
-        'Cuidado pagado que le da un descanso — en su casa o fuera — y puede liberar tiempo a solas con un hermano. El servicio del Centro Regional más usado en el estado.',
-        'Dịch vụ chăm sóc có trả phí giúp quý vị nghỉ ngơi — tại nhà hoặc ngoài nhà — và có thể tạo thời gian riêng với anh chị em. Dịch vụ Trung tâm Khu vực được dùng nhiều nhất toàn tiểu bang.'
+        'Paid care that gives you a break — in your home or out of it — and can free up one-on-one time with a sibling. One of the most-used Regional Center services.',
+        'Cuidado pagado que le da un descanso — en su casa o fuera — y puede liberar tiempo a solas con un hermano. Uno de los servicios del Centro Regional más usados.',
+        'Dịch vụ chăm sóc có trả phí giúp quý vị nghỉ ngơi — tại nhà hoặc ngoài nhà — và có thể tạo thời gian riêng với anh chị em. Một trong những dịch vụ Trung tâm Khu vực được dùng nhiều nhất.'
       ),
       theCatch: L(
         'It’s not automatic, and a parent can’t be the paid respite provider for their own child. It has to tie to a need in the IPP — usually caregiver relief — to be secured.',
@@ -230,7 +229,6 @@ export function getFamilySupports(locale: FunnelLocale = 'en'): FamilySupport[] 
         'La integración comunitaria y el desarrollo de habilidades sociales es una necesidad que el plan del niño debe atender.',
         'Sự hòa nhập cộng đồng và phát triển kỹ năng xã hội là nhu cầu kế hoạch của trẻ nên giải quyết.'
       ),
-      code: '',
       citation: RC_CITE,
       terms: [
         'camp', 'recreation', 'sports', 'special olympics', 'summer', 'family activities',
@@ -283,7 +281,6 @@ export function getFamilySupports(locale: FunnelLocale = 'en'): FamilySupport[] 
         'Desarrollar la capacidad de los padres para apoyar al niño en casa es una necesidad que el plan debe atender.',
         'Xây dựng năng lực của cha mẹ để hỗ trợ trẻ tại nhà là nhu cầu kế hoạch nên giải quyết.'
       ),
-      code: '',
       citation: RC_CITE,
       terms: [
         'parent training', 'training', 'behavior', 'aac', 'home program',
@@ -302,22 +299,25 @@ export function getFamilySupport(
 }
 
 /**
- * Fill a script's {child} placeholder with the child's name (or a neutral
- * fallback), so the sample ask reads as the parent's own.
+ * The neutral stand-in for a child's name, per locale — so a missing name never
+ * drops an English word into Spanish or Vietnamese copy.
  */
-export function fillScript(script: string, childName: string | null | undefined): string {
-  const name = (childName && childName.trim()) || defaultChildWord(script);
-  return script.replace(/\{child\}/g, name);
-}
+const CHILD_FALLBACK: Record<FunnelLocale, string> = {
+  en: 'your child',
+  es: 'su hijo/a',
+  vi: 'con quý vị',
+};
 
 /**
- * The neutral stand-in for a child's name, matched to the script's language so
- * a missing name never drops an English word into Spanish or Vietnamese copy.
+ * Fill a script's {child} placeholder with the child's name (or the locale's
+ * neutral fallback), so the sample ask reads as the parent's own. The locale is
+ * passed in — the caller already has it — rather than sniffed from the copy.
  */
-function defaultChildWord(script: string): string {
-  // Detect the script's language by its own phrasing, so a missing name never
-  // drops an English word into Spanish or Vietnamese copy.
-  if (/IPP của \{child\}/.test(script)) return 'con quý vị';
-  if (/IPP de \{child\}/.test(script)) return 'su hijo/a';
-  return 'your child';
+export function fillScript(
+  script: string,
+  childName: string | null | undefined,
+  locale: FunnelLocale = 'en'
+): string {
+  const name = (childName && childName.trim()) || CHILD_FALLBACK[locale];
+  return script.replace(/\{child\}/g, name);
 }

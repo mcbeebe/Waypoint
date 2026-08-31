@@ -533,11 +533,13 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
       },
       actionLabel: L('See what you can ask for', 'Ver qué puede pedir', 'Xem quý vị có thể đề nghị gì'),
       target: { screen: 'Reimbursables', tab: 'Home' },
-      // The words a parent actually types when asking about money.
+      // The words a parent actually types when asking about money. Sibling
+      // terms deliberately live only on the dedicated sibling_support article —
+      // cross-listing them here let this article outrank it for "sibshop".
       terms: [
         'diapers', 'respite', 'camp', 'equipment', 'funding', 'fund', 'pay', 'pays',
-        'cover', 'covers', 'money', 'sibling', 'sibshop', 'pañales', 'pagar', 'paga',
-        'cubre', 'dinero', 'tã', 'chi trả', 'trả', 'tiền',
+        'cover', 'covers', 'money', 'pañales', 'pagar', 'paga', 'cubre', 'dinero',
+        'tã', 'chi trả', 'trả', 'tiền',
       ],
     },
     {
@@ -560,9 +562,9 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         {
           kind: 'para',
           text: L(
-            'When a child has a disability, their brothers and sisters carry something too — and the Regional Center can help. Sibshops (peer groups made just for siblings), counseling for a sibling’s own adjustment, respite that frees up one-on-one time, inclusive family recreation, and parent training on the sibling relationship can all be funded.',
-            'Cuando un niño tiene una discapacidad, sus hermanos también cargan con algo — y el Centro Regional puede ayudar. Sibshops (grupos de pares hechos para hermanos), consejería para la adaptación de un hermano, relevo que libera tiempo a solas, recreación familiar inclusiva y capacitación para padres sobre la relación entre hermanos pueden financiarse.',
-            'Khi một trẻ có khuyết tật, anh chị em của bé cũng gánh vác điều gì đó — và Trung tâm Khu vực có thể giúp. Sibshops (nhóm bạn dành riêng cho anh chị em), tư vấn cho sự thích nghi của anh chị em, chăm sóc thay thế giúp có thời gian riêng, giải trí gia đình hòa nhập, và huấn luyện cha mẹ về mối quan hệ anh chị em đều có thể được tài trợ.'
+            'When a child has a disability, their brothers and sisters carry something too — and the Regional Center can help. Sibshops (peer groups made just for siblings), counseling for a sibling’s adjustment, respite that frees up one-on-one time, inclusive family recreation, and parent training on the sibling relationship can all be funded — when they connect to your child’s own support, which is what ties them to the plan.',
+            'Cuando un niño tiene una discapacidad, sus hermanos también cargan con algo — y el Centro Regional puede ayudar. Sibshops (grupos de pares hechos para hermanos), consejería para la adaptación de un hermano, relevo que libera tiempo a solas, recreación familiar inclusiva y capacitación para padres sobre la relación entre hermanos pueden financiarse — cuando se conectan con el propio apoyo de su hijo, que es lo que los liga al plan.',
+            'Khi một trẻ có khuyết tật, anh chị em của bé cũng gánh vác điều gì đó — và Trung tâm Khu vực có thể giúp. Sibshops (nhóm bạn dành riêng cho anh chị em), tư vấn cho sự thích nghi của anh chị em, chăm sóc thay thế giúp có thời gian riêng, giải trí gia đình hòa nhập, và huấn luyện cha mẹ về mối quan hệ anh chị em đều có thể được tài trợ — khi chúng gắn với việc hỗ trợ chính con quý vị, đó là điều liên kết chúng với kế hoạch.'
           ),
         },
         {
