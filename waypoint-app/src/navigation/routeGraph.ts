@@ -59,7 +59,9 @@ export const ROUTE_GRAPH: Record<TabName, StackShape> = {
   JourneyTab: { initial: 'JourneyMain', screens: ['JourneyMain'], visible: true },
   Navigator: {
     initial: 'NavigatorMain',
-    screens: ['NavigatorMain', 'Resources', 'Blog'],
+    // 'Article' is the Learn reader (phase 8) — registered here so a tap from
+    // the Learn panel opens in this stack and Back returns to Learn.
+    screens: ['NavigatorMain', 'Resources', 'Blog', 'Article'],
     visible: true,
   },
   Tools: { initial: 'ToolsMain', screens: ['ToolsMain'], visible: true },

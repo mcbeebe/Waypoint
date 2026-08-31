@@ -37,6 +37,7 @@ function strings(locale: FunnelLocale) {
     ),
     askAnyway: L('Ask Waypoint instead →', 'Preguntar a Waypoint →', 'Hỏi Waypoint →'),
     minutes: (n: number) => L(`${n} min read`, `${n} min de lectura`, `đọc ${n} phút`),
+    read: L('Read', 'Leer', 'Đọc'),
     showAll: L('Show the whole library', 'Ver toda la biblioteca', 'Xem toàn bộ thư viện'),
     showLess: L('Show less', 'Ver menos', 'Thu gọn'),
   };
@@ -76,6 +77,13 @@ export default function LearnPanel({ locale, query, onAsk, onAskAI }: LearnPanel
       params: target.params,
       initial: false,
     });
+  };
+
+  /** Open an article in the reader (phase 8). This panel renders in the
+   *  Navigator (Learn) stack, which registers 'Article', so a bare navigate
+   *  lands here and Back returns to Learn. */
+  const openArticle = (key: string) => {
+    (navigation as any).navigate('Article', { articleKey: key });
   };
 
   const hitRow = (hit: LearnHit) => {
@@ -203,9 +211,9 @@ export default function LearnPanel({ locale, query, onAsk, onAskAI }: LearnPanel
           <Pressable
             key={a.key}
             style={({ pressed }) => [styles.row, pressed && styles.dim]}
-            onPress={() => go(a.target)}
+            onPress={() => openArticle(a.key)}
             accessibilityRole="button"
-            accessibilityLabel={`${a.title}. ${a.summary}. ${a.actionLabel}`}
+            accessibilityLabel={`${a.title}. ${a.summary}`}
           >
             <View style={styles.rowText}>
               <Text style={[styles.rowTitle, { fontSize: sz(14), lineHeight: sz(19) }]}>
@@ -219,7 +227,7 @@ export default function LearnPanel({ locale, query, onAsk, onAskAI }: LearnPanel
                 {a.citation ? ` · ${a.citation}` : ''}
               </Text>
               <Text style={[styles.action, { fontSize: sz(12.5), lineHeight: sz(17) }]}>
-                {a.actionLabel} ›
+                {t.read} ›
               </Text>
             </View>
           </Pressable>

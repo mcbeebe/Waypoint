@@ -1,15 +1,23 @@
 import { describe, it, expect } from 'vitest';
 import {
   getGlossary,
+  getLearnArticle,
   getLearnArticles,
   getLearnLibrary,
   getLearnPaths,
   popularQuestions,
   searchLearn,
+  type ArticleBlock,
+  type LearnArticle,
 } from './learnLibrary';
 import { sourceForCitation } from '@/data/contentSources';
 
 const LOCALES = ['en', 'es', 'vi'] as const;
+
+/** All prose in an article's body, flattened — for tone/translation checks. */
+function bodyText(a: LearnArticle): string {
+  return a.body.map((b: ArticleBlock) => (b.kind === 'steps' ? b.items.join(' ') : b.text)).join(' ');
+}
 
 describe('every article ends somewhere a family can act', () => {
   it('gives each article an action and a destination', () => {
@@ -153,17 +161,19 @@ describe('provenance, not praise', () => {
       const lib = getLearnLibrary(loc);
       const blob = [
         ...lib.paths.map((p) => `${p.title} ${p.description}`),
-        ...lib.articles.map((a) => `${a.title} ${a.summary}`),
+        ...lib.articles.map((a) => `${a.title} ${a.summary} ${bodyText(a)}`),
         ...lib.glossary.map((g) => g.plain),
       ].join(' ');
       expect(blob.toUpperCase()).not.toContain('WAYPOINT NOTICED');
     }
   });
 
-  it('keeps the collaborative-first tone in every action label', () => {
+  it('keeps the collaborative-first tone in every action label and body', () => {
     for (const loc of LOCALES) {
       for (const a of getLearnArticles(loc)) {
         expect(a.actionLabel.toLowerCase()).not.toMatch(/demand|exigir|yêu sách/);
+        // The body may teach that tone firms up, but must never open on a demand.
+        expect(bodyText(a).toLowerCase()).not.toMatch(/\bdemand\b|exigir|yêu sách/);
       }
     }
   });
@@ -252,5 +262,49 @@ describe('the IPP clock article gives a family both halves of the statute', () =
 
   it('is findable by a parent searching for the urgent path', () => {
     expect(searchLearn('health and safety').some((h) => h.key === 'ipp_clock')).toBe(true);
+  });
+});
+
+describe('articles are readable pages now, not just blurbs (phase 8, 8-0)', () => {
+  it('every article has a non-empty body and a reviewed-on date', () => {
+    for (const a of getLearnArticles('en')) {
+      expect(a.body.length, `${a.key} body`).toBeGreaterThan(0);
+      expect(a.reviewedOn, `${a.key} reviewedOn`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it('the body structure is identical across locales (parity, incl. step counts)', () => {
+    const en = getLearnArticles('en');
+    for (const loc of ['es', 'vi'] as const) {
+      getLearnArticles(loc).forEach((a, i) => {
+        expect(a.body.map((b) => b.kind), `${a.key} block kinds`).toEqual(
+          en[i].body.map((b) => b.kind)
+        );
+        a.body.forEach((b, j) => {
+          if (b.kind === 'steps') {
+            const enB = en[i].body[j];
+            if (enB.kind === 'steps') expect(b.items.length).toBe(enB.items.length);
+          }
+        });
+      });
+    }
+  });
+
+  it('translates the body rather than repeating English', () => {
+    const en = getLearnArticles('en');
+    for (const loc of ['es', 'vi'] as const) {
+      getLearnArticles(loc).forEach((a, i) => {
+        const first = a.body.find((b) => b.kind === 'para');
+        const enFirst = en[i].body.find((b) => b.kind === 'para');
+        if (first?.kind === 'para' && enFirst?.kind === 'para') {
+          expect(first.text, `${a.key} ${loc}`).not.toBe(enFirst.text);
+        }
+      });
+    }
+  });
+
+  it('getLearnArticle returns one by key, or null', () => {
+    expect(getLearnArticle('ipp_clock', 'en')?.key).toBe('ipp_clock');
+    expect(getLearnArticle('does_not_exist', 'en')).toBeNull();
   });
 });
