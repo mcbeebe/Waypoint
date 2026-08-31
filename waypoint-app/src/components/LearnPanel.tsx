@@ -125,7 +125,10 @@ export default function LearnPanel({ locale, query, onAsk, onAskAI }: LearnPanel
       <Pressable
         key={`${hit.kind}:${hit.key}`}
         style={({ pressed }) => [styles.row, pressed && styles.dim]}
-        onPress={() => go(hit.target!)}
+        // An article opens the reader (same as browsing it), so the reader is
+        // reachable from search too and one article never behaves two ways; a
+        // path/guide jumps straight to its screen.
+        onPress={() => (hit.kind === 'article' ? openArticle(hit.key) : go(hit.target!))}
         accessibilityRole="button"
         accessibilityLabel={`${hit.title}. ${hit.detail}${
           hit.actionLabel ? `. ${hit.actionLabel}` : ''

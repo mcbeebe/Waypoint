@@ -31,10 +31,12 @@ const UI: Record<FunnelLocale, { min: (n: number) => string; reviewed: (d: strin
 function reviewedLabel(iso: string, locale: FunnelLocale): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
   if (!m) return iso;
+  // Matches Citation.tsx's month labels so "Reviewed" and "Verified" on the
+  // same screen read consistently (esp. vi: "thg 8", not "Th8").
   const months: Record<FunnelLocale, string[]> = {
     en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     es: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
-    vi: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'],
+    vi: ['thg 1', 'thg 2', 'thg 3', 'thg 4', 'thg 5', 'thg 6', 'thg 7', 'thg 8', 'thg 9', 'thg 10', 'thg 11', 'thg 12'],
   };
   const mon = months[locale][Number(m[2]) - 1] ?? m[2];
   const day = Number(m[3]);
@@ -70,8 +72,14 @@ export default function ArticleScreen() {
         <Text style={styles.title}>{article.title}</Text>
         <View style={styles.metaRow}>
           <Text style={styles.meta}>{t.min(article.minutes)}</Text>
-          <Text style={styles.metaDot}>·</Text>
-          <Text style={styles.meta}>{t.reviewed(reviewedLabel(article.reviewedOn, fl))}</Text>
+          {/* The "Reviewed" seal shows ONLY when a human actually verified the
+              body against its citation — an unreviewed draft carries no date. */}
+          {!!article.reviewedOn && (
+            <>
+              <Text style={styles.metaDot}>·</Text>
+              <Text style={styles.meta}>{t.reviewed(reviewedLabel(article.reviewedOn, fl))}</Text>
+            </>
+          )}
         </View>
         {!!article.citation && (
           <View style={styles.citeRow}>

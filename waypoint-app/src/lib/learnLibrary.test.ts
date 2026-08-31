@@ -266,10 +266,22 @@ describe('the IPP clock article gives a family both halves of the statute', () =
 });
 
 describe('articles are readable pages now, not just blurbs (phase 8, 8-0)', () => {
-  it('every article has a non-empty body and a reviewed-on date', () => {
+  it('every article has a non-empty body; a reviewed-on date is ISO when present', () => {
     for (const a of getLearnArticles('en')) {
       expect(a.body.length, `${a.key} body`).toBeGreaterThan(0);
-      expect(a.reviewedOn, `${a.key} reviewedOn`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      // The seal is optional and must be omitted until a HUMAN verifies the
+      // body — never a fabricated date. When set, it is an ISO date.
+      if (a.reviewedOn !== undefined) {
+        expect(a.reviewedOn, `${a.key} reviewedOn`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      }
+    }
+  });
+
+  it('AI-drafted articles carry NO reviewed-on seal until a human checks them', () => {
+    // Guards F1: today's four bodies are drafts pending owner legal review, so
+    // none may render a "Reviewed" date. Delete this when 8-2 stamps real dates.
+    for (const a of getLearnArticles('en')) {
+      expect(a.reviewedOn, `${a.key} must not claim an unverified review`).toBeUndefined();
     }
   });
 

@@ -11,7 +11,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import LearnPanel from './LearnPanel';
 import { navigateCalls } from '../../vitest.setup.ui';
-import { getLearnPaths, popularQuestions } from '@/lib/learnLibrary';
+import { getLearnPaths, getLearnArticles, popularQuestions } from '@/lib/learnLibrary';
+import { resolvesFrom } from '@/navigation/routeGraph';
 
 function renderPanel(props: Partial<React.ComponentProps<typeof LearnPanel>> = {}) {
   return render(
@@ -54,6 +55,30 @@ describe('every guide actually goes somewhere', () => {
       fireEvent.click(button(path.title));
       expect(navigateCalls, `${path.key} did nothing`).toHaveLength(1);
     }
+  });
+});
+
+describe('an article opens the reader — the same way whether browsed or searched', () => {
+  it('browsing an article row does a navigate that resolves in the Learn stack', () => {
+    renderPanel();
+    const a = getLearnArticles('en')[0];
+    fireEvent.click(button(a.title));
+    expect(navigateCalls).toHaveLength(1);
+    const [screenName, params] = navigateCalls[0].args as [string, { articleKey: string }];
+    expect(screenName).toBe('Article');
+    expect(params.articleKey).toBe(a.key);
+    // The bare navigate('Article') resolves ONLY because the panel lives in the
+    // Navigator stack, which registers 'Article' — the dead-tap guard.
+    expect(resolvesFrom('Navigator', { screen: 'Article' })).toBe(true);
+  });
+
+  it('a search result for an article opens the same reader, not the tool', () => {
+    renderPanel({ query: 'they said no' });
+    const a = getLearnArticles('en').find((x) => x.key === 'rc_said_no')!;
+    fireEvent.click(button(a.title));
+    const [screenName, params] = navigateCalls[0].args as [string, { articleKey: string }];
+    expect(screenName).toBe('Article');
+    expect(params.articleKey).toBe('rc_said_no');
   });
 });
 

@@ -73,9 +73,14 @@ export interface LearnArticle {
   minutes: number;
   /** Legal basis, when the article makes a legal claim. Never translated. */
   citation?: string;
-  /** When a human last checked this against the law it cites (ISO date). Shown
-   *  to the reader so a claim is never trusted as fresher than it is. */
-  reviewedOn: string;
+  /**
+   * ISO date a HUMAN last checked this body against the law it cites. The
+   * reader renders it as a "Reviewed" seal, so it must never be set until that
+   * review actually happened — an AI-drafted body that no one has verified
+   * carries NO reviewedOn (the seal is hidden), rather than a false date. The
+   * owner stamps it as part of approving the content (8-2 pipeline).
+   */
+  reviewedOn?: string;
   /** What to do next. Every article ends in something the app can do. */
   actionLabel: string;
   target: LearnTarget;
@@ -176,15 +181,14 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         '“Chúng tôi không tài trợ khoản đó” — làm gì khi Trung tâm Khu vực từ chối'
       ),
       summary: L(
-        'A spoken no is not a decision. Ask for it in writing: a Notice of Action states the reason and starts the clock on your appeal rights. Most families never ask, and the denial simply stands.',
-        'Un no hablado no es una decisión. Pídalo por escrito: un Aviso de Acción indica el motivo e inicia el plazo de sus derechos de apelación. La mayoría de las familias nunca lo pide, y la negación simplemente queda.',
-        'Lời từ chối bằng miệng không phải là một quyết định. Hãy yêu cầu bằng văn bản: Thông báo Hành động nêu lý do và bắt đầu thời hạn quyền kháng nghị của quý vị. Hầu hết gia đình không yêu cầu, và lời từ chối cứ thế tồn tại.'
+        'A spoken no is not a decision. Ask for it in writing: a Notice of Action states the reason and your right to appeal. Most families never ask, and the denial simply stands.',
+        'Un no hablado no es una decisión. Pídalo por escrito: un Aviso de Acción indica el motivo y su derecho a apelar. La mayoría de las familias nunca lo pide, y la negación simplemente queda.',
+        'Lời từ chối bằng miệng không phải là một quyết định. Hãy yêu cầu bằng văn bản: Thông báo Hành động nêu lý do và quyền kháng nghị của quý vị. Hầu hết gia đình không yêu cầu, và lời từ chối cứ thế tồn tại.'
       ),
       minutes: 6,
       // §4710 is the section that REQUIRES the written Notice of Action;
       // §4710.5 is the appeal window, which this article does not claim.
       citation: 'W&I §4710',
-      reviewedOn: '2026-08-30',
       body: [
         {
           kind: 'para',
@@ -197,9 +201,9 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         {
           kind: 'para',
           text: L(
-            'That written decision is a Notice of Action. It has to state the specific reason for the no and the rule it relies on — and it starts the clock on your right to appeal. Until you have it, there is nothing official to challenge, which is exactly why most families never get one: no one tells them to ask.',
-            'Esa decisión por escrito es un Aviso de Acción. Debe indicar el motivo específico del no y la regla en que se basa, e inicia el plazo de su derecho a apelar. Hasta que lo tenga, no hay nada oficial que impugnar, y por eso la mayoría de las familias nunca lo recibe: nadie les dice que lo pidan.',
-            'Quyết định bằng văn bản đó là Thông báo Hành động. Nó phải nêu lý do cụ thể của câu từ chối và quy định mà nó dựa vào — và bắt đầu thời hạn cho quyền kháng nghị của quý vị. Cho đến khi có nó, không có gì chính thức để phản đối, và đó chính là lý do hầu hết gia đình không bao giờ nhận được: không ai bảo họ yêu cầu.'
+            'That written decision is a Notice of Action. It has to state the specific reason for the no, the rule it relies on, and your right to appeal it. Until you have it, there is nothing official to challenge, which is exactly why most families never get one: no one tells them to ask.',
+            'Esa decisión por escrito es un Aviso de Acción. Debe indicar el motivo específico del no, la regla en que se basa y su derecho a apelarla. Hasta que lo tenga, no hay nada oficial que impugnar, y por eso la mayoría de las familias nunca lo recibe: nadie les dice que lo pidan.',
+            'Quyết định bằng văn bản đó là Thông báo Hành động. Nó phải nêu lý do cụ thể của câu từ chối, quy định mà nó dựa vào, và quyền kháng nghị của quý vị. Cho đến khi có nó, không có gì chính thức để phản đối, và đó chính là lý do hầu hết gia đình không bao giờ nhận được: không ai bảo họ yêu cầu.'
           ),
         },
         {
@@ -244,7 +248,6 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
       ),
       minutes: 4,
       citation: 'W&I §4646.5(b)',
-      reviewedOn: '2026-08-30',
       body: [
         {
           kind: 'para',
@@ -257,9 +260,9 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         {
           kind: 'callout',
           text: L(
-            'There is a faster clock: no more than 7 days when the meeting is needed for your child’s health and safety, or to keep them living at home. If that is your situation, say so, in writing.',
-            'Hay un plazo más rápido: no más de 7 días cuando la reunión es necesaria para la salud y seguridad de su hijo/a, o para que siga viviendo en casa. Si es su caso, dígalo, por escrito.',
-            'Có một thời hạn nhanh hơn: không quá 7 ngày khi buổi họp cần cho sức khỏe và an toàn của con quý vị, hoặc để cháu tiếp tục sống tại nhà. Nếu đúng hoàn cảnh của quý vị, hãy nói rõ, bằng văn bản.'
+            'There is a faster track when the meeting is urgent for your child’s health and safety, or to keep them living at home. If that is your situation, say so in writing and ask for an expedited review.',
+            'Hay una vía más rápida cuando la reunión es urgente para la salud y seguridad de su hijo/a, o para que siga viviendo en casa. Si es su caso, dígalo por escrito y pida una revisión acelerada.',
+            'Có một cách nhanh hơn khi buổi họp khẩn cấp cho sức khỏe và an toàn của con quý vị, hoặc để cháu tiếp tục sống tại nhà. Nếu đúng hoàn cảnh của quý vị, hãy nói rõ bằng văn bản và đề nghị xem xét khẩn cấp.'
           ),
         },
         {
@@ -297,7 +300,6 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
       // What the IPP lists, the regional center must secure — which is the
       // claim this article actually makes about funding.
       citation: 'W&I §4646.5 · §4648(a)',
-      reviewedOn: '2026-08-30',
       body: [
         {
           kind: 'para',
@@ -347,7 +349,6 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
       ),
       minutes: 9,
       citation: 'Ed Code §56321',
-      reviewedOn: '2026-08-30',
       body: [
         {
           kind: 'para',
