@@ -274,7 +274,7 @@ export function sentNextFor(
           'Quý vị vừa đề nghị ghi một nhu cầu vào kế hoạch.'
         ),
         did: L(
-          `You asked the Regional Center to add a specific need to ${name}'s IPP — and what the IPP lists is what the RC works to secure.`,
+          `You asked the Regional Center to add a specific need to ${name}'s IPP — and what the IPP lists is what the RC has to secure.`,
           `Le pidió al Centro Regional agregar una necesidad específica al IPP de ${name} — y lo que el IPP incluye es lo que el Centro Regional debe conseguir.`,
           `Quý vị đã đề nghị Trung tâm Khu vực thêm một nhu cầu cụ thể vào IPP của ${name} — và điều IPP ghi là điều Trung tâm Khu vực phải bảo đảm.`
         ),
@@ -290,7 +290,7 @@ export function sentNextFor(
             'Yêu cầu này không có thời hạn pháp lý — im lặng 2 tuần thì nên nhắc nhẹ nhàng.'
           ),
           L(
-            'Once it is written into the IPP, the support becomes something the Regional Center secures — not a favor.',
+            'Once it is written into the IPP, the support becomes something the Regional Center has to secure — not a favor.',
             'Una vez que quede escrito en el IPP, el apoyo se convierte en algo que el Centro Regional debe conseguir — no un favor.',
             'Khi đã ghi vào IPP, hỗ trợ trở thành điều Trung tâm Khu vực phải bảo đảm — không phải một ân huệ.'
           ),

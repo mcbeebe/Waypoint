@@ -93,10 +93,16 @@ export default function SupportDetailScreen() {
   // letter — collaborative, and its send opens a tracked request with a
   // follow-up clock (via sentNextFor). Seed the letter with the IPP-need hook
   // plus the parent's own script, so the ask is concrete.
+  // The tracked-request title is shared tracker data, so it stays STABLE across
+  // locales (English) — like the Medi-Cal deeming title — not the localized name.
+  const trackName = getFamilySupport(supportKey ?? '', 'en')?.name ?? support.name;
   const draft = () =>
     (navigation as any).navigate('Letters', {
       template: 'ipp_need_request',
       question: `${support.ippNeedHook}\n\n${script}`,
+      // Distinct tracked thread per support (the tracker dedups by title) —
+      // a sibling-support ask and a respite ask are two requests, not one.
+      trackTitle: `IPP need: ${trackName}`,
     });
 
   // The AI, seeded with the same ask so it opens already knowing the support.
