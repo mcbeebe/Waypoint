@@ -372,7 +372,10 @@ describe('articles carry a tool the parent keeps (phase 8, 8-0b)', () => {
     }
   });
 
-  it('translates the checklist rather than repeating English', () => {
+  it('translates the whole tool — label AND every item — not just the header', () => {
+    // The item text IS the payload a parent copies and carries into the room.
+    // Guarding only the label let a translated header sit over English items
+    // with the suite still green (adversary F1, 8-0b).
     const en = getLearnArticles('en');
     for (const loc of ['es', 'vi'] as const) {
       getLearnArticles(loc).forEach((a, i) => {
@@ -380,6 +383,13 @@ describe('articles carry a tool the parent keeps (phase 8, 8-0b)', () => {
           const enB = en[i].body[j];
           if (b.kind === 'checklist' && enB.kind === 'checklist') {
             expect(b.label, `${a.key} ${loc} checklist label`).not.toBe(enB.label);
+            b.items.forEach((item, k) => {
+              expect(item, `${a.key} ${loc} checklist item ${k}`).not.toBe(enB.items[k]);
+            });
+          }
+          if (b.kind === 'script' && enB.kind === 'script') {
+            expect(b.label, `${a.key} ${loc} script label`).not.toBe(enB.label);
+            expect(b.text, `${a.key} ${loc} script text`).not.toBe(enB.text);
           }
         });
       });

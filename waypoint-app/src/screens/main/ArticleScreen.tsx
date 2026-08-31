@@ -9,7 +9,7 @@
  * end-action target lives in the Home stack, so its navigate names tab:'Home'.
  */
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, AccessibilityInfo } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,7 +24,14 @@ import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 
 const UI: Record<
   FunnelLocale,
-  { min: (n: number) => string; reviewed: (d: string) => string; missing: string; copy: string; copied: string }
+  {
+    min: (n: number) => string;
+    reviewed: (d: string) => string;
+    missing: string;
+    copy: string;
+    copied: string;
+    copyFailed: string;
+  }
 > = {
   en: {
     min: (n) => `${n} min read`,
@@ -32,6 +39,7 @@ const UI: Record<
     missing: "That article isn't available.",
     copy: 'Copy to my notes',
     copied: 'Copied',
+    copyFailed: "Couldn't copy — select the text to copy it.",
   },
   es: {
     min: (n) => `${n} min de lectura`,
@@ -39,6 +47,7 @@ const UI: Record<
     missing: 'Ese artículo no está disponible.',
     copy: 'Copiar a mis notas',
     copied: 'Copiado',
+    copyFailed: 'No se pudo copiar — seleccione el texto para copiarlo.',
   },
   vi: {
     min: (n) => `Đọc ${n} phút`,
@@ -46,6 +55,7 @@ const UI: Record<
     missing: 'Bài viết đó không có sẵn.',
     copy: 'Sao chép vào ghi chú',
     copied: 'Đã sao chép',
+    copyFailed: 'Không sao chép được — hãy chọn văn bản để sao chép.',
   },
 };
 
@@ -129,7 +139,7 @@ export default function ArticleScreen() {
   );
 }
 
-type ToolLabels = { copy: string; copied: string };
+type ToolLabels = { copy: string; copied: string; copyFailed: string };
 
 function Block({ block, t }: { block: ArticleBlock; t: ToolLabels }) {
   switch (block.kind) {
@@ -206,9 +216,13 @@ function ToolBlock({
     try {
       await Clipboard.setStringAsync(copyText);
       setCopied(true);
+      // The visible label flip is silent to a screen reader, so announce it —
+      // a blind parent needs to know the checklist is on their clipboard.
+      AccessibilityInfo.announceForAccessibility(t.copied);
     } catch {
-      // Clipboard denied or unavailable — leave the label unchanged rather
-      // than claim a copy that did not happen.
+      // Clipboard denied or unavailable — don't claim a copy that didn't
+      // happen. Say so, so success and silent failure aren't indistinguishable.
+      AccessibilityInfo.announceForAccessibility(t.copyFailed);
     }
   };
   return (
@@ -294,6 +308,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     gap: spacing.xs,
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     paddingRight: spacing.sm,
     marginTop: spacing.xs,
   },
