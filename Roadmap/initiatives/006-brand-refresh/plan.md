@@ -8,21 +8,31 @@ The kit is built and tested **before** any screen is repainted, so each apply-PR
 small, low-risk swap to a proven component. Copy, tone, advice, navigation wiring,
 and locales are untouched throughout — this initiative moves pixels, never words.
 
-## Locked decisions (from the approved canvas)
+## Locked decisions (warm direction — owner-approved after the audience critique)
 
-- **Mark:** compass — navy ring (`#1B2A4A`), teal north-point (`#0891B2`), sage hub (`#10B981`). Inline SVG; no raster.
-- **Type:** display **Bricolage Grotesque**, body **Public Sans** (Google Fonts via `expo-font`/`@expo-google-fonts`), each with a metric-close fallback stack.
-- **Color roles:** navy = structure/headers · teal = interactive · sage = progress/positive · coral = urgent only. Existing token hexes unchanged; add `tealTint`/`sageTint` for surfaces.
-- **Header:** the navy→teal gradient band (today Journey-only) becomes the shared `<PageHeader>`.
+- **Mark:** the **Waypoint marker** — an ink location-marker (`#22303A`) with a pine-teal center (`#0F766E`) and a sage next-point (`#0E9E6E`) on a short route. Inline SVG; no raster. (Compass rejected — reads generic and "you're lost.")
+- **Type:** display **Newsreader** (warm serif), body **Hanken Grotesk** (Google Fonts via `@expo-google-fonts`), each with a metric-close fallback stack.
+- **Color — WARM, AA-gated** (`brand` tokens in `theme.ts`): paper ground `#F5F1E9` · ink `#22303A` for all text · pine-teal `#0F766E` interactive · sage `#0E9E6E` progress (`sageInk #047857` when sage is text) · urgent `#C2410C` only. Navy is ink, never chrome. Existing legacy `colors` are left intact; `brand` is additive so screens migrate one at a time.
+- **Header:** a **light, warm** header (paper→cream, ink title + marker) becomes the shared `<PageHeader>` — replacing both the old cold `#F8FAFC` flatness and Journey's bespoke navy hero. No dark portal band.
 
 ## Phases (one PR each unless noted)
 
-### Phase 1 — Identity + tokens (foundational, low-risk)
-- Inline-SVG **compass** as web **favicon** + **app icon** (`app.json` icon/adaptiveIcon/web.favicon; generate the PNGs from the SVG).
-- `<Brandmark size>` component (the compass ± wordmark) replacing the stock `Ionicons name="compass"` in the Home header (and anywhere else the brand mark appears).
-- Extend `theme.ts`: `fonts.family` (display/body + fallbacks), `colors.tealTint`/`colors.sageTint`. **No existing token changed.**
-- Load the fonts at app root; render tests that the Brandmark renders and the fonts register.
-- Ships alone so identity lands even before the header/card swaps.
+### Phase 1 — Identity + tokens (foundational, low-risk) — split into three
+Split because the marker needs a new dependency (`react-native-svg`) that the
+app doesn't yet carry; the tokens don't, so they ship first, dependency-free.
+
+- **1a — warm tokens (SHIPPED first):** add the `brand` palette + `brandType`
+  to `theme.ts`, **additive** (no existing token changed → zero visual change),
+  guarded by `theme.test.ts` (roles present + WCAG-AA contrast pinned). This is
+  the foundation every later PR reads from.
+- **1b — the marker:** add `react-native-svg` (via `npx expo install`), build
+  `<Brandmark size>` (the Waypoint marker ± wordmark), wire it through the ui
+  test setup, and swap the stock `Ionicons name="compass"` in the Home header.
+- **1c — app icon + web favicon:** generate the marker PNGs from the SVG with
+  the repo's image tooling and point `app.json` (icon/adaptiveIcon/web.favicon)
+  at them.
+- Fonts (`@expo-google-fonts/newsreader` + `.../hanken-grotesk`, loaded at
+  root) come with Phase 2's kit, which is the first thing to render them.
 
 ### Phase 2 — The shared kit (components + tests, no screen swaps)
 - `<PageHeader title subtitle right>` — the gradient band + Brandmark, one component.

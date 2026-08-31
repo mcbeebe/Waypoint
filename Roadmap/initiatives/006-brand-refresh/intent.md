@@ -21,9 +21,11 @@ And the design-craft danger: **slop.** No gratuitous gradients, no emoji-as-icon
 
 Not a screen-by-screen repaint by hand. A **shared, token-driven kit** applied page by page:
 
-- **Identity:** a real inline-SVG **compass mark** (navy ring · teal north-point · sage hub) as favicon, app icon, and an in-app `<Brandmark>` that replaces the stock compass everywhere.
-- **Type:** a display + body pairing (Bricolage Grotesque / Public Sans) added as tokens, with metric-close fallbacks — the one genuinely new element, and the biggest "level-up."
-- **Color:** the **existing** palette, formalized into roles — navy = structure, **teal = interactive**, **sage = progress/positive**, coral = urgent only — plus tint tokens (`tealTint`, `sageTint`) for card and header backgrounds. No color is removed or invented.
+- **Identity:** a real inline-SVG **Waypoint marker** (an ink location-marker with a pine-teal center, a sage next-point on a short route) as favicon, app icon, and an in-app `<Brandmark>` that replaces the stock Ionicons compass everywhere. (The compass was reconsidered — see the critique note below.)
+- **Type:** a warm display + body pairing (**Newsreader** serif / **Hanken Grotesk** sans) added as tokens, with metric-close fallbacks — a warmer, more timeless "level-up" than the trendy/bureaucratic first pass.
+- **Color — a WARM system.** After a hard audience critique (see below) the navy/teal-first palette was reworked: a **paper** ground (`#F5F1E9`), **ink** for all text (navy used as ink only, not wall-to-wall chrome), a deep **pine-teal** for anything interactive, **sage** for progress, coral for true urgency only — plus tint tokens. Contrast is a hard gate: every text/button role clears WCAG AA (pinned in `theme.test.ts`).
+
+**Why the direction changed (a documented critique):** the first pass (navy→teal, compass) was pressure-tested against the actual user — a stressed 45-yo caregiver on her phone at 11pm. The critique was blunt and largely right: navy+teal reads like the insurance/benefits portals she's *fighting* (a bounce risk in the first second); the compass is a generic trope that subtly implies *she's* lost (she's not — she's being stonewalled); type ran too small with real AA contrast failures. The owner chose to warm the palette and adopt the "Waypoint marker" mark. That critique is why the system is what it is.
 - **Components:** `<PageHeader>` (the navy→teal gradient band, currently Journey-only) and a unified `<BrandCard>` / section-label / progress-rail vocabulary, all reading from `theme.ts`.
 
 Applied to Home, the Navigator/Ask surface, the Plan tab, RC Funding, Journey (for consistency), then the remaining stack screens.
@@ -32,8 +34,8 @@ Locked: **tokens are the source of truth** (`theme.ts`), every screen **extends*
 
 ## Done when
 
-- The compass mark is the favicon, app icon, and in-app brandmark; the stock Ionicons compass is gone.
-- `theme.ts` carries the type pairing + tint tokens; a `<PageHeader>` and `<BrandCard>` kit exists with render tests.
+- The Waypoint marker is the favicon, app icon, and in-app brandmark; the stock Ionicons compass is gone.
+- `theme.ts` carries the warm `brand` tokens (AA-gated) + the type pairing; a `<PageHeader>` and `<BrandCard>` kit exists with render tests.
 - Every main surface (Home, Ask, Plan, RC Funding, Journey, then the rest) wears the shared header + card system, accent logic applied by rule.
 - No navigation, test, locale, tone, or copy regression — the suite stays green and the ui suite proves no control was lost.
 - Each PR ships green (`tsc`/`vitest`/`eslint`) with an `/adversary` memo and — being family-facing visual change — **waits for the owner** (no auto-ship).
