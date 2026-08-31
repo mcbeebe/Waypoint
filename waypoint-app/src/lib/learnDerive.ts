@@ -29,11 +29,29 @@ export interface DerivedArticle extends LearnArticle {
 
 // ─── small pure helpers ──────────────────────────────────────────────────────
 
-/** First sentence of a body paragraph — the card blurb. Handles ASCII '.' which
- *  every locale here uses to end a sentence. */
-function firstSentence(text: string): string {
-  const m = /^(.*?[.!?])(\s|$)/.exec(text.trim());
-  return (m ? m[1] : text.trim()).trim();
+const L =
+  (locale: FunnelLocale) =>
+  (en: string, es: string, vi: string): string =>
+    locale === 'es' ? es : locale === 'vi' ? vi : en;
+
+/**
+ * The card blurb: enough sentences to actually say something, not a fragment.
+ * A single telegraphic first sentence ("Under 3: Early Start.") is useless, so
+ * we accumulate whole sentences until the blurb reads as a thought (≥70 chars)
+ * or hits 3 sentences, then hard-cap the length. No lookbehind (Hermes-safe).
+ */
+function summarize(text: string): string {
+  const t = text.trim();
+  const sentences = t.match(/[^.!?]+[.!?]+(\s|$)/g) ?? [t];
+  let out = '';
+  let n = 0;
+  for (const s of sentences) {
+    out += s;
+    n += 1;
+    if (out.trim().length >= 70 || n >= 3) break;
+  }
+  out = out.trim();
+  return out.length > 220 ? `${out.slice(0, 219).trimEnd()}…` : out;
 }
 
 /** Honest read time from the real word count, floored at 2 minutes. */
@@ -42,81 +60,127 @@ function readMinutes(...parts: string[]): number {
   return Math.max(2, Math.round(words / 180));
 }
 
+/** Short function words that add search noise, not coverage (en/es/vi). */
+const STOPWORDS = new Set([
+  'the', 'and', 'you', 'your', 'for', 'with', 'not', 'are', 'was', 'has', 'have',
+  'los', 'las', 'una', 'que', 'con', 'por', 'para', 'del', 'sus',
+  'quy', 'các', 'khi', 'không', 'này',
+]);
+
 /** Plain search terms from the (localized) title + the stable source key. */
 function termsFrom(title: string, key: string): string[] {
   const words = title
     .toLowerCase()
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .split(/\s+/)
-    .filter((w) => w.length > 2);
+    .filter((w) => w.length > 2 && !STOPWORDS.has(w));
   return [...new Set([...words, key])];
 }
 
+/**
+ * A real VERB action label for a destination screen — so a derived CTA reads
+ * "Find who to contact ›", never a bare noun. Used for stack layers (which
+ * carry a lever screen but no label) and for the no-lever fallback below.
+ */
+function actionForScreen(screen: string, locale: FunnelLocale): string {
+  const t = L(locale);
+  switch (screen) {
+    case 'Letters':
+      return t('Draft the request', 'Redactar la solicitud', 'Soạn yêu cầu');
+    case 'ProcessMap':
+      return t('See how it works', 'Ver cómo funciona', 'Xem cách hoạt động');
+    case 'Agencies':
+      return t('Find who to contact', 'Ver a quién contactar', 'Tìm người để liên hệ');
+    case 'SdpJourney':
+      return t('Explore Self-Determination', 'Explorar la Autodeterminación', 'Tìm hiểu Tự Quyết');
+    case 'ResourceStack':
+      return t('See your benefit stack', 'Ver su pila de beneficios', 'Xem các tầng trợ cấp');
+    case 'EscalationLadder':
+      return t('See the escalation steps', 'Ver los pasos de escalada', 'Xem các bước leo thang');
+    default:
+      return t('Open', 'Abrir', 'Mở');
+  }
+}
+
+/** Where a source with no letter-lever should send the family — a real "do
+ *  something" screen (who to contact), never a loop back to the same map. */
+const NO_LEVER_TARGET: LearnTarget = { screen: 'Agencies', tab: 'Home' };
+
 // ─── projectors ──────────────────────────────────────────────────────────────
 
-/** An escalation-ladder rung → an article that ends in its lever letter (or the
- *  ladder screen when the rung has no letter). */
-function fromRung(rung: ReturnType<typeof getEscalationRungs>[number]): DerivedArticle {
+/** An escalation-ladder rung → an article that ends in its lever letter, or in
+ *  "find who to contact" when the rung has no letter (never a loop back to the
+ *  ladder). */
+function fromRung(
+  rung: ReturnType<typeof getEscalationRungs>[number],
+  locale: FunnelLocale
+): DerivedArticle {
   const body: ArticleBlock[] = [{ kind: 'para', text: rung.body }];
   if (rung.clock) body.push({ kind: 'callout', text: rung.clock });
-  const target: LearnTarget = rung.leverTemplate
-    ? { screen: 'Letters', params: { template: rung.leverTemplate }, tab: 'Home' }
-    : { screen: 'EscalationLadder', tab: 'Home' };
+  const hasLetter = !!rung.leverTemplate;
   return {
     key: `ladder_${rung.key}`,
     title: rung.title,
-    summary: firstSentence(rung.body),
+    summary: summarize(rung.body),
     body,
     minutes: readMinutes(rung.body, rung.clock),
     citation: rung.citation || undefined,
-    actionLabel: rung.leverLabel ?? rung.title,
-    target,
+    actionLabel: hasLetter
+      ? rung.leverLabel ?? rung.title
+      : actionForScreen(NO_LEVER_TARGET.screen, locale),
+    target: hasLetter
+      ? { screen: 'Letters', params: { template: rung.leverTemplate! }, tab: 'Home' }
+      : NO_LEVER_TARGET,
     terms: termsFrom(rung.title, rung.key),
     derivedFrom: { source: 'ladder', sourceKey: rung.key },
   };
 }
 
-/** A process-map stage → an article that ends in the stage's lever letter (or
- *  the map for that system). `system` distinguishes RC vs school keys. */
+/** A process-map stage → an article that ends in the stage's lever letter, or in
+ *  "find who to contact" when it has none. `system` distinguishes RC vs school. */
 function fromStage(
   stage: ReturnType<typeof getRcStages>[number],
-  system: 'rc' | 'school'
+  system: 'rc' | 'school',
+  locale: FunnelLocale
 ): DerivedArticle {
   const body: ArticleBlock[] = [{ kind: 'para', text: stage.body }];
   if (stage.clock) body.push({ kind: 'callout', text: stage.clock });
-  const target: LearnTarget = stage.leverTemplate
-    ? { screen: 'Letters', params: { template: stage.leverTemplate }, tab: 'Home' }
-    : { screen: 'ProcessMap', params: { system }, tab: 'Home' };
+  const hasLetter = !!stage.leverTemplate;
   return {
     key: `${system === 'rc' ? 'rc_stage' : 'school_stage'}_${stage.key}`,
     title: stage.title,
-    summary: firstSentence(stage.body),
+    summary: summarize(stage.body),
     body,
     minutes: readMinutes(stage.body, stage.clock),
     citation: stage.citation || undefined,
-    actionLabel: stage.leverLabel ?? stage.title,
-    target,
+    actionLabel: hasLetter
+      ? stage.leverLabel ?? stage.title
+      : actionForScreen(NO_LEVER_TARGET.screen, locale),
+    target: hasLetter
+      ? { screen: 'Letters', params: { template: stage.leverTemplate! }, tab: 'Home' }
+      : NO_LEVER_TARGET,
     terms: termsFrom(stage.title, stage.key),
     derivedFrom: { source: system === 'rc' ? 'rc_stage' : 'school_stage', sourceKey: stage.key },
   };
 }
 
-/** A resource-stack layer → an article that ends at the layer's lever (or the
- *  stack view when it has none). */
+/** A resource-stack layer → an article that ends at the layer's lever, with a
+ *  real VERB label (the layer carries a screen but no label of its own). */
 function fromLayer(
-  layer: ReturnType<typeof deriveResourceStack>['layers'][number]
+  layer: ReturnType<typeof deriveResourceStack>['layers'][number],
+  locale: FunnelLocale
 ): DerivedArticle {
   const target: LearnTarget = layer.lever
     ? { screen: layer.lever.screen, params: layer.lever.params, tab: 'Home' }
-    : { screen: 'ResourceStack', tab: 'Home' };
+    : NO_LEVER_TARGET;
   return {
     key: `stack_${layer.key}`,
     title: layer.title,
-    summary: firstSentence(layer.gets),
+    summary: summarize(layer.gets),
     body: [{ kind: 'para', text: layer.gets }],
     minutes: readMinutes(layer.gets),
     citation: layer.citation || undefined,
-    actionLabel: layer.title,
+    actionLabel: actionForScreen(target.screen, locale),
     target,
     terms: termsFrom(layer.title, layer.key),
     derivedFrom: { source: 'stack', sourceKey: layer.key },
@@ -134,9 +198,9 @@ const NEUTRAL_STACK = { ageYears: null, rcStatus: null, iepStatus: null } as con
  */
 export function deriveArticles(locale: FunnelLocale = 'en'): DerivedArticle[] {
   return [
-    ...getEscalationRungs(locale).map(fromRung),
-    ...getRcStages(locale).map((s) => fromStage(s, 'rc')),
-    ...getSchoolStages(locale).map((s) => fromStage(s, 'school')),
-    ...deriveResourceStack(NEUTRAL_STACK, locale).layers.map(fromLayer),
+    ...getEscalationRungs(locale).map((r) => fromRung(r, locale)),
+    ...getRcStages(locale).map((s) => fromStage(s, 'rc', locale)),
+    ...getSchoolStages(locale).map((s) => fromStage(s, 'school', locale)),
+    ...deriveResourceStack(NEUTRAL_STACK, locale).layers.map((l) => fromLayer(l, locale)),
   ];
 }

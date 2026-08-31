@@ -108,13 +108,37 @@ describe('derived content is trilingual, structurally parallel', () => {
   });
 });
 
+describe('the summary is a real blurb, never a telegraphic fragment', () => {
+  it('the RC-intake summary keeps the point, not just "Early Start"', () => {
+    // Regression on F1: the intake body opens with a 4-word sentence; a naive
+    // first-sentence blurb dropped the eligibility + cost message that IS the
+    // point. summarize() accumulates whole sentences until the blurb says
+    // something.
+    const art = deriveArticles('en').find((a) => a.key === 'rc_stage_intake')!;
+    expect(art.summary.length).toBeGreaterThan(40);
+    expect(art.summary.toLowerCase()).toContain('lanterman');
+  });
+
+  it('no derived summary is a single sub-40-character fragment', () => {
+    for (const a of deriveArticles('en')) {
+      // Either it reached the length threshold, or the whole source was short.
+      expect(a.summary.length, `${a.key} summary too short`).toBeGreaterThan(20);
+    }
+  });
+});
+
 describe('provenance coverage the 8-2 review must close', () => {
-  it('reports which derived citations are not yet in the registry', () => {
-    // 8-0 hand-authored articles must have registered citations. Derived ones
-    // inherit citations from source modules that ship them on their own screens
-    // today — some are not in contentSources yet. This documents that gap so
-    // 8-2 knows exactly what registry entries to add (with human verification)
-    // BEFORE composing derived articles into the live, tappable-citation set.
+  it('every derived article inherits a citation string from its source', () => {
+    for (const a of deriveArticles('en')) expect(a.citation, a.key).toBeTruthy();
+  });
+
+  it('EVERY derived citation already resolves in the registry — no backlog', () => {
+    // The strong invariant: because derived articles inherit citations from
+    // modules that already ship them on their own screens, and those are all in
+    // contentSources, every derived citation resolves to a tappable source.
+    // Derived content can compose (8-2) with NO plain-text citations and NO
+    // registry work. If a source module ever adds an unregistered citation,
+    // this fails — pointing at the registry gap before it reaches a family.
     const uncovered = [
       ...new Set(
         deriveArticles('en')
@@ -123,14 +147,6 @@ describe('provenance coverage the 8-2 review must close', () => {
           .filter((c) => !sourceForCitation(c))
       ),
     ];
-    // Not a failure — a ledger. If this list shrinks to [], 8-2's registry work
-    // is done and derived articles can compose without any plain-text citations.
-    expect(Array.isArray(uncovered)).toBe(true);
-    // The registered ones must genuinely resolve (sanity on the registry itself).
-    for (const a of deriveArticles('en')) {
-      if (a.citation && sourceForCitation(a.citation)) {
-        expect(sourceForCitation(a.citation)).not.toBeNull();
-      }
-    }
+    expect(uncovered, 'unregistered derived citations').toEqual([]);
   });
 });
