@@ -17,6 +17,7 @@ import {
   phaseToActions,
   phaseQuestion,
   entityStanding,
+  standingLabel,
   entityExplainer,
   cadenceNote,
   entityGuide,
@@ -50,9 +51,11 @@ export default function JourneyPhaseScreen() {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // The child's live standings, so a step the family already has (an active
-  // IEP, an active IPP) shows "In place" from the PROFILE — no manual check
-  // needed (owner feedback, Aug 2026). Same shape JourneyScreen builds.
+  // The child's live standings, so a step whose SYSTEM the family already has
+  // (an active IEP, an active IPP) shows a factual "IEP active" chip from the
+  // PROFILE — no manual check needed (owner feedback, Aug 2026). Note this omits
+  // JourneyScreen's mediCalRequested (no requests loaded here), so a mid-deeming
+  // Medi-Cal row shows no "in progress" chip on This Stage — an accepted gap.
   const standings: EntityStandings = useMemo(
     () => ({
       rcStatus: primaryChild?.rc_status,
@@ -179,7 +182,10 @@ export default function JourneyPhaseScreen() {
           const entity = phase.entities[i];
           const added = addedIndexes.has(i);
           const open = expandedIndex === i;
-          const standing = entityStanding(entity.name, standings);
+          // Suppress on combined "A / B" rows — a single-system chip there is
+          // ambiguous (which system is "active"?).
+          const standing = entity.name.includes('/') ? null : entityStanding(entity.name, standings);
+          const standLabel = standing ? standingLabel(entity.name, standing) : null;
           const explainer = entityExplainer(entity.name);
           const cadence = cadenceNote(entity.time ?? '');
           const guide = entityGuide(entity);
@@ -192,7 +198,7 @@ export default function JourneyPhaseScreen() {
                   onPress={() => setExpandedIndex(open ? null : i)}
                   accessibilityRole="button"
                   accessibilityState={{ expanded: open }}
-                  accessibilityLabel={`${entity.name}: ${entity.action}. ${open ? 'Hide' : 'Show'} details.`}
+                  accessibilityLabel={`${entity.name}: ${entity.action}.${standLabel ? ` ${standLabel}.` : ''} ${open ? 'Hide' : 'Show'} details.`}
                 >
                   <Text style={[styles.stepWho, { color: phase.color, fontSize: sz(11) }]}>
                     {entity.name.toUpperCase()}
@@ -202,10 +208,10 @@ export default function JourneyPhaseScreen() {
                     {entity.action}
                   </Text>
                   <View style={styles.stepMetaRow}>
-                    {standing && (
+                    {standLabel && (
                       <View style={[styles.standChip, standing === 'in_place' ? styles.standInPlace : styles.standInMotion]}>
                         <Text style={[styles.standChipText, standing === 'in_place' ? styles.standInPlaceText : styles.standInMotionText]}>
-                          {standing === 'in_place' ? '✓ In place' : 'In progress'}
+                          {standLabel}
                         </Text>
                       </View>
                     )}
@@ -360,16 +366,18 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: 6,
   },
-  stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   stepBody: { flex: 1 },
   stepWho: { fontWeight: fonts.weights.bold as '700', letterSpacing: 0.4 },
   stepAction: { color: colors.dark, marginTop: 3 },
   stepMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 6 },
   standChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radii.full },
-  standInPlace: { backgroundColor: '#D1FAE5' },
+  // Info-teal, not done-green: this states a system fact ("IEP active"), it is
+  // not a step-completion checkmark.
+  standInPlace: { backgroundColor: '#E6F5F9' },
   standInMotion: { backgroundColor: '#FEF3C7' },
   standChipText: { fontSize: 11, fontWeight: fonts.weights.bold as '700' },
-  standInPlaceText: { color: '#047857' },
+  standInPlaceText: { color: '#076C86' },
   standInMotionText: { color: '#92400E' },
   learnMore: { fontSize: 11.5, fontWeight: fonts.weights.semibold as '600' },
   stepDetail: {

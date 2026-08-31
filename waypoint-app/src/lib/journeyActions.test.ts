@@ -7,6 +7,7 @@ import {
   phaseQuestion,
   entityLever,
   entityStanding,
+  standingLabel,
   entityExplainer,
   cadenceNote,
   entityGuide,
@@ -193,5 +194,30 @@ describe('step "learn more" derivations (This Stage depth)', () => {
     expect(q).toContain(PHASE.entities[0].name);
     expect(q).toContain(PHASE.label);
     expect(q).toContain('Teddy');
+  });
+});
+
+describe('standing chip states a system fact, not step completion (adversary fix)', () => {
+  it('names the system state — never "✓ In place" / "done"', () => {
+    expect(standingLabel('School District', 'in_place')).toBe('IEP active');
+    expect(standingLabel('Regional Center', 'in_place')).toBe('Regional Center active');
+    expect(standingLabel('SSA', 'in_place')).toBe('SSI active');
+    expect(standingLabel('IHSS', 'in_motion')).toBe('IHSS in progress');
+    // Whatever it says, it must not claim the STEP is done.
+    for (const s of ['in_place', 'in_motion'] as const) {
+      expect(standingLabel('School District', s).toLowerCase()).not.toMatch(/in place|done|complete|✓/);
+    }
+  });
+
+  it('does not put the IPP explainer on an Early Start (under-3) row', () => {
+    expect(entityExplainer('Regional Center — Early Start intake → IFSP')).toMatch(/IFSP/);
+    expect(entityExplainer('Regional Center — Early Start intake → IFSP')).not.toMatch(/\bIPP\b/);
+  });
+
+  it('does not put the conservatorship explainer on medical "adult" rows', () => {
+    expect(entityExplainer('CCS → Adult programs')).toBeNull();
+    expect(entityExplainer('Adult Neurology — Transfer from pediatric provider')).toBeNull();
+    // A real guardianship row still gets it.
+    expect(entityExplainer('Conservatorship or supported decision-making')).toMatch(/decision/i);
   });
 });

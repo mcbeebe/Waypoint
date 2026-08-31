@@ -143,6 +143,29 @@ export function entityStanding(
 }
 
 /**
+ * A chip label for a standing that names the SYSTEM state as a fact ("IEP
+ * active", "Regional Center in progress") rather than "✓ In place" — which,
+ * placed on a specific next-step card, wrongly reads as "this step is done"
+ * (a false claim on deadline-bearing steps like a transition IEP). A factual
+ * system-state label is true regardless of what the step asks the family to do.
+ */
+export function standingLabel(entityName: string, standing: EntityStanding): string {
+  const n = entityName.toLowerCase();
+  const sys = /medi-?cal/.test(n)
+    ? 'Medi-Cal'
+    : /ihss/.test(n)
+      ? 'IHSS'
+      : /\bssi\b|\bssa\b|social security/.test(n)
+        ? 'SSI'
+        : /regional center|early start/.test(n)
+          ? 'Regional Center'
+          : /school|district|iep\b/.test(n)
+            ? 'IEP'
+            : 'This';
+  return standing === 'in_place' ? `${sys} active` : `${sys} in progress`;
+}
+
+/**
  * The "learn more" a step card expands to (owner request, Aug 2026). Derived,
  * not hand-authored per map instance: a keyword lookup on the entity name gives
  * a specific plain-language "why this matters", falling back to a category-level
@@ -151,13 +174,18 @@ export function entityStanding(
  */
 const ENTITY_EXPLAINERS: { match: RegExp; why: string }[] = [
   { match: /\biep\b|school district|504/, why: 'The IEP is the school’s binding plan for your child. It is reviewed every year and fully reassessed every three years — each review is your opening to update goals and add or protect services.' },
-  { match: /\bipp\b|regional center|early start|service coordinator/, why: 'The IPP is your Regional Center service plan. Reviewing it keeps goals current and is how new or increased funding gets written in — services flow from what the IPP lists.' },
-  { match: /insurance|aba|health plan|authoriz/, why: 'Insurers re-authorize therapies on a clock. A lapsed authorization can pause services mid-stream, so tracking the renewal date protects the hours your child already has.' },
+  // Early Start (under-3) is built on an IFSP, not an IPP — match it first so
+  // the 0–3 Regional Center row doesn't get the IPP explainer by mistake.
+  { match: /early start|ifsp|birth ?to ?three/, why: 'Early Start is Regional Center services for children under three, organized around an IFSP — the Individualized Family Service Plan. Reviews keep it matched to how fast your child is changing at this age.' },
+  { match: /\bipp\b|regional center|service coordinator/, why: 'The IPP is your Regional Center service plan. Reviewing it keeps goals current and is how new or increased funding gets written in — services flow from what the IPP lists.' },
+  { match: /insurance|health plan|authoriz|re-?auth/, why: 'Insurers re-authorize therapies on a clock. A lapsed authorization can pause services mid-stream, so tracking the renewal date protects the hours your child already has.' },
   { match: /ihss/, why: 'IHSS hours are reassessed every year. Documenting your child’s needs before the review is how you protect the hours you have — and make the case for more.' },
   { match: /calable|able account/, why: 'A CalABLE account lets your child save without losing benefits eligibility. There is no deadline — but opening one early is the first concrete step of long-term financial planning.' },
   { match: /medi-?cal/, why: 'Medi-Cal is the coverage many other supports build on. Keeping it active — and renewing on time — keeps the layers above it in place.' },
-  { match: /\bssi\b|social security/, why: 'SSI is a monthly benefit for eligible children and, at 18, is re-determined as an adult. Knowing the timing avoids a gap in income and the Medi-Cal that can come with it.' },
-  { match: /conservator|18|adult|transition/, why: 'Turning 18 changes who makes decisions and how benefits are determined. Starting a year ahead leaves time for the paperwork these transitions require.' },
+  { match: /\bssi\b|social security|\bssa\b/, why: 'SSI is a monthly benefit for eligible children and, at 18, is re-determined against adult criteria. Knowing that timing avoids a gap in income and the Medi-Cal that can come with it.' },
+  // Guardianship only — narrowed from a broad /18|adult|transition/, which was
+  // catching medical "Adult neurology / CCS → adult programs" rows.
+  { match: /conservator|guardianship|supported decision/, why: 'Turning 18 changes who can legally make decisions. Conservatorship — or a lighter alternative like supported decision-making — takes months to arrange, so families start well before the birthday.' },
 ];
 
 export function entityExplainer(entityName: string): string | null {
