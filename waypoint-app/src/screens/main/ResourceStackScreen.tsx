@@ -29,6 +29,7 @@ const STRINGS: Record<FunnelLocale, {
   buildsOn: string;
   nextUnlock: string;
   unlockCta: string;
+  askForCta: string;
   lockedNeeds: (layerTitle: string) => string;
   haveIt: string;
   startedIt: string;
@@ -47,6 +48,7 @@ const STRINGS: Record<FunnelLocale, {
     buildsOn: '▲ builds on',
     nextUnlock: 'Your next unlock',
     unlockCta: 'Unlock this layer →',
+    askForCta: 'See what to ask for →',
     lockedNeeds: (layerTitle) => `Locked — needs ${layerTitle}`,
     haveIt: 'We already have this ✓',
     startedIt: "We've started this — mark in progress",
@@ -66,6 +68,7 @@ const STRINGS: Record<FunnelLocale, {
     buildsOn: '▲ se apoya en',
     nextUnlock: 'Su próximo desbloqueo',
     unlockCta: 'Desbloquear esta capa →',
+    askForCta: 'Vea qué puede pedir →',
     lockedNeeds: (layerTitle) => `Bloqueado — necesita ${layerTitle}`,
     haveIt: 'Ya lo tenemos ✓',
     startedIt: 'Ya lo empezamos — marcar en proceso',
@@ -85,6 +88,7 @@ const STRINGS: Record<FunnelLocale, {
     buildsOn: '▲ dựa trên',
     nextUnlock: 'Tầng mở tiếp theo',
     unlockCta: 'Mở tầng này →',
+    askForCta: 'Xem những gì có thể đề nghị →',
     lockedNeeds: (layerTitle) => `Chưa mở — cần ${layerTitle}`,
     haveIt: 'Chúng tôi đã có ✓',
     startedIt: 'Chúng tôi đã bắt đầu — đánh dấu đang tiến hành',
@@ -221,6 +225,21 @@ export default function ResourceStackScreen() {
           </View>
         </View>
         <Text style={[styles.cardBody, (locked || later) && styles.cardBodyMuted]}>{layer.gets}</Text>
+        {/* The RC layer names "family services" — this door makes them reachable:
+            the tier of supports a family has to ask for (initiative 005-C). */}
+        {layer.key === 'regional_center' && !locked && !later && (
+          <Pressable
+            style={({ pressed }) => [styles.askForLink, pressed && styles.pressedDim]}
+            onPress={(e) => {
+              (e as { stopPropagation?: () => void })?.stopPropagation?.();
+              (navigation as any).navigate('AskForSupports');
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={S.askForCta}
+          >
+            <Text style={styles.askForLinkText}>{S.askForCta}</Text>
+          </Pressable>
+        )}
         {layer.key === 'medi_cal' && layer.status === 'in_progress' && deemingRequest && (
           <Pressable
             style={styles.trackedLink}
@@ -408,6 +427,8 @@ const styles = StyleSheet.create({
   pressedDim: { opacity: 0.55 },
   trackedLink: { minHeight: 32, justifyContent: 'center', alignSelf: 'flex-start' },
   trackedLinkText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold, color: colors.teal },
+  askForLink: { minHeight: 36, justifyContent: 'center', alignSelf: 'flex-start', marginTop: 4 },
+  askForLinkText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.bold as '700', color: colors.teal },
   selfReportRow: { gap: spacing.xs },
   haveBtn: { alignSelf: 'flex-start', minHeight: 32, justifyContent: 'center' },
   haveBtnText: {
