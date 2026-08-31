@@ -35,7 +35,7 @@ export interface StackShape {
  * Home stack must say `tab: 'Home'`.
  */
 export const HOME_DESTINATIONS = [
-  'Journey', 'JourneyPhase', 'ProcessMap', 'SdpJourney', 'EscalationLadder',
+  'Journey', 'ProcessMap', 'SdpJourney', 'EscalationLadder',
   'ResourceStack', 'EligibilityResult', 'FundedOffer', 'RequestTracker',
   'RequestCase', 'Pricing', 'Agencies', 'Reimbursables', 'AskForSupports',
   'SupportDetail', 'Expenses', 'TaxReport',

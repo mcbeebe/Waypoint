@@ -5,6 +5,7 @@ import {
   entityToAction,
   phaseToActions,
   phaseQuestion,
+  phaseChips,
   entityLever,
   entityStanding,
   standingLabel,
@@ -97,6 +98,28 @@ describe('phaseQuestion', () => {
     expect(q).toContain('ages 0–3');
     expect(q).toContain('Autism (ASD)');
     expect(q).toMatch(/deadlines/);
+  });
+});
+
+describe('phaseChips — one-tap ask starters, scoped to the stage', () => {
+  it('returns short labels whose questions name this exact stage', () => {
+    const chips = phaseChips(PHASE, 'Autism (ASD)', 'Teddy');
+    expect(chips.length).toBeGreaterThanOrEqual(2);
+    for (const c of chips) {
+      // Labels stay short enough to fit a chip.
+      expect(c.label.length).toBeLessThanOrEqual(28);
+      // Each seeded question is scoped — it names the stage and the journey.
+      expect(c.ask).toContain('Early Intervention');
+      expect(c.ask).toContain('Autism (ASD)');
+    }
+    // The child-personalized starters carry the name.
+    expect(chips.some((c) => c.ask.includes('Teddy'))).toBe(true);
+  });
+
+  it('falls back to a generic subject when no child name is set', () => {
+    const chips = phaseChips(PHASE, 'Autism (ASD)', null);
+    expect(chips.some((c) => c.ask.includes('my child'))).toBe(true);
+    expect(chips.every((c) => !c.ask.includes('Teddy'))).toBe(true);
   });
 });
 

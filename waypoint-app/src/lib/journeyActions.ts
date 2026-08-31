@@ -249,3 +249,38 @@ export function phaseQuestion(
     `What should I be doing right now, what deadlines apply, and what do families commonly miss at this stage?`
   );
 }
+
+/** A one-tap ask starter — a short chip label and the question it seeds. */
+export interface PhaseChip {
+  label: string;
+  ask: string;
+}
+
+/**
+ * One-tap starters for the stage's ask bar (Journey merge, Aug 31 2026).
+ * Derived deterministically from the phase so every stage gets sensible,
+ * scoped chips without hand-authoring per map instance — the same reason the
+ * explainers table is keyword-driven. English, matching the journey content.
+ */
+export function phaseChips(
+  phase: JourneyPhase,
+  journeyTitle: string,
+  childName?: string | null
+): PhaseChip[] {
+  const who = childName ?? 'my child';
+  const stage = `the "${phase.label}" stage of the ${journeyTitle} journey`;
+  return [
+    {
+      label: 'What’s due now?',
+      ask: `What deadlines or reviews are coming up for ${who} in ${stage}? What should I do first?`,
+    },
+    {
+      label: 'What do families miss?',
+      ask: `In ${stage} (ages ${phase.age}), what do families most often overlook or get wrong?`,
+    },
+    {
+      label: 'How do I prepare?',
+      ask: `How should I prepare for ${stage} for ${who} — what to gather, who to contact, and when?`,
+    },
+  ];
+}
