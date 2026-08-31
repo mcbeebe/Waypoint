@@ -49,7 +49,7 @@ import LearnPanel from '@/components/LearnPanel';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
 
 /** Tone display labels */
 const TONE_LABELS: Record<ToneLevel, { label: string; emoji: string; color: string }> = {
@@ -481,7 +481,7 @@ export default function NavigatorScreen() {
             accessibilityRole="button"
             accessibilityLabel="Chat history"
           >
-            <Ionicons name="time-outline" size={18} color={colors.teal} />
+            <Ionicons name="time-outline" size={18} color={brand.pine} />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.newChatButton}
@@ -632,9 +632,9 @@ export default function NavigatorScreen() {
             accessibilityHint="Add photos of documents to ask about"
           >
             {picking ? (
-              <ActivityIndicator size="small" color={colors.mid} />
+              <ActivityIndicator size="small" color={brand.inkFaint} />
             ) : (
-              <Ionicons name="camera-outline" size={22} color={colors.mid} />
+              <Ionicons name="camera-outline" size={22} color={brand.inkFaint} />
             )}
           </TouchableOpacity>
           <TextInput
@@ -646,7 +646,7 @@ export default function NavigatorScreen() {
                 ? 'Ask about these photos...'
                 : "Ask about your child's services..."
             }
-            placeholderTextColor={colors.mid}
+            placeholderTextColor={brand.inkFaint}
             multiline
             maxLength={2000}
             editable={!isLoading}
@@ -690,11 +690,11 @@ export default function NavigatorScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Close history"
               >
-                <Ionicons name="close" size={22} color={colors.mid} />
+                <Ionicons name="close" size={22} color={brand.inkFaint} />
               </TouchableOpacity>
             </View>
             {historyLoading ? (
-              <ActivityIndicator size="small" color={colors.teal} style={styles.historySpinner} />
+              <ActivityIndicator size="small" color={brand.pine} style={styles.historySpinner} />
             ) : historySessions.length === 0 ? (
               <Text style={styles.historyEmpty}>
                 No past conversations yet — your chats will appear here.
@@ -735,7 +735,7 @@ export default function NavigatorScreen() {
             <TextInput
               style={styles.emailInput}
               placeholder="Recipient email"
-              placeholderTextColor={colors.mid}
+              placeholderTextColor={brand.inkFaint}
               value={emailTo}
               onChangeText={setEmailTo}
               keyboardType="email-address"
@@ -766,7 +766,7 @@ export default function NavigatorScreen() {
             <TextInput
               style={styles.emailInput}
               placeholder="Subject"
-              placeholderTextColor={colors.mid}
+              placeholderTextColor={brand.inkFaint}
               value={emailSubject}
               onChangeText={setEmailSubject}
             />
@@ -901,7 +901,7 @@ function AIDownFallback({
       <Text style={styles.fallbackTitle}>While I reconnect, you can still make progress:</Text>
       {pending.map((a) => (
         <View key={a.id} style={styles.fallbackItem}>
-          <Ionicons name="ellipse-outline" size={12} color={colors.teal} />
+          <Ionicons name="ellipse-outline" size={12} color={brand.pine} />
           <Text style={styles.fallbackItemText} numberOfLines={2}>{a.title}</Text>
         </View>
       ))}
@@ -912,7 +912,7 @@ function AIDownFallback({
           accessibilityRole="button"
           accessibilityLabel={`Call ${rc.name} at ${rc.phone}`}
         >
-          <Ionicons name="call-outline" size={14} color={colors.teal} />
+          <Ionicons name="call-outline" size={14} color={brand.pine} />
           <Text style={styles.fallbackCallText}>
             Call {rc.name}: {rc.phone}
           </Text>
@@ -1027,7 +1027,7 @@ function MessageBubble({
             accessibilityLabel="Save this response as an action plan item"
           >
             {isSaving ? (
-              <ActivityIndicator size="small" color={colors.teal} />
+              <ActivityIndicator size="small" color={brand.pine} />
             ) : (
               <Text style={styles.saveActionText}>Save as Action</Text>
             )}
@@ -1058,7 +1058,7 @@ function MessageBubble({
               <Ionicons
                 name={feedback === 'up' ? 'thumbs-up' : 'thumbs-up-outline'}
                 size={14}
-                color={feedback === 'up' ? colors.teal : colors.mid}
+                color={feedback === 'up' ? brand.pine : brand.inkFaint}
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -1071,7 +1071,7 @@ function MessageBubble({
               <Ionicons
                 name={feedback === 'down' ? 'thumbs-down' : 'thumbs-down-outline'}
                 size={14}
-                color={feedback === 'down' ? '#DC2626' : colors.mid}
+                color={feedback === 'down' ? '#DC2626' : brand.inkFaint}
               />
             </TouchableOpacity>
           </View>
@@ -1191,7 +1191,7 @@ function getAgeString(dob: string): string {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFB',
+    backgroundColor: brand.paper,
   },
   flex: {
     flex: 1,
@@ -1202,9 +1202,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: brand.border,
   },
   headerLeft: {
     flex: 1,
@@ -1212,11 +1212,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
   },
   headerSubtitle: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginTop: 2,
   },
   headerRight: {
@@ -1227,7 +1227,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1235,12 +1235,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#E6F7F5',
+    backgroundColor: brand.pineTint,
     justifyContent: 'center',
     alignItems: 'center',
   },
   historySheet: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
     padding: spacing.lg,
@@ -1257,7 +1257,7 @@ const styles = StyleSheet.create({
   },
   historyEmpty: {
     fontSize: fonts.sizes.sm,
-    color: colors.mid,
+    color: brand.inkFaint,
     paddingVertical: spacing.lg,
     textAlign: 'center',
   },
@@ -1267,23 +1267,23 @@ const styles = StyleSheet.create({
   historyItem: {
     paddingVertical: spacing.base,
     borderBottomWidth: 1,
-    borderBottomColor: colors.light,
+    borderBottomColor: brand.paper,
     minHeight: 44,
     justifyContent: 'center',
   },
   historyItemActive: {
-    backgroundColor: '#E6F7F5',
+    backgroundColor: brand.pineTint,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.sm,
   },
   historyItemTitle: {
     fontSize: fonts.sizes.sm,
-    color: colors.dark,
+    color: brand.inkSoft,
     fontWeight: fonts.weights.medium as '500',
   },
   historyItemDate: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginTop: 1,
   },
   newChatIcon: {
@@ -1296,14 +1296,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xs,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: brand.border,
     gap: 6,
   },
   toneLabel: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.medium as '500',
     marginRight: 4,
   },
@@ -1311,11 +1311,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
   },
   tonePillText: {
     fontSize: 11,
-    color: colors.dark,
+    color: brand.inkSoft,
     fontWeight: fonts.weights.medium as '500',
   },
   tonePillTextActive: {
@@ -1341,7 +1341,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#E6F7F5',
+    backgroundColor: brand.pineTint,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 2,
@@ -1355,11 +1355,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.base,
   },
   bubbleUser: {
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     borderBottomRightRadius: 4,
   },
   bubbleAssistant: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderBottomLeftRadius: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -1375,10 +1375,10 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   bubbleTextAssistant: {
-    color: colors.dark,
+    color: brand.inkSoft,
   },
   cursor: {
-    color: colors.teal,
+    color: brand.pine,
     opacity: 0.6,
   },
   errorBanner: {
@@ -1398,9 +1398,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: brand.border,
     gap: 8,
   },
   attachButton: {
@@ -1409,14 +1409,14 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
   },
   attachStrip: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: brand.border,
     maxHeight: 76,
   },
   attachStripContent: {
@@ -1430,7 +1430,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: radii.sm,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
   },
   attachRemove: {
     position: 'absolute',
@@ -1439,7 +1439,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: radii.full,
-    backgroundColor: colors.navy,
+    backgroundColor: brand.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1449,16 +1449,16 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: radii.sm,
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
   },
   input: {
     flex: 1,
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.base,
     fontSize: fonts.sizes.sm,
-    color: colors.dark,
+    color: brand.inkSoft,
     maxHeight: 100,
     minHeight: 40,
   },
@@ -1466,12 +1466,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     justifyContent: 'center',
     alignItems: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: colors.border,
+    backgroundColor: brand.border,
   },
   sendIcon: {
     fontSize: 20,
@@ -1492,13 +1492,13 @@ const styles = StyleSheet.create({
   welcomeTitle: {
     fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   welcomeSubtitle: {
     fontSize: fonts.sizes.sm,
-    color: colors.mid,
+    color: brand.inkFaint,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: spacing.lg,
@@ -1513,21 +1513,21 @@ const styles = StyleSheet.create({
     paddingRight: spacing.lg,
   },
   followUpChip: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.teal,
+    borderColor: brand.pine,
   },
   followUpChipText: {
     fontSize: fonts.sizes.sm,
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.medium,
   },
   disclaimer: {
     fontSize: 10,
-    color: colors.mid,
+    color: brand.inkFaint,
     textAlign: 'center',
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
@@ -1539,15 +1539,15 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     marginTop: 4,
     borderRadius: radii.sm,
-    backgroundColor: '#E6F7F5',
+    backgroundColor: brand.pineTint,
     borderWidth: 1,
-    borderColor: colors.teal,
+    borderColor: brand.pine,
     minHeight: 24,
     justifyContent: 'center',
   },
   saveActionText: {
     fontSize: 10,
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.medium as '500',
   },
   sourceContainer: {
@@ -1559,36 +1559,36 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   sourcePill: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radii.sm,
   },
   sourcePillText: {
     fontSize: fonts.sizes.xs,
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.medium as '500',
   },
   generalKnowledgePill: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radii.sm,
   },
   generalKnowledgeText: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     fontStyle: 'italic',
   },
   sourceExpanded: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderRadius: radii.sm,
     padding: spacing.sm,
     marginTop: 4,
   },
   sourceExpandedText: {
     fontSize: fonts.sizes.xs,
-    color: colors.dark,
+    color: brand.inkSoft,
     lineHeight: 16,
   },
   emailThisButton: {
@@ -1598,15 +1598,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginLeft: 4,
     borderRadius: radii.sm,
-    backgroundColor: '#EEF2FF',
+    backgroundColor: brand.pineTint,
     borderWidth: 1,
-    borderColor: '#6366F1',
+    borderColor: brand.pine,
     minHeight: 24,
     justifyContent: 'center',
   },
   emailThisText: {
     fontSize: 10,
-    color: '#6366F1',
+    color: brand.pine,
     fontWeight: fonts.weights.medium as '500',
   },
   feedbackRow: {
@@ -1617,7 +1617,7 @@ const styles = StyleSheet.create({
   },
   feedbackLabel: {
     fontSize: 10,
-    color: colors.mid,
+    color: brand.inkFaint,
   },
   feedbackBtn: {
     width: 26,
@@ -1625,16 +1625,16 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
   },
   feedbackBtnActive: {
-    backgroundColor: '#E6F7F5',
+    backgroundColor: brand.pineTint,
   },
   fallbackCard: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     marginHorizontal: spacing.md,
     marginBottom: spacing.sm,
     padding: spacing.md,
@@ -1642,7 +1642,7 @@ const styles = StyleSheet.create({
   fallbackTitle: {
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.semibold as '600',
-    color: colors.navy,
+    color: brand.ink,
     marginBottom: 6,
   },
   fallbackItem: {
@@ -1654,7 +1654,7 @@ const styles = StyleSheet.create({
   fallbackItemText: {
     flex: 1,
     fontSize: fonts.sizes.xs,
-    color: colors.dark,
+    color: brand.inkSoft,
   },
   fallbackCall: {
     flexDirection: 'row',
@@ -1663,11 +1663,11 @@ const styles = StyleSheet.create({
     marginTop: 6,
     paddingTop: 6,
     borderTopWidth: 1,
-    borderTopColor: colors.light,
+    borderTopColor: brand.paper,
   },
   fallbackCallText: {
     fontSize: fonts.sizes.xs,
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.medium as '500',
   },
   emailModalOverlay: {
@@ -1676,7 +1676,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   emailModalContent: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderTopLeftRadius: radii.xl,
     borderTopRightRadius: radii.xl,
     padding: spacing.lg,
@@ -1685,16 +1685,16 @@ const styles = StyleSheet.create({
   emailModalTitle: {
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
     marginBottom: spacing.md,
   },
   emailInput: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.base,
     fontSize: fonts.sizes.sm,
-    color: colors.dark,
+    color: brand.inkSoft,
     marginBottom: spacing.sm,
   },
   contactChipRow: {
@@ -1704,7 +1704,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   contactChip: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderRadius: radii.full,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -1712,17 +1712,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   contactChipActive: {
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
   },
   contactChipText: {
     fontSize: fonts.sizes.xs,
-    color: colors.dark,
+    color: brand.inkSoft,
   },
   contactChipTextActive: {
     color: colors.white,
   },
   emailPreview: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderRadius: radii.md,
     padding: spacing.md,
     marginBottom: spacing.md,
@@ -1730,7 +1730,7 @@ const styles = StyleSheet.create({
   },
   emailPreviewText: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     lineHeight: 16,
   },
   emailModalActions: {
@@ -1743,17 +1743,17 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.base,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
   },
   emailCancelText: {
     fontSize: fonts.sizes.sm,
-    color: colors.mid,
+    color: brand.inkFaint,
   },
   emailSendButton: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.base,
     borderRadius: radii.md,
-    backgroundColor: '#6366F1',
+    backgroundColor: brand.pine,
   },
   emailSendText: {
     fontSize: fonts.sizes.sm,
