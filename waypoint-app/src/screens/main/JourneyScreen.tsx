@@ -35,6 +35,7 @@ import {
   phaseToActions,
   phaseQuestion,
   phaseChips,
+  entityLever,
   entityStanding,
   standingLabel,
   entityExplainer,
@@ -168,10 +169,12 @@ export default function JourneyScreen() {
     async (drafts: ReturnType<typeof phaseToActions>) => {
       if (busy) return;
       setBusy(true);
+      let attempted = 0;
       let added = 0;
       const nowAdded = new Set(addedTitles);
       for (const d of drafts) {
         if (isAdded(d.title)) continue;
+        attempted++;
         const created = await createAction({
           title: d.title,
           description: d.description,
@@ -187,12 +190,18 @@ export default function JourneyScreen() {
       }
       setBusy(false);
       setAddedTitles(nowAdded);
-      showToast(
-        added > 0
-          ? `${added} step${added === 1 ? '' : 's'} added to your plan`
-          : 'These are already on your plan.',
-        'success'
-      );
+      // Three honest outcomes — never a green "success" over a silent failure
+      // (the merged-away screen kept this distinction; the merge must too):
+      //   nothing to attempt → all were already on plan;
+      //   attempted, some saved → the count;
+      //   attempted, none saved → a real error.
+      if (attempted === 0) {
+        showToast('These are already on your plan.', 'info');
+      } else if (added > 0) {
+        showToast(`${added} step${added === 1 ? '' : 's'} added to your plan`, 'success');
+      } else {
+        showToast("Couldn't add these — please try again.", 'error');
+      }
     },
     [busy, addedTitles, isAdded, createAction, primaryChild?.id, showToast]
   );
@@ -322,7 +331,13 @@ export default function JourneyScreen() {
                   {/* Tapping the header opens/closes the stage in place — no
                       tap-through to a separate screen any more. */}
                   <TouchableOpacity
-                    onPress={() => setExpanded(isOpen && expanded !== null ? null : i)}
+                    onPress={() => {
+                      // Clear the ask-bar draft so a half-typed question in one
+                      // stage doesn't reappear under another stage's placeholder.
+                      setQuery('');
+                      setOpenStep(null);
+                      setExpanded(isOpen && expanded !== null ? null : i);
+                    }}
                     accessibilityRole="button"
                     accessibilityState={{ expanded: isOpen }}
                     accessibilityLabel={`${phase.label}, ages ${phase.age}${isCurrent ? ', current phase' : ''}. ${isOpen ? 'Collapse this stage' : 'Open this stage and its next steps'}.`}
@@ -441,6 +456,10 @@ export default function JourneyScreen() {
                         const explainer = entityExplainer(entity.name);
                         const cadence = cadenceNote(entity.time ?? '');
                         const guide = entityGuide(entity);
+                        // Preserve the journey map's one-tap route to a
+                        // pre-drafted letter (IEP / assessment / IPP), which the
+                        // old row-level lever offered — merged in as a link.
+                        const lever = entityLever(entity);
                         return (
                           <View key={`${entity.name}-${j}`} style={styles.stepCard}>
                             <View style={styles.stepRow}>
@@ -516,6 +535,18 @@ export default function JourneyScreen() {
                                   </Text>
                                 )}
                                 <View style={styles.detailActions}>
+                                  {lever?.type === 'letter' && (
+                                    <TouchableOpacity
+                                      style={styles.detailLink}
+                                      onPress={() => goHome('Letters', { template: lever.template })}
+                                      accessibilityRole="button"
+                                      accessibilityLabel={`Draft a letter for ${entity.name}: ${entity.action}`}
+                                    >
+                                      <Text style={[styles.detailLinkText, { color: phase.color }]}>
+                                        ✉️ Draft the letter ›
+                                      </Text>
+                                    </TouchableOpacity>
+                                  )}
                                   {guide && (
                                     <TouchableOpacity
                                       style={styles.detailLink}

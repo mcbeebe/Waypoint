@@ -75,6 +75,21 @@ describe('the merged Journey page renders This Stage inline', () => {
     expect(opts.params.ask).toContain('School Years');
   });
 
+  it('a step with a letter lever offers a one-tap "Draft the letter" into the Home stack', () => {
+    render(<JourneyScreen />);
+    // Expand the School District step (its lever is an assessment letter).
+    fireEvent.click(screen.getByRole('button', { name: /School District:.*Show details/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Draft a letter for School District/i }));
+    expect(navigateCalls).toHaveLength(1);
+    const [tab, opts] = navigateCalls[0].args as [
+      string,
+      { screen: string; params: { template: string } },
+    ];
+    expect(tab).toBe('Home');
+    expect(opts.screen).toBe('Letters');
+    expect(opts.params.template).toBe('assessment_request');
+  });
+
   it('the ＋ adds a step to the plan (fires createAction as a system add)', () => {
     render(<JourneyScreen />);
     fireEvent.click(
