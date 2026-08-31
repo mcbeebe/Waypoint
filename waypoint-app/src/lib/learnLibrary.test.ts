@@ -16,7 +16,20 @@ const LOCALES = ['en', 'es', 'vi'] as const;
 
 /** All prose in an article's body, flattened — for tone/translation checks. */
 function bodyText(a: LearnArticle): string {
-  return a.body.map((b: ArticleBlock) => (b.kind === 'steps' ? b.items.join(' ') : b.text)).join(' ');
+  return a.body
+    .map((b: ArticleBlock) => {
+      switch (b.kind) {
+        case 'steps':
+          return b.items.join(' ');
+        case 'checklist':
+          return `${b.label} ${b.items.join(' ')}`;
+        case 'script':
+          return `${b.label} ${b.text}`;
+        default:
+          return b.text;
+      }
+    })
+    .join(' ');
 }
 
 describe('every article ends somewhere a family can act', () => {
@@ -318,5 +331,79 @@ describe('articles are readable pages now, not just blurbs (phase 8, 8-0)', () =
   it('getLearnArticle returns one by key, or null', () => {
     expect(getLearnArticle('ipp_clock', 'en')?.key).toBe('ipp_clock');
     expect(getLearnArticle('does_not_exist', 'en')).toBeNull();
+  });
+});
+
+describe('articles carry a tool the parent keeps (phase 8, 8-0b)', () => {
+  it('gives every hand-authored article a checklist or script to keep', () => {
+    for (const a of getLearnArticles('en')) {
+      const hasTool = a.body.some((b) => b.kind === 'checklist' || b.kind === 'script');
+      expect(hasTool, `${a.key} should carry a keepable tool`).toBe(true);
+    }
+  });
+
+  it('a checklist has a label and at least two items', () => {
+    for (const a of getLearnArticles('en')) {
+      for (const b of a.body) {
+        if (b.kind === 'checklist') {
+          expect(b.label.length, `${a.key} checklist label`).toBeGreaterThan(0);
+          expect(b.items.length, `${a.key} checklist items`).toBeGreaterThanOrEqual(2);
+          for (const item of b.items) expect(item.length).toBeGreaterThan(0);
+        }
+        if (b.kind === 'script') {
+          expect(b.label.length).toBeGreaterThan(0);
+          expect(b.text.length).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it('keeps checklist and script item counts in parity across locales', () => {
+    const en = getLearnArticles('en');
+    for (const loc of ['es', 'vi'] as const) {
+      getLearnArticles(loc).forEach((a, i) => {
+        a.body.forEach((b, j) => {
+          const enB = en[i].body[j];
+          if (b.kind === 'checklist' && enB.kind === 'checklist') {
+            expect(b.items.length, `${a.key} ${loc} checklist`).toBe(enB.items.length);
+          }
+        });
+      });
+    }
+  });
+
+  it('translates the checklist rather than repeating English', () => {
+    const en = getLearnArticles('en');
+    for (const loc of ['es', 'vi'] as const) {
+      getLearnArticles(loc).forEach((a, i) => {
+        a.body.forEach((b, j) => {
+          const enB = en[i].body[j];
+          if (b.kind === 'checklist' && enB.kind === 'checklist') {
+            expect(b.label, `${a.key} ${loc} checklist label`).not.toBe(enB.label);
+          }
+        });
+      });
+    }
+  });
+
+  it('places every hand-authored article somewhere on the journey', () => {
+    const stages = ['noticing', 'seeking_help', 'overwhelmed', 'advocating', 'now_what'];
+    for (const a of getLearnArticles('en')) {
+      expect(stages, `${a.key} stage`).toContain(a.stage);
+    }
+  });
+
+  it('never makes an exhausted parent feel they failed (no-guilt tone)', () => {
+    // The busy-caregiver framework (owner, Aug 2026): a parent opening this is
+    // already carrying enough. Content states what to do next; it never scolds
+    // for what was not done sooner.
+    const GUILT =
+      /you should have|you failed|if only you had|why didn'?t you|it'?s your fault|you were supposed to|deber[íi]a haber|fue su culpa|l[eê] ra ph[aả]i|l[oỗ]i c[uủ]a/i;
+    for (const loc of LOCALES) {
+      for (const a of getLearnArticles(loc)) {
+        expect(bodyText(a), `${a.key} ${loc}`).not.toMatch(GUILT);
+        expect(a.summary, `${a.key} ${loc} summary`).not.toMatch(GUILT);
+      }
+    }
   });
 });

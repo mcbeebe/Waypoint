@@ -8,11 +8,12 @@
  * Registered in the Navigator (Learn) stack, so Back returns to Learn. The
  * end-action target lives in the Home stack, so its navigate names tab:'Home'.
  */
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { getLearnArticle, type ArticleBlock } from '@/lib/learnLibrary';
 import Citation from '@/components/Citation';
 import { useI18n } from '@/i18n';
@@ -21,10 +22,31 @@ import type { NavigatorStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 
-const UI: Record<FunnelLocale, { min: (n: number) => string; reviewed: (d: string) => string; missing: string }> = {
-  en: { min: (n) => `${n} min read`, reviewed: (d) => `Reviewed ${d}`, missing: "That article isn't available." },
-  es: { min: (n) => `${n} min de lectura`, reviewed: (d) => `Revisado el ${d}`, missing: 'Ese artículo no está disponible.' },
-  vi: { min: (n) => `Đọc ${n} phút`, reviewed: (d) => `Đã rà soát ${d}`, missing: 'Bài viết đó không có sẵn.' },
+const UI: Record<
+  FunnelLocale,
+  { min: (n: number) => string; reviewed: (d: string) => string; missing: string; copy: string; copied: string }
+> = {
+  en: {
+    min: (n) => `${n} min read`,
+    reviewed: (d) => `Reviewed ${d}`,
+    missing: "That article isn't available.",
+    copy: 'Copy to my notes',
+    copied: 'Copied',
+  },
+  es: {
+    min: (n) => `${n} min de lectura`,
+    reviewed: (d) => `Revisado el ${d}`,
+    missing: 'Ese artículo no está disponible.',
+    copy: 'Copiar a mis notas',
+    copied: 'Copiado',
+  },
+  vi: {
+    min: (n) => `Đọc ${n} phút`,
+    reviewed: (d) => `Đã rà soát ${d}`,
+    missing: 'Bài viết đó không có sẵn.',
+    copy: 'Sao chép vào ghi chú',
+    copied: 'Đã sao chép',
+  },
 };
 
 /** Reviewed-on date as a short local label, never via Date's own locale. */
@@ -89,7 +111,7 @@ export default function ArticleScreen() {
 
         <View style={styles.body}>
           {article.body.map((block, i) => (
-            <Block key={i} block={block} />
+            <Block key={i} block={block} t={t} />
           ))}
         </View>
 
@@ -107,7 +129,9 @@ export default function ArticleScreen() {
   );
 }
 
-function Block({ block }: { block: ArticleBlock }) {
+type ToolLabels = { copy: string; copied: string };
+
+function Block({ block, t }: { block: ArticleBlock; t: ToolLabels }) {
   switch (block.kind) {
     case 'heading':
       return <Text style={styles.heading}>{block.text}</Text>;
@@ -131,10 +155,84 @@ function Block({ block }: { block: ArticleBlock }) {
           ))}
         </View>
       );
+    case 'checklist':
+      // A tool the parent KEEPS. Plain text (dashes, one per line) is what
+      // pastes cleanly into Notes, Reminders, or a text to themselves.
+      return (
+        <ToolBlock
+          t={t}
+          label={block.label}
+          icon="checkbox-outline"
+          lines={block.items}
+          copyText={`${block.label}\n${block.items.map((i) => `- ${i}`).join('\n')}`}
+        />
+      );
+    case 'script':
+      return (
+        <ToolBlock
+          t={t}
+          label={block.label}
+          icon="chatbubble-ellipses-outline"
+          lines={[block.text]}
+          copyText={block.text}
+        />
+      );
     case 'para':
     default:
       return <Text style={styles.para}>{block.text}</Text>;
   }
+}
+
+/**
+ * A copyable "tool" (checklist or script). The utility-over-prose bet: a parent
+ * lifts it into their own notes and carries it into the meeting or the call.
+ * Copy is best-effort — a failure never throws in a reader they're mid-article.
+ */
+function ToolBlock({
+  t,
+  label,
+  icon,
+  lines,
+  copyText,
+}: {
+  t: ToolLabels;
+  label: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  lines: string[];
+  copyText: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = async () => {
+    try {
+      await Clipboard.setStringAsync(copyText);
+      setCopied(true);
+    } catch {
+      // Clipboard denied or unavailable — leave the label unchanged rather
+      // than claim a copy that did not happen.
+    }
+  };
+  return (
+    <View style={styles.tool}>
+      <View style={styles.toolHead}>
+        <Ionicons name={icon} size={18} color={colors.navy} />
+        <Text style={styles.toolLabel}>{label}</Text>
+      </View>
+      {lines.map((line, i) => (
+        <Text key={i} style={styles.toolLine}>
+          {line}
+        </Text>
+      ))}
+      <Pressable
+        style={({ pressed }) => [styles.copyBtn, pressed && styles.copyBtnPressed]}
+        onPress={onCopy}
+        accessibilityRole="button"
+        accessibilityLabel={copied ? t.copied : t.copy}
+      >
+        <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={16} color={colors.teal} />
+        <Text style={styles.copyText}>{copied ? t.copied : t.copy}</Text>
+      </Pressable>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -179,6 +277,28 @@ const styles = StyleSheet.create({
   },
   stepNumText: { color: colors.white, fontSize: fonts.sizes.sm, fontWeight: fonts.weights.bold as '700' },
   stepText: { flex: 1, fontSize: fonts.sizes.base, lineHeight: fonts.sizes.base * 1.5, color: colors.dark, paddingTop: 2 },
+  tool: {
+    backgroundColor: colors.light,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.base,
+    gap: spacing.xs,
+  },
+  toolHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  toolLabel: { flex: 1, fontSize: fonts.sizes.md, fontWeight: fonts.weights.bold as '700', color: colors.navy },
+  toolLine: { fontSize: fonts.sizes.base, lineHeight: fonts.sizes.base * 1.5, color: colors.dark },
+  copyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+    minHeight: MIN_TOUCH_TARGET,
+    paddingRight: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  copyBtnPressed: { opacity: 0.6 },
+  copyText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.bold as '700', color: colors.teal },
   cta: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -25,6 +25,19 @@ vi.mock('@expo/vector-icons', () => ({
   Ionicons: ({ name }: { name: string }) => <span data-icon={name} />,
 }));
 
+/**
+ * In-memory clipboard. Records what a "Copy to my notes" tool copied so a test
+ * can assert the exact text a parent would paste into their own notes.
+ */
+export const clipboard = { text: null as string | null };
+vi.mock('expo-clipboard', () => ({
+  setStringAsync: async (v: string) => {
+    clipboard.text = v;
+    return true;
+  },
+  getStringAsync: async () => clipboard.text ?? '',
+}));
+
 vi.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
   SafeAreaProvider: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
@@ -55,6 +68,7 @@ beforeEach(() => {
   navigateCalls.length = 0;
   for (const k of Object.keys(routeParams)) delete routeParams[k];
   store.clear();
+  clipboard.text = null;
 });
 
 // Testing Library only auto-cleans when vitest globals are on. Without this

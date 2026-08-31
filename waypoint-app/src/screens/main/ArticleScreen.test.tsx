@@ -6,9 +6,9 @@
  */
 import React from 'react';
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ArticleScreen from './ArticleScreen';
-import { navigateCalls, routeParams } from '../../../vitest.setup.ui';
+import { navigateCalls, routeParams, clipboard } from '../../../vitest.setup.ui';
 import { getLearnArticle } from '@/lib/learnLibrary';
 import { resolvesFrom } from '@/navigation/routeGraph';
 
@@ -42,5 +42,33 @@ describe('the Learn reader renders an article end to end', () => {
     render(<ArticleScreen />);
     expect(screen.getByText(/isn't available/i)).toBeTruthy();
     expect(navigateCalls).toHaveLength(0);
+  });
+
+  it('copies a checklist tool to the clipboard — the thing a parent keeps', async () => {
+    routeParams.articleKey = 'first_iep'; // has a checklist tool
+    const a = getLearnArticle('first_iep', 'en')!;
+    const checklist = a.body.find((b) => b.kind === 'checklist');
+    expect(checklist).toBeTruthy();
+    render(<ArticleScreen />);
+
+    // The checklist label and its items render as readable text.
+    if (checklist?.kind === 'checklist') {
+      expect(screen.getByText(checklist.label)).toBeTruthy();
+      expect(screen.getByText(checklist.items[0])).toBeTruthy();
+    }
+
+    expect(clipboard.text).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /copy to my notes/i }));
+    await waitFor(() => expect(clipboard.text).not.toBeNull());
+
+    // What lands in the clipboard is the label plus every item, dash-prefixed,
+    // so it pastes cleanly into a notes app.
+    if (checklist?.kind === 'checklist') {
+      expect(clipboard.text).toContain(checklist.label);
+      for (const item of checklist.items) expect(clipboard.text).toContain(item);
+      expect(clipboard.text).toContain(`- ${checklist.items[0]}`);
+    }
+    // The button confirms the copy happened.
+    await waitFor(() => expect(screen.getByText(/copied/i)).toBeTruthy());
   });
 });
