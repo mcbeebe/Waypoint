@@ -12,7 +12,7 @@ import type { EligibilityStatus, FunnelLocale } from '@/lib/eligibility';
 import { sdpAvailable } from '@/lib/processMap';
 import { trackFunnelStep } from '@/lib/analytics';
 import { useI18n } from '@/i18n';
-import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+import { colors, brand, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 /** Screen chrome in EN/ES/VI. */
 const STRINGS: Record<FunnelLocale, {
@@ -82,7 +82,7 @@ const STATUS_STYLE: Record<EligibilityStatus, { bg: string; fg: string; border: 
   enrolled: { bg: semantic.successBg, fg: semantic.success, border: semantic.success },
   likely: { bg: semantic.successBg, fg: semantic.success, border: semantic.success },
   review: { bg: semantic.warningBg, fg: semantic.warning, border: semantic.warning },
-  later: { bg: colors.light, fg: colors.mid, border: colors.border },
+  later: { bg: brand.paper, fg: brand.inkFaint, border: brand.border },
 };
 
 export default function EligibilityResultScreen() {
@@ -197,33 +197,37 @@ export default function EligibilityResultScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.light },
-  container: { flex: 1 },
+  root: { flex: 1, backgroundColor: brand.paper },
+  container: { flex: 1, backgroundColor: brand.paper },
   content: { padding: spacing.base, paddingBottom: spacing.base },
+  // Warm light header card (was a dark navy hero — the "no dark portal band"
+  // rule): cream ground, pine eyebrow, ink headline.
   hero: {
-    backgroundColor: colors.navy,
+    backgroundColor: brand.headerTop,
+    borderWidth: 1,
+    borderColor: brand.border,
     borderRadius: radii.lg,
     padding: spacing.lg,
     marginBottom: spacing.md,
   },
   heroEyebrow: {
-    color: colors.teal,
+    color: brand.pine,
     fontSize: fonts.sizes.xs,
     fontWeight: fonts.weights.bold,
     letterSpacing: 1,
     marginBottom: spacing.sm,
   },
   heroTitle: {
-    color: colors.white,
+    color: brand.ink,
     fontSize: fonts.sizes['2xl'],
     fontWeight: fonts.weights.extrabold,
     lineHeight: 30,
   },
-  heroSub: { color: '#CBD5E1', fontSize: fonts.sizes.md, marginTop: spacing.sm, lineHeight: 20 },
+  heroSub: { color: brand.inkFaint, fontSize: fonts.sizes.md, marginTop: spacing.sm, lineHeight: 20 },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     borderLeftWidth: 4,
     borderRadius: radii.md,
     padding: spacing.base,
@@ -239,53 +243,53 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold,
-    color: colors.navy,
+    color: brand.ink,
   },
   badge: { borderRadius: radii.full, paddingHorizontal: spacing.md, paddingVertical: 4 },
   badgeText: { fontSize: fonts.sizes.xs, fontWeight: fonts.weights.bold },
-  cardBody: { marginTop: spacing.sm, fontSize: fonts.sizes.md, color: colors.dark, lineHeight: 20 },
+  cardBody: { marginTop: spacing.sm, fontSize: fonts.sizes.md, color: brand.inkSoft, lineHeight: 20 },
   factRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: spacing.md,
     marginTop: spacing.sm,
   },
-  factLabel: { fontSize: fonts.sizes.sm, color: colors.mid },
+  factLabel: { fontSize: fonts.sizes.sm, color: brand.inkFaint },
   factValue: {
     flexShrink: 1,
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.bold,
-    color: colors.navy,
+    color: brand.ink,
     textAlign: 'right',
   },
-  citation: { marginTop: spacing.sm, fontSize: fonts.sizes.xs, color: colors.mid },
+  citation: { marginTop: spacing.sm, fontSize: fonts.sizes.xs, color: brand.inkFaint },
   familyLink: {
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: brand.border,
     minHeight: 32,
     justifyContent: 'center',
   },
   familyLinkText: {
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.bold as '700',
-    color: colors.teal,
+    color: brand.pine,
   },
   trust: { backgroundColor: semantic.infoBg, borderRadius: radii.md, padding: spacing.base },
-  trustText: { color: colors.dark, fontSize: fonts.sizes.sm, lineHeight: 19 },
+  trustText: { color: brand.inkSoft, fontSize: fonts.sizes.sm, lineHeight: 19 },
   trustLead: { fontWeight: fonts.weights.bold, color: semantic.info },
   footer: {
     padding: spacing.base,
     paddingBottom: spacing.lg,
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: brand.border,
   },
   cta: {
     minHeight: 48,
     borderRadius: radii.md,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -294,6 +298,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.sm,
     fontSize: fonts.sizes.sm,
-    color: colors.mid,
+    color: brand.inkFaint,
   },
 });
