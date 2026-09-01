@@ -29,7 +29,7 @@ import type { Communication } from '@/hooks/useCommunications';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
-import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+import { brand, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 const OPEN_DOOR_KEY = 'waypoint.tools.openDoor';
 
@@ -184,7 +184,7 @@ export default function ToolsArea({
       >
         {!opts?.compact && (
           <View style={styles.iconChip}>
-            <Ionicons name={tool.icon as never} size={20} color={colors.teal} />
+            <Ionicons name={tool.icon as never} size={20} color={brand.pine} />
           </View>
         )}
         <View style={styles.rowBody}>
@@ -201,7 +201,7 @@ export default function ToolsArea({
           <Text style={styles.rowDescription}>{description}</Text>
         </View>
         {/* The chevron stays: the row still goes somewhere. */}
-        <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+        <Ionicons name="chevron-forward" size={16} color={brand.inkFaint} />
       </Pressable>
     );
 
@@ -223,7 +223,7 @@ export default function ToolsArea({
           <Ionicons
             name={isPinned ? 'star' : 'star-outline'}
             size={18}
-            color={isPinned ? colors.teal : colors.mid}
+            color={isPinned ? brand.pine : brand.inkFaint}
           />
         </Pressable>
       </View>
@@ -234,23 +234,23 @@ export default function ToolsArea({
     <View>
       {/* Search + privacy */}
       <View style={styles.searchBox}>
-        <Ionicons name="search-outline" size={18} color={colors.mid} />
+        <Ionicons name="search-outline" size={18} color={brand.inkFaint} />
         <TextInput
           style={styles.searchInput}
           value={query}
           onChangeText={setQuery}
           placeholder={searchPlaceholder(childAgeYears, funnelLocale)}
-          placeholderTextColor={colors.mid}
+          placeholderTextColor={brand.inkFaint}
           accessibilityLabel={searchPlaceholder(childAgeYears, funnelLocale)}
         />
         {query.length > 0 && (
           <Pressable onPress={() => setQuery('')} hitSlop={8} accessibilityRole="button">
-            <Ionicons name="close-circle" size={18} color={colors.mid} />
+            <Ionicons name="close-circle" size={18} color={brand.inkFaint} />
           </Pressable>
         )}
       </View>
       <View style={styles.privacyLine}>
-        <Ionicons name="lock-closed-outline" size={12} color={colors.mid} />
+        <Ionicons name="lock-closed-outline" size={12} color={brand.inkFaint} />
         <Text style={styles.privacyText}>{S.privacy}</Text>
       </View>
 
@@ -277,13 +277,13 @@ export default function ToolsArea({
                       accessibilityLabel={`${hit.title}. ${hit.detail}`}
                     >
                       <View style={styles.iconChip}>
-                        <Ionicons name="book-outline" size={20} color={colors.teal} />
+                        <Ionicons name="book-outline" size={20} color={brand.pine} />
                       </View>
                       <View style={styles.rowBody}>
                         <Text style={styles.rowTitle}>{hit.title}</Text>
                         <Text style={styles.rowDescription}>{hit.detail}</Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={16} color={colors.mid} />
+                      <Ionicons name="chevron-forward" size={16} color={brand.inkFaint} />
                     </Pressable>
                   ))}
                 </View>
@@ -331,7 +331,7 @@ export default function ToolsArea({
                     <Ionicons
                       name={open ? 'chevron-up' : 'chevron-down'}
                       size={16}
-                      color={open ? door.color : colors.mid}
+                      color={open ? door.color : brand.inkFaint}
                     />
                   </Pressable>
                   {open && (
@@ -357,9 +357,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     borderRadius: radii.md,
     minHeight: 48,
     paddingHorizontal: spacing.md,
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: fonts.sizes.md,
-    color: colors.dark,
+    color: brand.inkSoft,
     paddingVertical: spacing.sm,
   },
   privacyLine: {
@@ -377,18 +377,18 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.md,
   },
-  privacyText: { fontSize: fonts.sizes.sm, color: '#475569' },
+  privacyText: { fontSize: fonts.sizes.sm, color: brand.inkSoft },
   sectionLabel: {
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.extrabold,
     letterSpacing: 1,
-    color: '#475569',
+    color: brand.inkSoft,
     marginBottom: spacing.sm,
   },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     borderRadius: radii.lg,
     overflow: 'hidden',
   },
@@ -402,12 +402,12 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   rowCompact: { paddingLeft: spacing.xl + spacing.md, paddingVertical: 10, minHeight: 44 },
-  pressed: { backgroundColor: colors.light },
+  pressed: { backgroundColor: brand.paper },
   iconChip: {
     width: 38,
     height: 38,
     borderRadius: 11,
-    backgroundColor: '#E0F2FE',
+    backgroundColor: brand.pineTint,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -416,24 +416,24 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontSize: fonts.sizes.base,
     fontWeight: fonts.weights.semibold,
-    color: colors.navy,
+    color: brand.ink,
   },
-  rowDescription: { fontSize: 13.5, color: '#475569', lineHeight: 18, marginTop: 1 },
+  rowDescription: { fontSize: 13.5, color: brand.inkSoft, lineHeight: 18, marginTop: 1 },
   badge: {
     borderRadius: radii.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: 1,
   },
   badgeText: { fontSize: 11, fontWeight: fonts.weights.extrabold },
-  doorDivider: { borderTopWidth: 1, borderTopColor: '#F1F5F9' },
-  doorOpen: { backgroundColor: colors.light },
+  doorDivider: { borderTopWidth: 1, borderTopColor: brand.pineTint },
+  doorOpen: { backgroundColor: brand.paper },
   doorContents: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
     paddingBottom: spacing.sm,
   },
   noResults: {
     padding: spacing.base,
     fontSize: fonts.sizes.md,
-    color: colors.mid,
+    color: brand.inkFaint,
   },
 });

@@ -36,6 +36,7 @@ import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { useTextScale } from '@/lib/textSize';
+import PageHeader from '@/components/PageHeader';
 import { brand, fonts, radii, semantic, spacing } from '@/lib/theme';
 
 /** Remembered so a parent who prefers the month is not re-choosing daily. */
@@ -56,7 +57,7 @@ function labels(locale: FunnelLocale) {
   const L = (en: string, es: string, vi: string) =>
     locale === 'es' ? es : locale === 'vi' ? vi : en;
   return {
-    title: L('Your plan', 'Su plan', 'Kế hoạch của quý vị'),
+    title: L('Waypoint Plan', 'Plan de Waypoint', 'Kế hoạch Waypoint'),
     intro: L(
       'Everything you need to do and every date it hangs on — as a list, or as the full month.',
       'Todo lo que debe hacer y cada fecha de la que depende — como lista o como mes completo.',
@@ -474,13 +475,11 @@ export default function PlanScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <PageHeader title={t.title} subtitle={t.intro} />
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={[styles.h1, { fontSize: sz(22), lineHeight: sz(28) }]}>{t.title}</Text>
-        <Text style={[styles.intro, { fontSize: sz(13), lineHeight: sz(19) }]}>{t.intro}</Text>
-
         <View style={styles.segment} accessibilityRole="tablist" accessibilityLabel={t.viewGroup}>
           {(['actions', 'list', 'month'] as const).map((m) => (
             <Pressable
@@ -709,8 +708,6 @@ export default function PlanScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: brand.paper },
   scroll: { padding: spacing.lg, gap: spacing.md },
-  h1: { fontWeight: fonts.weights.extrabold, color: brand.ink },
-  intro: { color: brand.inkFaint },
   segment: {
     flexDirection: 'row',
     backgroundColor: brand.headerTop,
