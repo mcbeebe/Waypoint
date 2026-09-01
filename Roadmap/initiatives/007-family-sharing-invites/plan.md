@@ -3,6 +3,9 @@
 **Date:** 2026-09-01 · **Status:** draft — for owner go (no code yet)
 **Supersedes:** — · **Superseded-by:** —
 **Reads on:** intent.md, analysis.md (both in this folder)
+**Mockups:** Family Sharing Invites canvas — Members (activated), invite sheet,
+invitation email, Join/Accept + edge states, in the warm brand:
+https://claude.ai/code/artifact/ce97fce4-cb82-4503-87b4-ee27a2dc7813
 
 Everything here is **owner-gated**: schema, migrations, an Edge Function, and
 family-facing surfaces are each a hard stop in `CLAUDE.md`. Every code PR runs
