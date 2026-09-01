@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1B2A4A"
+      "backgroundColor": "#F5F1E9"
     },
     "ios": {
       "supportsTablet": false,
@@ -39,7 +39,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1B2A4A"
+        "backgroundColor": "#F5F1E9"
       },
       "package": "com.waypoint.app",
       "versionCode": 1
