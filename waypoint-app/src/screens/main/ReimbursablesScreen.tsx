@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { RC_REIMBURSABLES } from '@/data/reimbursables';
 import { Card, Chip } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
-import { colors, fonts, spacing, semantic, radii } from '@/lib/theme';
+import { colors, brand, fonts, spacing, semantic, radii } from '@/lib/theme';
 
 /** One-tap starters for the ask bar — real questions the AI answers well. */
 const STARTERS = ['Can I get respite?', 'Diapers past age 3?', 'What if they deny it?'];
@@ -65,13 +65,13 @@ export default function ReimbursablesScreen() {
         {/* AI ask bar — a quick question, right at the top. */}
         <View style={styles.askCard}>
           <View style={styles.composer}>
-            <Ionicons name="search" size={sz(19)} color={colors.teal} />
+            <Ionicons name="search" size={sz(19)} color={brand.pine} />
             <TextInput
               style={[styles.composerInput, { fontSize: sz(15) }]}
               value={query}
               onChangeText={setQuery}
               placeholder="Ask about funding — “Can I get respite?”"
-              placeholderTextColor={colors.mid}
+              placeholderTextColor={brand.inkFaint}
               returnKeyType="search"
               onSubmitEditing={() => askAI()}
               accessibilityLabel="Ask Waypoint AI about Regional Center funding"
@@ -115,11 +115,11 @@ export default function ReimbursablesScreen() {
           accessibilityRole="button"
           accessibilityLabel="Some supports you have to ask for. See how to get them into the IPP."
         >
-          <Ionicons name="hand-left-outline" size={sz(18)} color={colors.teal} />
+          <Ionicons name="hand-left-outline" size={sz(18)} color={brand.pine} />
           <Text style={[styles.askForLinkText, { fontSize: sz(13) }]}>
             Some of these you have to ask for — see how to get them into the IPP
           </Text>
-          <Ionicons name="chevron-forward" size={sz(16)} color={colors.mid} />
+          <Ionicons name="chevron-forward" size={sz(16)} color={brand.inkFaint} />
         </Pressable>
 
         {RC_REIMBURSABLES.map((item) => {
@@ -174,11 +174,11 @@ export default function ReimbursablesScreen() {
                     // exists, so the label shouldn't promise per-service content.
                     accessibilityLabel="Read the full funding guide"
                   >
-                    <Ionicons name="book-outline" size={sz(15)} color={colors.teal} />
+                    <Ionicons name="book-outline" size={sz(15)} color={brand.pine} />
                     <Text style={[styles.guideLinkText, { fontSize: sz(13) }]}>
                       Read the full funding guide
                     </Text>
-                    <Ionicons name="arrow-forward" size={sz(14)} color={colors.mid} />
+                    <Ionicons name="arrow-forward" size={sz(14)} color={brand.inkFaint} />
                   </Pressable>
                 </View>
               )}
@@ -193,16 +193,16 @@ export default function ReimbursablesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
   },
   content: {
     padding: spacing.lg,
     paddingBottom: spacing['2xl'],
   },
   askCard: {
-    backgroundColor: '#F0FAFC',
+    backgroundColor: brand.pineTint,
     borderWidth: 1,
-    borderColor: '#D8ECF1',
+    borderColor: brand.border,
     borderRadius: radii.xl,
     padding: spacing.sm + 2,
     marginBottom: spacing.md,
@@ -212,60 +212,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     minHeight: 52,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.lg,
     borderWidth: 1.5,
-    borderColor: '#B9E2EC',
+    borderColor: brand.borderStrong,
     paddingLeft: spacing.base,
     paddingRight: spacing.xs + 2,
-    shadowColor: colors.teal,
+    shadowColor: brand.pine,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.14,
     shadowRadius: 10,
     elevation: 2,
   },
-  composerInput: { flex: 1, color: colors.navy, paddingVertical: 0 },
+  composerInput: { flex: 1, color: brand.ink, paddingVertical: 0 },
   askBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     minHeight: 44,
   },
-  askBtnPressed: { backgroundColor: '#0E7490' },
+  askBtnPressed: { backgroundColor: brand.pineDeep },
   askBtnText: { color: colors.white, fontWeight: fonts.weights.bold as '700' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
   chip: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 1,
-    borderColor: '#D6E6EC',
+    borderColor: brand.border,
     borderRadius: radii.full,
     paddingVertical: spacing.xs + 1,
     paddingHorizontal: spacing.md,
   },
-  chipPressed: { backgroundColor: '#E0F2F7' },
-  chipText: { color: colors.dark, fontWeight: fonts.weights.semibold as '600' },
+  chipPressed: { backgroundColor: brand.pineTint },
+  chipText: { color: brand.inkSoft, fontWeight: fonts.weights.semibold as '600' },
   intro: {
-    color: colors.mid,
+    color: brand.inkFaint,
     marginBottom: spacing.md,
   },
   askForLink: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: '#EFF9FB',
+    backgroundColor: brand.pineTint,
     borderWidth: 1,
-    borderColor: '#B9E2EC',
+    borderColor: brand.borderStrong,
     borderRadius: radii.md,
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  askForLinkPressed: { backgroundColor: '#E0F2F7' },
+  askForLinkPressed: { backgroundColor: brand.pineTint },
   askForLinkText: {
     flex: 1,
-    color: colors.navy,
+    color: brand.ink,
     fontWeight: fonts.weights.semibold as '600',
   },
   head: {
@@ -278,10 +278,10 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
   },
   description: {
-    color: colors.dark,
+    color: brand.inkSoft,
     marginBottom: 6,
   },
   cost: {
@@ -295,33 +295,33 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   note: {
-    color: colors.dark,
+    color: brand.inkSoft,
   },
   moreToggle: {
     marginTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: '#EEF2F6',
+    borderTopColor: brand.headerTop,
     paddingTop: spacing.md,
     minHeight: 44,
     justifyContent: 'center',
   },
-  moreToggleText: { color: colors.teal, fontWeight: fonts.weights.bold as '700' },
+  moreToggleText: { color: brand.pine, fontWeight: fonts.weights.bold as '700' },
   expand: { marginTop: spacing.sm, gap: spacing.sm },
   bulletRow: { flexDirection: 'row', gap: spacing.sm },
-  bulletDot: { color: colors.teal, fontWeight: fonts.weights.bold as '700' },
-  bulletText: { flex: 1, color: colors.dark },
+  bulletDot: { color: brand.pine, fontWeight: fonts.weights.bold as '700' },
+  bulletText: { flex: 1, color: brand.inkSoft },
   guideLink: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
     marginTop: spacing.xs,
-    backgroundColor: '#F0FAFC',
+    backgroundColor: brand.pineTint,
     borderWidth: 1,
-    borderColor: '#CFE9F1',
+    borderColor: brand.border,
     borderRadius: radii.md,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.base,
   },
-  guideLinkPressed: { backgroundColor: '#E0F2F7' },
-  guideLinkText: { flex: 1, color: '#0E7490', fontWeight: fonts.weights.bold as '700' },
+  guideLinkPressed: { backgroundColor: brand.pineTint },
+  guideLinkText: { flex: 1, color: brand.pineDeep, fontWeight: fonts.weights.bold as '700' },
 });
