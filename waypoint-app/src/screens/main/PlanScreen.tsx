@@ -36,7 +36,7 @@ import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { useTextScale } from '@/lib/textSize';
-import { colors, fonts, radii, semantic, spacing } from '@/lib/theme';
+import { brand, fonts, radii, semantic, spacing } from '@/lib/theme';
 
 /** Remembered so a parent who prefers the month is not re-choosing daily. */
 const PLAN_VIEW_KEY = 'waypoint.plan.view';
@@ -425,7 +425,7 @@ export default function PlanScreen() {
         : a.status === 'in_progress'
           ? t.statusInProgress
           : t.statusNotStarted;
-    const dotColor = isDone ? colors.sage : locked ? colors.border : a.status === 'in_progress' ? colors.teal : colors.mid;
+    const dotColor = isDone ? brand.sage : locked ? brand.border : a.status === 'in_progress' ? brand.pine : brand.inkFaint;
     const dueMeta = a.due_date ? `${t.due} ${fmtDue(a.due_date)}` : '';
     // When it joined the plan (owner, Aug 31) — created_at is an ISO timestamp,
     // fmtDue reads its date prefix.
@@ -707,13 +707,13 @@ export default function PlanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFB' },
+  container: { flex: 1, backgroundColor: brand.paper },
   scroll: { padding: spacing.lg, gap: spacing.md },
-  h1: { fontWeight: fonts.weights.extrabold, color: colors.navy },
-  intro: { color: colors.mid },
+  h1: { fontWeight: fonts.weights.extrabold, color: brand.ink },
+  intro: { color: brand.inkFaint },
   segment: {
     flexDirection: 'row',
-    backgroundColor: '#EEF2F6',
+    backgroundColor: brand.headerTop,
     borderRadius: radii.md,
     padding: 3,
     gap: 3,
@@ -725,18 +725,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radii.sm,
   },
-  segmentButtonOn: { backgroundColor: colors.white },
-  segmentText: { color: colors.mid, fontWeight: fonts.weights.semibold },
-  segmentTextOn: { color: colors.navy, fontWeight: fonts.weights.bold },
+  segmentButtonOn: { backgroundColor: brand.panel },
+  segmentText: { color: brand.inkFaint, fontWeight: fonts.weights.semibold },
+  segmentTextOn: { color: brand.ink, fontWeight: fonts.weights.bold },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     padding: spacing.base,
     gap: spacing.sm,
   },
-  sectionLabel: { color: colors.mid, fontWeight: fonts.weights.bold, letterSpacing: 1 },
+  sectionLabel: { color: brand.inkFaint, fontWeight: fonts.weights.bold, letterSpacing: 1 },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -746,30 +746,30 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   rowText: { flex: 1, gap: 2 },
-  rowTitle: { color: colors.navy, fontWeight: fonts.weights.semibold },
-  rowMeta: { color: colors.mid },
-  // colors.mid passes AA on white (~4.7:1); the old #94A3B8 was 2.6:1 — the
-  // line the "every row shows where it came from" rule depends on was the
-  // least readable text on the screen.
-  rowSource: { color: colors.mid, maxWidth: '42%', textAlign: 'right' },
+  rowTitle: { color: brand.ink, fontWeight: fonts.weights.semibold },
+  rowMeta: { color: brand.inkFaint },
+  // brand.inkFaint clears AA on the warm surfaces (5.1–5.8:1, pinned in
+  // theme.test.ts); the old #94A3B8 was 2.6:1 — the line the "every row shows
+  // where it came from" rule depends on was the least readable text on the screen.
+  rowSource: { color: brand.inkFaint, maxWidth: '42%', textAlign: 'right' },
   actionDot: { width: 8, height: 8, borderRadius: 4, marginTop: 7 },
-  actionDone: { color: colors.mid, textDecorationLine: 'line-through' },
-  actionLocked: { color: colors.mid },
-  overdue: { color: colors.coral, fontWeight: fonts.weights.semibold },
-  empty: { color: colors.mid },
-  emptyTitle: { color: colors.navy, fontWeight: fonts.weights.bold },
-  note: { color: colors.mid, paddingHorizontal: spacing.xs },
+  actionDone: { color: brand.inkFaint, textDecorationLine: 'line-through' },
+  actionLocked: { color: brand.inkFaint },
+  overdue: { color: brand.urgent, fontWeight: fonts.weights.semibold },
+  empty: { color: brand.inkFaint },
+  emptyTitle: { color: brand.ink, fontWeight: fonts.weights.bold },
+  note: { color: brand.inkFaint, paddingHorizontal: spacing.xs },
   dim: { opacity: 0.6 },
 
   monthHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   monthNav: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  monthNavText: { color: colors.teal, fontWeight: fonts.weights.bold },
-  monthLabel: { color: colors.navy, fontWeight: fonts.weights.bold },
+  monthNavText: { color: brand.pine, fontWeight: fonts.weights.bold },
+  monthLabel: { color: brand.ink, fontWeight: fonts.weights.bold },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   dow: {
     width: `${100 / 7}%`,
     textAlign: 'center',
-    color: colors.mid,
+    color: brand.inkFaint,
     fontWeight: fonts.weights.bold,
     paddingBottom: spacing.xs,
   },
@@ -781,12 +781,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderRadius: radii.sm,
   },
-  dayToday: { backgroundColor: '#ECFEFF' },
-  daySelected: { borderWidth: 1, borderColor: colors.teal },
-  dayNumber: { color: colors.dark },
-  dayNumberToday: { color: colors.teal, fontWeight: fonts.weights.bold },
+  dayToday: { backgroundColor: brand.pineTint },
+  daySelected: { borderWidth: 1, borderColor: brand.pine },
+  dayNumber: { color: brand.inkSoft },
+  dayNumberToday: { color: brand.pine, fontWeight: fonts.weights.bold },
   dots: { flexDirection: 'row', gap: 2, height: 6, marginTop: 2 },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.teal },
+  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: brand.pine },
   dotDeadline: { backgroundColor: semantic.warning },
   legend: {
     flexDirection: 'row',
@@ -794,18 +794,18 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: brand.border,
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  legendText: { color: colors.mid },
+  legendText: { color: brand.inkFaint },
   legendToday: { marginLeft: 'auto', minHeight: 44, justifyContent: 'center' },
-  legendLink: { color: colors.teal, fontWeight: fonts.weights.bold },
+  legendLink: { color: brand.pine, fontWeight: fonts.weights.bold },
 
   fullCalendar: {
     minHeight: 44,
     justifyContent: 'center',
     paddingHorizontal: spacing.xs,
   },
-  fullCalendarText: { color: colors.teal, fontWeight: fonts.weights.bold },
+  fullCalendarText: { color: brand.pine, fontWeight: fonts.weights.bold },
   tail: { height: spacing.lg },
 });
