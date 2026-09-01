@@ -236,8 +236,7 @@ export default function JourneyScreen() {
         {/* Header */}
         <View style={styles.hero}>
           <View style={styles.heroMark}>
-            <Brandmark size={sz(30)} />
-            <Text style={[styles.heroWordmark, { fontSize: sz(20) }]}>WAYPOINT</Text>
+            <Brandmark size={sz(44)} route />
           </View>
           <Text style={[styles.heroTitle, { fontSize: sz(22) }]}>
             {primaryChild ? `${primaryChild.first_name}'s Journey` : 'Your Journey'}
@@ -674,15 +673,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   heroMark: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
     marginBottom: spacing.sm,
-  },
-  heroWordmark: {
-    fontWeight: fonts.weights.extrabold as '800',
-    letterSpacing: 2,
-    color: brand.ink,
   },
   heroTitle: {
     color: brand.ink,

@@ -34,25 +34,72 @@ interface BrandmarkProps {
   size?: number;
   /** Pin fill: `ink` on a light ground, `light` (white) on a dark one. */
   tone?: 'ink' | 'light';
+  /**
+   * Draw the full logo mark: the pin PLUS the sage route line and next-point
+   * dot trailing from its base ("a marked point on a route you're already
+   * walking — progress, not disorientation"). Off by default — the small
+   * inline header marks stay the compact pin, where a route line would be
+   * illegible; the full mark is for logo moments (a hero, a splash). When on,
+   * the mark is wider than tall (container width ≈ size × 1.62).
+   */
+  route?: boolean;
   /** Screen-reader label. Omit to keep the mark decorative (the default). */
   label?: string;
 }
 
-export function Brandmark({ size = 28, tone = 'ink', label }: BrandmarkProps) {
+export function Brandmark({ size = 28, tone = 'ink', route = false, label }: BrandmarkProps) {
   const pin = size * 0.645;
   const pinRadius = pin / 2;
   const dot = size * 0.26;
   const decorative = label === undefined;
 
+  // The sage route: a short horizontal line from the pin's base to a filled
+  // next-point dot on the right. Only when `route` — it widens the box.
+  const routeExtra = route ? size * 0.62 : 0;
+  const width = size + routeExtra;
+  const routeDot = size * 0.24;
+  const lineH = size * 0.09;
+  const lineY = size * 0.75; // vertical center of the route, near the pin's tip
+  const routeStartX = size * 0.5; // emerges from under the pin
+  const routeDotCx = width - routeDot / 2;
+
   return (
     <View
       testID="brandmark"
-      style={{ width: size, height: size }}
+      style={{ width, height: size }}
       accessible={!decorative}
       accessibilityRole={decorative ? undefined : 'image'}
       accessibilityLabel={label}
       importantForAccessibility={decorative ? 'no-hide-descendants' : 'yes'}
     >
+      {route && (
+        <>
+          <View
+            testID="brandmark-route-line"
+            style={{
+              position: 'absolute',
+              left: routeStartX,
+              top: lineY - lineH / 2,
+              width: routeDotCx - routeStartX,
+              height: lineH,
+              borderRadius: lineH / 2,
+              backgroundColor: brand.sage,
+            }}
+          />
+          <View
+            testID="brandmark-route-dot"
+            style={{
+              position: 'absolute',
+              left: routeDotCx - routeDot / 2,
+              top: lineY - routeDot / 2,
+              width: routeDot,
+              height: routeDot,
+              borderRadius: routeDot / 2,
+              backgroundColor: brand.sage,
+            }}
+          />
+        </>
+      )}
       <View
         testID="brandmark-pin"
         style={{
