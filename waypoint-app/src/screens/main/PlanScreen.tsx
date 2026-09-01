@@ -16,6 +16,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFamily } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
+import { ActionPlanTracker } from '@/screens/main/ActionsScreen';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useDeadlines } from '@/hooks/useDeadlines';
 import { useRequests } from '@/hooks/useRequests';
@@ -46,13 +47,6 @@ const SCOPE_KEY = 'waypoint_agenda_scope';
 
 type PlanMode = 'list' | 'month' | 'actions';
 
-/** Short month labels per locale — never via Date's own locale (Hermes-safe). */
-const MONTHS: Record<FunnelLocale, string[]> = {
-  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-  es: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
-  vi: ['thg 1', 'thg 2', 'thg 3', 'thg 4', 'thg 5', 'thg 6', 'thg 7', 'thg 8', 'thg 9', 'thg 10', 'thg 11', 'thg 12'],
-};
-
 function labels(locale: FunnelLocale) {
   const L = (en: string, es: string, vi: string) =>
     locale === 'es' ? es : locale === 'vi' ? vi : en;
@@ -67,17 +61,6 @@ function labels(locale: FunnelLocale) {
     month: L('Month', 'Mes', 'Tháng'),
     actions: L('Action Plan', 'Plan de acción', 'Kế hoạch hành động'),
     viewGroup: L('Plan view', 'Vista del plan', 'Chế độ xem'),
-    due: L('Due', 'Vence', 'Hạn'),
-    added: L('Added', 'Agregado', 'Đã thêm'),
-    statusNotStarted: L('To do', 'Por hacer', 'Cần làm'),
-    statusInProgress: L('In progress', 'En curso', 'Đang làm'),
-    statusCompleted: L('Done', 'Hecho', 'Xong'),
-    statusLocked: L('Locked', 'Bloqueado', 'Đang khóa'),
-    actionsEmpty: L(
-      'No steps yet — as Waypoint suggests actions, they’ll appear here.',
-      'Aún no hay pasos — a medida que Waypoint sugiera acciones, aparecerán aquí.',
-      'Chưa có bước nào — khi Waypoint đề xuất hành động, chúng sẽ hiện ở đây.'
-    ),
     today: L('Today', 'Hoy', 'Hôm nay'),
     prevMonth: L('Previous month', 'Mes anterior', 'Tháng trước'),
     nextMonth: L('Next month', 'Mes siguiente', 'Tháng sau'),
@@ -366,111 +349,6 @@ export default function PlanScreen() {
 
   const modeLabel = (m: PlanMode) => (m === 'list' ? t.list : m === 'month' ? t.month : t.actions);
 
-  /**
-   * Action Plan segment ordering, kept coherent with ActionsScreen so the same
-   * "Action Plan" name never means two different lists: DISMISSED steps are
-   * excluded (a cancelled step must never read as "To do"); then in-progress →
-   * to-do → done, and within a status by priority (urgent first), then due date.
-   */
-  const PRIORITY_ORDER: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
-  const rank = (s: string) => (s === 'completed' ? 2 : s === 'in_progress' ? 0 : 1);
-  const planActions = useMemo(
-    () =>
-      actions
-        .filter((a) => a.status !== 'dismissed')
-        .sort((a, b) => {
-          const r = rank(a.status) - rank(b.status);
-          if (r !== 0) return r;
-          const p = (PRIORITY_ORDER[a.priority] ?? 2) - (PRIORITY_ORDER[b.priority] ?? 2);
-          if (p !== 0) return p;
-          if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
-          if (a.due_date) return -1;
-          if (b.due_date) return 1;
-          return 0;
-        }),
-    [actions] // eslint-disable-line react-hooks/exhaustive-deps
-  );
-
-  /** A step whose prerequisite isn't done yet — shown as locked, not doable,
-   *  matching ActionsScreen (which blocks the status toggle on the same rule). */
-  const completedIds = useMemo(
-    () => new Set(actions.filter((a) => a.status === 'completed').map((a) => a.id)),
-    [actions]
-  );
-  const isLocked = (a: (typeof actions)[number]) => !!a.depends_on && !completedIds.has(a.depends_on);
-
-  const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const fmtDue = (iso: string) => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
-    if (!m) return '';
-    const mon = MONTHS[funnelLocale][Number(m[2]) - 1] ?? m[2];
-    return funnelLocale === 'vi' ? `${Number(m[3])} ${mon}` : `${mon} ${Number(m[3])}`;
-  };
-  // created_at is a UTC timestamptz; render it in the LOCAL calendar day so an
-  // evening add doesn't read as tomorrow (fmtDue's UTC-prefix parse would).
-  const fmtAdded = (iso: string) => {
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return '';
-    const mon = MONTHS[funnelLocale][d.getMonth()] ?? '';
-    return funnelLocale === 'vi' ? `${d.getDate()} ${mon}` : `${mon} ${d.getDate()}`;
-  };
-
-  const actionRow = (a: (typeof actions)[number]) => {
-    const isDone = a.status === 'completed';
-    const locked = !isDone && isLocked(a);
-    const overdue = !!a.due_date && !isDone && !locked && a.due_date < todayISO;
-    const statusLabel = isDone
-      ? t.statusCompleted
-      : locked
-        ? t.statusLocked
-        : a.status === 'in_progress'
-          ? t.statusInProgress
-          : t.statusNotStarted;
-    const dotColor = isDone ? brand.sage : locked ? brand.border : a.status === 'in_progress' ? brand.pine : brand.inkFaint;
-    const dueMeta = a.due_date ? `${t.due} ${fmtDue(a.due_date)}` : '';
-    // When it joined the plan (owner, Aug 31) — created_at is an ISO timestamp,
-    // fmtDue reads its date prefix.
-    const addedMeta = a.created_at ? `${t.added} ${fmtAdded(a.created_at)}` : '';
-    const meta = [dueMeta, addedMeta].filter(Boolean).join('  ·  ');
-    return (
-      <Pressable
-        key={a.id}
-        style={({ pressed }) => [styles.row, pressed && styles.dim]}
-        onPress={() =>
-          (navigation as any).navigate('Tracker', {
-            screen: 'ActionDetail',
-            params: { actionId: a.id },
-            initial: false,
-          })
-        }
-        accessibilityRole="button"
-        accessibilityLabel={`${a.title}. ${statusLabel}.${meta ? ` ${meta}` : ''}`}
-      >
-        <View style={[styles.actionDot, { backgroundColor: dotColor }]} />
-        <View style={styles.rowText}>
-          <Text
-            style={[
-              styles.rowTitle,
-              { fontSize: sz(14), lineHeight: sz(19) },
-              isDone && styles.actionDone,
-              locked && styles.actionLocked,
-            ]}
-          >
-            {locked ? '🔒 ' : ''}{a.title}
-          </Text>
-          {!!meta && (
-            <Text style={[styles.rowMeta, { fontSize: sz(12), lineHeight: sz(16) }]}>
-              {dueMeta ? <Text style={overdue ? styles.overdue : undefined}>{dueMeta}</Text> : null}
-              {dueMeta && addedMeta ? '  ·  ' : null}
-              {addedMeta || null}
-            </Text>
-          )}
-        </View>
-        <Text style={[styles.rowSource, { fontSize: sz(11.5), lineHeight: sz(16) }]}>{statusLabel}</Text>
-      </Pressable>
-    );
-  };
-
   const selectedEntries = selectedDay ? byDay[selectedDay] ?? [] : [];
 
   return (
@@ -652,22 +530,14 @@ export default function PlanScreen() {
             )}
           </>
         ) : (
-          <>
-            {/* Action Plan segment (owner request, Aug 31 2026): the steps
-                themselves, in the Plan screen alongside List and Month. The
-                full-featured list (filters, swipe) stays one tap behind. */}
-            {actionsLoading && planActions.length === 0 ? (
-              <View style={styles.card}>
-                <Text style={[styles.empty, { fontSize: sz(13.5), lineHeight: sz(20) }]}>{t.loading}</Text>
-              </View>
-            ) : planActions.length === 0 ? (
-              <View style={styles.card}>
-                <Text style={[styles.empty, { fontSize: sz(13.5), lineHeight: sz(20) }]}>{t.actionsEmpty}</Text>
-              </View>
-            ) : (
-              <View style={styles.card}>{planActions.map(actionRow)}</View>
-            )}
-          </>
+          /* Action Plan segment (owner request, Aug 31 → Sep 1 2026): the very
+             same tracker the Tracker tab shows — stats, To Do / In Progress /
+             Done filters, the next-3 focus view, swipe and add — rendered
+             inline here so "Action Plan" never means two different lists.
+             `ActionPlanTracker` is `ActionsScreen`'s own body; it owns its data
+             and its "open detail" hops to the Tracker stack where the detail
+             screen lives. */
+          <ActionPlanTracker />
         )}
 
         {/* The full calendar keeps everything Plan does not do: adding,
@@ -683,20 +553,22 @@ export default function PlanScreen() {
           </Text>
         </Pressable>
 
-        {/* Both halves of the merge keep their full screen: Plan is the one
-            list, and everything it cannot do is one tap behind it. */}
-        <Pressable
-          style={({ pressed }) => [styles.fullCalendar, pressed && styles.dim]}
-          onPress={() =>
-            (navigation as any).navigate('Tracker', { screen: 'TrackerList', initial: false })
-          }
-          accessibilityRole="button"
-          accessibilityLabel={t.fullActions}
-        >
-          <Text style={[styles.fullCalendarText, { fontSize: sz(13.5), lineHeight: sz(19) }]}>
-            {t.fullActions} ›
-          </Text>
-        </Pressable>
+        {/* The full Tracker tab is one tap behind List and Month. In Action
+            Plan mode it's already inline above, so the link would just loop. */}
+        {mode !== 'actions' && (
+          <Pressable
+            style={({ pressed }) => [styles.fullCalendar, pressed && styles.dim]}
+            onPress={() =>
+              (navigation as any).navigate('Tracker', { screen: 'TrackerList', initial: false })
+            }
+            accessibilityRole="button"
+            accessibilityLabel={t.fullActions}
+          >
+            <Text style={[styles.fullCalendarText, { fontSize: sz(13.5), lineHeight: sz(19) }]}>
+              {t.fullActions} ›
+            </Text>
+          </Pressable>
+        )}
 
         <Text style={[styles.note, { fontSize: sz(12), lineHeight: sz(17) }]}>{t.moved}</Text>
         <View style={styles.tail} />
@@ -749,10 +621,6 @@ const styles = StyleSheet.create({
   // theme.test.ts); the old #94A3B8 was 2.6:1 — the line the "every row shows
   // where it came from" rule depends on was the least readable text on the screen.
   rowSource: { color: brand.inkFaint, maxWidth: '42%', textAlign: 'right' },
-  actionDot: { width: 8, height: 8, borderRadius: 4, marginTop: 7 },
-  actionDone: { color: brand.inkFaint, textDecorationLine: 'line-through' },
-  actionLocked: { color: brand.inkFaint },
-  overdue: { color: brand.urgent, fontWeight: fonts.weights.semibold },
   empty: { color: brand.inkFaint },
   emptyTitle: { color: brand.ink, fontWeight: fonts.weights.bold },
   note: { color: brand.inkFaint, paddingHorizontal: spacing.xs },

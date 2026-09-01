@@ -8,6 +8,12 @@
  * - Progress ring showing completion rate
  * - Swipe actions for quick status changes
  * - Deadline indicators with color-coded urgency
+ *
+ * The tracker body is a single component, `ActionPlanBody`, exported two ways:
+ * `ActionsScreen` (the Tracker tab root, its own scroll + header) and
+ * `ActionPlanTracker` (embedded in the Plan tab's "Action Plan" segment). One
+ * component so the two can never drift — the owner's condition for showing the
+ * "same" plan in both places (Sep 1 2026).
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
@@ -15,7 +21,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
@@ -35,7 +41,7 @@ import { useI18n } from '@/i18n';
 import { SkeletonCard } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { brand, fonts, spacing, radii } from '@/lib/theme';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -65,9 +71,23 @@ const CATEGORY_CONFIG: Record<ActionCategory, { label: string; emoji: string }> 
 
 const STATUS_FILTERS: ActionStatus[] = ['not_started', 'in_progress', 'completed', 'dismissed'];
 
-// ─── Main Screen ────────────────────────────────────────────────────────────
+// ─── Tracker body (Tracker tab root + Plan tab's Action Plan segment) ────────
 
+/** The Tracker tab root: the full tracker with its own scroll + header. */
 export default function ActionsScreen() {
+  return <ActionPlanBody />;
+}
+
+/**
+ * The very same tracker, embedded in the Plan tab's "Action Plan" segment — no
+ * SafeAreaView, no scroll of its own (the Plan screen provides both), and its
+ * "open detail" tap routed through the Tracker stack, where ActionDetail lives.
+ */
+export function ActionPlanTracker() {
+  return <ActionPlanBody embedded />;
+}
+
+function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   const { family } = useFamily();
   const navigation = useNavigation();
   const { showToast } = useToast();
@@ -155,6 +175,24 @@ export default function ActionsScreen() {
   }, [focusMode, sortedActions, isLocked]);
   const hiddenCount = sortedActions.length - visibleActions.length;
 
+  /** Open an action's full detail. Standalone the Tracker stack owns
+   *  ActionDetail; embedded in Plan (the Calendar stack) it doesn't, so the
+   *  tap has to hop to the Tracker tab — the same route Plan's own rows use. */
+  const openDetail = useCallback(
+    (actionId: string) => {
+      if (embedded) {
+        (navigation as any).navigate('Tracker', {
+          screen: 'ActionDetail',
+          params: { actionId },
+          initial: false,
+        });
+      } else {
+        (navigation as any).navigate('ActionDetail', { actionId });
+      }
+    },
+    [embedded, navigation]
+  );
+
   const handleCycleStatus = (action: Action) => {
     if (isLocked(action) && action.status !== 'completed') {
       const depTitle = action.depends_on ? titleById.get(action.depends_on) : undefined;
@@ -209,7 +247,7 @@ export default function ActionsScreen() {
       switch (action.status) {
         case 'not_started':
           return [
-            { label: 'Start', icon: '◐', color: colors.teal, onPress: () => setStatus(action, 'in_progress') },
+            { label: 'Start', icon: '◐', color: brand.pine, onPress: () => setStatus(action, 'in_progress') },
             { label: 'Done', icon: '✓', color: '#10B981', onPress: () => setStatus(action, 'completed') },
             { label: 'Cancel', icon: '✕', color: '#94A3B8', onPress: () => setStatus(action, 'dismissed') },
           ];
@@ -221,7 +259,7 @@ export default function ActionsScreen() {
           ];
         default:
           return [
-            { label: 'Reopen', icon: '↺', color: colors.teal, onPress: () => setStatus(action, 'not_started') },
+            { label: 'Reopen', icon: '↺', color: brand.pine, onPress: () => setStatus(action, 'not_started') },
           ];
       }
     },
@@ -248,147 +286,138 @@ export default function ActionsScreen() {
     [createAction, primaryChild?.id, showToast, refetchAll]
   );
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTextCol}>
-          <Text style={styles.headerTitle}>Action Plan</Text>
-          <Text style={styles.headerSubtitle}>Your personalized next steps</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowCreate(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Add your own action"
-        >
-          <Text style={styles.addButtonText}>＋</Text>
-        </TouchableOpacity>
+  // ── Pinned chrome: header, progress dashboard, status filters ──
+  const header = embedded ? (
+    <View style={styles.headerEmbedded}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setShowCreate(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Add your own action"
+      >
+        <Text style={styles.addButtonText}>＋</Text>
+      </TouchableOpacity>
+    </View>
+  ) : (
+    <View style={styles.header}>
+      <View style={styles.headerTextCol}>
+        <Text style={styles.headerTitle}>Action Plan</Text>
+        <Text style={styles.headerSubtitle}>Your personalized next steps</Text>
       </View>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setShowCreate(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Add your own action"
+      >
+        <Text style={styles.addButtonText}>＋</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
-      {/* Progress Dashboard */}
-      {stats && (
-        <View style={styles.statsRow}>
-          <ProgressRing
-            value={stats.completion_rate ?? 0}
-            total={100}
-            label="Complete"
-            color={colors.sage}
-          />
-          <StatPill
-            count={stats.not_started_count}
-            label="To Do"
-            color="#94A3B8"
-          />
-          <StatPill
-            count={stats.in_progress_count}
-            label="Active"
-            color={colors.teal}
-          />
-          <StatPill
-            count={stats.completed_count}
-            label="Done"
-            color={colors.sage}
-          />
-        </View>
-      )}
+  const dashboard = stats ? (
+    <View style={styles.statsRow}>
+      <ProgressRing value={stats.completion_rate ?? 0} total={100} label="Complete" color={brand.sage} />
+      <StatPill count={stats.not_started_count} label="To Do" color="#94A3B8" />
+      <StatPill count={stats.in_progress_count} label="Active" color={brand.pine} />
+      <StatPill count={stats.completed_count} label="Done" color={brand.sage} />
+    </View>
+  ) : null;
 
-      {/* Status Filters */}
-      <View style={styles.filterRow}>
+  const filters = (
+    <View style={styles.filterRow}>
+      <FilterPill label="All" active={activeFilter === 'all'} onPress={() => setActiveFilter('all')} />
+      {STATUS_FILTERS.map((status) => (
         <FilterPill
-          label="All"
-          active={activeFilter === 'all'}
-          onPress={() => setActiveFilter('all')}
+          key={status}
+          label={STATUS_CONFIG[status].label}
+          active={activeFilter === status}
+          onPress={() => setActiveFilter(status)}
         />
-        {STATUS_FILTERS.map((status) => (
-          <FilterPill
-            key={status}
-            label={STATUS_CONFIG[status].label}
-            active={activeFilter === status}
-            onPress={() => setActiveFilter(status)}
-          />
-        ))}
-      </View>
+      ))}
+    </View>
+  );
 
-      {/* Action List */}
-      <FlatList
-        data={visibleActions}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={
-          focusMode && visibleActions.length > 0 ? (
-            <Text style={styles.focusHint}>
-              {esUI
-                ? `Empiece aquí — ${visibleActions.length === 1 ? 'su siguiente paso' : `sus siguientes ${visibleActions.length} pasos`}. Uno a la vez es el plan.`
-                : viUI
-                  ? `Bắt đầu ở đây — ${visibleActions.length === 1 ? 'bước tiếp theo của quý vị' : `${visibleActions.length} bước tiếp theo`}. Từng bước một chính là kế hoạch.`
-                  : `Start here — your next ${visibleActions.length === 1 ? 'step' : `${visibleActions.length} steps`}. One at a time is the plan.`}
-            </Text>
-          ) : null
-        }
-        ListFooterComponent={
-          activeFilter === 'all' && sortedActions.length > 3 ? (
-            <TouchableOpacity
-              style={styles.focusToggle}
-              onPress={() => setShowAll((v) => !v)}
-              accessibilityRole="button"
-              accessibilityLabel={focusMode ? `Show all ${sortedActions.length} steps` : 'Focus on the next steps'}
-            >
-              <Text style={styles.focusToggleText}>
-                {focusMode
-                  ? esUI ? `Ver todo (${hiddenCount} más) ↓` : viUI ? `Xem tất cả (${hiddenCount} mục nữa) ↓` : `Show everything (${hiddenCount} more) ↓`
-                  : esUI ? 'Enfocar mis siguientes 3 ↑' : viUI ? 'Tập trung 3 bước tiếp theo ↑' : 'Focus on my next 3 ↑'}
-              </Text>
-            </TouchableOpacity>
-          ) : null
-        }
-        renderItem={({ item }) => (
-          <SwipeableRow actions={swipeActionsFor(item)} enabled={!isLocked(item)} style={styles.swipeRow}>
+  // ── The list, as inline elements so it composes in either scroll parent ──
+  const list = (
+    <>
+      {focusMode && visibleActions.length > 0 ? (
+        <Text style={styles.focusHint}>
+          {esUI
+            ? `Empiece aquí — ${visibleActions.length === 1 ? 'su siguiente paso' : `sus siguientes ${visibleActions.length} pasos`}. Uno a la vez es el plan.`
+            : viUI
+              ? `Bắt đầu ở đây — ${visibleActions.length === 1 ? 'bước tiếp theo của quý vị' : `${visibleActions.length} bước tiếp theo`}. Từng bước một chính là kế hoạch.`
+              : `Start here — your next ${visibleActions.length === 1 ? 'step' : `${visibleActions.length} steps`}. One at a time is the plan.`}
+        </Text>
+      ) : null}
+
+      {visibleActions.length === 0 ? (
+        loading ? (
+          <View>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </View>
+        ) : (
+          <EmptyState
+            emoji="📋"
+            title="No actions yet"
+            subtitle="Ask the Waypoint Navigator a question and save the steps it suggests — or tap ＋ above to write your own."
+            actionLabel="Ask Waypoint Navigator"
+            onAction={() => (navigation as any).navigate('Navigator')}
+          />
+        )
+      ) : (
+        visibleActions.map((item) => (
+          <SwipeableRow
+            key={item.id}
+            actions={swipeActionsFor(item)}
+            enabled={!isLocked(item)}
+            style={styles.swipeRow}
+          >
             <ActionCard
               action={item}
               locked={isLocked(item)}
               onStatusPress={() => handleCycleStatus(item)}
-              onOpenDetail={() => (navigation as any).navigate('ActionDetail', { actionId: item.id })}
+              onOpenDetail={() => openDetail(item.id)}
             />
           </SwipeableRow>
-        )}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={refetch} tintColor={colors.teal} />
-        }
-        ListEmptyComponent={
-          loading ? (
-            <View>
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </View>
-          ) : (
-            <EmptyState
-              emoji="📋"
-              title="No actions yet"
-              subtitle="Ask the AI Navigator a question and save the steps it suggests — or tap ＋ above to write your own."
-              actionLabel="Ask AI Navigator"
-              onAction={() => (navigation as any).navigate('Navigator')}
-            />
-          )
-        }
-        showsVerticalScrollIndicator={false}
-      />
-
-      {error && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
-            onPress={() => { refetch(); refetchAll(); }}
-            style={styles.errorRetry}
-            accessibilityRole="button"
-            accessibilityLabel="Try loading your action plan again"
-          >
-            <Text style={styles.errorRetryText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
+        ))
       )}
 
+      {activeFilter === 'all' && sortedActions.length > 3 ? (
+        <TouchableOpacity
+          style={styles.focusToggle}
+          onPress={() => setShowAll((v) => !v)}
+          accessibilityRole="button"
+          accessibilityLabel={focusMode ? `Show all ${sortedActions.length} steps` : 'Focus on the next steps'}
+        >
+          <Text style={styles.focusToggleText}>
+            {focusMode
+              ? esUI ? `Ver todo (${hiddenCount} más) ↓` : viUI ? `Xem tất cả (${hiddenCount} mục nữa) ↓` : `Show everything (${hiddenCount} more) ↓`
+              : esUI ? 'Enfocar mis siguientes 3 ↑' : viUI ? 'Tập trung 3 bước tiếp theo ↑' : 'Focus on my next 3 ↑'}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+    </>
+  );
+
+  const errorContent = (
+    <>
+      <Text style={styles.errorText}>{error}</Text>
+      <TouchableOpacity
+        onPress={() => { refetch(); refetchAll(); }}
+        style={styles.errorRetry}
+        accessibilityRole="button"
+        accessibilityLabel="Try loading your action plan again"
+      >
+        <Text style={styles.errorRetryText}>Retry</Text>
+      </TouchableOpacity>
+    </>
+  );
+
+  const modals = (
+    <>
       {/* Completion check-in — shown after completing an action with follow_up_key */}
       <CompletionCheckIn
         action={checkInAction}
@@ -412,6 +441,41 @@ export default function ActionsScreen() {
         onClose={() => setShowCreate(false)}
         onSubmit={handleCreate}
       />
+    </>
+  );
+
+  // Embedded: the Plan screen owns the scroll and the pull-to-refresh, so this
+  // renders flat. It breaks out of Plan's page padding so the chrome bands go
+  // edge-to-edge exactly as they do on the Tracker tab.
+  if (embedded) {
+    return (
+      <View style={styles.embeddedBreakout}>
+        {header}
+        {dashboard}
+        {filters}
+        <View style={styles.listContent}>{list}</View>
+        {error ? <View style={styles.errorBannerInline}>{errorContent}</View> : null}
+        {modals}
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {header}
+      {dashboard}
+      {filters}
+      <ScrollView
+        contentContainerStyle={styles.listContent}
+        refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} tintColor={brand.pine} />}
+        showsVerticalScrollIndicator={false}
+      >
+        {list}
+      </ScrollView>
+
+      {error && <View style={styles.errorBanner}>{errorContent}</View>}
+
+      {modals}
     </SafeAreaView>
   );
 }
@@ -450,7 +514,7 @@ function ActionCard({
       <View style={styles.cardTop}>
         {/* Status toggle button (padlock while a dependency is incomplete) */}
         <TouchableOpacity
-          style={[styles.statusCircle, { borderColor: locked ? colors.border : statusConfig.color }]}
+          style={[styles.statusCircle, { borderColor: locked ? brand.border : statusConfig.color }]}
           onPress={onStatusPress}
           accessibilityRole="button"
           accessibilityLabel={
@@ -458,7 +522,7 @@ function ActionCard({
           }
         >
           {locked ? (
-            <Ionicons name="lock-closed" size={13} color={colors.mid} />
+            <Ionicons name="lock-closed" size={13} color={brand.inkFaint} />
           ) : (
             <Text style={[styles.statusIcon, { color: statusConfig.color }]}>
               {statusConfig.emoji}
@@ -563,7 +627,7 @@ function ProgressRing({
 
   return (
     <View style={styles.ringContainer}>
-      <View style={[styles.ringOuter, { borderColor: colors.border }]}>
+      <View style={[styles.ringOuter, { borderColor: brand.border }]}>
         <Text style={[styles.ringValue, { color }]}>{pct}%</Text>
       </View>
       <Text style={styles.ringLabel}>{label}</Text>
@@ -627,7 +691,13 @@ function formatDate(dateStr: string): string {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFB',
+    backgroundColor: brand.paper,
+  },
+  // Embedded in the Plan screen: cancel Plan's page padding so the chrome
+  // bands run edge-to-edge like the Tracker tab. Plan's `scroll` padding is
+  // spacing.lg; this pulls back by the same amount.
+  embeddedBreakout: {
+    marginHorizontal: -spacing.lg,
   },
   header: {
     flexDirection: 'row',
@@ -636,28 +706,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: brand.border,
+  },
+  // Embedded, the Plan header + segment already name the screen; all this
+  // needs to carry is the "add your own step" affordance.
+  headerEmbedded: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
   },
   headerTextCol: { flex: 1 },
   addButton: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addButtonText: { fontSize: 20, color: colors.white, fontWeight: '700', lineHeight: 24 },
+  addButtonText: { fontSize: 20, color: '#FFFFFF', fontWeight: '700', lineHeight: 24 },
   headerTitle: {
     fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold,
-    color: colors.navy,
+    color: brand.ink,
   },
   headerSubtitle: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginTop: 2,
   },
   statsRow: {
@@ -666,9 +745,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: brand.border,
   },
   ringContainer: {
     alignItems: 'center',
@@ -687,7 +766,7 @@ const styles = StyleSheet.create({
   },
   ringLabel: {
     fontSize: 9,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginTop: 2,
   },
   statPill: {
@@ -699,7 +778,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 9,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginTop: 1,
   },
   filterRow: {
@@ -707,30 +786,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     gap: 6,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: brand.border,
   },
   filterPill: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
   },
   filterPillActive: {
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
   },
   filterText: {
     fontSize: 11,
-    color: colors.dark,
+    color: brand.inkSoft,
     fontWeight: fonts.weights.medium,
   },
   filterTextActive: {
-    color: colors.white,
+    color: '#FFFFFF',
   },
   focusHint: {
     fontSize: fonts.sizes.sm,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginBottom: spacing.md,
     lineHeight: 19,
   },
@@ -738,20 +817,20 @@ const styles = StyleSheet.create({
     minHeight: 44,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
+    borderColor: brand.border,
+    backgroundColor: brand.panel,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sm,
   },
-  focusToggleText: { color: colors.teal, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.md },
+  focusToggleText: { color: brand.pine, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.md },
   listContent: {
     padding: spacing.md,
     paddingBottom: spacing['2xl'],
   },
   swipeRow: { marginBottom: spacing.sm },
   card: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.md,
     padding: spacing.md,
     shadowColor: '#000',
@@ -793,16 +872,16 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.semibold,
-    color: colors.dark,
+    color: brand.ink,
     lineHeight: 18,
   },
   cardTitleDone: {
     textDecorationLine: 'line-through',
-    color: colors.mid,
+    color: brand.inkFaint,
   },
   cardTitleDismissed: {
     textDecorationLine: 'line-through',
-    color: colors.mid,
+    color: brand.inkFaint,
   },
   cardMeta: {
     flexDirection: 'row',
@@ -812,11 +891,11 @@ const styles = StyleSheet.create({
   },
   categoryTag: {
     fontSize: 10,
-    color: colors.mid,
+    color: brand.inkFaint,
   },
   detailHint: {
     fontSize: 11,
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.semibold as '600',
     marginLeft: 'auto',
   },
@@ -839,17 +918,17 @@ const styles = StyleSheet.create({
   stepsBar: {
     flex: 1,
     height: 4,
-    backgroundColor: colors.border,
+    backgroundColor: brand.border,
     borderRadius: 2,
   },
   stepsBarFill: {
     height: 4,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     borderRadius: 2,
   },
   stepsLabel: {
     fontSize: 10,
-    color: colors.mid,
+    color: brand.inkFaint,
   },
   dueRow: {
     marginTop: 6,
@@ -857,7 +936,7 @@ const styles = StyleSheet.create({
   },
   dueText: {
     fontSize: 10,
-    color: colors.mid,
+    color: brand.inkFaint,
   },
   dueOverdue: {
     color: '#DC2626',
@@ -868,31 +947,10 @@ const styles = StyleSheet.create({
   },
   offlineTag: {
     fontSize: 9,
-    color: colors.mid,
+    color: brand.inkFaint,
     marginTop: 4,
     marginLeft: 38,
     fontStyle: 'italic',
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingTop: 80,
-    paddingHorizontal: spacing.xl,
-  },
-  emptyEmoji: {
-    fontSize: 48,
-    marginBottom: spacing.md,
-  },
-  emptyTitle: {
-    fontSize: fonts.sizes.lg,
-    fontWeight: fonts.weights.bold,
-    color: colors.navy,
-    marginBottom: spacing.sm,
-  },
-  emptySubtitle: {
-    fontSize: fonts.sizes.sm,
-    color: colors.mid,
-    textAlign: 'center',
-    lineHeight: 20,
   },
   errorBanner: {
     position: 'absolute',
@@ -907,6 +965,19 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: radii.md,
   },
+  // Embedded there is no absolute anchor to hang a banner on — it rides in the
+  // flow, just above the plan's footer links.
+  errorBannerInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.md,
+  },
   errorText: {
     flex: 1,
     fontSize: fonts.sizes.xs,
@@ -916,7 +987,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: 6,
     borderRadius: radii.sm,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     minHeight: 32,
     justifyContent: 'center',
   },
