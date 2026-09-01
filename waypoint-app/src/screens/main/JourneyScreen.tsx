@@ -813,7 +813,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs + 1,
     paddingHorizontal: spacing.md,
   },
-  chipPressed: { backgroundColor: brand.pineTint },
+  // pineTintPressed (not pineTint) so a pressed chip doesn't dissolve into the
+  // askCard's pineTint ground behind it — it stays a distinct pressed step.
+  chipPressed: { backgroundColor: brand.pineTintPressed },
   chipText: { color: brand.inkSoft, fontWeight: fonts.weights.semibold as '600' },
   // ── Recommended next steps ─────────────────────────────────────────────────
   sectionRow: {
