@@ -98,6 +98,10 @@ const ToolsStackNav = createNativeStackNavigator<ToolsStackParamList>();
  * (owner request). `children` is the route's `title` string.
  */
 function DetailHeaderTitle({ children }: { children?: string }) {
+  // Some screens set an EMPTY title on purpose (e.g. the Learn reader renders
+  // its own headline). Show nothing there — a lone mark with no title reads as
+  // a stray pin, and the mark must never stand without the wordmark beside it.
+  if (!children) return null;
   return (
     <View style={styles.detailTitle}>
       <Brandmark size={22} />
@@ -287,6 +291,13 @@ interface ScreenSpec {
   component?: React.ComponentType<Record<string, unknown>>;
   /** For screens wrapped in a gate or a route adapter. */
   render?: () => React.ReactElement;
+  /**
+   * Suppress the shared native header for screens that draw their OWN in-body
+   * header (title + subtitle + actions). Without this they'd show two headers —
+   * the native logo'd band AND their bespoke one. Their in-body header is the
+   * single header; the back gesture still works.
+   */
+  ownHeader?: boolean;
 }
 
 const DESTINATION_SCREENS: Record<HomeDestination, ScreenSpec> = {
@@ -306,7 +317,7 @@ const DESTINATION_SCREENS: Record<HomeDestination, ScreenSpec> = {
   SupportDetail: { title: 'Support', component: SupportDetailScreen },
   // Moved out of the Calendar tab (phase 3): Tools → Money & benefits already
   // listed them, and Plan is about obligations, not spending.
-  Expenses: { title: 'Expenses', component: ExpensesScreen },
+  Expenses: { title: 'Expenses', component: ExpensesScreen, ownHeader: true },
   TaxReport: {
     title: 'Tax Report',
     render: () => (
@@ -330,10 +341,10 @@ const DESTINATION_SCREENS: Record<HomeDestination, ScreenSpec> = {
   Letters: { title: 'Letters & Drafts', component: LettersScreen },
   EmailAnalyzer: { title: 'Email Analyzer', component: EmailAnalyzerScreen },
   CommunicationLog: { title: 'Paper Trail', component: CommunicationLogScreen },
-  Providers: { title: 'Providers', component: ProvidersScreen },
-  Services: { title: 'Services', component: ServicesScreen },
+  Providers: { title: 'Providers', component: ProvidersScreen, ownHeader: true },
+  Services: { title: 'Services', component: ServicesScreen, ownHeader: true },
   Insurance: { title: 'Insurance Tracker', component: InsuranceScreen },
-  HealthRecords: { title: 'Health Records', component: HealthRecordsScreen },
+  HealthRecords: { title: 'Health Records', component: HealthRecordsScreen, ownHeader: true },
   FamilySharing: { title: 'Family Sharing', component: FamilySharingScreen },
   // Profile left the bar in phase 5. As a stack screen it gets a header and a
   // back button, and the tab a parent came from stays lit.
@@ -355,9 +366,10 @@ function renderScreens(
 ) {
   return names.map((name) => {
     const spec = specs[name];
+    const opts = { title: spec.title, ...(spec.ownHeader ? { headerShown: false } : {}) };
     if (spec.render) {
       return (
-        <Nav.Screen key={name} name={name as never} options={{ title: spec.title }}>
+        <Nav.Screen key={name} name={name as never} options={opts}>
           {spec.render}
         </Nav.Screen>
       );
@@ -367,7 +379,7 @@ function renderScreens(
         key={name}
         name={name as never}
         component={spec.component as never}
-        options={{ title: spec.title }}
+        options={opts}
       />
     );
   });
