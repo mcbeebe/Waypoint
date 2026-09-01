@@ -1,5 +1,5 @@
 /**
- * AI Navigator screen — the core chat interface
+ * Waypoint Navigator screen — the core chat interface
  * Ported from GAS MVP renderNavigator() with native enhancements:
  * - Streaming responses with typing indicator
  * - Tone calibration toggle (collaborative → assertive → adversarial)
@@ -50,6 +50,7 @@ import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
+import { Brandmark } from '@/components/Brandmark';
 
 /** Tone display labels */
 const TONE_LABELS: Record<ToneLevel, { label: string; emoji: string; color: string }> = {
@@ -471,7 +472,7 @@ export default function NavigatorScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.headerTitle}>AI Navigator</Text>
+          <Text style={styles.headerTitle}>Waypoint Navigator</Text>
           <Text style={styles.headerSubtitle}>Your disability services guide</Text>
         </View>
         <View style={styles.headerRight}>
@@ -831,8 +832,10 @@ function WelcomeView({
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.welcomeContainer}>
-        <Text style={styles.welcomeEmoji}>🧭</Text>
-        <Text style={styles.welcomeTitle}>Hi! I'm your AI Navigator.</Text>
+        <View style={styles.welcomeMark}>
+          <Brandmark size={52} route />
+        </View>
+        <Text style={styles.welcomeTitle}>Hi! I'm your Waypoint Navigator.</Text>
         <Text style={styles.welcomeSubtitle}>
           I can help you understand your rights, navigate Regional Centers, prepare for IEP
           meetings, and take concrete next steps for your child.
@@ -966,7 +969,7 @@ function MessageBubble({
     <View style={[styles.bubbleRow, isUser && styles.bubbleRowUser]}>
       {!isUser && (
         <View style={styles.avatarSmall}>
-          <Text style={styles.avatarSmallText}>🧭</Text>
+          <Brandmark size={16} />
         </View>
       )}
       <View style={styles.bubbleWrapper}>
@@ -1346,9 +1349,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 2,
   },
-  avatarSmallText: {
-    fontSize: 14,
-  },
   bubble: {
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
@@ -1485,8 +1485,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xl,
   },
-  welcomeEmoji: {
-    fontSize: 48,
+  welcomeMark: {
     marginBottom: spacing.md,
   },
   welcomeTitle: {
