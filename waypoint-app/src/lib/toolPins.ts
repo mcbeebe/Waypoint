@@ -166,7 +166,7 @@ export interface PinStrings {
 export function pinStrings(locale: FunnelLocale = 'en'): PinStrings {
   const L = picker(locale);
   return {
-    heading: L('Your tools', 'Sus herramientas', 'Công cụ của quý vị'),
+    heading: L('Pinned', 'Fijados', 'Đã ghim'),
     capHint: L(
       `Six tiles is the most that fit. Remove one to make room for another.`,
       `Seis accesos es el máximo que cabe. Quite uno para hacer sitio a otro.`,

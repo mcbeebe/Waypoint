@@ -18,7 +18,7 @@ import { MAX_PINS, pinStrings } from '@/lib/toolPins';
 import type { UseToolPins } from '@/hooks/useToolPins';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useTextScale } from '@/lib/textSize';
-import { colors, fonts, radii, semantic, spacing } from '@/lib/theme';
+import { colors, brand, fonts, radii, semantic, spacing } from '@/lib/theme';
 
 interface PinnedToolsProps {
   pins: UseToolPins;
@@ -93,7 +93,7 @@ export default function PinnedTools({ pins, locale, onNotice }: PinnedToolsProps
                 accessibilityRole="button"
                 accessibilityLabel={tool.label}
               >
-                <Ionicons name={tool.icon as never} size={22} color={colors.teal} />
+                <Ionicons name={tool.icon as never} size={22} color={brand.pine} />
                 <Text
                   style={[styles.tileLabel, { fontSize: sz(11.5), lineHeight: sz(15) }]}
                   numberOfLines={3}
@@ -173,26 +173,26 @@ export default function PinnedTools({ pins, locale, onNotice }: PinnedToolsProps
 const styles = StyleSheet.create({
   wrap: { gap: spacing.sm, marginBottom: spacing.base },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heading: { color: colors.mid, fontWeight: fonts.weights.bold, letterSpacing: 1 },
+  heading: { color: brand.inkFaint, fontWeight: fonts.weights.bold, letterSpacing: 1 },
   editButton: { minHeight: 44, minWidth: 44, alignItems: 'flex-end', justifyContent: 'center' },
-  editText: { color: colors.teal, fontWeight: fonts.weights.bold },
-  hint: { color: colors.mid },
+  editText: { color: brand.pine, fontWeight: fonts.weights.bold },
+  hint: { color: brand.inkFaint },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   tileWrap: { width: '31%' },
   tile: {
     minHeight: 76,
     flexGrow: 1,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
     padding: spacing.sm,
   },
   tileLabel: {
-    color: colors.navy,
+    color: brand.ink,
     fontWeight: fonts.weights.semibold,
     textAlign: 'center',
   },
@@ -213,19 +213,19 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.xs,
   },
-  suggestTitle: { color: colors.navy, fontWeight: fonts.weights.bold },
-  suggestBody: { color: colors.dark },
+  suggestTitle: { color: brand.ink, fontWeight: fonts.weights.bold },
+  suggestBody: { color: brand.inkSoft },
   suggestRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
   suggestYes: {
     minHeight: 44,
     paddingHorizontal: spacing.base,
     borderRadius: radii.sm,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     alignItems: 'center',
     justifyContent: 'center',
   },
   suggestYesText: { color: colors.white, fontWeight: fonts.weights.bold },
   suggestNo: { minHeight: 44, paddingHorizontal: spacing.md, justifyContent: 'center' },
-  suggestNoText: { color: colors.mid, fontWeight: fonts.weights.semibold },
+  suggestNoText: { color: brand.inkFaint, fontWeight: fonts.weights.semibold },
   dim: { opacity: 0.6 },
 });

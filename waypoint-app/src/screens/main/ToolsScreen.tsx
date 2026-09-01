@@ -25,7 +25,15 @@ import { activeRequestForReply } from '@/lib/requestCase';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
 import { useTextScale } from '@/lib/textSize';
-import { colors, fonts, radii, semantic, spacing } from '@/lib/theme';
+import PageHeader from '@/components/PageHeader';
+import { brand, fonts, radii, semantic, spacing } from '@/lib/theme';
+
+/** The page title, trilingual — "Waypoint" stays the brand proper noun. */
+const TOOLS_TITLE: Record<string, string> = {
+  en: 'Waypoint Tools',
+  es: 'Herramientas de Waypoint',
+  vi: 'Công cụ Waypoint',
+};
 
 export default function ToolsScreen() {
   const { family } = useFamily();
@@ -86,6 +94,7 @@ function ToolsScreenInner({ family }: { family: ReturnType<typeof useFamily>['fa
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <PageHeader title={TOOLS_TITLE[funnelLocale] ?? TOOLS_TITLE.en} />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <ChildPicker />
         <PinnedTools pins={pins} locale={funnelLocale} onNotice={say} />
@@ -114,7 +123,7 @@ function ToolsScreenInner({ family }: { family: ReturnType<typeof useFamily>['fa
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFB' },
+  container: { flex: 1, backgroundColor: brand.paper },
   scroll: { padding: spacing.lg },
   notice: {
     color: semantic.warning,
@@ -124,6 +133,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.base,
     fontWeight: fonts.weights.semibold,
   },
-  scopeNote: { color: colors.mid, marginBottom: spacing.base },
+  scopeNote: { color: brand.inkFaint, marginBottom: spacing.base },
   tail: { height: spacing.xl },
 });
