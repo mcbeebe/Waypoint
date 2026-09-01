@@ -133,6 +133,5 @@ const styles = StyleSheet.create({
     marginBottom: spacing.base,
     fontWeight: fonts.weights.semibold,
   },
-  scopeNote: { color: brand.inkFaint, marginBottom: spacing.base },
   tail: { height: spacing.xl },
 });
