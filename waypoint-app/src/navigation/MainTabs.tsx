@@ -74,7 +74,8 @@ import type { Action } from '@/types/database';
 import { useI18n } from '@/i18n';
 import { FLAGS } from '@/lib/flags';
 import { COMMUNITY_DESTINATIONS, HOME_DESTINATIONS } from './routeGraph';
-import { colors, fonts } from '@/lib/theme';
+import { colors, brand, fonts } from '@/lib/theme';
+import { Brandmark } from '@/components/Brandmark';
 import type {
   HomeStackParamList,
   NavigatorStackParamList,
@@ -91,15 +92,31 @@ const TrackerStackNav = createNativeStackNavigator<TrackerStackParamList>();
 const CalendarStackNav = createNativeStackNavigator<CalendarStackParamList>();
 const ToolsStackNav = createNativeStackNavigator<ToolsStackParamList>();
 
-// Shared header treatment for pushed detail screens
+/**
+ * The header title for every pushed detail screen: the Waypoint mark beside
+ * the screen's title, so every top carries the logo and reads as one system
+ * (owner request). `children` is the route's `title` string.
+ */
+function DetailHeaderTitle({ children }: { children?: string }) {
+  return (
+    <View style={styles.detailTitle}>
+      <Brandmark size={22} />
+      <Text style={styles.detailTitleText} numberOfLines={1}>
+        {children}
+      </Text>
+    </View>
+  );
+}
+
+// Shared header treatment for pushed detail screens — a warm cream band with
+// the Waypoint mark + ink title, matching the tab roots' PageHeader.
 const detailHeaderOptions: NativeStackNavigationOptions = {
   headerShown: true,
-  headerTintColor: colors.teal,
-  headerTitleStyle: {
-    color: colors.navy,
-    fontWeight: fonts.weights.bold as '700',
-  },
-  headerStyle: { backgroundColor: colors.white },
+  headerTintColor: brand.pine,
+  headerTitleAlign: 'left',
+  headerTitle: (props) => <DetailHeaderTitle>{props.children}</DetailHeaderTitle>,
+  headerStyle: { backgroundColor: brand.headerTop },
+  headerShadowVisible: false,
   headerBackButtonDisplayMode: 'minimal',
 };
 
@@ -572,6 +589,12 @@ export default function MainTabs() {
 // ─── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  detailTitle: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  detailTitleText: {
+    color: brand.ink,
+    fontWeight: fonts.weights.bold as '700',
+    fontSize: 17,
+  },
   centered: {
     flex: 1,
     alignItems: 'center',
