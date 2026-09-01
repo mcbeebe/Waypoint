@@ -591,7 +591,7 @@ function HomeScreenInner({
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <View style={styles.brandmark}>
-              <Brandmark size={22} />
+              <Brandmark size={22} route />
               <Text style={styles.wordmark}>WAYPOINT</Text>
             </View>
             <Text style={styles.greeting}>
