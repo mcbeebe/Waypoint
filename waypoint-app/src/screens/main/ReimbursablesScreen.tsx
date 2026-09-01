@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
   },
-  askForLinkPressed: { backgroundColor: brand.pineTint },
+  askForLinkPressed: { backgroundColor: brand.pineTintPressed },
   askForLinkText: {
     flex: 1,
     color: brand.ink,
@@ -322,6 +322,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.base,
   },
-  guideLinkPressed: { backgroundColor: brand.pineTint },
+  guideLinkPressed: { backgroundColor: brand.pineTintPressed },
   guideLinkText: { flex: 1, color: brand.pineDeep, fontWeight: fonts.weights.bold as '700' },
 });
