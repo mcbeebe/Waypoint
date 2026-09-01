@@ -57,11 +57,11 @@ export const FREE_FEATURES = [
   'Starter action plan & deadlines',
   'Knowledge base & journey map',
   'Letter generator (core letters)',
-  `AI Navigator — ${FREE_NAVIGATOR_MONTHLY_LIMIT} messages/month`,
+  `Waypoint Navigator* — ${FREE_NAVIGATOR_MONTHLY_LIMIT} messages/month`,
 ] as const;
 
 export const PREMIUM_FEATURES = [
-  'Unlimited AI Navigator',
+  'Unlimited Waypoint Navigator*',
   'IEP document analysis + goal tracking',
   'Letter generation with sending history',
   'Document binder + export',

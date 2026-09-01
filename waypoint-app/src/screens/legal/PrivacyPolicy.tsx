@@ -34,14 +34,14 @@ export default function PrivacyPolicy() {
           <P>We collect only the information necessary to provide our services:</P>
           <Bullet>Account information: name, email address (via Apple Sign-In or Google Sign-In)</Bullet>
           <Bullet>Family profile: child&apos;s first name, date of birth, diagnoses, state, county, Regional Center, school district, and insurance carrier</Bullet>
-          <Bullet>Chat conversations: messages you exchange with the AI Navigator</Bullet>
+          <Bullet>Chat conversations: messages you exchange with the Waypoint Navigator (our AI-powered assistant)</Bullet>
           <Bullet>Action plans and deadlines you create or save from chat</Bullet>
           <Bullet>Documents you upload (IEPs, evaluations, medical records)</Bullet>
           <Bullet>Device information: device type, operating system version, and crash reports (via Sentry)</Bullet>
         </Section>
 
         <Section title="3. How We Use Your Information">
-          <Bullet>To personalize AI Navigator responses with context about your child and situation</Bullet>
+          <Bullet>To personalize Waypoint Navigator responses with context about your child and situation</Bullet>
           <Bullet>To maintain your action plan, deadlines, and document vault</Bullet>
           <Bullet>To send deadline reminders and notifications you opt into</Bullet>
           <Bullet>To improve our service quality and fix technical issues</Bullet>
@@ -53,7 +53,7 @@ export default function PrivacyPolicy() {
 
         <Section title="4. AI and Data Processing">
           <P>
-            Our AI Navigator uses Anthropic&apos;s Claude API to generate personalized guidance. When you
+            Our Waypoint Navigator uses Anthropic&apos;s Claude API to generate personalized guidance. When you
             send a message, we transmit your query and relevant family context to Anthropic&apos;s API for
             processing. Anthropic does not use your data to train their models. We also use OpenAI&apos;s
             embedding API to match your questions with our knowledge base articles. No personally

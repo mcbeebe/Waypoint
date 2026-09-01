@@ -33,7 +33,7 @@ export default function TermsOfService() {
           <P>
             Waypoint provides AI-powered guidance to help California families of children with
             disabilities navigate services, understand their rights, and manage action plans. The
-            App includes an AI Navigator chat feature, action plan tracking, document management,
+            App includes the Waypoint Navigator (an AI-powered chat assistant), action plan tracking, document management,
             calendar and deadline management, and resource information.
           </P>
         </Section>
@@ -50,7 +50,7 @@ export default function TermsOfService() {
             information with qualified professionals before taking legal or medical action.
           </P>
           <P>
-            The AI Navigator provides personalized guidance based on your situation and our
+            The Waypoint Navigator provides personalized guidance based on your situation and our
             knowledge base, but its responses may contain errors or omissions. Always use your own
             judgment and consult appropriate professionals for important decisions.
           </P>
@@ -71,7 +71,7 @@ export default function TermsOfService() {
           <Bullet>Use automated systems (bots, scrapers) to access the App</Bullet>
           <Bullet>Upload malicious files or content that could harm other users</Bullet>
           <Bullet>Misrepresent your identity or relationship to a child</Bullet>
-          <Bullet>Use the AI Navigator to generate fraudulent documentation</Bullet>
+          <Bullet>Use the Waypoint Navigator to generate fraudulent documentation</Bullet>
         </Section>
 
         <Section title="6. Intellectual Property">
@@ -89,7 +89,7 @@ export default function TermsOfService() {
 
         <Section title="7. AI-Generated Content">
           <P>
-            Responses from the AI Navigator are generated using artificial intelligence and may not
+            Responses from the Waypoint Navigator are generated using artificial intelligence and may not
             always be accurate, complete, or current. AI-generated content should be treated as
             informational guidance, not as professional advice. We make no warranties regarding
             the accuracy, completeness, or reliability of AI-generated responses.
