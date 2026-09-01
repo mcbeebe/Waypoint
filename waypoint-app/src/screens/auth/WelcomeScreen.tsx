@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Button from '@/components/Button';
+import { Brandmark } from '@/components/Brandmark';
 import {
   signInWithApple,
   signInWithGoogle,
@@ -22,7 +23,7 @@ import {
   signUpWithEmail,
   requestPasswordReset,
 } from '@/lib/auth';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
 
 /**
  * Google Sign-In gate. Web goes through Supabase OAuth and needs only the
@@ -136,6 +137,9 @@ export default function WelcomeScreen() {
       >
         {/* Hero */}
         <View style={styles.hero}>
+          <View style={styles.mark}>
+            <Brandmark size={72} route />
+          </View>
           <Text style={styles.logo}>Waypoint</Text>
           <Text style={styles.tagline}>
             Your child's unexpected journey.{'\n'}Every step, mapped.
@@ -143,7 +147,7 @@ export default function WelcomeScreen() {
           {/* Value props (wave 4) — why sign up, in three lines */}
           {!showEmailForm && (
             <View style={styles.valueProps}>
-              <Text style={styles.valueProp}>🧭 Answers that cite California law — with the exact words to say</Text>
+              <Text style={styles.valueProp}>📍 Answers that cite California law — with the exact words to say</Text>
               <Text style={styles.valueProp}>📋 A personalized action plan for Regional Center, IEP & benefits</Text>
               <Text style={styles.valueProp}>✉️ Ready-to-send letters, appeals & records requests — free</Text>
             </View>
@@ -190,7 +194,7 @@ export default function WelcomeScreen() {
                 value={email}
                 onChangeText={(v) => { setEmail(v); setError(null); }}
                 placeholder="Email address"
-                placeholderTextColor={colors.mid}
+                placeholderTextColor={brand.inkFaint}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -201,7 +205,7 @@ export default function WelcomeScreen() {
                 value={password}
                 onChangeText={(v) => { setPassword(v); setError(null); }}
                 placeholder="Password (6+ characters)"
-                placeholderTextColor={colors.mid}
+                placeholderTextColor={brand.inkFaint}
                 secureTextEntry
               />
 
@@ -269,7 +273,7 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: brand.paper,
     padding: spacing.lg,
   },
   flex: {
@@ -281,15 +285,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  mark: { marginBottom: spacing.base },
   logo: {
     fontSize: 42,
     fontWeight: fonts.weights.extrabold as '800',
-    color: colors.navy,
+    color: brand.ink,
     marginBottom: 12,
   },
   tagline: {
     fontSize: fonts.sizes.base,
-    color: colors.mid,
+    color: brand.inkFaint,
     textAlign: 'center',
     lineHeight: 22,
   },
@@ -301,7 +306,7 @@ const styles = StyleSheet.create({
   },
   valueProp: {
     fontSize: fonts.sizes.sm,
-    color: colors.dark,
+    color: brand.inkSoft,
     lineHeight: 19,
   },
   actions: {
@@ -311,19 +316,19 @@ const styles = StyleSheet.create({
   emailTitle: {
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   input: {
-    backgroundColor: colors.light,
+    backgroundColor: brand.panel,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.base,
     fontSize: fonts.sizes.md,
-    color: colors.dark,
+    color: brand.inkSoft,
   },
   errorText: {
     fontSize: fonts.sizes.sm,
@@ -333,26 +338,26 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: fonts.sizes.sm,
-    color: colors.teal,
+    color: brand.pine,
     textAlign: 'center',
     lineHeight: 18,
   },
   forgotLink: {
     fontSize: fonts.sizes.sm,
-    color: colors.teal,
+    color: brand.pine,
     textAlign: 'center',
     textDecorationLine: 'underline',
     paddingVertical: 4,
   },
   terms: {
     fontSize: fonts.sizes.xs,
-    color: colors.mid,
+    color: brand.inkFaint,
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 14,
   },
   termsLink: {
-    color: colors.teal,
+    color: brand.pine,
     textDecorationLine: 'underline',
   },
 });
