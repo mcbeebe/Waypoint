@@ -49,6 +49,7 @@ import { useRequests } from '@/hooks/useRequests';
 import { MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
 import { useI18n } from '@/i18n';
 import { Card } from '@/components/ui';
+import { Brandmark } from '@/components/Brandmark';
 import { useTextScale } from '@/lib/textSize';
 import { colors, brand, fonts, spacing, radii, semantic } from '@/lib/theme';
 
@@ -234,7 +235,9 @@ export default function JourneyScreen() {
       >
         {/* Header */}
         <View style={styles.hero}>
-          <Text style={styles.heroIcon}>{journey.icon}</Text>
+          <View style={styles.heroMark}>
+            <Brandmark size={sz(44)} />
+          </View>
           <Text style={[styles.heroTitle, { fontSize: sz(22) }]}>
             {primaryChild ? `${primaryChild.first_name}'s Journey` : 'Your Journey'}
           </Text>
@@ -669,8 +672,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  heroIcon: {
-    fontSize: 40,
+  heroMark: {
     marginBottom: spacing.sm,
   },
   heroTitle: {
