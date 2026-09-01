@@ -89,10 +89,13 @@ describe('generateStarterPlan — characterization matrix', () => {
 
 describe('ageBandFromBirthday — characterization', () => {
   it('maps ages to bands stably', () => {
+    // Measure against the SAME fixed NOW the birthdays are built from — the
+    // band function reads the real clock by default, so without pinning `now`
+    // a boundary age (2.9y) drifted across a band edge on a date rollover.
     const bands = [0.5, 1, 2.9, 3, 5, 6, 12, 14, 16, 21].map((age) => {
       const d = new Date(NOW);
       d.setMonth(d.getMonth() - Math.round(age * 12));
-      return `${age}y → ${ageBandFromBirthday(d)}`;
+      return `${age}y → ${ageBandFromBirthday(d, NOW)}`;
     });
     expect(bands).toMatchSnapshot();
   });
