@@ -104,8 +104,9 @@ export const brand = {
   border: '#EAE3D5',
   borderStrong: '#E2D8C4',
   pine: '#0F766E', // primary action; white text on it clears AA
-  pineDeep: '#115E56', // pressed / hover
+  pineDeep: '#115E56', // pressed / hover on a pine fill
   pineTint: '#E6F1EF',
+  pineTintPressed: '#D4E7E3', // pressed feedback on a pineTint fill (a step darker)
   sage: '#0E9E6E', // progress fills
   sageInk: '#047857', // sage used as TEXT (fills fail as text, this passes)
   sageTint: '#E7F5EE',
