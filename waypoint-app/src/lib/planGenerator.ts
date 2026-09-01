@@ -82,8 +82,7 @@ interface ActionContent {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Same banding as OnboardingFlow's getAge(): 0-2, 3-5, 6-12, 13-17 */
-export function ageBandFromBirthday(birthday: Date): AgeBand {
-  const now = new Date();
+export function ageBandFromBirthday(birthday: Date, now: Date = new Date()): AgeBand {
   let years = now.getFullYear() - birthday.getFullYear();
   const months = now.getMonth() - birthday.getMonth();
   if (months < 0) years--;
