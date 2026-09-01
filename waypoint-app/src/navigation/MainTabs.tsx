@@ -98,6 +98,10 @@ const ToolsStackNav = createNativeStackNavigator<ToolsStackParamList>();
  * (owner request). `children` is the route's `title` string.
  */
 function DetailHeaderTitle({ children }: { children?: string }) {
+  // Some screens set an EMPTY title on purpose (e.g. the Learn reader renders
+  // its own headline). Show nothing there — a lone mark with no title reads as
+  // a stray pin, and the mark must never stand without the wordmark beside it.
+  if (!children) return null;
   return (
     <View style={styles.detailTitle}>
       <Brandmark size={22} />
