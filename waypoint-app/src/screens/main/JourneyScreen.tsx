@@ -50,7 +50,7 @@ import { MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
 import { useI18n } from '@/i18n';
 import { Card } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
-import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
+import { colors, brand, fonts, spacing, radii, semantic } from '@/lib/theme';
 
 function ageYears(dob: string | null): number {
   if (!dob) return 0;
@@ -233,7 +233,7 @@ export default function JourneyScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
-        <View style={[styles.hero, { backgroundColor: colors.navy }]}>
+        <View style={styles.hero}>
           <Text style={styles.heroIcon}>{journey.icon}</Text>
           <Text style={[styles.heroTitle, { fontSize: sz(22) }]}>
             {primaryChild ? `${primaryChild.first_name}'s Journey` : 'Your Journey'}
@@ -358,7 +358,7 @@ export default function JourneyScreen() {
                       <Ionicons
                         name={isOpen ? 'chevron-up' : 'chevron-down'}
                         size={18}
-                        color={colors.mid}
+                        color={brand.inkFaint}
                       />
                     </View>
                   </TouchableOpacity>
@@ -381,13 +381,13 @@ export default function JourneyScreen() {
                           (owner, Aug 31), aligned with the RC Funding Guide. */}
                       <View style={styles.askCard}>
                         <View style={styles.composer}>
-                          <Ionicons name="search" size={sz(18)} color={colors.teal} />
+                          <Ionicons name="search" size={sz(18)} color={brand.pine} />
                           <TextInput
                             style={[styles.composerInput, { fontSize: sz(14) }]}
                             value={query}
                             onChangeText={setQuery}
                             placeholder={`Ask about ${phase.label} — “What’s due now?”`}
-                            placeholderTextColor={colors.mid}
+                            placeholderTextColor={brand.inkFaint}
                             returnKeyType="search"
                             onSubmitEditing={() =>
                               ask(query.trim() || phaseQuestion(phase, journey.title, childName))
@@ -567,7 +567,7 @@ export default function JourneyScreen() {
                                     accessibilityRole="button"
                                     accessibilityLabel={`Ask Waypoint about ${entity.name}: ${entity.action}`}
                                   >
-                                    <Text style={[styles.detailLinkText, { color: colors.teal }]}>
+                                    <Text style={[styles.detailLinkText, { color: brand.pine }]}>
                                       🧭 Ask Waypoint about this step ›
                                     </Text>
                                   </TouchableOpacity>
@@ -594,7 +594,7 @@ export default function JourneyScreen() {
                               Track, schedule and check off what you added.
                             </Text>
                           </View>
-                          <Text style={[styles.seePlanChevron, { color: colors.teal }]}>›</Text>
+                          <Text style={[styles.seePlanChevron, { color: brand.pine }]}>›</Text>
                         </TouchableOpacity>
                       )}
 
@@ -638,27 +638,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 2,
-    borderColor: colors.teal,
+    borderColor: brand.pine,
     borderRadius: radii.md,
     padding: spacing.base,
     marginBottom: spacing.md,
   },
   stackEntryIcon: { fontSize: 22 },
   stackEntryBody: { flex: 1 },
-  stackEntryTitle: { fontWeight: fonts.weights.extrabold, color: colors.navy },
-  stackEntrySub: { color: colors.mid, marginTop: 2 },
-  stackEntryGo: { fontSize: fonts.sizes.lg, color: colors.teal, fontWeight: fonts.weights.bold },
+  stackEntryTitle: { fontWeight: fonts.weights.extrabold, color: brand.ink },
+  stackEntrySub: { color: brand.inkFaint, marginTop: 2 },
+  stackEntryGo: { fontSize: fonts.sizes.lg, color: brand.pine, fontWeight: fonts.weights.bold },
   container: {
     flex: 1,
-    backgroundColor: colors.light,
+    backgroundColor: brand.paper,
   },
   content: {
     padding: spacing.lg,
     paddingBottom: spacing['2xl'],
   },
+  // The warm light header — replaces the old dark navy hero (the "no dark
+  // portal band" rule): a cream card with an ink title and pine chips.
   hero: {
+    backgroundColor: brand.headerTop,
+    borderWidth: 1,
+    borderColor: brand.border,
     borderRadius: radii.lg,
     padding: spacing.xl,
     alignItems: 'center',
@@ -669,7 +674,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   heroTitle: {
-    color: colors.white,
+    color: brand.ink,
     fontWeight: fonts.weights.extrabold as '800',
     marginBottom: spacing.sm,
     textAlign: 'center',
@@ -681,17 +686,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heroChip: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: brand.pineTint,
     borderRadius: radii.full,
     paddingHorizontal: spacing.md,
     paddingVertical: 4,
   },
   heroChipText: {
-    color: colors.white,
+    color: brand.pine,
     fontWeight: fonts.weights.semibold as '600',
   },
   intro: {
-    color: colors.dark,
+    color: brand.inkSoft,
   },
   phaseWrap: {
     flexDirection: 'row',
@@ -705,22 +710,22 @@ const styles = StyleSheet.create({
     height: 14,
     borderRadius: 7,
     borderWidth: 3,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     marginTop: 18,
   },
   railLine: {
     flex: 1,
     width: 2,
-    backgroundColor: colors.border,
+    backgroundColor: brand.border,
   },
   phaseCardTouch: {
     flex: 1,
   },
   phaseCard: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     padding: spacing.md,
     marginBottom: spacing.md,
     marginLeft: spacing.sm,
@@ -752,20 +757,20 @@ const styles = StyleSheet.create({
   },
   phaseLabel: {
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
   },
   phaseBody: {
     marginTop: spacing.md,
   },
   phaseDescription: {
-    color: colors.dark,
+    color: brand.inkSoft,
     marginBottom: spacing.md,
   },
   // ── Stage ask bar (aligned with the RC Funding Guide) ──────────────────────
   askCard: {
-    backgroundColor: '#F0FAFC',
+    backgroundColor: brand.pineTint,
     borderWidth: 1,
-    borderColor: '#D8ECF1',
+    borderColor: brand.border,
     borderRadius: radii.lg,
     padding: spacing.sm + 2,
     marginBottom: spacing.md,
@@ -775,41 +780,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     minHeight: 48,
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.md,
     borderWidth: 1.5,
-    borderColor: '#B9E2EC',
+    borderColor: brand.borderStrong,
     paddingLeft: spacing.base,
     paddingRight: spacing.xs + 2,
-    shadowColor: colors.teal,
+    shadowColor: brand.pine,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.14,
     shadowRadius: 10,
     elevation: 2,
   },
-  composerInput: { flex: 1, color: colors.navy, paddingVertical: 0 },
+  composerInput: { flex: 1, color: brand.ink, paddingVertical: 0 },
   askBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     minHeight: 44,
   },
-  askBtnPressed: { backgroundColor: '#0E7490' },
+  askBtnPressed: { backgroundColor: brand.pineDeep },
   askBtnText: { color: colors.white, fontWeight: fonts.weights.bold as '700' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
   chip: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 1,
-    borderColor: '#D6E6EC',
+    borderColor: brand.border,
     borderRadius: radii.full,
     paddingVertical: spacing.xs + 1,
     paddingHorizontal: spacing.md,
   },
-  chipPressed: { backgroundColor: '#E0F2F7' },
-  chipText: { color: colors.dark, fontWeight: fonts.weights.semibold as '600' },
+  chipPressed: { backgroundColor: brand.pineTint },
+  chipText: { color: brand.inkSoft, fontWeight: fonts.weights.semibold as '600' },
   // ── Recommended next steps ─────────────────────────────────────────────────
   sectionRow: {
     flexDirection: 'row',
@@ -819,43 +824,43 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontWeight: fonts.weights.bold as '700',
-    color: colors.navy,
+    color: brand.ink,
   },
   addAllText: {
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.bold as '700',
   },
   stepCard: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: brand.border,
     padding: spacing.md,
     marginBottom: 6,
   },
   stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   stepBody: { flex: 1 },
   stepWho: { fontWeight: fonts.weights.bold as '700', letterSpacing: 0.4 },
-  stepAction: { color: colors.dark, marginTop: 3, fontWeight: fonts.weights.semibold as '600' },
+  stepAction: { color: brand.inkSoft, marginTop: 3, fontWeight: fonts.weights.semibold as '600' },
   stepMetaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 6 },
   standChip: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radii.full },
   // Info-teal, not done-green: this states a system fact ("IEP active"), it is
   // not a step-completion checkmark.
-  standInPlace: { backgroundColor: '#E6F5F9' },
+  standInPlace: { backgroundColor: brand.pineTint },
   standInMotion: { backgroundColor: '#FEF3C7' },
   standChipText: { fontSize: 11, fontWeight: fonts.weights.bold as '700' },
-  standInPlaceText: { color: '#076C86' },
+  standInPlaceText: { color: brand.pineDeep },
   standInMotionText: { color: '#92400E' },
   learnMore: { fontSize: 11.5, fontWeight: fonts.weights.semibold as '600' },
   stepDetail: {
     marginTop: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: brand.border,
     gap: 6,
   },
-  detailText: { color: colors.dark },
-  detailCadence: { color: colors.mid },
+  detailText: { color: brand.inkSoft },
+  detailCadence: { color: brand.inkFaint },
   detailActions: { marginTop: 4, gap: 4 },
   detailLink: { minHeight: 40, justifyContent: 'center' },
   detailLinkText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold as '600' },
@@ -863,7 +868,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -871,21 +876,21 @@ const styles = StyleSheet.create({
   onPlanPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: brand.sageTint,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: brand.sage,
     borderRadius: radii.full,
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
-  onPlanPillText: { fontSize: fonts.sizes.xs, fontWeight: fonts.weights.bold as '700', color: '#047857' },
+  onPlanPillText: { fontSize: fonts.sizes.xs, fontWeight: fonts.weights.bold as '700', color: brand.sageInk },
   seePlanCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: '#EFF9FB',
+    backgroundColor: brand.pineTint,
     borderWidth: 1,
-    borderColor: '#B9E2EC',
+    borderColor: brand.borderStrong,
     borderRadius: radii.md,
     padding: spacing.base,
     marginTop: spacing.sm,
@@ -893,8 +898,8 @@ const styles = StyleSheet.create({
   },
   seePlanIcon: { fontSize: 20 },
   seePlanBody: { flex: 1 },
-  seePlanTitle: { fontWeight: fonts.weights.bold as '700', color: colors.navy },
-  seePlanSub: { color: colors.mid, marginTop: 2 },
+  seePlanTitle: { fontWeight: fonts.weights.bold as '700', color: brand.ink },
+  seePlanSub: { color: brand.inkFaint, marginTop: 2 },
   seePlanChevron: { fontSize: 22, fontWeight: fonts.weights.bold as '700' },
   milestoneTile: {
     backgroundColor: semantic.successBg,
@@ -918,7 +923,7 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.medium as '500',
   },
   ctaPrimary: {
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
     borderRadius: radii.md,
     paddingVertical: spacing.base,
     alignItems: 'center',
@@ -931,9 +936,9 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
   },
   ctaSecondary: {
-    backgroundColor: colors.white,
+    backgroundColor: brand.panel,
     borderWidth: 1.5,
-    borderColor: colors.teal,
+    borderColor: brand.pine,
     borderRadius: radii.md,
     paddingVertical: spacing.base,
     alignItems: 'center',
@@ -942,7 +947,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   ctaSecondaryText: {
-    color: colors.teal,
+    color: brand.pine,
     fontWeight: fonts.weights.bold as '700',
   },
 });
