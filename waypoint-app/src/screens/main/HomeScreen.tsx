@@ -106,9 +106,9 @@ const TOOL_KIND: Record<FunnelLocale, string> = {
   vi: 'Công cụ',
 };
 const COMPOSER_LABEL: Record<FunnelLocale, string> = {
-  en: 'Ask the AI Navigator a question',
-  es: 'Hágale una pregunta al Navegador con IA',
-  vi: 'Hỏi Trợ lý AI một câu hỏi',
+  en: 'Ask the Waypoint Navigator a question',
+  es: 'Hágale una pregunta al Navegador de Waypoint',
+  vi: 'Hỏi Trợ lý Waypoint một câu hỏi',
 };
 
 /** The explicit "Ask" button inside the composer — makes the AI obviously one

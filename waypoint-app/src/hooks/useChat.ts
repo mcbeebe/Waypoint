@@ -268,7 +268,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
         ragResult.confidence
       );
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Couldn't reach the AI Navigator."));
+      setError(friendlyErrorMessage(err, "Couldn't reach the Waypoint Navigator."));
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
@@ -310,7 +310,7 @@ export function useChat(options: UseChatOptions): UseChatReturn {
       setMessages(loaded);
       setSessionId(sid);
     } catch (err) {
-      setError(friendlyErrorMessage(err, "Couldn't reach the AI Navigator."));
+      setError(friendlyErrorMessage(err, "Couldn't reach the Waypoint Navigator."));
     } finally {
       setIsLoading(false);
     }

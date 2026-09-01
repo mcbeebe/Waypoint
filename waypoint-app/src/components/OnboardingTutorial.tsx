@@ -26,8 +26,8 @@ interface TutorialStep {
 
 const STEPS: TutorialStep[] = [
   {
-    emoji: '🧭',
-    title: 'Your AI Navigator',
+    emoji: '📍',
+    title: 'Your Waypoint Navigator',
     description: 'Ask questions about your child\'s rights, services, and next steps. The AI knows California disability law and gives personalized guidance.',
   },
   {
