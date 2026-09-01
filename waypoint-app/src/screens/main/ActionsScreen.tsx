@@ -16,7 +16,7 @@
  * "same" plan in both places (Sep 1 2026).
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -82,12 +82,17 @@ export default function ActionsScreen() {
  * The very same tracker, embedded in the Plan tab's "Action Plan" segment — no
  * SafeAreaView, no scroll of its own (the Plan screen provides both), and its
  * "open detail" tap routed through the Tracker stack, where ActionDetail lives.
+ *
+ * `refreshSignal` is how the Plan screen's pull-to-refresh reaches this
+ * component: the embedded tracker owns no RefreshControl (Plan owns the
+ * scroll), so without this its list and stats would ignore the pull gesture.
+ * Plan bumps the number on each pull; a change re-fetches both action lists.
  */
-export function ActionPlanTracker() {
-  return <ActionPlanBody embedded />;
+export function ActionPlanTracker({ refreshSignal }: { refreshSignal?: number }) {
+  return <ActionPlanBody embedded refreshSignal={refreshSignal} />;
 }
 
-function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
+function ActionPlanBody({ embedded = false, refreshSignal }: { embedded?: boolean; refreshSignal?: number }) {
   const { family } = useFamily();
   const navigation = useNavigation();
   const { showToast } = useToast();
@@ -140,6 +145,21 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [family?.id])
   );
+
+  // Embedded, the Plan screen owns the RefreshControl; it bumps `refreshSignal`
+  // on each pull so this copy's own two lists refetch with it. (Skip the first
+  // run — that's just the mount value, already fetched by the hooks above.)
+  const firstRefreshSignal = useRef(true);
+  useEffect(() => {
+    if (firstRefreshSignal.current) {
+      firstRefreshSignal.current = false;
+      return;
+    }
+    if (!family?.id) return;
+    refetch();
+    refetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshSignal]);
 
   // Sort: urgent first, then by due date, then by created date
   const sortedActions = useMemo(() => {

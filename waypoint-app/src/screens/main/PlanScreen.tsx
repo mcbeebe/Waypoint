@@ -122,6 +122,9 @@ export default function PlanScreen() {
   const [now, setNow] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  // Bumped on each pull-to-refresh so the embedded Action Plan tracker (which
+  // owns no RefreshControl of its own) refetches with the rest of the screen.
+  const [actionRefresh, setActionRefresh] = useState(0);
 
   useEffect(() => {
     AsyncStorage.getItem(PLAN_VIEW_KEY)
@@ -263,6 +266,7 @@ export default function PlanScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setNow(new Date());
+    setActionRefresh((n) => n + 1);
     await refreshAll();
     setRefreshing(false);
   }, [refreshAll]);
@@ -537,21 +541,24 @@ export default function PlanScreen() {
              `ActionPlanTracker` is `ActionsScreen`'s own body; it owns its data
              and its "open detail" hops to the Tracker stack where the detail
              screen lives. */
-          <ActionPlanTracker />
+          <ActionPlanTracker refreshSignal={actionRefresh} />
         )}
 
         {/* The full calendar keeps everything Plan does not do: adding,
-            editing, recurrence, reminders, Google sync. */}
-        <Pressable
-          style={({ pressed }) => [styles.fullCalendar, pressed && styles.dim]}
-          onPress={() => (navigation as any).navigate('CalendarMain')}
-          accessibilityRole="button"
-          accessibilityLabel={t.fullCalendar}
-        >
-          <Text style={[styles.fullCalendarText, { fontSize: sz(13.5), lineHeight: sz(19) }]}>
-            {t.fullCalendar} ›
-          </Text>
-        </Pressable>
+            editing, recurrence, reminders, Google sync. It's a date affordance,
+            so it sits under List and Month — not under the action tracker. */}
+        {mode !== 'actions' && (
+          <Pressable
+            style={({ pressed }) => [styles.fullCalendar, pressed && styles.dim]}
+            onPress={() => (navigation as any).navigate('CalendarMain')}
+            accessibilityRole="button"
+            accessibilityLabel={t.fullCalendar}
+          >
+            <Text style={[styles.fullCalendarText, { fontSize: sz(13.5), lineHeight: sz(19) }]}>
+              {t.fullCalendar} ›
+            </Text>
+          </Pressable>
+        )}
 
         {/* The full Tracker tab is one tap behind List and Month. In Action
             Plan mode it's already inline above, so the link would just loop. */}
@@ -570,7 +577,11 @@ export default function PlanScreen() {
           </Pressable>
         )}
 
-        <Text style={[styles.note, { fontSize: sz(12), lineHeight: sz(17) }]}>{t.moved}</Text>
+        {/* Where Expenses / tax moved — a money signpost, so keep it off the
+            action tracker where it reads as noise. */}
+        {mode !== 'actions' && (
+          <Text style={[styles.note, { fontSize: sz(12), lineHeight: sz(17) }]}>{t.moved}</Text>
+        )}
         <View style={styles.tail} />
       </ScrollView>
     </SafeAreaView>
