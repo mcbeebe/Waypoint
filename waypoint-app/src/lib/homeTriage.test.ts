@@ -6,6 +6,7 @@ import {
   localDay,
   TRIAGE_LADDER,
   TRIAGE_RANK,
+  isResumableDraft,
 } from './homeTriage';
 import type { TriageInput } from './homeTriage';
 import type { FamilyRequest } from '@/hooks/useRequests';
@@ -622,5 +623,33 @@ describe('Home describes the status, not an actor who failed (owner decision)', 
       const item = triageHome(base({ requests: [overdue], locale: loc })).item!;
       expect(item.why).not.toMatch(/usually moves|suele mover|thường làm mọi việc/);
     }
+  });
+});
+
+
+describe('isResumableDraft', () => {
+  it('resumes a letter draft — what the resume card and its route mean', () => {
+    expect(isResumableDraft({ status: 'draft', kind: 'letter' })).toBe(true);
+  });
+
+  it('does NOT resume a tracked-email draft', () => {
+    // The tracked-send path saves a `kind: 'email'` row before every send
+    // attempt, so an abandoned "email this answer" used to become Home's
+    // rank-0 card — above a blown statutory clock — and tapping it dropped
+    // the parent into the General LETTER template with an AI chat answer
+    // pasted in as the letter body.
+    expect(isResumableDraft({ status: 'draft', kind: 'email' })).toBe(false);
+  });
+
+  it('does not resume a call, meeting or note, or anything already sent', () => {
+    for (const kind of ['call', 'meeting', 'note']) {
+      expect(isResumableDraft({ status: 'draft', kind })).toBe(false);
+    }
+    expect(isResumableDraft({ status: 'sent', kind: 'letter' })).toBe(false);
+  });
+
+  it('outranks everything, which is exactly why it must be selective', () => {
+    expect(TRIAGE_RANK.resume).toBeLessThan(TRIAGE_RANK.overdue);
+    expect(TRIAGE_RANK.resume).toBeLessThan(TRIAGE_RANK.crisis);
   });
 });

@@ -117,8 +117,12 @@ export type TrackerStackParamList = {
 };
 
 export type CalendarStackParamList = {
-  /** Plan is the tab's landing screen; the full calendar sits behind it. */
-  PlanMain: undefined;
+  /**
+   * Plan is the tab's landing screen; the full calendar sits behind it.
+   * `view` preselects a segment — the Navigator's "Plan" button uses it to
+   * land on the Action Plan rather than on whichever segment was last used.
+   */
+  PlanMain: { view?: 'list' | 'month' | 'actions' } | undefined;
   CalendarMain: undefined;
 };
 

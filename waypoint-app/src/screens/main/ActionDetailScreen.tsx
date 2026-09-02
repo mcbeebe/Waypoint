@@ -16,6 +16,7 @@ import {
   Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 import { useToast } from '@/components/Toast';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,6 +37,10 @@ import DateInput from '@/components/DateInput';
 import { getCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
 import { actionUrl, withWaypointLink } from '@/lib/appLinks';
 import { useActionNotes } from '@/hooks/useActionNotes';
+import { useFamily, useChildren } from '@/hooks/useFamily';
+import { useContacts } from '@/hooks/useContacts';
+import TrackedEmailModal from '@/components/TrackedEmailModal';
+import { buildActionEmail } from '@/lib/actionEmail';
 import { showConfirm } from '@/lib/dialogs';
 
 interface ActionDetailScreenProps {
@@ -99,6 +104,37 @@ export default function ActionDetailScreen({
     addNote,
     deleteNote,
   } = useActionNotes(action.id, action.family_id);
+  // ── "Email this" (owner request, Sep 2 2026) ──────────────────────────
+  // A plan item is usually something to tell somebody about. Writing that by
+  // hand, outside the app, is how it stays out of the paper trail — so the
+  // draft is generated here and sent through the same tracked path Letters
+  // and the Navigator use.
+  //
+  // It drafts to your TEAM, not to an agency. An adversary pass (Sep 2 2026)
+  // showed the agency version, built from this action's own fields, shipping
+  // "This may be a Lanterman Act violation" and "Agency: RC → DDS" to a
+  // Regional Center under a friendly opener — because those fields are written
+  // for the parent to read. Writing to an agency belongs in the letter writer,
+  // which carries the tone ladder; the button below goes there.
+  const navigation = useNavigation();
+  const { family } = useFamily();
+  const { children } = useChildren(family?.id);
+  const { contacts } = useContacts(family?.id);
+  const [showEmail, setShowEmail] = useState(false);
+  // Strictly the child this action is attached to. Falling back to the primary
+  // child produced "I'm Ana's parent" in an email that was about Ben, while the
+  // paper-trail row recorded no child at all. The one safe fallback is a
+  // single-child family, where there is nothing to get wrong.
+  const emailChild = useMemo(() => {
+    const attached = children.find((c) => c.id === action.child_id);
+    if (attached) return attached;
+    return children.length === 1 ? children[0] : undefined;
+  }, [children, action.child_id]);
+  const generatedEmail = useMemo(
+    () => buildActionEmail(action, { childFirstName: emailChild?.first_name ?? null }),
+    [action, emailChild?.first_name]
+  );
+
   const learnMoreKey = LEARN_MORE_BY_ACTION_TITLE[action.title];
   const { scale, cycleScale } = useTextScale();
   /** Scaled font size — applied to all reading-heavy text */
@@ -263,6 +299,14 @@ export default function ActionDetailScreen({
             accessibilityLabel="Edit this action"
           >
             <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setShowEmail(true)}
+            style={styles.shareButton}
+            accessibilityRole="button"
+            accessibilityLabel="Write an email about this action"
+          >
+            <Ionicons name="mail-outline" size={18} color={colors.teal} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleShare}
@@ -690,6 +734,49 @@ export default function ActionDetailScreen({
           )}
         </View>
 
+        {/* Write the email this step is really asking for — generated from the
+            action itself, and tracked in the paper trail once it goes. */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>✉️ Email about this</Text>
+          <Text style={styles.calendarStatus}>
+            We'll write this step up for your co-parent, advocate, or anyone helping — you pick
+            who it goes to, edit anything, and it's saved to your paper trail when you send it.
+          </Text>
+          <TouchableOpacity
+            style={styles.calendarButton}
+            onPress={() => setShowEmail(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Email this step to someone on your team"
+          >
+            <Text style={styles.calendarButtonText}>Email this to my team</Text>
+          </TouchableOpacity>
+          <Text style={styles.calendarStatus}>
+            Writing to the Regional Center, school, or your insurer instead? The letter writer
+            starts you off collaboratively and firms up only if an ask goes unanswered.
+          </Text>
+          <TouchableOpacity
+            style={styles.calendarButton}
+            onPress={() =>
+              // ActionDetail lives in the Tracker stack, which does not
+              // register Letters — a navigate resolves to PARENTS, never
+              // siblings, so the tab has to be named. And LettersScreen's
+              // handoff effect early-returns without a `template`, so the
+              // question alone would land the parent on an empty picker:
+              // 'general' is the collaborative starting template, and the
+              // action's title seeds the ask.
+              (navigation as any).navigate('Home', {
+                screen: 'Letters',
+                params: { template: 'general', question: action.title },
+                initial: false,
+              })
+            }
+            accessibilityRole="button"
+            accessibilityLabel="Write to an agency in the letter writer"
+          >
+            <Text style={styles.calendarButtonText}>Write to an agency</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Google Calendar (021): turn this action into a real event with invitees */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🗓️ Google Calendar</Text>
@@ -753,6 +840,20 @@ export default function ActionDetailScreen({
         action={action}
         onClose={() => setShowEventModal(false)}
         onSaved={(googleEventId) => onUpdate({ google_event_id: googleEventId })}
+      />
+
+      <TrackedEmailModal
+        visible={showEmail}
+        familyId={action.family_id}
+        title="Email this to your team"
+        defaultSubject={generatedEmail.subject}
+        body={generatedEmail.body}
+        contacts={contacts}
+        // The same child the body names — never a different one.
+        childId={emailChild?.id ?? null}
+        templateKey="action_item"
+        onClose={() => setShowEmail(false)}
+        onSent={() => setShowEmail(false)}
       />
     </SafeAreaView>
   );

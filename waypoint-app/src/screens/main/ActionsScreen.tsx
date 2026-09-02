@@ -42,6 +42,7 @@ import { SkeletonCard } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
 import { brand, fonts, spacing, radii } from '@/lib/theme';
+import { isNewlyAdded, formatAddedOn, newBadgeLabel } from '@/lib/actionFreshness';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -70,6 +71,12 @@ const CATEGORY_CONFIG: Record<ActionCategory, { label: string; emoji: string }> 
 };
 
 const STATUS_FILTERS: ActionStatus[] = ['not_started', 'in_progress', 'completed', 'dismissed'];
+
+/**
+ * How many just-added steps the focus view will surface on top of its next 3.
+ * Without a cap the "focus" view stops being one — see visibleActions below.
+ */
+const MAX_FRESH_IN_FOCUS = 2;
 
 // ─── Tracker body (Tracker tab root + Plan tab's Action Plan segment) ────────
 
@@ -167,12 +174,39 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   // not a limitation. Any explicit filter shows everything it matches.
   const [showAll, setShowAll] = useState(false);
   const focusMode = activeFilter === 'all' && !showAll;
+
+  // One clock for the whole render, so every row's "new" and "added" line
+  // agree with each other (and so a test can pin the moment).
+  // `actions` is the intended trigger even though the body does not read it:
+  // the clock should re-read when the list refetches, not on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const now = useMemo(() => Date.now(), [actions]);
+
   const visibleActions = useMemo(() => {
     if (!focusMode) return sortedActions;
-    return sortedActions
-      .filter((a) => (a.status === 'not_started' || a.status === 'in_progress') && !isLocked(a))
-      .slice(0, 3);
-  }, [focusMode, sortedActions, isLocked]);
+    const open = sortedActions.filter(
+      (a) => a.status === 'not_started' || a.status === 'in_progress'
+    );
+    const next3 = open.filter((a) => !isLocked(a)).slice(0, 3);
+    // Anything saved in the last day is surfaced even when the focus view
+    // would have collapsed it: a parent who just saved three steps out of an
+    // answer has to SEE them, and "your new items are behind 'Show
+    // everything'" is the failure this change is about.
+    //
+    // CAPPED, and locked steps excluded (adversary findings, Sep 2 2026). An
+    // uncapped carve-out made the focus view unbounded for exactly the user it
+    // exists for: onboarding inserts SEVEN generated actions in one batch, so
+    // a brand-new account spent its first day looking at the whole wall the
+    // next-3 view is meant to prevent — with a "Show everything (0 more)"
+    // button that did nothing. And a locked step is one the parent cannot act
+    // on yet, which the focus view has never shown.
+    const fresh = open
+      .filter((a) => isNewlyAdded(a.created_at, now) && !isLocked(a) && !next3.includes(a))
+      .slice(0, MAX_FRESH_IN_FOCUS);
+    if (fresh.length === 0) return next3;
+    const keep = new Set([...next3, ...fresh]);
+    return sortedActions.filter((a) => keep.has(a));
+  }, [focusMode, sortedActions, isLocked, now]);
   const hiddenCount = sortedActions.length - visibleActions.length;
 
   /** Open an action's full detail. Standalone the Tracker stack owns
@@ -378,6 +412,8 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
             <ActionCard
               action={item}
               locked={isLocked(item)}
+              now={now}
+              locale={esUI ? 'es' : viUI ? 'vi' : 'en'}
               onStatusPress={() => handleCycleStatus(item)}
               onOpenDetail={() => openDetail(item.id)}
             />
@@ -385,7 +421,10 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
         ))
       )}
 
-      {activeFilter === 'all' && sortedActions.length > 3 ? (
+      {/* Keyed on what is actually hidden, not on the list length: with the
+          fresh-item carve-out above, a list longer than 3 can still be fully
+          visible, and the toggle then read "Show everything (0 more)". */}
+      {activeFilter === 'all' && (focusMode ? hiddenCount > 0 : sortedActions.length > 3) ? (
         <TouchableOpacity
           style={styles.focusToggle}
           onPress={() => setShowAll((v) => !v)}
@@ -485,15 +524,23 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
 function ActionCard({
   action,
   locked,
+  now,
+  locale = 'en',
   onStatusPress,
   onOpenDetail,
 }: {
   action: Action;
   locked?: boolean;
+  /** One clock for the whole list, so rows can't disagree about "today". */
+  now?: number;
+  locale?: 'en' | 'es' | 'vi';
   onStatusPress: () => void;
   onOpenDetail: () => void;
 }) {
   const { scale } = useTextScale();
+  const stamp = now ?? Date.now();
+  const isNew = isNewlyAdded(action.created_at, stamp);
+  const addedLabel = formatAddedOn(action.created_at, stamp, locale);
   const statusConfig = STATUS_CONFIG[action.status];
   const priorityConfig = PRIORITY_CONFIG[action.priority];
   const categoryConfig = CATEGORY_CONFIG[action.category];
@@ -549,6 +596,14 @@ function ActionCard({
             {action.title}
           </Text>
 
+          {/* Just added — so a step saved out of an answer is findable in a
+              list that sorts by priority, not by when it arrived. */}
+          {isNew && action.status !== 'completed' && action.status !== 'dismissed' && (
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>{newBadgeLabel(locale)}</Text>
+            </View>
+          )}
+
           <View style={styles.cardMeta}>
             <Text style={styles.categoryTag}>
               {categoryConfig.emoji} {categoryConfig.label}
@@ -603,6 +658,10 @@ function ActionCard({
           </Text>
         </View>
       )}
+
+      {/* When it landed in the plan. Restored here after the Plan tab's own
+          action row (which carried it) was replaced by this shared tracker. */}
+      {addedLabel ? <Text style={styles.addedText}>{addedLabel}</Text> : null}
 
       {/* Offline indicator */}
       {action.local_id && !action.synced_at && (
@@ -944,6 +1003,27 @@ const styles = StyleSheet.create({
   },
   dueSoon: {
     color: '#EA580C',
+  },
+  newBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: brand.pineTint,
+    borderRadius: radii.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    marginTop: 4,
+  },
+  newBadgeText: {
+    fontSize: 10,
+    lineHeight: 14,
+    color: brand.pine,
+    fontWeight: fonts.weights.bold as '700',
+    letterSpacing: 0.3,
+  },
+  addedText: {
+    fontSize: 11,
+    color: brand.inkFaint,
+    marginTop: 6,
+    marginLeft: 38,
   },
   offlineTag: {
     fontSize: 9,

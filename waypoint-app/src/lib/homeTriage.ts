@@ -301,6 +301,22 @@ function addDaysISO(now: Date, days: number): string {
 
 // ─── the ladder, one class per builder ──────────────────────────────────────
 
+/**
+ * Which paper-trail rows count as "a letter you started".
+ *
+ * ONLY letters. The resume card is rank 0 — above a blown statutory clock —
+ * says "Finish the letter you started", and routes to LettersScreen with a
+ * template key, which is meaningless for a row the letter writer did not
+ * create. Since the tracked-email path (Sep 2 2026) saves a `kind: 'email'`
+ * draft before every send attempt, an abandoned "email this answer" would
+ * otherwise take over Home's top card and drop the parent into the General
+ * letter template with an AI chat answer pasted in as the letter body.
+ * Those rows still live in the paper trail; they are just not resumable here.
+ */
+export function isResumableDraft(row: { status: string; kind: string }): boolean {
+  return row.status === 'draft' && row.kind === 'letter';
+}
+
 function resumeItem(input: Required<Pick<TriageInput, 'drafts'>> & { now: Date; locale: FunnelLocale }): TriageItem | null {
   const L = picker(input.locale);
   const newest = [...input.drafts].sort((a, b) => b.savedAt.localeCompare(a.savedAt))[0];

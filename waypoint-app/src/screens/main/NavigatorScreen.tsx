@@ -7,7 +7,7 @@
  * - Message persistence via Supabase
  */
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -31,18 +31,17 @@ import { useChat, type UIMessage } from '@/hooks/useChat';
 import { useActions } from '@/hooks/useActions';
 import { useDiagnoses } from '@/hooks/useFamily';
 import { useToast } from '@/components/Toast';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import type { NavigatorStackParamList } from '@/types/navigation';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { RC_DATABASE } from '@/data/regionalCenters';
-import { logCommunication } from '@/hooks/useCommunications';
+import TrackedEmailModal from '@/components/TrackedEmailModal';
 import { useContacts } from '@/hooks/useContacts';
 import AIConsentModal from '@/components/AIConsentModal';
 import ChatMetaCards from '@/components/ChatMetaCards';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
 import { hideStreamingTrailer, hasRichMeta, type ChatStep } from '@/lib/followups';
-import { composeTarget } from '@/lib/emailCompose';
 import { deriveActionTitle } from '@/lib/actionContent';
 import { useI18n } from '@/i18n';
 import LearnPanel from '@/components/LearnPanel';
@@ -137,7 +136,9 @@ export default function NavigatorScreen() {
     context: chatContext,
   });
 
-  const { createAction, actions } = useActions({ familyId: family?.id ?? '' });
+  const { createAction, actions, refetch: refetchActions } = useActions({
+    familyId: family?.id ?? '',
+  });
   const { contacts } = useContacts(family?.id);
   const emailableContacts = contacts.filter((c) => c.email);
   const { showToast } = useToast();
@@ -174,9 +175,6 @@ export default function NavigatorScreen() {
   // Thumbs feedback already given, keyed by message id
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 'up' | 'down'>>({});
   const [emailComposeMessage, setEmailComposeMessage] = useState<UIMessage | null>(null);
-  const [emailTo, setEmailTo] = useState('');
-  const [emailSubject, setEmailSubject] = useState('');
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
   // Chat history (wave 3 retention): list past sessions, tap to resume
   const [showHistory, setShowHistory] = useState(false);
   const [historySessions, setHistorySessions] = useState<
@@ -363,51 +361,59 @@ export default function NavigatorScreen() {
     });
   }, [navigation]);
 
-  /** Open email compose modal with AI response pre-filled */
-  const handleEmailThis = useCallback((message: UIMessage) => {
-    setEmailComposeMessage(message);
-    setEmailSubject('Waypoint: Disability Services Guidance');
-    setEmailTo('');
-  }, []);
+  /**
+   * Straight to the plan the answers feed (owner request, Sep 2 2026).
+   *
+   * ROUTING, and why it is not `navigate('Tracker')`: a navigate resolves to
+   * PARENTS, never siblings, and the Navigator stack registers neither the
+   * Tracker list nor ActionDetail — so the tab has to be named. Tracker is a
+   * HIDDEN tab (routeGraph: visible false), which would strand the parent on a
+   * bar with nothing lit; the Plan tab is where the same tracker lives on
+   * screen, so that is where this goes, with the Action Plan segment already
+   * selected.
+   */
+  const openActionPlan = useCallback(() => {
+    (navigation as any).navigate('Calendar', {
+      screen: 'PlanMain',
+      params: { view: 'actions' },
+      initial: false,
+    });
+  }, [navigation]);
+
+  /** Open steps waiting in the plan — the number on the Plan button. */
+  const savedCount = useMemo(
+    () => actions.filter((a) => a.status === 'not_started' || a.status === 'in_progress').length,
+    [actions]
+  );
+
+  // Tabs are never unmounted, and useActions fetches once per familyId — so
+  // without this the badge (and its screen-reader label) kept claiming three
+  // open steps for the rest of the session after the parent completed all
+  // three in the Plan tab.
+  useFocusEffect(
+    useCallback(() => {
+      if (family?.id) refetchActions();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [family?.id])
+  );
 
   /**
-   * Hand the drafted email to the user's own mail app. Desktop browsers get
-   * Gmail's compose window; phones get mailto: — Gmail's web compose URL is
-   * intercepted on mobile by an app-install interstitial that discards the
-   * draft. No Gmail API scope needed either way: the user hits send.
+   * Email this answer — through the tracked process, not around it.
+   *
+   * This used to open a compose window and, in the same breath, write a
+   * `communications` row marked `sent` with no recipient and no Gmail thread
+   * id: a send recorded before anything was sent, that no reply could ever
+   * attach to. TrackedEmailModal runs the Letters process instead — draft row
+   * first, real Gmail send or a confirmed hand-off second.
    */
-  const handleSendEmail = useCallback(async () => {
-    if (!emailComposeMessage) return;
-    setIsSendingEmail(true);
-    try {
-      const bodyText = stripInlineMarkdown(emailComposeMessage.content);
-      const { url } = composeTarget(
-        { to: emailTo.trim() || undefined, subject: emailSubject, body: bodyText },
-        {
-          platformOS: Platform.OS,
-          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
-          maxTouchPoints: typeof navigator !== 'undefined' ? navigator.maxTouchPoints : undefined,
-        }
-      );
-      await Linking.openURL(url);
-      // Paper trail: record that this guidance went out by email
-      if (family?.id) {
-        logCommunication(family.id, {
-          kind: 'email',
-          subject: emailSubject || 'Waypoint guidance email',
-          contact: emailTo.trim() || undefined,
-          body: bodyText.slice(0, 4000),
-        });
-      }
-      setEmailComposeMessage(null);
-      setEmailTo('');
-      setEmailSubject('');
-    } catch {
-      showToast("Couldn't open your email app.", 'error');
-    } finally {
-      setIsSendingEmail(false);
-    }
-  }, [emailTo, emailSubject, emailComposeMessage, showToast]);
+  const handleEmailThis = useCallback((message: UIMessage) => {
+    setEmailComposeMessage(message);
+  }, []);
+
+  const emailBody = useMemo(
+    () => (emailComposeMessage ? stripInlineMarkdown(emailComposeMessage.content) : ''),
+    [emailComposeMessage]
+  );
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -476,6 +482,24 @@ export default function NavigatorScreen() {
           <Text style={styles.headerSubtitle}>Your disability services guide</Text>
         </View>
         <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={styles.planButton}
+            onPress={openActionPlan}
+            accessibilityRole="button"
+            accessibilityLabel={
+              savedCount > 0
+                ? `Your action plan, ${savedCount} open ${savedCount === 1 ? 'step' : 'steps'}`
+                : 'Your action plan'
+            }
+          >
+            <Ionicons name="list-outline" size={16} color={brand.pine} />
+            <Text style={styles.planButtonText}>Plan</Text>
+            {savedCount > 0 && (
+              <View style={styles.planCount}>
+                <Text style={styles.planCountText}>{savedCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.historyButton}
             onPress={handleOpenHistory}
@@ -728,79 +752,19 @@ export default function NavigatorScreen() {
         </View>
       </Modal>
 
-      {/* Email Compose Modal */}
-      <Modal visible={!!emailComposeMessage} animationType="slide" transparent>
-        <View style={styles.emailModalOverlay}>
-          <View style={styles.emailModalContent}>
-            <Text style={styles.emailModalTitle}>Email This Response</Text>
-            <TextInput
-              style={styles.emailInput}
-              placeholder="Recipient email"
-              placeholderTextColor={brand.inkFaint}
-              value={emailTo}
-              onChangeText={setEmailTo}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {emailableContacts.length > 0 && (
-              <View style={styles.contactChipRow}>
-                {emailableContacts.slice(0, 4).map((c) => (
-                  <TouchableOpacity
-                    key={c.id}
-                    style={[styles.contactChip, emailTo === c.email && styles.contactChipActive]}
-                    onPress={() => setEmailTo(c.email!)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Send to ${c.name}`}
-                  >
-                    <Text
-                      style={[
-                        styles.contactChipText,
-                        emailTo === c.email && styles.contactChipTextActive,
-                      ]}
-                    >
-                      {c.name}{c.role ? ` · ${c.role}` : ''}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-            <TextInput
-              style={styles.emailInput}
-              placeholder="Subject"
-              placeholderTextColor={brand.inkFaint}
-              value={emailSubject}
-              onChangeText={setEmailSubject}
-            />
-            <View style={styles.emailPreview}>
-              <Text style={styles.emailPreviewText} numberOfLines={6}>
-                {emailComposeMessage?.content.slice(0, 300)}
-                {(emailComposeMessage?.content.length ?? 0) > 300 ? '...' : ''}
-              </Text>
-            </View>
-            <View style={styles.emailModalActions}>
-              <TouchableOpacity
-                style={styles.emailCancelButton}
-                onPress={() => setEmailComposeMessage(null)}
-              >
-                <Text style={styles.emailCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.emailSendButton, isSendingEmail && styles.sendButtonDisabled]}
-                onPress={handleSendEmail}
-                disabled={isSendingEmail}
-              >
-                {isSendingEmail ? (
-                  <ActivityIndicator size="small" color={colors.white} />
-                ) : (
-                  <Text style={styles.emailSendText}>
-                    {Platform.OS === 'web' ? 'Open in Gmail' : 'Open in Email'}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Email this answer — the shared, tracked send (paper trail + Gmail thread) */}
+      <TrackedEmailModal
+        visible={!!emailComposeMessage}
+        familyId={family?.id}
+        title="Email this answer"
+        defaultSubject="Waypoint: Disability Services Guidance"
+        body={emailBody}
+        contacts={emailableContacts}
+        childId={primaryChild?.id ?? null}
+        templateKey="navigator_answer"
+        onClose={() => setEmailComposeMessage(null)}
+        onSent={() => setEmailComposeMessage(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -1233,6 +1197,35 @@ const styles = StyleSheet.create({
     backgroundColor: brand.pine,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  planButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    minHeight: 36,
+    borderRadius: radii.full,
+    backgroundColor: brand.pineTint,
+  },
+  planButtonText: {
+    fontSize: fonts.sizes.xs,
+    color: brand.pine,
+    fontWeight: fonts.weights.semibold as '600',
+  },
+  planCount: {
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: brand.pine,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  planCountText: {
+    fontSize: 10,
+    lineHeight: 14,
+    color: colors.white,
+    fontWeight: fonts.weights.bold as '700',
   },
   historyButton: {
     width: 36,
@@ -1674,89 +1667,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
-  emailModalContent: {
-    backgroundColor: brand.panel,
-    borderTopLeftRadius: radii.xl,
-    borderTopRightRadius: radii.xl,
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
   emailModalTitle: {
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold as '700',
     color: brand.ink,
     marginBottom: spacing.md,
-  },
-  emailInput: {
-    backgroundColor: brand.paper,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.base,
-    fontSize: fonts.sizes.sm,
-    color: brand.inkSoft,
-    marginBottom: spacing.sm,
-  },
-  contactChipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: spacing.sm,
-  },
-  contactChip: {
-    backgroundColor: brand.paper,
-    borderRadius: radii.full,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    minHeight: 28,
-    justifyContent: 'center',
-  },
-  contactChipActive: {
-    backgroundColor: brand.pine,
-  },
-  contactChipText: {
-    fontSize: fonts.sizes.xs,
-    color: brand.inkSoft,
-  },
-  contactChipTextActive: {
-    color: colors.white,
-  },
-  emailPreview: {
-    backgroundColor: brand.paper,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    maxHeight: 120,
-  },
-  emailPreviewText: {
-    fontSize: fonts.sizes.xs,
-    color: brand.inkFaint,
-    lineHeight: 16,
-  },
-  emailModalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: spacing.sm,
-  },
-  emailCancelButton: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.base,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: brand.border,
-  },
-  emailCancelText: {
-    fontSize: fonts.sizes.sm,
-    color: brand.inkFaint,
-  },
-  emailSendButton: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.base,
-    borderRadius: radii.md,
-    backgroundColor: brand.pine,
-  },
-  emailSendText: {
-    fontSize: fonts.sizes.sm,
-    color: colors.white,
-    fontWeight: fonts.weights.medium as '500',
   },
 });
