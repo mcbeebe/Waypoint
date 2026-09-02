@@ -89,14 +89,23 @@ Split the B1 policies into `for select` (members ∪ viewers) vs write (members)
 Only if the owner wants a true read-only role; otherwise viewer collapses into
 member and this phase drops.
 
-## Cross-cutting decisions (owner's — surfaced, not assumed)
+## Cross-cutting decisions — CONFIRMED by owner (Sep 2 2026)
 
-1. **Free or premium?** Co-parent sharing sits near the E3 "document sharing"
-   gate. Options: free · premium-to-invite · free-to-view/premium-to-add-editor.
-   Affects B's gating only. *Recommend: free for v1 (trust/retention), revisit.*
-2. **How much a member sees.** All-or-nothing (whole family file) vs per-child.
-   *Recommend all-or-nothing v1; per-child is a later initiative.*
-3. **Email provider** (B2) and **email-match on accept** (B3), as above.
+This is the decision record; the recommendations below were all accepted.
+
+1. **Free or premium? → FREE for v1.** Co-parent sharing is trust/retention,
+   not a paywall moment. Revisit later; premium *extras* stay possible.
+2. **How much a member sees? → WHOLE family file** (all-or-nothing, not
+   per-child). This is what `053_family_membership_rls.sql` implements. Per-child
+   scoping is a later initiative.
+3. **Roles for v1? → MEMBER only (view + edit).** Viewer (read-only) deferred —
+   it doubles the RLS surface (a `for select` vs write split) and is not needed
+   to ship. B4 remains the place it lands if wanted.
+4. **Email provider? → RESEND** (simplest transactional; one env secret). Used
+   in B2.
+
+Email-match on accept (B3) stays **yes** — the tokenised link only works for the
+invited address — unless the owner later relaxes it.
 
 ## Sequencing & size
 
