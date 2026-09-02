@@ -1,3 +1,12 @@
+-- ⚠️  IF YOU ARE FIXING "0 members" TODAY, RUN 058 INSTEAD (or as well).
+--
+-- This file is correct, and it was applied — but 027 was applied AFTER it on
+-- the production project, which recreated the recursive policies verbatim
+-- (same policy names + `drop policy if exists`). Verified live on 2026-09-02:
+-- member_family_ids() and admin_family_ids() both existed while all three
+-- tables still raised 42P17. 058 re-asserts everything below and adds two
+-- self-checks so a silent re-break is impossible to miss.
+--
 -- 055: Family Sharing — remove the family_members policy recursion.
 --
 -- BUG (reproduced in a real PostgreSQL 16 cluster built from this repo's own
