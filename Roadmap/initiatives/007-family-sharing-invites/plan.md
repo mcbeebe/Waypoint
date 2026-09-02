@@ -68,6 +68,39 @@ applied; buys honesty while B1–B3 are built. *(Family-facing copy → gated.)*
 
 ### B3 — accept / redeem (RPC + Join screen + deep link)
 
+**Status (Sep 2 2026): BUILT for owner go — migration `054`, `JoinFamilyScreen`,
+`lib/joinInvite.ts`, App wiring.** Two guarded `security definer` functions:
+`preview_family_invitation(token)` (what the screen shows before committing —
+inviter, role, does-this-account-match; no child data) and
+`accept_family_invitation(token, display_name?)` (the one door: signed-in,
+token exists, pending, unexpired, email-locked, idempotent for the acceptor,
+closed to anyone else, role copied from the invite, row locked against double
+taps). `expires_at` added (14 days). The Join screen is ROOT-level and rendered
+before onboarding so a co-parent never gets pushed into "create your own
+family"; the token is captured from the launch/warm URL and stashed so a
+signed-out person comes back to Join after signing in; and App's onboarding
+check gained the same membership fallback `useFamily` got in B1.
+
+**Adversary pass (Sep 2 2026) — the accept RPC held; it found a ROOT-CAUSE bug
+that predates B3:** `family_members`' own policies (007/016/027) subquery
+`family_members` from inside a `family_members` policy → Postgres `42P17`
+infinite recursion on every client read/write of that table (and, via the same
+subqueries, of `family_invitations` and `activity_log`). Reproduced in a real
+PG16 cluster built from the repo's SQL. It explains the "0 members / no
+button" screenshot, and **applying 027 alone would not have fixed it** — 027
+keeps the self-reference. Fixed by **migration `055`** (the 049 pattern: a new
+`admin_family_ids()` beside `member_family_ids()`, and every policy on those
+three tables pointed at them). 055 is also what makes B1's `useFamily`
+membership fallback and this phase's onboarding fallback actually work.
+Also hardened from the pass: identity read from `auth.users` with a confirmed-
+email check (not the JWT claim — with "Confirm email" off, a stranger could
+sign up as the invitee's address); `display_name` clamped; unique index on
+`token`; masking edge cases; `joined` vs `already_used` split; infrastructure
+failures (offline, 054 not yet applied) shown as a retryable "couldn't check"
+instead of a false "revoked"; a loading timeout; the pending token cleared on
+sign-out; and "Revoke" now toasts on the real result (a silent failure was a
+link that still worked for 14 days).
+
 - **Migration:** `accept_family_invitation(token text)` — `security definer`,
   the new trust boundary. Validates: token exists, `status='pending'`,
   unexpired, and (decision) the caller's email matches `invitee_email`. Inserts

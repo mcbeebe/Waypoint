@@ -339,6 +339,8 @@ export interface FamilyInvitation {
   token: string;
   created_at: string;
   responded_at: string | null;
+  /** A join link ages out — 14 days from creation (migration 054). */
+  expires_at: string;
 }
 
 export type ActivityActionType =

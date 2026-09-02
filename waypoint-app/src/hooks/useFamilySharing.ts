@@ -28,7 +28,8 @@ interface UseFamilySharingReturn {
   inviteMember: (email: string, role?: FamilyMemberRole) => Promise<FamilyInvitation | null>;
   updateMemberRole: (memberId: string, role: FamilyMemberRole) => Promise<void>;
   removeMember: (memberId: string) => Promise<void>;
-  revokeInvitation: (invitationId: string) => Promise<void>;
+  /** Resolves true only when the row is actually gone — a revoked link is a security event. */
+  revokeInvitation: (invitationId: string) => Promise<boolean>;
   logActivity: (action: ActivityActionType, description: string, entityType?: string, entityId?: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
@@ -141,15 +142,20 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
     }
   }, [fetchAll]);
 
-  const revokeInvitation = useCallback(async (invitationId: string) => {
+  const revokeInvitation = useCallback(async (invitationId: string): Promise<boolean> => {
     setError(null);
     setInvitations((prev) => prev.filter((i) => i.id !== invitationId));
     try {
       const { error: dbError } = await supabase.from('family_invitations').delete().eq('id', invitationId);
       if (dbError) throw new Error(dbError.message);
+      return true;
     } catch (err) {
+      // Once B3 makes a token redeemable, a revoke that silently failed is a
+      // link that still works for 14 days — so the card comes back and the
+      // caller is told.
       setError(friendlyErrorMessage(err, "Couldn't update family sharing."));
       fetchAll();
+      return false;
     }
   }, [fetchAll]);
 

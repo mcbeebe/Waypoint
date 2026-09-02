@@ -144,7 +144,12 @@ export default function FamilySharingScreen() {
                       <Text style={styles.pendingRole}>{ROLE_CONFIG[inv.role].label}</Text>
                     </View>
                     {isAdmin && (
-                      <TouchableOpacity onPress={() => { revokeInvitation(inv.id); showToast('Invitation revoked', 'success'); }}>
+                      <TouchableOpacity
+                        onPress={async () => {
+                          const ok = await revokeInvitation(inv.id);
+                          showToast(ok ? 'Invitation revoked' : "Couldn't revoke — the link still works. Try again.", ok ? 'success' : 'error');
+                        }}
+                      >
                         <Text style={styles.revokeText}>Revoke</Text>
                       </TouchableOpacity>
                     )}

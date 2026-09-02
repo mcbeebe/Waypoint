@@ -38,6 +38,13 @@ import { TextScaleProvider } from './src/lib/textSize';
 import { colors } from './src/lib/theme';
 import type { RootStackParamList } from './src/types/navigation';
 import { MAIN_LINKING } from './src/navigation/linking';
+import JoinFamilyScreen from './src/screens/auth/JoinFamilyScreen';
+import {
+  extractJoinToken,
+  stashPendingJoin,
+  readPendingJoin,
+  clearPendingJoin,
+} from './src/lib/joinInvite';
 
 // URL-per-screen linking (roadmap 0.5 / UX 2): on web this makes browser
 // back/forward work and every screen shareable/bookmarkable; on native it
@@ -67,6 +74,10 @@ const linking: LinkingOptions<RootStackParamList> = {
       },
       Terms: 'terms',
       Privacy: 'privacy',
+      // Family Sharing B3: the invite link. The token is read by App itself
+      // (see the pending-join effect) so it survives a sign-in; this entry
+      // keeps the address bar honest on web.
+      JoinFamily: 'join',
       Main: MAIN_LINKING,
     },
   } as unknown as LinkingOptions<RootStackParamList>['config'],
@@ -85,6 +96,27 @@ export default function App() {
   const isStaff = isStaffRole(role);
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(null);
   const [checkingOnboarding, setCheckingOnboarding] = useState(false);
+
+  // Family Sharing B3 — a tokenised invite link. The token is captured from
+  // the launch URL (cold) or a url event (warm) and stashed, because the
+  // Join screen is only mounted once there is a session: a signed-out person
+  // taps the link, signs in, and must come back to Join — not lose it.
+  const [pendingJoin, setPendingJoin] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const takeUrl = (url: string | null) => {
+      const token = extractJoinToken(url);
+      if (token && alive) {
+        setPendingJoin(token);
+        void stashPendingJoin(token);
+      }
+    };
+    ExpoLinking.getInitialURL().then(takeUrl).catch(() => {});
+    // A stash survives the reload an OAuth redirect causes on web.
+    readPendingJoin().then((t) => { if (t && alive) setPendingJoin((cur) => cur ?? t); }).catch(() => {});
+    const sub = ExpoLinking.addEventListener('url', ({ url }) => takeUrl(url));
+    return () => { alive = false; sub.remove(); };
+  }, []);
 
   // Check if user has completed onboarding (family accounts only — a staff
   // account has no families row and must not be pushed into onboarding).
@@ -108,7 +140,25 @@ export default function App() {
         return;
       }
 
-      setOnboardingComplete(data?.onboarding_completed ?? false);
+      if (data) {
+        setOnboardingComplete(data.onboarding_completed ?? false);
+        return;
+      }
+
+      // No owned family. A co-parent (Family Sharing, 007) joined someone
+      // else's — that family is already set up, so they are onboarded and
+      // must NOT be pushed into "create your own family". This client read
+      // of family_members needs migration 055 (it removes the policy
+      // recursion that made every such read raise 42P17); useFamily gets the
+      // same fallback in B1 (#182). A failed read is logged, not swallowed.
+      const { data: membership, error: memberError } = await supabase
+        .from('family_members')
+        .select('family_id')
+        .eq('user_id', session.user.id)
+        .limit(1)
+        .maybeSingle();
+      if (memberError) console.error('Membership check error:', memberError.message);
+      setOnboardingComplete(!!membership?.family_id);
     } catch (err) {
       console.error('Onboarding check failed:', err);
       setOnboardingComplete(false);
@@ -132,6 +182,24 @@ export default function App() {
 
   const handleOnboardingComplete = useCallback(() => {
     setOnboardingComplete(true);
+  }, []);
+
+  /**
+   * Accepted: the RPC succeeded, so this account IS a member of a set-up
+   * family — onboarded by definition. Set that directly rather than
+   * re-reading family_members (belt and braces: correct even if the client
+   * read fails), then drop the token.
+   */
+  const finishJoin = useCallback(() => {
+    setPendingJoin(null);
+    void clearPendingJoin();
+    setOnboardingComplete(true);
+  }, []);
+
+  /** "Not now" or a dead link: drop the token and fall through to the normal flow. */
+  const dismissJoin = useCallback(() => {
+    setPendingJoin(null);
+    void clearPendingJoin();
   }, []);
 
   // Show loading while auth, role, or onboarding status is being determined
@@ -165,6 +233,14 @@ export default function App() {
                     // Staff (facilitator/supervisor/admin) → facilitation
                     // workspace, never parent onboarding (035/036 role fork)
                     <Stack.Screen name="Staff" component={StaffStack} />
+                  ) : pendingJoin ? (
+                    // Family Sharing B3: an invite link, before onboarding on
+                    // purpose — a co-parent joins a family, never creates one
+                    <Stack.Screen name="JoinFamily">
+                      {() => (
+                        <JoinFamilyScreen token={pendingJoin} onDone={finishJoin} onNotNow={dismissJoin} />
+                      )}
+                    </Stack.Screen>
                   ) : !onboardingComplete ? (
                     // Authenticated but hasn't completed onboarding
                     <Stack.Screen name="Onboarding">

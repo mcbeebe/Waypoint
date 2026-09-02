@@ -11,6 +11,8 @@ export type RootStackParamList = {
   Staff: NavigatorScreenParams<StaffStackParamList> | undefined;
   Terms: undefined;
   Privacy: undefined;
+  /** Family Sharing B3: a tokenised invite link lands here (root-level, so it is reachable before onboarding). */
+  JoinFamily: { token?: string } | undefined;
 };
 
 /** Facilitation workspace (PRD W-C) — the staff-side stack */

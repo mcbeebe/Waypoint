@@ -224,6 +224,9 @@ export async function updatePassword(
  * Sign out from all providers
  */
 export async function signOut(): Promise<void> {
+  // A pending Family Sharing join token belongs to THIS person; it must not
+  // greet whoever signs in next on the same device.
+  import('./joinInvite').then(({ clearPendingJoin }) => clearPendingJoin()).catch(() => {});
   try {
     // Clear Google tokens
     await SecureStore.deleteItemAsync(GOOGLE_TOKEN_KEY);
