@@ -34,7 +34,8 @@ export function useFamily(): UseFamilyReturn {
         return;
       }
 
-      const { data, error: fetchError } = await supabase
+      // Owner path: the family this account created.
+      const { data: owned, error: fetchError } = await supabase
         .from('families')
         .select('*')
         .eq('user_id', user.id)
@@ -45,7 +46,37 @@ export function useFamily(): UseFamilyReturn {
         return;
       }
 
-      setFamily(data);
+      if (owned) {
+        setFamily(owned);
+        return;
+      }
+
+      // Co-parent path (Family Sharing, initiative 007): this account was
+      // invited into someone else's family and owns none of its own. Resolve
+      // the family it's a member of. RLS grants a member SELECT on that families
+      // row (migration 053); without this a joined co-parent would land on an
+      // empty account, since every downstream hook keys off `family.id`. v1
+      // takes the earliest-joined membership — one shared family per co-parent;
+      // switching between several is a later feature.
+      const { data: membership } = await supabase
+        .from('family_members')
+        .select('family_id')
+        .eq('user_id', user.id)
+        .order('joined_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (membership?.family_id) {
+        const { data: shared } = await supabase
+          .from('families')
+          .select('*')
+          .eq('id', membership.family_id)
+          .maybeSingle();
+        setFamily(shared ?? null);
+        return;
+      }
+
+      setFamily(null);
     } catch (err: unknown) {
       const e = err as { message?: string };
       setError(e.message || 'Failed to fetch family');
