@@ -4,7 +4,7 @@
  * nowhere; a mis-mapped RPC error is a wrong screen. Both are cheap to pin.
  */
 import { describe, it, expect } from 'vitest';
-import { extractJoinToken, joinStateFromError, joinStateFromPreview } from './joinInvite';
+import { extractJoinToken, isInviteError, joinStateFromError, joinStateFromPreview } from './joinInvite';
 
 const T = '8f3c2b1a-4d5e-4f60-9a7b-1c2d3e4f5a6b';
 
@@ -48,6 +48,7 @@ describe('joinStateFromError', () => {
     expect(joinStateFromError('invite_email_mismatch')).toBe('email_mismatch');
     expect(joinStateFromError('not_signed_in')).toBe('not_signed_in');
     expect(joinStateFromError('invite_not_found')).toBe('not_found');
+    expect(joinStateFromError('invite_email_unverified')).toBe('email_unverified');
   });
 
   it('tolerates Postgres wrapping and case', () => {
@@ -55,10 +56,24 @@ describe('joinStateFromError', () => {
     expect(joinStateFromError('Invite_Email_Mismatch')).toBe('email_mismatch');
   });
 
-  it('turns anything unrecognised into a safe not_found', () => {
-    expect(joinStateFromError(undefined)).toBe('not_found');
-    expect(joinStateFromError('')).toBe('not_found');
-    expect(joinStateFromError('network request failed')).toBe('not_found');
+  it('turns anything unrecognised into a retryable unavailable — never a false "revoked"', () => {
+    expect(joinStateFromError(undefined)).toBe('unavailable');
+    expect(joinStateFromError('')).toBe('unavailable');
+    expect(joinStateFromError('network request failed')).toBe('unavailable');
+    // PostgREST when migration 054 has not been applied yet:
+    expect(joinStateFromError('Could not find the function public.preview_family_invitation(p_token) in the schema cache'))
+      .toBe('unavailable');
+  });
+});
+
+describe('isInviteError', () => {
+  it('separates the messages 054 raises on purpose from infrastructure failures', () => {
+    expect(isInviteError('invite_expired')).toBe(true);
+    expect(isInviteError('not_signed_in')).toBe(true);
+    expect(isInviteError('ERROR: invite_email_unverified')).toBe(true);
+    expect(isInviteError('network request failed')).toBe(false);
+    expect(isInviteError('Could not find the function public.accept_family_invitation')).toBe(false);
+    expect(isInviteError(undefined)).toBe(false);
   });
 });
 
@@ -67,6 +82,7 @@ describe('joinStateFromPreview', () => {
     expect(joinStateFromPreview('pending')).toBe('pending');
     expect(joinStateFromPreview('expired')).toBe('expired');
     expect(joinStateFromPreview('already_used')).toBe('already_used');
+    expect(joinStateFromPreview('joined')).toBe('joined');
     expect(joinStateFromPreview('not_found')).toBe('not_found');
     expect(joinStateFromPreview('email_mismatch')).toBe('not_found');
     expect(joinStateFromPreview(undefined)).toBe('not_found');

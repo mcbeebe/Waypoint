@@ -16,14 +16,17 @@
 --     guessable; a wrong token learns nothing;
 --   * the invitation must be pending, and not expired (14 days, new column);
 --   * the SIGNED-IN EMAIL must match the invited email (owner decision:
---     email-locked links), compared case- and whitespace-insensitively;
+--     email-locked links), compared case- and whitespace-insensitively — read
+--     from auth.users (the definer can), not the JWT claim, and the address
+--     must be CONFIRMED (email_confirmed_at) — so with "Confirm email" off a
+--     stranger cannot sign up as the invitee's address and hijack the link;
 --   * accept is idempotent for the person who already accepted, and refuses
 --     an invite someone ELSE already used;
 --   * the role written is the role invited — the client cannot escalate it;
 --   * the accepted row is locked (FOR UPDATE) so two taps cannot double-join.
 -- Failures raise short machine-readable messages the app maps to a screen
 -- state (invite_not_found / invite_expired / invite_already_used /
--- invite_email_mismatch / not_signed_in). Like 050, identity is derived from
+-- invite_email_mismatch / invite_email_unverified / not_signed_in). Like 050, identity is derived from
 -- auth.uid() server-side; no grant/revoke, matching 049/050 — the null-uid
 -- guard is what makes an anon call a clean error rather than an action.
 --
@@ -46,6 +49,12 @@ alter table public.family_invitations
 comment on column public.family_invitations.expires_at is
   'A leaked join link ages out — 14 days from creation (Family Sharing B3).';
 
+-- A token must name exactly one invitation. 007 indexed it non-unique; a
+-- duplicate would let `where token = …` resolve to whichever row the planner
+-- returned first.
+create unique index if not exists idx_invitations_token_unique
+  on public.family_invitations (token);
+
 -- ── 2. Preview: what the Join screen shows BEFORE the person commits ───────
 -- Returns only what the invitee needs to decide: who invited them, as what
 -- role, and whether this signed-in account is the one it was sent to. No
@@ -61,8 +70,11 @@ as $$
 declare
   inv record;
   caller_email text;
+  caller_confirmed boolean;
+  is_member boolean;
   inviter_name text;
   local_part text;
+  domain_part text;
   masked text;
   st text;
 begin
@@ -79,15 +91,29 @@ begin
     raise exception 'invite_not_found';
   end if;
 
-  caller_email := lower(trim(coalesce(auth.jwt() ->> 'email', '')));
+  -- The signed-in address, from auth.users (not the JWT claim), and whether
+  -- it is confirmed — the same source of truth accept uses.
+  select lower(trim(u.email)), (u.email_confirmed_at is not null)
+    into caller_email, caller_confirmed
+    from auth.users u
+   where u.id = auth.uid();
+  caller_email := coalesce(caller_email, '');
+  caller_confirmed := coalesce(caller_confirmed, false);
+
+  select exists (
+    select 1 from public.family_members m
+     where m.family_id = inv.family_id and m.user_id = auth.uid()
+  ) into is_member;
 
   select coalesce(nullif(trim(f.parent_first_name), ''), 'A parent')
     into inviter_name
     from public.families f
    where f.id = inv.family_id;
 
-  if inv.status = 'accepted' then
-    st := 'already_used';
+  if is_member then
+    st := 'joined';          -- this account is already on the family
+  elsif inv.status = 'accepted' then
+    st := 'already_used';    -- someone ELSE used it
   elsif inv.status <> 'pending' then
     st := 'not_found';
   elsif inv.expires_at < now() then
@@ -96,14 +122,24 @@ begin
     st := 'pending';
   end if;
 
-  local_part := split_part(inv.invitee_email, '@', 1);
-  masked := left(local_part, 1) || '***@' || split_part(inv.invitee_email, '@', 2);
+  -- Mask the invited address: never echo the whole local part (a one-letter
+  -- local part would otherwise be shown in full), and never misrender a
+  -- malformed value.
+  if position('@' in inv.invitee_email) = 0 then
+    masked := '(hidden)';
+  else
+    local_part := split_part(inv.invitee_email, '@', 1);
+    domain_part := split_part(inv.invitee_email, '@', 2);
+    masked := (case when length(local_part) <= 1 then '*' else left(local_part, 1) end)
+              || '***@' || domain_part;
+  end if;
 
   return jsonb_build_object(
     'state', st,
     'role', inv.role,
     'inviter_name', inviter_name,
     'email_matches', lower(trim(inv.invitee_email)) = caller_email,
+    'email_verified', caller_confirmed,
     'invitee_email_hint', masked
   );
 end;
@@ -122,6 +158,7 @@ as $$
 declare
   inv record;
   caller_email text;
+  caller_confirmed boolean;
   already_member boolean;
   name_to_use text;
 begin
@@ -161,13 +198,26 @@ begin
     raise exception 'invite_expired';
   end if;
 
-  caller_email := lower(trim(coalesce(auth.jwt() ->> 'email', '')));
+  -- Identity from auth.users, not the JWT claim. Mismatch is checked before
+  -- verification so a wrong address reads as "different email", not as
+  -- "confirm your email".
+  select lower(trim(u.email)), (u.email_confirmed_at is not null)
+    into caller_email, caller_confirmed
+    from auth.users u
+   where u.id = auth.uid();
+  caller_email := coalesce(caller_email, '');
   if caller_email = '' or lower(trim(inv.invitee_email)) <> caller_email then
     raise exception 'invite_email_mismatch';
   end if;
+  if not coalesce(caller_confirmed, false) then
+    raise exception 'invite_email_unverified';
+  end if;
 
+  -- The display name is the only client-supplied value; it is a public RPC
+  -- surface, so it is clamped (a 200 KB name would otherwise land in two
+  -- tables).
   name_to_use := coalesce(
-    nullif(trim(p_display_name), ''),
+    nullif(left(trim(p_display_name), 80), ''),
     nullif(split_part(inv.invitee_email, '@', 1), ''),
     'Family member'
   );

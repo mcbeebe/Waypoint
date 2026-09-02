@@ -147,14 +147,17 @@ export default function App() {
 
       // No owned family. A co-parent (Family Sharing, 007) joined someone
       // else's — that family is already set up, so they are onboarded and
-      // must NOT be pushed into "create your own family". Same membership
-      // fallback useFamily uses (B1).
-      const { data: membership } = await supabase
+      // must NOT be pushed into "create your own family". This client read
+      // of family_members needs migration 055 (it removes the policy
+      // recursion that made every such read raise 42P17); useFamily gets the
+      // same fallback in B1 (#182). A failed read is logged, not swallowed.
+      const { data: membership, error: memberError } = await supabase
         .from('family_members')
         .select('family_id')
         .eq('user_id', session.user.id)
         .limit(1)
         .maybeSingle();
+      if (memberError) console.error('Membership check error:', memberError.message);
       setOnboardingComplete(!!membership?.family_id);
     } catch (err) {
       console.error('Onboarding check failed:', err);
@@ -181,12 +184,17 @@ export default function App() {
     setOnboardingComplete(true);
   }, []);
 
-  /** Accepted: drop the token and re-resolve — membership now makes them onboarded. */
+  /**
+   * Accepted: the RPC succeeded, so this account IS a member of a set-up
+   * family — onboarded by definition. Set that directly rather than
+   * re-reading family_members (belt and braces: correct even if the client
+   * read fails), then drop the token.
+   */
   const finishJoin = useCallback(() => {
     setPendingJoin(null);
     void clearPendingJoin();
-    void checkOnboarding();
-  }, [checkOnboarding]);
+    setOnboardingComplete(true);
+  }, []);
 
   /** "Not now" or a dead link: drop the token and fall through to the normal flow. */
   const dismissJoin = useCallback(() => {

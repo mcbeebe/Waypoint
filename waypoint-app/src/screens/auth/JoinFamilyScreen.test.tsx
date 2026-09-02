@@ -29,6 +29,7 @@ function preview(over: Record<string, unknown> = {}) {
       role: 'member',
       inviter_name: 'Maya',
       email_matches: true,
+      email_verified: true,
       invitee_email_hint: 'j***@example.com',
       ...over,
     },
@@ -69,13 +70,44 @@ describe('JoinFamilyScreen', () => {
     expect(screen.queryByText(/Accept & join/)).not.toBeInTheDocument();
   });
 
-  it('maps an RPC error on preview to its state', async () => {
-    rpc.mockResolvedValue({ data: null, error: { message: 'invite_already_used' } });
+  it('tells the person who already joined to open the app', async () => {
+    rpc.mockResolvedValue(preview({ state: 'joined' }));
     const onDone = vi.fn();
     render(<JoinFamilyScreen token={T} onDone={onDone} onNotNow={() => {}} />);
     expect(await screen.findByText("You're already on this family")).toBeInTheDocument();
     fireEvent.click(screen.getByText('Open Waypoint'));
     expect(onDone).toHaveBeenCalled();
+  });
+
+  it('a link someone ELSE used is not "you are on the family"', async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: 'invite_already_used' } });
+    const onDone = vi.fn();
+    const onNotNow = vi.fn();
+    render(<JoinFamilyScreen token={T} onDone={onDone} onNotNow={onNotNow} />);
+    expect(await screen.findByText('This invite was already used')).toBeInTheDocument();
+    expect(screen.queryByText("You're already on this family")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Back to Waypoint'));
+    expect(onNotNow).toHaveBeenCalled();
+    expect(onDone).not.toHaveBeenCalled();
+  });
+
+  it('a right-but-unconfirmed address is asked to confirm, with a retry', async () => {
+    rpc.mockResolvedValue(preview({ email_verified: false }));
+    render(<JoinFamilyScreen token={T} onDone={() => {}} onNotNow={() => {}} />);
+    expect(await screen.findByText('Confirm your email first')).toBeInTheDocument();
+    expect(screen.getByText('Try again')).toBeInTheDocument();
+    expect(screen.queryByText(/Accept & join/)).not.toBeInTheDocument();
+  });
+
+  it('an infrastructure failure is "couldn\'t check right now" with a retry — never a false "revoked"', async () => {
+    rpc
+      .mockResolvedValueOnce({ data: null, error: { message: 'Could not find the function public.preview_family_invitation(p_token) in the schema cache' } })
+      .mockResolvedValueOnce(preview());
+    render(<JoinFamilyScreen token={T} onDone={() => {}} onNotNow={() => {}} />);
+    expect(await screen.findByText("Couldn't check this invite right now")).toBeInTheDocument();
+    expect(screen.queryByText("This link doesn't work")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText('Try again'));
+    expect(await screen.findByText('Maya invited you to their Waypoint family')).toBeInTheDocument();
   });
 
   it('flips to the expired state when accept itself is refused', async () => {

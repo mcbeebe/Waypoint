@@ -20,12 +20,15 @@ export const PENDING_JOIN_KEY = 'waypoint.pendingJoinToken';
 
 /** The states the Join screen can be in (see the 007 mockups). */
 export type JoinState =
-  | 'pending'        // a live invite this account can accept
-  | 'expired'        // link is older than 14 days
-  | 'already_used'   // someone else accepted it
-  | 'email_mismatch' // sent to a different address than the one signed in
-  | 'not_found'      // no such invite (bad or revoked token)
-  | 'not_signed_in';
+  | 'pending'          // a live invite this account can accept
+  | 'expired'          // link is older than 14 days
+  | 'already_used'     // someone ELSE accepted it
+  | 'joined'           // this account is already on the family
+  | 'email_mismatch'   // sent to a different address than the one signed in
+  | 'email_unverified' // right address, not yet confirmed
+  | 'not_found'        // no such invite (bad or revoked token)
+  | 'not_signed_in'
+  | 'unavailable';     // could not check (server unreachable, function missing)
 
 /** Invitation tokens are gen_random_uuid()::text — url-safe, 36 chars. Accept
  *  a little slack so a future base64url token still passes; refuse junk. */
@@ -54,10 +57,19 @@ export function extractJoinToken(url: string | null | undefined): string | null 
 }
 
 /**
+ * Is this one of the messages migration 054's functions raise on purpose?
+ * Anything else — a network failure, or PostgREST's "could not find the
+ * function" when 054 has not been applied yet — is an infrastructure problem
+ * and must NOT be shown as "this link doesn't work".
+ */
+export function isInviteError(message: string | null | undefined): boolean {
+  return /invite_|not_signed_in/i.test(message ?? '');
+}
+
+/**
  * Map an RPC failure to a screen state. The functions in migration 054 raise
- * exactly these short messages; anything else (network, an unexpected DB
- * error) is reported as `not_found` so the person gets a clear "this link
- * doesn't work" instead of a raw error.
+ * exactly these short messages. Anything unrecognised is `unavailable` — a
+ * retryable "couldn't check right now" — never a false "revoked".
  */
 export function joinStateFromError(message: string | null | undefined): JoinState {
   const m = (message ?? '').toLowerCase();
@@ -65,7 +77,9 @@ export function joinStateFromError(message: string | null | undefined): JoinStat
   if (m.includes('invite_expired')) return 'expired';
   if (m.includes('invite_already_used')) return 'already_used';
   if (m.includes('invite_email_mismatch')) return 'email_mismatch';
-  return 'not_found';
+  if (m.includes('invite_email_unverified')) return 'email_unverified';
+  if (m.includes('invite_not_found')) return 'not_found';
+  return 'unavailable';
 }
 
 /** The preview RPC's `state` field, narrowed. */
@@ -74,6 +88,7 @@ export function joinStateFromPreview(state: unknown): JoinState {
     case 'pending':
     case 'expired':
     case 'already_used':
+    case 'joined':
     case 'not_found':
       return state;
     default:

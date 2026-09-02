@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
 import { Brandmark } from '@/components/Brandmark';
 import Button from '@/components/Button';
-import { joinStateFromError, joinStateFromPreview } from '@/lib/joinInvite';
+import { isInviteError, joinStateFromError, joinStateFromPreview } from '@/lib/joinInvite';
 import type { JoinState } from '@/lib/joinInvite';
 import { brand, fonts, radii, spacing } from '@/lib/theme';
 
@@ -33,8 +33,12 @@ interface Preview {
   inviterName: string;
   role: string;
   emailMatches: boolean;
+  emailVerified: boolean;
   emailHint: string;
 }
+
+/** A hung preview must not strand the person on a spinner with no button. */
+const PREVIEW_TIMEOUT_MS = 12_000;
 
 export default function JoinFamilyScreen({ token, onDone, onNotNow }: Props) {
   const [state, setState] = useState<JoinState | 'loading'>('loading');
@@ -43,15 +47,26 @@ export default function JoinFamilyScreen({ token, onDone, onNotNow }: Props) {
   const [accepting, setAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState<string | null>(null);
 
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => {
+    setAcceptError(null);
+    setState('loading');
+    setAttempt((n) => n + 1);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
+    const timer = setTimeout(() => { if (!cancelled) setState((s) => (s === 'loading' ? 'unavailable' : s)); }, PREVIEW_TIMEOUT_MS);
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!cancelled) setMe(user?.email ?? '');
       const { data, error } = await supabase.rpc('preview_family_invitation', { p_token: token });
       if (cancelled) return;
+      clearTimeout(timer);
       if (error) {
-        setState(joinStateFromError(error.message));
+        // An infrastructure failure (offline, or migration 054 not applied)
+        // is "couldn't check right now", never a false "revoked".
+        setState(isInviteError(error.message) ? joinStateFromError(error.message) : 'unavailable');
         return;
       }
       const p = (data ?? {}) as Record<string, unknown>;
@@ -60,13 +75,19 @@ export default function JoinFamilyScreen({ token, onDone, onNotNow }: Props) {
         inviterName: typeof p.inviter_name === 'string' && p.inviter_name ? p.inviter_name : 'A parent',
         role: typeof p.role === 'string' ? p.role : 'member',
         emailMatches: p.email_matches === true,
+        emailVerified: p.email_verified !== false,
         emailHint: typeof p.invitee_email_hint === 'string' ? p.invitee_email_hint : '',
       });
-      // A live invite sent to a different address than the one signed in.
-      setState(next === 'pending' && p.email_matches !== true ? 'email_mismatch' : next);
+      if (next === 'pending' && p.email_matches !== true) {
+        setState('email_mismatch');       // right token, wrong signed-in address
+      } else if (next === 'pending' && p.email_verified === false) {
+        setState('email_unverified');     // right address, not yet confirmed
+      } else {
+        setState(next);
+      }
     })();
-    return () => { cancelled = true; };
-  }, [token]);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [token, attempt]);
 
   const accept = useCallback(async () => {
     setAccepting(true);
@@ -74,14 +95,13 @@ export default function JoinFamilyScreen({ token, onDone, onNotNow }: Props) {
     const { error } = await supabase.rpc('accept_family_invitation', { p_token: token });
     setAccepting(false);
     if (error) {
-      const next = joinStateFromError(error.message);
-      // A mapped state gets its own screen; anything else stays on the
-      // pending screen with an inline, retryable message.
-      if (next === 'not_found' && !/invite_/.test(error.message ?? '')) {
+      // A mapped state gets its own screen; an infrastructure failure stays
+      // on the pending screen with an inline, retryable message.
+      if (!isInviteError(error.message)) {
         setAcceptError("Couldn't join just now — please try again.");
         return;
       }
-      setState(next);
+      setState(joinStateFromError(error.message));
       return;
     }
     onDone();
@@ -147,33 +167,45 @@ export default function JoinFamilyScreen({ token, onDone, onNotNow }: Props) {
       ) : (
         <>
           <View style={styles.hero}>
-            <View style={[styles.stateCard, state === 'expired' || state === 'not_found' ? styles.stateCardWarm : null]}>
+            <View style={[styles.stateCard, state === 'expired' || state === 'not_found' || state === 'already_used' ? styles.stateCardWarm : null]}>
               <Text style={styles.stateTitle} accessibilityRole="header">
                 {state === 'expired' && 'This invite has expired'}
-                {state === 'already_used' && "You're already on this family"}
+                {state === 'joined' && "You're already on this family"}
+                {state === 'already_used' && 'This invite was already used'}
                 {state === 'email_mismatch' && 'This invite is for a different email'}
+                {state === 'email_unverified' && 'Confirm your email first'}
                 {state === 'not_found' && "This link doesn't work"}
                 {state === 'not_signed_in' && 'Sign in to join'}
+                {state === 'unavailable' && "Couldn't check this invite right now"}
               </Text>
               <Text style={styles.stateBody}>
                 {state === 'expired' &&
                   `Join links last 14 days. Ask ${inviter} to send a fresh one from Family Sharing.`}
+                {state === 'joined' &&
+                  'This invite was already accepted by you. Open the app to see the family’s plan.'}
                 {state === 'already_used' &&
-                  'This invite was already accepted. Open the app to see the family’s plan.'}
+                  `Someone has already joined with this link. If that wasn't you, ask ${inviter} to send a fresh one.`}
                 {state === 'email_mismatch' &&
                   `It was sent to ${preview?.emailHint || 'another address'}. Sign in with that address, or ask ${inviter} to re-invite the one you use.`}
+                {state === 'email_unverified' &&
+                  `This is the right address — it just isn't confirmed yet. Open the confirmation email we sent to ${me || 'you'}, then tap the invite again.`}
                 {state === 'not_found' &&
                   'It may have been revoked, or the link was copied incompletely. Ask the person who invited you to send it again.'}
                 {state === 'not_signed_in' &&
                   "Create a free account or sign in — we'll bring you right back here to accept."}
+                {state === 'unavailable' &&
+                  'Waypoint could not reach the server, or the invite service is not ready yet. Your link is safe — try again in a moment.'}
               </Text>
             </View>
           </View>
           <View style={styles.actions}>
+            {(state === 'unavailable' || state === 'email_unverified') && (
+              <Button title="Try again" onPress={retry} variant="primary" />
+            )}
             <Button
-              title={state === 'already_used' ? 'Open Waypoint' : 'Back to Waypoint'}
-              onPress={state === 'already_used' ? onDone : onNotNow}
-              variant="primary"
+              title={state === 'joined' ? 'Open Waypoint' : 'Back to Waypoint'}
+              onPress={state === 'joined' ? onDone : onNotNow}
+              variant={state === 'unavailable' || state === 'email_unverified' ? 'outline' : 'primary'}
             />
             {!!me && <Text style={styles.signedIn}>Signed in as {me}</Text>}
           </View>
