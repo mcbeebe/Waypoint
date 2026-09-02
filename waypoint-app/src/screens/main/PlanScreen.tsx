@@ -12,7 +12,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFamily } from '@/hooks/useFamily';
 import { useActions } from '@/hooks/useActions';
@@ -32,6 +32,7 @@ import {
   monthOfNextItem,
 } from '@/lib/planView';
 import type { PlanEntry, PlanInput } from '@/lib/planView';
+import type { CalendarStackParamList } from '@/types/navigation';
 import type { AgendaScope } from '@/lib/agenda';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
@@ -111,6 +112,7 @@ function labels(locale: FunnelLocale) {
 
 export default function PlanScreen() {
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<CalendarStackParamList, 'PlanMain'>>();
   const { family } = useFamily();
   const { locale } = useI18n();
   const funnelLocale = toFunnelLocale(locale);
@@ -123,13 +125,26 @@ export default function PlanScreen() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  // A caller that names a segment wins over the remembered one — otherwise
+  // the Navigator's "Plan" button would land on Month for a parent who last
+  // looked at the calendar, and the action plan they were sent to see would
+  // be one tap further away than before. The stored preference is not
+  // overwritten: the next unparameterised visit returns to it.
+  const requestedView = route.params?.view;
   useEffect(() => {
+    if (requestedView) {
+      setMode(requestedView);
+      return;
+    }
     AsyncStorage.getItem(PLAN_VIEW_KEY)
       .then((v) => { if (v === 'month' || v === 'list' || v === 'actions') setMode(v); })
       .catch(() => {});
-  }, []);
+  }, [requestedView]);
   const chooseMode = (next: PlanMode) => {
     setMode(next);
+    // A hand-picked segment replaces the routed one, so tapping "List" after
+    // arriving on Action Plan is not undone by this screen re-rendering.
+    if (requestedView) (navigation as any).setParams({ view: undefined });
     AsyncStorage.setItem(PLAN_VIEW_KEY, next).catch(() => {});
   };
 

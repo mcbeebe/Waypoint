@@ -36,6 +36,10 @@ import DateInput from '@/components/DateInput';
 import { getCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
 import { actionUrl, withWaypointLink } from '@/lib/appLinks';
 import { useActionNotes } from '@/hooks/useActionNotes';
+import { useFamily, useChildren } from '@/hooks/useFamily';
+import { useContacts } from '@/hooks/useContacts';
+import TrackedEmailModal from '@/components/TrackedEmailModal';
+import { buildActionEmail, type ActionEmailAudience } from '@/lib/actionEmail';
 import { showConfirm } from '@/lib/dialogs';
 
 interface ActionDetailScreenProps {
@@ -99,6 +103,38 @@ export default function ActionDetailScreen({
     addNote,
     deleteNote,
   } = useActionNotes(action.id, action.family_id);
+  // ── "Email this" (owner request, Sep 2 2026) ──────────────────────────
+  // A plan item is usually an ask addressed to somebody. Writing that ask by
+  // hand, outside the app, is how it stays out of the paper trail — so the
+  // draft is generated here and sent through the same tracked path Letters
+  // and the Navigator use.
+  const { family } = useFamily();
+  const { children } = useChildren(family?.id);
+  const { contacts } = useContacts(family?.id);
+  const [showEmail, setShowEmail] = useState(false);
+  const [audience, setAudience] = useState<ActionEmailAudience>('agency');
+  const emailChild = useMemo(
+    () =>
+      children.find((c) => c.id === action.child_id) ??
+      children.find((c) => c.is_primary) ??
+      children[0],
+    [children, action.child_id]
+  );
+  const generatedEmail = useMemo(
+    () =>
+      buildActionEmail(
+        action,
+        {
+          childFirstName: emailChild?.first_name ?? null,
+          parentName: [family?.parent_first_name, family?.parent_last_name]
+            .filter(Boolean)
+            .join(' ') || null,
+        },
+        audience
+      ),
+    [action, emailChild?.first_name, family?.parent_first_name, family?.parent_last_name, audience]
+  );
+
   const learnMoreKey = LEARN_MORE_BY_ACTION_TITLE[action.title];
   const { scale, cycleScale } = useTextScale();
   /** Scaled font size — applied to all reading-heavy text */
@@ -263,6 +299,14 @@ export default function ActionDetailScreen({
             accessibilityLabel="Edit this action"
           >
             <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setShowEmail(true)}
+            style={styles.shareButton}
+            accessibilityRole="button"
+            accessibilityLabel="Write an email about this action"
+          >
+            <Ionicons name="mail-outline" size={18} color={colors.teal} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleShare}
@@ -690,6 +734,24 @@ export default function ActionDetailScreen({
           )}
         </View>
 
+        {/* Write the email this step is really asking for — generated from the
+            action itself, and tracked in the paper trail once it goes. */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>✉️ Email about this</Text>
+          <Text style={styles.calendarStatus}>
+            We'll draft a friendly first ask from this step — you choose who it goes to, edit
+            anything, and it's saved to your paper trail when you send it.
+          </Text>
+          <TouchableOpacity
+            style={styles.calendarButton}
+            onPress={() => setShowEmail(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Write an email about this action"
+          >
+            <Text style={styles.calendarButtonText}>Write this email</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Google Calendar (021): turn this action into a real event with invitees */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🗓️ Google Calendar</Text>
@@ -753,6 +815,38 @@ export default function ActionDetailScreen({
         action={action}
         onClose={() => setShowEventModal(false)}
         onSaved={(googleEventId) => onUpdate({ google_event_id: googleEventId })}
+      />
+
+      <TrackedEmailModal
+        visible={showEmail}
+        familyId={action.family_id}
+        title="Email about this step"
+        defaultSubject={generatedEmail.subject}
+        body={generatedEmail.body}
+        contacts={contacts}
+        childId={action.child_id ?? null}
+        templateKey="action_item"
+        onClose={() => setShowEmail(false)}
+        audienceControl={
+          <View style={styles.audienceRow} accessibilityRole="tablist">
+            {(['agency', 'team'] as const).map((a) => (
+              <TouchableOpacity
+                key={a}
+                style={[styles.audienceTab, audience === a && styles.audienceTabOn]}
+                onPress={() => setAudience(a)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: audience === a }}
+                accessibilityLabel={
+                  a === 'agency' ? 'Write to the agency' : 'Write to someone on your team'
+                }
+              >
+                <Text style={[styles.audienceText, audience === a && styles.audienceTextOn]}>
+                  {a === 'agency' ? 'To the agency' : 'To my team'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -1311,6 +1405,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  audienceRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    backgroundColor: '#F1F5F9',
+    borderRadius: radii.md,
+    padding: 3,
+    marginBottom: spacing.sm,
+  },
+  audienceTab: {
+    flex: 1,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.sm,
+  },
+  audienceTabOn: { backgroundColor: colors.white },
+  audienceText: { fontSize: 13, color: '#64748B', fontWeight: '600' },
+  audienceTextOn: { color: colors.navy, fontWeight: '700' },
   calendarStatus: {
     fontSize: fonts.sizes.sm,
     color: colors.dark,

@@ -42,6 +42,7 @@ import { SkeletonCard } from '@/components/ui';
 import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
 import { brand, fonts, spacing, radii } from '@/lib/theme';
+import { isNewlyAdded, formatAddedOn, newBadgeLabel } from '@/lib/actionFreshness';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -167,12 +168,30 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   // not a limitation. Any explicit filter shows everything it matches.
   const [showAll, setShowAll] = useState(false);
   const focusMode = activeFilter === 'all' && !showAll;
+
+  // One clock for the whole render, so every row's "new" and "added" line
+  // agree with each other (and so a test can pin the moment).
+  // `actions` is the intended trigger even though the body does not read it:
+  // the clock should re-read when the list refetches, not on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const now = useMemo(() => Date.now(), [actions]);
+
   const visibleActions = useMemo(() => {
     if (!focusMode) return sortedActions;
-    return sortedActions
-      .filter((a) => (a.status === 'not_started' || a.status === 'in_progress') && !isLocked(a))
-      .slice(0, 3);
-  }, [focusMode, sortedActions, isLocked]);
+    const open = sortedActions.filter(
+      (a) => a.status === 'not_started' || a.status === 'in_progress'
+    );
+    const next3 = open.filter((a) => !isLocked(a)).slice(0, 3);
+    // Anything saved in the last day is shown even when the focus view would
+    // have collapsed it. A parent who just saved three steps out of an answer
+    // and then opens the plan has to SEE them — "your new items are behind
+    // 'Show everything'" is the failure this whole change is about. Order is
+    // preserved so the focus list still reads next-step-first.
+    const fresh = open.filter((a) => isNewlyAdded(a.created_at, now) && !next3.includes(a));
+    if (fresh.length === 0) return next3;
+    const keep = new Set([...next3, ...fresh]);
+    return sortedActions.filter((a) => keep.has(a));
+  }, [focusMode, sortedActions, isLocked, now]);
   const hiddenCount = sortedActions.length - visibleActions.length;
 
   /** Open an action's full detail. Standalone the Tracker stack owns
@@ -378,6 +397,8 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
             <ActionCard
               action={item}
               locked={isLocked(item)}
+              now={now}
+              locale={esUI ? 'es' : viUI ? 'vi' : 'en'}
               onStatusPress={() => handleCycleStatus(item)}
               onOpenDetail={() => openDetail(item.id)}
             />
@@ -485,15 +506,23 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
 function ActionCard({
   action,
   locked,
+  now,
+  locale = 'en',
   onStatusPress,
   onOpenDetail,
 }: {
   action: Action;
   locked?: boolean;
+  /** One clock for the whole list, so rows can't disagree about "today". */
+  now?: number;
+  locale?: 'en' | 'es' | 'vi';
   onStatusPress: () => void;
   onOpenDetail: () => void;
 }) {
   const { scale } = useTextScale();
+  const stamp = now ?? Date.now();
+  const isNew = isNewlyAdded(action.created_at, stamp);
+  const addedLabel = formatAddedOn(action.created_at, stamp, locale);
   const statusConfig = STATUS_CONFIG[action.status];
   const priorityConfig = PRIORITY_CONFIG[action.priority];
   const categoryConfig = CATEGORY_CONFIG[action.category];
@@ -549,6 +578,14 @@ function ActionCard({
             {action.title}
           </Text>
 
+          {/* Just added — so a step saved out of an answer is findable in a
+              list that sorts by priority, not by when it arrived. */}
+          {isNew && action.status !== 'completed' && action.status !== 'dismissed' && (
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>{newBadgeLabel(locale)}</Text>
+            </View>
+          )}
+
           <View style={styles.cardMeta}>
             <Text style={styles.categoryTag}>
               {categoryConfig.emoji} {categoryConfig.label}
@@ -603,6 +640,10 @@ function ActionCard({
           </Text>
         </View>
       )}
+
+      {/* When it landed in the plan. Restored here after the Plan tab's own
+          action row (which carried it) was replaced by this shared tracker. */}
+      {addedLabel ? <Text style={styles.addedText}>{addedLabel}</Text> : null}
 
       {/* Offline indicator */}
       {action.local_id && !action.synced_at && (
@@ -944,6 +985,27 @@ const styles = StyleSheet.create({
   },
   dueSoon: {
     color: '#EA580C',
+  },
+  newBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: brand.pineTint,
+    borderRadius: radii.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    marginTop: 4,
+  },
+  newBadgeText: {
+    fontSize: 10,
+    lineHeight: 14,
+    color: brand.pine,
+    fontWeight: fonts.weights.bold as '700',
+    letterSpacing: 0.3,
+  },
+  addedText: {
+    fontSize: 11,
+    color: brand.inkFaint,
+    marginTop: 6,
+    marginLeft: 38,
   },
   offlineTag: {
     fontSize: 9,
