@@ -88,7 +88,7 @@ export default function ContactsCard({ familyId }: { familyId: string }) {
     <View style={styles.card}>
       <Text style={styles.intro}>
         Your child's team — these names auto-fill into generated letters, email recipients,
-        and the AI's suggestions.
+        and the Waypoint Navigator's suggestions.
       </Text>
 
       {contacts.map((c) =>

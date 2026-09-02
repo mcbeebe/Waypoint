@@ -401,7 +401,7 @@ export default function ProfileScreen() {
     if (family?.ai_consent_at) {
       const ok = await showConfirm(
         'Turn off AI features?',
-        'The AI Navigator and document analysis will stop working until you turn this back on. Everything you have saved stays yours.',
+        'The Waypoint Navigator and document analysis will stop working until you turn this back on. Everything you have saved stays yours.',
         'Turn off',
         true
       );
@@ -827,7 +827,7 @@ export default function ProfileScreen() {
         <Text style={styles.sectionTitle}>Privacy & AI</Text>
         <View style={styles.card}>
           <Text style={styles.privacyStatus}>
-            AI features (Navigator, document analysis) are{' '}
+            AI features (Waypoint Navigator, document analysis) are{' '}
             <Text style={{ fontWeight: '700' }}>{family?.ai_consent_at ? 'ON' : 'OFF'}</Text>.
             {family?.ai_consent_at
               ? ' Your questions, your child’s age/diagnoses, and documents you analyze are processed by Anthropic to generate guidance.'
@@ -869,7 +869,7 @@ export default function ProfileScreen() {
               </Text>
               {memories.length === 0 ? (
                 <Text style={styles.memoryEmpty}>
-                  Nothing saved yet — memories appear after your next AI Navigator chat.
+                  Nothing saved yet — memories appear after your next Waypoint Navigator chat.
                 </Text>
               ) : (
                 <>

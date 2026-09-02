@@ -74,13 +74,13 @@ export default function ReimbursablesScreen() {
               placeholderTextColor={brand.inkFaint}
               returnKeyType="search"
               onSubmitEditing={() => askAI()}
-              accessibilityLabel="Ask Waypoint AI about Regional Center funding"
+              accessibilityLabel="Ask the Waypoint Navigator about Regional Center funding"
             />
             <Pressable
               style={({ pressed }) => [styles.askBtn, pressed && styles.askBtnPressed]}
               onPress={() => askAI()}
               accessibilityRole="button"
-              accessibilityLabel="Ask Waypoint AI your question"
+              accessibilityLabel="Send your question to the Waypoint Navigator"
             >
               <Ionicons name="sparkles" size={sz(14)} color={colors.white} />
               <Text style={[styles.askBtnText, { fontSize: sz(13) }]}>Ask</Text>

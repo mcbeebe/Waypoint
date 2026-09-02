@@ -28,12 +28,12 @@ const STEPS: TutorialStep[] = [
   {
     emoji: '📍',
     title: 'Your Waypoint Navigator',
-    description: 'Ask questions about your child\'s rights, services, and next steps. The AI knows California disability law and gives personalized guidance.',
+    description: 'Ask questions about your child\'s rights, services, and next steps. The Waypoint Navigator is AI trained on California disability law, and gives personalized guidance.',
   },
   {
     emoji: '📋',
     title: 'Action Plan Tracker',
-    description: 'Save AI recommendations as action items. Track progress, set priorities, and never lose sight of important next steps.',
+    description: 'Save the Waypoint Navigator\'s recommendations as action items. Track progress, set priorities, and never lose sight of important next steps.',
   },
   {
     emoji: '📅',

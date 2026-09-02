@@ -51,13 +51,13 @@ const es: TranslationStrings = {
     currentlyWorkingOn: 'Trabajando actualmente en:',
     more: '+{{count}} más',
     viewActions: 'Ver Acciones',
-    askAiNavigator: 'Consultar IA',
-    actionPlanHint: 'Tu plan de acción personalizado aparecerá aquí después de chatear con el Navegador de IA.',
+    askAiNavigator: 'Consultar al Navegador',
+    actionPlanHint: 'Tu plan de acción personalizado aparecerá aquí después de chatear con el Navegador de Waypoint.',
     quickActions: 'Acciones Rápidas',
   },
 
   navigator: {
-    title: 'Navegador de IA',
+    title: 'Navegador de Waypoint',
     subtitle: 'Tu guía a través de los servicios de discapacidad',
     placeholder: 'Pregunta sobre IEP, Centro Regional, seguro…',
     welcomeTitle: '¿Cómo puedo ayudarte hoy?',
@@ -74,7 +74,7 @@ const es: TranslationStrings = {
     errorGeneric: 'Tuve problemas generando una respuesta. Por favor intenta de nuevo.',
     newChat: 'Nueva Conversación',
     disclaimer:
-      'Información educativa solamente — no es asesoría legal. Disability Rights California: 1-800-776-5746',
+      'Orientación generada por IA — información educativa solamente, no es asesoría legal. Disability Rights California: 1-800-776-5746',
     followUpsHint: 'Sugerencia de seguimiento',
   },
 
@@ -86,7 +86,7 @@ const es: TranslationStrings = {
     completed: 'Completado',
     dismissed: 'Descartado',
     noActions: 'Aún no hay acciones',
-    noActionsHint: 'Chatea con el Navegador de IA para obtener pasos de acción personalizados para tu situación.',
+    noActionsHint: 'Chatea con el Navegador de Waypoint para obtener pasos de acción personalizados para tu situación.',
     steps: 'Pasos',
     stepsComplete: '{{done}}/{{total}} pasos',
     dueIn: 'Vence en {{days}} días',

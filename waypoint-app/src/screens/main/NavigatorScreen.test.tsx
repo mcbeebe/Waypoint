@@ -124,6 +124,45 @@ describe('reaching the action plan from the Navigator', () => {
   });
 });
 
+describe('the parent is told they are talking to a machine', () => {
+  /**
+   * Before this change the whole chat path was AI-free to a reader: the
+   * header said "Waypoint Navigator", the greeting said "Hi! I'm your Waypoint
+   * Navigator", every entry point said "Ask the Waypoint Navigator", and the
+   * only standing disclaimer said "Educational information only — not legal
+   * advice". Finishing the rename without adding disclosure would have removed
+   * the last signal rather than renamed anything.
+   */
+  it('discloses AI in the standing footnote, on an empty chat', () => {
+    render(<NavigatorScreen />);
+    const disclaimer = screen.getByText(/not legal advice/i);
+    expect(disclaimer.textContent).toMatch(/\bAI\b/);
+    // and it still hands the family a human to call
+    expect(disclaimer.textContent).toContain('1-800-776-5746');
+  });
+
+  it('discloses AI in the greeting, where a parent actually starts reading', () => {
+    render(<NavigatorScreen />);
+    expect(screen.getByText(/Hi! I'm your Waypoint Navigator/)).toBeTruthy();
+    expect(screen.getByText(/I'm an AI trained on California disability law/)).toBeTruthy();
+  });
+
+  it('still discloses AI once a conversation is underway', () => {
+    // The greeting is replaced by the transcript, so the footnote is the only
+    // thing carrying the disclosure from the second message onward.
+    h.messages = [answer()];
+    render(<NavigatorScreen />);
+    expect(screen.queryByText(/Hi! I'm your Waypoint Navigator/)).toBeNull();
+    expect(screen.getByText(/not legal advice/i).textContent).toMatch(/\bAI\b/);
+  });
+
+  it('never calls the product "AI Navigator" any more', () => {
+    h.messages = [answer()];
+    const { container } = render(<NavigatorScreen />);
+    expect(container.textContent).not.toMatch(/AI Navigator/);
+  });
+});
+
 describe('emailing an answer', () => {
   it('opens the tracked sheet — recipient required, nothing logged yet', async () => {
     h.messages = [answer()];

@@ -801,8 +801,9 @@ function WelcomeView({
         </View>
         <Text style={styles.welcomeTitle}>Hi! I'm your Waypoint Navigator.</Text>
         <Text style={styles.welcomeSubtitle}>
-          I can help you understand your rights, navigate Regional Centers, prepare for IEP
-          meetings, and take concrete next steps for your child.
+          I'm an AI trained on California disability law. I can help you understand your rights,
+          navigate Regional Centers, prepare for IEP meetings, and take concrete next steps for
+          your child.
         </Text>
       </View>
       <LearnPanel locale={locale} query={query} onAsk={onFill} onAskAI={onSend} />

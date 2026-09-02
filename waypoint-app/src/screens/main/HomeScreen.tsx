@@ -90,9 +90,9 @@ const COMPOSER_PLACEHOLDER: Record<FunnelLocale, string> = {
 
 /** The always-present "ask the AI" row and the section label for hits. */
 const ASK_AI_ROW: Record<FunnelLocale, string> = {
-  en: 'Ask Waypoint AI',
-  es: 'Preguntar a la IA de Waypoint',
-  vi: 'Hỏi Trợ lý AI của Waypoint',
+  en: 'Ask the Waypoint Navigator',
+  es: 'Preguntar al Navegador de Waypoint',
+  vi: 'Hỏi Trợ lý Waypoint',
 };
 const HINT_KINDS: Record<FunnelLocale, { article: string; path: string; glossary: string }> = {
   en: { article: 'Read', path: 'How it works', glossary: 'What it means' },
@@ -119,9 +119,9 @@ const ASK_BTN: Record<FunnelLocale, string> = {
   vi: 'Hỏi',
 };
 const ASK_BTN_LABEL: Record<FunnelLocale, string> = {
-  en: 'Ask Waypoint AI your question',
-  es: 'Pregúntele a la IA de Waypoint',
-  vi: 'Hỏi Trợ lý AI của Waypoint',
+  en: 'Send your question to the Waypoint Navigator',
+  es: 'Envíe su pregunta al Navegador de Waypoint',
+  vi: 'Gửi câu hỏi của quý vị đến Trợ lý Waypoint',
 };
 /** The one-line invitation over the starter chips. */
 const STARTER_HINT: Record<FunnelLocale, string> = {

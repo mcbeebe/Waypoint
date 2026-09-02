@@ -551,7 +551,7 @@ export default function LettersScreen() {
             {chatGuidance && (
               <View style={styles.guidanceChip}>
                 <Text style={styles.guidanceChipText}>
-                  ✓ Using the context from your AI chat — the draft will reflect what you discussed.
+                  ✓ Using the context from your Waypoint Navigator chat — the draft will reflect what you discussed.
                 </Text>
               </View>
             )}

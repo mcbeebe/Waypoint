@@ -51,13 +51,13 @@ const vi: TranslationStrings = {
     currentlyWorkingOn: 'Đang thực hiện:',
     more: '+{{count}} nữa',
     viewActions: 'Xem Hành Động',
-    askAiNavigator: 'Hỏi AI',
-    actionPlanHint: 'Kế hoạch hành động cá nhân sẽ xuất hiện ở đây sau khi bạn trò chuyện với Hướng Dẫn Viên AI.',
+    askAiNavigator: 'Hỏi Trợ lý Waypoint',
+    actionPlanHint: 'Kế hoạch hành động cá nhân sẽ xuất hiện ở đây sau khi bạn trò chuyện với Trợ lý Waypoint.',
     quickActions: 'Thao Tác Nhanh',
   },
 
   navigator: {
-    title: 'Hướng Dẫn Viên AI',
+    title: 'Trợ lý Waypoint',
     subtitle: 'Người hướng dẫn qua các dịch vụ khuyết tật',
     placeholder: 'Hỏi về IEP, Trung tâm Khu vực, bảo hiểm…',
     welcomeTitle: 'Tôi có thể giúp gì hôm nay?',
@@ -74,7 +74,7 @@ const vi: TranslationStrings = {
     errorGeneric: 'Tôi gặp khó khăn khi tạo phản hồi. Vui lòng thử lại.',
     newChat: 'Cuộc Trò Chuyện Mới',
     disclaimer:
-      'Chỉ là thông tin giáo dục — không phải tư vấn pháp lý. Disability Rights California: 1-800-776-5746',
+      'Hướng dẫn do AI tạo ra — chỉ là thông tin giáo dục, không phải tư vấn pháp lý. Disability Rights California: 1-800-776-5746',
     followUpsHint: 'Câu hỏi gợi ý tiếp theo',
   },
 
@@ -86,7 +86,7 @@ const vi: TranslationStrings = {
     completed: 'Hoàn Thành',
     dismissed: 'Đã Bỏ Qua',
     noActions: 'Chưa có hành động nào',
-    noActionsHint: 'Trò chuyện với Hướng Dẫn Viên AI để nhận các bước hành động được cá nhân hóa cho tình huống của bạn.',
+    noActionsHint: 'Trò chuyện với Trợ lý Waypoint để nhận các bước hành động được cá nhân hóa cho tình huống của bạn.',
     steps: 'Bước',
     stepsComplete: '{{done}}/{{total}} bước',
     dueIn: 'Hạn chót trong {{days}} ngày',

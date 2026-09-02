@@ -815,7 +815,7 @@ export default function ActionDetailScreen({
         {/* Source */}
         <View style={styles.sourceRow}>
           <Text style={styles.sourceText}>
-            Source: {action.source === 'ai_navigator' ? '🧭 AI Navigator' : action.source === 'system' ? '⚙️ System' : '✏️ Manual'}
+            Source: {action.source === 'ai_navigator' ? '🧭 Waypoint Navigator' : action.source === 'system' ? '⚙️ System' : '✏️ Manual'}
           </Text>
         </View>
       </ScrollView>
