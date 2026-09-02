@@ -1,38 +1,80 @@
 /**
  * Family Sharing B2 — what the owner is told about delivery must be true.
- * A card that says "sent" for an email that never left is the failure mode
- * the whole phase exists to prevent.
+ * A card that says "sent" for an email that never left — or that hides a
+ * failure behind an older success — is the failure mode this phase exists
+ * to prevent.
  */
 import { describe, it, expect } from 'vitest';
-import { deliveryState, describeSendFailure, shortDate } from './inviteDelivery';
+import {
+  deliveryState, describeSendFailure, isValidInviteEmail, joinLinkFor, parseSendError, shortDate,
+} from './inviteDelivery';
+
+const NOW = new Date('2026-09-02T12:00:00Z');
+const FUTURE = '2026-09-16T12:00:00Z';
+const PAST = '2026-08-01T12:00:00Z';
 
 describe('deliveryState', () => {
   it('reports sent only when the row says it went out', () => {
-    expect(deliveryState({ sent_at: '2026-09-02T10:00:00Z', send_error: null })).toEqual({ kind: 'sent', at: '2026-09-02T10:00:00Z' });
+    expect(deliveryState({ sent_at: '2026-09-02T10:00:00Z', send_error: null, expires_at: FUTURE }, NOW))
+      .toEqual({ kind: 'sent', at: '2026-09-02T10:00:00Z' });
   });
-  it('reports the last failure when nothing has ever gone out', () => {
-    expect(deliveryState({ sent_at: null, send_error: 'provider 422' })).toEqual({ kind: 'failed', reason: 'provider 422' });
+  it('a present send_error is the LATEST attempt and outranks an older success', () => {
+    // The function nulls send_error on success, so if it is set, the last try failed.
+    const s = deliveryState({ sent_at: '2026-09-02T10:00:00Z', send_error: 'send_failed:Domain not verified', expires_at: FUTURE }, NOW);
+    expect(s.kind).toBe('failed');
+    expect(s.kind === 'failed' && s.text).toBe("The email didn't send (Domain not verified).");
   });
-  it('a successful send clears an older failure', () => {
-    // The function nulls send_error on success; sent_at wins either way.
-    expect(deliveryState({ sent_at: '2026-09-02T10:00:00Z', send_error: 'old' }).kind).toBe('sent');
+  it('an expired invite is expired whatever was sent', () => {
+    expect(deliveryState({ sent_at: '2026-08-01T10:00:00Z', send_error: null, expires_at: PAST }, NOW).kind).toBe('expired');
   });
-  it('is unsent when neither has happened', () => {
-    expect(deliveryState({ sent_at: null, send_error: null })).toEqual({ kind: 'unsent' });
+  it('is unsent when nothing has happened', () => {
+    expect(deliveryState({ sent_at: null, send_error: null, expires_at: FUTURE }, NOW)).toEqual({ kind: 'unsent' });
+  });
+  it('reads the same vocabulary the server writes', () => {
+    const s = deliveryState({ sent_at: null, send_error: 'delivery_not_configured', expires_at: FUTURE }, NOW);
+    expect(s.kind === 'failed' && s.text).toMatch(/Copy link/);
+  });
+});
+
+describe('parseSendError', () => {
+  it('splits code:reason and tolerates a bare code', () => {
+    expect(parseSendError('send_failed:provider 422')).toEqual({ code: 'send_failed', reason: 'provider 422' });
+    expect(parseSendError('rate_limited')).toEqual({ code: 'rate_limited' });
+    expect(parseSendError(null)).toBeNull();
   });
 });
 
 describe('describeSendFailure', () => {
-  it('tells the owner the invite is saved when delivery is not configured', () => {
-    expect(describeSendFailure('delivery_not_configured')).toMatch(/saved/);
-    expect(describeSendFailure('delivery_not_configured')).toMatch(/by hand/);
+  it('names the by-hand path when delivery is not configured', () => {
+    expect(describeSendFailure('delivery_not_configured')).toMatch(/Copy link/);
+    expect(describeSendFailure('delivery_not_configured', 'migration 057 not applied')).toMatch(/057/);
   });
-  it('passes a short provider reason through', () => {
-    expect(describeSendFailure('send_failed', 'Domain not verified')).toBe("The email didn't send (Domain not verified).");
+  it('rate limits point at tomorrow or the link', () => {
+    expect(describeSendFailure('rate_limited')).toMatch(/tomorrow/);
   });
   it('always points at Resend for the unknown case', () => {
     expect(describeSendFailure(undefined)).toMatch(/Resend/);
-    expect(describeSendFailure('something_else')).toMatch(/Resend/);
+  });
+});
+
+describe('isValidInviteEmail', () => {
+  it('accepts one plain address', () => {
+    expect(isValidInviteEmail('jordan@example.com')).toBe(true);
+    expect(isValidInviteEmail('  Jordan.Lee+kids@example.co.uk ')).toBe(true);
+  });
+  it('refuses lists, display-name form, and junk — the accept RPC compares verbatim', () => {
+    expect(isValidInviteEmail('a@b.com, c@d.com')).toBe(false);
+    expect(isValidInviteEmail('Jordan <jordan@example.com>')).toBe(false);
+    expect(isValidInviteEmail('jordan')).toBe(false);
+    expect(isValidInviteEmail('')).toBe(false);
+    expect(isValidInviteEmail('a@' + 'b'.repeat(260) + '.com')).toBe(false);
+  });
+});
+
+describe('joinLinkFor', () => {
+  it("builds the link on the app's canonical origin and encodes the token", () => {
+    expect(joinLinkFor('8f3c-abc')).toBe('https://waypointchild.com/join?token=8f3c-abc');
+    expect(joinLinkFor('a b')).toBe('https://waypointchild.com/join?token=a%20b');
   });
 });
 

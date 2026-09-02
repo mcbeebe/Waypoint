@@ -343,8 +343,10 @@ export interface FamilyInvitation {
   expires_at: string;
   /** When the join-link email last went out; null until it has (migration 056). */
   sent_at: string | null;
-  /** Why the last send failed, for the owner's pending card; null once one succeeds. */
+  /** Why the last send failed — `code` or `code:reason` — null once a send succeeds (migration 056). */
   send_error: string | null;
+  /** The email provider's message id for the last successful send (migration 057). */
+  provider_message_id?: string | null;
 }
 
 export type ActivityActionType =
