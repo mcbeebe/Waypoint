@@ -341,6 +341,10 @@ export interface FamilyInvitation {
   responded_at: string | null;
   /** A join link ages out — 14 days from creation (migration 054). */
   expires_at: string;
+  /** When the join-link email last went out; null until it has (migration 056). */
+  sent_at: string | null;
+  /** Why the last send failed, for the owner's pending card; null once one succeeds. */
+  send_error: string | null;
 }
 
 export type ActivityActionType =

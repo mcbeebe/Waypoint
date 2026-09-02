@@ -82,3 +82,9 @@ jobs:
         # verify_jwt=false (config.toml) — the pg_cron/pg_net entry. Reads
         # _shared/gmailSync.ts + _shared/pushSend.ts.
         run: supabase functions deploy poll-replies --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Deploy family-invite
+        if: steps.token.outputs.present == 'true'
+        # verify_jwt=true (config.toml). Needs RESEND_API_KEY set as a Supabase
+        # secret; without it the function answers 503 delivery_not_configured.
+        run: supabase functions deploy family-invite --project-ref "$SUPABASE_PROJECT_ID"

@@ -56,6 +56,19 @@ applied; buys honesty while B1–B3 are built. *(Family-facing copy → gated.)*
 
 ### B2 — delivery (Edge Function + email)
 
+**Status (Sep 2 2026): BUILT for owner go — `supabase/functions/family-invite`,
+migration `056`, `lib/familyInvite.ts`, hook + screen wiring.** Authorization
+is RLS, not code: the function reads the invitation with the CALLER's JWT, so
+055's admin policy returns the row only to the family's owner/admin; the same
+client stamps `sent_at` / `send_error`. It refuses non-pending or expired
+invites and re-sends inside a 60 s cooldown; never logs the token; HTML-escapes
+everything a person typed. The pending card now says the truth about delivery
+("Email sent Sep 2" / the failure reason / "not sent yet") and offers Resend;
+the invite toast reports what actually happened. **Owner setup:** add
+`RESEND_API_KEY` as a Supabase secret and verify the sending domain in Resend
+(optional `INVITE_FROM_EMAIL`, `APP_URL`); until then the function answers
+`delivery_not_configured` and the card says "share the join link by hand".
+
 - New `supabase/functions/family-invite`: given an invitation id (admin-authed),
   send the invitee a branded email with a link
   `https://waypointchild.com/join?token=<token>`. Collaborative, warm tone (per

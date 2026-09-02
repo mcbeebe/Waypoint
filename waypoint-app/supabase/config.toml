@@ -27,3 +27,9 @@ verify_jwt = false
 # The app-closed cron entry (phase 7 Lane B). pg_cron → pg_net posts here with
 # no JWT; the OUTBOUND_CRON_SECRET shared secret is the auth. Do not flip true.
 verify_jwt = false
+
+[functions.family-invite]
+# Family Sharing B2: emails a co-parent their join link (Resend). Standard
+# user-JWT auth; authorization is RLS (055) — the invitation is read with the
+# caller's own token, so only the family's owner/admin gets the row.
+verify_jwt = true
