@@ -107,13 +107,15 @@ This is the decision record; the recommendations below were all accepted.
 Email-match on accept (B3) stays **yes** — the tokenised link only works for the
 invited address — unless the owner later relaxes it.
 
-**Open money decision, surfaced by the B1 adversary pass (awaiting owner):** the
-SDP *facilitation* tables — `sdp_cases` (budget amounts), `service_events`
-(billable time), `spending_plan_lines` (invoice inputs), `family_baselines`,
-`transition_extensions` — are billing-upstream. Granting a co-parent write to
-them is the money lane that stops and waits, so `053` **excludes** them for now:
-a member sees no SDP case data in v1. Decide later whether co-parents get them
-(read, or read+write). Everything else in "the whole family file" ships in B1.
+5. **SDP facilitation tables? → YES, a co-parent sees everything** (owner, Sep 2
+   2026: "yes for now"). Surfaced by the B1 adversary pass: `sdp_cases` (budget
+   amounts), `service_events` (billable time), `spending_plan_lines` (invoice
+   inputs), `family_baselines`, `transition_extensions` are billing-upstream, so
+   granting a co-parent write to them is the money lane that stops and waits.
+   They were held out of `053`, the question was put to the owner explicitly,
+   and the owner included them — read + write, consistent with decision 2's
+   all-or-nothing. "For now" is noted: revisit if a read-only carve-out is ever
+   wanted.
 
 ## Sequencing & size
 

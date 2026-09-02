@@ -33,16 +33,19 @@
 --   children · diagnoses · appointments · deadlines · documents · document_shares
 --   · iep_goals · iep_goal_logs · expenses · providers · services · communications
 --   · family_memories · family_contacts · insurance_authorizations · action_notes
---   · actions · family_requests            (full read + write)
---   families                               (READ only — the family record)
---   home_deferrals                         (already member-scoped in 049)
+--   · actions · family_requests · sdp_cases · service_events · spending_plan_lines
+--   · family_baselines · transition_extensions   (full read + write)
+--   families                                      (READ only — the family record)
+--   home_deferrals                                (already member-scoped in 049)
 --
--- DEFERRED — money-adjacent, pending an explicit owner decision (NOT in v1):
---   sdp_cases (budget amounts), service_events (billable time), spending_plan_lines
---   (invoice inputs), family_baselines, transition_extensions. Giving a co-parent
---   WRITE to billing-upstream facilitation data is exactly the money lane
---   CLAUDE.md says stops and waits — so a member sees no SDP case data in v1.
---   Add them (read, or read+write) in a follow-up once the owner says so.
+-- ON THE SDP FACILITATION TABLES (money-adjacent — an explicit owner decision):
+--   sdp_cases carries budget amounts, service_events billable time,
+--   spending_plan_lines the invoice inputs. Granting a co-parent WRITE to
+--   billing-upstream data is the money lane CLAUDE.md says stops and waits. It
+--   was held out of this migration for that reason, then the owner decided
+--   (Sep 2 2026): "yes for now — a co-parent sees everything." So they are
+--   included, read + write, matching the all-or-nothing "whole family file"
+--   decision. Recorded in Roadmap/initiatives/007-family-sharing-invites/plan.md.
 --
 -- DELIBERATELY EXCLUDED from member access in v1 (each a real privacy/scope call
 -- — a co-parent should NOT silently get these):
@@ -176,6 +179,22 @@ create policy "Family members access requests" on public.family_requests for all
   using (family_id in (select public.member_family_ids()))
   with check (family_id in (select public.member_family_ids()));
 
+-- ── SDP case data (family_id-scoped) — owner-approved, see header ──
+drop policy if exists "Family members access sdp cases" on public.sdp_cases;
+create policy "Family members access sdp cases" on public.sdp_cases for all
+  using (family_id in (select public.member_family_ids()))
+  with check (family_id in (select public.member_family_ids()));
+
+drop policy if exists "Family members access service events" on public.service_events;
+create policy "Family members access service events" on public.service_events for all
+  using (family_id in (select public.member_family_ids()))
+  with check (family_id in (select public.member_family_ids()));
+
+drop policy if exists "Family members access baselines" on public.family_baselines;
+create policy "Family members access baselines" on public.family_baselines for all
+  using (family_id in (select public.member_family_ids()))
+  with check (family_id in (select public.member_family_ids()));
+
 -- ── Tables scoped by child_id → children ──
 drop policy if exists "Family members access diagnoses" on public.diagnoses;
 create policy "Family members access diagnoses" on public.diagnoses for all
@@ -186,7 +205,21 @@ create policy "Family members access diagnoses" on public.diagnoses for all
     select id from public.children where family_id in (select public.member_family_ids())
   ));
 
--- SDP facilitation tables (sdp_cases, service_events, spending_plan_lines,
--- family_baselines, transition_extensions) are intentionally NOT granted to
--- members here — see the DEFERRED note in the header (money-adjacent, awaiting
--- an explicit owner decision).
+-- ── SDP child tables scoped by case_id → sdp_cases ──
+drop policy if exists "Family members access extensions" on public.transition_extensions;
+create policy "Family members access extensions" on public.transition_extensions for all
+  using (case_id in (
+    select id from public.sdp_cases where family_id in (select public.member_family_ids())
+  ))
+  with check (case_id in (
+    select id from public.sdp_cases where family_id in (select public.member_family_ids())
+  ));
+
+drop policy if exists "Family members access plan lines" on public.spending_plan_lines;
+create policy "Family members access plan lines" on public.spending_plan_lines for all
+  using (case_id in (
+    select id from public.sdp_cases where family_id in (select public.member_family_ids())
+  ))
+  with check (case_id in (
+    select id from public.sdp_cases where family_id in (select public.member_family_ids())
+  ));
