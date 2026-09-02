@@ -33,10 +33,16 @@
 --   children · diagnoses · appointments · deadlines · documents · document_shares
 --   · iep_goals · iep_goal_logs · expenses · providers · services · communications
 --   · family_memories · family_contacts · insurance_authorizations · action_notes
---   · actions · family_requests · sdp_cases · service_events · spending_plan_lines
---   · family_baselines · transition_extensions   (full read + write)
---   families                                      (READ only — the family record)
---   home_deferrals                                (already member-scoped in 049)
+--   · actions · family_requests            (full read + write)
+--   families                               (READ only — the family record)
+--   home_deferrals                         (already member-scoped in 049)
+--
+-- DEFERRED — money-adjacent, pending an explicit owner decision (NOT in v1):
+--   sdp_cases (budget amounts), service_events (billable time), spending_plan_lines
+--   (invoice inputs), family_baselines, transition_extensions. Giving a co-parent
+--   WRITE to billing-upstream facilitation data is exactly the money lane
+--   CLAUDE.md says stops and waits — so a member sees no SDP case data in v1.
+--   Add them (read, or read+write) in a follow-up once the owner says so.
 --
 -- DELIBERATELY EXCLUDED from member access in v1 (each a real privacy/scope call
 -- — a co-parent should NOT silently get these):
@@ -49,8 +55,17 @@
 --   family_assignments, staff_access_log — who staff may see; an admin/owner act
 --   invoices, invoice_lines, vendor_packets — staff/vendor billing
 --   analytics_events                — anonymous telemetry, not user-facing data
---   families (WRITE)                — account-level settings stay with the owner
+--   google_accounts, profiles, direct_messages, user_blocks — per-user / community
+--   families (WRITE)                — account-level settings stay with the owner.
+--                                     One live consequence: a member's tool-pin
+--                                     write (useToolPins → UPDATE families) is
+--                                     denied and degrades to device-local, so the
+--                                     pinned-tools set is owner-write in v1.
 -- Any of these can be revisited in a later, deliberate migration.
+--
+-- NOTE (pre-existing, out of scope): action_stats is a VIEW over actions. If it
+-- is not security_invoker, RLS on actions isn't applied through it for anyone —
+-- worth a separate look, unaffected by this migration either way.
 --
 -- Apply by hand in the Supabase SQL editor, in order, like every migration. No
 -- restart or cache flush is needed — PostgREST re-plans per request. This is a
@@ -161,22 +176,6 @@ create policy "Family members access requests" on public.family_requests for all
   using (family_id in (select public.member_family_ids()))
   with check (family_id in (select public.member_family_ids()));
 
--- ── SDP case data (family_id-scoped) ──
-drop policy if exists "Family members access sdp cases" on public.sdp_cases;
-create policy "Family members access sdp cases" on public.sdp_cases for all
-  using (family_id in (select public.member_family_ids()))
-  with check (family_id in (select public.member_family_ids()));
-
-drop policy if exists "Family members access service events" on public.service_events;
-create policy "Family members access service events" on public.service_events for all
-  using (family_id in (select public.member_family_ids()))
-  with check (family_id in (select public.member_family_ids()));
-
-drop policy if exists "Family members access baselines" on public.family_baselines;
-create policy "Family members access baselines" on public.family_baselines for all
-  using (family_id in (select public.member_family_ids()))
-  with check (family_id in (select public.member_family_ids()));
-
 -- ── Tables scoped by child_id → children ──
 drop policy if exists "Family members access diagnoses" on public.diagnoses;
 create policy "Family members access diagnoses" on public.diagnoses for all
@@ -187,21 +186,7 @@ create policy "Family members access diagnoses" on public.diagnoses for all
     select id from public.children where family_id in (select public.member_family_ids())
   ));
 
--- ── SDP child tables scoped by case_id → sdp_cases ──
-drop policy if exists "Family members access extensions" on public.transition_extensions;
-create policy "Family members access extensions" on public.transition_extensions for all
-  using (case_id in (
-    select id from public.sdp_cases where family_id in (select public.member_family_ids())
-  ))
-  with check (case_id in (
-    select id from public.sdp_cases where family_id in (select public.member_family_ids())
-  ));
-
-drop policy if exists "Family members access plan lines" on public.spending_plan_lines;
-create policy "Family members access plan lines" on public.spending_plan_lines for all
-  using (case_id in (
-    select id from public.sdp_cases where family_id in (select public.member_family_ids())
-  ))
-  with check (case_id in (
-    select id from public.sdp_cases where family_id in (select public.member_family_ids())
-  ));
+-- SDP facilitation tables (sdp_cases, service_events, spending_plan_lines,
+-- family_baselines, transition_extensions) are intentionally NOT granted to
+-- members here — see the DEFERRED note in the header (money-adjacent, awaiting
+-- an explicit owner decision).

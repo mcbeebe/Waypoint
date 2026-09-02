@@ -107,6 +107,14 @@ This is the decision record; the recommendations below were all accepted.
 Email-match on accept (B3) stays **yes** — the tokenised link only works for the
 invited address — unless the owner later relaxes it.
 
+**Open money decision, surfaced by the B1 adversary pass (awaiting owner):** the
+SDP *facilitation* tables — `sdp_cases` (budget amounts), `service_events`
+(billable time), `spending_plan_lines` (invoice inputs), `family_baselines`,
+`transition_extensions` — are billing-upstream. Granting a co-parent write to
+them is the money lane that stops and waits, so `053` **excludes** them for now:
+a member sees no SDP case data in v1. Decide later whether co-parents get them
+(read, or read+write). Everything else in "the whole family file" ships in B1.
+
 ## Sequencing & size
 
 `B0` (copy) → `B1` (RLS, the big one) → `B2` (delivery) → `B3` (accept) →
