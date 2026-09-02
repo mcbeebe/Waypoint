@@ -16,6 +16,7 @@ const h = vi.hoisted(() => ({
   storedScopes: null as string | null,
   linkIdentity: vi.fn(async (_a: OAuthArg) => ({ error: null as { message: string } | null })),
   signInWithOAuth: vi.fn(async (_a: OAuthArg) => ({ error: null as { message: string } | null })),
+  upsert: vi.fn(async (_row: Record<string, unknown>) => ({ error: null })),
 }));
 
 vi.mock('@react-native-async-storage/async-storage', () => ({
@@ -33,11 +34,12 @@ vi.mock('./supabase', () => ({
       select: vi.fn(() => ({
         maybeSingle: vi.fn(async () => ({ data: h.storedScopes === null ? null : { scopes: h.storedScopes } })),
       })),
+      upsert: h.upsert,
     })),
   },
 }));
 
-import { connectGoogleWeb, connectGmailWeb, GMAIL_API_SCOPES, GOOGLE_API_SCOPES } from './googleAuth';
+import { connectGoogleWeb, connectGmailWeb, resolveScopes, GMAIL_API_SCOPES, GOOGLE_API_SCOPES } from './googleAuth';
 
 const linkIdentity = h.linkIdentity;
 const signInWithOAuth = h.signInWithOAuth;
@@ -97,5 +99,67 @@ describe('connectGoogleWeb / connectGmailWeb choose the right method for the acc
   it('keeps the scope sets distinct (Gmail is a real superset of the base)', () => {
     expect(GMAIL_API_SCOPES).toEqual(expect.arrayContaining(GOOGLE_API_SCOPES));
     expect(GMAIL_API_SCOPES.length).toBeGreaterThan(GOOGLE_API_SCOPES.length);
+  });
+});
+
+
+/**
+ * The bug this pins, observed live on Sep 2 2026: a Gmail connect succeeded,
+ * and minutes later the stored scopes were Calendar-only again — `connected_at`
+ * days old, `updated_at` seconds old. `captureGoogleTokens` runs on EVERY auth
+ * event carrying provider tokens, Supabase keeps `provider_refresh_token` in
+ * the persisted session, so it runs again on the next app load — by which
+ * point the one-shot requested-scopes note is gone, and the old fallback wrote
+ * Calendar over the Gmail grant. Home then said "Gmail not connected" forever.
+ */
+describe('resolveScopes never narrows an existing grant', () => {
+  const CAL = GOOGLE_API_SCOPES.join(' ');
+
+  beforeEach(() => {
+    h.storedScopes = null;
+    vi.unstubAllGlobals();
+  });
+
+  it('re-capture with the note already consumed PRESERVES Gmail (the live bug)', async () => {
+    h.storedScopes = GMAIL_API_SCOPES.join(' ');
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false })));
+    const out = await resolveScopes(null, null); // no token, note consumed
+    expect(out).toContain('gmail.send');
+    expect(out).toContain('gmail.readonly');
+    expect(out).not.toBe(CAL);
+  });
+
+  it('records what Google actually GRANTED, not what we asked for', async () => {
+    // Asked for Gmail; Google granted Calendar only (restricted scope withheld).
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ scope: 'https://www.googleapis.com/auth/calendar' }),
+    })));
+    const out = await resolveScopes('tok', GMAIL_API_SCOPES.join(' '));
+    expect(out).toBe('https://www.googleapis.com/auth/calendar');
+    expect(out).not.toContain('gmail.send'); // must not claim Gmail
+  });
+
+  it('stores the Gmail grant when Google confirms it', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ scope: GMAIL_API_SCOPES.join(' ') }),
+    })));
+    const out = await resolveScopes('tok', GMAIL_API_SCOPES.join(' '));
+    expect(out).toContain('gmail.send');
+  });
+
+  it('widens stored scopes by what this consent asked for when Google is unreachable', async () => {
+    h.storedScopes = CAL;
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
+    const out = await resolveScopes('tok', GMAIL_API_SCOPES.join(' '));
+    expect(out).toContain('calendar');
+    expect(out).toContain('gmail.send');
+  });
+
+  it('falls back to the base Calendar connection only for a brand-new row', async () => {
+    h.storedScopes = null;
+    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false })));
+    expect(await resolveScopes(null, null)).toBe(CAL);
   });
 });
