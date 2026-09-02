@@ -104,6 +104,13 @@ export function handoffCopy(kind: 'gmail' | 'mail'): {
 export const GMAIL_SENT_MESSAGE =
   'Sent through Gmail — saved to your paper trail, and replies will sync back here.';
 
+/**
+ * A real Gmail send whose thread id did not come back. The mail went; reply
+ * syncing cannot be promised, because poll-replies keys off the thread id.
+ */
+export const GMAIL_SENT_NO_THREAD =
+  'Sent through Gmail and saved to your paper trail. Replies may not sync back automatically.';
+
 /** Confirmation copy after the parent confirms a hand-off send. */
 export const HANDOFF_SENT_MESSAGE = 'Marked as sent — it is in your paper trail.';
 
@@ -114,3 +121,11 @@ export const HANDOFF_SENT_MESSAGE = 'Marked as sent — it is in your paper trai
  */
 export const TRAIL_FAILED_MESSAGE =
   "The email is ready to send, but we couldn't save it to your paper trail — you may need to log it by hand.";
+
+/**
+ * The worse version: the mail is already gone and the record did not stick.
+ * The parent has to know, because everything downstream — the clock, the reply
+ * sync, Home's "finish the letter you started" — now disagrees with reality.
+ */
+export const TRAIL_FAILED_AFTER_SEND =
+  "Your email sent, but we couldn't mark it sent in your paper trail — please log it by hand.";

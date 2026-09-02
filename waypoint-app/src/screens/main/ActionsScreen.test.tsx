@@ -113,6 +113,49 @@ describe('the focus view and brand-new items', () => {
     expect(screen.getByText('New')).toBeTruthy();
   });
 
+  it('caps the carve-out, so onboarding does not render the whole wall', () => {
+    // generateStarterPlan emits SEVEN actions inserted in one batch, so
+    // without a cap a brand-new account spent its first 24 hours looking at
+    // the entire plan in the view that exists to prevent exactly that.
+    h.actions = Array.from({ length: 7 }, (_, i) =>
+      action({ id: `s${i}`, title: `Starter step ${i}`, created_at: hoursAgo(0.05) })
+    );
+    render(<ActionsScreen />);
+    const shown = Array.from({ length: 7 }, (_, i) =>
+      screen.queryByText(`Starter step ${i}`)
+    ).filter(Boolean);
+    expect(shown.length).toBeLessThanOrEqual(5); // next 3 + at most 2 fresh
+    expect(screen.getByText(/Show everything \(\d+ more\)/)).toBeTruthy();
+  });
+
+  it('never offers "Show everything (0 more)"', () => {
+    // A live button that does nothing: the toggle keyed on list length while
+    // its label counted what was hidden, which the carve-out could zero out.
+    h.actions = Array.from({ length: 4 }, (_, i) =>
+      action({ id: `s${i}`, title: `Step ${i}`, created_at: hoursAgo(0.05) })
+    );
+    render(<ActionsScreen />);
+    expect(screen.queryByText(/\(0 more\)/)).toBeNull();
+  });
+
+  it('does not surface a brand-new step the parent cannot act on yet', () => {
+    // The focus view has never shown a locked step; the carve-out must not
+    // start, or "your next steps" includes one that is not yet a step.
+    h.actions = [
+      ...filler(4),
+      action({ id: 'gate', title: 'Gate', status: 'not_started', created_at: hoursAgo(300) }),
+      action({
+        id: 'fresh',
+        title: 'Blocked but brand new',
+        priority: 'low',
+        depends_on: 'gate',
+        created_at: hoursAgo(0.05),
+      }),
+    ];
+    render(<ActionsScreen />);
+    expect(screen.queryByText('Blocked but brand new')).toBeNull();
+  });
+
   it('still collapses the old ones, so the focus view stays a focus view', () => {
     h.actions = [
       ...filler(6),

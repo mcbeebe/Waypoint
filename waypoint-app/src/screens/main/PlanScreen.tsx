@@ -9,7 +9,7 @@
  * All of the deciding lives in `lib/planView.ts`, which is pure and tested;
  * this file renders it and routes the taps.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, RefreshControl, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
@@ -131,20 +131,31 @@ export default function PlanScreen() {
   // be one tap further away than before. The stored preference is not
   // overwritten: the next unparameterised visit returns to it.
   const requestedView = route.params?.view;
+  // Consumed ONCE, then cleared. Tab routes are never unmounted and a tab-bar
+  // press dispatches navigate(name, {merge: true}) with no params, so a param
+  // left in place would repin the whole tab: one tap of the Navigator's "Plan"
+  // button and a parent who lives in the calendar would land on Action Plan
+  // forever, with no way to tell why (adversary finding, Sep 2 2026). The
+  // stored preference is never overwritten by a routed view — clearing the
+  // param hands the tab back to it on the next ordinary visit.
+  const restoredPreference = useRef(false);
   useEffect(() => {
     if (requestedView) {
       setMode(requestedView);
+      // Also stops the restore below from stomping the routed view when this
+      // effect re-runs with the param gone.
+      restoredPreference.current = true;
+      (navigation as any).setParams({ view: undefined });
       return;
     }
+    if (restoredPreference.current) return;
+    restoredPreference.current = true;
     AsyncStorage.getItem(PLAN_VIEW_KEY)
       .then((v) => { if (v === 'month' || v === 'list' || v === 'actions') setMode(v); })
       .catch(() => {});
-  }, [requestedView]);
+  }, [requestedView, navigation]);
   const chooseMode = (next: PlanMode) => {
     setMode(next);
-    // A hand-picked segment replaces the routed one, so tapping "List" after
-    // arriving on Action Plan is not undone by this screen re-rendering.
-    if (requestedView) (navigation as any).setParams({ view: undefined });
     AsyncStorage.setItem(PLAN_VIEW_KEY, next).catch(() => {});
   };
 

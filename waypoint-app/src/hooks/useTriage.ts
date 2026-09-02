@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { autoSyncReplies } from '@/lib/gmail';
-import { localDay, triageHome, deferUntil } from '@/lib/homeTriage';
+import { localDay, triageHome, deferUntil, isResumableDraft } from '@/lib/homeTriage';
 import type {
   TriageInput,
   TriageItem,
@@ -207,10 +207,19 @@ export function useTriage(args: UseTriageArgs): UseTriage {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Only a LETTER draft is resumable here. The resume card says "Finish the
+  // letter you started" and routes to LettersScreen with a template key —
+  // which is meaningless for anything the letter writer did not create. Since
+  // the tracked-email path (Sep 2 2026) writes a `kind: 'email'` draft row
+  // before every send attempt, an abandoned "email this answer" used to become
+  // Home's rank-0 card — above a blown statutory clock — and tapping it landed
+  // the parent in the General letter template with an AI chat answer pasted in
+  // as the letter body. Those rows still live in the paper trail; they are
+  // simply not "a letter you started".
   const drafts: TriageDraft[] = useMemo(
     () =>
       communications
-        .filter((c) => c.status === 'draft')
+        .filter((c) => isResumableDraft(c))
         .map((c) => ({
           id: c.id,
           templateKey: c.template_key,

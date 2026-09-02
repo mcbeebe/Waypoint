@@ -47,8 +47,10 @@ import {
   planEmailRoute,
   handoffCopy,
   GMAIL_SENT_MESSAGE,
+  GMAIL_SENT_NO_THREAD,
   HANDOFF_SENT_MESSAGE,
   TRAIL_FAILED_MESSAGE,
+  TRAIL_FAILED_AFTER_SEND,
 } from '@/lib/emailTracking';
 import { brand, colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -154,7 +156,12 @@ export default function TrackedEmailModal({
   };
 
   const handleSend = async () => {
-    if (phase === 'working') return;
+    // Only ever fires from a fresh compose state. `phase === 'working'` alone
+    // was not enough: after a successful Gmail send the sheet stayed on
+    // `done`, which fell through to the compose branch with the recipient
+    // still filled and Send still live — two taps, two emails, two paper-trail
+    // rows for one intended send (adversary finding, Sep 2 2026).
+    if (phase !== 'compose') return;
     const plan = planEmailRoute({ gmailReady, to });
     if (!plan.canSend) {
       showToast(plan.blockedReason, 'error');
@@ -178,9 +185,22 @@ export default function TrackedEmailModal({
           communicationId: id,
         });
         if (result.ok) {
+          // The mail is GONE now. The row flip lives in the edge function,
+          // which discards its own update result and returns ok either way —
+          // so on a database where 046 was never applied by hand, the parent
+          // would be told "saved to your paper trail" about a row still
+          // marked draft, and Home would nag them to finish a letter the
+          // Regional Center already has. Re-assert it from here (idempotent)
+          // and tell the truth when it does not stick.
+          const stuck = await markCommunicationSent(id);
           setPhase('done');
-          showToast(GMAIL_SENT_MESSAGE, 'success');
+          // Reply syncing is a promise only the thread id can keep.
+          showToast(
+            !stuck ? TRAIL_FAILED_AFTER_SEND : result.threadId ? GMAIL_SENT_MESSAGE : GMAIL_SENT_NO_THREAD,
+            stuck ? 'success' : 'error'
+          );
           onSent?.(id);
+          onClose();
           return;
         }
         // Gmail refused (revoked grant, quota, offline). Do NOT leave the row
@@ -245,7 +265,17 @@ export default function TrackedEmailModal({
         <View style={styles.sheet}>
           <Text style={styles.title}>{title}</Text>
 
-          {phase === 'handoff' ? (
+          {phase === 'done' ? (
+            /* Terminal. The sheet is closing; this only shows if a caller
+               keeps it mounted, and it must never be the compose form. */
+            <View style={styles.handoffBanner}>
+              <Ionicons name="checkmark-circle-outline" size={18} color={brand.pine} />
+              <View style={styles.handoffTextCol}>
+                <Text style={styles.handoffHeadline}>Sent</Text>
+                <Text style={styles.handoffBody}>It is in your paper trail.</Text>
+              </View>
+            </View>
+          ) : phase === 'handoff' ? (
             <View>
               <View style={styles.handoffBanner}>
                 <Ionicons name="mail-open-outline" size={18} color={brand.pine} />
@@ -331,9 +361,11 @@ export default function TrackedEmailModal({
 
               <View style={styles.actions}>
                 <TouchableOpacity
-                  style={styles.cancelButton}
+                  style={[styles.cancelButton, phase === 'working' && styles.cancelButtonBusy]}
                   onPress={onClose}
+                  disabled={phase === 'working'}
                   accessibilityRole="button"
+                  accessibilityState={{ disabled: phase === 'working' }}
                   accessibilityLabel="Cancel"
                 >
                   <Text style={styles.cancelText}>Cancel</Text>
@@ -446,6 +478,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: 'center',
   },
+  cancelButtonBusy: { opacity: 0.5 },
   cancelText: { fontSize: fonts.sizes.sm, color: brand.inkFaint },
   sendButton: {
     paddingHorizontal: spacing.lg,

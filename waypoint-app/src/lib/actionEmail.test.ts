@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildActionEmail, buildActionEmailSubject } from './actionEmail';
+import { generateStarterPlan } from './planGenerator';
 
 const RC_ACTION = {
   title: 'Ask Alta California Regional Center for a speech assessment',
@@ -24,7 +25,7 @@ const RC_ACTION = {
 };
 
 describe('buildActionEmailSubject', () => {
-  it('leads with the child, which is what an intake coordinator sorts by', () => {
+  it('leads with the child, which is what a teammate scans for', () => {
     expect(buildActionEmailSubject(RC_ACTION, { childFirstName: 'Mateo' })).toBe(
       'Mateo — Ask Alta California Regional Center for a speech assessment'
     );
@@ -41,88 +42,84 @@ describe('buildActionEmailSubject', () => {
   });
 });
 
-describe('the agency draft', () => {
-  const { body } = buildActionEmail(
-    RC_ACTION,
-    { childFirstName: 'Mateo', parentName: 'Dana Ruiz' },
-    'agency'
-  );
-
-  it('opens collaboratively — an ask, never a demand', () => {
-    // CLAUDE.md escalation-tone rule: the FIRST contact is friendly. Firming
-    // up is the Letters ladder's job, after an ask goes unanswered.
-    expect(body).toMatch(/writing to ask for your help/i);
-    expect(body).not.toMatch(/\bdemand\b|\brequire\b|\bmust\b|\byou failed\b|\bentitled\b/i);
-  });
-
-  it('names the child once and signs with the parent', () => {
-    expect(body).toContain("I'm Mateo's parent");
-    expect(body.trimEnd().endsWith('Dana Ruiz')).toBe(true);
-  });
-
-  it('leaves a visible placeholder rather than an unsigned letter', () => {
-    const { body: unsigned } = buildActionEmail(RC_ACTION, { childFirstName: 'Mateo' }, 'agency');
-    expect(unsigned).toContain('[Your name]');
-  });
-
-  it('carries the open steps, offered for correction rather than asserted', () => {
-    expect(body).toMatch(/please correct me if I have any of it wrong/i);
-    expect(body).toContain('1. Send the assessment request');
-    expect(body).toContain('2. Note the date you asked');
-    // A step already done is not something to ask the agency about.
-    expect(body).not.toContain('Find your service coordinator');
-  });
-
-  it('offers the documents the action listed', () => {
-    expect(body).toContain('• The current IPP');
-  });
-
-  it("keeps the family's own due date a hope, not a deadline on the agency", () => {
-    expect(body).toMatch(/If it's possible, having an answer by October 15 would really help/);
-    expect(body).not.toMatch(/by October 15\b.*(required|must|deadline)/i);
-  });
-
-  it('does NOT paste the phone script — it is written for a call', () => {
-    expect(body).not.toContain("I'm calling about");
-  });
-
-  it('degrades to a still-sendable note when the action has almost nothing', () => {
-    const { body: bare } = buildActionEmail(
-      { title: 'Ask about respite hours', category: 'general', priority: 'medium' },
-      {},
-      'agency'
-    );
-    expect(bare).toContain('Hello,');
-    expect(bare).toContain('Ask about respite hours');
-    expect(bare).toMatch(/Could you let me know what the next step is/);
-    expect(bare).not.toMatch(/undefined|null|NaN/);
-  });
-
-  it('never leaves a triple blank line from an absent section', () => {
-    expect(body).not.toMatch(/\n{3}/);
-  });
-});
-
 describe('the team draft', () => {
-  const { body } = buildActionEmail(RC_ACTION, { childFirstName: 'Mateo' }, 'team');
+  const { body } = buildActionEmail(RC_ACTION, { childFirstName: 'Mateo' });
 
-  it('is addressed to a person on your side, not to the agency', () => {
+  it('is addressed to a person on your side', () => {
     expect(body).toMatch(/Sharing it so we're both looking at the same thing/);
-    expect(body).not.toContain('Hello,');
+    expect(body).toContain("here's the next step on Mateo's plan");
   });
 
-  it('DOES carry the phone script — a teammate may be the one calling', () => {
+  it('reads naturally with no child attached', () => {
+    const { body: noChild } = buildActionEmail(RC_ACTION);
+    expect(noChild).toContain("here's the next step on our plan");
+    expect(noChild).not.toMatch(/undefined|null|NaN/);
+  });
+
+  it('carries the phone script — a teammate may be the one calling', () => {
     expect(body).toContain("I'm calling about my son Mateo");
   });
 
-  it('reuses the share format, so the two never drift', () => {
+  it('reuses the share format, so Share and Email never drift', () => {
     expect(body).toContain('📋 Ask Alta California Regional Center for a speech assessment');
     expect(body).toContain('— Shared from Waypoint · waypointchild.com');
   });
+
+  it('degrades to something still sendable when the action has almost nothing', () => {
+    const { body: bare } = buildActionEmail({
+      title: 'Ask about respite hours',
+      category: 'general',
+      priority: 'medium',
+    });
+    expect(bare).toContain('Ask about respite hours');
+    expect(bare).not.toMatch(/undefined|null|NaN/);
+  });
 });
 
-describe('buildActionEmail defaults', () => {
-  it('defaults to the agency draft', () => {
-    expect(buildActionEmail(RC_ACTION, { childFirstName: 'Mateo' }).body).toContain('Hello,');
+/**
+ * The regression that removed the agency draft (adversary finding, Sep 2 2026).
+ *
+ * The first version of this module built a "friendly first ask" to the Regional
+ * Center out of these very fields, and its tests passed because they ran on a
+ * hand-written fixture. Run the REAL generator through it and the draft cites
+ * statute and asserts deadlines — a first contact that breaks CLAUDE.md's
+ * escalation rule outright.
+ *
+ * This test does not check the wording of a generated agency letter. It checks
+ * that no such letter exists to be sent: that the module's only output is
+ * addressed to the family's own team, whatever the plan content contains.
+ */
+describe('generated plan content is never dressed up as an ask to an agency', () => {
+  const plan = generateStarterPlan({
+    diagnoses: ['autism'],
+    birthday: new Date(2022, 0, 15),
+    rcStatus: 'unknown',
+    iepStatus: 'no',
+    insurance: 'medicaid',
+    childName: 'Mateo',
+    parentName: 'Dana Ruiz',
+  });
+
+  it('produces plan items that carry statute and deadline language', () => {
+    // If this ever stops being true the risk is gone — but it is true today,
+    // and it is why the agency draft could not be made safe by editing.
+    const all = plan
+      .map((a) => [a.title, a.description ?? '', ...(a.steps ?? []).map((s) => s.step)].join('\n'))
+      .join('\n');
+    expect(all).toMatch(/Lanterman Act|§\s?46\d\d|must\b/i);
+  });
+
+  it('drafts every one of them to your team, opening as a share and never as a request', () => {
+    for (const action of plan) {
+      const { body } = buildActionEmail(action, { childFirstName: 'Mateo' });
+      // The one opener this module produces. An agency-addressed greeting or a
+      // "writing to ask for your help" opener would mean the risky path is back.
+      expect(body.startsWith('Hi — ')).toBe(true);
+      expect(body).not.toMatch(/^Hello,/m);
+      expect(body).not.toMatch(/writing to ask for your help/i);
+      expect(body).not.toMatch(/Could you let me know what the next step is on your side/i);
+      // And it is unmistakably internal.
+      expect(body).toContain("we're both looking at the same thing");
+    }
   });
 });

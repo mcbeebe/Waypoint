@@ -16,6 +16,7 @@ import {
   Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
 import { useToast } from '@/components/Toast';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,7 +40,7 @@ import { useActionNotes } from '@/hooks/useActionNotes';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useContacts } from '@/hooks/useContacts';
 import TrackedEmailModal from '@/components/TrackedEmailModal';
-import { buildActionEmail, type ActionEmailAudience } from '@/lib/actionEmail';
+import { buildActionEmail } from '@/lib/actionEmail';
 import { showConfirm } from '@/lib/dialogs';
 
 interface ActionDetailScreenProps {
@@ -104,35 +105,34 @@ export default function ActionDetailScreen({
     deleteNote,
   } = useActionNotes(action.id, action.family_id);
   // ── "Email this" (owner request, Sep 2 2026) ──────────────────────────
-  // A plan item is usually an ask addressed to somebody. Writing that ask by
+  // A plan item is usually something to tell somebody about. Writing that by
   // hand, outside the app, is how it stays out of the paper trail — so the
   // draft is generated here and sent through the same tracked path Letters
   // and the Navigator use.
+  //
+  // It drafts to your TEAM, not to an agency. An adversary pass (Sep 2 2026)
+  // showed the agency version, built from this action's own fields, shipping
+  // "This may be a Lanterman Act violation" and "Agency: RC → DDS" to a
+  // Regional Center under a friendly opener — because those fields are written
+  // for the parent to read. Writing to an agency belongs in the letter writer,
+  // which carries the tone ladder; the button below goes there.
+  const navigation = useNavigation();
   const { family } = useFamily();
   const { children } = useChildren(family?.id);
   const { contacts } = useContacts(family?.id);
   const [showEmail, setShowEmail] = useState(false);
-  const [audience, setAudience] = useState<ActionEmailAudience>('agency');
-  const emailChild = useMemo(
-    () =>
-      children.find((c) => c.id === action.child_id) ??
-      children.find((c) => c.is_primary) ??
-      children[0],
-    [children, action.child_id]
-  );
+  // Strictly the child this action is attached to. Falling back to the primary
+  // child produced "I'm Ana's parent" in an email that was about Ben, while the
+  // paper-trail row recorded no child at all. The one safe fallback is a
+  // single-child family, where there is nothing to get wrong.
+  const emailChild = useMemo(() => {
+    const attached = children.find((c) => c.id === action.child_id);
+    if (attached) return attached;
+    return children.length === 1 ? children[0] : undefined;
+  }, [children, action.child_id]);
   const generatedEmail = useMemo(
-    () =>
-      buildActionEmail(
-        action,
-        {
-          childFirstName: emailChild?.first_name ?? null,
-          parentName: [family?.parent_first_name, family?.parent_last_name]
-            .filter(Boolean)
-            .join(' ') || null,
-        },
-        audience
-      ),
-    [action, emailChild?.first_name, family?.parent_first_name, family?.parent_last_name, audience]
+    () => buildActionEmail(action, { childFirstName: emailChild?.first_name ?? null }),
+    [action, emailChild?.first_name]
   );
 
   const learnMoreKey = LEARN_MORE_BY_ACTION_TITLE[action.title];
@@ -739,16 +739,41 @@ export default function ActionDetailScreen({
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>✉️ Email about this</Text>
           <Text style={styles.calendarStatus}>
-            We'll draft a friendly first ask from this step — you choose who it goes to, edit
-            anything, and it's saved to your paper trail when you send it.
+            We'll write this step up for your co-parent, advocate, or anyone helping — you pick
+            who it goes to, edit anything, and it's saved to your paper trail when you send it.
           </Text>
           <TouchableOpacity
             style={styles.calendarButton}
             onPress={() => setShowEmail(true)}
             accessibilityRole="button"
-            accessibilityLabel="Write an email about this action"
+            accessibilityLabel="Email this step to someone on your team"
           >
-            <Text style={styles.calendarButtonText}>Write this email</Text>
+            <Text style={styles.calendarButtonText}>Email this to my team</Text>
+          </TouchableOpacity>
+          <Text style={styles.calendarStatus}>
+            Writing to the Regional Center, school, or your insurer instead? The letter writer
+            starts you off collaboratively and firms up only if an ask goes unanswered.
+          </Text>
+          <TouchableOpacity
+            style={styles.calendarButton}
+            onPress={() =>
+              // ActionDetail lives in the Tracker stack, which does not
+              // register Letters — a navigate resolves to PARENTS, never
+              // siblings, so the tab has to be named. And LettersScreen's
+              // handoff effect early-returns without a `template`, so the
+              // question alone would land the parent on an empty picker:
+              // 'general' is the collaborative starting template, and the
+              // action's title seeds the ask.
+              (navigation as any).navigate('Home', {
+                screen: 'Letters',
+                params: { template: 'general', question: action.title },
+                initial: false,
+              })
+            }
+            accessibilityRole="button"
+            accessibilityLabel="Write to an agency in the letter writer"
+          >
+            <Text style={styles.calendarButtonText}>Write to an agency</Text>
           </TouchableOpacity>
         </View>
 
@@ -820,33 +845,15 @@ export default function ActionDetailScreen({
       <TrackedEmailModal
         visible={showEmail}
         familyId={action.family_id}
-        title="Email about this step"
+        title="Email this to your team"
         defaultSubject={generatedEmail.subject}
         body={generatedEmail.body}
         contacts={contacts}
-        childId={action.child_id ?? null}
+        // The same child the body names — never a different one.
+        childId={emailChild?.id ?? null}
         templateKey="action_item"
         onClose={() => setShowEmail(false)}
-        audienceControl={
-          <View style={styles.audienceRow} accessibilityRole="tablist">
-            {(['agency', 'team'] as const).map((a) => (
-              <TouchableOpacity
-                key={a}
-                style={[styles.audienceTab, audience === a && styles.audienceTabOn]}
-                onPress={() => setAudience(a)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: audience === a }}
-                accessibilityLabel={
-                  a === 'agency' ? 'Write to the agency' : 'Write to someone on your team'
-                }
-              >
-                <Text style={[styles.audienceText, audience === a && styles.audienceTextOn]}>
-                  {a === 'agency' ? 'To the agency' : 'To my team'}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        }
+        onSent={() => setShowEmail(false)}
       />
     </SafeAreaView>
   );
@@ -1405,24 +1412,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  audienceRow: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-    backgroundColor: '#F1F5F9',
-    borderRadius: radii.md,
-    padding: 3,
-    marginBottom: spacing.sm,
-  },
-  audienceTab: {
-    flex: 1,
-    minHeight: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.sm,
-  },
-  audienceTabOn: { backgroundColor: colors.white },
-  audienceText: { fontSize: 13, color: '#64748B', fontWeight: '600' },
-  audienceTextOn: { color: colors.navy, fontWeight: '700' },
   calendarStatus: {
     fontSize: fonts.sizes.sm,
     color: colors.dark,

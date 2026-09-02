@@ -31,7 +31,7 @@ import { useChat, type UIMessage } from '@/hooks/useChat';
 import { useActions } from '@/hooks/useActions';
 import { useDiagnoses } from '@/hooks/useFamily';
 import { useToast } from '@/components/Toast';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import type { NavigatorStackParamList } from '@/types/navigation';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
@@ -136,7 +136,9 @@ export default function NavigatorScreen() {
     context: chatContext,
   });
 
-  const { createAction, actions } = useActions({ familyId: family?.id ?? '' });
+  const { createAction, actions, refetch: refetchActions } = useActions({
+    familyId: family?.id ?? '',
+  });
   const { contacts } = useContacts(family?.id);
   const emailableContacts = contacts.filter((c) => c.email);
   const { showToast } = useToast();
@@ -382,6 +384,17 @@ export default function NavigatorScreen() {
   const savedCount = useMemo(
     () => actions.filter((a) => a.status === 'not_started' || a.status === 'in_progress').length,
     [actions]
+  );
+
+  // Tabs are never unmounted, and useActions fetches once per familyId — so
+  // without this the badge (and its screen-reader label) kept claiming three
+  // open steps for the rest of the session after the parent completed all
+  // three in the Plan tab.
+  useFocusEffect(
+    useCallback(() => {
+      if (family?.id) refetchActions();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [family?.id])
   );
 
   /**
@@ -1654,89 +1667,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
-  emailModalContent: {
-    backgroundColor: brand.panel,
-    borderTopLeftRadius: radii.xl,
-    borderTopRightRadius: radii.xl,
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
   emailModalTitle: {
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold as '700',
     color: brand.ink,
     marginBottom: spacing.md,
-  },
-  emailInput: {
-    backgroundColor: brand.paper,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.base,
-    fontSize: fonts.sizes.sm,
-    color: brand.inkSoft,
-    marginBottom: spacing.sm,
-  },
-  contactChipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: spacing.sm,
-  },
-  contactChip: {
-    backgroundColor: brand.paper,
-    borderRadius: radii.full,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    minHeight: 28,
-    justifyContent: 'center',
-  },
-  contactChipActive: {
-    backgroundColor: brand.pine,
-  },
-  contactChipText: {
-    fontSize: fonts.sizes.xs,
-    color: brand.inkSoft,
-  },
-  contactChipTextActive: {
-    color: colors.white,
-  },
-  emailPreview: {
-    backgroundColor: brand.paper,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    maxHeight: 120,
-  },
-  emailPreviewText: {
-    fontSize: fonts.sizes.xs,
-    color: brand.inkFaint,
-    lineHeight: 16,
-  },
-  emailModalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: spacing.sm,
-  },
-  emailCancelButton: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.base,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: brand.border,
-  },
-  emailCancelText: {
-    fontSize: fonts.sizes.sm,
-    color: brand.inkFaint,
-  },
-  emailSendButton: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.base,
-    borderRadius: radii.md,
-    backgroundColor: brand.pine,
-  },
-  emailSendText: {
-    fontSize: fonts.sizes.sm,
-    color: colors.white,
-    fontWeight: fonts.weights.medium as '500',
   },
 });

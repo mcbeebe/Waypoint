@@ -72,6 +72,12 @@ const CATEGORY_CONFIG: Record<ActionCategory, { label: string; emoji: string }> 
 
 const STATUS_FILTERS: ActionStatus[] = ['not_started', 'in_progress', 'completed', 'dismissed'];
 
+/**
+ * How many just-added steps the focus view will surface on top of its next 3.
+ * Without a cap the "focus" view stops being one — see visibleActions below.
+ */
+const MAX_FRESH_IN_FOCUS = 2;
+
 // ─── Tracker body (Tracker tab root + Plan tab's Action Plan segment) ────────
 
 /** The Tracker tab root: the full tracker with its own scroll + header. */
@@ -182,12 +188,21 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
       (a) => a.status === 'not_started' || a.status === 'in_progress'
     );
     const next3 = open.filter((a) => !isLocked(a)).slice(0, 3);
-    // Anything saved in the last day is shown even when the focus view would
-    // have collapsed it. A parent who just saved three steps out of an answer
-    // and then opens the plan has to SEE them — "your new items are behind
-    // 'Show everything'" is the failure this whole change is about. Order is
-    // preserved so the focus list still reads next-step-first.
-    const fresh = open.filter((a) => isNewlyAdded(a.created_at, now) && !next3.includes(a));
+    // Anything saved in the last day is surfaced even when the focus view
+    // would have collapsed it: a parent who just saved three steps out of an
+    // answer has to SEE them, and "your new items are behind 'Show
+    // everything'" is the failure this change is about.
+    //
+    // CAPPED, and locked steps excluded (adversary findings, Sep 2 2026). An
+    // uncapped carve-out made the focus view unbounded for exactly the user it
+    // exists for: onboarding inserts SEVEN generated actions in one batch, so
+    // a brand-new account spent its first day looking at the whole wall the
+    // next-3 view is meant to prevent — with a "Show everything (0 more)"
+    // button that did nothing. And a locked step is one the parent cannot act
+    // on yet, which the focus view has never shown.
+    const fresh = open
+      .filter((a) => isNewlyAdded(a.created_at, now) && !isLocked(a) && !next3.includes(a))
+      .slice(0, MAX_FRESH_IN_FOCUS);
     if (fresh.length === 0) return next3;
     const keep = new Set([...next3, ...fresh]);
     return sortedActions.filter((a) => keep.has(a));
@@ -406,7 +421,10 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
         ))
       )}
 
-      {activeFilter === 'all' && sortedActions.length > 3 ? (
+      {/* Keyed on what is actually hidden, not on the list length: with the
+          fresh-item carve-out above, a list longer than 3 can still be fully
+          visible, and the toggle then read "Show everything (0 more)". */}
+      {activeFilter === 'all' && (focusMode ? hiddenCount > 0 : sortedActions.length > 3) ? (
         <TouchableOpacity
           style={styles.focusToggle}
           onPress={() => setShowAll((v) => !v)}

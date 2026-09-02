@@ -17,6 +17,8 @@ const gmailSends: Array<Record<string, unknown>> = [];
 const opened: string[] = [];
 let gmailScope = false;
 let gmailSendOk = true;
+let markFails = false;
+let threadId: string | null = 'thread-9';
 
 vi.mock('@/hooks/useCommunications', () => ({
   logCommunication: async (familyId: string, entry: Record<string, unknown>) => {
@@ -25,7 +27,7 @@ vi.mock('@/hooks/useCommunications', () => ({
   },
   markCommunicationSent: async (id: string) => {
     markedSent.push(id);
-    return true;
+    return !markFails;
   },
 }));
 
@@ -33,7 +35,7 @@ vi.mock('@/lib/gmail', () => ({
   gmailStatus: async () => ({ connected: gmailScope, gmail: gmailScope, email: null }),
   gmailSend: async (input: Record<string, unknown>) => {
     gmailSends.push(input);
-    return gmailSendOk ? { ok: true, threadId: 'thread-9' } : { ok: false, error: 'Gmail said no' };
+    return gmailSendOk ? { ok: true, threadId } : { ok: false, error: 'Gmail said no' };
   },
 }));
 
@@ -83,6 +85,8 @@ beforeEach(() => {
   toasts.length = 0;
   gmailScope = false;
   gmailSendOk = true;
+  markFails = false;
+  threadId = 'thread-9';
 });
 
 describe('before anything is sent', () => {
@@ -186,9 +190,54 @@ describe('the Gmail route', () => {
     // The edge function marks the row sent AND stores the thread id — the
     // client must hand it the id rather than flipping the status itself.
     expect(gmailSends[0].communicationId).toBe('comm-1');
+    // The row is written as a draft; the edge function is what flips it.
     expect(logged[0].entry.status).toBe('draft');
-    expect(markedSent).toHaveLength(0);
     await waitFor(() => expect(onSent).toHaveBeenCalledWith('comm-1'));
+    // ...and the client re-asserts the flip, because the edge function
+    // discards its own update result and returns ok regardless.
+    expect(markedSent).toEqual(['comm-1']);
+  });
+
+  it('closes itself after a real send, so a second tap cannot send twice', async () => {
+    const onClose = vi.fn();
+    sheet({ onClose });
+    await screen.findByLabelText('Send through Gmail');
+    fireEvent.click(screen.getByLabelText('Send to Ana Diaz'));
+    fireEvent.click(sendButton());
+
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    // The sheet no longer offers a live Send button over the same draft: the
+    // old build fell back into the compose form with everything still filled,
+    // and two taps produced two emails and two paper-trail rows.
+    expect(screen.queryByLabelText('Send through Gmail')).toBeNull();
+    expect(gmailSends).toHaveLength(1);
+    expect(logged).toHaveLength(1);
+  });
+
+  it('tells the truth when the mail went but the record did not stick', async () => {
+    markFails = true;
+    sheet();
+    await screen.findByLabelText('Send through Gmail');
+    fireEvent.click(screen.getByLabelText('Send to Ana Diaz'));
+    fireEvent.click(sendButton());
+
+    await waitFor(() => expect(toasts.length).toBeGreaterThan(0));
+    expect(toasts[0].text).toMatch(/sent, but we couldn't mark it sent/i);
+    expect(toasts[0].tone).toBe('error');
+  });
+
+  it('does not promise reply syncing when no thread id came back', async () => {
+    threadId = null;
+    sheet();
+    await screen.findByLabelText('Send through Gmail');
+    fireEvent.click(screen.getByLabelText('Send to Ana Diaz'));
+    fireEvent.click(sendButton());
+
+    await waitFor(() => expect(toasts.length).toBeGreaterThan(0));
+    // poll-replies keys off the thread id — without one, syncing is not a
+    // promise this app can keep.
+    expect(toasts[0].text).not.toMatch(/replies will sync/i);
+    expect(toasts[0].text).toMatch(/may not sync/i);
   });
 
   it('falls back to the mail app when Gmail refuses, and still does not claim a send', async () => {
@@ -202,6 +251,25 @@ describe('the Gmail route', () => {
     expect(await screen.findByText(/Gmail said no/)).toBeInTheDocument();
     expect(markedSent).toHaveLength(0);
     expect(logged[0].entry.status).toBe('draft');
+  });
+});
+
+describe('while a send is in flight', () => {
+  it('cannot be cancelled out from under itself', async () => {
+    const onClose = vi.fn();
+    sheet({ onClose });
+    fireEvent.click(screen.getByLabelText('Send to Ana Diaz'));
+    fireEvent.click(sendButton());
+
+    // Closing here would leave the mail app opening with the row stuck as a
+    // draft forever, and the "I sent it" prompt gone — a real send with no
+    // record, the mirror image of the bug this component exists to fix.
+    const cancel = screen.getByLabelText('Cancel');
+    expect(cancel).toHaveAttribute('aria-disabled', 'true');
+
+    await waitFor(() => expect(opened).toHaveLength(1));
+    expect(await screen.findByLabelText('I sent it')).toBeTruthy();
+    expect(onClose).not.toHaveBeenCalled();
   });
 });
 
