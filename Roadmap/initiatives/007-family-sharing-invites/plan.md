@@ -69,6 +69,26 @@ the invite toast reports what actually happened. **Owner setup:** add
 (optional `INVITE_FROM_EMAIL`, `APP_URL`); until then the function answers
 `delivery_not_configured` and the card says "share the join link by hand".
 
+**Adversary pass (Sep 2 2026) — the access chain held; it found the sender was
+an open relay:** the only throttle read `sent_at`, a column the same caller can
+UPDATE, and nothing limited how many invitations a family could insert or what
+went in the subject line. Fixed by **migration `057`**: a send log with RLS and
+no client policies, written only by a `security definer` gate
+(`record_invite_send`: 60 s per invitation, 30 per family per 24 h, per-family
+advisory lock) that the function must pass BEFORE sending; a 20-pending cap
+trigger; a one-address CHECK on `invitee_email`; `provider_message_id` for
+bounce reconciliation. Also from the pass: the name in the subject is control-
+char-stripped and clamped; the inviter is the member who tapped Invite (falling
+back to the owner); the expiry in the email is the real date from the row; a
+missing 056/057 answers `delivery_not_configured` with the reason instead of a
+dead-end "tap Resend"; the link host is the app's canonical origin
+(`appLinks.ts`); `send_error` uses ONE vocabulary on both sides (`code` or
+`code:reason`) so the card reads the same after a refresh; a present
+`send_error` outranks an older `sent_at`; an expired invite reads "Expired" and
+loses Resend; a cooldown skip is "already emailed a moment ago", not
+"emailed"; Resend has an in-flight guard; and **Copy link** makes the by-hand
+path real (the mockup's honest partial finally has a button).
+
 - New `supabase/functions/family-invite`: given an invitation id (admin-authed),
   send the invitee a branded email with a link
   `https://waypointchild.com/join?token=<token>`. Collaborative, warm tone (per
