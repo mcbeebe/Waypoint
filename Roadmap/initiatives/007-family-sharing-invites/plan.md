@@ -68,6 +68,19 @@ applied; buys honesty while B1–B3 are built. *(Family-facing copy → gated.)*
 
 ### B3 — accept / redeem (RPC + Join screen + deep link)
 
+**Status (Sep 2 2026): BUILT for owner go — migration `054`, `JoinFamilyScreen`,
+`lib/joinInvite.ts`, App wiring.** Two guarded `security definer` functions:
+`preview_family_invitation(token)` (what the screen shows before committing —
+inviter, role, does-this-account-match; no child data) and
+`accept_family_invitation(token, display_name?)` (the one door: signed-in,
+token exists, pending, unexpired, email-locked, idempotent for the acceptor,
+closed to anyone else, role copied from the invite, row locked against double
+taps). `expires_at` added (14 days). The Join screen is ROOT-level and rendered
+before onboarding so a co-parent never gets pushed into "create your own
+family"; the token is captured from the launch/warm URL and stashed so a
+signed-out person comes back to Join after signing in; and App's onboarding
+check gained the same membership fallback `useFamily` got in B1.
+
 - **Migration:** `accept_family_invitation(token text)` — `security definer`,
   the new trust boundary. Validates: token exists, `status='pending'`,
   unexpired, and (decision) the caller's email matches `invitee_email`. Inserts
