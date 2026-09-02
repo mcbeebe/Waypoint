@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyErrorMessage } from '@/lib/netRetry';
+import { sendFamilyInvite } from '@/lib/familyInvite';
 import type {
   FamilyMember,
   FamilyMemberRole,
@@ -25,7 +26,10 @@ interface UseFamilySharingReturn {
   loading: boolean;
   error: string | null;
   currentUserRole: FamilyMemberRole | null;
+  /** Saves the invite, then emails the join link; the returned row's sent_at / send_error say whether the email went. */
   inviteMember: (email: string, role?: FamilyMemberRole) => Promise<FamilyInvitation | null>;
+  /** Email the join link again; true only when the provider accepted it. */
+  resendInvitation: (invitationId: string) => Promise<{ ok: boolean; reason?: string }>;
   updateMemberRole: (memberId: string, role: FamilyMemberRole) => Promise<void>;
   removeMember: (memberId: string) => Promise<void>;
   /** Resolves true only when the row is actually gone — a revoked link is a security event. */
@@ -106,7 +110,16 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
         .single();
 
       if (dbError) throw new Error(dbError.message);
-      const invitation = created as FamilyInvitation;
+      let invitation = created as FamilyInvitation;
+
+      // The row is saved regardless; now try to deliver it. A failed send is
+      // recorded on the row (sent_at stays null, send_error says why) so the
+      // pending card tells the owner the truth and offers Resend.
+      const sent = await sendFamilyInvite(invitation.id);
+      invitation = sent.ok
+        ? { ...invitation, sent_at: sent.sentAt, send_error: null }
+        : { ...invitation, sent_at: invitation.sent_at ?? null, send_error: sent.reason };
+
       setInvitations((prev) => [invitation, ...prev]);
       return invitation;
     } catch (err) {
@@ -114,6 +127,21 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
       return null;
     }
   }, [familyId]);
+
+  const resendInvitation = useCallback(async (invitationId: string) => {
+    setError(null);
+    const sent = await sendFamilyInvite(invitationId);
+    setInvitations((prev) =>
+      prev.map((i) =>
+        i.id === invitationId
+          ? sent.ok
+            ? { ...i, sent_at: sent.sentAt, send_error: null }
+            : { ...i, send_error: sent.reason }
+          : i
+      )
+    );
+    return sent.ok ? { ok: true } : { ok: false, reason: sent.reason };
+  }, []);
 
   const updateMemberRole = useCallback(async (memberId: string, role: FamilyMemberRole) => {
     setError(null);
@@ -192,6 +220,6 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
 
   return {
     members, invitations, activityLog, loading, error, currentUserRole,
-    inviteMember, updateMemberRole, removeMember, revokeInvitation, logActivity, refetch,
+    inviteMember, resendInvitation, updateMemberRole, removeMember, revokeInvitation, logActivity, refetch,
   };
 }

@@ -20,6 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily } from '@/hooks/useFamily';
 import { useFamilySharing } from '@/hooks/useFamilySharing';
+import { deliveryState, shortDate } from '@/lib/inviteDelivery';
 import { useToast } from '@/components/Toast';
 import type { FamilyMember, FamilyMemberRole, ActivityLogEntry } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -39,7 +40,7 @@ export default function FamilySharingScreen() {
 
   const {
     members, invitations, activityLog, loading, currentUserRole,
-    inviteMember, updateMemberRole, removeMember, revokeInvitation, refetch,
+    inviteMember, resendInvitation, updateMemberRole, removeMember, revokeInvitation, refetch,
   } = useFamilySharing({ familyId });
 
   const [viewMode, setViewMode] = useState<ViewMode>('members');
@@ -55,11 +56,17 @@ export default function FamilySharingScreen() {
     setIsSending(true);
     const result = await inviteMember(inviteEmail.trim(), inviteRole);
     if (result) {
-      showToast('Invitation sent!', 'success');
+      // Say what actually happened: the row is saved either way; the email
+      // may or may not have gone.
+      if (result.sent_at) {
+        showToast(`Invitation emailed to ${result.invitee_email}`, 'success');
+      } else {
+        showToast(result.send_error ?? "Invite saved — the email didn't send. Tap Resend on the card.", 'error');
+      }
       setShowInviteModal(false);
       setInviteEmail('');
     } else {
-      showToast('Failed to send invitation', 'error');
+      showToast("Couldn't save the invitation", 'error');
     }
     setIsSending(false);
   }, [inviteEmail, inviteRole, inviteMember, showToast]);
@@ -142,7 +149,29 @@ export default function FamilySharingScreen() {
                     <View style={styles.pendingInfo}>
                       <Text style={styles.pendingEmail}>{inv.invitee_email}</Text>
                       <Text style={styles.pendingRole}>{ROLE_CONFIG[inv.role].label}</Text>
+                      {(() => {
+                        const d = deliveryState(inv);
+                        return (
+                          <Text style={d.kind === 'failed' ? styles.deliveryFailed : styles.deliveryLine}>
+                            {d.kind === 'sent' && `Email sent ${shortDate(d.at)}`}
+                            {d.kind === 'failed' && d.reason}
+                            {d.kind === 'unsent' && 'Email not sent yet'}
+                          </Text>
+                        );
+                      })()}
                     </View>
+                    {isAdmin && (
+                      <TouchableOpacity
+                        onPress={async () => {
+                          const r = await resendInvitation(inv.id);
+                          showToast(r.ok ? `Invitation emailed to ${inv.invitee_email}` : (r.reason ?? "The email didn't send."), r.ok ? 'success' : 'error');
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Resend the invitation to ${inv.invitee_email}`}
+                      >
+                        <Text style={styles.resendText}>Resend</Text>
+                      </TouchableOpacity>
+                    )}
                     {isAdmin && (
                       <TouchableOpacity
                         onPress={async () => {
@@ -303,6 +332,9 @@ const styles = StyleSheet.create({
   pendingEmail: { fontSize: fonts.sizes.sm, color: colors.dark },
   pendingRole: { fontSize: fonts.sizes.xs, color: colors.mid, marginTop: 2 },
   revokeText: { fontSize: fonts.sizes.xs, color: '#DC2626', fontWeight: fonts.weights.medium as '500' },
+  resendText: { fontSize: fonts.sizes.xs, color: colors.teal, fontWeight: fonts.weights.medium as '500', marginRight: spacing.md },
+  deliveryLine: { fontSize: fonts.sizes.xs, color: colors.mid, marginTop: 2 },
+  deliveryFailed: { fontSize: fonts.sizes.xs, color: '#DC2626', marginTop: 2 },
   activityRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
   activityDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.teal, marginTop: 6 },
   activityInfo: { flex: 1 },
