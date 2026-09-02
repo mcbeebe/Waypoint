@@ -160,6 +160,62 @@ export async function connectGmailWeb(
 }
 
 /**
+ * What Google ACTUALLY granted for an access token.
+ *
+ * Supabase does not surface the granted scope list, and a consent can grant
+ * LESS than was asked: Gmail's send/readonly are RESTRICTED scopes, so Google
+ * can withhold them (unverified app, or the scopes not listed on the OAuth
+ * consent screen) while still returning a perfectly good session. Recording
+ * what we ASKED for would then make the app claim Gmail is connected when it
+ * is not — and the gmail edge function reads this column to decide. So ask
+ * Google. Empty means "couldn't tell", never "nothing granted".
+ */
+async function grantedScopes(accessToken: string): Promise<string[]> {
+  try {
+    const res = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`
+    );
+    if (!res.ok) return [];
+    const data = (await res.json()) as { scope?: string };
+    return typeof data.scope === 'string' ? data.scope.split(' ').filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The scopes to store for this connection. NEVER narrower than what is already
+ * stored — that was a real bug, and it is subtle enough to spell out:
+ *
+ * `captureGoogleTokens` runs on EVERY auth state change carrying provider
+ * tokens, and Supabase keeps `provider_refresh_token` in the persisted
+ * session. So it runs again on the next app load (INITIAL_SESSION), by which
+ * point the one-shot requested-scopes note has already been consumed and
+ * removed. The old code fell back to `GOOGLE_API_SCOPES` (Calendar only) and
+ * upserted that over the row — so a successful Gmail consent was silently
+ * downgraded to Calendar the next time the app started, and Home went back to
+ * saying "Gmail not connected" forever. Observed live: a row whose
+ * `connected_at` was days old, `updated_at` seconds old, and scopes
+ * Calendar-only, minutes after a Gmail connect.
+ *
+ * Order: what Google says it granted (authoritative) → else preserve what is
+ * stored, widened by anything this consent asked for → else the base Calendar
+ * connection for a brand-new row.
+ */
+export async function resolveScopes(
+  accessToken: string | null,
+  requested: string | null
+): Promise<string> {
+  const granted = accessToken ? await grantedScopes(accessToken) : [];
+  if (granted.length) return granted.join(' ');
+
+  const existing = await storedScopes();
+  const asked = requested ? requested.split(' ').filter(Boolean) : [];
+  const merged = Array.from(new Set([...existing, ...asked]));
+  return merged.length ? merged.join(' ') : GOOGLE_API_SCOPES.join(' ');
+}
+
+/**
  * Capture Google provider tokens off a Supabase session. Called from
  * useAuth on every auth state change — after the OAuth redirect the
  * session carries provider_token (+ provider_refresh_token on first
@@ -179,15 +235,16 @@ export async function captureGoogleTokens(session: {
     }
     if (session.provider_refresh_token && session.user) {
       const googleIdentity = session.user.identities?.find((i) => i.provider === 'google');
-      // Record the scopes this consent actually asked for (persisted
-      // across the redirect); default to the base calendar connection.
+      // The requested-scopes note is a ONE-SHOT: it survives the redirect and
+      // is consumed here. Everything about resolving the row's scopes is in
+      // resolveScopes, because getting it wrong silently un-connects Gmail.
       const requested = await AsyncStorage.getItem(REQUESTED_SCOPES_KEY).catch(() => null);
       await AsyncStorage.removeItem(REQUESTED_SCOPES_KEY).catch(() => undefined);
       await supabase.from('google_accounts').upsert({
         user_id: session.user.id,
         refresh_token: session.provider_refresh_token,
         google_email: googleIdentity?.identity_data?.email ?? null,
-        scopes: requested || GOOGLE_API_SCOPES.join(' '),
+        scopes: await resolveScopes(session.provider_token ?? null, requested),
       });
     }
   } catch (err) {
@@ -243,15 +300,28 @@ export async function getWebGoogleAccessToken(forceRefresh = false): Promise<str
 }
 
 /** Whether this user has a Google account connected (web). */
-export async function isGoogleConnectedWeb(): Promise<{ connected: boolean; email: string | null }> {
+export async function isGoogleConnectedWeb(): Promise<{
+  connected: boolean;
+  email: string | null;
+  /** Gmail send+read actually granted — NOT implied by `connected`. */
+  gmail: boolean;
+}> {
   try {
     const { data } = await supabase
       .from('google_accounts')
-      .select('google_email')
+      .select('google_email, scopes')
       .maybeSingle();
-    return { connected: !!data, email: data?.google_email ?? null };
+    const scopes = String(data?.scopes ?? '');
+    return {
+      connected: !!data,
+      email: data?.google_email ?? null,
+      // Gmail is a SEPARATE opt-in (restricted scopes), so a connected
+      // account is routinely Calendar-only. Saying otherwise promises
+      // sending and reply-tracking the app cannot do.
+      gmail: scopes.includes('gmail.send') && scopes.includes('gmail.readonly'),
+    };
   } catch {
-    return { connected: false, email: null };
+    return { connected: false, email: null, gmail: false };
   }
 }
 

@@ -349,9 +349,10 @@ export default function ProfileScreen() {
   }, [newChildName, addChild, children.length, guard]);
 
   // ─── Google account (web) ─────────────────────────────────────────
-  const [googleStatus, setGoogleStatus] = useState<{ connected: boolean; email: string | null }>({
+  const [googleStatus, setGoogleStatus] = useState<{ connected: boolean; email: string | null; gmail: boolean }>({
     connected: false,
     email: null,
+    gmail: false,
   });
   const [googleBusy, setGoogleBusy] = useState(false);
 
@@ -390,7 +391,7 @@ export default function ProfileScreen() {
     const result = await disconnectGoogleWeb();
     setGoogleBusy(false);
     if (result.success) {
-      setGoogleStatus({ connected: false, email: null });
+      setGoogleStatus({ connected: false, email: null, gmail: false });
     } else {
       showAlert('Could not disconnect', result.error ?? 'Please try again.');
     }
@@ -919,10 +920,26 @@ export default function ProfileScreen() {
             <Text style={styles.sectionTitle}>Google Account</Text>
             <View style={styles.card}>
               <Text style={styles.privacyStatus}>
-                {googleStatus.connected
-                  ? `Connected as ${googleStatus.email ?? 'your Google account'}. Waypoint can sync your calendar, send emails you approve, and track replies from schools and agencies.`
-                  : 'Connect Google to sync appointments to your calendar, send emails to schools and agencies, and track their replies — all from Waypoint.'}
+                {!googleStatus.connected
+                  ? 'Connect Google to sync appointments to your calendar, send emails to schools and agencies, and track their replies — all from Waypoint.'
+                  : googleStatus.gmail
+                    ? `Connected as ${googleStatus.email ?? 'your Google account'}. Waypoint can sync your calendar, send emails you approve, and track replies from schools and agencies.`
+                    // Gmail is a separate, restricted-scope opt-in, so a
+                    // connected account is often Calendar-only. Claiming
+                    // sending and reply-tracking here would be a promise the
+                    // app cannot keep.
+                    : `Connected as ${googleStatus.email ?? 'your Google account'} — calendar only. Tap Connect Google above to add Gmail, so Waypoint can send emails you approve and track replies from schools and agencies.`}
               </Text>
+              {/* Calendar-only is a real, common state: offer the Gmail
+                  upgrade rather than only Disconnect. */}
+              {googleStatus.connected && !googleStatus.gmail && (
+                <Button
+                  title={googleBusy ? 'Working…' : 'Add Gmail'}
+                  onPress={handleConnectGoogle}
+                  variant="outline"
+                  disabled={googleBusy}
+                />
+              )}
               <Button
                 title={
                   googleBusy
