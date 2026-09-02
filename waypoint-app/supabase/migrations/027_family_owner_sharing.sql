@@ -1,3 +1,18 @@
+-- ⚠️  SUPERSEDED IN PART — DO NOT RE-RUN THIS FILE ON ITS OWN.
+--
+-- The five policies this file creates on family_members / family_invitations /
+-- activity_log subquery family_members from inside a family_members policy,
+-- which makes Postgres raise 42P17 infinite recursion on every client read of
+-- those tables. Migration 055 replaced them with SECURITY DEFINER equivalents,
+-- and 058 repaired them again after this file was re-applied on top of 055 and
+-- silently put the recursive versions back (it uses the SAME policy names and
+-- `drop policy if exists`, so it overwrites the fix without complaining).
+--
+-- The rest of this file — the owner's family_members backfill — is still the
+-- right thing and is idempotent. If you ever need to re-run it, RUN 058
+-- IMMEDIATELY AFTERWARDS, as the last statement of the same session. 058 has a
+-- self-check that will tell you if you forget.
+--
 -- 027: Family owners can actually use Family Sharing.
 --
 -- Bug: the 007 policies gate member/invitation management on having an

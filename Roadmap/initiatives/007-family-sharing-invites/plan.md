@@ -135,6 +135,45 @@ Split the B1 policies into `for select` (members ∪ viewers) vs write (members)
 Only if the owner wants a true read-only role; otherwise viewer collapses into
 member and this phase drops.
 
+## Incident: 027 re-applied over 055 (Sep 2 2026) — migration 058
+
+**Family Sharing was still fully broken after 055 was applied**, and the reason
+was not a bug in 055. Probed against the production project as `authenticated`:
+
+| table | result |
+|---|---|
+| `family_members` | `42P17 infinite recursion detected in policy for relation "family_members"` |
+| `family_invitations` | `42P17` (its policy subqueries `family_members`) |
+| `activity_log` | `42P17` (same) |
+| `children`, `actions` | OK — 053 is fine |
+
+Meanwhile `member_family_ids()` **and** `admin_family_ids()` both existed. So 055
+ran, and **027 was applied after it**. 027 uses the *same policy names* as 055
+and does `drop policy if exists` before `create policy`, so re-running it
+silently replaces the fixed policies with the recursive ones — while leaving the
+definer functions in place. That is why the database looked half-fixed: the
+helper was there and nothing referenced it.
+
+**Migration `058_family_sharing_recursion_repair.sql`** re-asserts 055's five
+policies and adds two self-checks 055 did not have:
+
+1. a **static check** that raises if any policy on those three tables still
+   subqueries `family_members` inline;
+2. a **runtime probe** that reads all three tables as `authenticated` and raises
+   if `42P17` comes back (best-effort — skipped, never fatal, if it cannot
+   assume the role).
+
+Verified end to end in a scratch PostgreSQL 16 cluster seeded with the live
+policy text copied verbatim from `pg_policies`: all three tables 42P17 before,
+and after 058 the owner sees 2 members / 1 invitation, the co-parent sees 2
+members / **0 invitations** (invitations are admin-only — correct), and a
+stranger sees only their own family. 058 is idempotent, and re-creating 027's
+policy afterwards makes check 1 fail loudly rather than pass silently.
+
+**Standing rule this establishes:** 027 must never be re-run after 055/058. If
+it ever is (for its owner backfill), run 058 as the last statement of the same
+session.
+
 ## Cross-cutting decisions — CONFIRMED by owner (Sep 2 2026)
 
 This is the decision record; the recommendations below were all accepted.
