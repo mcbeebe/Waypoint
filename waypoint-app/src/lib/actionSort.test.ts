@@ -14,18 +14,23 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
+  DEFAULT_DIR,
   NO_FILTERS,
-  SORT_KEYS,
+  SORT_FIELDS,
   activeFilterCount,
   createdFilterLabel,
   daysFromToday,
   dueFilterLabel,
   filterActions,
   hasActiveFilters,
+  isReversibleField,
   sortActions,
+  sortDirArrow,
+  sortDirLabel,
   sortLabel,
   sortUiLabel,
   type ActionFilters,
+  type ActionSortField,
 } from './actionSort';
 import type { Action } from '@/types/database';
 
@@ -120,20 +125,57 @@ describe('sortActions', () => {
     ]);
   });
 
-  it('created_desc is newest first and created_asc is its exact reverse', () => {
+  it('created desc is newest first and asc is its exact reverse', () => {
     const old = act({ id: 'old', created_at: daysAgo(40) });
     const mid = act({ id: 'mid', created_at: daysAgo(10) });
     const fresh = act({ id: 'fresh', created_at: daysAgo(0) });
-    expect(sortActions([mid, old, fresh], 'created_desc').map((a) => a.id)).toEqual([
+    expect(sortActions([mid, old, fresh], 'created', 'desc').map((a) => a.id)).toEqual([
       'fresh',
       'mid',
       'old',
     ]);
-    expect(sortActions([mid, old, fresh], 'created_asc').map((a) => a.id)).toEqual([
+    expect(sortActions([mid, old, fresh], 'created', 'asc').map((a) => a.id)).toEqual([
       'old',
       'mid',
       'fresh',
     ]);
+  });
+
+  it('created defaults to newest first when no direction is given', () => {
+    const old = act({ id: 'old', created_at: daysAgo(40) });
+    const fresh = act({ id: 'fresh', created_at: daysAgo(0) });
+    expect(sortActions([old, fresh], 'created').map((a) => a.id)).toEqual(['fresh', 'old']);
+  });
+
+  it('due_date reverses to latest-first, and keeps undated LAST in both directions', () => {
+    // Reversing "soonest first" must give "latest first", not "undated first":
+    // an undated step is not a step due in the year 9999.
+    const soon = act({ id: 'soon', due_date: day(1) });
+    const late = act({ id: 'late', due_date: day(30) });
+    const undated = act({ id: 'undated', due_date: null });
+    expect(sortActions([late, soon, undated], 'due_date', 'asc').map((a) => a.id)).toEqual([
+      'soon', 'late', 'undated',
+    ]);
+    expect(sortActions([soon, late, undated], 'due_date', 'desc').map((a) => a.id)).toEqual([
+      'late', 'soon', 'undated',
+    ]);
+  });
+
+  it('priority reverses to least-urgent-first', () => {
+    const urgent = act({ id: 'urgent', priority: 'urgent' });
+    const low = act({ id: 'low', priority: 'low' });
+    expect(sortActions([low, urgent], 'priority', 'desc').map((a) => a.id)).toEqual(['urgent', 'low']);
+    expect(sortActions([urgent, low], 'priority', 'asc').map((a) => a.id)).toEqual(['low', 'urgent']);
+  });
+
+  it('keeps its tiebreaks in ONE orientation whichever way the primary points', () => {
+    // Two steps that tie on the primary key must land in the same relative
+    // order in both directions — otherwise "reverse" means different things at
+    // different tie depths. Same priority, same created_at → id decides, asc or desc.
+    const a = act({ id: 'aaa', priority: 'high', created_at: daysAgo(5) });
+    const b = act({ id: 'bbb', priority: 'high', created_at: daysAgo(5) });
+    expect(sortActions([b, a], 'priority', 'desc').map((x) => x.id)).toEqual(['aaa', 'bbb']);
+    expect(sortActions([b, a], 'priority', 'asc').map((x) => x.id)).toEqual(['aaa', 'bbb']);
   });
 
   it('is deterministic when a whole batch shares a timestamp', () => {
@@ -142,19 +184,21 @@ describe('sortActions', () => {
     // between renders for no reason a parent can see.
     const stamp = daysAgo(3);
     const batch = ['c', 'a', 'b'].map((id) => act({ id, created_at: stamp }));
-    for (const key of SORT_KEYS) {
-      expect(sortActions(batch, key).map((a) => a.id)).toEqual(['a', 'b', 'c']);
+    for (const field of SORT_FIELDS) {
+      for (const dir of ['asc', 'desc'] as const) {
+        expect(sortActions(batch, field, dir).map((a) => a.id)).toEqual(['a', 'b', 'c']);
+      }
     }
   });
 
   it('survives an unparsable created_at rather than throwing', () => {
     const bad = act({ id: 'bad', created_at: 'not-a-timestamp' });
     const good = act({ id: 'good', created_at: daysAgo(1) });
-    expect(() => sortActions([bad, good], 'created_desc')).not.toThrow();
-    expect(sortActions([bad, good], 'created_desc')).toHaveLength(2);
+    expect(() => sortActions([bad, good], 'created', 'desc')).not.toThrow();
+    expect(sortActions([bad, good], 'created', 'desc')).toHaveLength(2);
   });
 
-  it('falls back to smart for an unknown key rather than returning nothing', () => {
+  it('falls back to smart for an unknown field rather than returning nothing', () => {
     const items = [act({ id: 'a' }), act({ id: 'b' })];
     expect(sortActions(items, 'bogus' as never)).toHaveLength(2);
   });
@@ -307,9 +351,9 @@ describe('labels', () => {
     // The list card renders "Added Aug 18" on every row. A sort chip carrying
     // the same word makes every text query for that line ambiguous — and the
     // suite queries it directly.
-    for (const key of SORT_KEYS) {
+    for (const field of SORT_FIELDS) {
       for (const locale of ['en', 'es', 'vi'] as const) {
-        expect(sortLabel(key, locale)).not.toMatch(/added/i);
+        expect(sortLabel(field, locale)).not.toMatch(/added/i);
       }
     }
   });
@@ -317,14 +361,14 @@ describe('labels', () => {
   it('never renders a sort chip as the bare word "New"', () => {
     // `getByText('New')` pins the just-added badge. "Newest" is a different
     // string; "New" would collide.
-    for (const key of SORT_KEYS) {
-      expect(sortLabel(key, 'en')).not.toBe('New');
+    for (const field of SORT_FIELDS) {
+      expect(sortLabel(field, 'en')).not.toBe('New');
     }
   });
 
   it('translates every sort key, deadline bucket and date bucket in all three locales', () => {
     for (const locale of ['en', 'es', 'vi'] as const) {
-      for (const key of SORT_KEYS) expect(sortLabel(key, locale)).toBeTruthy();
+      for (const field of SORT_FIELDS) expect(sortLabel(field, locale)).toBeTruthy();
       for (const d of ['any', 'overdue', 'next7', 'has_date', 'no_date'] as const) {
         expect(dueFilterLabel(d, locale)).toBeTruthy();
       }
@@ -344,5 +388,44 @@ describe('labels', () => {
 
   it('falls back to English for a locale it does not carry', () => {
     expect(sortLabel('priority', 'fr' as never)).toBe(sortLabel('priority', 'en'));
+  });
+});
+
+// ─── Sorting both ways (owner, Sep 3) ───────────────────────────────────────
+
+describe('direction', () => {
+  const REVERSIBLE: ActionSortField[] = ['due_date', 'priority', 'created'];
+
+  it('smart is the only field that does not reverse', () => {
+    expect(isReversibleField('smart')).toBe(false);
+    for (const field of REVERSIBLE) expect(isReversibleField(field)).toBe(true);
+  });
+
+  it('names both directions of every reversible field, in all three locales', () => {
+    for (const locale of ['en', 'es', 'vi'] as const) {
+      for (const field of REVERSIBLE) {
+        for (const dir of ['asc', 'desc'] as const) {
+          expect(sortDirLabel(field, dir, locale)).toBeTruthy();
+        }
+        // The two directions must READ differently — or the toggle says nothing.
+        expect(sortDirLabel(field, 'asc', locale)).not.toBe(sortDirLabel(field, 'desc', locale));
+      }
+    }
+  });
+
+  it('has no direction phrase for smart', () => {
+    expect(sortDirLabel('smart', 'asc')).toBe('');
+    expect(sortDirLabel('smart', 'desc')).toBe('');
+  });
+
+  it('points the arrow up for ascending and down for descending', () => {
+    expect(sortDirArrow('asc')).toBe('↑');
+    expect(sortDirArrow('desc')).toBe('↓');
+  });
+
+  it('gives every field a sensible default direction', () => {
+    expect(DEFAULT_DIR.due_date).toBe('asc'); // soonest first
+    expect(DEFAULT_DIR.priority).toBe('desc'); // most urgent first
+    expect(DEFAULT_DIR.created).toBe('desc'); // newest first
   });
 });

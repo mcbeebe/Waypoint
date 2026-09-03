@@ -21,6 +21,7 @@ vi.mock('@/hooks/useFamily', () => ({
 
 const h = vi.hoisted(() => ({
   actions: [] as any[],
+  stats: null as any,
   updateStatus: (() => {}) as any,
   updateAction: (() => {}) as any,
 }));
@@ -29,7 +30,7 @@ vi.mock('@/hooks/useActions', () => ({
     actions: h.actions,
     loading: false,
     error: null,
-    stats: null,
+    stats: h.stats,
     updateStatus: h.updateStatus,
     updateAction: h.updateAction,
     createAction: vi.fn(),
@@ -78,6 +79,7 @@ function action(over: Record<string, unknown> = {}) {
 
 beforeEach(() => {
   h.actions = [];
+  h.stats = null; // default; a test that needs the dashboard sets it
   h.updateStatus = vi.fn();
   h.updateAction = vi.fn();
   vi.useFakeTimers({ shouldAdvanceTime: true });
@@ -334,26 +336,55 @@ describe('sorting the plan', () => {
     expect(html.indexOf('Low but due tomorrow')).toBeLessThan(html.indexOf('Urgent but far off'));
   });
 
-  it('puts the most recently added first when sorted by Newest', () => {
+  it('puts the most recently added first when sorted by Created (default)', () => {
     h.actions = [
       action({ id: 'old', title: 'Added long ago', created_at: hoursAgo(500) }),
       action({ id: 'new', title: 'Added moments ago', created_at: hoursAgo(0.1) }),
     ];
     render(<ActionsScreen />);
-    fireEvent.click(screen.getByLabelText('Sort: Newest'));
+    fireEvent.click(screen.getByLabelText('Sort: Created'));
     const html = document.body.innerHTML;
     expect(html.indexOf('Added moments ago')).toBeLessThan(html.indexOf('Added long ago'));
   });
 
-  it('reverses under Oldest', () => {
+  it('sorts BOTH ways — tapping the active Created chip flips newest ↔ oldest', () => {
     h.actions = [
       action({ id: 'old', title: 'Added long ago', created_at: hoursAgo(500) }),
       action({ id: 'new', title: 'Added moments ago', created_at: hoursAgo(0.1) }),
     ];
     render(<ActionsScreen />);
-    fireEvent.click(screen.getByLabelText('Sort: Oldest'));
-    const html = document.body.innerHTML;
+    // First tap selects Created at its default (newest first).
+    fireEvent.click(screen.getByLabelText('Sort: Created'));
+    let html = document.body.innerHTML;
+    expect(html.indexOf('Added moments ago')).toBeLessThan(html.indexOf('Added long ago'));
+    // Active now, so its label carries the direction — tap again to reverse.
+    fireEvent.click(screen.getByLabelText(/^Sort: Created,/));
+    html = document.body.innerHTML;
     expect(html.indexOf('Added long ago')).toBeLessThan(html.indexOf('Added moments ago'));
+  });
+
+  it('sorts Due date both ways — soonest first, then latest first on re-tap', () => {
+    h.actions = [
+      action({ id: 'soon', title: 'Due soon', due_date: '2026-09-04', created_at: hoursAgo(10) }),
+      action({ id: 'late', title: 'Due much later', due_date: '2026-12-01', created_at: hoursAgo(11) }),
+    ];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Sort: Due date'));
+    let html = document.body.innerHTML;
+    expect(html.indexOf('Due soon')).toBeLessThan(html.indexOf('Due much later'));
+    fireEvent.click(screen.getByLabelText(/^Sort: Due date,/));
+    html = document.body.innerHTML;
+    expect(html.indexOf('Due much later')).toBeLessThan(html.indexOf('Due soon'));
+  });
+
+  it('does not reverse Suggested — it has one canonical order', () => {
+    h.actions = dated();
+    render(<ActionsScreen />);
+    // Suggested is active by default; tapping it must not produce a direction
+    // label (there is no "Sort: Suggested, ... reverse").
+    fireEvent.click(screen.getByLabelText('Sort: Suggested'));
+    expect(screen.getByLabelText('Sort: Suggested')).toBeTruthy();
+    expect(screen.queryByLabelText(/^Sort: Suggested,/)).toBeNull();
   });
 
   it('shows the whole list once a sort is chosen, not the next 3', () => {
@@ -434,7 +465,7 @@ describe('every control in the chrome can be reached by name', () => {
   it('labels every sort option', () => {
     h.actions = [action()];
     render(<ActionsScreen />);
-    for (const label of ['Suggested', 'Due date', 'Priority', 'Newest', 'Oldest']) {
+    for (const label of ['Suggested', 'Due date', 'Priority', 'Created']) {
       expect(screen.getByLabelText(`Sort: ${label}`)).toBeTruthy();
     }
   });
@@ -445,7 +476,7 @@ describe('every control in the chrome can be reached by name', () => {
     // aria-PRESSED, not aria-selected: react-native-web 0.19 drops the legacy
     // accessibilityState object entirely, and these are toggle buttons.
     expect(screen.getByLabelText('Sort: Suggested').getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByLabelText('Sort: Newest').getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByLabelText('Sort: Created').getAttribute('aria-pressed')).toBe('false');
     expect(screen.getByLabelText('All').getAttribute('aria-pressed')).toBe('true');
   });
 });
@@ -609,6 +640,44 @@ describe('the embedded plan keeps ＋ without a header band of its own', () => {
   it('still offers "Add your own action" when embedded', () => {
     h.actions = [action()];
     render(<ActionPlanTracker />);
+    expect(screen.getByLabelText('Add your own action')).toBeTruthy();
+  });
+});
+
+// ─── The dashboard, which the default (stats: null) mock never renders ───────
+
+describe('the progress dashboard (has-stats path)', () => {
+  const stats = {
+    completion_rate: 7,
+    not_started_count: 28,
+    in_progress_count: 1,
+    completed_count: 2,
+  };
+
+  it('labels the in-progress stat "In Progress", not "Active"', () => {
+    h.stats = stats;
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    // Standalone: dashboard + the status filter pill both say "In Progress".
+    expect(screen.getAllByText('In Progress').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText('Active')).toBeNull();
+  });
+
+  it('keeps exactly one ＋ when embedded with stats — on the dashboard row, no band', () => {
+    // The dead-space fix moved ＋ onto the dashboard row. With stats present
+    // (the common case), that path — not the empty-plan fallback — must still
+    // offer one and only one add affordance.
+    h.stats = stats;
+    h.actions = [action()];
+    render(<ActionPlanTracker />);
+    expect(screen.getByLabelText('Add your own action')).toBeTruthy();
+  });
+
+  it('keeps exactly one ＋ when standalone with stats — in the header, not doubled', () => {
+    h.stats = stats;
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    // getByLabelText throws on more than one match, so this pins "exactly one".
     expect(screen.getByLabelText('Add your own action')).toBeTruthy();
   });
 });
