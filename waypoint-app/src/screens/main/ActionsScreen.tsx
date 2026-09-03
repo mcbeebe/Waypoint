@@ -48,6 +48,7 @@ import PriorityControl from '@/components/PriorityControl';
 import ActionFilterSheet from '@/components/ActionFilterSheet';
 import {
   PRIORITY_META,
+  STATUS_META,
   priorityLabel,
   statusLabel,
   type ActionLocale,
@@ -392,41 +393,48 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   );
 
   // ── Pinned chrome: header, progress dashboard, status filters ──
-  const header = embedded ? (
-    <View style={styles.headerEmbedded}>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setShowCreate(true)}
-        accessibilityRole="button"
-        accessibilityLabel="Add your own action"
-      >
-        <Text style={styles.addButtonText}>＋</Text>
-      </TouchableOpacity>
-    </View>
-  ) : (
+  const addButton = (
+    <TouchableOpacity
+      style={styles.addButton}
+      onPress={() => setShowCreate(true)}
+      accessibilityRole="button"
+      accessibilityLabel="Add your own action"
+    >
+      <Text style={styles.addButtonText}>＋</Text>
+    </TouchableOpacity>
+  );
+
+  // Embedded (the Plan tab), the "Waypoint Plan" header and the segment tabs
+  // already name this list, so a whole header band here was ~120pt of nearly
+  // empty space with one ＋ floating in it, wedged between the tabs and the
+  // dashboard (owner: "condense and use up the dead space at the top", Sep 3).
+  // The band is gone; the ＋ rides the dashboard row instead.
+  const header = embedded ? null : (
     <View style={styles.header}>
       <View style={styles.headerTextCol}>
         <Text style={styles.headerTitle}>Action Plan</Text>
         <Text style={styles.headerSubtitle}>Your personalized next steps</Text>
       </View>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setShowCreate(true)}
-        accessibilityRole="button"
-        accessibilityLabel="Add your own action"
-      >
-        <Text style={styles.addButtonText}>＋</Text>
-      </TouchableOpacity>
+      {addButton}
     </View>
   );
 
   const dashboard = stats ? (
     <View style={styles.statsRow}>
-      <ProgressRing value={stats.completion_rate ?? 0} total={100} label="Complete" color={brand.sage} />
-      <StatPill count={stats.not_started_count} label="To Do" color="#94A3B8" />
-      <StatPill count={stats.in_progress_count} label="Active" color={brand.pine} />
-      <StatPill count={stats.completed_count} label="Done" color={brand.sage} />
+      <View style={styles.statsGroup}>
+        <ProgressRing value={stats.completion_rate ?? 0} total={100} label="Complete" color={brand.sage} />
+        <StatPill count={stats.not_started_count} label="To Do" color="#94A3B8" />
+        <StatPill count={stats.in_progress_count} label="In Progress" color={brand.pine} />
+        <StatPill count={stats.completed_count} label="Done" color={brand.sage} />
+      </View>
+      {/* Standalone keeps ＋ in its own header; embedded lost that header, so ＋
+          lives here — always present, never in a band of its own. */}
+      {embedded ? addButton : null}
     </View>
+  ) : embedded ? (
+    // No stats yet (a brand-new plan). Don't drop ＋ on the floor — but this is
+    // the empty-plan case, where there is no wall of cards and so no dead space.
+    <View style={styles.embeddedAddOnly}>{addButton}</View>
   ) : null;
 
   const chrome = (
@@ -741,6 +749,7 @@ function ActionCard({
     <View
       style={[
         styles.card,
+        action.status === 'in_progress' && styles.cardInProgress,
         action.status === 'dismissed' && styles.cardDismissed,
         locked && styles.cardLocked,
       ]}
@@ -807,6 +816,26 @@ function ActionCard({
           instead of changing the priority — on react-native-web the outer
           handler fires either way. */}
       <View style={styles.cardMeta}>
+        {/* Say it out loud. Option B's buttons imply the state (which pair is
+            showing), which a parent could not read at a glance — so an
+            in-progress step now carries a literal "In Progress" pill here, and
+            a teal accent down the card's edge, so it stands out in the list
+            (owner, Sep 3). To Do is the default and needs no badge; Done and
+            Dismissed already read as themselves (struck title, and their own
+            tag / single Reopen). */}
+        {action.status === 'in_progress' && (
+          <View
+            style={styles.stateChip}
+            accessibilityRole="text"
+            accessibilityLabel={statusLabel('in_progress', locale)}
+          >
+            {/* A drawn dot, not the ◐ glyph: that dingbat font-fell-back to the
+                wrong mark in a headless render and on some Android builds — the
+                reason StatusControl uses icons. A View can't misrender. */}
+            <View style={styles.stateChipDot} />
+            <Text style={styles.stateChipText}>{statusLabel('in_progress', locale)}</Text>
+          </View>
+        )}
         <Text style={styles.categoryTag}>
           {categoryConfig.emoji} {categoryConfig.label}
         </Text>
@@ -1021,12 +1050,18 @@ const styles = StyleSheet.create({
   },
   // Embedded, the Plan header + segment already name the screen; all this
   // needs to carry is the "add your own step" affordance.
-  headerEmbedded: {
+  // Embedded-only: ＋ sits alone on the right of the dashboard when there are
+  // no stats to show yet. The band is small because there are no cards beneath
+  // it in that state — the dead space this replaces was under a full plan.
+  embeddedAddOnly: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
+    backgroundColor: brand.panel,
+    borderBottomWidth: 1,
+    borderBottomColor: brand.border,
   },
   headerTextCol: { flex: 1 },
   addButton: {
@@ -1050,13 +1085,20 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
+    gap: spacing.sm,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     backgroundColor: brand.panel,
     borderBottomWidth: 1,
     borderBottomColor: brand.border,
+  },
+  // The four stats spread themselves; the ＋ (embedded only) sits after them.
+  statsGroup: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
   ringContainer: {
     alignItems: 'center',
@@ -1214,11 +1256,42 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 1,
   },
+  // A teal edge so an in-progress step stands out in a list of To Do cards.
+  // The border replaces an equal slice of the card's left padding, so the
+  // content does not shift when a step is started (padding 12 → 9 + 3 border).
+  cardInProgress: {
+    borderLeftWidth: 3,
+    borderLeftColor: brand.pine,
+    paddingLeft: spacing.md - 3,
+  },
   cardDismissed: {
     opacity: 0.5,
   },
   cardLocked: {
     opacity: 0.65,
+  },
+  // "In Progress" said in words, first in the meta row so it reads before the
+  // category. Tinted pill in the in-progress colour, with the ◐ glyph.
+  stateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radii.full,
+    backgroundColor: STATUS_META.in_progress.tint,
+  },
+  stateChipDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: STATUS_META.in_progress.color,
+  },
+  stateChipText: {
+    fontSize: 10,
+    fontWeight: fonts.weights.bold as '700',
+    color: STATUS_META.in_progress.color,
+    letterSpacing: 0.2,
   },
   calendarBadge: {
     fontSize: 11,

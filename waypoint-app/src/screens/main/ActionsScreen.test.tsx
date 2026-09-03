@@ -37,7 +37,7 @@ vi.mock('@/hooks/useActions', () => ({
   }),
 }));
 
-import ActionsScreen from './ActionsScreen';
+import ActionsScreen, { ActionPlanTracker } from './ActionsScreen';
 import { navigateCalls } from '../../../vitest.setup.ui';
 
 /**
@@ -569,5 +569,46 @@ describe('the filter sheet promises the count it will deliver', () => {
     fireEvent.click(screen.getByLabelText('Filters'));
     // It read "Show 8 steps" and closing it rendered 3.
     expect(screen.getByLabelText('Show 3 steps')).toBeTruthy();
+  });
+});
+
+// ─── "In Progress", said in words (owner, Sep 3) ────────────────────────────
+
+describe('an in-progress step says so on the card', () => {
+  // The chrome always carries one "In Progress" — the status filter pill — and
+  // the mocked hook returns stats: null, so the dashboard adds none. A card
+  // that labels itself is therefore the SECOND occurrence.
+  it('labels an in-progress card "In Progress"', () => {
+    h.actions = [action({ status: 'in_progress', title: 'Started step' })];
+    render(<ActionsScreen />);
+    expect(screen.getAllByText('In Progress')).toHaveLength(2);
+  });
+
+  it('leaves a To Do card unlabelled — the default needs no badge', () => {
+    h.actions = [action({ status: 'not_started', title: 'A step' })];
+    render(<ActionsScreen />);
+    expect(screen.getAllByText('In Progress')).toHaveLength(1); // the filter pill
+  });
+
+  it('does not label a Done card as in progress', () => {
+    h.actions = [
+      action({ id: 'a', status: 'completed', title: 'Finished step' }),
+      action({ id: 'b', status: 'in_progress', title: 'Live step' }),
+    ];
+    render(<ActionsScreen />);
+    // The in-progress step fills the focus view; expand to reveal the done one.
+    fireEvent.click(screen.getByText(/Show everything/));
+    // filter pill + the ONE in-progress card — the completed card adds nothing.
+    expect(screen.getAllByText('In Progress')).toHaveLength(2);
+  });
+});
+
+describe('the embedded plan keeps ＋ without a header band of its own', () => {
+  // Removing the empty ＋ band (the "dead space at the top" of the Plan tab)
+  // must not drop the add affordance — it moves onto the dashboard row.
+  it('still offers "Add your own action" when embedded', () => {
+    h.actions = [action()];
+    render(<ActionPlanTracker />);
+    expect(screen.getByLabelText('Add your own action')).toBeTruthy();
   });
 });
