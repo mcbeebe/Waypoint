@@ -137,17 +137,24 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
    * Tap a field to sort by it; tap the field you're already on to flip its
    * direction (owner: "should be able to sort both ways"). Selecting a new
    * field starts at that field's natural direction; `smart` never flips.
+   *
+   * Both setters are called straight from the handler, never one nested inside
+   * the other's updater — a state-updater must be pure, and a `setSortDir`
+   * fired as a SIDE EFFECT of the `setSortField` updater would run twice under
+   * React StrictMode's double-invoke, flipping the direction back to where it
+   * started (a silent no-op on the reverse tap).
    */
-  const chooseSort = useCallback((field: ActionSortField) => {
-    setSortField((prevField) => {
-      if (prevField === field && isReversibleField(field)) {
+  const chooseSort = useCallback(
+    (field: ActionSortField) => {
+      if (field === sortField && isReversibleField(field)) {
         setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
       } else {
+        setSortField(field);
         setSortDir(DEFAULT_DIR[field]);
       }
-      return field;
-    });
-  }, []);
+    },
+    [sortField]
+  );
   const [filters, setFilters] = useState<ActionFilters>(NO_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
 
