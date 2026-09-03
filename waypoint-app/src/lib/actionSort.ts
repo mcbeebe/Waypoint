@@ -66,18 +66,34 @@ export const NO_FILTERS: ActionFilters = { priorities: [], due: 'any', created: 
 // ─── Local-day helpers ──────────────────────────────────────────────────────
 
 /**
- * Midnight, local time, of the calendar day a `YYYY-MM-DD` string names.
+ * Midnight, local time, of the calendar day a value falls on.
+ *
+ * Two kinds of input, and they must be read differently:
+ *
+ * - **Date-only** (`2026-09-03`, a Postgres `date` like `due_date`) names a
+ *   calendar day with no instant and no zone. Build local midnight of exactly
+ *   that day. `new Date('2026-09-03')` would parse it as UTC midnight, which
+ *   is 17:00 the previous evening in California.
+ * - **A full timestamp** (`created_at`) is a real instant; its calendar day is
+ *   whatever the device's clock says. Parse it and take the local day.
+ *
+ * The `$` on the pattern is load-bearing. Without it the pattern also matched
+ * the leading `YYYY-MM-DD` of every ISO timestamp, so `created_at` was bucketed
+ * on its UTC date and the timestamp branch below was unreachable: a step added
+ * at 19:30 Pacific counted as "added tomorrow". The `tz` suite ran only at
+ * UTC+7, where a late local evening is still the same UTC date — the one zone
+ * in which that bug cannot be seen. It now runs east AND west.
+ *
  * Returns null for a missing or unparsable value so a bad row is simply
  * undated rather than silently "overdue since 1970".
  */
 function localDayOf(dateStr: string | null | undefined): number | null {
   if (!dateStr) return null;
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(dateStr);
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr.trim());
   if (m) {
     const t = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
     return Number.isNaN(t) ? null : t;
   }
-  // A full timestamp (created_at) — take the local calendar day it falls on.
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return null;
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -127,8 +143,12 @@ function byId(a: Action, b: Action): number {
 }
 
 const COMPARATORS: Record<ActionSortKey, (a: Action, b: Action) => number> = {
-  // Byte-for-byte the order the plan has always shipped. Kept exactly so the
-  // focus view's "next 3" means the same steps it meant yesterday.
+  // The order the plan has always shipped — priority, then soonest deadline,
+  // then newest — with one deliberate addition: a final tiebreak on id. Two
+  // steps that tie on all three (onboarding inserts seven sharing a
+  // `created_at`) used to fall back to the query's order; they now have a
+  // fixed one, so the list cannot reshuffle between renders. That is a change,
+  // not a no-op, and it is the only one.
   smart: (a, b) => rank(a.priority) - rank(b.priority) || byDue(a, b) || byCreatedDesc(a, b) || byId(a, b),
   due_date: (a, b) => byDue(a, b) || rank(a.priority) - rank(b.priority) || byCreatedDesc(a, b) || byId(a, b),
   priority: (a, b) => rank(a.priority) - rank(b.priority) || byCreatedDesc(a, b) || byId(a, b),

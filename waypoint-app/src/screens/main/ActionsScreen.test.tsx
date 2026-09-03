@@ -435,3 +435,117 @@ describe('every control in the chrome can be reached by name', () => {
     expect(screen.getByLabelText('All').getAttribute('aria-pressed')).toBe('true');
   });
 });
+
+// ─── What an adversarial review found, pinned ──────────────────────────────
+
+describe('the card and the Overdue filter agree about "overdue"', () => {
+  /**
+   * The card said `new Date(due_date) < new Date()`, which parses a Postgres
+   * `date` as UTC midnight — 17:00 the previous evening in California. The
+   * filter reads the local calendar day. So a card badged "⚠️ Overdue"
+   * vanished when the parent tapped Filters → Overdue, and the plan said
+   * "No steps match these filters".
+   */
+  const dueToday = () => {
+    const d = new Date(NOON);
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return action({ id: 'today', title: 'Due today step', due_date: iso });
+  };
+
+  it('does not badge a step due TODAY as overdue', () => {
+    h.actions = [dueToday()];
+    render(<ActionsScreen />);
+    expect(screen.queryByText(/Overdue/)).toBeNull();
+  });
+
+  it('anything the card badges Overdue survives the Overdue filter', () => {
+    h.actions = [dueToday(), action({ id: 'late', title: 'Genuinely late step', due_date: '2026-08-01' })];
+    render(<ActionsScreen />);
+    expect(screen.getByText(/Overdue: Aug 1/)).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText('Filters'));
+    fireEvent.click(screen.getByLabelText('Deadline: Overdue'));
+    fireEvent.click(screen.getByLabelText(/^Close filters$/));
+
+    expect(screen.getByText('Genuinely late step')).toBeTruthy();
+    expect(screen.queryByText('Due today step')).toBeNull();
+    expect(screen.queryByText('No steps match these filters')).toBeNull();
+  });
+});
+
+describe('the focus toggle goes both ways', () => {
+  it('comes back after expanding a small plan', () => {
+    // 2 open + 1 done. Collapsed the toggle asked `hiddenCount > 0` (true);
+    // expanded it asked `sortedActions.length > 3` (false) and vanished —
+    // a one-way door out of the focus view for the rest of the session.
+    h.actions = [
+      action({ id: 'o1', title: 'Open one', created_at: hoursAgo(10) }),
+      action({ id: 'o2', title: 'Open two', created_at: hoursAgo(11) }),
+      action({ id: 'd1', title: 'Finished one', status: 'completed', created_at: hoursAgo(12) }),
+    ];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByText(/Show everything/));
+    expect(screen.getByText('Finished one')).toBeTruthy();
+    expect(screen.getByText(/Focus on my next 3/)).toBeTruthy();
+
+    fireEvent.click(screen.getByText(/Focus on my next 3/));
+    expect(screen.queryByText('Finished one')).toBeNull();
+  });
+});
+
+describe('a parent who has finished everything', () => {
+  it('is not told the plan is empty', () => {
+    // "No actions yet — ask the Navigator and save some steps" rendered
+    // directly above "Show everything (5 more)".
+    h.actions = Array.from({ length: 5 }, (_, i) =>
+      action({ id: `c${i}`, title: `Finished ${i}`, status: 'completed', created_at: hoursAgo(50 + i) })
+    );
+    render(<ActionsScreen />);
+    expect(screen.queryByText('No actions yet')).toBeNull();
+    expect(screen.getByText('Nothing open right now')).toBeTruthy();
+    // Two ways out, worded differently — the empty state's own button and the
+    // toggle beneath it. They both said "Show everything" for one build.
+    expect(screen.getByText('See my whole plan')).toBeTruthy();
+    expect(screen.getByText(/Show everything \(5 more\)/)).toBeTruthy();
+  });
+
+  it('still gets the real empty state when the plan really is empty', () => {
+    h.actions = [];
+    render(<ActionsScreen />);
+    expect(screen.getByText('No actions yet')).toBeTruthy();
+  });
+});
+
+describe('a dismissed step says so out loud', () => {
+  it('names the status in text, not only as opacity and a strikethrough', () => {
+    // Both remaining cues were purely visual, and the strikethrough is shared
+    // with "completed" — so a screen reader could not tell the two apart.
+    h.actions = [
+      action({ id: 'x', title: 'Dropped step', status: 'dismissed', dismissed_reason: 'school handled it' }),
+    ];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByText('See my whole plan'));
+    expect(screen.getByText(/^Dismissed — school handled it$/)).toBeTruthy();
+  });
+
+  it('says Dismissed even with no reason recorded', () => {
+    h.actions = [action({ id: 'x', title: 'Dropped step', status: 'dismissed' })];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByText('See my whole plan'));
+    // Two: the status filter pill, which is always there, and the card's own
+    // tag, which is what this pins. Drop the tag and this falls to one.
+    expect(screen.getAllByText('Dismissed')).toHaveLength(2);
+  });
+});
+
+describe('the filter sheet promises the count it will deliver', () => {
+  it('offers the focus view count, not the whole plan, when no filter is set', () => {
+    h.actions = Array.from({ length: 8 }, (_, i) =>
+      action({ id: `s${i}`, title: `Step ${i}`, created_at: hoursAgo(100 + i) })
+    );
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Filters'));
+    // It read "Show 8 steps" and closing it rendered 3.
+    expect(screen.getByLabelText('Show 3 steps')).toBeTruthy();
+  });
+});

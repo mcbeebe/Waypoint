@@ -56,6 +56,7 @@ import {
   SORT_KEYS,
   NO_FILTERS,
   activeFilterCount,
+  daysFromToday,
   filterActions,
   sortActions,
   sortLabel,
@@ -90,6 +91,15 @@ const STATUS_FILTERS: ActionStatus[] = ['not_started', 'in_progress', 'completed
  * Without a cap the "focus" view stops being one — see visibleActions below.
  */
 const MAX_FRESH_IN_FOCUS = 2;
+
+/**
+ * The meta row's controls are deliberately small — a 44pt pill next to a 44pt
+ * chevron would read as a button bar rather than as a line of metadata — so
+ * they reach MIN_TOUCH_TARGET through hitSlop instead of through height.
+ * (26pt pill + 9 top + 9 bottom = 44; 32pt chevron + 6 + 6 = 44.)
+ */
+const PRIORITY_HIT_SLOP = { top: 9, bottom: 9, left: 6, right: 6 } as const;
+const DETAIL_HIT_SLOP = { top: 6, bottom: 6, left: 8, right: 8 } as const;
 
 // ─── Tracker body (Tracker tab root + Plan tab's Action Plan segment) ────────
 
@@ -209,8 +219,17 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   const narrowing = sortKey !== 'smart' || filterCount > 0;
   const focusMode = activeFilter === 'all' && !showAll && !narrowing;
 
-  const visibleActions = useMemo(() => {
-    if (!focusMode) return sortedActions;
+  /**
+   * What the focus view WOULD show — computed whether or not it is showing.
+   *
+   * The toggle used to ask two different questions: `hiddenCount > 0` while
+   * collapsed, `sortedActions.length > 3` while expanded. Those are not each
+   * other's inverse, so a plan of 3 (2 open, 1 done) offered "Show everything
+   * (1 more)", and once tapped the toggle evaluated `3 > 3` and vanished —
+   * a one-way door out of the focus view, for the rest of the session.
+   * One list, one predicate.
+   */
+  const focusActions = useMemo(() => {
     const open = sortedActions.filter(
       (a) => a.status === 'not_started' || a.status === 'in_progress'
     );
@@ -233,8 +252,13 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
     if (fresh.length === 0) return next3;
     const keep = new Set([...next3, ...fresh]);
     return sortedActions.filter((a) => keep.has(a));
-  }, [focusMode, sortedActions, isLocked, now]);
+  }, [sortedActions, isLocked, now]);
+
+  const visibleActions = focusMode ? focusActions : sortedActions;
+  /** How many the focus view is holding back — 0 when it is not collapsing. */
   const hiddenCount = sortedActions.length - visibleActions.length;
+  /** Is there anything for the toggle to toggle? The one predicate it uses. */
+  const collapsible = sortedActions.length > focusActions.length;
 
   /** Open an action's full detail. Standalone the Tracker stack owns
    *  ActionDetail; embedded in Plan (the Calendar stack) it doesn't, so the
@@ -499,6 +523,19 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
             <SkeletonCard />
             <SkeletonCard />
           </View>
+        ) : collapsible ? (
+          // Every open step is done, dismissed or still locked — so the focus
+          // view has nothing to show, but the plan is not empty. Sending a
+          // parent who has just finished everything to "ask the Navigator and
+          // save some steps" is the worst copy on the screen, and it sat
+          // directly above a "Show everything (5 more)" button.
+          <EmptyState
+            emoji="✅"
+            title="Nothing open right now"
+            subtitle="Every step in view is done or waiting on another one."
+            actionLabel="See my whole plan"
+            onAction={() => setShowAll(true)}
+          />
         ) : filterCount > 0 ? (
           // A filter that matched nothing is not an empty plan. Sending a
           // parent who has 27 steps to "Ask the Navigator and save some" —
@@ -547,7 +584,7 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
           Hidden entirely while a sort or filter is narrowing the list — the
           parent asked for a specific view, and "Focus on my next 3" would
           throw it away. */}
-      {activeFilter === 'all' && !narrowing && (focusMode ? hiddenCount > 0 : sortedActions.length > 3) ? (
+      {activeFilter === 'all' && !narrowing && collapsible ? (
         <TouchableOpacity
           style={styles.focusToggle}
           onPress={() => setShowAll((v) => !v)}
@@ -611,7 +648,10 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
         onChange={setFilters}
         onClose={() => setShowFilters(false)}
         locale={uiLocale}
-        matchCount={sortedActions.length}
+        // What the list will ACTUALLY render on close. `sortedActions.length`
+        // ignored the focus view, so with no filters set the button read
+        // "Show 8 steps" and closing it rendered 3.
+        matchCount={visibleActions.length}
       />
     </>
   );
@@ -678,8 +718,16 @@ function ActionCard({
   const addedLabel = formatAddedOn(action.created_at, stamp, locale);
   const priorityMeta = PRIORITY_META[action.priority];
   const categoryConfig = CATEGORY_CONFIG[action.category];
-  const isOverdue = action.due_date && new Date(action.due_date) < new Date() && action.status !== 'completed';
-  const isDueSoon = action.due_date && !isOverdue && daysUntil(action.due_date) <= (action.deadline_warning_days || 7);
+  // Through the SAME local-day helper the deadline filters use. This line was
+  // `new Date(action.due_date) < new Date()`, which parses a Postgres `date`
+  // as UTC midnight — 17:00 the previous evening in California. Harmless while
+  // it was the only opinion on the screen; not once an Overdue FILTER shipped
+  // beside it, because then a card badged "⚠️ Overdue" disappeared when the
+  // parent tapped Filters → Overdue and the plan said "No steps match".
+  const dueInDays = daysFromToday(action.due_date, stamp);
+  const isOverdue = dueInDays !== null && dueInDays < 0 && action.status !== 'completed';
+  const isDueSoon =
+    dueInDays !== null && !isOverdue && dueInDays <= (action.deadline_warning_days || 7);
 
   const stepsDone = action.steps?.filter((s) => s.done).length ?? 0;
   const stepsTotal = action.steps?.length ?? 0;
@@ -701,6 +749,17 @@ function ActionCard({
           gutter that CYCLED To Do → In Progress → Done, so reaching Done took
           two taps and nothing said what a tap would do. A dismissed step keeps
           the plain row — reopening it is a swipe, not a mis-tap away. */}
+      {/* A dismissed step keeps no segmented control — reopening is a swipe, so
+          it cannot be a mis-tap — but it must still SAY it is dismissed. The
+          only cues left were opacity and a strikethrough: both invisible to a
+          screen reader, and the strikethrough is shared with "done". */}
+      {action.status === 'dismissed' && (
+        <Text style={styles.dismissedTag}>
+          {statusLabel('dismissed', locale)}
+          {action.dismissed_reason ? ` — ${action.dismissed_reason}` : ''}
+        </Text>
+      )}
+
       {action.status !== 'dismissed' && (
         <View style={styles.statusBar}>
           <StatusControl
@@ -760,6 +819,7 @@ function ActionCard({
             editingPriority && styles.priorityBadgeOpen,
           ]}
           onPress={() => setEditingPriority((v) => !v)}
+          hitSlop={PRIORITY_HIT_SLOP}
           accessibilityRole="button"
           accessibilityState={{ expanded: editingPriority }}
           aria-expanded={editingPriority}
@@ -779,6 +839,7 @@ function ActionCard({
         )}
         <TouchableOpacity
           style={styles.detailHintHit}
+          hitSlop={DETAIL_HIT_SLOP}
           onPress={onOpenDetail}
           accessibilityRole="button"
           accessibilityLabel={`${action.title}: scripts, steps and documents`}
@@ -930,12 +991,6 @@ function allLabel(locale: ActionLocale): string {
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-
-function daysUntil(dateStr: string): number {
-  const target = new Date(dateStr);
-  const now = new Date();
-  return Math.ceil((target.getTime() - now.getTime()) / 86400000);
-}
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -1108,11 +1163,12 @@ const styles = StyleSheet.create({
   filterButtonTextActive: {
     color: '#FFFFFF',
   },
-  // 34pt visible, but the pills sit inside a 44pt band and a horizontal
-  // scroller, so a miss scrolls rather than selecting the neighbour.
+  // 34pt visible; the surrounding band adds 4pt of padding either side, so the
+  // row is 42. Bumped to 44 on the pill itself rather than left to a comment
+  // that rounded the band up.
   filterPill: {
     paddingHorizontal: 11,
-    minHeight: 34,
+    minHeight: MIN_TOUCH_TARGET - 8,
     justifyContent: 'center',
     borderRadius: 12,
     backgroundColor: brand.paper,
@@ -1215,9 +1271,10 @@ const styles = StyleSheet.create({
     color: brand.pine,
     fontWeight: fonts.weights.semibold as '600',
   },
-  // A real control now, not a label: 44pt of vertical hit area (the padding
-  // reaches past the visible pill) so it clears MIN_TOUCH_TARGET without
-  // making the meta row look like a button bar.
+  // The PILL is 26pt so the meta row does not read as a button bar; the TARGET
+  // is 44 via hitSlop on the touchable. An earlier version of this comment
+  // claimed the padding got there on its own. It did not — the hit area was
+  // 26pt, on the only in-place priority control the card has.
   priorityBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -1285,6 +1342,12 @@ const styles = StyleSheet.create({
     color: brand.pine,
     fontWeight: fonts.weights.bold as '700',
     letterSpacing: 0.3,
+  },
+  dismissedTag: {
+    fontSize: 11,
+    fontWeight: fonts.weights.semibold,
+    color: brand.inkFaint,
+    marginBottom: 6,
   },
   addedText: {
     fontSize: 11,

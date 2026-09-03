@@ -309,3 +309,23 @@ describe('when this step landed in the plan', () => {
     expect(screen.queryByText(/🕐 Added/)).toBeNull();
   });
 });
+
+describe('a dismissal reason can be corrected', () => {
+  it('reopens the reason box, pre-filled, from the dismissed note', () => {
+    // It was write-once: a parent who dismissed with the wrong note, or none,
+    // had no path back to the box — and reopening to re-dismiss discards the
+    // old text on the way through updateStatus.
+    detail({ status: 'dismissed', dismissed_reason: 'school said no' });
+    const note = screen.getByLabelText(/Tap to edit the reason\.$/);
+    expect(note).toBeTruthy();
+    fireEvent.click(note);
+    const input = screen.getByPlaceholderText(/Reason for dismissing/) as HTMLInputElement;
+    expect(input.value).toBe('school said no');
+  });
+
+  it('opens an empty box when no reason was recorded', () => {
+    detail({ status: 'dismissed', dismissed_reason: null });
+    fireEvent.click(screen.getByLabelText(/Tap to edit the reason\.$/));
+    expect((screen.getByPlaceholderText(/Reason for dismissing/) as HTMLInputElement).value).toBe('');
+  });
+});

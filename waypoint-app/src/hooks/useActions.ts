@@ -269,8 +269,20 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
     }
 
     await updateAction(actionId, updates);
+
+    // A row that no longer belongs in the current view has to leave it.
+    // `updateAction` writes optimistically and never re-queries on success, so
+    // with a status filter active the row kept its place: the pill said "To
+    // Do" while the card under it showed "Done" selected, until the tab was
+    // re-focused. The pre-fix refetch loop was overwriting local state
+    // thousands of times a second and hid this; closing the loop is what makes
+    // it visible, so it is closed here rather than left for the next reader.
+    if (statusKey && !statusKey.split(',').includes(status)) {
+      setActions((prev) => prev.filter((a) => a.id !== actionId));
+    }
+
     fetchStats(); // Refresh completion rates
-  }, [updateAction, fetchStats]);
+  }, [updateAction, fetchStats, statusKey]);
 
   // ─── Toggle Step ────────────────────────────────────────────────────────
 

@@ -248,6 +248,10 @@ export default function ActionDetailScreen({
   };
 
   const handleStatusChange = (status: ActionStatus) => {
+    // Both guards are defensive rather than reachable today: the only caller is
+    // `StatusControl`, which iterates the three primary statuses and already
+    // refuses to re-emit the current one. They stay so a future caller (a swipe,
+    // a deep link) cannot skip the dismissal flow or write a no-op.
     if (status === action.status) return;
     if (status === 'dismissed') {
       setShowDismissInput(true);
@@ -390,10 +394,29 @@ export default function ActionDetailScreen({
               undo by tapping the next option along, so it stays a deliberate,
               secondary act. */}
           {action.status === 'dismissed' ? (
-            <Text style={[styles.dismissedNote, { fontSize: sz(12) }]}>
-              {statusLabel('dismissed', uiLocale)}
-              {action.dismissed_reason ? ` — ${action.dismissed_reason}` : ''}
-            </Text>
+            /* Tappable, because the reason was write-once: a parent who
+               dismissed with the wrong note (or none) had no way back to the
+               box, and reopening to re-dismiss discards the old text on the
+               way through `updateStatus`. Pre-fills what is there now. */
+            <TouchableOpacity
+              style={styles.dismissLink}
+              onPress={() => {
+                setDismissReason(action.dismissed_reason ?? '');
+                setShowDismissInput((v) => !v);
+              }}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showDismissInput }}
+              aria-expanded={showDismissInput}
+              accessibilityLabel={`${statusLabel('dismissed', uiLocale)}${
+                action.dismissed_reason ? ` — ${action.dismissed_reason}` : ''
+              }. Tap to edit the reason.`}
+            >
+              <Text style={[styles.dismissedNote, { fontSize: sz(12) }]}>
+                {statusLabel('dismissed', uiLocale)}
+                {action.dismissed_reason ? ` — ${action.dismissed_reason}` : ''}
+                {'  ✏️'}
+              </Text>
+            </TouchableOpacity>
           ) : (
             <TouchableOpacity
               style={styles.dismissLink}
@@ -1206,10 +1229,6 @@ const styles = StyleSheet.create({
   categoryLabel: {
     fontSize: fonts.sizes.xs,
     color: colors.mid,
-  },
-  priorityLabel: {
-    fontSize: fonts.sizes.xs,
-    fontWeight: fonts.weights.semibold,
   },
   description: {
     fontSize: fonts.sizes.sm,

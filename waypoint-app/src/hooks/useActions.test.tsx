@@ -35,6 +35,9 @@ const h = vi.hoisted(() => ({
   selects: 0,
   updates: [] as Record<string, unknown>[],
   rows: [] as Record<string, unknown>[],
+  /** Every `.in(column, values)` the hook asked for — so a hook that stopped
+   *  looping by dropping the filter fails instead of passing. */
+  ins: [] as { column: string; values: unknown[] }[],
 }));
 
 vi.mock('@/lib/supabase', () => {
@@ -51,7 +54,10 @@ vi.mock('@/lib/supabase', () => {
     },
     eq: () => builder,
     is: () => builder,
-    in: () => builder,
+    in: (column: string, values: unknown[]) => {
+      h.ins.push({ column, values });
+      return builder;
+    },
     limit: () => builder,
     order: () => builder,
     single: () => Promise.resolve({ data: null, error: { code: 'PGRST116' } }),
@@ -97,6 +103,7 @@ async function settle(ms = 400) {
 beforeEach(() => {
   h.selects = 0;
   h.updates.length = 0;
+  h.ins.length = 0;
   h.rows = [];
 });
 
@@ -122,12 +129,36 @@ describe('selecting a status filter does not loop', () => {
   });
 
   it('still applies the filter it was given', async () => {
-    // A hook that stopped looping by ignoring the filter would pass every
-    // count assertion above and be badly broken.
+    // A hook that stopped looping by IGNORING the filter would pass every
+    // count assertion above and be badly broken. This asserts on the query the
+    // hook actually built — deleting the `.in()` from useActions fails here,
+    // which the earlier version of this test did not.
     h.rows = [{ id: 'a1', status: 'not_started' }];
     render(<Probe filtered memoized={false} />);
     await settle(150);
     expect(await screen.findByText('1')).toBeTruthy();
+    expect(h.ins).toContainEqual({ column: 'status', values: ['not_started'] });
+  });
+
+  it('asks for no status filter at all when none was given', async () => {
+    render(<Probe filtered={false} memoized={false} />);
+    await settle(150);
+    expect(h.ins.filter((i) => i.column === 'status')).toEqual([]);
+  });
+
+  it('passes every status through, in a stable order, for a multi-status filter', async () => {
+    // The fix keys the fetch on a sorted, joined string. If that round-trip
+    // ever dropped or reordered a status the query would silently narrow.
+    function Multi() {
+      const { actions } = useActions({
+        familyId: 'fam1',
+        statusFilter: ['in_progress', 'not_started'] as never,
+      });
+      return <span>{actions.length}</span>;
+    }
+    render(<Multi />);
+    await settle(150);
+    expect(h.ins).toContainEqual({ column: 'status', values: ['in_progress', 'not_started'] });
   });
 });
 
@@ -194,5 +225,43 @@ describe('the terminal timestamps are set OR cleared, never just set', () => {
     const patch = h.updates.at(-1)!;
     expect(patch.completed_at).toBeNull();
     expect(patch.dismissed_at).toBeNull();
+  });
+});
+
+// ─── A row that leaves the filtered view ────────────────────────────────────
+
+function FilteredProbe() {
+  const statusFilter = React.useMemo(() => ['not_started'] as never, []);
+  const api = useActions({ familyId: 'fam1', statusFilter });
+  React.useEffect(() => {
+    filteredApi = api;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [api.updateStatus, api.actions]);
+  return <span>{api.actions.map((a) => `${a.id}:${a.status}`).join(',')}</span>;
+}
+let filteredApi: ReturnType<typeof useActions>;
+
+describe('an optimistic status change respects the active filter', () => {
+  it('drops a step that no longer matches the filter it is being shown under', async () => {
+    // The pill says "To Do"; completing the step left it sitting in that list
+    // with "Done" selected on the card underneath. The refetch loop used to
+    // paper over it by overwriting local state thousands of times a second.
+    h.rows = [{ id: 'a1', status: 'not_started', title: 'Step' }];
+    render(<FilteredProbe />);
+    await settle(200);
+    expect(screen.getByText('a1:not_started')).toBeTruthy();
+
+    await act(async () => { await filteredApi.updateStatus('a1', 'completed'); });
+    await settle(100);
+    expect(screen.queryByText(/a1:/)).toBeNull();
+  });
+
+  it('keeps a step whose new status still matches', async () => {
+    h.rows = [{ id: 'a1', status: 'not_started', title: 'Step' }];
+    render(<FilteredProbe />);
+    await settle(200);
+    await act(async () => { await filteredApi.updateStatus('a1', 'not_started'); });
+    await settle(100);
+    expect(screen.getByText('a1:not_started')).toBeTruthy();
   });
 });
