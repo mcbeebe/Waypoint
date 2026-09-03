@@ -1,0 +1,1435 @@
+<title>Waypoint System Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  /* ───────── Tokens: complete light palette on bare :root ─────────
+     Values are Waypoint's own brand tokens from src/lib/theme.ts, so this
+     document reads as the product it describes: warm paper ground, navy-slate
+     ink, pine for anything structural, sage for healthy, coral for urgency. */
+  :root {
+    --paper:        #F5F1E9;
+    --paper-tint:   #FBF6EC;
+    --panel:        #FFFFFF;
+    --ink:          #22303A;
+    --ink-soft:     #55606B;
+    --ink-faint:    #6D6555;
+    --rule:         #EAE3D5;
+    --rule-strong:  #E2D8C4;
+    --pine:         #0F766E;
+    --pine-deep:    #115E56;
+    --pine-tint:    #E6F1EF;
+    --sage:         #047857;
+    --sage-tint:    #E7F5EE;
+    --urgent:       #C2410C;
+    --urgent-tint:  #FBEADD;
+    --code-bg:      #F2EEE4;
+    --shadow:       0 1px 2px rgba(34, 48, 58, .05), 0 8px 24px -12px rgba(34, 48, 58, .12);
+
+    --display: 'Newsreader', Georgia, 'Times New Roman', serif;
+    --body:    'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono:    'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    color-scheme: light;
+  }
+
+  /* Dark: the same roles, inverted deliberately — paper becomes ink, and the
+     ground keeps a pine bias so the accent still belongs to it. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:        #14181A;
+      --paper-tint:   #191E20;
+      --panel:        #1D2325;
+      --ink:          #EDE7DA;
+      --ink-soft:     #B4AFA4;
+      --ink-faint:    #948F84;
+      --rule:         #2C3335;
+      --rule-strong:  #3A4245;
+      --pine:         #5FBFB1;
+      --pine-deep:    #7FD3C6;
+      --pine-tint:    #1B2A29;
+      --sage:         #55C79A;
+      --sage-tint:    #172A24;
+      --urgent:       #F0A17A;
+      --urgent-tint:  #2E211B;
+      --code-bg:      #1A2022;
+      --shadow:       0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:        #14181A;
+    --paper-tint:   #191E20;
+    --panel:        #1D2325;
+    --ink:          #EDE7DA;
+    --ink-soft:     #B4AFA4;
+    --ink-faint:    #948F84;
+    --rule:         #2C3335;
+    --rule-strong:  #3A4245;
+    --pine:         #5FBFB1;
+    --pine-deep:    #7FD3C6;
+    --pine-tint:    #1B2A29;
+    --sage:         #55C79A;
+    --sage-tint:    #172A24;
+    --urgent:       #F0A17A;
+    --urgent-tint:  #2E211B;
+    --code-bg:      #1A2022;
+    --shadow:       0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+
+  /* ───────── Base ───────── */
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--pine); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, .nav-rail a:focus-visible {
+    outline: 2px solid var(--pine);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  code, .mono { font-family: var(--mono); font-size: .86em; }
+  code {
+    background: var(--code-bg);
+    padding: .12em .38em;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+
+  /* ───────── Shell ───────── */
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px 96px;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+
+  .nav-rail {
+    position: sticky;
+    top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 8px;
+    font-size: 13.5px;
+  }
+  .nav-rail .rail-head {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    padding: 14px 0 6px;
+  }
+  .nav-rail .rail-head:first-child { padding-top: 0; }
+  .nav-rail a {
+    color: var(--ink-soft);
+    text-decoration: none;
+    padding: 4px 10px;
+    border-left: 2px solid var(--rule);
+    line-height: 1.4;
+  }
+  .nav-rail a:hover { color: var(--pine); border-left-color: var(--pine); }
+
+  /* ───────── Masthead ───────── */
+  .masthead { padding: 64px 0 40px; border-bottom: 1px solid var(--rule-strong); }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--pine);
+    margin: 0 0 18px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(38px, 5.4vw, 60px);
+    line-height: 1.04;
+    letter-spacing: -.018em;
+    margin: 0 0 20px;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-size: 19px;
+    line-height: 1.58;
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin: 0 0 34px;
+  }
+  .standfirst strong { color: var(--ink); font-weight: 600; }
+
+  /* Stat strip — the figures are the point here, so they get the tiles. */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stat { background: var(--panel); padding: 14px 16px; }
+  .stat b {
+    display: block;
+    font-family: var(--display);
+    font-size: 27px;
+    font-weight: 500;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat span {
+    display: block;
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    letter-spacing: .03em;
+    margin-top: 3px;
+  }
+
+  .verify {
+    margin: 18px 0 0;
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+  .verify .tick { color: var(--sage); font-weight: 700; }
+
+  /* ───────── Sections ───────── */
+  section { padding-top: 60px; scroll-margin-top: 24px; }
+
+  .part-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 10px;
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-weight: 500;
+    font-size: clamp(27px, 3.2vw, 35px);
+    line-height: 1.16;
+    letter-spacing: -.012em;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: var(--body);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -.005em;
+    margin: 38px 0 12px;
+  }
+
+  h4 {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 30px 0 10px;
+  }
+
+  p { margin: 0 0 16px; max-width: 68ch; }
+  section > ul, section > ol { max-width: 68ch; }
+  li { margin-bottom: 7px; }
+
+  .lede { font-size: 17.5px; color: var(--ink-soft); max-width: 64ch; }
+
+  /* ───────── Figures ───────── */
+  figure {
+    margin: 30px 0;
+    padding: 24px 24px 18px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  figure svg { display: block; max-width: 100%; height: auto; margin: 0 auto; color: var(--ink); }
+  figcaption {
+    margin-top: 16px;
+    padding-top: 13px;
+    border-top: 1px solid var(--rule);
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  figcaption b { color: var(--ink); font-weight: 600; }
+
+  /* ───────── Tables ───────── */
+  .table-wrap { overflow-x: auto; margin: 22px 0; border: 1px solid var(--rule); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; background: var(--panel); }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    background: var(--paper-tint);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+
+  /* State chips — form as well as colour, so the exceptions read at a glance */
+  .chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .05em;
+    padding: 2px 7px;
+    border-radius: 20px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .chip-jwt   { background: var(--pine-tint);   color: var(--pine);   border-color: var(--pine); }
+  .chip-open  { background: var(--urgent-tint); color: var(--urgent); border-color: var(--urgent); }
+  .chip-ok    { background: var(--sage-tint);   color: var(--sage);   border-color: var(--sage); }
+
+  /* ───────── Ladder (a real ranked sequence — so it is numbered) ───────── */
+  .ladder { list-style: none; padding: 0; margin: 22px 0; counter-reset: rung; }
+  .ladder li {
+    display: grid;
+    grid-template-columns: 30px 128px minmax(0, 1fr);
+    gap: 14px;
+    align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--rule);
+    margin: 0;
+  }
+  .ladder li:last-child { border-bottom: 0; }
+  .ladder li::before {
+    counter-increment: rung;
+    content: counter(rung);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .ladder .rung-key { font-family: var(--mono); font-size: 13px; color: var(--pine); }
+  .ladder .rung-what { font-size: 14.5px; color: var(--ink-soft); }
+
+  /* ───────── Callouts — spent by role, not stamped on everything ───────── */
+  .note {
+    margin: 24px 0;
+    padding: 16px 18px;
+    border-left: 3px solid var(--pine);
+    background: var(--pine-tint);
+    border-radius: 0 8px 8px 0;
+    font-size: 14.5px;
+    line-height: 1.58;
+  }
+  .note p { margin: 0; max-width: none; }
+  .note p + p { margin-top: 10px; }
+  .note .note-label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--pine);
+    margin-bottom: 6px;
+  }
+  .note.sharp { border-left-color: var(--urgent); background: var(--urgent-tint); }
+  .note.sharp .note-label { color: var(--urgent); }
+
+  /* ───────── Step list for the shell fork ───────── */
+  .fork-list { list-style: none; padding: 0; margin: 20px 0; }
+  .fork-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: baseline;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--rule);
+    margin: 0;
+    font-size: 14.5px;
+  }
+  .fork-list li:last-child { border-bottom: 0; }
+  .fork-list .cond { color: var(--ink-soft); }
+  .fork-list .dest { font-family: var(--mono); font-size: 12.5px; color: var(--pine); white-space: nowrap; }
+
+  /* SVG accents resolve through the same tokens as the page, so every diagram
+     re-colours with the theme instead of stranding a light tint on a dark ground. */
+  .f-accent    { fill: var(--pine); }
+  .f-tint      { fill: var(--pine-tint); }
+  .s-accent    { stroke: var(--pine); }
+  .f-urgent    { fill: var(--urgent); }
+  .s-urgent    { stroke: var(--urgent); }
+  .t-on-accent { fill: var(--paper); }
+
+  footer {
+    margin-top: 76px;
+    padding-top: 22px;
+    border-top: 1px solid var(--rule-strong);
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+  footer p { max-width: 68ch; }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 20px 72px; }
+    .nav-rail {
+      position: static;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 6px;
+      padding: 16px 0 10px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .nav-rail .rail-head { display: none; }
+    .nav-rail a {
+      border-left: 0;
+      border: 1px solid var(--rule);
+      border-radius: 20px;
+      padding: 5px 12px;
+      white-space: nowrap;
+    }
+    .masthead { padding-top: 36px; }
+    .ladder li { grid-template-columns: 24px 1fr; }
+    .ladder .rung-what { grid-column: 2; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+
+<div class="shell">
+
+  <nav class="nav-rail" aria-label="Sections">
+    <span class="rail-head">Front end</span>
+    <a href="#shell">The shell fork</a>
+    <a href="#onboarding">Onboarding</a>
+    <a href="#routes">Route graph</a>
+    <a href="#triage">Home triage</a>
+    <a href="#draft">Draft flow</a>
+    <span class="rail-head">Back end</span>
+    <a href="#stack">The stack</a>
+    <a href="#data">Data model</a>
+    <a href="#rls">Access model</a>
+    <a href="#functions">Edge functions</a>
+    <span class="rail-head">Data flow</span>
+    <a href="#navigator">Navigator turn</a>
+    <a href="#reply">Reply loop</a>
+    <a href="#money">Money</a>
+    <span class="rail-head">Operations</span>
+    <a href="#ops">Ship path</a>
+    <a href="#sharp">Sharp edges</a>
+  </nav>
+
+  <main>
+
+    <header class="masthead">
+      <p class="eyebrow">waypoint-app · architecture reference</p>
+      <h1>Waypoint System Map</h1>
+      <p class="standfirst">
+        How a parent moves through the app, and what happens behind them. Waypoint is a
+        navigation platform for California families raising children with disabilities —
+        it has to know that a requested IPP review starts a <strong>30-day statutory
+        clock</strong> under W&amp;I Code §4646.5(b), and that a signed assessment consent
+        starts a <strong>60-day</strong> one under Ed Code §56344. Most of the architecture
+        below exists to keep those clocks, and the paper trail that proves them, correct.
+      </p>
+
+      <div class="stats">
+        <div class="stat"><b>58</b><span>screens</span></div>
+        <div class="stat"><b>38</b><span>data hooks</span></div>
+        <div class="stat"><b>63</b><span>tables</span></div>
+        <div class="stat"><b>59</b><span>migrations</span></div>
+        <div class="stat"><b>8</b><span>edge functions</span></div>
+        <div class="stat"><b>1205</b><span>tests</span></div>
+      </div>
+
+      <p class="verify">
+        <span class="tick">✓</span> Counted from the working tree at commit <code>469b043</code>.
+        Suite verified green: <strong>1205 passed / 105 runs</strong>, exit 0.
+      </p>
+    </header>
+
+    <!-- ══════════════════ PART I ══════════════════ -->
+
+    <section id="shell">
+      <p class="part-label">Part I · Front end</p>
+      <h2>The shell decides who you are before it decides what you see</h2>
+      <p class="lede">
+        <code>App.tsx</code> is a single ordered fork. Every branch is exclusive, and the
+        order is load-bearing — two of the six rungs exist because getting the order wrong
+        put the wrong person in the wrong product.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 720 330" role="img" aria-label="App.tsx resolves session and profile role first, then falls through six exclusive branches: Welcome, ResetPassword, StaffStack, JoinFamily, Onboarding, or MainTabs.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- resolvers -->
+          <rect x="8" y="16" width="150" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <text x="83" y="32" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">useAuth</text>
+          <text x="83" y="44" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">session</text>
+
+          <rect x="8" y="62" width="150" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <text x="83" y="78" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">useProfile</text>
+          <text x="83" y="90" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">role</text>
+
+          <line x1="83" y1="96" x2="83" y2="128" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+          <text x="92" y="116" font-size="10" fill="currentColor" opacity=".7">before families</text>
+
+          <!-- gate -->
+          <rect x="8" y="130" width="150" height="34" rx="6" class="f-accent"/>
+          <text x="83" y="151" text-anchor="middle" font-size="12" font-weight="600" class="t-on-accent">ordered fork</text>
+
+          <!-- spine -->
+          <line x1="83" y1="164" x2="83" y2="312" stroke="currentColor" stroke-width="1.2"/>
+
+          <!-- branches -->
+          <g font-size="11.5" fill="currentColor">
+            <line x1="83" y1="180" x2="255" y2="180" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+            <text x="262" y="184">no session</text>
+            <text x="470" y="184" font-family="monospace" font-size="11" class="f-accent">Welcome</text>
+
+            <line x1="83" y1="205" x2="255" y2="205" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+            <text x="262" y="209">password-recovery link</text>
+            <text x="470" y="209" font-family="monospace" font-size="11" class="f-accent">ResetPassword</text>
+
+            <line x1="83" y1="230" x2="255" y2="230" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+            <text x="262" y="234">staff role</text>
+            <text x="470" y="234" font-family="monospace" font-size="11" class="f-accent">StaffStack</text>
+
+            <line x1="83" y1="255" x2="255" y2="255" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+            <text x="262" y="259">invite token held</text>
+            <text x="470" y="259" font-family="monospace" font-size="11" class="f-accent">JoinFamily</text>
+
+            <line x1="83" y1="280" x2="255" y2="280" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+            <text x="262" y="284">not onboarded</text>
+            <text x="470" y="284" font-family="monospace" font-size="11" class="f-accent">Onboarding</text>
+
+            <line x1="83" y1="305" x2="255" y2="305" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+            <text x="262" y="309">otherwise</text>
+            <text x="470" y="309" font-family="monospace" font-size="11" class="f-accent">MainTabs</text>
+          </g>
+        </svg>
+        <figcaption>
+          <b>Order is the design.</b> The role resolves before anything touches
+          <code>families</code>, so a staff login never falls into parent onboarding or
+          creates a family row. The invite branch sits <em>above</em> onboarding for the
+          same class of reason: a co-parent following a share link must join an existing
+          family, never be walked through creating their own.
+        </figcaption>
+      </figure>
+
+      <p>
+        Above the navigator, the tree wraps in providers that every screen assumes:
+        <code>ErrorBoundary</code> → <code>I18nProvider</code> (en/es/vi) →
+        <code>TextScaleProvider</code> → <code>ToastProvider</code> →
+        <code>SafeAreaProvider</code> → <code>WebFrame</code>, with a
+        <code>NetworkBanner</code> above the <code>NavigationContainer</code>.
+        Linking config gives nearly every screen a URL, so browser back/forward works on
+        web and <code>waypoint://</code> deep links work on native. Two screens
+        (<code>Thread</code>, <code>DocumentAnalysis</code>) are deliberately pathless —
+        their params aren't serializable.
+      </p>
+    </section>
+
+    <section id="onboarding">
+      <h2>Onboarding is six gated questions</h2>
+      <p>
+        <code>OnboardingFlow.tsx</code> holds one wizard with <code>TOTAL_STEPS = 6</code>,
+        each with its own validity predicate — <em>Next</em> stays disabled until the step
+        is answerable. The answers become the <code>families</code> and
+        <code>children</code> rows that every later screen reads, which is why the flow is
+        short and none of it is optional.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th class="mono">Step</th><th>Asks</th><th>Becomes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">0</td><td>Parent name, child name</td><td>Identity for every letter and draft</td></tr>
+            <tr><td class="mono">1</td><td>Diagnoses</td><td>Eligibility reasoning, KB routing</td></tr>
+            <tr><td class="mono">2</td><td>Birthday</td><td>Age-triggered clocks — Early Start exit at 3, transition planning at 16</td></tr>
+            <tr><td class="mono">3</td><td>Regional Center status</td><td>Which Lanterman track applies</td></tr>
+            <tr><td class="mono">4</td><td>IEP status</td><td>Which IDEA track applies</td></tr>
+            <tr><td class="mono">5</td><td>Insurance</td><td>Appeal path — commercial, Medi-Cal, or CCS</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="routes">
+      <h2>The navigator is generated from a data file, because hand-mirroring it shipped nine dead taps</h2>
+      <p>
+        React Navigation resolves a <code>navigate</code> by walking to <em>parents</em>,
+        never to a sibling stack. A target is reachable only if the caller's own stack
+        registers it, or the call names the tab that does. Get it wrong and the tap does
+        nothing — silently, in production, with CI green.
+      </p>
+      <p>
+        So <code>src/navigation/routeGraph.ts</code> declares the graph as data,
+        <code>MainTabs.tsx</code> <em>builds</em> the navigator by mapping over it, and the
+        tests read the same structure. A screen not in the file does not exist; a screen in
+        the file is registered by construction. The first attempt at a guard — a hand-copied
+        list of route names in a test — drifted immediately and certified nine dead taps,
+        because it encoded what its author believed rather than what the navigator does.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 720 268" role="img" aria-label="Five visible tabs plus one hidden Tracker stack. The Home stack registers 31 destinations; callers in other tabs must name tab Home to reach them.">
+          <defs>
+            <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <text x="10" y="18" font-size="10.5" font-family="monospace" fill="currentColor" opacity=".65">BOTTOM BAR</text>
+
+          <!-- tabs -->
+          <g>
+            <rect x="10" y="28" width="118" height="40" rx="6" class="f-accent"/>
+            <text x="69" y="46" text-anchor="middle" font-size="12" font-weight="600" class="t-on-accent">Home</text>
+            <text x="69" y="59" text-anchor="middle" font-size="9.5" class="t-on-accent" opacity=".85">+31 destinations</text>
+
+            <rect x="138" y="28" width="108" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="192" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">Journey</text>
+            <text x="192" y="59" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".65">the map</text>
+
+            <rect x="256" y="28" width="108" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="310" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">Navigator</text>
+            <text x="310" y="59" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".65">+3 learn</text>
+
+            <rect x="374" y="28" width="108" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="428" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">Tools</text>
+
+            <rect x="492" y="28" width="108" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="546" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">Plan</text>
+            <text x="546" y="59" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".65">+Calendar</text>
+
+            <rect x="610" y="28" width="100" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 3"/>
+            <text x="660" y="46" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor" opacity=".7">Tracker</text>
+            <text x="660" y="59" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".55">no button</text>
+          </g>
+
+          <!-- resolution rule: the Plan tab fires a navigate that cannot land -->
+          <line x1="546" y1="68" x2="546" y2="120" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar2)"/>
+          <text x="536" y="97" text-anchor="end" font-size="11" fill="currentColor">a Plan-tab row taps an agency clock…</text>
+
+          <rect x="450" y="122" width="262" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <text x="581" y="139" text-anchor="middle" font-size="11.5" font-family="monospace" fill="currentColor">navigate('RequestTracker')</text>
+          <text x="581" y="153" text-anchor="middle" font-size="10.5" class="f-urgent">walks to PARENTS · never lands · silent</text>
+
+          <line x1="450" y1="141" x2="421" y2="141" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar2)"/>
+
+          <rect x="232" y="122" width="185" height="38" rx="6" class="f-tint s-accent" stroke-width="1.2"/>
+          <text x="324" y="139" text-anchor="middle" font-size="11.5" font-family="monospace" class="f-accent">{ tab: 'Home' }</text>
+          <text x="324" y="153" text-anchor="middle" font-size="10.5" class="f-accent">names the stack · lands</text>
+
+          <!-- generation -->
+          <line x1="69" y1="200" x2="69" y2="72" class="s-accent" stroke-width="1.4" marker-end="url(#ar2)"/>
+          <rect x="10" y="202" width="205" height="52" rx="6" fill="none" class="s-accent" stroke-width="1.4"/>
+          <text x="112" y="221" text-anchor="middle" font-size="11.5" font-family="monospace" class="f-accent">routeGraph.ts</text>
+          <text x="112" y="236" text-anchor="middle" font-size="10.5" fill="currentColor">the graph, as data</text>
+          <text x="112" y="248" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">MainTabs maps over it</text>
+
+          <line x1="215" y1="228" x2="330" y2="228" stroke="currentColor" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar2)"/>
+          <text x="338" y="225" font-size="11" fill="currentColor">tests read the same structure</text>
+          <text x="338" y="240" font-size="10.5" fill="currentColor" opacity=".65">so drift is a compile error, not a dead tap</text>
+        </svg>
+        <figcaption>
+          <b>One source, three consumers.</b> The graph declares six stacks — five with a
+          button, plus <code>Tracker</code>, which keeps action detail reachable after its
+          tab was merged into Plan. Because the navigator and the tests are both generated
+          from the file, a screen cannot be referenced but unregistered.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="triage">
+      <h2>Home is a decision, not a dashboard</h2>
+      <p>
+        <code>src/lib/homeTriage.ts</code> ranks everything Waypoint knows and returns the
+        one thing to lead with, plus the queue behind it. The ladder is a genuine ranking —
+        fixed, published, and the same every day — so it is the rare list that earns its
+        numbers.
+      </p>
+
+      <ol class="ladder">
+        <li><span class="rung-key">resume</span><span class="rung-what">Something half-finished is still open</span></li>
+        <li><span class="rung-key">crisis</span><span class="rung-what">Safety or a service about to lapse</span></li>
+        <li><span class="rung-key">overdue</span><span class="rung-what">A statutory clock has already run out</span></li>
+        <li><span class="rung-key">reply</span><span class="rung-what">An agency answered and no one has read it</span></li>
+        <li><span class="rung-key">today</span><span class="rung-what">Something is scheduled for today</span></li>
+        <li><span class="rung-key">clock</span><span class="rung-what">A deadline is running but not yet blown</span></li>
+        <li><span class="rung-key">question</span><span class="rung-what">Waypoint needs one fact to proceed</span></li>
+        <li><span class="rung-key">opportunity</span><span class="rung-what">Something this family likely qualifies for</span></li>
+      </ol>
+
+      <p>
+        Four rules, each written after a 20-persona audit found the failure it prevents:
+      </p>
+      <ul>
+        <li><strong>One published order.</strong> Show the highest thing that is true right
+          now — never a guess about what the family cares about today.</li>
+        <li><strong>Provenance, not praise.</strong> Every kicker says what class this is and
+          where it came from (<em>“NEW REPLY — RECEIVED YESTERDAY”</em>), never
+          <em>“Waypoint noticed”</em>. The same eyebrow on contradictory cards is what made
+          them read as contradictory.</li>
+        <li><strong>Never assert without evidence.</strong> A class only appears when its
+          evidence exists; an opportunity carries its citation and its
+          <em>“because you told us…”</em> reason.</li>
+        <li><strong>Deferral is honest.</strong> “Not today” always states when the item
+          returns, and set-aside items stay listed with Undo. The old permanent ✕ was the
+          audit's sixth failure.</li>
+      </ul>
+
+      <div class="note">
+        <span class="note-label">Owner rule — pinned by tests</span>
+        <p>
+          Home states the <em>status of the answer</em> — “An answer on X is past due” —
+          never an actor who failed (“They missed the deadline”). The framing a family reads
+          first is the one they carry into the phone call, so it starts neutral and firms up
+          only along the escalation ladder: collaborative → assertive → adversarial. Pinned
+          in <code>homeTriage.test.ts</code>.
+        </p>
+      </div>
+    </section>
+
+    <section id="draft">
+      <h2>From “something is late” to a sent letter</h2>
+      <p>
+        The draft flow is the app's spine: it is what turns triage into an action an agency
+        actually receives. <code>useDraftFlow.ts</code> is the engine;
+        <code>HomeScreen</code> only renders it.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 720 200" role="img" aria-label="Draft flow: the One Thing card opens the draft flow, the AI reads an incoming reply within an eight second bound, the question sheet shows that reading, answers prefill a Letters draft, and the gmail edge function sends it and writes the paper trail.">
+          <defs>
+            <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <g font-size="11.5">
+            <rect x="6" y="52" width="112" height="46" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="62" y="72" text-anchor="middle" font-weight="600" fill="currentColor">One Thing</text>
+            <text x="62" y="86" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">card</text>
+
+            <line x1="118" y1="75" x2="152" y2="75" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"/>
+
+            <rect x="154" y="52" width="122" height="46" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="215" y="72" text-anchor="middle" font-weight="600" fill="currentColor">AI reads</text>
+            <text x="215" y="86" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">the reply · 8s bound</text>
+
+            <line x1="276" y1="75" x2="310" y2="75" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"/>
+
+            <rect x="312" y="52" width="122" height="46" rx="6" class="f-tint s-accent" stroke-width="1.4"/>
+            <text x="373" y="72" text-anchor="middle" font-weight="600" class="f-accent">Question sheet</text>
+            <text x="373" y="86" text-anchor="middle" font-size="10" class="f-accent">parent picks</text>
+
+            <line x1="434" y1="75" x2="468" y2="75" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"/>
+
+            <rect x="470" y="52" width="112" height="46" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="526" y="72" text-anchor="middle" font-weight="600" fill="currentColor">Letters</text>
+            <text x="526" y="86" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">prefilled draft</text>
+
+            <line x1="582" y1="75" x2="616" y2="75" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar3)"/>
+
+            <rect x="618" y="52" width="96" height="46" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="666" y="72" text-anchor="middle" font-weight="600" fill="currentColor">Send</text>
+            <text x="666" y="86" text-anchor="middle" font-size="10" fill="currentColor" opacity=".65">gmail fn</text>
+          </g>
+
+          <!-- annotations -->
+          <line x1="215" y1="98" x2="215" y2="126" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="215" y="140" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".72">reading is SHOWN,</text>
+          <text x="215" y="153" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".72">never auto-routed</text>
+
+          <line x1="666" y1="98" x2="666" y2="126" stroke="currentColor" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="666" y="140" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".72">writes</text>
+          <text x="666" y="153" text-anchor="middle" font-size="10.5" font-family="monospace" fill="currentColor" opacity=".72">communications</text>
+
+          <line x1="373" y1="98" x2="373" y2="126" class="s-accent" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="373" y="140" text-anchor="middle" font-size="10.5" class="f-accent">draftFlowToken guards</text>
+          <text x="373" y="153" text-anchor="middle" font-size="10.5" class="f-accent">a stale-open sheet</text>
+
+          <text x="360" y="26" text-anchor="middle" font-size="11" font-family="monospace" fill="currentColor" opacity=".6">useDraftFlow.ts — the engine; the screen only renders</text>
+        </svg>
+        <figcaption>
+          <b>The AI reads; the parent decides.</b> Nothing is classified or auto-routed —
+          the model's reading of an incoming reply is surfaced in the question sheet and the
+          parent picks from it. The <code>draftFlowToken</code> guard means a refetch between
+          opening the sheet and tapping “Write my letter” cannot swap the letter out
+          underneath them.
+        </figcaption>
+      </figure>
+
+      <div class="note">
+        <span class="note-label">Escalation tone rule</span>
+        <p>
+          Every letter template starts friendly — “ask” or “request”, never “demand” — and
+          firms up only as asks go unanswered. The <code>warm</code> tone in
+          <code>ai-proxy</code> hard-bans legal citations and caps the draft at 100 words;
+          <code>professional</code> allows timelines under 250; <code>strong</code> permits
+          surgical citations under 350. Two templates override this by design:
+          a Notice of Action demand and a §4731 complaint stay firm even at warm tone,
+          because a verbal denial is not a decision.
+        </p>
+      </div>
+    </section>
+
+    <!-- ══════════════════ PART II ══════════════════ -->
+
+    <section id="stack">
+      <p class="part-label">Part II · Back end</p>
+      <h2>One client, one database, eight functions that hold secrets</h2>
+      <p class="lede">
+        The app talks to Postgres <em>directly</em> through PostgREST, carrying the user's
+        own JWT. Authorization is row-level security in the database — not checks in app
+        code. Anything that needs a secret, a service role, or a third party goes through an
+        Edge Function instead.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 720 400" role="img" aria-label="Architecture: the Expo client reads and writes Postgres directly under row-level security, and routes all secret-bearing work through eight Deno edge functions to Anthropic, OpenAI, Gmail, Stripe, Expo Push and Resend. pg_cron drives the app-closed loop.">
+          <defs>
+            <marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- client -->
+          <rect x="8" y="14" width="188" height="120" rx="8" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="102" y="36" text-anchor="middle" font-size="12.5" font-weight="700" fill="currentColor">Client</text>
+          <text x="102" y="53" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">Expo 55 · RN 0.76 · TS 5.9</text>
+          <line x1="20" y1="62" x2="184" y2="62" stroke="currentColor" stroke-width=".8" opacity=".3"/>
+          <text x="102" y="79" text-anchor="middle" font-size="10.5" fill="currentColor">58 screens</text>
+          <text x="102" y="95" text-anchor="middle" font-size="10.5" fill="currentColor">38 hooks · 87 lib modules</text>
+          <text x="102" y="111" text-anchor="middle" font-size="10.5" fill="currentColor">iOS · Android · Web</text>
+          <text x="102" y="126" text-anchor="middle" font-size="9.5" font-family="monospace" fill="currentColor" opacity=".6">session in AsyncStorage</text>
+
+          <!-- direct data path -->
+          <line x1="196" y1="60" x2="286" y2="60" class="s-accent" stroke-width="1.6" marker-end="url(#ar4)"/>
+          <text x="241" y="50" text-anchor="middle" font-size="10" class="f-accent">user JWT</text>
+          <text x="241" y="76" text-anchor="middle" font-size="9.5" class="f-accent">select / insert</text>
+
+          <!-- function path -->
+          <line x1="196" y1="112" x2="286" y2="180" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar4)"/>
+          <text x="196" y="160" font-size="10" fill="currentColor" opacity=".75">invoke()</text>
+
+          <!-- supabase container -->
+          <rect x="288" y="14" width="196" height="330" rx="8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <text x="386" y="-4" text-anchor="middle" font-size="10" fill="currentColor"></text>
+
+          <rect x="300" y="30" width="172" height="76" rx="6" class="f-tint s-accent" stroke-width="1.4"/>
+          <text x="386" y="50" text-anchor="middle" font-size="12" font-weight="700" class="f-accent">Postgres</text>
+          <text x="386" y="66" text-anchor="middle" font-size="10.5" class="f-accent">63 tables · 23 RPCs</text>
+          <text x="386" y="81" text-anchor="middle" font-size="10.5" class="f-accent">RLS is the boundary</text>
+          <text x="386" y="96" text-anchor="middle" font-size="10" class="f-accent" opacity=".8">FTS + pgvector</text>
+
+          <rect x="300" y="116" width="82" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <text x="341" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">Auth</text>
+          <text x="341" y="146" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".65">Apple · OAuth</text>
+
+          <rect x="390" y="116" width="82" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <text x="431" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="currentColor">Storage</text>
+          <text x="431" y="146" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".65">documents</text>
+
+          <rect x="300" y="166" width="172" height="66" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="386" y="186" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">Edge Functions</text>
+          <text x="386" y="202" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".72">8 · Deno · hold every secret</text>
+          <text x="386" y="220" text-anchor="middle" font-size="9.5" font-family="monospace" fill="currentColor" opacity=".6">no CI covers these</text>
+
+          <rect x="300" y="242" width="172" height="52" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <text x="386" y="261" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">pg_cron + pg_net</text>
+          <text x="386" y="277" text-anchor="middle" font-size="10" fill="currentColor" opacity=".68">every 5 min · the app-closed loop</text>
+
+          <line x1="386" y1="242" x2="386" y2="234" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+
+          <rect x="300" y="304" width="172" height="30" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <text x="386" y="323" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".8">migrations applied BY HAND</text>
+
+          <!-- external -->
+          <text x="590" y="30" text-anchor="middle" font-size="10.5" font-family="monospace" fill="currentColor" opacity=".65">THIRD PARTIES</text>
+
+          <g font-size="11">
+            <rect x="510" y="42" width="200" height="30" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="522" y="61" fill="currentColor" font-weight="600">Anthropic</text>
+            <text x="702" y="61" text-anchor="end" font-size="9.5" fill="currentColor" opacity=".65">Opus 5 · Sonnet 5 · Haiku</text>
+
+            <rect x="510" y="80" width="200" height="30" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="522" y="99" fill="currentColor" font-weight="600">OpenAI</text>
+            <text x="612" y="99" font-size="9.5" fill="currentColor" opacity=".65">embeddings only</text>
+
+            <rect x="510" y="118" width="200" height="30" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="522" y="137" fill="currentColor" font-weight="600">Gmail API</text>
+            <text x="612" y="137" font-size="9.5" fill="currentColor" opacity=".65">send · sync replies</text>
+
+            <rect x="510" y="156" width="200" height="30" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="522" y="175" fill="currentColor" font-weight="600">Stripe</text>
+            <text x="612" y="175" font-size="9.5" fill="currentColor" opacity=".65">payment links</text>
+
+            <rect x="510" y="194" width="200" height="30" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="522" y="213" fill="currentColor" font-weight="600">Expo Push</text>
+            <text x="612" y="213" font-size="9.5" fill="currentColor" opacity=".65">per-device locale</text>
+
+            <rect x="510" y="232" width="200" height="30" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="522" y="251" fill="currentColor" font-weight="600">Resend</text>
+            <text x="612" y="251" font-size="9.5" fill="currentColor" opacity=".65">co-parent invites</text>
+          </g>
+
+          <line x1="472" y1="199" x2="508" y2="150" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+          <line x1="472" y1="199" x2="508" y2="210" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar4)"/>
+          <text x="478" y="290" font-size="10" fill="currentColor" opacity=".7">server-side keys only</text>
+
+          <!-- client never touches third parties -->
+          <path d="M 102 140 L 102 372 L 610 372 L 610 268" fill="none" class="s-urgent" stroke-width="1.3" stroke-dasharray="5 4"/>
+          <line x1="330" y1="358" x2="380" y2="386" class="s-urgent" stroke-width="1.6"/>
+          <line x1="380" y1="358" x2="330" y2="386" class="s-urgent" stroke-width="1.6"/>
+          <text x="392" y="368" font-size="10.5" class="f-urgent">no API key ever ships in the client bundle</text>
+        </svg>
+        <figcaption>
+          <b>Two paths out of the client, and only two.</b> Ordinary reads and writes go
+          straight to Postgres under the caller's JWT, where RLS decides what they may see.
+          Everything requiring a secret — model calls, Gmail, Stripe, push — is brokered by an
+          Edge Function, so no third-party key is ever present in the shipped bundle.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="data">
+      <h2>63 tables, grouped by the thing they protect</h2>
+      <p>
+        Plus one view (<code>action_stats</code>) and 23 database functions. The domains
+        below are how access is actually reasoned about — the family file is one unit, and
+        the boundaries between groups are where the access rules change.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Domain</th><th>Core tables</th><th>Who can reach it</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Family core</strong></td>
+              <td class="mono">families · family_members · children · diagnoses · home_deferrals</td>
+              <td>Owner + members</td>
+            </tr>
+            <tr>
+              <td><strong>Plan &amp; time</strong></td>
+              <td class="mono">actions · action_notes · appointments · deadlines · family_requests</td>
+              <td>Owner + members</td>
+            </tr>
+            <tr>
+              <td><strong>Paper trail</strong></td>
+              <td class="mono">communications · documents · document_shares · document_access_logs · google_accounts</td>
+              <td>Owner + members<br><span class="mono" style="font-size:11px">google_accounts: owner only</span></td>
+            </tr>
+            <tr>
+              <td><strong>AI</strong></td>
+              <td class="mono">chat_sessions · chat_messages · knowledge_embeddings · ai_usage · ai_feedback · family_memories</td>
+              <td><strong>Owner only</strong> — chat history is private even from a co-parent</td>
+            </tr>
+            <tr>
+              <td><strong>Money</strong></td>
+              <td class="mono">entitlements · expenses · invoices · invoice_lines · insurance_authorizations</td>
+              <td>Owner<br><span class="mono" style="font-size:11px">entitlements: service role writes only</span></td>
+            </tr>
+            <tr>
+              <td><strong>Staff &amp; SDP</strong></td>
+              <td class="mono">organizations · staff · family_assignments · sdp_cases · service_events · spending_plan_lines · vendor_packets</td>
+              <td>Assigned staff; families see their own case data</td>
+            </tr>
+            <tr>
+              <td><strong>Community</strong></td>
+              <td class="mono">forum_threads · forum_posts · forum_reactions · forum_reports · direct_messages · user_blocks</td>
+              <td>Per-user, behind a feature flag</td>
+            </tr>
+            <tr>
+              <td><strong>Infrastructure</strong></td>
+              <td class="mono">push_tokens · outbound_run_lock · analytics_events · content_sources</td>
+              <td>Per-device / service role</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="rls">
+      <h2>Access is owner ∪ member, resolved by a function that cannot recurse</h2>
+      <p>
+        Waypoint's data was originally locked to the family <em>owner</em>: most tables read
+        <code>family_id in (select id from families where user_id = auth.uid())</code>. Family
+        Sharing added co-parents — and a co-parent with a valid membership row could open the
+        app and see no child, no plan, no calendar, no documents.
+      </p>
+      <p>
+        The fix was additive. Every new policy is permissive and sits alongside the owner
+        policy rather than replacing it, so existing access cannot regress — permissive
+        policies OR together. Each resolves the family set through
+        <code>member_family_ids()</code>, a <code>SECURITY DEFINER</code> function that runs
+        as its owner and therefore never re-enters <code>family_members</code>' own policies.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 720 250" role="img" aria-label="Owner and member policies OR together over a SECURITY DEFINER function, which breaks the policy recursion that a naive membership subquery would cause. Chat, entitlements, push tokens and staff tables are excluded from member access.">
+          <defs>
+            <marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <rect x="10" y="20" width="150" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <text x="85" y="38" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">Owner policy</text>
+          <text x="85" y="52" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor" opacity=".65">families.user_id</text>
+
+          <rect x="10" y="76" width="150" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <text x="85" y="94" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">Member policy</text>
+          <text x="85" y="108" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor" opacity=".65">family_members</text>
+
+          <line x1="160" y1="40" x2="196" y2="62" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"/>
+          <line x1="160" y1="96" x2="196" y2="74" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"/>
+          <text x="176" y="24" font-size="12" font-weight="700" class="f-accent">OR</text>
+
+          <rect x="198" y="48" width="188" height="42" rx="6" class="f-tint s-accent" stroke-width="1.4"/>
+          <text x="292" y="66" text-anchor="middle" font-size="11.5" font-family="monospace" class="f-accent">member_family_ids()</text>
+          <text x="292" y="81" text-anchor="middle" font-size="10" class="f-accent">SECURITY DEFINER</text>
+
+          <line x1="386" y1="69" x2="424" y2="69" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"/>
+
+          <rect x="426" y="48" width="180" height="42" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+          <text x="516" y="66" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">the family file</text>
+          <text x="516" y="81" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">24 tables · read + write</text>
+
+          <!-- recursion note -->
+          <line x1="292" y1="90" x2="292" y2="122" class="s-urgent" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="302" y="112" font-size="10.5" class="f-urgent">runs as its owner — so it never re-enters</text>
+          <text x="302" y="126" font-size="10.5" class="f-urgent"><tspan font-family="monospace">family_members</tspan>' own policy (the 42P17 recursion)</text>
+
+          <!-- exclusions -->
+          <line x1="516" y1="90" x2="516" y2="152" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar5)"/>
+          <rect x="330" y="154" width="372" height="76" rx="6" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="5 4"/>
+          <text x="344" y="174" font-size="11" font-weight="700" fill="currentColor">Deliberately NOT shared with a member</text>
+          <text x="344" y="192" font-size="10.5" font-family="monospace" fill="currentColor" opacity=".78">chat_sessions · chat_messages — private AI history</text>
+          <text x="344" y="207" font-size="10.5" font-family="monospace" fill="currentColor" opacity=".78">entitlements · push_tokens · provider portal · staff</text>
+          <text x="344" y="222" font-size="10.5" fill="currentColor" opacity=".78">families WRITE — account settings stay with the owner</text>
+        </svg>
+        <figcaption>
+          <b>Sharing is all-or-nothing, by decision.</b> A member sees the whole family file
+          rather than selected children — including the money-adjacent SDP tables, an explicit
+          owner call. The exclusions are each a real privacy judgement, not an oversight: a
+          co-parent joining a family should not silently inherit the owner's chat history,
+          premium, or device tokens.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="functions">
+      <h2>Eight functions, three authentication stories</h2>
+      <p>
+        Five carry a normal Supabase JWT. Three deliberately do not — and each of those three
+        has a comment in <code>config.toml</code> explaining why flipping it would break the
+        caller, because the setting looks like a bug until you know.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th class="mono">Function</th><th>JWT</th><th>What actually proves the caller</th><th>Job</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">ai-proxy</td>
+              <td><span class="chip chip-jwt">verify</span></td>
+              <td>Supabase JWT</td>
+              <td>Every model call. Holds the Anthropic and OpenAI keys; system prompts live here so a modified client can't strip the guardrails</td>
+            </tr>
+            <tr>
+              <td class="mono">gmail</td>
+              <td><span class="chip chip-jwt">verify</span></td>
+              <td>JWT; the Google refresh token is read under RLS</td>
+              <td>Send letters, sync thread replies into the paper trail</td>
+            </tr>
+            <tr>
+              <td class="mono">google-auth</td>
+              <td><span class="chip chip-jwt">verify</span></td>
+              <td>Supabase JWT</td>
+              <td>Mint short-lived Google access tokens; revoke on disconnect</td>
+            </tr>
+            <tr>
+              <td class="mono">delete-account</td>
+              <td><span class="chip chip-jwt">verify</span></td>
+              <td>Supabase JWT</td>
+              <td>Purge Storage objects, then delete the auth user — FK cascade removes the rest</td>
+            </tr>
+            <tr>
+              <td class="mono">family-invite</td>
+              <td><span class="chip chip-jwt">verify</span></td>
+              <td>JWT — but <strong>authorization is RLS</strong>, not code</td>
+              <td>Email a co-parent their join link. A stranger holding a valid invitation id gets “not found”</td>
+            </tr>
+            <tr>
+              <td class="mono">stripe-webhook</td>
+              <td><span class="chip chip-open">open</span></td>
+              <td><code>Stripe-Signature</code> HMAC</td>
+              <td>Subscription lifecycle → entitlement rows. Stripe cannot send a Supabase JWT</td>
+            </tr>
+            <tr>
+              <td class="mono">push-send</td>
+              <td><span class="chip chip-open">open</span></td>
+              <td><code>OUTBOUND_CRON_SECRET</code>, timing-safe</td>
+              <td>One “you have a reply” push per family, exactly once</td>
+            </tr>
+            <tr>
+              <td class="mono">poll-replies</td>
+              <td><span class="chip chip-open">open</span></td>
+              <td><code>OUTBOUND_CRON_SECRET</code>, timing-safe</td>
+              <td>The cron entry point — sync Gmail, then run the push pipeline</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        All three open functions <em>fail closed</em>: no secret configured means the request
+        is refused, not waved through.
+      </p>
+
+      <h3>What <code>ai-proxy</code> actually routes</h3>
+      <p>
+        One function, nine actions, model tier chosen per job — and, for chat, per
+        subscription:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th class="mono">action</th><th>Model</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">chat</td><td class="mono">Opus 5 <span style="opacity:.6">/ Sonnet 5 free</span></td><td>Streaming SSE, prompt caching, 4096 max tokens</td></tr>
+            <tr><td class="mono">classify</td><td class="mono">Haiku 4.5</td><td>Intent → which KB sources to retrieve</td></tr>
+            <tr><td class="mono">draft</td><td class="mono">Opus 5</td><td>17 letter templates, tone-gated</td></tr>
+            <tr><td class="mono">draft-reply</td><td class="mono">Opus 5</td><td>Answer an incoming agency reply</td></tr>
+            <tr><td class="mono">analyze-email</td><td class="mono">Opus 5</td><td>Read what an agency actually said</td></tr>
+            <tr><td class="mono">analyze-iep</td><td class="mono">Opus 5</td><td>16k tokens; premium-gated</td></tr>
+            <tr><td class="mono">ocr</td><td class="mono">Sonnet 5</td><td>Vision — pull text out of a scanned document</td></tr>
+            <tr><td class="mono">extract-memories</td><td class="mono">Haiku 4.5</td><td>Durable facts worth remembering</td></tr>
+            <tr><td class="mono">embed</td><td class="mono">text-embedding-3-small</td><td>The one OpenAI call in the system</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════ PART III ══════════════════ -->
+
+    <section id="navigator">
+      <p class="part-label">Part III · Data flow</p>
+      <h2>One Navigator turn, end to end</h2>
+      <p class="lede">
+        The sequence below is genuinely ordered — each step needs the one before it — so it
+        is numbered. Retrieval runs on Postgres full-text search, not embeddings: the
+        pgvector column and <code>match_knowledge</code> exist and are indexed, but the live
+        path is <code>match_knowledge_fts</code>, which keeps the whole reasoning stack on
+        one provider.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 720 300" role="img" aria-label="A Navigator turn: the client classifies intent through ai-proxy using Haiku, retrieves knowledge via the match_knowledge_fts RPC, scores confidence, then streams a response from Opus or Sonnet through ai-proxy and persists both messages.">
+          <defs>
+            <marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- lanes -->
+          <text x="70" y="18" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor" opacity=".6">CLIENT</text>
+          <text x="300" y="18" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor" opacity=".6">POSTGRES</text>
+          <text x="520" y="18" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor" opacity=".6">ai-proxy</text>
+          <text x="660" y="18" text-anchor="middle" font-size="10" font-family="monospace" fill="currentColor" opacity=".6">ANTHROPIC</text>
+
+          <line x1="70" y1="26" x2="70" y2="288" stroke="currentColor" stroke-width=".8" opacity=".25"/>
+          <line x1="300" y1="26" x2="300" y2="288" stroke="currentColor" stroke-width=".8" opacity=".25"/>
+          <line x1="520" y1="26" x2="520" y2="288" stroke="currentColor" stroke-width=".8" opacity=".25"/>
+          <line x1="660" y1="26" x2="660" y2="288" stroke="currentColor" stroke-width=".8" opacity=".25"/>
+
+          <g font-size="10.5" fill="currentColor">
+            <!-- 1 -->
+            <circle cx="70" cy="46" r="9" class="f-accent"/>
+            <text x="70" y="50" text-anchor="middle" font-size="10" font-weight="700" class="t-on-accent">1</text>
+            <text x="86" y="43" font-size="11" font-weight="600">sendMessage()</text>
+            <text x="86" y="56" font-size="10" opacity=".65">optimistic bubble renders immediately</text>
+
+            <!-- 2 classify -->
+            <circle cx="70" cy="88" r="9" class="f-accent"/>
+            <text x="70" y="92" text-anchor="middle" font-size="10" font-weight="700" class="t-on-accent">2</text>
+            <line x1="82" y1="88" x2="508" y2="88" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar6)"/>
+            <text x="200" y="82" font-size="10.5">classifyIntent</text>
+            <line x1="532" y1="88" x2="648" y2="88" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar6)"/>
+            <text x="560" y="82" font-size="10">Haiku 4.5</text>
+            <text x="560" y="101" font-size="9.5" opacity=".62">→ which KB sources</text>
+
+            <!-- 3 retrieve -->
+            <circle cx="70" cy="132" r="9" class="f-accent"/>
+            <text x="70" y="136" text-anchor="middle" font-size="10" font-weight="700" class="t-on-accent">3</text>
+            <line x1="82" y1="132" x2="288" y2="132" class="s-accent" stroke-width="1.4" marker-end="url(#ar6)"/>
+            <text x="100" y="126" font-size="10.5" font-family="monospace" class="f-accent">match_knowledge_fts</text>
+            <text x="100" y="145" font-size="9.5" opacity=".62">full-text search · 5 matches · no embedding hop</text>
+
+            <!-- 4 confidence -->
+            <circle cx="70" cy="176" r="9" class="f-accent"/>
+            <text x="70" y="180" text-anchor="middle" font-size="10" font-weight="700" class="t-on-accent">4</text>
+            <text x="86" y="173" font-size="11" font-weight="600">ftsConfidence gate</text>
+            <text x="86" y="186" font-size="10" opacity=".65">weak retrieval is admitted as weak, not dressed up</text>
+
+            <!-- 5 stream -->
+            <circle cx="70" cy="220" r="9" class="f-accent"/>
+            <text x="70" y="224" text-anchor="middle" font-size="10" font-weight="700" class="t-on-accent">5</text>
+            <line x1="82" y1="220" x2="508" y2="220" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar6)"/>
+            <text x="180" y="214" font-size="10.5">streamNavigatorResponse + context + tone</text>
+            <line x1="532" y1="220" x2="648" y2="220" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar6)"/>
+            <text x="546" y="214" font-size="10">Opus 5</text>
+            <text x="546" y="233" font-size="9.5" opacity=".62">Sonnet 5 on free</text>
+
+            <!-- stream back -->
+            <line x1="648" y1="248" x2="82" y2="248" class="s-accent" stroke-width="1.4" marker-end="url(#ar6)"/>
+            <text x="300" y="242" font-size="10.5" class="f-accent">SSE token stream — renders as it arrives</text>
+
+            <!-- 6 persist -->
+            <circle cx="70" cy="278" r="9" class="f-accent"/>
+            <text x="70" y="282" text-anchor="middle" font-size="10" font-weight="700" class="t-on-accent">6</text>
+            <line x1="82" y1="278" x2="288" y2="278" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar6)"/>
+            <text x="100" y="272" font-size="10.5" font-family="monospace">chat_sessions · chat_messages</text>
+          </g>
+        </svg>
+        <figcaption>
+          <b>Two model calls per turn, and a database hop between them.</b> Classification is
+          cheap and picks the retrieval scope; retrieval is a single Postgres RPC; generation
+          streams straight back to the bubble. Free accounts are metered at
+          <strong>30 Navigator messages per calendar month</strong> via the
+          <code>monthly_ai_usage</code> RPC, checked inside <code>ai-proxy</code> — where the
+          client cannot reach it.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="reply">
+      <h2>The loop that runs with the app closed</h2>
+      <p>
+        A family should learn an agency replied even if nobody opens Waypoint that week.
+        That requires a path with no device in it at all — which means no user session,
+        which means a service role and a shared secret.
+      </p>
+
+      <figure>
+        <svg viewBox="0 0 720 232" role="img" aria-label="Every five minutes pg_cron calls trigger_reply_poll which posts through pg_net to the poll-replies function; it takes a lease, syncs Gmail idempotently into communications, then runs the shared push pipeline to Expo and stamps notified_at.">
+          <defs>
+            <marker id="ar7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <g font-size="11">
+            <rect x="6" y="60" width="104" height="44" rx="6" class="f-tint s-accent" stroke-width="1.4"/>
+            <text x="58" y="79" text-anchor="middle" font-weight="700" class="f-accent">pg_cron</text>
+            <text x="58" y="93" text-anchor="middle" font-size="10" font-family="monospace" class="f-accent">*/5 * * * *</text>
+
+            <line x1="110" y1="82" x2="140" y2="82" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar7)"/>
+
+            <rect x="142" y="60" width="120" height="44" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="202" y="79" text-anchor="middle" font-size="10.5" font-family="monospace" fill="currentColor">trigger_reply_poll</text>
+            <text x="202" y="93" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".65">holds the secret</text>
+
+            <line x1="262" y1="82" x2="292" y2="82" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar7)"/>
+            <text x="277" y="72" text-anchor="middle" font-size="9" fill="currentColor" opacity=".6">pg_net</text>
+
+            <rect x="294" y="52" width="132" height="60" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+            <text x="360" y="71" text-anchor="middle" font-weight="700" fill="currentColor">poll-replies</text>
+            <text x="360" y="85" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".7">x-outbound-secret</text>
+            <text x="360" y="99" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".7">service role · no session</text>
+
+            <!-- lease -->
+            <line x1="360" y1="112" x2="360" y2="140" class="s-urgent" stroke-width="1.2" marker-end="url(#ar7)"/>
+            <rect x="272" y="142" width="176" height="34" rx="6" fill="none" class="s-urgent" stroke-width="1.2"/>
+            <text x="360" y="157" text-anchor="middle" font-size="10.5" class="f-urgent">acquireLease — single-flight</text>
+            <text x="360" y="170" text-anchor="middle" font-size="9.5" class="f-urgent">a retry that overlaps skips, never double-sends</text>
+
+            <line x1="426" y1="70" x2="466" y2="70" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar7)"/>
+            <rect x="468" y="48" width="118" height="44" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="527" y="66" text-anchor="middle" font-weight="600" fill="currentColor">Gmail sync</text>
+            <text x="527" y="80" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".65">every consenting family</text>
+
+            <line x1="527" y1="92" x2="527" y2="122" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar7)"/>
+            <rect x="462" y="124" width="130" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="527" y="140" text-anchor="middle" font-size="10.5" font-family="monospace" fill="currentColor">communications</text>
+            <text x="527" y="154" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".65">idempotent on message id</text>
+
+            <line x1="592" y1="70" x2="626" y2="70" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar7)"/>
+            <rect x="628" y="48" width="86" height="44" rx="6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+            <text x="671" y="66" text-anchor="middle" font-weight="600" fill="currentColor">Expo</text>
+            <text x="671" y="80" text-anchor="middle" font-size="9.5" fill="currentColor" opacity=".65">per-device locale</text>
+
+            <line x1="671" y1="92" x2="671" y2="196" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar7)"/>
+            <text x="714" y="206" text-anchor="end" font-size="10.5" fill="currentColor">the phone buzzes — app never opened</text>
+          </g>
+
+          <text x="360" y="24" text-anchor="middle" font-size="10.5" font-family="monospace" fill="currentColor" opacity=".6">runPushSend is SHARED — push-send calls the same pipeline</text>
+          <text x="360" y="222" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".72">notified_at is stamped per reply, so each one fires exactly once</text>
+        </svg>
+        <figcaption>
+          <b>Three independent guards against a duplicate push.</b> The lease makes overlapping
+          runs skip rather than double-send; the Gmail sync is idempotent on
+          <code>gmail_message_id</code>; and <code>notified_at</code> is stamped per reply.
+          <code>push-send</code> and <code>poll-replies</code> share one pipeline in
+          <code>_shared/pushSend.ts</code> so the manual and scheduled paths cannot drift.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="money">
+      <h2>Money moves in one direction</h2>
+      <p>
+        Checkout happens on Stripe-hosted Payment Links — the app never sees a card. The
+        family id rides along as <code>client_reference_id</code>, and
+        <code>stripe-webhook</code> is the <em>only</em> writer of self-paid entitlement rows,
+        using the service role so RLS does not apply.
+      </p>
+      <p>
+        On the read side, <code>resolveEntitlement</code> applies one rule: a live grant makes
+        the family Premium; no rows is the free tier. Sponsorship is a first-class case, and
+        it labels itself honestly rather than hiding — <em>“Included with your facilitation —
+        you pay $0”</em> — across four sponsor types (facilitation, district, employer,
+        licensee). A sponsored grant wins the label even when a self-subscription also exists,
+        so a family is never told they're paying for something someone else covers.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tier</th><th>Navigator</th><th>Price</th></tr></thead>
+          <tbody>
+            <tr><td>Free</td><td>30 messages / calendar month, Sonnet 5</td><td>—</td></tr>
+            <tr><td>Premium</td><td>Unlimited, Opus 5, IEP analysis</td><td>$14.99/mo · $99/yr · 30-day money back</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════ PART IV ══════════════════ -->
+
+    <section id="ops">
+      <p class="part-label">Part IV · Operations</p>
+      <h2>What CI actually guarantees</h2>
+      <p>
+        Three blocking gates run on every PR touching <code>waypoint-app/</code>:
+        <code>npx tsc --noEmit</code>, <code>npm run lint</code>, and <code>npm test</code>.
+        A companion <code>ci-guard.yml</code> exists because the main workflow filters on
+        <code>paths</code>, so a PR touching only docs would otherwise report no checks at all.
+      </p>
+
+      <h3>Four test projects, because one clock is not a clock</h3>
+      <p>
+        <code>npm test</code> runs four vitest projects, and the file count is not the run
+        count — the two <code>.tz.test.ts</code> files execute twice, once per timezone.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="mono">project</th><th>Environment</th><th>Why it exists</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">logic</td><td>node</td><td>The pure modules — sorting, clocks, triage, entitlements</td></tr>
+            <tr><td class="mono">ui</td><td>jsdom + react-native-web</td><td>Three reviews running found defects the logic suite structurally could not see: a button wired to a screen that didn't exist, a control a screen reader couldn't reach, a headline rendered as a 10px badge</td></tr>
+            <tr><td class="mono">tz</td><td class="mono">Asia/Ho_Chi_Minh</td><td>Catches a deadline computed a day <strong>early</strong></td></tr>
+            <tr><td class="mono">tz-west</td><td class="mono">America/Los_Angeles</td><td>Catches a day <strong>late</strong> — and this is where Waypoint's families actually are</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Running only the eastern timezone once let <code>actionSort</code> bucket
+        <code>created_at</code> on its UTC day for a full PR — invisible at UTC+7, an
+        off-by-one every evening in California. A <code>.tz.test.ts</code> must pass in both,
+        so its assertions cannot assume a sign.
+      </p>
+      <p class="verify">
+        <span class="tick">✓</span> Verified on this working tree:
+        <strong>105 runs from 103 files · 1205 tests · all passing</strong>.
+      </p>
+    </section>
+
+    <section id="sharp">
+      <h2>Sharp edges worth knowing before you touch anything</h2>
+
+      <div class="note sharp">
+        <span class="note-label">Migrations are applied by hand</span>
+        <p>
+          All 59 are run manually in the Supabase SQL editor, in order.
+          <code>scripts/build-pending-migrations.mjs</code> bundles a range into one
+          transaction. Code assuming an unapplied migration ships a silently broken feature —
+          this has already happened once, and the fix commit is still in the history
+          (<code>e0bdcdd</code>, “Fix empty calendar when migration 029 hasn't been applied”).
+        </p>
+      </div>
+
+      <div class="note sharp">
+        <span class="note-label">The edge functions are the least-verified code in the repo</span>
+        <p>
+          All eight are excluded from <code>tsconfig.json</code> and have no tests — yet
+          <code>deploy-edge-functions.yml</code> ships them to the production project on merge
+          to <code>main</code>. Treat every change there as unverified by CI and test it by
+          hand against a live project.
+        </p>
+      </div>
+
+      <div class="note sharp">
+        <span class="note-label">Two prompts must be edited together</span>
+        <p>
+          The classifier prompt is duplicated in <code>src/lib/ai.ts</code>
+          (<code>classifyIntent</code>) and <code>scripts/prompt-regression.mjs</code>, held
+          together only by a “must mirror” comment. Change one without the other and the
+          78-case regression suite silently tests a stale prompt.
+        </p>
+      </div>
+
+      <div class="note">
+        <span class="note-label">Not a bug</span>
+        <p>
+          <code>stripe-webhook</code>, <code>push-send</code> and <code>poll-replies</code>
+          are <code>verify_jwt = false</code> on purpose. Each has a caller that cannot
+          present a Supabase JWT, and each proves itself another way — an HMAC signature or a
+          timing-safe shared secret. Flipping any of them to <code>true</code> makes the
+          caller silently 401.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Waypoint system map · generated from the working tree at commit
+        <code>469b043</code> on branch <code>claude/action-card-status-metadata-03z2ko</code>,
+        3 September 2026. Counts and the test result were measured, not estimated; design
+        tokens and typefaces are the app's own, from <code>src/lib/theme.ts</code>.
+      </p>
+    </footer>
+
+  </main>
+</div>
