@@ -748,7 +748,7 @@ function ActionCard({
       {/* Status, first and full width. It was a 28pt circle down the left
           gutter that CYCLED To Do → In Progress → Done, so reaching Done took
           two taps and nothing said what a tap would do. A dismissed step keeps
-          the plain row — reopening it is a swipe, not a mis-tap away. */}
+          its tag above and offers only Reopen. */}
       {/* A dismissed step keeps no segmented control — reopening is a swipe, so
           it cannot be a mis-tap — but it must still SAY it is dismissed. The
           only cues left were opacity and a strikethrough: both invisible to a
@@ -760,17 +760,15 @@ function ActionCard({
         </Text>
       )}
 
-      {action.status !== 'dismissed' && (
-        <View style={styles.statusBar}>
-          <StatusControl
-            status={action.status}
-            locked={locked}
-            locale={locale}
-            onChange={onSetStatus}
-            accessibilityPrefix={action.title}
-          />
-        </View>
-      )}
+      <View style={styles.statusBar}>
+        <StatusControl
+          status={action.status}
+          locked={locked}
+          locale={locale}
+          onChange={onSetStatus}
+          accessibilityPrefix={action.title}
+        />
+      </View>
 
       <View style={styles.cardTop}>
         {/* Title + meta — tap to open full detail (scripts, steps, documents) */}

@@ -1,5 +1,6 @@
 /**
- * "Where is this step at?" — one control, two sizes, both screens.
+ * "What do I do with this step?" — the two moves a parent actually makes,
+ * one tap each, on the list card and the action detail screen.
  *
  * Replaces two affordances that had the same job and neither of which said
  * what a tap would do:
@@ -12,30 +13,42 @@
  *   was ~27pt, hard-coded 12px on a screen that ships a text-size control, and
  *   carried no role, no label and no selected state for a screen reader.
  *
- * One tap now goes straight to any state, the current one is filled and
- * announced as selected, and every target clears 44pt.
+ * ## Buttons, not a segmented bar (owner decision, Sep 3 2026)
  *
- * Dismissing is NOT in this control. It is the one status change a parent
- * cannot undo by tapping the next segment along, so it stays behind a
- * deliberate act — a swipe on the list, a secondary button on the detail
- * screen — rather than sitting one mis-tap away from "Done".
+ * Three mockup options went to the owner: a three-segment To Do / In Progress
+ * / Done bar, these two buttons, and an enlarged version of the old cycling
+ * circle. The owner picked the buttons, "slightly smaller".
  *
- * ## Why both `accessibilityState` and `aria-pressed`
+ * The accepted trade is that the current state is IMPLIED by which buttons are
+ * showing rather than stated — a parent cannot glance at a card and read "In
+ * Progress". Two mitigations, both free: a finished step reads as finished
+ * (struck-through title, and its only button is Reopen), and the detail
+ * screen — which has the room the card does not — names the state beside its
+ * STATUS heading.
  *
- * react-native-web 0.19 — the translation the web build and the `ui` test
- * project both run through — DROPS the legacy `accessibilityState` object
- * entirely. It reaches neither the DOM nor the accessibility tree, for any
- * role: rendering `accessibilityState={{ selected: true }}` emits
- * `role="button"` and nothing else. Only the newer ARIA-style props survive,
- * and React Native 0.76 maps those back onto native state — so setting both is
- * correct on iOS, Android and web rather than a workaround for one of them.
+ * ## "Slightly smaller" without dropping below the floor
  *
- * `aria-pressed` rather than `aria-selected`: these are toggle buttons, and
- * `aria-selected` is only valid on option/tab/row/gridcell.
+ * 44pt WAS the visible height, which is exactly `MIN_TOUCH_TARGET`, so
+ * shrinking the button cannot mean shrinking the target. The visible button is
+ * 38 (46 on the detail screen) and reaches 44 through vertical `hitSlop` — the
+ * same trick the card's priority badge uses. The slop is vertical ONLY: two
+ * buttons sit side by side with an 8pt gap, and horizontal slop wide enough to
+ * matter would overlap in the middle, where a mis-tap means marking the wrong
+ * thing Done.
  *
- * Every other `accessibilityState={{ selected }}` in this app has the same
- * silent hole on the web build — including the edit sheet's priority row.
- * Noted rather than swept: fixing them all is a separate change.
+ * Fills are tinted rather than solid for the same reason — a solid teal button
+ * out-shouted the step's own title, which is the thing a parent is meant to
+ * read first.
+ *
+ * ## Why both `accessibilityState` and `aria-pressed`-style props
+ *
+ * react-native-web 0.19 (the translation the web build and the `ui` test
+ * project both use) DROPS the legacy `accessibilityState` object entirely — it
+ * reaches neither the DOM nor the accessibility tree, for any role. Only the
+ * newer ARIA-style props survive, and React Native 0.76 maps those back onto
+ * native state, so setting both is correct on iOS, Android and web rather than
+ * a workaround for one. These are plain actions rather than toggles, so what
+ * they carry is `accessibilityState={{ disabled }}` / `aria-disabled`.
  */
 
 import React from 'react';
@@ -44,13 +57,17 @@ import { Ionicons } from '@expo/vector-icons';
 import type { ActionStatus } from '@/types/database';
 import {
   STATUS_META,
-  STATUS_PRIMARY,
   statusActionLabel,
-  statusLabel,
+  statusVerbLabel,
   type ActionLocale,
+  type StatusVerb,
 } from '@/lib/actionMeta';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import { brand, fonts, radii } from '@/lib/theme';
+
+/** Visible height. The 44pt target is reached with vertical hitSlop. */
+const COMPACT_HEIGHT = 38;
+const LARGE_HEIGHT = 46;
 
 interface StatusControlProps {
   status: ActionStatus;
@@ -59,9 +76,9 @@ interface StatusControlProps {
   /** `compact` on a list card, `large` on the detail screen. */
   size?: 'compact' | 'large';
   /**
-   * This step builds on another that is not done yet. The segments still
-   * respond so the caller can explain why — a control that goes dead on tap
-   * reads as broken, not as locked.
+   * This step builds on another that is not done yet. The forward buttons
+   * still respond so the caller can explain why — a control that goes dead on
+   * tap reads as broken, not as locked.
    */
   locked?: boolean;
   /** Multiplier from the detail screen's `Aa` text-size control. */
@@ -70,15 +87,55 @@ interface StatusControlProps {
   accessibilityPrefix?: string;
 }
 
+interface StatusButton {
+  verb: StatusVerb;
+  /** The status this button moves the step to. */
+  target: ActionStatus;
+  /** Which status's colour it wears — the one it produces. */
+  emphasis: 'primary' | 'secondary';
+  /** Forward moves are the ones a dependency lock blocks. */
+  forward: boolean;
+}
+
 /**
- * A segmented To Do / In Progress / Done control.
+ * What a step at this status offers. Dismissing is not here: it is the one
+ * change a parent cannot undo by tapping the other button, so it stays behind
+ * a swipe on the list and a secondary link on the detail screen.
+ */
+function buttonsFor(status: ActionStatus): StatusButton[] {
+  switch (status) {
+    case 'not_started':
+      return [
+        { verb: 'start', target: 'in_progress', emphasis: 'primary', forward: true },
+        { verb: 'done', target: 'completed', emphasis: 'secondary', forward: true },
+      ];
+    case 'in_progress':
+      return [
+        { verb: 'done', target: 'completed', emphasis: 'primary', forward: true },
+        { verb: 'todo', target: 'not_started', emphasis: 'secondary', forward: false },
+      ];
+    // Completed and dismissed both offer one way back, and nothing else.
+    default:
+      return [{ verb: 'reopen', target: 'not_started', emphasis: 'primary', forward: false }];
+  }
+}
+
+const ICON: Record<StatusVerb, keyof typeof Ionicons.glyphMap> = {
+  start: 'play-circle-outline',
+  done: 'checkmark-circle-outline',
+  todo: 'ellipse-outline',
+  reopen: 'refresh-outline',
+};
+
+/**
+ * The card's status buttons — Start / Done, Done / To Do, or Reopen.
  *
  * @param status - the step's current status
- * @param onChange - called with the status the parent tapped; it is never
- *   called with the status the step is already in
+ * @param onChange - called with the status the parent chose
  * @param locale - en (default), es or vi
  * @param size - `compact` for a list card, `large` for the detail screen
- * @param locked - render the padlock; taps still fire so the caller can explain
+ * @param locked - render padlocks on the forward moves; taps still fire so the
+ *   caller can explain why
  * @param scale - text-scale multiplier (detail screen only)
  * @param accessibilityPrefix - e.g. the step's title, spoken before the action
  */
@@ -92,64 +149,58 @@ export default function StatusControl({
   accessibilityPrefix,
 }: StatusControlProps) {
   const large = size === 'large';
-  const height = large ? Math.max(MIN_TOUCH_TARGET + 8, Math.round(52 * scale)) : MIN_TOUCH_TARGET;
-  const fontSize = large ? Math.round(14 * scale) : 12;
+  const height = large ? Math.round(LARGE_HEIGHT * scale) : COMPACT_HEIGHT;
+  const fontSize = large ? Math.round(14 * scale) : 13;
+  // Vertical only — see the note on side-by-side slop at the top of this file.
+  const slop = Math.max(0, Math.round((MIN_TOUCH_TARGET - height) / 2));
+  const hitSlop = { top: slop, bottom: slop, left: 0, right: 0 };
+
+  const buttons = buttonsFor(status);
 
   return (
-    <View style={[styles.row, { minHeight: height }, large && styles.rowLarge]}>
-      {STATUS_PRIMARY.map((option, i) => {
-        const selected = option === status;
-        const meta = STATUS_META[option];
-        const name = statusLabel(option, locale);
-        const spoken = selected
-          ? `${name} — ${currentWord(locale)}`
-          : statusActionLabel(option, locale);
+    <View style={styles.row}>
+      {buttons.map((b) => {
+        const meta = STATUS_META[b.target];
+        const primary = b.emphasis === 'primary';
+        const gated = locked && b.forward;
         return (
           <TouchableOpacity
-            key={option}
+            key={b.verb}
             style={[
-              styles.segment,
+              styles.button,
               { minHeight: height },
-              i > 0 && styles.segmentDivided,
-              // Selection is carried by THREE cues, not one: the tint, the
-              // bold coloured label, and this underline. `not_started`'s tint
-              // is a near-white by necessity (it is the resting state of most
-              // cards), so on tint alone the current segment was barely
-              // distinguishable — and tint alone would fail a colour-blind
-              // parent anyway. Same rule `brandKit`'s ProgressRail follows.
-              selected && { backgroundColor: meta.tint, borderBottomWidth: 3, borderBottomColor: meta.color },
+              primary
+                ? { backgroundColor: meta.tint, borderColor: meta.color }
+                : styles.buttonSecondary,
             ]}
-            onPress={() => {
-              if (!selected) onChange(option);
-            }}
+            hitSlop={hitSlop}
+            onPress={() => onChange(b.target)}
             accessibilityRole="button"
-            accessibilityState={{ selected }}
-            aria-pressed={selected}
+            accessibilityState={{ disabled: false }}
             accessibilityLabel={
-              accessibilityPrefix ? `${accessibilityPrefix}: ${spoken}` : spoken
+              accessibilityPrefix
+                ? `${accessibilityPrefix}: ${statusActionLabel(b.target, locale)}`
+                : statusActionLabel(b.target, locale)
             }
           >
-            {locked && option !== status ? (
+            {gated ? (
               <Ionicons name="lock-closed" size={Math.round(fontSize)} color={brand.inkFaint} />
             ) : (
-              <Text
-                style={[
-                  styles.glyph,
-                  { fontSize: Math.round(fontSize * 1.1), color: selected ? meta.color : brand.inkFaint },
-                ]}
-              >
-                {meta.glyph}
-              </Text>
+              <Ionicons
+                name={ICON[b.verb]}
+                size={Math.round(fontSize * 1.25)}
+                color={primary ? meta.color : brand.inkSoft}
+              />
             )}
             <Text
               numberOfLines={1}
               style={[
                 styles.label,
-                { fontSize, color: selected ? meta.color : brand.inkSoft },
-                selected && styles.labelSelected,
+                { fontSize, color: primary ? meta.color : brand.inkSoft },
+                primary && styles.labelPrimary,
               ]}
             >
-              {name}
+              {statusVerbLabel(b.verb, locale)}
             </Text>
           </TouchableOpacity>
         );
@@ -158,48 +209,29 @@ export default function StatusControl({
   );
 }
 
-/** "current" as a screen reader should hear it, per locale. */
-function currentWord(locale: ActionLocale): string {
-  if (locale === 'es') return 'estado actual';
-  if (locale === 'vi') return 'trạng thái hiện tại';
-  return 'current status';
-}
-
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: brand.border,
-    borderRadius: radii.md,
-    backgroundColor: brand.paper,
-    overflow: 'hidden',
+    gap: 8,
   },
-  rowLarge: {
-    borderColor: brand.borderStrong,
-  },
-  segment: {
+  button: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 5,
-    paddingHorizontal: 4,
-    // Reserved on every segment so the row does not jump by 3pt when the
-    // selection moves.
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
+    gap: 6,
+    paddingHorizontal: 8,
+    borderRadius: radii.sm,
+    borderWidth: 1,
   },
-  segmentDivided: {
-    borderLeftWidth: 1,
-    borderLeftColor: brand.border,
-  },
-  glyph: {
-    fontWeight: fonts.weights.bold,
+  buttonSecondary: {
+    backgroundColor: brand.panel,
+    borderColor: brand.border,
   },
   label: {
-    fontWeight: fonts.weights.medium,
+    fontWeight: fonts.weights.semibold,
   },
-  labelSelected: {
+  labelPrimary: {
     fontWeight: fonts.weights.bold,
   },
 });

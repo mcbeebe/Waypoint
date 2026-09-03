@@ -44,7 +44,7 @@ import { buildActionEmail } from '@/lib/actionEmail';
 import { showConfirm } from '@/lib/dialogs';
 import StatusControl from '@/components/StatusControl';
 import PriorityControl from '@/components/PriorityControl';
-import { metaHeading, statusLabel, type ActionLocale } from '@/lib/actionMeta';
+import { STATUS_META, metaHeading, statusLabel, type ActionLocale } from '@/lib/actionMeta';
 import { useI18n } from '@/i18n';
 import { formatAddedOn } from '@/lib/actionFreshness';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
@@ -364,9 +364,22 @@ export default function ActionDetailScreen({
             documents list and the insider tip: on the screenshot that prompted
             this change it is not on the page at all. */}
         <View style={styles.controlCard}>
-          <Text style={[styles.controlLabel, { fontSize: sz(11) }]}>
-            {metaHeading('status', uiLocale).toUpperCase()}
-          </Text>
+          {/* The heading NAMES the current state. Option B's accepted weakness
+              is that two buttons imply the state rather than stating it; the
+              detail screen has the room the card does not, so it says it. */}
+          <View style={styles.controlHeaderRow}>
+            <Text style={[styles.controlLabel, { fontSize: sz(11), marginBottom: 0 }]}>
+              {metaHeading('status', uiLocale).toUpperCase()}
+            </Text>
+            <Text
+              style={[
+                styles.controlState,
+                { fontSize: sz(13), color: STATUS_META[action.status].color },
+              ]}
+            >
+              {statusLabel(action.status, uiLocale)}
+            </Text>
+          </View>
           <StatusControl
             status={action.status}
             size="large"
@@ -1254,11 +1267,20 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.md,
   },
+  controlHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
   controlLabel: {
     fontWeight: fonts.weights.bold,
     color: colors.mid,
     letterSpacing: 0.5,
     marginBottom: spacing.sm,
+  },
+  controlState: {
+    fontWeight: fonts.weights.bold,
   },
   controlDivider: {
     height: 1,

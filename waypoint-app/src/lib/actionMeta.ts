@@ -102,6 +102,24 @@ export function statusActionLabel(
   return `Mark as ${name}`;
 }
 
+/**
+ * The verbs on the card's two buttons — short, because they sit side by side
+ * on a phone. The spoken name stays the fuller `statusActionLabel`, so a
+ * screen reader hears "Mark as Done" where the eye reads "Done".
+ */
+export type StatusVerb = 'start' | 'done' | 'todo' | 'reopen';
+
+const VERB_LABELS: Record<ActionLocale, Record<StatusVerb, string>> = {
+  en: { start: 'Start', done: 'Done', todo: 'To Do', reopen: 'Reopen' },
+  es: { start: 'Empezar', done: 'Hecho', todo: 'Por hacer', reopen: 'Reabrir' },
+  vi: { start: 'Bắt đầu', done: 'Xong', todo: 'Cần làm', reopen: 'Mở lại' },
+};
+
+/** What the button says. */
+export function statusVerbLabel(verb: StatusVerb, locale: ActionLocale = 'en'): string {
+  return (VERB_LABELS[locale] ?? VERB_LABELS.en)[verb];
+}
+
 // ─── Priority ───────────────────────────────────────────────────────────────
 
 /** Most urgent first — the order every picker and every sort agrees on. */

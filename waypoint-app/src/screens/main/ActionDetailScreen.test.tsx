@@ -165,20 +165,26 @@ describe('marking a step in progress or done', () => {
    */
   it('puts the status control above everything but the title', () => {
     detail();
-    const status = positionOf('In Progress');
+    const status = positionOf('STATUS');
     expect(status).toBeGreaterThan(0);
     // Ahead of the deadline chip, the effort card and the steps list — all of
     // which used to come first.
     expect(status).toBeLessThan(positionOf(/Set deadline/));
   });
 
-  it('offers all three states, each as its own labelled button', () => {
-    // The fixture is not_started, so To Do is announced as the current state
-    // and the other two as the actions that would change it.
+  it('offers the two moves a parent makes, each as its own labelled button', () => {
     detail();
-    expect(screen.getByLabelText(/To Do — current status$/)).toBeTruthy();
     expect(screen.getByLabelText(/Mark as In Progress$/)).toBeTruthy();
     expect(screen.getByLabelText(/Mark as Done$/)).toBeTruthy();
+  });
+
+  it('NAMES the current state beside the heading', () => {
+    // Option B's accepted weakness is that two buttons imply the state rather
+    // than stating it. The card has no room to fix that; this screen does.
+    detail({ status: 'in_progress' });
+    const heading = screen.getByText('STATUS');
+    expect(heading).toBeTruthy();
+    expect(screen.getByText('In Progress')).toBeTruthy();
   });
 
   it('changes status in one tap', () => {
@@ -196,21 +202,22 @@ describe('marking a step in progress or done', () => {
     expect(onUpdateStatus).toHaveBeenCalledWith('completed');
   });
 
-  it('announces the current state and does not re-write it', () => {
+  it('offers a dismissed step a way back', () => {
+    // The list card hides everything but Reopen for a dismissed step; this
+    // screen is where a parent who changed their mind actually lands.
     const onUpdateStatus = vi.fn();
     render(
       <ActionDetailScreen
-        action={{ ...ACTION, status: 'in_progress' } as any}
+        action={{ ...ACTION, status: 'dismissed' } as any}
         onUpdateStatus={onUpdateStatus}
         onToggleStep={() => {}}
         onUpdate={() => {}}
         onBack={() => {}}
       />
     );
-    const current = screen.getByLabelText(/In Progress — current status$/);
-    expect(current.getAttribute('aria-pressed')).toBe('true');
-    fireEvent.click(current);
-    expect(onUpdateStatus).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText(/Mark as Done$/)).toBeNull();
+    fireEvent.click(screen.getByLabelText(/Mark as To Do$/));
+    expect(onUpdateStatus).toHaveBeenCalledWith('not_started');
   });
 });
 

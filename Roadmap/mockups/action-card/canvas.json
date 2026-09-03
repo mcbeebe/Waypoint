@@ -1,65 +1,54 @@
 {
+  "pages": [
+    { "id": "page-1", "name": "As built" },
+    { "id": "page-2", "name": "Options considered" }
+  ],
   "artboards": [
-    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 940, "title": "Option A · Segmented bar — list" },
-    { "file": "OptionB.dc.html", "x": 490, "y": 0, "w": 390, "h": 940, "title": "Option B · Start / Done — list" },
-    { "file": "OptionC.dc.html", "x": 980, "y": 0, "w": 390, "h": 940, "title": "Option C · Big circle — list" },
+    { "file": "Main.dc.html", "page": "page-1", "x": 0, "y": 0, "w": 390, "h": 900, "title": "Action Plan — list" },
+    { "file": "DetailBuilt.dc.html", "page": "page-1", "x": 490, "y": 0, "w": 390, "h": 540, "title": "Action detail — top" },
+    { "file": "SortFilter.dc.html", "page": "page-1", "x": 980, "y": 0, "w": 390, "h": 700, "title": "Sort & filters" },
 
-    { "file": "DetailA.dc.html", "x": 0, "y": 1120, "w": 390, "h": 560, "title": "Option A · Action detail (top)" },
-    { "file": "DetailB.dc.html", "x": 490, "y": 1120, "w": 390, "h": 560, "title": "Option B · Action detail (top)" },
-    { "file": "DetailC.dc.html", "x": 980, "y": 1120, "w": 390, "h": 560, "title": "Option C · Action detail (top)" },
+    { "file": "OptionA.dc.html", "page": "page-2", "x": 0, "y": 0, "w": 390, "h": 940, "title": "Option A · Segmented bar — list" },
+    { "file": "OptionB.dc.html", "page": "page-2", "x": 490, "y": 0, "w": 390, "h": 940, "title": "Option B · Start / Done — list  ← chosen" },
+    { "file": "OptionC.dc.html", "page": "page-2", "x": 980, "y": 0, "w": 390, "h": 940, "title": "Option C · Big circle — list" },
 
-    { "file": "SortFilter.dc.html", "x": 0, "y": 1800, "w": 390, "h": 700, "title": "Sort & filters — same in all three" }
+    { "file": "DetailA.dc.html", "page": "page-2", "x": 0, "y": 1120, "w": 390, "h": 560, "title": "Option A · Action detail" },
+    { "file": "DetailB.dc.html", "page": "page-2", "x": 490, "y": 1120, "w": 390, "h": 560, "title": "Option B · Action detail" },
+    { "file": "DetailC.dc.html", "page": "page-2", "x": 980, "y": 1120, "w": 390, "h": 560, "title": "Option C · Action detail" }
   ],
   "annotations": [
     {
-      "id": "brief",
+      "id": "built",
+      "page": "page-1",
       "x": -430,
       "y": 0,
       "w": 380,
-      "text": "ACTION PLAN — status, priority, created date, sort & filter\n\nThree options for the one decision that changes the build: what the status control on a card IS.\n\nEverything else is identical across the three — the priority picker, the created date, and the sort/filter row at the bottom of this canvas. Pick a row-1 option; rows 2 and 3 follow it.\n\nDrawn from the real app: theme.ts tokens, Newsreader + Hanken Grotesk, 12px radii, the live card anatomy. Content is the three steps from your screenshots."
+      "text": "AS BUILT — Option B, smaller (owner's pick, Sep 3 2026)\n\nThe two moves a parent actually makes, one tap each. Start / Done on a step not begun; Done / To Do once it is under way; a single Reopen on a step that is finished or dismissed.\n\nWHAT \"SMALLER\" MEANT IN CODE: 44pt was the visible height, and 44 is also this repo's minimum tap target — so shrinking the button could not mean shrinking the target. The button is 38pt tall and reaches 44 through vertical hitSlop, the same trick the priority badge uses. Slop is vertical ONLY: two buttons sit 8pt apart, and horizontal slop wide enough to matter would overlap in the middle, where a mis-tap means marking the wrong step Done.\n\nFills are tinted rather than solid. The mockup's solid teal out-shouted the step's own title, which is the thing a parent should read first."
     },
     {
-      "id": "opt-a",
-      "x": 0,
-      "y": 980,
-      "w": 380,
-      "text": "OPTION A · Segmented bar  (this is what is built and pushed)\n\nAll three states visible, one tap to any of them. Current state carries three cues — tint, bold colour, and the underline — so it survives colour-blindness and a dim phone screen.\n\nCOSTS: ~46pt of height on every card, and the focus view shows up to 5 cards. Dismiss is not on the card at all (swipe, or the detail screen).\n\nBEST IF: parents move steps backwards as well as forwards, and you want the plan to read as a status board."
-    },
-    {
-      "id": "opt-b",
+      "id": "tradeoff",
+      "page": "page-1",
       "x": 490,
-      "y": 980,
+      "y": 580,
       "w": 380,
-      "text": "OPTION B · Start / Done buttons\n\nThe two things a parent actually does, each one tap, each unmistakable. Shortest card of the three. Buttons swap to Done / Back to To Do once a step is started.\n\nCOSTS: the current state is implied by which buttons are showing, never stated — you cannot glance at a card and read 'In Progress'. Going backwards is a second-class action.\n\nBEST IF: the plan is a to-do list and forward motion is all that matters."
+      "text": "THE ACCEPTED TRADE, AND WHERE IT IS PAID BACK\n\nOption B implies the current state rather than stating it — you cannot glance at a card and read \"In Progress\", only infer it from which pair of buttons is showing.\n\nTwo mitigations, both free:\n\n· A finished step reads as finished — struck-through title, and its only button is Reopen.\n· The DETAIL screen names the state beside its STATUS heading (\"STATUS · In Progress\", in the status colour). It has the room the card does not.\n\nStill open, if it turns out to matter in use: a state word in the card's meta row, beside the category. It costs no extra height because that row already exists."
     },
     {
-      "id": "opt-c",
-      "x": 980,
-      "y": 980,
-      "w": 380,
-      "text": "OPTION C · Big circle + state word\n\nToday's control, made legible: 44pt target, the state spelled out, and a line saying what the next tap does. Smallest change, keeps card density closest to what ships now.\n\nCOSTS: still a CYCLE — Done is two taps from To Do, and there is no way to skip In Progress or go straight back. The hint text is doing work the control should do itself.\n\nBEST IF: you want the height back and think most parents only ever tap forward."
-    },
-    {
-      "id": "detail-note",
-      "x": 1470,
-      "y": 1120,
-      "w": 340,
-      "text": "THE DETAIL SCREEN (row 2)\n\nToday Status is section 13 of 21 — below the description, the eligibility notes, the documents list and the insider tip. On the screenshot you sent it is not on the page at all.\n\nAll three options move it directly under the title, with the priority picker beside it and an 'Added Aug 18' chip in the row below. Dismiss becomes a secondary underlined link rather than a fourth pill sitting one mis-tap from Done."
-    },
-    {
-      "id": "sortfilter-note",
-      "x": 490,
-      "y": 1800,
-      "w": 380,
-      "text": "SORT & FILTERS (row 3) — identical whichever option you pick\n\nSort: Suggested (today's order) · Due date · Priority · Newest · Oldest. The row scrolls; Filters stays pinned.\n\nFilters sheet: priority, deadline, date added. The count on the button is the receipt that the list is showing a subset.\n\nOne behaviour worth agreeing: choosing a sort or a filter turns the next-3 focus view OFF and shows everything that matches. 'Sort by due date' that still shows three of eight, in an order you did not choose, reads as broken."
-    },
-    {
-      "id": "icon-note",
-      "x": 1470,
+      "id": "notchosen",
+      "page": "page-2",
+      "x": -430,
       "y": 0,
-      "w": 340,
-      "text": "ONE THING TO DECIDE SEPARATELY\n\nThe shipped card draws its status marks as unicode dingbats (○ ◐ ●). Rendering the plan in a headless browser, ◐ fell back to a wrong glyph — a font gap, which some Android builds will also have.\n\nThese mockups draw the three marks as inline SVG instead. Cheap to adopt and it removes the font dependency entirely. Say the word and I will switch the built control over."
+      "w": 380,
+      "text": "OPTIONS CONSIDERED — kept as the record of the decision, not as live design.\n\nOption B was chosen. A and C are here so the reasoning stays findable: A showed all three states but cost ~46pt on every card in a view that shows five; C kept today's cycle, so Done stayed two taps from To Do.\n\nDrawn from the real app: theme.ts tokens, Newsreader + Hanken Grotesk, 12px radii, the live card anatomy. Content is the three steps from the owner's screenshots."
+    },
+    {
+      "id": "icons",
+      "page": "page-1",
+      "x": 980,
+      "y": 740,
+      "w": 380,
+      "text": "ONE THING STILL OPEN\n\nThe shipped card drew its status marks as unicode dingbats (○ ◐ ●). Rendering the plan in a headless browser, ◐ fell back to a wrong glyph — a font gap some Android builds will share.\n\nThe built control now uses Ionicons (play / check / circle / refresh) rather than dingbats, so that risk is gone from the buttons. STATUS_META still carries the glyphs for anything else that wants them."
     }
   ],
-  "launch": { "view": "canvas" }
+  "launch": { "view": "canvas", "page": "page-1" }
 }

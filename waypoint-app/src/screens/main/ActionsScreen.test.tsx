@@ -196,34 +196,48 @@ describe('the focus view and brand-new items', () => {
 
 // ─── Marking a step in progress or done, from the list ──────────────────────
 
-describe('the status control on a card', () => {
+describe('the status buttons on a card', () => {
   /**
    * What this replaces: a 28pt circle that CYCLED To Do → In Progress → Done.
    * Done was two taps from To Do, the tap target was well under the 44 this
    * repo sets as its own floor, and its label ("Change status from To Do") said
    * nothing about where a tap would land.
+   *
+   * Option B (owner's pick, Sep 3 2026): the two moves a parent actually
+   * makes, one tap each. The state is implied by which pair is showing.
    */
-  it('offers all three states directly, so Done is one tap from To Do', () => {
+  it('offers Done in one tap from To Do', () => {
     h.actions = [action()];
     render(<ActionsScreen />);
     fireEvent.click(screen.getByLabelText(/^Ask the Regional Center.*Mark as Done$/));
     expect(h.updateStatus).toHaveBeenCalledWith('a1', 'completed');
   });
 
-  it('goes to In Progress in one tap too', () => {
+  it('offers Start in one tap from To Do', () => {
     h.actions = [action()];
     render(<ActionsScreen />);
     fireEvent.click(screen.getByLabelText(/Mark as In Progress$/));
     expect(h.updateStatus).toHaveBeenCalledWith('a1', 'in_progress');
   });
 
-  it('announces the current state as selected, and does not re-write it', () => {
+  it('swaps Start for a way back once a step is under way', () => {
     h.actions = [action({ status: 'in_progress' })];
     render(<ActionsScreen />);
-    const current = screen.getByLabelText(/In Progress — current status$/);
-    expect(current.getAttribute('aria-pressed')).toBe('true');
-    fireEvent.click(current);
-    expect(h.updateStatus).not.toHaveBeenCalled();
+    expect(screen.queryByLabelText(/Mark as In Progress$/)).toBeNull();
+    expect(screen.getByLabelText(/Mark as Done$/)).toBeTruthy();
+    fireEvent.click(screen.getByLabelText(/Mark as To Do$/));
+    expect(h.updateStatus).toHaveBeenCalledWith('a1', 'not_started');
+  });
+
+  it('offers a finished step exactly one button, and it reopens', () => {
+    h.actions = [action({ status: 'completed' })];
+    render(<ActionsScreen />);
+    // A single completed step leaves the focus view empty, so both ways out
+    // render: the empty state's button and the toggle beneath it.
+    fireEvent.click(screen.getByText('See my whole plan'));
+    expect(screen.queryByLabelText(/Mark as Done$/)).toBeNull();
+    fireEvent.click(screen.getByLabelText(/Mark as To Do$/));
+    expect(h.updateStatus).toHaveBeenCalledWith('a1', 'not_started');
   });
 
   it('names the step it belongs to, so a screen reader in a list knows which', () => {
@@ -425,7 +439,7 @@ describe('every control in the chrome can be reached by name', () => {
     }
   });
 
-  it('marks the selected sort and status, so a screen reader knows the view', () => {
+  it('marks the selected sort and status filter, so a screen reader knows the view', () => {
     h.actions = [action()];
     render(<ActionsScreen />);
     // aria-PRESSED, not aria-selected: react-native-web 0.19 drops the legacy
@@ -535,6 +549,14 @@ describe('a dismissed step says so out loud', () => {
     // Two: the status filter pill, which is always there, and the card's own
     // tag, which is what this pins. Drop the tag and this falls to one.
     expect(screen.getAllByText('Dismissed')).toHaveLength(2);
+  });
+
+  it('offers a way back — one button, and it reopens', () => {
+    h.actions = [action({ id: 'x', title: 'Dropped step', status: 'dismissed' })];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByText('See my whole plan'));
+    fireEvent.click(screen.getByLabelText('Dropped step: Mark as To Do'));
+    expect(h.updateStatus).toHaveBeenCalledWith('x', 'not_started');
   });
 });
 
