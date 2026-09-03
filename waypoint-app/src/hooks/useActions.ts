@@ -62,6 +62,24 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
 
   // ─── Fetch Actions ──────────────────────────────────────────────────────
 
+  /**
+   * Depend on the CONTENT of `statusFilter`, not its identity.
+   *
+   * A caller that writes `statusFilter={active === 'all' ? undefined : [active]}`
+   * inline — which is exactly what the Action Plan did — hands this hook a NEW
+   * array on every render. That array was in `fetchActions`'s dependency list,
+   * `fetchActions` is in the load effect's, and the effect calls `setActions`,
+   * which re-renders the caller, which builds another new array. Measured on
+   * the real hook: 2 queries with no filter, **54,554 in one second** with one.
+   * Selecting To Do / In Progress / Done / Dismissed did that on every phone.
+   *
+   * Sorted so `['a','b']` and `['b','a']` are the same key — order is
+   * meaningless to `.in()`.
+   */
+  const statusKey = statusFilter && statusFilter.length > 0
+    ? [...statusFilter].sort().join(',')
+    : '';
+
   const fetchActions = useCallback(async () => {
     try {
       let query = supabase
@@ -70,8 +88,8 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
         .eq('family_id', familyId)
         .order('created_at', { ascending: false });
 
-      if (statusFilter && statusFilter.length > 0) {
-        query = query.in('status', statusFilter);
+      if (statusKey) {
+        query = query.in('status', statusKey.split(',') as ActionStatus[]);
       }
       if (categoryFilter) {
         query = query.eq('category', categoryFilter);
@@ -87,7 +105,7 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
     } catch (err) {
       setError(friendlyErrorMessage(err, "Couldn't load your action plan."));
     }
-  }, [familyId, statusFilter, categoryFilter]);
+  }, [familyId, statusKey, categoryFilter]);
 
   // ─── Fetch Stats ────────────────────────────────────────────────────────
 
@@ -229,11 +247,25 @@ export function useActions(options: UseActionsOptions): UseActionsReturn {
   ) => {
     const updates: Partial<Action> = { status };
 
+    // Every terminal timestamp is set OR cleared on each transition — never
+    // just set. Reopening used to leave `completed_at` behind, so a step moved
+    // back to To Do still carried the date it was finished: the detail screen's
+    // Timeline showed a live step as "Completed Aug 20", and
+    // `action_stats.avg_days_to_complete` averaged over rows that were not
+    // complete. That was survivable while the only way to reopen was a swipe;
+    // with a one-tap status control it is the common case.
     if (status === 'completed') {
       updates.completed_at = new Date().toISOString();
+      updates.dismissed_at = null;
+      updates.dismissed_reason = null;
     } else if (status === 'dismissed') {
       updates.dismissed_at = new Date().toISOString();
       updates.dismissed_reason = reason ?? null;
+      updates.completed_at = null;
+    } else {
+      updates.completed_at = null;
+      updates.dismissed_at = null;
+      updates.dismissed_reason = null;
     }
 
     await updateAction(actionId, updates);

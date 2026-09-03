@@ -43,22 +43,35 @@ import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
 import { brand, fonts, spacing, radii } from '@/lib/theme';
 import { isNewlyAdded, formatAddedOn, newBadgeLabel } from '@/lib/actionFreshness';
+import StatusControl from '@/components/StatusControl';
+import PriorityControl from '@/components/PriorityControl';
+import ActionFilterSheet from '@/components/ActionFilterSheet';
+import {
+  PRIORITY_META,
+  priorityLabel,
+  statusLabel,
+  type ActionLocale,
+} from '@/lib/actionMeta';
+import {
+  SORT_KEYS,
+  NO_FILTERS,
+  activeFilterCount,
+  filterActions,
+  sortActions,
+  sortLabel,
+  sortUiLabel,
+  type ActionFilters,
+  type ActionSortKey,
+} from '@/lib/actionSort';
+import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<ActionStatus, { label: string; emoji: string; color: string }> = {
-  not_started: { label: 'To Do', emoji: '○', color: '#94A3B8' },
-  in_progress: { label: 'In Progress', emoji: '◐', color: '#0891B2' },
-  completed: { label: 'Done', emoji: '●', color: '#10B981' },
-  dismissed: { label: 'Dismissed', emoji: '—', color: '#CBD5E1' },
-};
-
-const PRIORITY_CONFIG: Record<ActionPriority, { label: string; color: string; bg: string }> = {
-  urgent: { label: 'Urgent', color: '#DC2626', bg: '#FEE2E2' },
-  high: { label: 'High', color: '#EA580C', bg: '#FFF7ED' },
-  medium: { label: 'Med', color: '#2563EB', bg: '#EFF6FF' },
-  low: { label: 'Low', color: '#64748B', bg: '#F1F5F9' },
-};
+// Status and priority labels/colours now come from `@/lib/actionMeta`, the one
+// table both screens and the edit sheet read. They used to live here as well,
+// and had already drifted: this file said `Med` where the detail screen said
+// `Medium`, and `To Do`/`Done` where the detail screen said
+// `Not Started`/`Completed` — the same action, two vocabularies.
 
 const CATEGORY_CONFIG: Record<ActionCategory, { label: string; emoji: string }> = {
   regional_center: { label: 'Regional Center', emoji: '🏛️' },
@@ -101,10 +114,21 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   const [activeFilter, setActiveFilter] = useState<ActionStatus | 'all'>('all');
   const [checkInAction, setCheckInAction] = useState<Action | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [sortKey, setSortKey] = useState<ActionSortKey>('smart');
+  const [filters, setFilters] = useState<ActionFilters>(NO_FILTERS);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const statusFilter = activeFilter === 'all'
-    ? undefined
-    : [activeFilter];
+  // MEMOIZED, and it has to stay that way. A fresh `[activeFilter]` literal on
+  // every render lands in `useActions`'s fetch dependencies, whose effect calls
+  // `setActions`, which re-renders this component, which builds another fresh
+  // array. Measured against the real hook: 2 queries unfiltered, **54,554 in
+  // one second** with a status filter selected. See the comment on `statusKey`
+  // in useActions.ts — the hook now defends itself too, but a stable value here
+  // is the honest thing to hand it.
+  const statusFilter = useMemo(
+    () => (activeFilter === 'all' ? undefined : [activeFilter]),
+    [activeFilter]
+  );
 
   const {
     actions,
@@ -112,6 +136,7 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
     error,
     stats,
     updateStatus,
+    updateAction,
     createAction,
     refetch,
   } = useActions({
@@ -148,39 +173,41 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
     }, [family?.id])
   );
 
-  // Sort: urgent first, then by due date, then by created date
-  const sortedActions = useMemo(() => {
-    return [...actions].sort((a, b) => {
-      const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-      const pa = priorityOrder[a.priority] ?? 2;
-      const pb = priorityOrder[b.priority] ?? 2;
-      if (pa !== pb) return pa - pb;
-
-      if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
-      if (a.due_date) return -1;
-      if (b.due_date) return 1;
-
-      return b.created_at.localeCompare(a.created_at);
-    });
-  }, [actions]);
-
   const { locale } = useI18n();
   const esUI = locale === 'es';
   const viUI = locale === 'vi';
+  const uiLocale: ActionLocale = esUI ? 'es' : viUI ? 'vi' : 'en';
+
+  // One clock for the whole render, so every row's "new" and "added" line
+  // agree with each other, and so the deadline filters ask "overdue as of
+  // when?" exactly once (and so a test can pin the moment).
+  // `actions` is the intended trigger even though the body does not read it:
+  // the clock should re-read when the list refetches, not on every render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const now = useMemo(() => Date.now(), [actions]);
+
+  const filterCount = activeFilterCount(filters);
+
+  // Narrow first, then order. Both return the SAME action objects in a new
+  // array — the focus view below matches by object identity, so a stage that
+  // cloned would silently break the just-saved carve-out.
+  const sortedActions = useMemo(
+    () => sortActions(filterActions(actions, filters, now), sortKey),
+    [actions, filters, now, sortKey]
+  );
 
   // Focus view: a full plan is 8+ items and reads as a wall. The default
   // "All" view shows the next 3 doable steps (unlocked, not done) and
   // collapses the rest behind one count — one step at a time is the design,
   // not a limitation. Any explicit filter shows everything it matches.
   const [showAll, setShowAll] = useState(false);
-  const focusMode = activeFilter === 'all' && !showAll;
-
-  // One clock for the whole render, so every row's "new" and "added" line
-  // agree with each other (and so a test can pin the moment).
-  // `actions` is the intended trigger even though the body does not read it:
-  // the clock should re-read when the list refetches, not on every render.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const now = useMemo(() => Date.now(), [actions]);
+  // A parent who has just asked for "everything overdue, oldest first" has
+  // asked a question the next-3 view cannot answer — three of the matches, in
+  // an order they did not choose, reads as the sort being broken. So an
+  // explicit sort or filter turns the focus view off; clearing them brings it
+  // back.
+  const narrowing = sortKey !== 'smart' || filterCount > 0;
+  const focusMode = activeFilter === 'all' && !showAll && !narrowing;
 
   const visibleActions = useMemo(() => {
     if (!focusMode) return sortedActions;
@@ -227,36 +254,37 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
     [embedded, navigation]
   );
 
-  const handleCycleStatus = (action: Action) => {
-    if (isLocked(action) && action.status !== 'completed') {
+  /**
+   * "You can't start this one yet." Returns true when the step is gated behind
+   * an unfinished dependency, having already told the parent why.
+   *
+   * Extracted so EVERY write path consults it. The card's control checked the
+   * lock and the swipe buttons did not, so a step the tracker drew with a
+   * padlock could still be swiped to Done — and once the control is a
+   * one-tap segmented bar rather than a fiddly 28pt circle, that gap is far
+   * easier to fall into.
+   */
+  const blockedByDependency = useCallback(
+    (action: Action, next: ActionStatus): boolean => {
+      if (next === 'not_started' || next === 'dismissed') return false;
+      if (!isLocked(action)) return false;
       const depTitle = action.depends_on ? titleById.get(action.depends_on) : undefined;
       showToast(
-        depTitle ? `Complete "${depTitle}" first — this step builds on it.` : 'This step unlocks after its previous step.',
+        depTitle
+          ? `Complete "${depTitle}" first — this step builds on it.`
+          : 'This step unlocks after its previous step.',
         'info'
       );
-      return;
-    }
-    const nextStatus: Record<ActionStatus, ActionStatus> = {
-      not_started: 'in_progress',
-      in_progress: 'completed',
-      completed: 'not_started',
-      dismissed: 'not_started',
-    };
-    const next = nextStatus[action.status];
-    updateStatus(action.id, next);
-    if (next === 'completed' && family?.id) {
-      // Anonymous outcome analytics (fire-and-forget)
-      trackActionOutcome(family.id, action.category, 'completed', family.regional_center ?? undefined);
-    }
-    // Completion check-in: ask how it went; blockers generate the next steps
-    if (next === 'completed' && action.follow_up_key && FOLLOWUPS[action.follow_up_key]) {
-      setCheckInAction(action);
-    }
-  };
+      return true;
+    },
+    [isLocked, titleById, showToast]
+  );
 
-  /** Direct status set (swipe buttons), with the same check-in + analytics */
+  /** Direct status set (card control + swipe buttons), with check-in + analytics */
   const setStatus = useCallback(
     (action: Action, next: ActionStatus) => {
+      if (next === action.status) return;
+      if (blockedByDependency(action, next)) return;
       updateStatus(action.id, next);
       if (next === 'completed' && family?.id) {
         trackActionOutcome(family.id, action.category, 'completed', family.regional_center ?? undefined);
@@ -272,28 +300,47 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
       };
       showToast(said[next], 'success');
     },
-    [updateStatus, family?.id, family?.regional_center, showToast]
+    [updateStatus, family?.id, family?.regional_center, showToast, blockedByDependency]
+  );
+
+  /**
+   * Change a step's priority straight from the list — no Edit sheet.
+   * `updateAction` writes optimistically and rolls back on failure, so the
+   * chip re-selects instantly and reverts if the write does not land.
+   */
+  const setPriority = useCallback(
+    (action: Action, next: ActionPriority) => {
+      if (next === action.priority) return;
+      updateAction(action.id, { priority: next });
+      showToast(`Priority set to ${priorityLabel(next, uiLocale)}`, 'success');
+    },
+    [updateAction, showToast, uiLocale]
   );
 
   /** What a swipe reveals depends on where the action currently stands */
   const swipeActionsFor = useCallback(
     (action: Action): SwipeAction[] => {
+      // Spoken labels name the step. The visible ones are bare verbs, so a
+      // list of eight rows offered eight identically-labelled "Done" buttons
+      // — and now that the status filters are labelled too, "Done" alone is
+      // ambiguous in the accessibility tree as well as unhelpful in it.
+      const say = (verb: string) => `${verb}: ${action.title}`;
       switch (action.status) {
         case 'not_started':
           return [
-            { label: 'Start', icon: '◐', color: brand.pine, onPress: () => setStatus(action, 'in_progress') },
-            { label: 'Done', icon: '✓', color: '#10B981', onPress: () => setStatus(action, 'completed') },
-            { label: 'Cancel', icon: '✕', color: '#94A3B8', onPress: () => setStatus(action, 'dismissed') },
+            { label: 'Start', icon: '◐', color: brand.pine, accessibilityLabel: say('Start'), onPress: () => setStatus(action, 'in_progress') },
+            { label: 'Done', icon: '✓', color: '#10B981', accessibilityLabel: say('Mark done'), onPress: () => setStatus(action, 'completed') },
+            { label: 'Cancel', icon: '✕', color: '#94A3B8', accessibilityLabel: say('Take off my plan'), onPress: () => setStatus(action, 'dismissed') },
           ];
         case 'in_progress':
           return [
-            { label: 'Done', icon: '✓', color: '#10B981', onPress: () => setStatus(action, 'completed') },
-            { label: 'To Do', icon: '○', color: '#94A3B8', onPress: () => setStatus(action, 'not_started') },
-            { label: 'Cancel', icon: '✕', color: '#CBD5E1', onPress: () => setStatus(action, 'dismissed') },
+            { label: 'Done', icon: '✓', color: '#10B981', accessibilityLabel: say('Mark done'), onPress: () => setStatus(action, 'completed') },
+            { label: 'To Do', icon: '○', color: '#94A3B8', accessibilityLabel: say('Move back to To Do'), onPress: () => setStatus(action, 'not_started') },
+            { label: 'Cancel', icon: '✕', color: '#CBD5E1', accessibilityLabel: say('Take off my plan'), onPress: () => setStatus(action, 'dismissed') },
           ];
         default:
           return [
-            { label: 'Reopen', icon: '↺', color: brand.pine, onPress: () => setStatus(action, 'not_started') },
+            { label: 'Reopen', icon: '↺', color: brand.pine, accessibilityLabel: say('Reopen'), onPress: () => setStatus(action, 'not_started') },
           ];
       }
     },
@@ -358,17 +405,77 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
     </View>
   ) : null;
 
-  const filters = (
-    <View style={styles.filterRow}>
-      <FilterPill label="All" active={activeFilter === 'all'} onPress={() => setActiveFilter('all')} />
-      {STATUS_FILTERS.map((status) => (
+  const chrome = (
+    <View style={styles.chromeBand}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterRow}
+        style={styles.statusScroller}
+      >
         <FilterPill
-          key={status}
-          label={STATUS_CONFIG[status].label}
-          active={activeFilter === status}
-          onPress={() => setActiveFilter(status)}
+          label={allLabel(uiLocale)}
+          active={activeFilter === 'all'}
+          onPress={() => setActiveFilter('all')}
         />
-      ))}
+        {STATUS_FILTERS.map((status) => (
+          <FilterPill
+            key={status}
+            label={statusLabel(status, uiLocale)}
+            active={activeFilter === status}
+            onPress={() => setActiveFilter(status)}
+          />
+        ))}
+      </ScrollView>
+
+      {/* Sort, then the filters that don't fit inline. The row scrolls
+          horizontally because five sort names in Spanish do not fit a narrow
+          phone, and a wrapped row would push the first card off the screen. */}
+      <View style={styles.sortRow}>
+        <Text style={styles.sortCaption}>{sortUiLabel('sort', uiLocale)}</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.sortScroller}
+          contentContainerStyle={styles.sortPills}
+        >
+          {SORT_KEYS.map((key) => (
+            <FilterPill
+              key={key}
+              label={sortLabel(key, uiLocale)}
+              active={sortKey === key}
+              onPress={() => setSortKey(key)}
+              accessibilityLabel={`${sortUiLabel('sort', uiLocale)}: ${sortLabel(key, uiLocale)}`}
+            />
+          ))}
+        </ScrollView>
+        <TouchableOpacity
+          style={[styles.filterButton, filterCount > 0 && styles.filterButtonActive]}
+          onPress={() => setShowFilters(true)}
+          accessibilityRole="button"
+          accessibilityLabel={
+            filterCount > 0
+              ? `${sortUiLabel('filters', uiLocale)} — ${filterCount}`
+              : sortUiLabel('filters', uiLocale)
+          }
+        >
+          <Ionicons
+            name="options-outline"
+            size={15}
+            color={filterCount > 0 ? '#FFFFFF' : brand.inkSoft}
+          />
+          {/* The word, not just the glyph. An icon-only control here is a
+              mystery button — and this one is the only way to reach the
+              priority, deadline and date-added filters at all. */}
+          <Text
+            style={[styles.filterButtonText, filterCount > 0 && styles.filterButtonTextActive]}
+          >
+            {filterCount > 0
+              ? `${sortUiLabel('filters', uiLocale)} ${filterCount}`
+              : sortUiLabel('filters', uiLocale)}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -392,6 +499,18 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
             <SkeletonCard />
             <SkeletonCard />
           </View>
+        ) : filterCount > 0 ? (
+          // A filter that matched nothing is not an empty plan. Sending a
+          // parent who has 27 steps to "Ask the Navigator and save some" —
+          // because they asked to see only what is overdue — reads as the app
+          // having lost their work.
+          <EmptyState
+            emoji="🔍"
+            title="No steps match these filters"
+            subtitle="Try widening the deadline or priority you picked."
+            actionLabel="Clear filters"
+            onAction={() => setFilters(NO_FILTERS)}
+          />
         ) : (
           <EmptyState
             emoji="📋"
@@ -413,8 +532,9 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
               action={item}
               locked={isLocked(item)}
               now={now}
-              locale={esUI ? 'es' : viUI ? 'vi' : 'en'}
-              onStatusPress={() => handleCycleStatus(item)}
+              locale={uiLocale}
+              onSetStatus={(next) => setStatus(item, next)}
+              onSetPriority={(next) => setPriority(item, next)}
               onOpenDetail={() => openDetail(item.id)}
             />
           </SwipeableRow>
@@ -423,8 +543,11 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
 
       {/* Keyed on what is actually hidden, not on the list length: with the
           fresh-item carve-out above, a list longer than 3 can still be fully
-          visible, and the toggle then read "Show everything (0 more)". */}
-      {activeFilter === 'all' && (focusMode ? hiddenCount > 0 : sortedActions.length > 3) ? (
+          visible, and the toggle then read "Show everything (0 more)".
+          Hidden entirely while a sort or filter is narrowing the list — the
+          parent asked for a specific view, and "Focus on my next 3" would
+          throw it away. */}
+      {activeFilter === 'all' && !narrowing && (focusMode ? hiddenCount > 0 : sortedActions.length > 3) ? (
         <TouchableOpacity
           style={styles.focusToggle}
           onPress={() => setShowAll((v) => !v)}
@@ -480,6 +603,16 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
         onClose={() => setShowCreate(false)}
         onSubmit={handleCreate}
       />
+
+      {/* Narrow the plan by priority, deadline, or when a step was added */}
+      <ActionFilterSheet
+        visible={showFilters}
+        filters={filters}
+        onChange={setFilters}
+        onClose={() => setShowFilters(false)}
+        locale={uiLocale}
+        matchCount={sortedActions.length}
+      />
     </>
   );
 
@@ -491,7 +624,7 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
       <View style={styles.embeddedBreakout}>
         {header}
         {dashboard}
-        {filters}
+        {chrome}
         <View style={styles.listContent}>{list}</View>
         {error ? <View style={styles.errorBannerInline}>{errorContent}</View> : null}
         {modals}
@@ -503,7 +636,7 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
     <SafeAreaView style={styles.container} edges={['top']}>
       {header}
       {dashboard}
-      {filters}
+      {chrome}
       <ScrollView
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} tintColor={brand.pine} />}
@@ -526,29 +659,35 @@ function ActionCard({
   locked,
   now,
   locale = 'en',
-  onStatusPress,
+  onSetStatus,
+  onSetPriority,
   onOpenDetail,
 }: {
   action: Action;
   locked?: boolean;
   /** One clock for the whole list, so rows can't disagree about "today". */
   now?: number;
-  locale?: 'en' | 'es' | 'vi';
-  onStatusPress: () => void;
+  locale?: ActionLocale;
+  onSetStatus: (next: ActionStatus) => void;
+  onSetPriority: (next: ActionPriority) => void;
   onOpenDetail: () => void;
 }) {
   const { scale } = useTextScale();
   const stamp = now ?? Date.now();
   const isNew = isNewlyAdded(action.created_at, stamp);
   const addedLabel = formatAddedOn(action.created_at, stamp, locale);
-  const statusConfig = STATUS_CONFIG[action.status];
-  const priorityConfig = PRIORITY_CONFIG[action.priority];
+  const priorityMeta = PRIORITY_META[action.priority];
   const categoryConfig = CATEGORY_CONFIG[action.category];
   const isOverdue = action.due_date && new Date(action.due_date) < new Date() && action.status !== 'completed';
   const isDueSoon = action.due_date && !isOverdue && daysUntil(action.due_date) <= (action.deadline_warning_days || 7);
 
   const stepsDone = action.steps?.filter((s) => s.done).length ?? 0;
   const stepsTotal = action.steps?.length ?? 0;
+
+  // The priority chips are collapsed by default. A permanent four-chip row on
+  // every card doubles the chrome of a list whose whole point is "one step at
+  // a time" — and the focus view shows up to five cards at once.
+  const [editingPriority, setEditingPriority] = useState(false);
 
   return (
     <View
@@ -558,25 +697,23 @@ function ActionCard({
         locked && styles.cardLocked,
       ]}
     >
-      <View style={styles.cardTop}>
-        {/* Status toggle button (padlock while a dependency is incomplete) */}
-        <TouchableOpacity
-          style={[styles.statusCircle, { borderColor: locked ? brand.border : statusConfig.color }]}
-          onPress={onStatusPress}
-          accessibilityRole="button"
-          accessibilityLabel={
-            locked ? 'Locked — complete the previous step first' : `Change status from ${statusConfig.label}`
-          }
-        >
-          {locked ? (
-            <Ionicons name="lock-closed" size={13} color={brand.inkFaint} />
-          ) : (
-            <Text style={[styles.statusIcon, { color: statusConfig.color }]}>
-              {statusConfig.emoji}
-            </Text>
-          )}
-        </TouchableOpacity>
+      {/* Status, first and full width. It was a 28pt circle down the left
+          gutter that CYCLED To Do → In Progress → Done, so reaching Done took
+          two taps and nothing said what a tap would do. A dismissed step keeps
+          the plain row — reopening it is a swipe, not a mis-tap away. */}
+      {action.status !== 'dismissed' && (
+        <View style={styles.statusBar}>
+          <StatusControl
+            status={action.status}
+            locked={locked}
+            locale={locale}
+            onChange={onSetStatus}
+            accessibilityPrefix={action.title}
+          />
+        </View>
+      )}
 
+      <View style={styles.cardTop}>
         {/* Title + meta — tap to open full detail (scripts, steps, documents) */}
         <TouchableOpacity
           style={styles.cardContent}
@@ -604,27 +741,68 @@ function ActionCard({
             </View>
           )}
 
-          <View style={styles.cardMeta}>
-            <Text style={styles.categoryTag}>
-              {categoryConfig.emoji} {categoryConfig.label}
-            </Text>
-            <View style={[styles.priorityBadge, { backgroundColor: priorityConfig.bg }]}>
-              <Text style={[styles.priorityText, { color: priorityConfig.color }]}>
-                {priorityConfig.label}
-              </Text>
-            </View>
-            {action.google_event_id && (
-              <Text
-                style={styles.calendarBadge}
-                accessibilityLabel="On your Google Calendar"
-              >
-                🗓️
-              </Text>
-            )}
-            <Text style={styles.detailHint}>Details ›</Text>
-          </View>
         </TouchableOpacity>
       </View>
+
+      {/* The meta row sits OUTSIDE the open-detail press target on purpose.
+          It used to live inside it, and a tappable priority badge nested in a
+          touchable that navigates is the shape that opens the detail screen
+          instead of changing the priority — on react-native-web the outer
+          handler fires either way. */}
+      <View style={styles.cardMeta}>
+        <Text style={styles.categoryTag}>
+          {categoryConfig.emoji} {categoryConfig.label}
+        </Text>
+        <TouchableOpacity
+          style={[
+            styles.priorityBadge,
+            { backgroundColor: priorityMeta.bg, borderColor: priorityMeta.color },
+            editingPriority && styles.priorityBadgeOpen,
+          ]}
+          onPress={() => setEditingPriority((v) => !v)}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: editingPriority }}
+          aria-expanded={editingPriority}
+          accessibilityLabel={`${action.title}: priority ${priorityLabel(
+            action.priority,
+            locale
+          )}. Tap to change.`}
+        >
+          <Text style={[styles.priorityText, { color: priorityMeta.color }]}>
+            {priorityLabel(action.priority, locale, true)} {editingPriority ? '▴' : '▾'}
+          </Text>
+        </TouchableOpacity>
+        {action.google_event_id && (
+          <Text style={styles.calendarBadge} accessibilityLabel="On your Google Calendar">
+            🗓️
+          </Text>
+        )}
+        <TouchableOpacity
+          style={styles.detailHintHit}
+          onPress={onOpenDetail}
+          accessibilityRole="button"
+          accessibilityLabel={`${action.title}: scripts, steps and documents`}
+        >
+          <Text style={styles.detailHint}>Details ›</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Priority chips, expanded in place. NOT a popover: every row is
+          wrapped in SwipeableRow, which is overflow:'hidden' with no portal
+          to escape through, so anything floating out of a card is clipped. */}
+      {editingPriority && (
+        <View style={styles.priorityEditor}>
+          <PriorityControl
+            priority={action.priority}
+            locale={locale}
+            onChange={(next) => {
+              setEditingPriority(false);
+              onSetPriority(next);
+            }}
+            accessibilityPrefix={action.title}
+          />
+        </View>
+      )}
 
       {/* Steps progress bar */}
       {stepsTotal > 0 && (
@@ -711,25 +889,44 @@ function StatPill({
   );
 }
 
+/**
+ * One pill in the status or sort row.
+ *
+ * It carried no role, no label and no selected state — so a screen reader
+ * heard five unlabelled taps and could not tell which view was showing.
+ */
 function FilterPill({
   label,
   active,
   onPress,
+  accessibilityLabel,
 }: {
   label: string;
   active: boolean;
   onPress: () => void;
+  accessibilityLabel?: string;
 }) {
   return (
     <TouchableOpacity
       style={[styles.filterPill, active && styles.filterPillActive]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      aria-pressed={active}
+      accessibilityLabel={accessibilityLabel ?? label}
     >
       <Text style={[styles.filterText, active && styles.filterTextActive]}>
         {label}
       </Text>
     </TouchableOpacity>
   );
+}
+
+/** "All" for the status row, in the parent's language. */
+function allLabel(locale: ActionLocale): string {
+  if (locale === 'es') return 'Todo';
+  if (locale === 'vi') return 'Tất cả';
+  return 'All';
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -840,18 +1037,83 @@ const styles = StyleSheet.create({
     color: brand.inkFaint,
     marginTop: 1,
   },
-  filterRow: {
-    flexDirection: 'row',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    gap: 6,
+  // Status pills and the sort row share one band, so the plan has one strip of
+  // chrome rather than two competing ones.
+  chromeBand: {
     backgroundColor: brand.panel,
     borderBottomWidth: 1,
     borderBottomColor: brand.border,
+    paddingBottom: spacing.xs,
   },
-  filterPill: {
+  statusScroller: {
+    flexGrow: 0,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    gap: 6,
+    alignItems: 'center',
+  },
+  sortRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    gap: 6,
+  },
+  sortCaption: {
+    fontSize: 11,
+    color: brand.inkFaint,
+    fontWeight: fonts.weights.semibold,
+  },
+  // flex:1 on the SCROLLER, not its content: without it the row lays out at
+  // the pills' natural width and the Filters button lands on top of the last
+  // one instead of the pills scrolling under it.
+  sortScroller: {
+    flex: 1,
+    // A gutter before the pinned Filters button. Without it the scroller's
+    // clip edge sits flush against the button and a half-visible "Oldest"
+    // reads as a rendering bug rather than as "scroll for more".
+    marginRight: spacing.sm,
+  },
+  sortPills: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+    paddingRight: spacing.xs,
+  },
+  filterButton: {
+    flexShrink: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: 34,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    borderColor: brand.border,
+    backgroundColor: brand.paper,
+  },
+  filterButtonActive: {
+    backgroundColor: brand.pine,
+    borderColor: brand.pine,
+  },
+  filterButtonText: {
+    fontSize: 11,
+    color: brand.inkSoft,
+    fontWeight: fonts.weights.bold,
+  },
+  filterButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  // 34pt visible, but the pills sit inside a 44pt band and a horizontal
+  // scroller, so a miss scrolls rather than selecting the neighbour.
+  filterPill: {
+    paddingHorizontal: 11,
+    minHeight: 34,
+    justifyContent: 'center',
     borderRadius: 12,
     backgroundColor: brand.paper,
   },
@@ -859,7 +1121,7 @@ const styles = StyleSheet.create({
     backgroundColor: brand.pine,
   },
   filterText: {
-    fontSize: 11,
+    fontSize: 12,
     color: brand.inkSoft,
     fontWeight: fonts.weights.medium,
   },
@@ -910,20 +1172,10 @@ const styles = StyleSheet.create({
   cardTop: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
   },
-  statusCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  statusIcon: {
-    fontSize: 14,
-    fontWeight: '700',
+  // The status control, first in the card and the full width of it.
+  statusBar: {
+    marginBottom: spacing.sm,
   },
   cardContent: {
     flex: 1,
@@ -946,32 +1198,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 4,
+    marginTop: 6,
   },
   categoryTag: {
     fontSize: 10,
     color: brand.inkFaint,
   },
+  detailHintHit: {
+    marginLeft: 'auto',
+    minHeight: 32,
+    justifyContent: 'center',
+    paddingLeft: spacing.sm,
+  },
   detailHint: {
-    fontSize: 11,
+    fontSize: 12,
     color: brand.pine,
     fontWeight: fonts.weights.semibold as '600',
-    marginLeft: 'auto',
   },
+  // A real control now, not a label: 44pt of vertical hit area (the padding
+  // reaches past the visible pill) so it clears MIN_TOUCH_TARGET without
+  // making the meta row look like a button bar.
   priorityBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 5,
+    borderWidth: 1,
+    justifyContent: 'center',
+    minHeight: 26,
+  },
+  priorityBadgeOpen: {
+    borderWidth: 1.5,
   },
   priorityText: {
-    fontSize: 9,
-    fontWeight: fonts.weights.semibold,
+    fontSize: 11,
+    fontWeight: fonts.weights.bold,
+  },
+  priorityEditor: {
+    marginTop: spacing.sm,
   },
   stepsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: spacing.sm,
-    marginLeft: 38,
     gap: 8,
   },
   stepsBar: {
@@ -991,7 +1259,6 @@ const styles = StyleSheet.create({
   },
   dueRow: {
     marginTop: 6,
-    marginLeft: 38,
   },
   dueText: {
     fontSize: 10,
@@ -1023,13 +1290,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: brand.inkFaint,
     marginTop: 6,
-    marginLeft: 38,
   },
   offlineTag: {
     fontSize: 9,
     color: brand.inkFaint,
     marginTop: 4,
-    marginLeft: 38,
     fontStyle: 'italic',
   },
   errorBanner: {

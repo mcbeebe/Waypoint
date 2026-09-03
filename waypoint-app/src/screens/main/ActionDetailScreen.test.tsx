@@ -142,3 +142,170 @@ describe('which child the email says it is about', () => {
     expect(await screen.findByText(/next step on Ana's plan/)).toBeTruthy();
   });
 });
+
+// ─── Status and priority, at the top of the screen ─────────────────────────
+
+/** Where an element sits in the rendered document, as a character offset. */
+function positionOf(text: string | RegExp): number {
+  const el =
+    typeof text === 'string' ? screen.getByText(text) : screen.getByText(text);
+  const html = document.body.innerHTML;
+  const own = el.outerHTML;
+  return html.indexOf(own);
+}
+
+describe('marking a step in progress or done', () => {
+  /**
+   * What this replaces: a row of ~27pt pills that sat THIRTEENTH of the
+   * screen's twenty-one sections — below the description, the eligibility
+   * notes, the documents list and the insider tip. On the screenshot that
+   * prompted this change it is not on the page at all. The pills carried no
+   * role, no label and no selected state, and were hard-coded 12px on a screen
+   * that ships its own text-size control.
+   */
+  it('puts the status control above everything but the title', () => {
+    detail();
+    const status = positionOf('In Progress');
+    expect(status).toBeGreaterThan(0);
+    // Ahead of the deadline chip, the effort card and the steps list — all of
+    // which used to come first.
+    expect(status).toBeLessThan(positionOf(/Set deadline/));
+  });
+
+  it('offers all three states, each as its own labelled button', () => {
+    // The fixture is not_started, so To Do is announced as the current state
+    // and the other two as the actions that would change it.
+    detail();
+    expect(screen.getByLabelText(/To Do — current status$/)).toBeTruthy();
+    expect(screen.getByLabelText(/Mark as In Progress$/)).toBeTruthy();
+    expect(screen.getByLabelText(/Mark as Done$/)).toBeTruthy();
+  });
+
+  it('changes status in one tap', () => {
+    const onUpdateStatus = vi.fn();
+    render(
+      <ActionDetailScreen
+        action={ACTION as any}
+        onUpdateStatus={onUpdateStatus}
+        onToggleStep={() => {}}
+        onUpdate={() => {}}
+        onBack={() => {}}
+      />
+    );
+    fireEvent.click(screen.getByLabelText(/Mark as Done$/));
+    expect(onUpdateStatus).toHaveBeenCalledWith('completed');
+  });
+
+  it('announces the current state and does not re-write it', () => {
+    const onUpdateStatus = vi.fn();
+    render(
+      <ActionDetailScreen
+        action={{ ...ACTION, status: 'in_progress' } as any}
+        onUpdateStatus={onUpdateStatus}
+        onToggleStep={() => {}}
+        onUpdate={() => {}}
+        onBack={() => {}}
+      />
+    );
+    const current = screen.getByLabelText(/In Progress — current status$/);
+    expect(current.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(current);
+    expect(onUpdateStatus).not.toHaveBeenCalled();
+  });
+});
+
+describe('dismissing a step', () => {
+  it('is not one of the segments', () => {
+    // The one status change a parent cannot undo by tapping the next option
+    // along must not sit one mis-tap from "Done".
+    detail();
+    expect(screen.queryByLabelText(/Mark as Dismissed$/)).toBeNull();
+  });
+
+  it('asks for a reason behind a secondary link, and can be cancelled', () => {
+    const onUpdateStatus = vi.fn();
+    render(
+      <ActionDetailScreen
+        action={ACTION as any}
+        onUpdateStatus={onUpdateStatus}
+        onToggleStep={() => {}}
+        onUpdate={() => {}}
+        onBack={() => {}}
+      />
+    );
+    expect(screen.queryByPlaceholderText(/Reason for dismissing/)).toBeNull();
+    fireEvent.click(screen.getByLabelText(/^Dismiss .* take it off the plan$/));
+    expect(screen.getByPlaceholderText(/Reason for dismissing/)).toBeTruthy();
+    // There was no way out of this box before — no cancel, and picking a real
+    // status left it open underneath.
+    fireEvent.click(screen.getByLabelText('Cancel — keep this on my plan'));
+    expect(screen.queryByPlaceholderText(/Reason for dismissing/)).toBeNull();
+    expect(onUpdateStatus).not.toHaveBeenCalled();
+  });
+
+  it('closes the reason box when a real status is chosen instead', () => {
+    detail();
+    fireEvent.click(screen.getByLabelText(/^Dismiss .* take it off the plan$/));
+    expect(screen.getByPlaceholderText(/Reason for dismissing/)).toBeTruthy();
+    fireEvent.click(screen.getByLabelText(/Mark as In Progress$/));
+    expect(screen.queryByPlaceholderText(/Reason for dismissing/)).toBeNull();
+  });
+});
+
+describe('choosing a priority', () => {
+  it('is a control on the screen, not a trip through the Edit sheet', () => {
+    // Priority was rendered once, read-only, as the words "High Priority".
+    // The only way to change it was Edit, which submits all seven fields of
+    // an action at once.
+    const onUpdate = vi.fn();
+    render(
+      <ActionDetailScreen
+        action={ACTION as any}
+        onUpdateStatus={() => {}}
+        onToggleStep={() => {}}
+        onUpdate={onUpdate}
+        onBack={() => {}}
+      />
+    );
+    fireEvent.click(screen.getByLabelText(/Set priority to Urgent$/));
+    expect(onUpdate).toHaveBeenCalledWith({ priority: 'urgent' });
+  });
+
+  it('marks the current priority and does not re-write it', () => {
+    const onUpdate = vi.fn();
+    render(
+      <ActionDetailScreen
+        action={ACTION as any}
+        onUpdateStatus={() => {}}
+        onToggleStep={() => {}}
+        onUpdate={onUpdate}
+        onBack={() => {}}
+      />
+    );
+    const current = screen.getByLabelText(/High — current priority$/);
+    expect(current.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(current);
+    expect(onUpdate).not.toHaveBeenCalled();
+  });
+
+  it('sits above the fold, with the status control', () => {
+    detail();
+    expect(positionOf('Urgent')).toBeLessThan(positionOf(/Set deadline/));
+  });
+});
+
+describe('when this step landed in the plan', () => {
+  it('shows the created date near the top, not only in the Timeline', () => {
+    // It was rendered once, as a "Created" row in the Timeline section — the
+    // second-to-last of twenty-one.
+    detail();
+    const added = screen.getAllByText(/Added today/);
+    expect(added.length).toBeGreaterThan(0);
+    expect(positionOf(/Added today/)).toBeLessThan(positionOf('📅 Timeline'));
+  });
+
+  it('shows no chip at all rather than "Invalid Date"', () => {
+    detail({ created_at: 'not-a-timestamp' });
+    expect(screen.queryByText(/🕐 Added/)).toBeNull();
+  });
+});

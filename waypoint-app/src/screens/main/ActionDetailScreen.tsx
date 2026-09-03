@@ -42,6 +42,12 @@ import { useContacts } from '@/hooks/useContacts';
 import TrackedEmailModal from '@/components/TrackedEmailModal';
 import { buildActionEmail } from '@/lib/actionEmail';
 import { showConfirm } from '@/lib/dialogs';
+import StatusControl from '@/components/StatusControl';
+import PriorityControl from '@/components/PriorityControl';
+import { metaHeading, statusLabel, type ActionLocale } from '@/lib/actionMeta';
+import { useI18n } from '@/i18n';
+import { formatAddedOn } from '@/lib/actionFreshness';
+import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -50,13 +56,6 @@ interface ActionDetailScreenProps {
   onUpdate: (data: Partial<Action>) => void;
   onBack: () => void;
 }
-
-const STATUS_OPTIONS: Array<{ status: ActionStatus; label: string; emoji: string; color: string }> = [
-  { status: 'not_started', label: 'Not Started', emoji: '○', color: '#94A3B8' },
-  { status: 'in_progress', label: 'In Progress', emoji: '◐', color: '#0891B2' },
-  { status: 'completed', label: 'Completed', emoji: '●', color: '#10B981' },
-  { status: 'dismissed', label: 'Dismissed', emoji: '—', color: '#CBD5E1' },
-];
 
 const CATEGORY_LABELS: Record<ActionCategory, string> = {
   regional_center: '🏛️ Regional Center',
@@ -68,12 +67,9 @@ const CATEGORY_LABELS: Record<ActionCategory, string> = {
   general: '📋 General',
 };
 
-const PRIORITY_LABELS: Record<ActionPriority, { label: string; color: string }> = {
-  urgent: { label: 'Urgent', color: '#DC2626' },
-  high: { label: 'High', color: '#EA580C' },
-  medium: { label: 'Medium', color: '#2563EB' },
-  low: { label: 'Low', color: '#64748B' },
-};
+// Status and priority labels/colours come from `@/lib/actionMeta` now. This
+// screen used to keep its own: it said `Not Started` and `Completed` where the
+// list card said `To Do` and `Done`, for the same action.
 
 export default function ActionDetailScreen({
   action,
@@ -137,11 +133,15 @@ export default function ActionDetailScreen({
 
   const learnMoreKey = LEARN_MORE_BY_ACTION_TITLE[action.title];
   const { scale, cycleScale } = useTextScale();
+  const { locale } = useI18n();
+  const uiLocale: ActionLocale = locale === 'es' ? 'es' : locale === 'vi' ? 'vi' : 'en';
   /** Scaled font size — applied to all reading-heavy text */
   const sz = (n: number) => Math.round(n * scale);
 
   const stepsDone = action.steps?.filter((s) => s.done).length ?? 0;
   const stepsTotal = action.steps?.length ?? 0;
+  /** "Added today" / "Added Aug 18" — the same helper the list card uses. */
+  const addedLabel = formatAddedOn(action.created_at, Date.now(), uiLocale);
 
   const content = useMemo(
     () => parseActionDescription(action.description ?? ''),
@@ -248,16 +248,33 @@ export default function ActionDetailScreen({
   };
 
   const handleStatusChange = (status: ActionStatus) => {
+    if (status === action.status) return;
     if (status === 'dismissed') {
       setShowDismissInput(true);
       return;
     }
+    // Picking a real status closes a half-finished dismissal, rather than
+    // leaving the reason box open under a step that is now In Progress.
+    setShowDismissInput(false);
+    setDismissReason('');
     onUpdateStatus(status);
   };
 
   const handleDismiss = () => {
     onUpdateStatus('dismissed', dismissReason || undefined);
     setShowDismissInput(false);
+    setDismissReason('');
+  };
+
+  /**
+   * Change priority in place. `onUpdate` is the generic patch the route wrapper
+   * already binds to `updateAction`, so this needed no new plumbing — priority
+   * was simply never offered anywhere but inside the full Edit sheet, which
+   * submits all seven fields of an action at once.
+   */
+  const handlePriorityChange = (priority: ActionPriority) => {
+    if (priority === action.priority) return;
+    onUpdate({ priority });
   };
 
   /**
@@ -335,9 +352,93 @@ export default function ActionDetailScreen({
           <Text style={styles.categoryLabel}>
             {CATEGORY_LABELS[action.category]}
           </Text>
-          <Text style={[styles.priorityLabel, { color: PRIORITY_LABELS[action.priority].color }]}>
-            {PRIORITY_LABELS[action.priority].label} Priority
+        </View>
+
+        {/* Status and priority, FIRST — the two things a parent comes back to
+            this screen to change. Status used to be the thirteenth section of
+            twenty-one, below the description, the eligibility notes, the
+            documents list and the insider tip: on the screenshot that prompted
+            this change it is not on the page at all. */}
+        <View style={styles.controlCard}>
+          <Text style={[styles.controlLabel, { fontSize: sz(11) }]}>
+            {metaHeading('status', uiLocale).toUpperCase()}
           </Text>
+          <StatusControl
+            status={action.status}
+            size="large"
+            scale={scale}
+            locale={uiLocale}
+            onChange={handleStatusChange}
+            accessibilityPrefix={action.title}
+          />
+
+          <View style={styles.controlDivider} />
+
+          <Text style={[styles.controlLabel, { fontSize: sz(11) }]}>
+            {metaHeading('priority', uiLocale).toUpperCase()}
+          </Text>
+          <PriorityControl
+            priority={action.priority}
+            size="large"
+            scale={scale}
+            locale={uiLocale}
+            onChange={handlePriorityChange}
+            accessibilityPrefix={action.title}
+          />
+
+          {/* Dismissing is not a segment. It is the one change a parent cannot
+              undo by tapping the next option along, so it stays a deliberate,
+              secondary act. */}
+          {action.status === 'dismissed' ? (
+            <Text style={[styles.dismissedNote, { fontSize: sz(12) }]}>
+              {statusLabel('dismissed', uiLocale)}
+              {action.dismissed_reason ? ` — ${action.dismissed_reason}` : ''}
+            </Text>
+          ) : (
+            <TouchableOpacity
+              style={styles.dismissLink}
+              onPress={() => setShowDismissInput((v) => !v)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: showDismissInput }}
+              aria-expanded={showDismissInput}
+              accessibilityLabel={`Dismiss ${action.title} — take it off the plan`}
+            >
+              <Text style={[styles.dismissLinkText, { fontSize: sz(12) }]}>
+                Not doing this — take it off my plan
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {showDismissInput && (
+            <View style={styles.dismissBox}>
+              <TextInput
+                style={styles.dismissInput}
+                placeholder="Reason for dismissing (optional)"
+                placeholderTextColor={colors.mid}
+                value={dismissReason}
+                onChangeText={setDismissReason}
+              />
+              <TouchableOpacity
+                style={styles.dismissButton}
+                onPress={handleDismiss}
+                accessibilityRole="button"
+                accessibilityLabel="Confirm — take this off my plan"
+              >
+                <Text style={styles.dismissButtonText}>Dismiss</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.dismissCancel}
+                onPress={() => {
+                  setShowDismissInput(false);
+                  setDismissReason('');
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel — keep this on my plan"
+              >
+                <Text style={styles.dismissCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* At-a-glance chips: when, calendar link, how big a lift, steps */}
@@ -372,6 +473,16 @@ export default function ActionDetailScreen({
               <Text style={[styles.chipText, { fontSize: sz(12) }]}>✅ {stepsTotal} steps</Text>
             </View>
           )}
+          {/* When this landed in the plan. It was only ever rendered in the
+              Timeline section near the bottom of the screen, twenty sections
+              down — so "when did I add this?" meant scrolling past everything.
+              Same relative phrasing the list card uses, from the same tested
+              helper, so the two surfaces agree about "today". */}
+          {addedLabel ? (
+            <View style={styles.chip}>
+              <Text style={[styles.chipText, { fontSize: sz(12) }]}>🕐 {addedLabel}</Text>
+            </View>
+          ) : null}
         </View>
 
         {/* Inline deadline editor — suggested by Waypoint, yours to change */}
@@ -499,47 +610,6 @@ export default function ActionDetailScreen({
             </Text>
           </TouchableOpacity>
         )}
-
-        {/* Status Selector */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Status</Text>
-          <View style={styles.statusRow}>
-            {STATUS_OPTIONS.map((opt) => (
-              <TouchableOpacity
-                key={opt.status}
-                style={[
-                  styles.statusPill,
-                  action.status === opt.status && { backgroundColor: opt.color },
-                ]}
-                onPress={() => handleStatusChange(opt.status)}
-              >
-                <Text
-                  style={[
-                    styles.statusPillText,
-                    action.status === opt.status && styles.statusPillTextActive,
-                  ]}
-                >
-                  {opt.emoji} {opt.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {showDismissInput && (
-            <View style={styles.dismissBox}>
-              <TextInput
-                style={styles.dismissInput}
-                placeholder="Reason for dismissing (optional)"
-                placeholderTextColor={colors.mid}
-                value={dismissReason}
-                onChangeText={setDismissReason}
-              />
-              <TouchableOpacity style={styles.dismissButton} onPress={handleDismiss}>
-                <Text style={styles.dismissButtonText}>Dismiss</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
 
         {/* Script */}
         {action.script && (
@@ -1156,29 +1226,57 @@ const styles = StyleSheet.create({
     color: colors.navy,
     marginBottom: spacing.sm,
   },
-  statusRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
+  // The status + priority card that opens the screen.
+  controlCard: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    backgroundColor: colors.white,
+    padding: spacing.md,
+    marginBottom: spacing.md,
   },
-  statusPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: colors.light,
+  controlLabel: {
+    fontWeight: fonts.weights.bold,
+    color: colors.mid,
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
   },
-  statusPillText: {
-    fontSize: 12,
-    color: colors.dark,
+  controlDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginVertical: spacing.md,
+  },
+  dismissLink: {
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
+    marginTop: spacing.sm,
+  },
+  dismissLinkText: {
+    color: colors.mid,
     fontWeight: fonts.weights.medium,
+    textDecorationLine: 'underline',
   },
-  statusPillTextActive: {
-    color: colors.white,
+  dismissedNote: {
+    marginTop: spacing.md,
+    color: colors.mid,
+    fontStyle: 'italic',
   },
   dismissBox: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 8,
     marginTop: spacing.sm,
+  },
+  dismissCancel: {
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sm,
+  },
+  dismissCancelText: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    fontWeight: fonts.weights.semibold,
   },
   dismissInput: {
     flex: 1,
