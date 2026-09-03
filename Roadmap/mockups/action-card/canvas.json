@@ -1,0 +1,54 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "As built" },
+    { "id": "page-2", "name": "Options considered" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html", "page": "page-1", "x": 0, "y": 0, "w": 390, "h": 900, "title": "Action Plan — list" },
+    { "file": "DetailBuilt.dc.html", "page": "page-1", "x": 490, "y": 0, "w": 390, "h": 540, "title": "Action detail — top" },
+    { "file": "SortFilter.dc.html", "page": "page-1", "x": 980, "y": 0, "w": 390, "h": 700, "title": "Sort & filters" },
+
+    { "file": "OptionA.dc.html", "page": "page-2", "x": 0, "y": 0, "w": 390, "h": 940, "title": "Option A · Segmented bar — list" },
+    { "file": "OptionB.dc.html", "page": "page-2", "x": 490, "y": 0, "w": 390, "h": 940, "title": "Option B · Start / Done — list  ← chosen" },
+    { "file": "OptionC.dc.html", "page": "page-2", "x": 980, "y": 0, "w": 390, "h": 940, "title": "Option C · Big circle — list" },
+
+    { "file": "DetailA.dc.html", "page": "page-2", "x": 0, "y": 1120, "w": 390, "h": 560, "title": "Option A · Action detail" },
+    { "file": "DetailB.dc.html", "page": "page-2", "x": 490, "y": 1120, "w": 390, "h": 560, "title": "Option B · Action detail" },
+    { "file": "DetailC.dc.html", "page": "page-2", "x": 980, "y": 1120, "w": 390, "h": 560, "title": "Option C · Action detail" }
+  ],
+  "annotations": [
+    {
+      "id": "built",
+      "page": "page-1",
+      "x": -430,
+      "y": 0,
+      "w": 380,
+      "text": "AS BUILT — Option B, smaller (owner's pick, Sep 3 2026)\n\nThe two moves a parent actually makes, one tap each. Start / Done on a step not begun; Done / To Do once it is under way; a single Reopen on a step that is finished or dismissed.\n\nWHAT \"SMALLER\" MEANT IN CODE: 44pt was the visible height, and 44 is also this repo's minimum tap target — so shrinking the button could not mean shrinking the target. The button is 38pt tall and reaches 44 through vertical hitSlop, the same trick the priority badge uses. Slop is vertical ONLY: two buttons sit 8pt apart, and horizontal slop wide enough to matter would overlap in the middle, where a mis-tap means marking the wrong step Done.\n\nFills are tinted rather than solid. The mockup's solid teal out-shouted the step's own title, which is the thing a parent should read first."
+    },
+    {
+      "id": "tradeoff",
+      "page": "page-1",
+      "x": 490,
+      "y": 580,
+      "w": 380,
+      "text": "THE ACCEPTED TRADE, AND WHERE IT IS PAID BACK\n\nOption B implies the current state rather than stating it — you cannot glance at a card and read \"In Progress\", only infer it from which pair of buttons is showing.\n\nTwo mitigations, both free:\n\n· A finished step reads as finished — struck-through title, and its only button is Reopen.\n· The DETAIL screen names the state beside its STATUS heading (\"STATUS · In Progress\", in the status colour). It has the room the card does not.\n\nStill open, if it turns out to matter in use: a state word in the card's meta row, beside the category. It costs no extra height because that row already exists."
+    },
+    {
+      "id": "notchosen",
+      "page": "page-2",
+      "x": -430,
+      "y": 0,
+      "w": 380,
+      "text": "OPTIONS CONSIDERED — kept as the record of the decision, not as live design.\n\nOption B was chosen. A and C are here so the reasoning stays findable: A showed all three states but cost ~46pt on every card in a view that shows five; C kept today's cycle, so Done stayed two taps from To Do.\n\nDrawn from the real app: theme.ts tokens, Newsreader + Hanken Grotesk, 12px radii, the live card anatomy. Content is the three steps from the owner's screenshots."
+    },
+    {
+      "id": "icons",
+      "page": "page-1",
+      "x": 980,
+      "y": 740,
+      "w": 380,
+      "text": "ONE THING STILL OPEN\n\nThe shipped card drew its status marks as unicode dingbats (○ ◐ ●). Rendering the plan in a headless browser, ◐ fell back to a wrong glyph — a font gap some Android builds will share.\n\nThe built control now uses Ionicons (play / check / circle / refresh) rather than dingbats, so that risk is gone from the buttons. STATUS_META still carries the glyphs for anything else that wants them."
+    }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}

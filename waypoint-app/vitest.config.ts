@@ -42,6 +42,21 @@ export default defineConfig({
         },
       },
       {
+        // The SAME files, run WEST of Greenwich — where Waypoint's families
+        // actually live. One timezone is not a timezone suite: an adversary
+        // pass found `created_at` being bucketed on its UTC day, which is
+        // invisible at UTC+7 (a late local evening is still the same UTC
+        // date) and an off-by-one every evening in California. East catches
+        // the "a day early" class; west catches the "a day late" class.
+        resolve: { alias: { '@': path.resolve(__dirname, 'src') } },
+        test: {
+          name: 'tz-west',
+          include: ['src/**/*.tz.test.ts'],
+          environment: 'node',
+          env: { TZ: 'America/Los_Angeles' },
+        },
+      },
+      {
         resolve: {
           alias: {
             '@': path.resolve(__dirname, 'src'),

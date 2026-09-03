@@ -28,6 +28,13 @@ export interface SwipeAction {
   icon: string;
   color: string;
   onPress: () => void;
+  /**
+   * What a screen reader says, when the visible label is too terse to stand
+   * alone. The buttons read "Start", "Done", "Cancel" — which name an action
+   * but not the step it applies to, and in a list of eight rows that is eight
+   * identical "Done" buttons. Pass the step's title here.
+   */
+  accessibilityLabel?: string;
 }
 
 interface SwipeableRowProps {
@@ -105,7 +112,7 @@ export default function SwipeableRow({ actions, children, enabled = true, style 
               a.onPress();
             }}
             accessibilityRole="button"
-            accessibilityLabel={a.label}
+            accessibilityLabel={a.accessibilityLabel ?? a.label}
           >
             <Text style={styles.actionIcon}>{a.icon}</Text>
             <Text style={styles.actionLabel} numberOfLines={1}>

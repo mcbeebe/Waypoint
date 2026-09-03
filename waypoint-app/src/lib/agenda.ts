@@ -8,6 +8,8 @@
  * Pure module — no react-native imports — so it stays unit-testable.
  */
 
+import { PRIORITY_RANK as ACTION_PRIORITY_RANK } from '@/lib/actionMeta';
+
 export interface AgendaAction {
   id: string;
   title: string;
@@ -94,7 +96,8 @@ export interface Agenda {
 }
 
 const OPEN_STATUSES = new Set(['not_started', 'in_progress']);
-const PRIORITY_RANK: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
+/** Re-exported from the one priority table, so the two can never disagree. */
+const PRIORITY_RANK: Record<string, number> = ACTION_PRIORITY_RANK;
 const WEEKDAY = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 function pad(n: number): string {
