@@ -31,25 +31,42 @@ import { PRIORITY_RANK } from '@/lib/actionMeta';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type ActionSortKey =
-  /** Priority, then soonest deadline, then newest. The long-standing default. */
-  | 'smart'
-  /** Soonest deadline first; undated steps last. */
-  | 'due_date'
-  /** Most urgent first, newest within a level. */
-  | 'priority'
-  /** Most recently added first. */
-  | 'created_desc'
-  /** Longest-standing first — the steps that have been waiting. */
-  | 'created_asc';
+/**
+ * The dimension the plan is ordered by. Each reversible field sorts BOTH ways
+ * (owner, Sep 3 — "should be able to sort both ways"); `smart` is a fixed
+ * composite (priority → soonest deadline → newest) and does not reverse.
+ *
+ * This replaced a flat key list where the only reversible dimension was the
+ * created date, split across two chips (`created_desc` / `created_asc`) while
+ * due-date and priority had no reverse at all.
+ */
+export type ActionSortField = 'smart' | 'due_date' | 'priority' | 'created';
 
-export const SORT_KEYS: readonly ActionSortKey[] = [
+export type SortDir = 'asc' | 'desc';
+
+export const SORT_FIELDS: readonly ActionSortField[] = [
   'smart',
   'due_date',
   'priority',
-  'created_desc',
-  'created_asc',
+  'created',
 ] as const;
+
+/** `smart` is a composite with one canonical order; the rest flip. */
+export function isReversibleField(field: ActionSortField): boolean {
+  return field !== 'smart';
+}
+
+/**
+ * The direction a field selects to on FIRST tap — the one a parent expects by
+ * default. Soonest deadline first; most urgent first; most recently added
+ * first. Tapping the active field again flips to the opposite.
+ */
+export const DEFAULT_DIR: Record<ActionSortField, SortDir> = {
+  smart: 'desc',
+  due_date: 'asc',
+  priority: 'desc',
+  created: 'desc',
+};
 
 export type DueFilter = 'any' | 'overdue' | 'next7' | 'has_date' | 'no_date';
 export type CreatedFilter = 'any' | 'last7' | 'last30' | 'older';
@@ -121,12 +138,23 @@ function rank(p: ActionPriority): number {
   return PRIORITY_RANK[p] ?? PRIORITY_RANK.medium;
 }
 
-/** Dated steps before undated ones, then soonest first. */
-function byDue(a: Action, b: Action): number {
-  if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
+/**
+ * Order two steps by deadline, in the given direction. Dated steps ALWAYS come
+ * before undated ones — in both directions — so reversing "soonest first" gives
+ * "latest first", not "undated first". `desc` reads latest-dated first.
+ */
+function dueCmp(a: Action, b: Action, dir: SortDir): number {
+  if (a.due_date && b.due_date) {
+    return dir === 'asc' ? a.due_date.localeCompare(b.due_date) : b.due_date.localeCompare(a.due_date);
+  }
   if (a.due_date) return -1;
   if (b.due_date) return 1;
   return 0;
+}
+
+/** Dated steps before undated ones, then soonest first — the `smart` tiebreak. */
+function byDue(a: Action, b: Action): number {
+  return dueCmp(a, b, 'asc');
 }
 
 function byCreatedDesc(a: Action, b: Action): number {
@@ -142,27 +170,51 @@ function byId(a: Action, b: Action): number {
   return a.id.localeCompare(b.id);
 }
 
-const COMPARATORS: Record<ActionSortKey, (a: Action, b: Action) => number> = {
-  // The order the plan has always shipped — priority, then soonest deadline,
-  // then newest — with one deliberate addition: a final tiebreak on id. Two
-  // steps that tie on all three (onboarding inserts seven sharing a
-  // `created_at`) used to fall back to the query's order; they now have a
-  // fixed one, so the list cannot reshuffle between renders. That is a change,
-  // not a no-op, and it is the only one.
-  smart: (a, b) => rank(a.priority) - rank(b.priority) || byDue(a, b) || byCreatedDesc(a, b) || byId(a, b),
-  due_date: (a, b) => byDue(a, b) || rank(a.priority) - rank(b.priority) || byCreatedDesc(a, b) || byId(a, b),
-  priority: (a, b) => rank(a.priority) - rank(b.priority) || byCreatedDesc(a, b) || byId(a, b),
-  created_desc: (a, b) => byCreatedDesc(a, b) || byId(a, b),
-  created_asc: (a, b) => -byCreatedDesc(a, b) || byId(a, b),
-};
+/**
+ * The comparator for a field in a direction.
+ *
+ * Only the PRIMARY key follows `dir`; the tiebreaks (priority, then newest,
+ * then id) stay in a fixed orientation so equal-keyed steps keep one stable
+ * order whichever way the primary points. Onboarding inserts seven steps
+ * sharing a `created_at`; without the fixed `byId` floor the list would
+ * reshuffle between renders, and reversing the tiebreaks too would make
+ * "reverse" mean two different things depending on how deep the tie ran.
+ */
+function comparatorFor(field: ActionSortField, dir: SortDir): (a: Action, b: Action) => number {
+  switch (field) {
+    case 'due_date':
+      return (a, b) =>
+        dueCmp(a, b, dir) || rank(a.priority) - rank(b.priority) || byCreatedDesc(a, b) || byId(a, b);
+    case 'priority': {
+      // `desc` = most urgent first (rank 0 = urgent); `asc` = least urgent first.
+      const sign = dir === 'desc' ? 1 : -1;
+      return (a, b) => sign * (rank(a.priority) - rank(b.priority)) || byCreatedDesc(a, b) || byId(a, b);
+    }
+    case 'created': {
+      // `desc` = newest first; `asc` = oldest first.
+      const sign = dir === 'desc' ? 1 : -1;
+      return (a, b) => sign * byCreatedDesc(a, b) || byId(a, b);
+    }
+    case 'smart':
+    default:
+      // The order the plan has always shipped — priority, then soonest
+      // deadline, then newest, then id. `dir` is ignored: it is one canonical
+      // ordering, not a reversible axis.
+      return (a, b) => rank(a.priority) - rank(b.priority) || byDue(a, b) || byCreatedDesc(a, b) || byId(a, b);
+  }
+}
 
 /**
  * Order the plan. Returns a NEW array of the SAME action objects — see the
- * identity invariant at the top of this file.
+ * identity invariant at the top of this file. `dir` defaults to the field's
+ * natural direction (soonest / most urgent / newest first).
  */
-export function sortActions(actions: Action[], key: ActionSortKey = 'smart'): Action[] {
-  const cmp = COMPARATORS[key] ?? COMPARATORS.smart;
-  return [...actions].sort(cmp);
+export function sortActions(
+  actions: Action[],
+  field: ActionSortField = 'smart',
+  dir: SortDir = DEFAULT_DIR[field] ?? 'desc'
+): Action[] {
+  return [...actions].sort(comparatorFor(field, dir));
 }
 
 // ─── Filtering ──────────────────────────────────────────────────────────────
@@ -240,37 +292,53 @@ export function hasActiveFilters(filters: ActionFilters = NO_FILTERS): boolean {
 type Locale = 'en' | 'es' | 'vi';
 
 /**
- * Sort names. Deliberately avoids the word "Added": the list card renders
+ * Sort field names. Deliberately avoids the word "Added": the list card renders
  * "Added Aug 18" on every row, and a sort chip carrying the same word makes
- * every text query for the added-date line ambiguous. "Newest" / "Oldest" say
- * the same thing without the collision.
+ * every text query for the added-date line ambiguous — so the created-date
+ * field is "Created", not "Date added". Direction (newest / oldest) is carried
+ * by the arrow and the spoken `sortDirLabel`, not the chip's name.
  */
-const SORT_LABELS: Record<Locale, Record<ActionSortKey, string>> = {
+const SORT_LABELS: Record<Locale, Record<ActionSortField, string>> = {
+  en: { smart: 'Suggested', due_date: 'Due date', priority: 'Priority', created: 'Created' },
+  es: { smart: 'Sugerido', due_date: 'Fecha límite', priority: 'Prioridad', created: 'Creación' },
+  vi: { smart: 'Đề xuất', due_date: 'Hạn chót', priority: 'Ưu tiên', created: 'Ngày tạo' },
+};
+
+export function sortLabel(field: ActionSortField, locale: Locale = 'en'): string {
+  return (SORT_LABELS[locale] ?? SORT_LABELS.en)[field];
+}
+
+/**
+ * The human phrase for a field in a direction — spoken to a screen reader, so
+ * the bare ↑/↓ arrow (whose "up" means a different thing per field) never has
+ * to carry the meaning alone. Empty for `smart`, which has no direction.
+ */
+const DIR_LABELS: Record<Locale, Record<Exclude<ActionSortField, 'smart'>, Record<SortDir, string>>> = {
   en: {
-    smart: 'Suggested',
-    due_date: 'Due date',
-    priority: 'Priority',
-    created_desc: 'Newest',
-    created_asc: 'Oldest',
+    due_date: { asc: 'soonest first', desc: 'latest first' },
+    priority: { desc: 'most urgent first', asc: 'least urgent first' },
+    created: { desc: 'newest first', asc: 'oldest first' },
   },
   es: {
-    smart: 'Sugerido',
-    due_date: 'Fecha límite',
-    priority: 'Prioridad',
-    created_desc: 'Más recientes',
-    created_asc: 'Más antiguos',
+    due_date: { asc: 'primero la más próxima', desc: 'primero la más lejana' },
+    priority: { desc: 'más urgente primero', asc: 'menos urgente primero' },
+    created: { desc: 'más recientes primero', asc: 'más antiguos primero' },
   },
   vi: {
-    smart: 'Đề xuất',
-    due_date: 'Hạn chót',
-    priority: 'Ưu tiên',
-    created_desc: 'Mới nhất',
-    created_asc: 'Cũ nhất',
+    due_date: { asc: 'gần nhất trước', desc: 'xa nhất trước' },
+    priority: { desc: 'khẩn cấp nhất trước', asc: 'ít khẩn cấp nhất trước' },
+    created: { desc: 'mới nhất trước', asc: 'cũ nhất trước' },
   },
 };
 
-export function sortLabel(key: ActionSortKey, locale: Locale = 'en'): string {
-  return (SORT_LABELS[locale] ?? SORT_LABELS.en)[key];
+export function sortDirLabel(field: ActionSortField, dir: SortDir, locale: Locale = 'en'): string {
+  if (field === 'smart') return '';
+  return (DIR_LABELS[locale] ?? DIR_LABELS.en)[field][dir];
+}
+
+/** The arrow a chip shows: ascending points up, descending points down. */
+export function sortDirArrow(dir: SortDir): string {
+  return dir === 'asc' ? '↑' : '↓';
 }
 
 const DUE_LABELS: Record<Locale, Record<DueFilter, string>> = {

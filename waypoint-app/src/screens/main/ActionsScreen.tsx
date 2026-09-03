@@ -48,21 +48,27 @@ import PriorityControl from '@/components/PriorityControl';
 import ActionFilterSheet from '@/components/ActionFilterSheet';
 import {
   PRIORITY_META,
+  STATUS_META,
   priorityLabel,
   statusLabel,
   type ActionLocale,
 } from '@/lib/actionMeta';
 import {
-  SORT_KEYS,
+  SORT_FIELDS,
+  DEFAULT_DIR,
   NO_FILTERS,
   activeFilterCount,
   daysFromToday,
   filterActions,
+  isReversibleField,
   sortActions,
+  sortDirArrow,
+  sortDirLabel,
   sortLabel,
   sortUiLabel,
   type ActionFilters,
-  type ActionSortKey,
+  type ActionSortField,
+  type SortDir,
 } from '@/lib/actionSort';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 
@@ -124,7 +130,24 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   const [activeFilter, setActiveFilter] = useState<ActionStatus | 'all'>('all');
   const [checkInAction, setCheckInAction] = useState<Action | null>(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [sortKey, setSortKey] = useState<ActionSortKey>('smart');
+  const [sortField, setSortField] = useState<ActionSortField>('smart');
+  const [sortDir, setSortDir] = useState<SortDir>(DEFAULT_DIR.smart);
+
+  /**
+   * Tap a field to sort by it; tap the field you're already on to flip its
+   * direction (owner: "should be able to sort both ways"). Selecting a new
+   * field starts at that field's natural direction; `smart` never flips.
+   */
+  const chooseSort = useCallback((field: ActionSortField) => {
+    setSortField((prevField) => {
+      if (prevField === field && isReversibleField(field)) {
+        setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+      } else {
+        setSortDir(DEFAULT_DIR[field]);
+      }
+      return field;
+    });
+  }, []);
   const [filters, setFilters] = useState<ActionFilters>(NO_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -202,8 +225,8 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   // array — the focus view below matches by object identity, so a stage that
   // cloned would silently break the just-saved carve-out.
   const sortedActions = useMemo(
-    () => sortActions(filterActions(actions, filters, now), sortKey),
-    [actions, filters, now, sortKey]
+    () => sortActions(filterActions(actions, filters, now), sortField, sortDir),
+    [actions, filters, now, sortField, sortDir]
   );
 
   // Focus view: a full plan is 8+ items and reads as a wall. The default
@@ -216,7 +239,7 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   // an order they did not choose, reads as the sort being broken. So an
   // explicit sort or filter turns the focus view off; clearing them brings it
   // back.
-  const narrowing = sortKey !== 'smart' || filterCount > 0;
+  const narrowing = sortField !== 'smart' || filterCount > 0;
   const focusMode = activeFilter === 'all' && !showAll && !narrowing;
 
   /**
@@ -392,41 +415,48 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   );
 
   // ── Pinned chrome: header, progress dashboard, status filters ──
-  const header = embedded ? (
-    <View style={styles.headerEmbedded}>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setShowCreate(true)}
-        accessibilityRole="button"
-        accessibilityLabel="Add your own action"
-      >
-        <Text style={styles.addButtonText}>＋</Text>
-      </TouchableOpacity>
-    </View>
-  ) : (
+  const addButton = (
+    <TouchableOpacity
+      style={styles.addButton}
+      onPress={() => setShowCreate(true)}
+      accessibilityRole="button"
+      accessibilityLabel="Add your own action"
+    >
+      <Text style={styles.addButtonText}>＋</Text>
+    </TouchableOpacity>
+  );
+
+  // Embedded (the Plan tab), the "Waypoint Plan" header and the segment tabs
+  // already name this list, so a whole header band here was ~120pt of nearly
+  // empty space with one ＋ floating in it, wedged between the tabs and the
+  // dashboard (owner: "condense and use up the dead space at the top", Sep 3).
+  // The band is gone; the ＋ rides the dashboard row instead.
+  const header = embedded ? null : (
     <View style={styles.header}>
       <View style={styles.headerTextCol}>
         <Text style={styles.headerTitle}>Action Plan</Text>
         <Text style={styles.headerSubtitle}>Your personalized next steps</Text>
       </View>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setShowCreate(true)}
-        accessibilityRole="button"
-        accessibilityLabel="Add your own action"
-      >
-        <Text style={styles.addButtonText}>＋</Text>
-      </TouchableOpacity>
+      {addButton}
     </View>
   );
 
   const dashboard = stats ? (
     <View style={styles.statsRow}>
-      <ProgressRing value={stats.completion_rate ?? 0} total={100} label="Complete" color={brand.sage} />
-      <StatPill count={stats.not_started_count} label="To Do" color="#94A3B8" />
-      <StatPill count={stats.in_progress_count} label="Active" color={brand.pine} />
-      <StatPill count={stats.completed_count} label="Done" color={brand.sage} />
+      <View style={styles.statsGroup}>
+        <ProgressRing value={stats.completion_rate ?? 0} total={100} label="Complete" color={brand.sage} />
+        <StatPill count={stats.not_started_count} label="To Do" color="#94A3B8" />
+        <StatPill count={stats.in_progress_count} label="In Progress" color={STATUS_META.in_progress.color} />
+        <StatPill count={stats.completed_count} label="Done" color={brand.sage} />
+      </View>
+      {/* Standalone keeps ＋ in its own header; embedded lost that header, so ＋
+          lives here — always present, never in a band of its own. */}
+      {embedded ? addButton : null}
     </View>
+  ) : embedded ? (
+    // No stats yet (a brand-new plan). Don't drop ＋ on the floor — but this is
+    // the empty-plan case, where there is no wall of cards and so no dead space.
+    <View style={styles.embeddedAddOnly}>{addButton}</View>
   ) : null;
 
   const chrome = (
@@ -463,15 +493,26 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
           style={styles.sortScroller}
           contentContainerStyle={styles.sortPills}
         >
-          {SORT_KEYS.map((key) => (
-            <FilterPill
-              key={key}
-              label={sortLabel(key, uiLocale)}
-              active={sortKey === key}
-              onPress={() => setSortKey(key)}
-              accessibilityLabel={`${sortUiLabel('sort', uiLocale)}: ${sortLabel(key, uiLocale)}`}
-            />
-          ))}
+          {SORT_FIELDS.map((field) => {
+            const active = sortField === field;
+            const name = sortLabel(field, uiLocale);
+            // The arrow shows only on the active reversible field, and says
+            // which way it points; the spoken label carries the human phrase
+            // ("soonest first"), and a hint that tapping the active one flips.
+            const showArrow = active && isReversibleField(field);
+            const spoken = active && isReversibleField(field)
+              ? `${sortUiLabel('sort', uiLocale)}: ${name}, ${sortDirLabel(field, sortDir, uiLocale)}. ${reverseHint(uiLocale)}`
+              : `${sortUiLabel('sort', uiLocale)}: ${name}`;
+            return (
+              <FilterPill
+                key={field}
+                label={showArrow ? `${name} ${sortDirArrow(sortDir)}` : name}
+                active={active}
+                onPress={() => chooseSort(field)}
+                accessibilityLabel={spoken}
+              />
+            );
+          })}
         </ScrollView>
         <TouchableOpacity
           style={[styles.filterButton, filterCount > 0 && styles.filterButtonActive]}
@@ -741,6 +782,7 @@ function ActionCard({
     <View
       style={[
         styles.card,
+        action.status === 'in_progress' && styles.cardInProgress,
         action.status === 'dismissed' && styles.cardDismissed,
         locked && styles.cardLocked,
       ]}
@@ -807,6 +849,26 @@ function ActionCard({
           instead of changing the priority — on react-native-web the outer
           handler fires either way. */}
       <View style={styles.cardMeta}>
+        {/* Say it out loud. Option B's buttons imply the state (which pair is
+            showing), which a parent could not read at a glance — so an
+            in-progress step now carries a literal "In Progress" pill here, and
+            a teal accent down the card's edge, so it stands out in the list
+            (owner, Sep 3). To Do is the default and needs no badge; Done and
+            Dismissed already read as themselves (struck title, and their own
+            tag / single Reopen). */}
+        {action.status === 'in_progress' && (
+          <View
+            style={styles.stateChip}
+            accessibilityRole="text"
+            accessibilityLabel={statusLabel('in_progress', locale)}
+          >
+            {/* A drawn dot, not the ◐ glyph: that dingbat font-fell-back to the
+                wrong mark in a headless render and on some Android builds — the
+                reason StatusControl uses icons. A View can't misrender. */}
+            <View style={styles.stateChipDot} />
+            <Text style={styles.stateChipText}>{statusLabel('in_progress', locale)}</Text>
+          </View>
+        )}
         <Text style={styles.categoryTag}>
           {categoryConfig.emoji} {categoryConfig.label}
         </Text>
@@ -988,6 +1050,13 @@ function allLabel(locale: ActionLocale): string {
   return 'All';
 }
 
+/** Spoken hint that the active sort flips when tapped again. */
+function reverseHint(locale: ActionLocale): string {
+  if (locale === 'es') return 'Toque de nuevo para invertir.';
+  if (locale === 'vi') return 'Nhấn lại để đảo chiều.';
+  return 'Tap again to reverse.';
+}
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
@@ -1021,12 +1090,18 @@ const styles = StyleSheet.create({
   },
   // Embedded, the Plan header + segment already name the screen; all this
   // needs to carry is the "add your own step" affordance.
-  headerEmbedded: {
+  // Embedded-only: ＋ sits alone on the right of the dashboard when there are
+  // no stats to show yet. The band is small because there are no cards beneath
+  // it in that state — the dead space this replaces was under a full plan.
+  embeddedAddOnly: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
+    backgroundColor: brand.panel,
+    borderBottomWidth: 1,
+    borderBottomColor: brand.border,
   },
   headerTextCol: { flex: 1 },
   addButton: {
@@ -1050,13 +1125,20 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
+    gap: spacing.sm,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     backgroundColor: brand.panel,
     borderBottomWidth: 1,
     borderBottomColor: brand.border,
+  },
+  // The four stats spread themselves; the ＋ (embedded only) sits after them.
+  statsGroup: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
   ringContainer: {
     alignItems: 'center',
@@ -1214,11 +1296,46 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 1,
   },
+  // A teal edge so an in-progress step stands out in a list of To Do cards.
+  // The border replaces an equal slice of the card's left padding, so the
+  // content does not shift when a step is started (padding 12 → 9 + 3 border).
+  cardInProgress: {
+    borderLeftWidth: 3,
+    // The status system's OWN in-progress colour, the same one the pill, the
+    // filter and StatusControl use — not brand.pine (a darker green), which
+    // put two different teals on one card, ~8pt apart.
+    borderLeftColor: STATUS_META.in_progress.color,
+    paddingLeft: spacing.md - 3,
+  },
   cardDismissed: {
     opacity: 0.5,
   },
   cardLocked: {
     opacity: 0.65,
+  },
+  // "In Progress" said in words, first in the meta row so it reads before the
+  // category. Tinted pill in the in-progress colour, with a drawn dot (not the
+  // ◐ glyph — see the JSX comment on why that dingbat was rejected).
+  stateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: radii.full,
+    backgroundColor: STATUS_META.in_progress.tint,
+  },
+  stateChipDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: STATUS_META.in_progress.color,
+  },
+  stateChipText: {
+    fontSize: 10,
+    fontWeight: fonts.weights.bold as '700',
+    color: STATUS_META.in_progress.color,
+    letterSpacing: 0.2,
   },
   calendarBadge: {
     fontSize: 11,
@@ -1251,6 +1368,12 @@ const styles = StyleSheet.create({
   cardMeta: {
     flexDirection: 'row',
     alignItems: 'center',
+    // Wrap rather than clip. The row holds category · priority · maybe a
+    // calendar glyph · Details, and the in-progress pill adds a fifth item; on
+    // a narrow phone or at a large OS text size that can exceed the width, and
+    // SwipeableRow's overflow:hidden would clip "Details ›" off the end.
+    flexWrap: 'wrap',
+    rowGap: 6,
     gap: 8,
     marginTop: 6,
   },
