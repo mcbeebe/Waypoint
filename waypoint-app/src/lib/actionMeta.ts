@@ -56,7 +56,12 @@ export const STATUS_META: Record<
   { glyph: string; color: string; tint: string }
 > = {
   not_started: { glyph: '○', color: '#64748B', tint: '#F1F5F9' },
-  in_progress: { glyph: '◐', color: '#0891B2', tint: '#E0F2FE' },
+  // A darker cyan than the old #0891B2 (which is `colors.teal`). That value is
+  // fine as a fill or an icon, but as small TEXT it was 3.21:1 on this tint and
+  // 3.68:1 on white — under the 4.5 this repo holds itself to (`theme.test.ts`)
+  // — and this colour is drawn as text on the "In Progress" pill and the
+  // dashboard count. #0C6E8A clears 4.5 on both (5.07 / 5.81) at the same hue.
+  in_progress: { glyph: '◐', color: '#0C6E8A', tint: '#E0F2FE' },
   completed: { glyph: '✓', color: '#047857', tint: '#E7F5EE' },
   dismissed: { glyph: '—', color: '#6D6555', tint: '#F1F5F9' },
 };

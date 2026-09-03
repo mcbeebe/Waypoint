@@ -194,3 +194,44 @@ describe('the two screens say the same words', () => {
     expect(priorityLabel('medium', 'en')).toBe('Medium');
   });
 });
+
+// ─── Contrast: the in-progress colour is drawn as TEXT (adversary, Sep 3) ────
+
+/** WCAG 2.1 relative luminance + contrast ratio, for a #rrggbb pair. */
+function contrast(fg: string, bg: string): number {
+  const lin = (v: number) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  const lum = (h: string) => {
+    const r = parseInt(h.slice(1, 3), 16);
+    const g = parseInt(h.slice(3, 5), 16);
+    const b = parseInt(h.slice(5, 7), 16);
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  };
+  const a = lum(fg) + 0.05;
+  const b = lum(bg) + 0.05;
+  return Math.max(a, b) / Math.min(a, b);
+}
+
+describe('in-progress colour clears AA where it is used as small text', () => {
+  const AA = 4.5;
+  const c = STATUS_META.in_progress.color;
+
+  it('reads on its own tint (the pill) at >= 4.5:1', () => {
+    // The "● In Progress" pill draws this colour as 10px text on the tint.
+    expect(contrast(c, STATUS_META.in_progress.tint)).toBeGreaterThanOrEqual(AA);
+  });
+
+  it('reads on white (the dashboard count) at >= 4.5:1', () => {
+    // The dashboard's in-progress stat draws this colour on the white panel.
+    // #0891B2 was 3.68 here — a regression when the count was recoloured.
+    expect(contrast(c, '#FFFFFF')).toBeGreaterThanOrEqual(AA);
+  });
+
+  it('every status colour reads on white at >= 4.5:1', () => {
+    for (const s of ALL_STATUSES) {
+      expect(contrast(STATUS_META[s].color, '#FFFFFF')).toBeGreaterThanOrEqual(AA);
+    }
+  });
+});
