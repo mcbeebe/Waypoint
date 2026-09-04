@@ -130,22 +130,43 @@ rows.
 - The owner has a one-command drift report for production.
 - The registry row, `CLAUDE.md`, and 007's blocked status are updated.
 
-## Open questions — for the owner
+## Decisions (owner, Sep 4 2026)
 
-1. **Harness shape.** Plain `postgres:15` container + `set local role` +
-   `set local request.jwt.claims` (fast, no Docker-in-Docker Supabase stack,
-   tests the layer RLS actually keys off) **— recommended —** versus
-   `supabase start` (heavier, slower, but also exercises PostgREST's own filter
-   handling, which is where `action_stats` was reachable from). Trade-off: the
-   light option does not test PostgREST itself.
-2. **Appetite.** Minimal (the 24 member tables) ≈ 2 PRs, versus full (tables +
-   exclusions + anon + definer-function audit + drift script) ≈ 4 PRs.
-3. **Priority.** Does the DDS / vendorization packet need this evidence on a
-   date? If yes it jumps the queue ahead of items 2 and 3; if no it follows
-   them.
-4. **Does the drift report run anywhere automatic?** It needs production
-   credentials, so it cannot live in normal CI. Owner-run only, or a manual
-   `workflow_dispatch` with a read-only role?
+All four scoping questions are answered. Recorded here as the decision record.
+
+1. **Harness: bare Postgres, not the full Supabase stack.** A `postgres:15+`
+   service container, all 60 migrations applied in filename order, callers
+   impersonated with `set local role` + `set local request.jwt.claims` — the
+   layer `auth.uid()` actually reads. Checked before proposing: **both**
+   historical failures are catchable this way (058's `42P17` and 059's view
+   bypass both show up in plain SQL), and the adversarial pass on 059 already
+   stood this exact shape up on PG16 and reproduced the leak, so the approach
+   is proven rather than hoped for.
+
+   **The known gap, stated plainly:** this does not exercise PostgREST, so it
+   cannot see API-layer behaviour — which RPCs are reachable over HTTP, or the
+   "a client-side `.eq()` filter is not a boundary" class. If a payer or DDS
+   questionnaire ever asks for evidence *at the API boundary*, a thin
+   PostgREST layer goes on top for those few cases. Not paid for up front.
+
+2. **Full scope, not minimal.** Inclusions, exclusions, anon, the
+   `SECURITY DEFINER` functions, and the drift report — roughly four PRs. The
+   exclusions carry the decision because they are where the privacy promises
+   live and nothing tests them today: 053 deliberately chose that a co-parent
+   does NOT inherit the owner's private AI chat history, and nothing stops a
+   later migration quietly widening that.
+
+3. **No external deadline.** The DDS / vendorization packet does not need this
+   by a date, so it sequences normally rather than jumping the queue. If that
+   changes it should jump — "we have automated cross-tenant isolation tests"
+   answers a question that packet will ask; "we plan to" does not.
+
+4. **Drift report: owner-run first, automated later.** It needs production
+   credentials, which must never sit in ordinary CI. v1 is a local read-only
+   script; it is written so it can be promoted to a manual
+   `workflow_dispatch` with a read-only role without a rewrite. Not scheduled
+   — a standing production credential for a check nobody watches is worse than
+   no check.
 
 ## Sizing
 
