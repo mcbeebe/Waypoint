@@ -5,6 +5,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { retryQuery } from '@/lib/netRetry';
 import { FLAGS } from '@/lib/flags';
 import { resolveEntitlement } from '@/lib/entitlements';
 import type { ResolvedEntitlement } from '@/lib/entitlements';
@@ -34,10 +35,19 @@ export function useEntitlement(familyId: string | undefined): UseEntitlementRetu
       return;
     }
     try {
-      const { data, error } = await supabase
-        .from('entitlements')
-        .select('sponsor_type, status, period_start, period_end')
-        .eq('family_id', familyId);
+      // Fail-free is the right TERMINAL posture and is unchanged — but it is
+      // not costless in the other direction: resolving a paying family to FREE
+      // silently downgrades them to the 30-message cap and the cheaper model.
+      // Retrying the blip first means only a real, persistent failure does
+      // that.
+      const { data, error } = await retryQuery<
+        Parameters<typeof resolveEntitlement>[0] | null
+      >(() =>
+        supabase
+          .from('entitlements')
+          .select('sponsor_type, status, period_start, period_end')
+          .eq('family_id', familyId)
+      );
       setResolved(error ? FREE : resolveEntitlement(data ?? []));
     } catch {
       setResolved(FREE);

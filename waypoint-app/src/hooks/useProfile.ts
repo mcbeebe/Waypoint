@@ -10,6 +10,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { retryQuery } from '@/lib/netRetry';
 import type { ProfileRole } from '@/lib/roles';
 
 interface UseProfileReturn {
@@ -30,11 +31,14 @@ export function useProfile(userId: string | null | undefined): UseProfileReturn 
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
+      // Retry the blip BEFORE falling back. The fallback below is deliberate
+      // and stays, but it is not free: resolving to 'family' on a transient
+      // error drops a staff member into the parent shell. The header says such
+      // a user "can simply retry" — nothing in App.tsx offers them a retry, so
+      // until now that recovery did not exist. This is it.
+      const { data, error } = await retryQuery<{ role: string } | null>(() =>
+        supabase.from('profiles').select('role').eq('user_id', userId).maybeSingle()
+      );
       if (error) {
         console.error('Profile fetch error:', error.message);
         setRole('family');

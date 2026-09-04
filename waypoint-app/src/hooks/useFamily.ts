@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { retryQuery, friendlyErrorMessage } from '@/lib/netRetry';
 import type { Family, Child, Diagnosis } from '@/types/database';
 
 // ─── useFamily ───────────────────────────────────────────────────────────────
@@ -35,14 +36,20 @@ export function useFamily(): UseFamilyReturn {
       }
 
       // Owner path: the family this account created.
-      const { data: owned, error: fetchError } = await supabase
-        .from('families')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      //
+      // Every read in this function is retried. `family.id` gates Home's whole
+      // fan-out — useActions, useRequests, useTriage, useCommunications,
+      // useDeadlines and useAppointments all key off it — so a single dropped
+      // packet here does not degrade one card, it blanks the screen a parent
+      // opens first.
+      const { data: owned, error: fetchError } = await retryQuery<Family | null>(() =>
+        supabase.from('families').select('*').eq('user_id', user.id).maybeSingle()
+      );
 
       if (fetchError) {
-        setError(fetchError.message);
+        // Never the raw PostgREST string: "TypeError: Load failed" is not a
+        // sentence a parent can act on, and netRetry exists to say so.
+        setError(friendlyErrorMessage(fetchError, "Couldn't load your family."));
         return;
       }
 
@@ -58,28 +65,46 @@ export function useFamily(): UseFamilyReturn {
       // empty account, since every downstream hook keys off `family.id`. v1
       // takes the earliest-joined membership — one shared family per co-parent;
       // switching between several is a later feature.
-      const { data: membership } = await supabase
-        .from('family_members')
-        .select('family_id')
-        .eq('user_id', user.id)
-        .order('joined_at', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+      //
+      // This read's error was previously destructured away entirely. That is
+      // not a cosmetic omission: a co-parent whose membership lookup blipped
+      // fell through to `setFamily(null)` — indistinguishable from "you belong
+      // to no family" — and App.tsx's onboarding check reads the same way, so
+      // a transient failure could route a joined co-parent into "create your
+      // own family". Retried, and a real failure is now reported as a failure
+      // rather than silently reinterpreted as absence.
+      const { data: membership, error: memberError } = await retryQuery<
+        { family_id: string } | null
+      >(() =>
+        supabase
+          .from('family_members')
+          .select('family_id')
+          .eq('user_id', user.id)
+          .order('joined_at', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+      );
+
+      if (memberError) {
+        setError(friendlyErrorMessage(memberError, "Couldn't load your family."));
+        return;
+      }
 
       if (membership?.family_id) {
-        const { data: shared } = await supabase
-          .from('families')
-          .select('*')
-          .eq('id', membership.family_id)
-          .maybeSingle();
+        const { data: shared, error: sharedError } = await retryQuery<Family | null>(() =>
+          supabase.from('families').select('*').eq('id', membership.family_id).maybeSingle()
+        );
+        if (sharedError) {
+          setError(friendlyErrorMessage(sharedError, "Couldn't load your family."));
+          return;
+        }
         setFamily(shared ?? null);
         return;
       }
 
       setFamily(null);
     } catch (err: unknown) {
-      const e = err as { message?: string };
-      setError(e.message || 'Failed to fetch family');
+      setError(friendlyErrorMessage(err, "Couldn't load your family."));
     } finally {
       setLoading(false);
     }
