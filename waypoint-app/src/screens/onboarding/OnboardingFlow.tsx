@@ -29,6 +29,7 @@ import { supabase } from '@/lib/supabase';
 import { generateStarterPlan } from '@/lib/planGenerator';
 import { lookupRC, rcByCounty, ALL_COUNTIES } from '@/data/regionalCenters';
 import { showAlert } from '@/lib/dialogs';
+import { toLocalISODate } from '@/lib/localDate';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 /** Set at onboarding completion; Home reads it once to reveal the Journey Map */
@@ -60,13 +61,12 @@ const INSURANCE_OPTIONS = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Format a Date as YYYY-MM-DD in local time (for the web date input). */
-function toDateInputValue(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
+/**
+ * Format a Date as YYYY-MM-DD in local time (for the web date input).
+ * Aliases the shared helper so the picker and the SAVE path cannot drift —
+ * they had, and the save path was writing the UTC day. See localDate.ts.
+ */
+const toDateInputValue = toLocalISODate;
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -202,7 +202,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         .insert({
           family_id: family.id,
           first_name: data.childName.trim(),
-          date_of_birth: data.birthday?.toISOString().split('T')[0] || null,
+          // LOCAL day, not the UTC one: `toISOString()` stored a birthday a day
+          // EARLY for any family east of Greenwich, and the age band, the Early
+          // Start exit at 3 and transition planning at 16 all read this column.
+          date_of_birth: data.birthday ? toLocalISODate(data.birthday) : null,
           is_primary: true,
           rc_status: data.rcStatus,
           iep_status: data.iepStatus,

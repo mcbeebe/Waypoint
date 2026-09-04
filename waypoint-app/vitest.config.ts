@@ -66,9 +66,52 @@ export default defineConfig({
         },
         test: {
           name: 'ui',
+          // `.tz.test.tsx` belongs to the two projects below, which run it
+          // in both hemispheres; excluding it here keeps it from running a
+          // third time under the machine's own zone.
           include: ['src/**/*.test.tsx'],
+          exclude: ['src/**/*.tz.test.tsx'],
           environment: 'jsdom',
           setupFiles: ['./vitest.setup.ui.tsx'],
+        },
+      },
+      // Components whose behaviour depends on the calendar day, run EAST and
+      // WEST — the same reasoning as the `tz`/`tz-west` logic projects, applied
+      // to rendered screens.
+      //
+      // This exists because a date assertion in the plain `ui` project is
+      // DECORATIVE: CI runs at TZ=UTC, where `toISOString().split('T')[0]` and
+      // the local calendar day agree, so an onboarding test asserting the saved
+      // birthday passed with the UTC bug still in place. Verified — it only went
+      // red at UTC+7.
+      {
+        resolve: {
+          alias: {
+            '@': path.resolve(__dirname, 'src'),
+            'react-native': path.resolve(__dirname, 'node_modules/react-native-web'),
+          },
+        },
+        test: {
+          name: 'ui-tz',
+          include: ['src/**/*.tz.test.tsx'],
+          environment: 'jsdom',
+          setupFiles: ['./vitest.setup.ui.tsx'],
+          env: { TZ: 'Asia/Ho_Chi_Minh' },
+        },
+      },
+      {
+        resolve: {
+          alias: {
+            '@': path.resolve(__dirname, 'src'),
+            'react-native': path.resolve(__dirname, 'node_modules/react-native-web'),
+          },
+        },
+        test: {
+          name: 'ui-tz-west',
+          include: ['src/**/*.tz.test.tsx'],
+          environment: 'jsdom',
+          setupFiles: ['./vitest.setup.ui.tsx'],
+          env: { TZ: 'America/Los_Angeles' },
         },
       },
     ],

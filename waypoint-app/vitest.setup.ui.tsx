@@ -10,6 +10,27 @@ import { afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
+/**
+ * React Native injects `__DEV__` at build time; jsdom does not. `sentry.ts`
+ * reads it at module scope, so any screen whose import chain reaches Sentry
+ * (HomeScreen does) dies with a ReferenceError before a single assertion runs.
+ * False, because a test run is not a dev build — this keeps Sentry disabled.
+ */
+(globalThis as { __DEV__?: boolean }).__DEV__ = false;
+
+/**
+ * Crash reporting is a native edge. `@sentry/react-native` cannot load under
+ * jsdom (it resolves an internal `./ImportMetaRegistry` that only exists in the
+ * Metro bundle), and a test run has nothing to report anyway.
+ */
+vi.mock('@/lib/sentry', () => ({
+  initSentry: () => {},
+  setSentryUser: () => {},
+  clearSentryUser: () => {},
+  captureException: () => {},
+  addBreadcrumb: () => {},
+}));
+
 /** In-memory AsyncStorage. Real enough: it persists within a test. */
 const store = new Map<string, string>();
 vi.mock('@react-native-async-storage/async-storage', () => ({

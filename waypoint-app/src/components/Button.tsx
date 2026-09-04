@@ -31,6 +31,16 @@ export default function Button({
     <TouchableOpacity
       onPress={onPress}
       disabled={isDisabled}
+      // Without an explicit role this renders as a bare <div> on web: a screen
+      // reader never announces it as a button, and it is not in the tab order
+      // when enabled. It carried the whole onboarding funnel that way. RNW maps
+      // accessibilityRole -> role, and `disabled` already yields aria-disabled.
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
+      // react-native-web 0.19 silently DROPS accessibilityState, so the aria
+      // attribute is set alongside it (the convention this repo already uses).
+      aria-busy={loading || undefined}
       style={[
         styles.base,
         styles[variant],
