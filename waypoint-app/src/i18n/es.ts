@@ -51,7 +51,7 @@ const es: TranslationStrings = {
     currentlyWorkingOn: 'Trabajando actualmente en:',
     more: '+{{count}} más',
     viewActions: 'Ver Acciones',
-    askAiNavigator: 'Consultar al Navegador',
+    askAiNavigator: 'Consultar al Navegador de Waypoint',
     actionPlanHint: 'Tu plan de acción personalizado aparecerá aquí después de chatear con el Navegador de Waypoint.',
     quickActions: 'Acciones Rápidas',
   },

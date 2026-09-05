@@ -1,7 +1,7 @@
 /**
  * Key Contacts card (Profile, D4) — teachers, case managers, principals,
  * service coordinators. These auto-fill into generated letters, email
- * recipient suggestions, and the AI Navigator's context.
+ * recipient suggestions, and the Waypoint Navigator's context.
  */
 
 import React, { useState } from 'react';

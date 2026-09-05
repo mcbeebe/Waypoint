@@ -29,6 +29,15 @@ import vi from './vi';
 
 const LOCALES = { en, es, vi } as const;
 
+/** The disclaimer must DENY being legal advice, not merely mention the word. */
+const NOT_LEGAL_ADVICE: Record<keyof typeof LOCALES, RegExp> = {
+  en: /\bnot legal advice\b/i,
+  es: /\bno es asesor[ií]a legal\b/i,
+  // No trailing \b: JS word boundaries are ASCII-only and never fire after
+  // "ý", which would make this pattern match nothing at all.
+  vi: /không phải tư vấn pháp lý/i,
+};
+
 /** How each language names the machine. */
 const AI_TERM: Record<keyof typeof LOCALES, RegExp> = {
   en: /\bAI\b/,
@@ -44,9 +53,14 @@ describe('the Navigator disclaimer', () => {
       expect(table.navigator.disclaimer).toMatch(AI_TERM[key]);
     });
 
-    it(`[${name}] still says it is not legal advice`, () => {
-      // The rename must not trade one disclosure for the other.
-      expect(table.navigator.disclaimer).toMatch(/legal|legal|pháp lý/i);
+    it(`[${name}] still says it is NOT legal advice`, () => {
+      // The rename must not trade one disclosure for the other. This asserts
+      // the NEGATION, per locale. The first version matched /legal|pháp lý/,
+      // i.e. merely that the word appeared — an adversary pass mutated the
+      // Spanish to "que sí es asesoría legal" and the Vietnamese to "chính là
+      // tư vấn pháp lý" and every test still passed. In the two languages
+      // nobody on the team can eyeball, that check was worse than none.
+      expect(table.navigator.disclaimer).toMatch(NOT_LEGAL_ADVICE[key]);
     });
 
     it(`[${name}] still points at a real human advocate`, () => {
@@ -76,18 +90,52 @@ describe('the product name, across the whole string table', () => {
     );
   };
 
+  /**
+   * Every AI-branded name for the product, in any locale — not just the three
+   * literals this PR happened to replace. An adversary pass restored
+   * `'IA de Waypoint'`, `'Consultar IA'` and `'Trợ lý AI của Waypoint'` into
+   * the table and the original version of this test passed, which is precisely
+   * the regression it claims to prevent.
+   *
+   * This is about the product's NAME. It deliberately does not match a bare
+   * "AI"/"IA", because the disclaimer must keep saying that.
+   */
+  const AI_BRANDED_NAME =
+    /\b(AI|IA)[\s-]*(Navigator|Navegador|Assistant|Trợ [Ll]ý|Hướng Dẫn Viên)|(Navigator|Navegador|Trợ [Ll]ý|Hướng Dẫn Viên)[\s-]*(de |con |với )?(AI|IA)\b|\b(IA|AI) de Waypoint\b/i;
+
   for (const [name, table] of Object.entries(LOCALES)) {
-    it(`[${name}] never calls the product "AI Navigator"`, () => {
-      const offenders = strings(table).filter(([, v]) =>
-        /AI Navigator|Navegador de IA|Hướng Dẫn Viên AI/i.test(v)
-      );
+    it(`[${name}] never calls the product by an AI-branded name`, () => {
+      const offenders = strings(table)
+        .filter(([k]) => k !== 'navigator.disclaimer')
+        .filter(([, v]) => AI_BRANDED_NAME.test(v));
       expect(offenders).toEqual([]);
     });
   }
 
-  it('all three locales still describe the same set of keys', () => {
-    // A rename applied to English only is how a Spanish-speaking family ends
-    // up reading a different product's name.
+  it('the pattern actually catches the names this rename removed', () => {
+    // Guards the guard: a regex that matches nothing would pass every test
+    // above forever.
+    for (const bad of [
+      'AI Navigator', 'Ask AI Navigator', 'Navegador de IA', 'IA de Waypoint',
+      'Consultar IA de Waypoint', 'Hướng Dẫn Viên AI', 'Trợ lý AI',
+    ]) {
+      expect(AI_BRANDED_NAME.test(bad), bad).toBe(true);
+    }
+    // ...and does not fire on the disclosure, which must keep the word.
+    for (const good of [
+      'Waypoint Navigator', 'Navegador de Waypoint', 'Trợ Lý Waypoint',
+      'AI-generated guidance — educational information only, not legal advice.',
+      'Turn off AI features', 'Analyze with AI',
+    ]) {
+      expect(AI_BRANDED_NAME.test(good), good).toBe(false);
+    }
+  });
+
+  it('all three locales still cover the same keys', () => {
+    // Mostly redundant with tsc — every table is typed TranslationStrings, so
+    // a missing or extra key is already a compile error. What it DOES add is
+    // the string[] fields (`empathy`), where a length mismatch is type-legal
+    // and would silently drop a line for one language only.
     const keys = (t: unknown) => strings(t).map(([k]) => k).sort();
     expect(keys(es)).toEqual(keys(en));
     expect(keys(vi)).toEqual(keys(en));

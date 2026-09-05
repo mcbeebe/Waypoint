@@ -89,7 +89,7 @@ that material is under `Archive/`.
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
 - **Current state (2026-08-29):** the flagship product. 47 migrations, five
   Edge Functions in production, screens across auth / onboarding / main /
-  staff / legal, and a 44-file / 474-test vitest suite. (This line previously
+  staff / legal, and a 100-file / 1069-test vitest suite. (This line previously
   read "Auth scaffolding… no screens beyond onboarding exist yet.")
 
 ### Commands (from `waypoint-app/`)
@@ -97,7 +97,7 @@ that material is under `Archive/`.
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
 npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
-npm test            # vitest, two projects, 56 files / 671 tests — CI gate
+npm test            # vitest, three projects, 100 files / 1069 tests — CI gate
 npm run build:web   # expo export + postbuild — NOT run in CI
 ```
 

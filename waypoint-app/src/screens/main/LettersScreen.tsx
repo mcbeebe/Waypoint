@@ -872,7 +872,7 @@ export default function LettersScreen() {
             <Button title="Start a new letter" onPress={reset} variant="outline" />
             <Text style={styles.disclaimer}>
               Review before sending: fill in any [BRACKETED] blanks and double-check dates and
-              names. Waypoint drafts are a starting point, not legal advice.
+              names. Waypoint drafts these with AI — a starting point, not legal advice.
             </Text>
           </>
         )}
