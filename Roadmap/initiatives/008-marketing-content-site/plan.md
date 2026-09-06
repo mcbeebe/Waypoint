@@ -43,7 +43,7 @@ Site Plan" artifact; the design source of truth is
 | D10 | One style guide: `content-ops/STYLE-GUIDE.md`, incl. the disability-language decision — due before piece #8 |
 | D11 | One Regional Center data spine: entity MDX frontmatter is the source; finder/tables derive from it at build. No hand-typed county maps |
 | D12 | ES IEP letter drafted in Phase 1, publishes as an /es/ page when Phase 2 i18n routing lands (the EN page's toggle ships the ES text sooner) |
-| D13 | Newly owned items: /product/ + pricing decision (Mike), app-side save-and-continue work, app noindex, Plausible sub, domain custody, email forwarding, GSC API account, social profiles, chat-mining consent question in the counsel packet, newsletter authorship, freshness-fix slot |
+| D13 | Newly owned items: /product/ + pricing decision (Mike), app-side save-and-continue work, app noindex, Plausible sub, domain custody, email forwarding, GSC API account, social profiles, chat-mining consent question in the counsel packet, newsletter authorship, freshness-fix slot. **Pricing DECIDED 2026-09-06 (owner, in session): Plus $4.99/mo, Pro $9.99/mo — half the prototype figures — with a 3-month free trial on both.** Yearly prices halved to $44.99/$89.99 by the same instruction, pending explicit confirmation. Billing (Stripe / App Store products, trial mechanics) must be set to match before any real checkout — owner dashboard action; the site only states the prices. |
 | D14 | Hosting: **Vercel, not Cloudflare** (settled 2026-09-06). Second Vercel project, root `waypoint-site`, DNS stays at Namecheap, no nameserver migration |
 
 ## The phase clock
@@ -140,7 +140,8 @@ chase at two weeks).
 | 2026-09-06 | #202 | Redirect-map A2b: auth continuity for the app host move |
 | 2026-09-06 | #203 | Phase A noindex: de-index the app deployment |
 | 2026-09-06 | #204 | noindex all *.vercel.app hosts until the apex launch |
-| 2026-09-06 | (this PR) | Phase 1a: component port, layouts, 12 routes at prototype parity, draft-gated builds, both tools (calculator pending-verified constants), D3 CTA builder + events, draft MDX for 6 pages, vitest |
+| 2026-09-06 | #206 | Phase 1a: component port, layouts, 12 routes at prototype parity, draft-gated builds, both tools (calculator pending-verified constants), D3 CTA builder + events, draft MDX for 6 pages, vitest — plus the full adversary pass (11 findings fixed; memo in the PR) |
+| 2026-09-06 | (this PR) | D13 pricing decided by the owner: Plus $4.99/mo, Pro $9.99/mo, 3-month free trial — /pricing/ tier grid unlocked in production; competitor comparison stays preview-only until verified (checklist row 25) |
 
 **Recorded deviation (2026-09-06):** the two launch tools are framework-free
 Astro `<script>` islands over pure tested modules, not Preact components as
