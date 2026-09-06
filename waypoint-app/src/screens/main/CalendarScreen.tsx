@@ -29,6 +29,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
 import { expandOccurrences, findOverlaps, type RecurrenceRule } from '@/lib/recurrence';
+import { localDayISO } from '@/lib/dateOnly';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showConfirm } from '@/lib/dialogs';
 import { useFamily } from '@/hooks/useFamily';
@@ -604,7 +605,9 @@ function DeadlineCard({
   onComplete: () => void;
 }) {
   const config = DEADLINE_TYPE_CONFIG[deadline.deadline_type] ?? DEADLINE_TYPE_CONFIG.other;
-  const today = new Date().toISOString().split('T')[0];
+  // The LOCAL day, not toISOString()'s UTC slice — which is already tomorrow
+  // every evening in California, badging a deadline due today as overdue.
+  const today = localDayISO();
   const daysLeft = daysUntil(deadline.due_date);
   const isOverdue = deadline.due_date < today;
   const isUrgent = daysLeft <= 7 && !isOverdue;

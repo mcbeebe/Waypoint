@@ -52,10 +52,13 @@ import { Card } from '@/components/ui';
 import { Brandmark } from '@/components/Brandmark';
 import { useTextScale } from '@/lib/textSize';
 import { colors, brand, fonts, spacing, radii, semantic } from '@/lib/theme';
+import { parseDateLocal } from '@/lib/dateOnly';
 
 function ageYears(dob: string | null): number {
   if (!dob) return 0;
-  const birth = new Date(dob);
+  // date_of_birth is a Postgres `date` — read it on the local calendar, or
+  // the age flips a day early west of Greenwich.
+  const birth = parseDateLocal(dob);
   const now = new Date();
   let years = now.getFullYear() - birth.getFullYear();
   const m = now.getMonth() - birth.getMonth();
