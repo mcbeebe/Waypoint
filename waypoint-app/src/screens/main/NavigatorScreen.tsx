@@ -52,6 +52,37 @@ import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/dat
 import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
 import { Brandmark } from '@/components/Brandmark';
 
+/**
+ * The Navigator's greeting — and the plainest AI disclosure a parent meets.
+ *
+ * It is HERE and not in the i18n table because the table's `navigator` block is
+ * not read by this screen (only `disclaimer` and `followUpsHint` are), and a
+ * disclosure that lives in dead data is not a disclosure. It is trilingual
+ * because the standing footnote sits below the fold on a long thread, so this
+ * is where most parents actually learn what they are talking to — and shipping
+ * that in English only would give the families least able to spot a wrong
+ * answer about California law the weakest warning.
+ */
+const WELCOME_TITLE: Record<FunnelLocale, string> = {
+  en: "Hi! I'm your Waypoint Navigator.",
+  es: 'Hola. Soy su Navegador de Waypoint.',
+  vi: 'Xin chào! Tôi là Trợ Lý Waypoint của quý vị.',
+};
+
+const WELCOME_BODY: Record<FunnelLocale, string> = {
+  en:
+    "I'm an AI trained on California disability law. I can help you understand your rights, " +
+    'navigate Regional Centers, prepare for IEP meetings, and take concrete next steps for your child.',
+  es:
+    'Soy una IA capacitada en las leyes de discapacidad de California. Puedo ayudarle a entender sus ' +
+    'derechos, navegar los Centros Regionales, prepararse para las reuniones del IEP y dar pasos ' +
+    'concretos para su hijo/a.',
+  vi:
+    'Tôi là một AI được huấn luyện về luật khuyết tật của California. Tôi có thể giúp quý vị hiểu ' +
+    'quyền của mình, tìm hiểu Trung Tâm Khu Vực, chuẩn bị cho các buổi họp IEP và thực hiện những ' +
+    'bước cụ thể cho con của quý vị.',
+};
+
 /** Tone display labels */
 const TONE_LABELS: Record<ToneLevel, { label: string; emoji: string; color: string }> = {
   collaborative: { label: 'Collaborative', emoji: '🤝', color: '#2E9E8F' },
@@ -810,11 +841,8 @@ function WelcomeView({
         <View style={styles.welcomeMark}>
           <Brandmark size={52} route />
         </View>
-        <Text style={styles.welcomeTitle}>Hi! I'm your Waypoint Navigator.</Text>
-        <Text style={styles.welcomeSubtitle}>
-          I can help you understand your rights, navigate Regional Centers, prepare for IEP
-          meetings, and take concrete next steps for your child.
-        </Text>
+        <Text style={styles.welcomeTitle}>{WELCOME_TITLE[locale]}</Text>
+        <Text style={styles.welcomeSubtitle}>{WELCOME_BODY[locale]}</Text>
       </View>
       <LearnPanel locale={locale} query={query} onAsk={onFill} onAskAI={onSend} />
     </ScrollView>

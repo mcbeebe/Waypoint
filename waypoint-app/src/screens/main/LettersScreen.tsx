@@ -562,7 +562,7 @@ export default function LettersScreen() {
             {chatGuidance && (
               <View style={styles.guidanceChip}>
                 <Text style={styles.guidanceChipText}>
-                  ✓ Using the context from your AI chat — the draft will reflect what you discussed.
+                  ✓ Using the context from your Waypoint Navigator chat — the draft will reflect what you discussed.
                 </Text>
               </View>
             )}
@@ -889,7 +889,7 @@ export default function LettersScreen() {
             <Button title="Start a new letter" onPress={reset} variant="outline" />
             <Text style={styles.disclaimer}>
               Review before sending: fill in any [BRACKETED] blanks and double-check dates and
-              names. Waypoint drafts are a starting point, not legal advice.
+              names. Waypoint drafts these with AI — a starting point, not legal advice.
             </Text>
           </>
         )}

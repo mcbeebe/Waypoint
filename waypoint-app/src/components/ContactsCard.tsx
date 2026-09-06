@@ -1,7 +1,7 @@
 /**
  * Key Contacts card (Profile, D4) — teachers, case managers, principals,
  * service coordinators. These auto-fill into generated letters, email
- * recipient suggestions, and the AI Navigator's context.
+ * recipient suggestions, and the Waypoint Navigator's context.
  */
 
 import React, { useState } from 'react';
@@ -88,7 +88,7 @@ export default function ContactsCard({ familyId }: { familyId: string }) {
     <View style={styles.card}>
       <Text style={styles.intro}>
         Your child's team — these names auto-fill into generated letters, email recipients,
-        and the AI's suggestions.
+        and the Waypoint Navigator's suggestions.
       </Text>
 
       {contacts.map((c) =>
