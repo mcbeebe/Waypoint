@@ -89,7 +89,7 @@ that material is under `Archive/`.
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
 - **Current state (2026-09-03):** the flagship product. 59 migrations, eight
   Edge Functions in production, 44 screens under `main/` plus auth /
-  onboarding / staff / legal, and a 103-file / 1184-test vitest suite across
+  onboarding / staff / legal, and a 106-file / 1257-test vitest suite across
   four projects. (This line previously read "Auth scaffolding… no screens
   beyond onboarding exist yet.")
 
@@ -98,7 +98,7 @@ that material is under `Archive/`.
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
 npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
-npm test            # vitest, FOUR projects, 103 files (105 runs) / 1184 — CI gate
+npm test            # vitest, FOUR projects, 106 files (109 runs) / 1257 — CI gate
 npm run build:web   # expo export + postbuild — NOT run in CI
 ```
 
@@ -113,14 +113,16 @@ npm run build:web   # expo export + postbuild — NOT run in CI
   tests, yet `deploy-edge-functions.yml` ships them to the production project
   on merge to `main`. Treat every change there as unverified by CI.
 - **`npm test` runs FOUR projects, and the count of files is not the count of
-  runs** — the two `.tz.test.ts` files execute twice, once per timezone.
+  runs** — the three `.tz.test.ts` files execute twice, once per timezone.
   - `logic` (`*.test.ts`, node) — the pure modules.
   - `ui` (`*.test.tsx`, jsdom + react-native-web) renders components. It exists
     because three adversarial reviews in a row found defects the logic suite
     structurally could not see: a button wired to a screen that does not exist,
     a control a screen reader cannot reach, a headline rendered as a 10px
     badge. Native edges are stubbed in `vitest.setup.ui.tsx`; everything
-    asserted on is the real component.
+    asserted on is the real component. Pinned to `TZ=America/Los_Angeles` —
+    where the families are — so a date rendered off the UTC clock fails in
+    CI, not only on a west-coast laptop.
   - `tz` (`*.tz.test.ts`, TZ=Asia/Ho_Chi_Minh) and `tz-west` (the SAME files,
     TZ=America/Los_Angeles). One timezone is not a timezone suite: east catches
     a deadline computed a day EARLY, west a day LATE. Running only east let

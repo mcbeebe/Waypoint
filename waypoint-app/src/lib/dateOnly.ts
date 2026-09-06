@@ -28,8 +28,12 @@ const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
  * - Anything else (`created_at`, an ISO timestamp) is a real instant, parsed
  *   as-is; its calendar day is whatever the device's clock says.
  *
- * An unparsable value yields an Invalid Date (`getTime()` is NaN) — the same
- * contract as `new Date(bad)`, so callers' existing NaN guards keep working.
+ * An unparsable STRING yields an Invalid Date (`getTime()` is NaN), same as
+ * `new Date(bad)`, so existing NaN guards keep working. The argument must
+ * actually be a string, though: null/undefined throw here (unlike
+ * `new Date(null)`), so callers null-guard first — a nullable column is the
+ * call site's decision to make (skip the row, render nothing, return null),
+ * not this parser's.
  */
 export function parseDateLocal(value: string): Date {
   const m = DATE_ONLY.exec(value.trim());

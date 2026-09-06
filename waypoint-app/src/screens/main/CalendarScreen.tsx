@@ -246,7 +246,10 @@ export default function CalendarScreen() {
           occurrenceId: occ.occurrenceId,
           isVirtual: occ.isVirtual,
         };
-        const day = occ.start_time.split('T')[0];
+        // Group by the LOCAL day of the instant, not the UTC slice — a 7pm
+        // Pacific appointment is 02:00Z tomorrow, and the header at the other
+        // end reads this key back as a local day.
+        const day = localDayISO(new Date(occ.start_time));
         if (!groups[day]) groups[day] = [];
         groups[day].push(display);
       }
@@ -270,7 +273,7 @@ export default function CalendarScreen() {
 
   // Upcoming deadlines sorted by urgency
   const sortedDeadlines = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDayISO();
     return [...deadlines]
       .filter((d) => d.status !== 'completed')
       .sort((a, b) => {
@@ -399,7 +402,9 @@ export default function CalendarScreen() {
           <View style={styles.dayHeaderRow}>
             {weekDays.map((d) => {
               const isToday = d.toDateString() === new Date().toDateString();
-              const dateKey = d.toISOString().split('T')[0];
+              // Local day, matching how appointmentsByDay is keyed — the UTC
+              // slice queried tomorrow's events for today's dot every evening.
+              const dateKey = localDayISO(d);
               const hasEvents = (appointmentsByDay[dateKey]?.length ?? 0) > 0;
               return (
                 <TouchableOpacity
