@@ -7,6 +7,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyErrorMessage } from '@/lib/netRetry';
 import { sendFamilyInvite } from '@/lib/familyInvite';
+import { isValidInviteEmail } from '@/lib/inviteDelivery';
+import type { SendResult } from '@/lib/familyInvite';
 import type {
   FamilyMember,
   FamilyMemberRole,
@@ -28,8 +30,8 @@ interface UseFamilySharingReturn {
   currentUserRole: FamilyMemberRole | null;
   /** Saves the invite, then emails the join link; the returned row's sent_at / send_error say whether the email went. */
   inviteMember: (email: string, role?: FamilyMemberRole) => Promise<FamilyInvitation | null>;
-  /** Email the join link again; true only when the provider accepted it. */
-  resendInvitation: (invitationId: string) => Promise<{ ok: boolean; reason?: string }>;
+  /** Email the join link again. The result says exactly what happened (sent / already sent a moment ago / why not). */
+  resendInvitation: (invitationId: string) => Promise<SendResult>;
   updateMemberRole: (memberId: string, role: FamilyMemberRole) => Promise<void>;
   removeMember: (memberId: string) => Promise<void>;
   /** Resolves true only when the row is actually gone — a revoked link is a security event. */
@@ -95,6 +97,11 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
   ): Promise<FamilyInvitation | null> => {
     setError(null);
     try {
+      const address = email.trim().toLowerCase();
+      // One plain address — the accept RPC compares it verbatim, so a list or
+      // "Name <x@y>" could never be redeemed (057 also enforces this in the DB).
+      if (!isValidInviteEmail(address)) throw new Error('Please enter one email address, like name@example.com.');
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -103,22 +110,28 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
         .insert({
           family_id: familyId,
           inviter_id: user.id,
-          invitee_email: email,
+          invitee_email: address,
           role,
         })
         .select()
         .single();
 
-      if (dbError) throw new Error(dbError.message);
+      if (dbError) {
+        throw new Error(
+          /too_many_pending_invitations/.test(dbError.message)
+            ? 'This family already has 20 invitations waiting — revoke some before adding more.'
+            : dbError.message
+        );
+      }
       let invitation = created as FamilyInvitation;
 
-      // The row is saved regardless; now try to deliver it. A failed send is
-      // recorded on the row (sent_at stays null, send_error says why) so the
-      // pending card tells the owner the truth and offers Resend.
+      // The row is saved regardless; now try to deliver it. The outcome is
+      // stored in the SAME shape the server writes (`code` or `code:reason`),
+      // so the card reads identically after a refresh.
       const sent = await sendFamilyInvite(invitation.id);
       invitation = sent.ok
-        ? { ...invitation, sent_at: sent.sentAt, send_error: null }
-        : { ...invitation, sent_at: invitation.sent_at ?? null, send_error: sent.reason };
+        ? { ...invitation, sent_at: sent.sentAt ?? invitation.sent_at ?? null, send_error: null }
+        : { ...invitation, send_error: sent.reason ? `${sent.code}:${sent.reason}` : sent.code };
 
       setInvitations((prev) => [invitation, ...prev]);
       return invitation;
@@ -128,19 +141,19 @@ export function useFamilySharing(options: UseFamilySharingOptions): UseFamilySha
     }
   }, [familyId]);
 
-  const resendInvitation = useCallback(async (invitationId: string) => {
+  const resendInvitation = useCallback(async (invitationId: string): Promise<SendResult> => {
     setError(null);
     const sent = await sendFamilyInvite(invitationId);
     setInvitations((prev) =>
       prev.map((i) =>
         i.id === invitationId
           ? sent.ok
-            ? { ...i, sent_at: sent.sentAt, send_error: null }
-            : { ...i, send_error: sent.reason }
+            ? { ...i, sent_at: sent.sentAt ?? i.sent_at, send_error: null }
+            : { ...i, send_error: sent.reason ? `${sent.code}:${sent.reason}` : sent.code }
           : i
       )
     );
-    return sent.ok ? { ok: true } : { ok: false, reason: sent.reason };
+    return sent;
   }, []);
 
   const updateMemberRole = useCallback(async (memberId: string, role: FamilyMemberRole) => {

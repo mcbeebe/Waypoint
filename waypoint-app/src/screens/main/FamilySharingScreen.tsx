@@ -20,7 +20,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily } from '@/hooks/useFamily';
 import { useFamilySharing } from '@/hooks/useFamilySharing';
-import { deliveryState, shortDate } from '@/lib/inviteDelivery';
+import * as Clipboard from 'expo-clipboard';
+import { deliveryState, describeSendFailure, joinLinkFor, shortDate } from '@/lib/inviteDelivery';
 import { useToast } from '@/components/Toast';
 import type { FamilyMember, FamilyMemberRole, ActivityLogEntry } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -48,6 +49,8 @@ export default function FamilySharingScreen() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<FamilyMemberRole>('member');
   const [isSending, setIsSending] = useState(false);
+  /** Which pending invite has a Resend in flight — a double tap must not send twice. */
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const isAdmin = currentUserRole === 'admin';
 
@@ -58,10 +61,13 @@ export default function FamilySharingScreen() {
     if (result) {
       // Say what actually happened: the row is saved either way; the email
       // may or may not have gone.
-      if (result.sent_at) {
+      const d = deliveryState(result);
+      if (d.kind === 'sent') {
         showToast(`Invitation emailed to ${result.invitee_email}`, 'success');
+      } else if (d.kind === 'failed') {
+        showToast(`Invite saved. ${d.text}`, 'error');
       } else {
-        showToast(result.send_error ?? "Invite saved — the email didn't send. Tap Resend on the card.", 'error');
+        showToast("Invite saved — the email didn't send. Tap Resend on the card.", 'error');
       }
       setShowInviteModal(false);
       setInviteEmail('');
@@ -152,9 +158,10 @@ export default function FamilySharingScreen() {
                       {(() => {
                         const d = deliveryState(inv);
                         return (
-                          <Text style={d.kind === 'failed' ? styles.deliveryFailed : styles.deliveryLine}>
+                          <Text style={d.kind === 'failed' || d.kind === 'expired' ? styles.deliveryFailed : styles.deliveryLine}>
                             {d.kind === 'sent' && `Email sent ${shortDate(d.at)}`}
-                            {d.kind === 'failed' && d.reason}
+                            {d.kind === 'failed' && d.text}
+                            {d.kind === 'expired' && `Expired ${shortDate(d.at)} — send a new invite`}
                             {d.kind === 'unsent' && 'Email not sent yet'}
                           </Text>
                         );
@@ -163,13 +170,40 @@ export default function FamilySharingScreen() {
                     {isAdmin && (
                       <TouchableOpacity
                         onPress={async () => {
-                          const r = await resendInvitation(inv.id);
-                          showToast(r.ok ? `Invitation emailed to ${inv.invitee_email}` : (r.reason ?? "The email didn't send."), r.ok ? 'success' : 'error');
+                          await Clipboard.setStringAsync(joinLinkFor(inv.token));
+                          showToast('Join link copied — send it however you like', 'success');
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Copy the join link for ${inv.invitee_email}`}
+                      >
+                        <Text style={styles.resendText}>Copy link</Text>
+                      </TouchableOpacity>
+                    )}
+                    {isAdmin && deliveryState(inv).kind !== 'expired' && (
+                      <TouchableOpacity
+                        disabled={resendingId === inv.id}
+                        onPress={async () => {
+                          if (resendingId) return;
+                          setResendingId(inv.id);
+                          try {
+                            const r = await resendInvitation(inv.id);
+                            if (r.ok && r.skipped === 'cooldown') {
+                              showToast('Already emailed a moment ago — give it a minute before resending', 'info');
+                            } else if (r.ok) {
+                              showToast(`Invitation emailed to ${inv.invitee_email}`, 'success');
+                            } else {
+                              showToast(describeSendFailure(r.code, r.reason), 'error');
+                            }
+                          } finally {
+                            setResendingId(null);
+                          }
                         }}
                         accessibilityRole="button"
                         accessibilityLabel={`Resend the invitation to ${inv.invitee_email}`}
                       >
-                        <Text style={styles.resendText}>Resend</Text>
+                        <Text style={[styles.resendText, resendingId === inv.id && styles.resendBusy]}>
+                          {resendingId === inv.id ? 'Sending…' : 'Resend'}
+                        </Text>
                       </TouchableOpacity>
                     )}
                     {isAdmin && (
@@ -333,6 +367,7 @@ const styles = StyleSheet.create({
   pendingRole: { fontSize: fonts.sizes.xs, color: colors.mid, marginTop: 2 },
   revokeText: { fontSize: fonts.sizes.xs, color: '#DC2626', fontWeight: fonts.weights.medium as '500' },
   resendText: { fontSize: fonts.sizes.xs, color: colors.teal, fontWeight: fonts.weights.medium as '500', marginRight: spacing.md },
+  resendBusy: { opacity: 0.5 },
   deliveryLine: { fontSize: fonts.sizes.xs, color: colors.mid, marginTop: 2 },
   deliveryFailed: { fontSize: fonts.sizes.xs, color: '#DC2626', marginTop: 2 },
   activityRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },

@@ -12,16 +12,23 @@
  * holding a valid invitation id — gets "not found". The same client stamps
  * sent_at / send_error, so a caller who can't read the row can't write it.
  *
- * What it will NOT do: send for an invitation that is not pending, or has
- * expired, or was emailed in the last 60 seconds (a Resend button is not a
- * spam cannon). It never logs the token, and it HTML-escapes everything a
- * person typed before it lands in the email.
+ * ABUSE IS THROTTLED BY STATE THE CALLER CANNOT WRITE (057): before any send,
+ * `record_invite_send()` — SECURITY DEFINER over a send log with no client
+ * policies — enforces 60 s per invitation and 30 sends per family per 24 h.
+ * (The previous cooldown read sent_at, which the same caller could reset.)
+ * The address must be one well-formed address; the name that lands in the
+ * subject is control-char-stripped and clamped. Never logs the token.
  *
- * Secrets required (Supabase → Edge Functions → Secrets):
- *   RESEND_API_KEY      — from resend.com (the sending domain must be verified
- *                         there, or Resend refuses the From address)
+ * Failure codes the client maps: delivery_not_configured (no key, or 056/057
+ * not applied yet), invalid_email, not_pending, expired, rate_limited,
+ * send_failed. A send inside the cooldown answers ok with skipped:'cooldown'
+ * — the client says "already emailed a moment ago", not "emailed".
+ *
+ * Secrets (Supabase → Edge Functions → Secrets):
+ *   RESEND_API_KEY      — from resend.com (sending domain must be verified)
  *   INVITE_FROM_EMAIL   — optional; default "Waypoint <hello@waypointchild.com>"
- *   APP_URL             — optional; default "https://www.waypointchild.com"
+ *   APP_URL             — optional; default the app's canonical origin
+ *                         (src/lib/appLinks.ts DEFAULT_WEB_ORIGIN)
  *   SUPABASE_URL, SUPABASE_ANON_KEY — provided by the platform
  *
  * No CI covers Edge Functions — test by hand against a live project.
@@ -33,10 +40,8 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const FROM = Deno.env.get('INVITE_FROM_EMAIL') ?? 'Waypoint <hello@waypointchild.com>';
-const APP_URL = (Deno.env.get('APP_URL') ?? 'https://www.waypointchild.com').replace(/\/+$/, '');
-
-/** A second tap on Resend inside this window is answered, not re-sent. */
-const RESEND_COOLDOWN_MS = 60_000;
+// Must match src/lib/appLinks.ts DEFAULT_WEB_ORIGIN — the app's one canonical origin.
+const APP_URL = (Deno.env.get('APP_URL') ?? 'https://waypointchild.com').replace(/\/+$/, '');
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -51,6 +56,8 @@ function json(body: unknown, status = 200): Response {
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** One address, no display-name form, no lists — mirrors 057's CHECK. */
+const EMAIL = /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/;
 
 /** Everything a person typed is escaped before it goes into HTML. */
 export function esc(s: string): string {
@@ -62,20 +69,38 @@ export function esc(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
+/** A name that lands in a Subject header: no control characters, bounded. */
+export function safeName(s: string | null | undefined, fallback = 'A parent'): string {
+  // deno-lint-ignore no-control-regex
+  const cleaned = (s ?? '').replace(/[\x00-\x1F\x7F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+  return cleaned || fallback;
+}
+
+/** "September 16" — Deno-safe, no locale dependence. */
+export function longDate(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const m = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${m[d.getUTCMonth()]} ${d.getUTCDate()}`;
+}
+
 interface EmailInput {
   inviterName: string;
   role: string;
   joinUrl: string;
+  expiresOn: string;
 }
 
 /**
  * The invitation email — a welcome, not a demand (escalation-tone rule). Warm
  * brand: paper #F5F1E9, panel #FFFFFF, ink #22303A, pine #0F766E. Inline
- * styles only; email clients strip stylesheets.
+ * styles only; email clients strip stylesheets. The expiry is the real date
+ * from the row, so a resend never promises "14 days" on a link dying tomorrow.
  */
-export function renderInviteEmail({ inviterName, role, joinUrl }: EmailInput): { subject: string; html: string; text: string } {
+export function renderInviteEmail({ inviterName, role, joinUrl, expiresOn }: EmailInput): { subject: string; html: string; text: string } {
   const name = esc(inviterName);
   const url = esc(joinUrl);
+  const when = expiresOn ? `This link expires on ${esc(expiresOn)}` : 'This link expires';
   const roleLine =
     role === 'viewer'
       ? `You're being added as a <b style="color:#55606B">Viewer</b> — you'll be able to see the family's plan, but not change it.`
@@ -91,7 +116,7 @@ export function renderInviteEmail({ inviterName, role, joinUrl }: EmailInput): {
       <p style="margin:0 0 22px;"><a href="${url}" style="display:inline-block;background:#0F766E;color:#FFFFFF;text-decoration:none;font-weight:700;font-size:16px;padding:15px 32px;border-radius:12px;">Join the family</a></p>
       <p style="margin:0 0 18px;font-size:13px;line-height:20px;color:#6D6555;">Or paste this link into your browser:<br><a href="${url}" style="color:#0F766E;word-break:break-all;">${url}</a></p>
       <hr style="border:none;border-top:1px solid #EAE3D5;margin:0 0 18px;">
-      <p style="margin:0;font-size:12px;line-height:18px;color:#6D6555;">${roleLine} This link expires in 14 days and only works for this email address. If you weren't expecting this, you can ignore it.</p>
+      <p style="margin:0;font-size:12px;line-height:18px;color:#6D6555;">${roleLine} ${when} and only works for this email address. If you weren't expecting this, you can ignore it.</p>
     </div>
   </div>
 </body></html>`;
@@ -99,14 +124,13 @@ export function renderInviteEmail({ inviterName, role, joinUrl }: EmailInput): {
     `${inviterName} invited you to help with their family on Waypoint.\n\n` +
     `Waypoint helps families navigate California disability services. ${inviterName} added you so you can see and work the plan together.\n\n` +
     `Join the family: ${joinUrl}\n\n` +
-    `This link expires in 14 days and only works for this email address. If you weren't expecting this, you can ignore it.\n`;
+    `${expiresOn ? `This link expires on ${expiresOn}` : 'This link expires'} and only works for this email address. If you weren't expecting this, you can ignore it.\n`;
   return { subject, html, text };
 }
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405);
-  if (!RESEND_API_KEY) return json({ error: 'delivery_not_configured' }, 503);
 
   const authHeader = req.headers.get('Authorization') ?? '';
   const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -115,47 +139,106 @@ serve(async (req) => {
   const { data: { user } } = await userClient.auth.getUser();
   if (!user) return json({ error: 'not_authenticated' }, 401);
 
-  let body: Record<string, unknown>;
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
     return json({ error: 'invalid_json' }, 400);
   }
-  const invitationId = typeof body.invitation_id === 'string' ? body.invitation_id : '';
+  const invitationId =
+    body && typeof body === 'object' && typeof (body as Record<string, unknown>).invitation_id === 'string'
+      ? ((body as Record<string, unknown>).invitation_id as string)
+      : '';
   if (!UUID.test(invitationId)) return json({ error: 'invalid_invitation_id' }, 400);
 
   // RLS is the gate: only the family's owner or an admin member gets a row.
   const { data: inv, error: readError } = await userClient
     .from('family_invitations')
-    .select('id, family_id, invitee_email, role, status, token, expires_at, sent_at')
+    .select('id, family_id, inviter_id, invitee_email, role, status, token, expires_at, sent_at')
     .eq('id', invitationId)
     .maybeSingle();
-  if (readError) return json({ error: 'read_failed' }, 500);
+  if (readError) {
+    // 42703 = undefined column: migration 056 has not been applied yet. Say so
+    // rather than "tap Resend" — retrying cannot help.
+    if ((readError as { code?: string }).code === '42703') {
+      return json({ error: 'delivery_not_configured', reason: 'migration 056 not applied' }, 503);
+    }
+    return json({ error: 'read_failed' }, 500);
+  }
   if (!inv) return json({ error: 'not_found' }, 404);
+
+  const recordFailure = async (code: string, reason?: string) => {
+    const value = reason ? `${code}:${reason.slice(0, 200)}` : code;
+    await userClient.from('family_invitations').update({ send_error: value }).eq('id', inv.id);
+  };
 
   if (inv.status !== 'pending') return json({ error: 'not_pending' }, 409);
   if (inv.expires_at && new Date(inv.expires_at).getTime() < Date.now()) {
     return json({ error: 'expired' }, 409);
   }
-  if (inv.sent_at && Date.now() - new Date(inv.sent_at).getTime() < RESEND_COOLDOWN_MS) {
-    return json({ ok: true, sent_at: inv.sent_at, skipped: 'cooldown' });
+  if (!EMAIL.test(inv.invitee_email ?? '')) {
+    await recordFailure('invalid_email');
+    return json({ error: 'invalid_email' }, 422);
+  }
+  if (!RESEND_API_KEY) {
+    await recordFailure('delivery_not_configured');
+    return json({ error: 'delivery_not_configured' }, 503);
   }
 
-  const { data: fam } = await userClient
-    .from('families')
-    .select('parent_first_name')
-    .eq('id', inv.family_id)
-    .maybeSingle();
-  const inviterName = (fam?.parent_first_name ?? '').trim() || 'A parent';
+  // The throttle the caller cannot forge (057). Runs BEFORE the send.
+  const { data: gate, error: gateError } = await userClient.rpc('record_invite_send', { p_invitation_id: inv.id });
+  if (gateError) {
+    // The function is missing → 057 not applied. Fail closed; say why.
+    await recordFailure('delivery_not_configured', 'migration 057 not applied');
+    return json({ error: 'delivery_not_configured', reason: 'migration 057 not applied' }, 503);
+  }
+  if (gate === 'cooldown') return json({ ok: true, sent_at: inv.sent_at, skipped: 'cooldown' });
+  if (gate === 'rate_limited') {
+    await recordFailure('rate_limited');
+    return json({ error: 'rate_limited' }, 429);
+  }
+  if (gate !== 'ok') return json({ error: 'not_found' }, 404);
+
+  // Who is inviting: the member who tapped Invite, else the family's owner.
+  let inviterName = '';
+  if (inv.inviter_id) {
+    const { data: member } = await userClient
+      .from('family_members')
+      .select('display_name')
+      .eq('family_id', inv.family_id)
+      .eq('user_id', inv.inviter_id)
+      .maybeSingle();
+    inviterName = member?.display_name ?? '';
+  }
+  if (!inviterName) {
+    const { data: fam } = await userClient
+      .from('families')
+      .select('parent_first_name')
+      .eq('id', inv.family_id)
+      .maybeSingle();
+    inviterName = fam?.parent_first_name ?? '';
+  }
+  inviterName = safeName(inviterName);
 
   const joinUrl = `${APP_URL}/join?token=${encodeURIComponent(inv.token)}`;
-  const { subject, html, text } = renderInviteEmail({ inviterName, role: inv.role, joinUrl });
-
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to: [inv.invitee_email], subject, html, text }),
+  const { subject, html, text } = renderInviteEmail({
+    inviterName,
+    role: inv.role,
+    joinUrl,
+    expiresOn: inv.expires_at ? longDate(inv.expires_at) : '',
   });
+
+  let res: Response;
+  try {
+    res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM, to: [inv.invitee_email], subject, html, text }),
+    });
+  } catch {
+    await recordFailure('send_failed', 'could not reach the email provider');
+    return json({ error: 'send_failed', reason: 'could not reach the email provider' }, 502);
+  }
 
   if (!res.ok) {
     // Keep the reason short and free of secrets; it's shown to the owner.
@@ -164,14 +247,22 @@ serve(async (req) => {
       const err = await res.json();
       if (err && typeof err.message === 'string') reason = err.message.slice(0, 200);
     } catch { /* keep the status */ }
-    await userClient.from('family_invitations').update({ send_error: reason }).eq('id', inv.id);
+    await recordFailure('send_failed', reason);
     return json({ error: 'send_failed', reason }, 502);
   }
 
+  let messageId: string | null = null;
+  try {
+    const okBody = await res.json();
+    if (okBody && typeof okBody.id === 'string') messageId = okBody.id;
+  } catch { /* id is optional */ }
+
   const sentAt = new Date().toISOString();
-  await userClient
+  const { error: stampError } = await userClient
     .from('family_invitations')
-    .update({ sent_at: sentAt, send_error: null })
+    .update({ sent_at: sentAt, send_error: null, provider_message_id: messageId })
     .eq('id', inv.id);
-  return json({ ok: true, sent_at: sentAt });
+  // The email went even if the stamp failed; the send log (057) still holds
+  // the cooldown, so a retry cannot double-send within it.
+  return json({ ok: true, sent_at: sentAt, recorded: !stampError });
 });

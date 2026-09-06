@@ -571,11 +571,16 @@ function HomeScreenInner({
           <View style={styles.readingCard} accessible accessibilityViewIsModal>
             <ActivityIndicator size="small" color={brand.pine} />
             <Text style={styles.readingText}>
+              {/* The one screen a parent sees while the agency's email — child's
+                  name, diagnosis, the denial — is actually in flight to the
+                  model. Disclosure that arrives only afterwards is
+                  retrospective: it says what a machine did at a point where
+                  declining is no longer possible. */}
               {funnelLocale === 'es'
-                ? 'Waypoint está leyendo su respuesta…'
+                ? 'La IA de Waypoint está leyendo la respuesta de ellos…'
                 : funnelLocale === 'vi'
-                  ? 'Waypoint đang đọc thư trả lời…'
-                  : 'Waypoint is reading their reply…'}
+                  ? 'AI của Waypoint đang đọc thư trả lời của họ…'
+                  : "Waypoint's AI is reading their reply…"}
             </Text>
           </View>
         </Pressable>

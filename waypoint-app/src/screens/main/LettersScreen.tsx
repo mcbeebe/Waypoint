@@ -48,6 +48,7 @@ import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
 import { sentNextFor, trackFor } from '@/lib/sentNext';
 import { toFunnelLocale } from '@/lib/eligibility';
+import type { FunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
 import { deadlineFor } from '@/lib/requestClocks';
 import type { RequestDeadline } from '@/lib/requestClocks';
@@ -62,6 +63,16 @@ import { colors, fonts, spacing, radii } from '@/lib/theme';
  * sentence. This mirrors the mockup ("we filled these in from your records")
  * and stays honest without a mixed-language list.
  */
+/**
+ * Written next to the draft itself, not in the footer: a parent who scrolls
+ * straight to Send must still pass it.
+ */
+const AI_PROVENANCE: Record<FunnelLocale, string> = {
+  en: 'Written by Waypoint\u2019s AI from what you told us. Read it before you send \u2014 it goes out under your name.',
+  es: 'Escrito por la IA de Waypoint con lo que usted nos cont\u00f3. L\u00e9alo antes de enviarlo \u2014 sale a su nombre.',
+  vi: 'Do AI c\u1ee7a Waypoint vi\u1ebft d\u1ef1a tr\u00ean nh\u1eefng g\u00ec qu\u00fd v\u1ecb cho bi\u1ebft. H\u00e3y \u0111\u1ecdc tr\u01b0\u1edbc khi g\u1eedi \u2014 th\u01b0 \u0111i d\u01b0\u1edbi t\u00ean c\u1ee7a qu\u00fd v\u1ecb.',
+};
+
 const RECORDS_NOTE: Record<'en' | 'es' | 'vi', string> = {
   en: 'We filled in the details we had from your records. Tap to change any of them in your profile.',
   es: 'Completamos los datos que teníamos de su perfil. Toque para cambiar cualquiera en su perfil.',
@@ -611,6 +622,12 @@ export default function LettersScreen() {
               <Text style={styles.backLink}>‹ Change tone or details</Text>
             </TouchableOpacity>
             <Text style={styles.stepTitle}>Your draft — edit anything, then send</Text>
+            {/* The screen where machine-written text leaves the app under the
+                parent's own name, into a legal record with an agency. An
+                adversary pass (Sep 2026) found this was the one screen on the
+                draft path with no AI attribution anywhere — and the one route
+                that bypasses the questions sheet reaches it directly. */}
+            <Text style={styles.aiProvenance}>{AI_PROVENANCE[funnelLocale]}</Text>
             {filledFromRecords.length > 0 && (
               <TouchableOpacity
                 style={styles.recordsNote}
@@ -1070,6 +1087,12 @@ const styles = StyleSheet.create({
   },
   gmailSendText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   gmailSendBtnDisabled: { backgroundColor: colors.mid, opacity: 0.6 },
+  aiProvenance: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+    lineHeight: 19,
+    marginBottom: spacing.sm,
+  },
   recordsNote: {
     backgroundColor: '#ECFEFF',
     borderWidth: 1,

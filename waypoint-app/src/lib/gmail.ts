@@ -70,6 +70,27 @@ export async function gmailSend(
   }
 }
 
+/**
+ * Put the message in the parent's own Gmail Drafts instead of sending it
+ * (owner request, 2026-09-05). The paper-trail row stays a DRAFT — nothing was
+ * sent — but the Gmail thread id is stored, so reply-sync follows the thread
+ * the moment they press send in Gmail.
+ */
+export async function gmailDraft(
+  input: GmailSendInput
+): Promise<{ ok: boolean; threadId?: string | null; error?: string }> {
+  try {
+    const resp = await authedPost(GMAIL_FN_URL, { action: 'draft', ...input });
+    const data = await resp.json().catch(() => null);
+    if (!resp.ok) {
+      return { ok: false, error: data?.error ?? `Couldn't save the draft (${resp.status})` };
+    }
+    return { ok: true, threadId: data?.threadId ?? null };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Couldn't save the draft" };
+  }
+}
+
 /** Pull new replies on tracked threads into the paper trail. */
 export async function gmailSyncReplies(): Promise<{ ok: boolean; newReplies: number; error?: string }> {
   try {

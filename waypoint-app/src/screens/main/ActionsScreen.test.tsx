@@ -10,8 +10,8 @@
  * cannot see, so they are asserted against the real component here.
  */
 import React from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 
 vi.mock('@/hooks/useFamily', () => ({
   useFamily: () => ({ family: { id: 'fam1', regional_center: null } }),
@@ -19,22 +19,40 @@ vi.mock('@/hooks/useFamily', () => ({
   useDiagnoses: () => ({ diagnoses: [] }),
 }));
 
-const h = vi.hoisted(() => ({ actions: [] as any[] }));
+const h = vi.hoisted(() => ({
+  actions: [] as any[],
+  stats: null as any,
+  updateStatus: (() => {}) as any,
+  updateAction: (() => {}) as any,
+}));
 vi.mock('@/hooks/useActions', () => ({
   useActions: () => ({
     actions: h.actions,
     loading: false,
     error: null,
-    stats: null,
-    updateStatus: vi.fn(),
+    stats: h.stats,
+    updateStatus: h.updateStatus,
+    updateAction: h.updateAction,
     createAction: vi.fn(),
     refetch: vi.fn(),
   }),
 }));
 
-import ActionsScreen from './ActionsScreen';
+import ActionsScreen, { ActionPlanTracker } from './ActionsScreen';
+import { navigateCalls } from '../../../vitest.setup.ui';
 
-const hoursAgo = (n: number) => new Date(Date.now() - n * 3600_000).toISOString();
+/**
+ * A fixed local noon, so "2 hours ago" is always the SAME calendar day.
+ *
+ * Without this the suite failed for two hours out of every twenty-four: at
+ * 00:49 local, `hoursAgo(2)` lands on yesterday, `formatAddedOn` correctly
+ * says "Added yesterday", and the assertion for "Added today" below blows up.
+ * It was red on `main` in exactly that window — a real flake, not a change
+ * this file made.
+ */
+const NOON = new Date(2026, 8, 3, 12, 0, 0).getTime();
+
+const hoursAgo = (n: number) => new Date(NOON - n * 3600_000).toISOString();
 
 function action(over: Record<string, unknown> = {}) {
   return {
@@ -59,7 +77,17 @@ function action(over: Record<string, unknown> = {}) {
   };
 }
 
-beforeEach(() => { h.actions = []; });
+beforeEach(() => {
+  h.actions = [];
+  h.stats = null; // default; a test that needs the dashboard sets it
+  h.updateStatus = vi.fn();
+  h.updateAction = vi.fn();
+  vi.useFakeTimers({ shouldAdvanceTime: true });
+  vi.setSystemTime(NOON);
+});
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe('a step that just landed in the plan', () => {
   it('is flagged New and dated', () => {
@@ -165,5 +193,491 @@ describe('the focus view and brand-new items', () => {
     expect(screen.getByText('Just saved from an answer')).toBeTruthy();
     expect(screen.queryByText('Older step 5')).toBeNull();
     expect(screen.getByText(/Show everything/)).toBeTruthy();
+  });
+});
+
+// ─── Marking a step in progress or done, from the list ──────────────────────
+
+describe('the status buttons on a card', () => {
+  /**
+   * What this replaces: a 28pt circle that CYCLED To Do → In Progress → Done.
+   * Done was two taps from To Do, the tap target was well under the 44 this
+   * repo sets as its own floor, and its label ("Change status from To Do") said
+   * nothing about where a tap would land.
+   *
+   * Option B (owner's pick, Sep 3 2026): the two moves a parent actually
+   * makes, one tap each. The state is implied by which pair is showing.
+   */
+  it('offers Done in one tap from To Do', () => {
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText(/^Ask the Regional Center.*Mark as Done$/));
+    expect(h.updateStatus).toHaveBeenCalledWith('a1', 'completed');
+  });
+
+  it('offers Start in one tap from To Do', () => {
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText(/Mark as In Progress$/));
+    expect(h.updateStatus).toHaveBeenCalledWith('a1', 'in_progress');
+  });
+
+  it('swaps Start for a way back once a step is under way', () => {
+    h.actions = [action({ status: 'in_progress' })];
+    render(<ActionsScreen />);
+    expect(screen.queryByLabelText(/Mark as In Progress$/)).toBeNull();
+    expect(screen.getByLabelText(/Mark as Done$/)).toBeTruthy();
+    fireEvent.click(screen.getByLabelText(/Mark as To Do$/));
+    expect(h.updateStatus).toHaveBeenCalledWith('a1', 'not_started');
+  });
+
+  it('offers a finished step exactly one button, and it reopens', () => {
+    h.actions = [action({ status: 'completed' })];
+    render(<ActionsScreen />);
+    // A single completed step leaves the focus view empty, so both ways out
+    // render: the empty state's button and the toggle beneath it.
+    fireEvent.click(screen.getByText('See my whole plan'));
+    expect(screen.queryByLabelText(/Mark as Done$/)).toBeNull();
+    fireEvent.click(screen.getByLabelText(/Mark as To Do$/));
+    expect(h.updateStatus).toHaveBeenCalledWith('a1', 'not_started');
+  });
+
+  it('names the step it belongs to, so a screen reader in a list knows which', () => {
+    h.actions = [action(), action({ id: 'a2', title: 'Second step' })];
+    render(<ActionsScreen />);
+    expect(screen.getByLabelText('Second step: Mark as Done')).toBeTruthy();
+  });
+
+  it('refuses to complete a step that is locked behind an unfinished one', () => {
+    // The card's old circle checked the dependency lock and the swipe buttons
+    // did not — so a step drawn with a padlock could still be swiped to Done.
+    // Both paths go through one guard now, and the control is far easier to hit.
+    h.actions = [
+      action({ id: 'gate', title: 'Gate step', status: 'not_started' }),
+      action({ id: 'blocked', title: 'Blocked step', depends_on: 'gate' }),
+    ];
+    render(<ActionsScreen />);
+    // The focus view never shows a locked step, so open the full list first.
+    fireEvent.click(screen.getByText(/Show everything/));
+    fireEvent.click(screen.getByLabelText('Blocked step: Mark as Done'));
+    expect(h.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it('still lets an unlocked step through', () => {
+    h.actions = [
+      action({ id: 'gate', title: 'Gate step', status: 'completed' }),
+      action({ id: 'open', title: 'Open step', depends_on: 'gate' }),
+    ];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Open step: Mark as Done'));
+    expect(h.updateStatus).toHaveBeenCalledWith('open', 'completed');
+  });
+});
+
+// ─── Choosing a priority from the list ─────────────────────────────────────
+
+describe('the priority picker on a card', () => {
+  it('is collapsed until the badge is tapped', () => {
+    h.actions = [action({ priority: 'high' })];
+    render(<ActionsScreen />);
+    expect(screen.queryByLabelText(/Set priority to Urgent$/)).toBeNull();
+    fireEvent.click(screen.getByLabelText(/priority High\. Tap to change\.$/));
+    expect(screen.getByLabelText(/Set priority to Urgent$/)).toBeTruthy();
+  });
+
+  it('writes the chosen priority and closes', () => {
+    h.actions = [action({ priority: 'high' })];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText(/priority High\. Tap to change\.$/));
+    fireEvent.click(screen.getByLabelText(/Set priority to Urgent$/));
+    expect(h.updateAction).toHaveBeenCalledWith('a1', { priority: 'urgent' });
+    expect(screen.queryByLabelText(/Set priority to Urgent$/)).toBeNull();
+  });
+
+  it('opens the picker rather than the detail screen', () => {
+    // The badge used to sit INSIDE the open-detail press target. A tappable
+    // control nested in a touchable that navigates is the shape that opens the
+    // wrong screen — on react-native-web the outer handler fires either way.
+    h.actions = [action({ priority: 'high' })];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText(/priority High\. Tap to change\.$/));
+    expect(navigateCalls).toHaveLength(0);
+  });
+
+  it('still reaches the detail screen from "Details"', () => {
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText(/^Open details for /));
+    expect(navigateCalls).toHaveLength(1);
+    expect(navigateCalls[0].args).toEqual(['ActionDetail', { actionId: 'a1' }]);
+  });
+});
+
+// ─── Sorting and filtering ─────────────────────────────────────────────────
+
+describe('sorting the plan', () => {
+  const dated = () => [
+    action({ id: 'urgentLate', title: 'Urgent but far off', priority: 'urgent', due_date: '2026-12-01', created_at: hoursAgo(300) }),
+    action({ id: 'lowSoon', title: 'Low but due tomorrow', priority: 'low', due_date: '2026-09-04', created_at: hoursAgo(200) }),
+  ];
+
+  it('defaults to Suggested — priority first, as the plan has always been', () => {
+    h.actions = dated();
+    render(<ActionsScreen />);
+    const html = document.body.innerHTML;
+    expect(html.indexOf('Urgent but far off')).toBeLessThan(html.indexOf('Low but due tomorrow'));
+  });
+
+  it('puts the soonest deadline first when sorted by Due date', () => {
+    h.actions = dated();
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Sort: Due date'));
+    const html = document.body.innerHTML;
+    expect(html.indexOf('Low but due tomorrow')).toBeLessThan(html.indexOf('Urgent but far off'));
+  });
+
+  it('puts the most recently added first when sorted by Created (default)', () => {
+    h.actions = [
+      action({ id: 'old', title: 'Added long ago', created_at: hoursAgo(500) }),
+      action({ id: 'new', title: 'Added moments ago', created_at: hoursAgo(0.1) }),
+    ];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Sort: Created'));
+    const html = document.body.innerHTML;
+    expect(html.indexOf('Added moments ago')).toBeLessThan(html.indexOf('Added long ago'));
+  });
+
+  it('sorts BOTH ways — tapping the active Created chip flips newest ↔ oldest', () => {
+    h.actions = [
+      action({ id: 'old', title: 'Added long ago', created_at: hoursAgo(500) }),
+      action({ id: 'new', title: 'Added moments ago', created_at: hoursAgo(0.1) }),
+    ];
+    render(<ActionsScreen />);
+    // First tap selects Created at its default (newest first).
+    fireEvent.click(screen.getByLabelText('Sort: Created'));
+    let html = document.body.innerHTML;
+    expect(html.indexOf('Added moments ago')).toBeLessThan(html.indexOf('Added long ago'));
+    // Active now, so its label carries the direction — tap again to reverse.
+    fireEvent.click(screen.getByLabelText(/^Sort: Created,/));
+    html = document.body.innerHTML;
+    expect(html.indexOf('Added long ago')).toBeLessThan(html.indexOf('Added moments ago'));
+  });
+
+  it('sorts Due date both ways — soonest first, then latest first on re-tap', () => {
+    h.actions = [
+      action({ id: 'soon', title: 'Due soon', due_date: '2026-09-04', created_at: hoursAgo(10) }),
+      action({ id: 'late', title: 'Due much later', due_date: '2026-12-01', created_at: hoursAgo(11) }),
+    ];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Sort: Due date'));
+    let html = document.body.innerHTML;
+    expect(html.indexOf('Due soon')).toBeLessThan(html.indexOf('Due much later'));
+    fireEvent.click(screen.getByLabelText(/^Sort: Due date,/));
+    html = document.body.innerHTML;
+    expect(html.indexOf('Due much later')).toBeLessThan(html.indexOf('Due soon'));
+  });
+
+  it('does not reverse Suggested — it has one canonical order', () => {
+    h.actions = dated();
+    render(<ActionsScreen />);
+    // Suggested is active by default; tapping it must not produce a direction
+    // label (there is no "Sort: Suggested, ... reverse").
+    fireEvent.click(screen.getByLabelText('Sort: Suggested'));
+    expect(screen.getByLabelText('Sort: Suggested')).toBeTruthy();
+    expect(screen.queryByLabelText(/^Sort: Suggested,/)).toBeNull();
+  });
+
+  it('shows the whole list once a sort is chosen, not the next 3', () => {
+    // "Sort by due date" that still shows three of eight steps, in an order
+    // the parent did not choose, reads as the sort being broken.
+    h.actions = Array.from({ length: 8 }, (_, i) =>
+      action({ id: `s${i}`, title: `Step ${i}`, created_at: hoursAgo(100 + i) })
+    );
+    render(<ActionsScreen />);
+    expect(screen.queryByText('Step 7')).toBeNull(); // focus view, next 3 only
+    fireEvent.click(screen.getByLabelText('Sort: Due date'));
+    expect(screen.getByText('Step 7')).toBeTruthy();
+    expect(screen.queryByText(/Show everything/)).toBeNull();
+  });
+});
+
+describe('filtering the plan', () => {
+  const mixed = () => [
+    action({ id: 'u', title: 'Urgent one', priority: 'urgent', created_at: hoursAgo(100) }),
+    action({ id: 'l', title: 'Low one', priority: 'low', created_at: hoursAgo(101) }),
+  ];
+
+  it('opens the filter sheet from the Filters button', () => {
+    h.actions = mixed();
+    render(<ActionsScreen />);
+    expect(screen.queryByText('Deadline')).toBeNull();
+    fireEvent.click(screen.getByLabelText('Filters'));
+    expect(screen.getByText('Deadline')).toBeTruthy();
+    expect(screen.getByText('Date added')).toBeTruthy();
+  });
+
+  it('narrows the list to the chosen priority and counts the filter', () => {
+    h.actions = mixed();
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Filters'));
+    fireEvent.click(screen.getByLabelText('Filters: Urgent'));
+    fireEvent.click(screen.getByLabelText(/^Close filters$/));
+    expect(screen.getByText('Urgent one')).toBeTruthy();
+    expect(screen.queryByText('Low one')).toBeNull();
+    expect(screen.getByLabelText('Filters — 1')).toBeTruthy();
+  });
+
+  it('says "no steps match" rather than "no actions yet" when a filter empties the list', () => {
+    // Sending a parent with 27 steps to "ask the Navigator and save some" —
+    // because they filtered to Urgent — reads as the app losing their work.
+    h.actions = [action({ id: 'l', title: 'Low one', priority: 'low' })];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Filters'));
+    fireEvent.click(screen.getByLabelText('Filters: Urgent'));
+    fireEvent.click(screen.getByLabelText(/^Close filters$/));
+    expect(screen.getByText('No steps match these filters')).toBeTruthy();
+    expect(screen.queryByText('No actions yet')).toBeNull();
+  });
+
+  it('clears back to the whole plan', () => {
+    h.actions = mixed();
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Filters'));
+    fireEvent.click(screen.getByLabelText('Filters: Urgent'));
+    fireEvent.click(screen.getByLabelText('Clear all'));
+    fireEvent.click(screen.getByLabelText(/^Close filters$/));
+    expect(screen.getByText('Low one')).toBeTruthy();
+    expect(screen.getByLabelText('Filters')).toBeTruthy();
+  });
+});
+
+// ─── Reachability ──────────────────────────────────────────────────────────
+
+describe('every control in the chrome can be reached by name', () => {
+  it('labels the status pills, which carried no role or label at all', () => {
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    for (const label of ['All', 'To Do', 'In Progress', 'Done', 'Dismissed']) {
+      expect(screen.getByLabelText(label)).toBeTruthy();
+    }
+  });
+
+  it('labels every sort option', () => {
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    for (const label of ['Suggested', 'Due date', 'Priority', 'Created']) {
+      expect(screen.getByLabelText(`Sort: ${label}`)).toBeTruthy();
+    }
+  });
+
+  it('marks the selected sort and status filter, so a screen reader knows the view', () => {
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    // aria-PRESSED, not aria-selected: react-native-web 0.19 drops the legacy
+    // accessibilityState object entirely, and these are toggle buttons.
+    expect(screen.getByLabelText('Sort: Suggested').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByLabelText('Sort: Created').getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByLabelText('All').getAttribute('aria-pressed')).toBe('true');
+  });
+});
+
+// ─── What an adversarial review found, pinned ──────────────────────────────
+
+describe('the card and the Overdue filter agree about "overdue"', () => {
+  /**
+   * The card said `new Date(due_date) < new Date()`, which parses a Postgres
+   * `date` as UTC midnight — 17:00 the previous evening in California. The
+   * filter reads the local calendar day. So a card badged "⚠️ Overdue"
+   * vanished when the parent tapped Filters → Overdue, and the plan said
+   * "No steps match these filters".
+   */
+  const dueToday = () => {
+    const d = new Date(NOON);
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return action({ id: 'today', title: 'Due today step', due_date: iso });
+  };
+
+  it('does not badge a step due TODAY as overdue', () => {
+    h.actions = [dueToday()];
+    render(<ActionsScreen />);
+    expect(screen.queryByText(/Overdue/)).toBeNull();
+  });
+
+  it('anything the card badges Overdue survives the Overdue filter', () => {
+    h.actions = [dueToday(), action({ id: 'late', title: 'Genuinely late step', due_date: '2026-08-01' })];
+    render(<ActionsScreen />);
+    expect(screen.getByText(/Overdue: Aug 1/)).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText('Filters'));
+    fireEvent.click(screen.getByLabelText('Deadline: Overdue'));
+    fireEvent.click(screen.getByLabelText(/^Close filters$/));
+
+    expect(screen.getByText('Genuinely late step')).toBeTruthy();
+    expect(screen.queryByText('Due today step')).toBeNull();
+    expect(screen.queryByText('No steps match these filters')).toBeNull();
+  });
+});
+
+describe('the focus toggle goes both ways', () => {
+  it('comes back after expanding a small plan', () => {
+    // 2 open + 1 done. Collapsed the toggle asked `hiddenCount > 0` (true);
+    // expanded it asked `sortedActions.length > 3` (false) and vanished —
+    // a one-way door out of the focus view for the rest of the session.
+    h.actions = [
+      action({ id: 'o1', title: 'Open one', created_at: hoursAgo(10) }),
+      action({ id: 'o2', title: 'Open two', created_at: hoursAgo(11) }),
+      action({ id: 'd1', title: 'Finished one', status: 'completed', created_at: hoursAgo(12) }),
+    ];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByText(/Show everything/));
+    expect(screen.getByText('Finished one')).toBeTruthy();
+    expect(screen.getByText(/Focus on my next 3/)).toBeTruthy();
+
+    fireEvent.click(screen.getByText(/Focus on my next 3/));
+    expect(screen.queryByText('Finished one')).toBeNull();
+  });
+});
+
+describe('a parent who has finished everything', () => {
+  it('is not told the plan is empty', () => {
+    // "No actions yet — ask the Navigator and save some steps" rendered
+    // directly above "Show everything (5 more)".
+    h.actions = Array.from({ length: 5 }, (_, i) =>
+      action({ id: `c${i}`, title: `Finished ${i}`, status: 'completed', created_at: hoursAgo(50 + i) })
+    );
+    render(<ActionsScreen />);
+    expect(screen.queryByText('No actions yet')).toBeNull();
+    expect(screen.getByText('Nothing open right now')).toBeTruthy();
+    // Two ways out, worded differently — the empty state's own button and the
+    // toggle beneath it. They both said "Show everything" for one build.
+    expect(screen.getByText('See my whole plan')).toBeTruthy();
+    expect(screen.getByText(/Show everything \(5 more\)/)).toBeTruthy();
+  });
+
+  it('still gets the real empty state when the plan really is empty', () => {
+    h.actions = [];
+    render(<ActionsScreen />);
+    expect(screen.getByText('No actions yet')).toBeTruthy();
+  });
+});
+
+describe('a dismissed step says so out loud', () => {
+  it('names the status in text, not only as opacity and a strikethrough', () => {
+    // Both remaining cues were purely visual, and the strikethrough is shared
+    // with "completed" — so a screen reader could not tell the two apart.
+    h.actions = [
+      action({ id: 'x', title: 'Dropped step', status: 'dismissed', dismissed_reason: 'school handled it' }),
+    ];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByText('See my whole plan'));
+    expect(screen.getByText(/^Dismissed — school handled it$/)).toBeTruthy();
+  });
+
+  it('says Dismissed even with no reason recorded', () => {
+    h.actions = [action({ id: 'x', title: 'Dropped step', status: 'dismissed' })];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByText('See my whole plan'));
+    // Two: the status filter pill, which is always there, and the card's own
+    // tag, which is what this pins. Drop the tag and this falls to one.
+    expect(screen.getAllByText('Dismissed')).toHaveLength(2);
+  });
+
+  it('offers a way back — one button, and it reopens', () => {
+    h.actions = [action({ id: 'x', title: 'Dropped step', status: 'dismissed' })];
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByText('See my whole plan'));
+    fireEvent.click(screen.getByLabelText('Dropped step: Mark as To Do'));
+    expect(h.updateStatus).toHaveBeenCalledWith('x', 'not_started');
+  });
+});
+
+describe('the filter sheet promises the count it will deliver', () => {
+  it('offers the focus view count, not the whole plan, when no filter is set', () => {
+    h.actions = Array.from({ length: 8 }, (_, i) =>
+      action({ id: `s${i}`, title: `Step ${i}`, created_at: hoursAgo(100 + i) })
+    );
+    render(<ActionsScreen />);
+    fireEvent.click(screen.getByLabelText('Filters'));
+    // It read "Show 8 steps" and closing it rendered 3.
+    expect(screen.getByLabelText('Show 3 steps')).toBeTruthy();
+  });
+});
+
+// ─── "In Progress", said in words (owner, Sep 3) ────────────────────────────
+
+describe('an in-progress step says so on the card', () => {
+  // The chrome always carries one "In Progress" — the status filter pill — and
+  // the mocked hook returns stats: null, so the dashboard adds none. A card
+  // that labels itself is therefore the SECOND occurrence.
+  it('labels an in-progress card "In Progress"', () => {
+    h.actions = [action({ status: 'in_progress', title: 'Started step' })];
+    render(<ActionsScreen />);
+    expect(screen.getAllByText('In Progress')).toHaveLength(2);
+  });
+
+  it('leaves a To Do card unlabelled — the default needs no badge', () => {
+    h.actions = [action({ status: 'not_started', title: 'A step' })];
+    render(<ActionsScreen />);
+    expect(screen.getAllByText('In Progress')).toHaveLength(1); // the filter pill
+  });
+
+  it('does not label a Done card as in progress', () => {
+    h.actions = [
+      action({ id: 'a', status: 'completed', title: 'Finished step' }),
+      action({ id: 'b', status: 'in_progress', title: 'Live step' }),
+    ];
+    render(<ActionsScreen />);
+    // The in-progress step fills the focus view; expand to reveal the done one.
+    fireEvent.click(screen.getByText(/Show everything/));
+    // filter pill + the ONE in-progress card — the completed card adds nothing.
+    expect(screen.getAllByText('In Progress')).toHaveLength(2);
+  });
+});
+
+describe('the embedded plan keeps ＋ without a header band of its own', () => {
+  // Removing the empty ＋ band (the "dead space at the top" of the Plan tab)
+  // must not drop the add affordance — it moves onto the dashboard row.
+  it('still offers "Add your own action" when embedded', () => {
+    h.actions = [action()];
+    render(<ActionPlanTracker />);
+    expect(screen.getByLabelText('Add your own action')).toBeTruthy();
+  });
+});
+
+// ─── The dashboard, which the default (stats: null) mock never renders ───────
+
+describe('the progress dashboard (has-stats path)', () => {
+  const stats = {
+    completion_rate: 7,
+    not_started_count: 28,
+    in_progress_count: 1,
+    completed_count: 2,
+  };
+
+  it('labels the in-progress stat "In Progress", not "Active"', () => {
+    h.stats = stats;
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    // Standalone: dashboard + the status filter pill both say "In Progress".
+    expect(screen.getAllByText('In Progress').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText('Active')).toBeNull();
+  });
+
+  it('keeps exactly one ＋ when embedded with stats — on the dashboard row, no band', () => {
+    // The dead-space fix moved ＋ onto the dashboard row. With stats present
+    // (the common case), that path — not the empty-plan fallback — must still
+    // offer one and only one add affordance.
+    h.stats = stats;
+    h.actions = [action()];
+    render(<ActionPlanTracker />);
+    expect(screen.getByLabelText('Add your own action')).toBeTruthy();
+  });
+
+  it('keeps exactly one ＋ when standalone with stats — in the header, not doubled', () => {
+    h.stats = stats;
+    h.actions = [action()];
+    render(<ActionsScreen />);
+    // getByLabelText throws on more than one match, so this pins "exactly one".
+    expect(screen.getByLabelText('Add your own action')).toBeTruthy();
   });
 });

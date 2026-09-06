@@ -18,10 +18,16 @@ import { deadlineFor } from './requestClocks';
 const NOW = new Date(2026, 7, 29, 9, 0, 0); // Aug 29 2026, local
 
 describe('a statutory due date is the family’s calendar date', () => {
-  it('runs this file in a UTC+ timezone, or it proves nothing', () => {
+  it('runs this file OFF UTC, or it proves nothing', () => {
     // Guard the guard: if the project config stops applying TZ, every
     // assertion below silently becomes a UTC test again.
-    expect(new Date(2026, 7, 20).getTimezoneOffset()).toBeLessThan(0);
+    //
+    // Direction-agnostic since this file runs in two projects — `tz`
+    // (Asia/Ho_Chi_Minh, UTC+) and `tz-west` (America/Los_Angeles, UTC−).
+    // A day can slip forwards as easily as backwards, and the assertions
+    // below hold in both; what must never happen is running at UTC, where
+    // local and UTC agree and nothing is being tested.
+    expect(new Date(2026, 7, 20).getTimezoneOffset()).not.toBe(0);
   });
 
   it('adds 30 days to the request date without slipping one back', () => {

@@ -1,0 +1,1181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waypoint Marketing Site Prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
+<style>
+  /* ============================================================
+     WAYPOINT MARKETING SITE — working prototype
+     Palette: the initiative-006 brand system from waypoint-app theme.ts —
+     warm paper ground, ink text, PINE (#0F766E) as the only interactive
+     color, sage for progress, coral strictly for true urgency.
+     Committed light design (the site's shipped look).
+     ============================================================ */
+  :root {
+    color-scheme: light;
+    /* grounds — brand.paper / panel / headerTop from theme.ts (initiative 006) */
+    --paper: #F5F1E9;
+    --surface: #FFFFFF;
+    --cream: #FBF6EC;
+    --cream-border: #E2D8C4;
+    --mint: #E6F1EF;          /* pineTint */
+    --mint-border: #D4E7E3;   /* pineTintPressed */
+    /* ink — navy retired as chrome; ink is for text & the few dark surfaces */
+    --navy: #22303A;          /* brand.ink */
+    --deep: #1A252D;
+    --ink: #22303A;
+    --ink-2: #55606B;         /* inkSoft */
+    --ink-3: #6D6555;         /* inkFaint */
+    --border: #EAE3D5;
+    /* action & accents — pine is the only thing you tap */
+    --teal: #0F766E;          /* brand.pine */
+    --teal-ink: #0F766E;
+    --teal-deep: #115E56;     /* pineDeep */
+    --coral: #C2410C;         /* brand.urgent — true urgency only */
+    --coral-ink: #C2410C;
+    --sage: #0E9E6E;
+    --sage-ink: #047857;
+    --sage-soft: #E7F5EE;
+    --amber-soft: #FDF3E3;
+    --amber-ink: #B45309;
+    --amber-border: #F3DFB6;
+    --cite-bg: #E6F1EF;
+    --cite-ink: #6D6555;
+    --shadow: 0 1px 2px rgba(60,45,25,.06), 0 8px 28px rgba(60,45,25,.07);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink-2);
+    font-family: "Hanken Grotesk", "Segoe UI", system-ui, sans-serif;
+    font-size: 16px; line-height: 1.65;
+  }
+  img { max-width: 100%; }
+  a { color: var(--teal-ink); }
+  h1, h2, h3, h4 { color: var(--navy); text-wrap: balance; }
+  ::selection { background: #CBE7E0; }
+  :focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; border-radius: 4px; }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  .narrow { max-width: 860px; }
+
+  /* ---------- top nav ---------- */
+  .topnav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,.94); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .topnav .row { display: flex; align-items: center; gap: 22px; padding: 12px 24px; max-width: 1160px; margin: 0 auto; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
+  .logo svg { display: block; }
+  .logo .word { font-weight: 800; letter-spacing: .1em; color: var(--navy); font-size: 17px; }
+  .topnav nav { display: flex; gap: 20px; flex-wrap: wrap; }
+  .topnav nav a {
+    color: var(--ink-2); text-decoration: none; font-size: 14.5px; font-weight: 500;
+    padding: 4px 2px; border-bottom: 2px solid transparent;
+  }
+  .topnav nav a:hover { color: var(--navy); }
+  .topnav nav a.active { color: var(--teal-ink); border-bottom-color: var(--teal); font-weight: 700; }
+  .topnav .spacer { flex: 1; }
+  .lang-chip { font-size: 12.5px; color: var(--ink-3); border: 1px solid var(--border); border-radius: 999px; padding: 3px 11px; background: var(--surface); }
+  .login-link { font-size: 14px; color: var(--ink-2); text-decoration: none; font-weight: 500; }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: inline-block; background: var(--teal); color: #FFFFFF; text-decoration: none;
+    font-weight: 700; font-size: 15px; border: none; border-radius: 12px;
+    padding: 11px 20px; cursor: pointer; font-family: inherit;
+  }
+  .btn:hover { background: var(--teal-deep); }
+  .btn.sm { font-size: 13px; padding: 8px 14px; }
+  .btn.ghost { background: transparent; color: var(--teal-ink); border: 1.5px solid var(--teal); }
+  .btn.ghost:hover { background: var(--mint); }
+  .btn.on-dark { background: #FFFFFF; color: var(--navy); }
+  .btn.on-dark:hover { background: var(--mint); }
+  .btn.ghost-dark { background: rgba(255,255,255,.12); color: #EEF6F1; border: 1.5px solid rgba(255,255,255,.35); }
+  .btn:not(.on-dark):not(.ghost):not(.ghost-dark):active { background: var(--teal-deep); }
+  .btn.ghost:active { background: var(--mint-border); }
+  .btn.on-dark:active { background: #DCEEE9; }
+  .btn.ghost-dark:active { background: rgba(255,255,255,.22); }
+  .seg button:not(.active):active { background: var(--mint-border); }
+  .check-item:active { background: var(--mint); }
+
+  /* ---------- hero ---------- */
+  .hero {
+    background: linear-gradient(165deg, #22303A 0%, #123F39 55%, #0F766E 135%);
+    color: #EEF6F1; padding: 72px 0 56px;
+  }
+  .hero .eyebrow { color: #9FE8DB; }
+  .hero h1 {
+    font-family: "Newsreader", Georgia, serif; font-weight: 400;
+    font-size: clamp(2.1rem, 5vw, 3.3rem); line-height: 1.12; color: #FFFFFF; margin: 12px 0 8px;
+  }
+  .hero h1 em { font-style: normal; color: #A9EFE0; }
+  .hero .lede { font-size: 1.12rem; color: #D3E7DE; max-width: 58ch; margin: 10px 0 26px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stat-row { display: flex; gap: 40px; flex-wrap: wrap; margin-top: 40px; }
+  .stat b { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 2rem; color: #FFFFFF; display: block; line-height: 1.1; }
+  .stat span { font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; color: #9FC5B9; }
+
+  /* page hero (interior pages) */
+  .page-hero { background: var(--cream); color: var(--ink-2); border-bottom: 1px solid var(--border); padding: 44px 0 36px; }
+  .page-hero h1 { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: clamp(1.7rem, 4vw, 2.4rem); color: var(--ink); margin: 10px 0 6px; }
+  .page-hero .lede { color: var(--ink-2); max-width: 62ch; margin: 6px 0 0; }
+
+  .trustband { background: var(--surface); border-bottom: 1px solid var(--border); }
+  .trustband .container { display: flex; flex-wrap: wrap; gap: 10px 34px; padding-top: 13px; padding-bottom: 13px; font-size: 13.5px; color: var(--ink-2); font-weight: 500; }
+  .trustband i { color: var(--sage-ink); font-style: normal; margin-right: 6px; }
+
+  /* ---------- sections & type ---------- */
+  .section { padding: 52px 0; }
+  .section.on-white { background: var(--surface); }
+  .section.on-cream { background: var(--cream); }
+  .eyebrow { font-size: .74rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: var(--teal-ink); }
+  .section h2 { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 1.85rem; margin: 8px 0 14px; }
+  .section .sub { color: var(--ink-2); max-width: 66ch; margin: 0 0 26px; }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .grid-3 { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 20px 22px; box-shadow: var(--shadow);
+  }
+  .card h3 { font-size: 1.05rem; margin: 0 0 6px; }
+  .card p { font-size: .92rem; margin: 0 0 10px; color: var(--ink-2); }
+  .card .link { font-size: .8rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--teal-ink); text-decoration: none; }
+  .card .link:hover { text-decoration: underline; }
+
+  /* human layer — cream + coral, used sparingly for emotional moments */
+  .empathy {
+    background: var(--cream); border: 1px solid var(--cream-border); border-radius: 16px;
+    padding: 20px 24px; margin: 22px 0;
+  }
+  .empathy .label { font-size: .68rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--sage-ink); display: block; margin-bottom: 6px; }
+  .empathy p { color: var(--ink-2); margin: 0; font-size: 1rem; }
+
+  /* ---------- article pages ---------- */
+  .crumbs { font-size: .8rem; color: var(--ink-3); margin-bottom: 12px; }
+  .crumbs a { color: var(--ink-3); text-decoration: none; }
+  .crumbs a:hover { color: var(--teal-ink); }
+  .h1-a { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: clamp(1.6rem, 3.6vw, 2.3rem); line-height: 1.18; margin: 0 0 10px; }
+  .trust-block {
+    display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 16px; font-size: 13px; color: var(--ink-2); margin: 16px 0;
+  }
+  .trust-block b { color: var(--ink); }
+  .avatar {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--navy); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; margin-right: 7px; vertical-align: middle; flex: none;
+  }
+  .avatar.rev { background: var(--teal-ink); }
+  .plain-box {
+    background: var(--mint); border: 1px solid var(--mint-border); border-radius: 12px;
+    padding: 16px 20px; margin: 18px 0; color: var(--teal-deep); font-size: 1rem;
+  }
+  .plain-box b.tag { display: block; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--teal-deep); margin-bottom: 5px; }
+  .qa-h { font-size: 1.25rem; font-weight: 700; color: var(--navy); margin: 30px 0 8px; font-family: "Hanken Grotesk", sans-serif; }
+  .answer-first {
+    background: var(--surface); border-left: 4px solid var(--teal); border-radius: 0 12px 12px 0;
+    padding: 14px 18px; margin: 10px 0 16px; color: var(--ink-2);
+  }
+  .answer-first b { color: var(--ink); }
+  .cite {
+    display: inline-block; background: var(--cite-bg); color: var(--cite-ink);
+    border-radius: 6px; font-size: .72rem; padding: 2px 8px; font-weight: 600; margin: 0 2px;
+    white-space: nowrap;
+  }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); margin: 16px 0; }
+  table.data { border-collapse: collapse; width: 100%; font-size: .9rem; min-width: 480px; }
+  table.data th { background: var(--paper); text-align: left; font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3); padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  table.data td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.data tr:last-child td { border-bottom: none; }
+  .changelog { font-size: .82rem; color: var(--ink-3); background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 10px 14px; margin: 16px 0; }
+  .changelog b { color: var(--ink-2); }
+  .notice {
+    background: var(--amber-soft); border: 1px solid var(--amber-border); color: var(--amber-ink);
+    border-radius: 12px; padding: 11px 15px; font-size: .88rem; margin: 14px 0;
+  }
+  .deadline {
+    background: var(--amber-soft); border: 1px solid var(--amber-border); color: var(--amber-ink);
+    border-radius: 12px; padding: 11px 15px; font-size: .88rem; font-weight: 600; margin: 14px 0;
+  }
+  .handoff {
+    background: var(--teal); border-radius: 16px;
+    color: #EEF6F1; padding: 20px 24px; margin: 26px 0 8px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between;
+  }
+  .handoff b { color: #FFFFFF; display: block; font-size: 1.05rem; margin-bottom: 3px; }
+  .handoff span { font-size: .88rem; color: #D3E7DE; }
+  .disclaimer { font-size: .78rem; color: var(--ink-3); border-top: 1px dashed var(--border); padding-top: 12px; margin-top: 26px; }
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 34px; align-items: start; }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+  .side-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; font-size: .88rem; margin-bottom: 16px; }
+  .side-card b.t { display: block; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+  .side-card dt { font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); font-weight: 700; margin-top: 10px; }
+  .side-card dd { margin: 1px 0 0; color: var(--ink-2); }
+  .side-card dl { margin: 0; }
+  .toc-side a { display: block; color: var(--teal-ink); text-decoration: none; padding: 3px 0; font-size: .86rem; }
+  .toc-side a:hover { text-decoration: underline; }
+  article.prose { max-width: 72ch; }
+  article.prose p { margin: 0 0 14px; }
+  article.prose ul, article.prose ol { margin: 0 0 16px; padding-left: 22px; }
+  article.prose li { margin-bottom: 6px; }
+  article.prose li::marker { color: var(--teal-ink); }
+  article.prose strong { color: var(--ink); }
+
+  /* ---------- checklist (start pages) ---------- */
+  .phase-label { font-size: .72rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--teal-ink); margin: 26px 0 6px; }
+  .check-item {
+    display: flex; gap: 14px; align-items: flex-start; padding: 13px 16px; margin-bottom: 8px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; cursor: pointer;
+  }
+  .check-item:hover { border-color: var(--mint-border); }
+  .check-item .box {
+    width: 20px; height: 20px; border: 2px solid var(--teal); border-radius: 6px; flex: none; margin-top: 2px;
+    display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 13px;
+    background: transparent; transition: background .12s;
+  }
+  .check-item.done .box { background: var(--sage); border-color: var(--sage); }
+  .check-item.done .txt { opacity: .62; }
+  .check-item .txt b { color: var(--ink); display: block; font-size: .95rem; }
+  .check-item .txt span { font-size: .85rem; color: var(--ink-2); }
+  .progress-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin: 18px 0; }
+  .progress-wrap .lbl { display: flex; justify-content: space-between; font-size: .82rem; color: var(--ink-2); margin-bottom: 8px; }
+  .progress-track { height: 8px; border-radius: 8px; background: var(--sage-soft); overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--sage); width: 0%; transition: width .25s; }
+
+  /* ---------- tools ---------- */
+  .tool-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 26px; box-shadow: var(--shadow); }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: .8rem; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
+  .field .hint { font-size: .76rem; color: var(--ink-3); margin-top: 3px; }
+  .field input, .field select {
+    width: 100%; border: 1.5px solid var(--border); border-radius: 12px; background: #FFFFFF;
+    padding: 10px 12px; font-size: .95rem; font-family: inherit; color: var(--ink);
+  }
+  .field input:focus, .field select:focus { border-color: var(--teal); }
+  .result-panel { background: var(--surface); border: 2px solid var(--teal); border-radius: 16px; color: var(--ink-2); padding: 22px 24px; }
+  .result-panel .r-label { font-size: .68rem; letter-spacing: .13em; text-transform: uppercase; color: var(--teal-ink); }
+  .result-panel .r-big { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 2.3rem; color: var(--ink); line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .result-panel .r-note { font-size: .84rem; color: var(--ink-2); margin-top: 8px; }
+  .result-panel .r-save { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: .88rem; color: var(--ink-2); }
+  .r-rows { margin: 12px 0 0; font-size: .84rem; }
+  .r-rows div { display: flex; justify-content: space-between; gap: 18px; padding: 3px 0; color: var(--ink-2); }
+  .r-rows div b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 500; }
+
+  /* ---------- letters ---------- */
+  .letter-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
+  .seg { display: inline-flex; border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); }
+  .seg button { border: none; background: transparent; padding: 8px 16px; font-family: inherit; font-size: .88rem; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+  .seg button.active { background: var(--teal); color: #fff; }
+  .letter-paper {
+    background: #FFFFFF; border: 1px solid var(--border); border-radius: 4px; box-shadow: var(--shadow);
+    padding: 34px 38px; font-size: .92rem; color: #37332F; line-height: 1.75; max-width: 72ch;
+    white-space: pre-wrap;
+  }
+  .fill { background: #FEF3C7; border-radius: 3px; padding: 0 3px; }
+
+  /* ---------- pricing ---------- */
+  .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: stretch; }
+  @media (max-width: 800px) { .price-grid { grid-template-columns: 1fr; } }
+  .price-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; }
+  .price-card.featured { border: 2px solid var(--teal); box-shadow: var(--shadow); position: relative; }
+  .price-card .plan { font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--teal-ink); }
+  .price-card .amount { font-family: "Newsreader", Georgia, serif; font-size: 2.3rem; color: var(--navy); margin: 6px 0 2px; }
+  .price-card .amount small { font-size: 1rem; color: var(--ink-3); font-family: "Hanken Grotesk", sans-serif; }
+  .price-card ul { list-style: none; padding: 0; margin: 14px 0 20px; font-size: .89rem; }
+  .price-card li { padding: 5px 0; border-bottom: 1px dashed var(--border); }
+  .price-card li:last-child { border-bottom: none; }
+  .price-card li::before { content: "✓  "; color: var(--sage-ink); font-weight: 700; }
+  .price-card .btn { margin-top: auto; text-align: center; }
+  .badge-featured { position: absolute; top: -12px; left: 24px; background: var(--mint); color: var(--teal-deep); border: 1px solid var(--mint-border); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; border-radius: 999px; padding: 3px 12px; }
+
+  /* ---------- footer ---------- */
+  .site-footer { background: var(--navy); color: #A7B8B0; margin-top: 64px; }
+  .site-footer .container { padding-top: 40px; padding-bottom: 34px; }
+  .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 26px; font-size: .85rem; }
+  @media (max-width: 800px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+  .foot-grid b { color: #E2EEE7; display: block; margin-bottom: 8px; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; }
+  .foot-grid a { display: block; color: #A7B8B0; text-decoration: none; padding: 2px 0; }
+  .foot-grid a:hover { color: #FFFFFF; }
+  .foot-bottom { border-top: 1px solid rgba(255,255,255,.14); margin-top: 26px; padding-top: 16px; font-size: .76rem; display: flex; flex-wrap: wrap; gap: 8px 24px; }
+
+  .proto-badge {
+    position: fixed; bottom: 14px; right: 14px; z-index: 90;
+    background: var(--navy); color: #E2EEE7; font-size: .7rem; font-weight: 600;
+    border-radius: 999px; padding: 6px 13px; box-shadow: var(--shadow); opacity: .92;
+  }
+
+  [data-route] { display: none; }
+  [data-route].visible { display: block; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ===================== TOP NAV ===================== -->
+<header class="topnav">
+  <div class="row">
+    <a class="logo" href="#/" aria-label="Waypoint home">
+      <!-- Brandmark (initiative 006): ink pin + pine center, sage route to the next point -->
+      <svg width="39" height="30" viewBox="0 0 62 48" role="img" aria-label="Waypoint logo">
+        <rect x="24" y="35.4" width="26" height="4.4" rx="2.2" fill="#0E9E6E"/>
+        <circle cx="54" cy="37.6" r="5.6" fill="#0E9E6E"/>
+        <path d="M22 44 C 22 44 6 28.2 6 18.2 C 6 9.25 13.16 2 22 2 C 30.84 2 38 9.25 38 18.2 C 38 28.2 22 44 22 44 Z" fill="#22303A"/>
+        <circle cx="22" cy="17.6" r="6.3" fill="#0F766E"/>
+      </svg>
+      <span class="word">WAYPOINT</span>
+    </a>
+    <nav aria-label="Primary">
+      <a href="#/start/autism" data-nav="start">Start Here</a>
+      <a href="#/guides" data-nav="guides">Guides</a>
+      <a href="#/tools/ssi-deeming-calculator" data-nav="tools">Free Tools</a>
+      <a href="#/regional-centers/rceb" data-nav="rc">Regional Centers</a>
+      <a href="#/pricing" data-nav="pricing">Pricing</a>
+    </nav>
+    <span class="spacer"></span>
+    <span class="lang-chip">EN · ES</span>
+    <a class="login-link" href="#/" onclick="return false">Log in</a>
+    <a class="btn sm" href="#/" onclick="return false">Get started free</a>
+  </div>
+</header>
+
+<!-- ===================== HOME ===================== -->
+<main data-route="/" id="page-home">
+  <div class="hero">
+    <div class="container">
+      <span class="eyebrow">For California families</span>
+      <h1>Your child was just diagnosed.<br>You have questions. <em>We have a roadmap.</em></h1>
+      <p class="lede">Waypoint is the AI-powered platform that helps families navigate disability services — from diagnosis to adulthood. Every benefit. Every deadline. Every right. Mapped.</p>
+      <div class="hero-actions">
+        <a class="btn on-dark" href="#/start/autism">See your child's roadmap →</a>
+        <a class="btn ghost-dark" href="#/guides">Browse free guides</a>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><b>23</b><span>agencies mapped</span></div>
+        <div class="stat"><b>21</b><span>regional centers profiled</span></div>
+        <div class="stat"><b>13</b><span>diagnoses covered</span></div>
+        <div class="stat"><b>2</b><span>languages, full parity</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="trustband">
+    <div class="container">
+      <span><i>✓</i>Free guides — no email required</span>
+      <span><i>✓</i>Reviewed by credentialed experts</span>
+      <span><i>✓</i>Every claim cited to statute</span>
+      <span><i>✓</i>En español</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <span class="eyebrow">Know the system</span>
+      <h2>Start with the fight you're in today</h2>
+      <p class="sub">Six pillars cover every system a California family navigates — each in plain language, with the deadlines, scripts, and template letters that make the next step obvious.</p>
+      <div class="grid-3">
+        <div class="card"><h3>Regional Centers</h3><p>Eligibility, the 120-day clock, IPP meetings, respite, and appeals under the Lanterman Act.</p><a class="link" href="#/guides/regional-centers">Pillar guide →</a></div>
+        <div class="card"><h3>School &amp; IEPs</h3><p>Request an evaluation, IEP vs 504, what to sign, and the dispute ladder — with copy-paste letters.</p><a class="link" href="#/letters/iep-evaluation-request">Get the letter →</a></div>
+        <div class="card"><h3>Money &amp; benefits</h3><p>Medi-Cal regardless of income, IHSS protective supervision, SSI for children, CCS.</p><a class="link" href="#/guides/benefits/ihss-protective-supervision">Start here →</a></div>
+        <div class="card"><h3>Insurance &amp; therapies</h3><p>California's SB 946 ABA mandate, appealing denials, and the DMHC Independent Medical Review.</p><a class="link" href="#/guides">Browse guides →</a></div>
+        <div class="card"><h3>First steps (0–5)</h3><p>Early Start, getting an evaluation without the year-long wait, and the turning-three transition.</p><a class="link" href="#/start/autism">First 100 Days →</a></div>
+        <div class="card"><h3>Free tools</h3><p>The SSI deeming calculator, your Regional Center finder, and 12 template letters — no email required.</p><a class="link" href="#/tools/ssi-deeming-calculator">Try a tool →</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container">
+      <span class="eyebrow">Why Waypoint</span>
+      <h2>Other platforms tell you what to do. <span style="color:var(--teal-ink)">We do it.</span></h2>
+      <div class="grid-2" style="margin-top:20px">
+        <div class="card" style="border-left:4px solid var(--border)">
+          <h3 style="color:var(--ink-3)">Generic advice</h3>
+          <p>"You may want to consider requesting an assessment from your school district and following up with your regional center about available services."</p>
+        </div>
+        <div class="card" style="border-left:4px solid var(--teal)">
+          <h3 style="color:var(--teal-ink)">Waypoint</h3>
+          <p>A drafted assessment-request letter in your name, the 15-day clock it starts, the calendar reminder for day 16 — and the fallback script if the district stalls.</p>
+        </div>
+      </div>
+      <div class="empathy">
+        <span class="label">Built by a parent</span>
+        <p>"I'm Mike, father of two boys in Oakland. When my son needed services, I spent hundreds of hours navigating the system. I built Waypoint so no family has to do it alone."</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container narrow">
+      <div class="handoff">
+        <div><b>Three steps to clarity</b><span>Tell us about your child · see what they qualify for · get your step-by-step plan. Free to start.</span></div>
+        <a class="btn on-dark" href="#/" onclick="return false">Get started free</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<main data-route="/start/autism" id="page-start"><div class="page-hero"><div class="container"><span class="eyebrow">Just diagnosed · California</span><h1>Take a breath. You are not behind.</h1><p class="lede">This is often the hardest moment a family ever stands in — and there is a sequence that works. Below are your first 100 days, in order, with why each step unlocks the next. You don't have to do them all today. You just have to start one.</p></div></div><div class="section on-white"><div class="container narrow"><div class="progress-wrap"><div class="lbl"><span>Your first 100 days</span><span id="start-progress-label">0 of 9 started</span></div><div class="progress-track"><div class="progress-fill" id="start-progress-fill"></div></div></div><p style="font-size:.85rem;margin:6px 0 14px"><a href="#start-why">How Waypoint decided this order ↓</a></p><div class="phase-label">Days 0–30 · Get in every line at once</div><div class="check-item"><span class="box"></span><div class="txt"><b>Call your Regional Center and ask for an intake appointment</b><span>The evaluation is free, regardless of your income — that's the Lanterman Act <span class="cite">WIC §4500</span>. If your child is under 3, Early Start requires an eligibility decision within <b>45 days</b>; at 3 and older, within <b>120 days</b> of intake <span class="cite">WIC §4643</span>. This one call opens the path to respite and Medi-Cal. Not sure which of the 21 centers is yours? <a class="link" href="#/tools/regional-center-finder">Find your Regional Center →</a></span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Request a school evaluation — in writing, today</b><span>The moment your district receives a written request, a <b>15-calendar-day</b> clock starts for them to respond with an assessment plan <span class="cite">CA Ed Code §56321</span>. A phone call starts nothing; a letter starts everything. Use our ready-to-send version: <a class="link" href="#/letters/iep-evaluation-request">IEP evaluation request letter →</a></span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Ask your insurer whether ABA is covered</b><span>California's <b>SB 946</b> requires most fully-insured health plans to cover behavioral health treatment, including ABA. (Self-funded ERISA plans are exempt — ask which kind yours is.) If they say no, ask for the denial in writing: written denials can be appealed, all the way to an Independent Medical Review.</span></div></div><div class="phase-label">Days 31–60 · Build the paper trail</div><div class="check-item"><span class="box"></span><div class="txt"><b>Start a document binder</b><span>Every evaluation, letter, Notice of Action, and denial in one place, in date order. Systems respond to paper — the family with the organized record is the family that gets the faster yes, and the stronger appeal when the answer is no.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Apply for Medi-Cal through institutional deeming</b><span>A child with a developmental disability living at home can qualify for Medi-Cal with <b>parental income ignored</b>, via an HCBS waiver. Medi-Cal is the door to IHSS and more — your Regional Center service coordinator can help you start the application.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Find your people</b><span>Ask your Regional Center about parent support groups, and put your first respite request in writing while you're at it. Parents six months ahead of you on this road are the best map there is. (sample resources)</span></div></div><div class="phase-label">Days 61–100 · First meetings, prepared</div><div class="check-item"><span class="box"></span><div class="txt"><b>Prepare for your first IPP meeting</b><span>The Individual Program Plan <span class="cite">WIC §4646</span> is where Regional Center services actually get written down. Bring your goals in writing and ask for each one by name. If something is refused, request a written Notice of Action — that document is what carries your appeal rights.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Prepare for the IEP meeting</b><span>Read the evaluation before the meeting, not at the table. List what you want as measurable goals, ask how progress will be reported, and remember: you can take the IEP home to read before signing. You never have to decide in the room.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Breathe, then review</b><span>Look back over days 0–100: what's working, what's stalled, and which clock needs a written nudge. Then rest. The systems will still be there tomorrow — and now you know how to move them.</span></div></div><div class="plain-box" id="start-why"><b class="tag">Why this order</b>Every clock — Regional Center, school, insurance — runs independently, so days 0–30 start them all in parallel. Days 31–60 build the paper trail those systems will ask for. Days 61–100 walk into the first meetings prepared. That is the whole ladder — nothing hidden.</div><div class="empathy" id="start-cheer" hidden><span class="label">You did this</span><p>Two lines in the water already. Most families take months to get here — you're doing it in days.</p></div><div class="handoff"><div><b>Keep the momentum.</b><span>Check items here — they become your saved, deadline-tracked plan in Waypoint.</span></div><button class="btn on-dark" type="button">Save my plan →</button></div><div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div></div></div></main>
+<main data-route="/guides" id="page-guides">
+  <div class="page-hero"><div class="container">
+    <span class="eyebrow">The library</span>
+    <h1>Every system, mapped. Free, in plain language.</h1>
+    <p class="lede">Six pillars cover every system your family will touch — Regional Centers, school, money, insurance, and the first steps after a diagnosis. Every guide is written in plain language, cites the actual statute, and is searchable. Reviewed, updated, and free. No email gate. No paywall. Ever.</p>
+  </div></div>
+
+  <div class="section"><div class="container">
+    <span class="eyebrow">Six pillars</span>
+    <h2>Pick the system you're dealing with today</h2>
+    <p class="sub">Each pillar is a hub of deep-dive guides, tools, and ready-to-send letters. Start anywhere — they all connect.</p>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Regional Centers &amp; the Lanterman Act</h3>
+        <p>How California's 21 Regional Centers work, what "substantial disability" means under <span class="cite">WIC §4512</span>, the 120-day eligibility clock, building a strong IPP, and what to do when a Notice of Action arrives.</p>
+        <a class="link" href="#/guides/regional-centers">Start with the Regional Center guide →</a>
+      </div>
+      <div class="card">
+        <h3>School &amp; IEPs</h3>
+        <p>Requesting a special education evaluation in writing — the district has <b>15 calendar days</b> to respond with an assessment plan — plus the 60-day evaluation timeline and how to walk into an IEP meeting prepared.</p>
+        <a class="link" href="#/letters/iep-evaluation-request">Get the evaluation letter →</a>
+      </div>
+      <div class="card">
+        <h3>Money &amp; benefits</h3>
+        <p>IHSS protective supervision (up to 195 hours a month), SSI for children, and Medi-Cal institutional deeming — the path that can qualify your child at home while ignoring parental income.</p>
+        <a class="link" href="#/guides/benefits/ihss-protective-supervision">Read the IHSS protective supervision guide →</a>
+      </div>
+      <div class="card">
+        <h3>Insurance &amp; SB 946</h3>
+        <p>California's mandate for behavioral health treatment, including ABA — which plans it covers, why self-funded ERISA plans are exempt, and the appeal path from internal review to DMHC Independent Medical Review.</p>
+        <a class="link" href="#/guides">Pillar coming (prototype) →</a>
+      </div>
+      <div class="card">
+        <h3>First steps 0–5</h3>
+        <p>Early Start — with a <b>45-day</b> eligibility decision for children under 3 — the transition to preschool services at age 3, and the early moves that make everything later easier.</p>
+        <a class="link" href="#/start/autism">See the first-100-days plan →</a>
+      </div>
+      <div class="card">
+        <h3>Start here by diagnosis</h3>
+        <p>One checklist that sequences all of the above for your child's diagnosis — Regional Center intake, the school letter, benefits, insurance — starting with autism. More diagnoses are on the roadmap.</p>
+        <a class="link" href="#/start/autism">Start: autism →</a>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="section on-white"><div class="container">
+    <span class="eyebrow">Answers</span>
+    <h2>Fresh answers, every week</h2>
+    <p class="sub">Short, direct answers to the exact questions parents type at 2 a.m. Answer first, citation attached.</p>
+    <div class="grid-3">
+      <div class="card">
+        <h3>Does my child need SSI to get IHSS?</h3>
+        <p>No. IHSS requires <b>Medi-Cal, not SSI</b> — and there is more than one door into Medi-Cal, including one that ignores your income.</p>
+        <a class="link" href="#/answers/does-my-child-need-ssi-to-get-ihss">Read the answer →</a>
+      </div>
+      <div class="card">
+        <h3>How long can the Regional Center take to decide? (sample)</h3>
+        <p><b>120 days</b> from intake — <b>45 days</b> for children under 3 through Early Start. What to do while the clock runs, and if it runs out.</p>
+        <a class="link" href="#/guides/regional-centers">Read the guide →</a>
+      </div>
+      <div class="card">
+        <h3>Is a "verbal no" from the school a real denial? (sample)</h3>
+        <p>A hallway "we don't think testing is needed" starts nothing. A <b>written</b> evaluation request starts a 15-calendar-day clock for an assessment plan.</p>
+        <a class="link" href="#/letters/iep-evaluation-request">Send the letter that starts the clock →</a>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="section"><div class="container narrow">
+    <div class="handoff">
+      <div><b>Reading is step one. Doing is the app.</b><span>The Waypoint app turns these guides into your family's plan — deadlines tracked, letters drafted, next step always visible.</span></div>
+      <button class="btn on-dark" type="button">Create your free account →</button>
+    </div>
+    <div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div>
+  </div></div>
+</main>
+<main data-route="/guides/regional-centers" id="page-guide-rc">
+  <div class="section on-white">
+    <div class="container">
+      <div class="crumbs"><a href="#/guides">Guides</a> → Regional Centers</div>
+      <h1 class="h1-a">Regional Centers &amp; the Lanterman Act: the complete California parent's guide</h1>
+      <div class="trust-block"><span><span class="avatar">MB</span>By <b>Mike Beebe</b>, parent-founder</span><span><span class="avatar rev">✓</span>Reviewed by <b>[reviewer seat — recruiting]</b></span><span>Updated Sep 2026</span></div>
+      <div class="plain-box"><b class="tag">Plain-language summary</b> A Regional Center is a state-funded nonprofit that coordinates and pays for services for Californians with developmental disabilities — things like respite, therapies, and case management. Services are free to your family regardless of your income, because they're a right under California's Lanterman Act, not a benefit you have to be poor enough to receive.</div>
+
+      <div class="cols">
+        <article class="prose">
+
+          <h2 class="qa-h" id="what-is-a-regional-center">What is a Regional Center?</h2>
+          <div class="answer-first">Regional Centers are <b>21 private nonprofits funded by the State of California</b> to coordinate and fund services for people with developmental disabilities, under the Lanterman Act <span class="cite">WIC §4500 et seq.</span> Every Californian lives in exactly one Regional Center's territory, and <b>services are provided regardless of family income</b>.</div>
+          <p>Think of your Regional Center as two things at once: a <b>front door</b> and a <b>funder</b>. As a front door, it's where your child gets evaluated and, if eligible, assigned a service coordinator — a person whose job is to know your child's case and connect you to services. As a funder, it pays for or arranges services that aren't available through other systems: respite care, behavioral services, day programs, transportation, adaptive equipment, and more.</p>
+          <p>The Lanterman Act is unusual in American disability law. It doesn't say the state <i>may</i> help your child — it establishes services as an entitlement for people who qualify. That's why there's no income test, no waitlist-by-design, and no "we ran out of funding this year" as a lawful answer. When you hear a parent say "the Regional Center is paying for that," this is the system they're talking about.</p>
+          <p>Each of the 21 centers covers a specific geographic area. Which one serves you depends only on where you live — not where your child goes to school or gets medical care. If you're not sure which one is yours, our <a class="link" href="#/tools/regional-center-finder">Regional Center finder</a> will tell you in a few seconds.</p>
+
+          <h2 class="qa-h" id="is-my-child-eligible">Is my child eligible?</h2>
+          <div class="answer-first">For children 3 and older, eligibility requires a <b>developmental disability that began before age 18</b> and is a <b>"substantial disability"</b> — meaning significant functional limitations in <b>at least 3 of 7 major life areas</b> <span class="cite">WIC §4512</span>. Qualifying conditions include <b>autism, intellectual disability, cerebral palsy, and epilepsy</b>. Children <b>under 3</b> go through Early Start, which uses <b>broader criteria</b> — a diagnosis isn't required.</div>
+          <p>The seven life areas the Regional Center looks at are self-care, receptive and expressive language, learning, mobility, self-direction, capacity for independent living, and economic self-sufficiency. Your child doesn't need to struggle in all seven — significant limits in three or more is the standard. For a young child, evaluators consider what's expected at that age, so "economic self-sufficiency" isn't held against a 4-year-old.</p>
+          <p>The qualifying conditions are autism, intellectual disability, cerebral palsy, epilepsy, and "other conditions closely related to intellectual disability or requiring similar treatment." A diagnosis alone doesn't guarantee eligibility, and the absence of one of these exact labels doesn't automatically disqualify — the substantial-disability analysis is what matters. That fifth category exists precisely for children whose needs are real but whose diagnosis doesn't fit a neat box.</p>
+          <p>If your child is <b>under 3</b>, stop reading the fine print and call now. Early Start serves infants and toddlers with developmental delays or risk conditions using intentionally broader criteria than the over-3 standard, and the decision clock is faster — 45 days instead of 120 <span class="cite">WIC §4643</span>. Some children who qualify for Early Start won't qualify at age 3, and that's okay: two-plus years of early intervention is worth having either way.</p>
+
+          <h2 class="qa-h" id="how-do-i-apply">How do I apply — and how long can it take?</h2>
+          <div class="answer-first">Call your Regional Center's <b>intake line</b> and say: <i>"I'd like to request an intake and assessment for my child for Regional Center eligibility."</i> Once intake begins, the center must make an eligibility decision <b>within 120 days</b> — or <b>within 45 days</b> for a child under 3 going through Early Start <span class="cite">WIC §4643</span>. You do not need a doctor's referral, a lawyer, or a completed diagnosis to start.</div>
+          <p>That phone call is the whole secret to starting. Use the words "intake and assessment" — they're the formal trigger. The intake worker will ask about your child's development, your concerns, and your address (to confirm you're in their catchment area). Ask them to confirm, in writing if possible, the date your intake request was received: that's the date the clock starts.</p>
+          <p>Gather what you have, but don't wait until your folder is perfect: any diagnostic reports or medical records, school or daycare notes, IEP or IFSP documents if they exist, and your own written list of what your child struggles with day to day. The Regional Center will do its own assessments — psychological, developmental, adaptive — at no cost to you. Your job is to paint an honest picture of the hard days, not the best days.</p>
+          <div class="table-wrap"><table class="data">
+            <tr><th>Step</th><th>What happens</th><th>The clock</th></tr>
+            <tr><td>1. Intake call</td><td>You request intake and assessment; the center opens a file</td><td>Starts the decision clock <span class="cite">WIC §4643</span></td></tr>
+            <tr><td>2. Records &amp; interviews</td><td>You share records; intake worker interviews you about your child's development</td><td>Typically the first few weeks (sample)</td></tr>
+            <tr><td>3. Assessments</td><td>Center-funded evaluations (psychological, developmental, adaptive) at no cost to you</td><td>Inside the same decision window</td></tr>
+            <tr><td>4. Eligibility decision</td><td>Written decision: eligible, or a Notice of Action explaining a denial</td><td><b>120 days</b> from intake · <b>45 days</b> under age 3 (Early Start)</td></tr>
+            <tr><td>5. If eligible</td><td>Service coordinator assigned; first IPP meeting scheduled</td><td>IPP process begins <span class="cite">WIC §4646</span></td></tr>
+          </table></div>
+          <p>If the clock passes with no decision, you don't have to wait politely. Put it in writing: name the date intake began, cite <span class="cite">WIC §4643</span>, and ask for a decision date. Deadlines in this system are real, and centers respond to parents who know them.</p>
+
+          <div class="empathy"><span class="label">From a parent who's been there</span><p>"The intake call sat on my to-do list for six weeks. Making it felt like admitting something I wasn't ready to admit. Here's what I'd tell that earlier version of me: the call isn't a verdict on your child — it's a door. Ten minutes on the phone, and someone whose actual job is to help starts helping. It was the hardest first step, and it was just a phone call."</p></div>
+
+          <h2 class="qa-h" id="what-happens-at-the-ipp">What happens at the IPP meeting?</h2>
+          <div class="answer-first">The IPP — <b>Individual Program Plan</b> — is the written plan that drives everything the Regional Center funds for your child <span class="cite">WIC §4646</span>. It's built at a meeting between you and your service coordinator, and it's meant to be a <b>collaboration, not a presentation</b>. The key strategy: <b>services flow from goals</b>, so come with your child's goals — and your asks — in writing.</div>
+          <p>Here's the mechanic most parents learn too late: the Regional Center doesn't fund services in the abstract. It funds services that support written goals in the IPP. If the plan says "Mateo will communicate wants and needs using 3-word phrases," then speech services, a communication device, and parent coaching all have a hook to hang on. No goal, no hook. So before the meeting, write down what you want your child's life to look like in a year — then work backward to the supports that get there.</p>
+          <p>Bring a one-page list of your asks and hand it over at the start. Being in writing does two things: it keeps the meeting on your agenda, and it creates a record. If a request is declined, ask for the response in writing too — that's what triggers your appeal rights (more on that below). You can bring anyone you want for support: a family member, a friend, an advocate.</p>
+          <p>The IPP isn't carved in stone. You can request a new IPP meeting when circumstances change — a new diagnosis, a new school situation, a family crisis. You don't have to wait for the annual review to ask for more.</p>
+
+          <h2 class="qa-h" id="what-if-they-say-no">What if they say no?</h2>
+          <div class="answer-first">A denial — of eligibility or of a specific service — must come as a written <b>Notice of Action (NOA)</b> that explains the decision and your <b>appeal rights</b>. Appeal deadlines are short and strict — on the order of 30 days, and sooner if you want services to continue during the appeal (sample day-counts; verify the dates printed on your NOA). A "no" on the phone is not a decision. Ask for the NOA.</div>
+          <p>That last point deserves repeating, because it's where many families get stuck: an informal no — a coordinator saying "we don't fund that" or "your child probably won't qualify" — has no legal weight and starts no clock. Politely insist: <i>"Please send me that decision as a written Notice of Action."</i> The NOA is what converts a shrug into something you can appeal.</p>
+          <p>From the NOA, the path runs through an appeal to a <b>fair hearing</b> before an independent judge, usually with an optional informal meeting or mediation first — many disputes settle before a hearing ever happens. Read the deadlines printed on your own NOA carefully and calendar them the day it arrives: filing on time is what preserves your rights, and filing quickly can keep existing services in place while the appeal is decided (sample; confirm the exact windows on your notice).</p>
+          <p>You don't have to do this alone, and you don't have to pay anyone. The <b>Office of Clients' Rights Advocacy (OCRA)</b> — part of <b>Disability Rights California</b> — provides free advocates who know the Lanterman Act and handle Regional Center appeals for families like yours. Denials get reversed regularly, especially when a parent shows up with the statute, the record, and an advocate. A no today is often a not-yet.</p>
+
+          <div class="changelog"><b>Change log</b> · Sep 2026: Initial publication; statute citations added for WIC §4500, §4512, §4643, §4646 · (sample)</div>
+        </article>
+
+        <aside>
+          <div class="side-card toc-side"><b class="t">On this page</b><a href="#what-is-a-regional-center">What is a Regional Center?</a><a href="#is-my-child-eligible">Is my child eligible?</a><a href="#how-do-i-apply">How do I apply — and how long?</a><a href="#what-happens-at-the-ipp">What happens at the IPP meeting?</a><a href="#what-if-they-say-no">What if they say no?</a></div>
+          <div class="side-card"><b class="t">Quick facts</b><dl><dt>Regional Centers in CA</dt><dd>21 nonprofits, one per territory</dd><dt>Eligibility decision</dt><dd>120 days from intake · 45 days under age 3 <span class="cite">WIC §4643</span></dd><dt>Cost to your family</dt><dd>Free, at any income — it's the law <span class="cite">WIC §4500</span></dd></dl></div>
+          <div class="side-card"><b class="t">Find yours</b><p>Which of the 21 centers serves your address?</p><a class="link" href="#/tools/regional-center-finder">Regional Center finder →</a><p>In the East Bay?</p><a class="link" href="#/regional-centers/rceb">RCEB parent guide →</a></div>
+        </aside>
+      </div>
+
+      <div class="handoff"><div><b>Turn this guide into your child's action plan</b><span>Waypoint asks a few questions about your child, then builds your intake script, document checklist, and deadline tracker — free, instant, in English or Spanish.</span></div><button class="btn on-dark" type="button">Build my plan →</button></div>
+
+      <div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div>
+    </div>
+  </div>
+</main>
+<main data-route="/guides/benefits/ihss-protective-supervision" id="page-guide-ihss">
+  <div class="section on-white">
+    <div class="container">
+      <div class="crumbs"><a href="#/guides">Guides</a> → Money &amp; benefits → IHSS protective supervision</div>
+      <h1 class="h1-a">IHSS Protective Supervision: how California families qualify</h1>
+      <div class="trust-block"><span><span class="avatar">MB</span>By <b>Mike Beebe</b>, parent-founder</span><span><span class="avatar rev">✓</span>Reviewed by <b>[reviewer seat — recruiting]</b></span><span>Updated Sep 2026</span></div>
+      <div class="plain-box"><b class="tag">Plain-language summary</b> IHSS protective supervision can pay a parent for up to <b>195 hours a month</b> (283 if your child is severely impaired) to keep a child safe who needs constant supervision. You do <b>not</b> need to be low-income, and you do <b>not</b> need SSI. The key that opens the door is Medi-Cal — and a child with a developmental disability living at home can usually get Medi-Cal through <b>institutional deeming</b>, which ignores parental income.</div>
+
+      <div class="cols">
+        <article class="prose">
+          <h2 class="qa-h" id="what-is">What is protective supervision?</h2>
+          <div class="answer-first">Protective supervision is the part of In-Home Supportive Services (IHSS) that pays for someone — often you, the parent — to <b>observe a child who, because of a developmental disability, would put themselves in danger without it</b>. It is about the safety need, not chores. The rule lives at <span class="cite">MPP §30-757</span>.</div>
+          <p>Think of it as the state recognizing a specific kind of work: the constant, eyes-on vigilance a child needs when they cannot judge danger for themselves. A child who elopes out the front door, climbs to unsafe heights without hesitation, mouths inedible objects, or walks toward a busy street with no sense of risk needs someone watching — not sometimes, but all the time they are awake.</p>
+          <p>Two things the county is looking for: your child is <b>non-self-directing</b> — meaning that, compared with a typical child the same age, they cannot be trusted to keep themselves safe because of impaired judgment, memory, or awareness — and the need for observation is <b>constant</b>, not occasional. A typical five-year-old also needs supervision; protective supervision covers the supervision your child needs <b>beyond</b> what any child that age would need.</p>
+          <p>One important boundary: protective supervision is not for housework, meal prep, or medical procedures — IHSS has other service categories for personal care tasks. Protective supervision is the category that recognizes round-the-clock watchfulness as a service in itself.</p>
+
+          <h2 class="qa-h" id="ssi-myth">Does my child need SSI to get IHSS?</h2>
+          <div class="answer-first"><b>No.</b> IHSS requires <b>Medi-Cal, not SSI</b>. Nothing in <span class="cite">MPP §30-757</span> requires an SSI award. A child with a developmental disability who lives at home can qualify for Medi-Cal through <b>institutional deeming</b> — an HCBS waiver rule that ignores parental income entirely.</div>
+          <p>This is the single most repeated myth online, and it stops families before they start. Here is where it comes from: in California, an SSI award brings automatic Medi-Cal with it. So for many families, SSI happened first and Medi-Cal followed — and the internet quietly rewrote that sequence as a requirement. It never was one.</p>
+          <p>If your family income is too high for SSI, you have lost nothing. Ask your <a href="#/guides/regional-centers">Regional Center</a> service coordinator about institutional deeming for Medi-Cal, then apply for IHSS. We wrote a short, shareable version of this answer at <a href="#/answers/does-my-child-need-ssi-to-get-ihss">Does my child need SSI to get IHSS?</a> — and if you are curious whether SSI is on the table anyway, run the <a href="#/tools/ssi-deeming-calculator">SSI deeming calculator</a>.</p>
+
+          <h2 class="qa-h" id="apply">How do I apply, step by step?</h2>
+          <div class="answer-first">You apply through your <b>county IHSS office</b>, then submit two forms: <b>SOC 821</b> (the protective supervision assessment) and <b>SOC 873</b> (a health care certification signed by your child's physician). A county social worker then visits your home to assess need and awards hours — up to <b>195/month</b>, or <b>283/month</b> if your child is severely impaired.</div>
+          <div class="table-wrap"><table class="data">
+            <tr><th>Step</th><th>What happens</th><th>Notes</th></tr>
+            <tr><td>1. Confirm Medi-Cal</td><td>Your child needs active Medi-Cal. If parental income is the obstacle, ask about institutional deeming through the HCBS waiver — your Regional Center can help start it.</td><td>Parental income is ignored under deeming</td></tr>
+            <tr><td>2. Apply to your county IHSS office</td><td>Call or submit an application to the IHSS office in your county. Say clearly that you are requesting <b>protective supervision</b>.</td><td>Use those exact words — it routes the case correctly</td></tr>
+            <tr><td>3. Submit SOC 821 + SOC 873</td><td>SOC 821 is the protective supervision assessment; SOC 873 is the health care certification your child's physician signs.</td><td><span class="cite">MPP §30-757</span></td></tr>
+            <tr><td>4. Home assessment visit</td><td>A county social worker visits, observes your child, and asks about a typical day. Describe your hardest days honestly — not your best ones.</td><td>~30–45 days after applying (sample)</td></tr>
+            <tr><td>5. Hours awarded</td><td>You receive a written decision with the monthly hours granted and your appeal rights.</td><td>Up to 195 hrs/mo; 283 if severely impaired</td></tr>
+          </table></div>
+          <p>Before the home visit, start a supervision log — a simple notebook works. Each time you intervene to keep your child safe, write down the time and what happened. Two weeks of real entries tells the assessor more than an hour of conversation can.</p>
+
+          <h2 class="qa-h" id="appeal">What if the county low-balls the hours?</h2>
+          <div class="answer-first">You can push back, and families regularly win on appeal. <b>Request the county's assessment in writing</b>, then <b>appeal through a state hearing</b>. Your strongest evidence is a <b>supervision log</b> documenting a 24-hour need.</div>
+          <p>First, ask the county — in writing — for the assessment and hour calculations behind the decision. You are entitled to see how they arrived at the number, and the math often reveals the gap: an assessor who never saw a meltdown, a form that undercounted nighttime waking, a "typical day" that was actually your easiest one.</p>
+          <p>Second, file for a state hearing. The written notice that came with your hours states the deadline for appealing — calendar it the day the notice arrives. At the hearing you tell your child's story to someone outside the county office, with your documentation in hand.</p>
+          <p>Third, build the log. Specifics win hearings. For example: a two-week log with an entry for every safety intervention — "6:42am, blocked door, attempted to leave house" (sample); "1:15pm, removed non-food item from mouth" (sample); "3:05am, awake and climbing furniture" (sample). The pattern you live every day becomes evidence the moment you write it down.</p>
+
+          <div class="changelog"><b>Change log</b> · Jan 2026: Updated county wage table (sample) · Oct 2025: COLA refresh (sample)</div>
+        </article>
+        <aside>
+          <div class="side-card toc-side"><b class="t">On this page</b><a href="#what-is">What is protective supervision?</a><a href="#ssi-myth">Does my child need SSI?</a><a href="#apply">How to apply, step by step</a><a href="#appeal">If the county low-balls the hours</a></div>
+          <div class="side-card"><b class="t">Free letter</b><p>Need to put a request in writing? Start from our template letters — plain language, statute-cited, English and Spanish.</p><a class="link" href="#/letters/iep-evaluation-request">Template letters →</a></div>
+          <div class="side-card"><b class="t">Related tool</b><p>Wondering whether SSI is also worth pursuing? Estimate how parental income deeming affects eligibility.</p><a class="link" href="#/tools/ssi-deeming-calculator">SSI deeming calculator →</a></div>
+          <div class="side-card"><b class="t">Related answer</b><p>The short version of the biggest myth in this system, ready to share with another parent.</p><a class="link" href="#/answers/does-my-child-need-ssi-to-get-ihss">Does my child need SSI to get IHSS? →</a></div>
+        </aside>
+      </div>
+
+      <div class="empathy"><span class="label">WHY THIS MATTERS</span><p>You have been doing this job for free — the door alarms, the 3am checks, the hand you keep on a small shoulder in every parking lot. Protective supervision hours exist because the state recognizes what you already know: keeping your child safe is work. Applying is not asking for a favor. It is billing for a job you never once failed to show up for. You did this.</p></div>
+
+      <div class="handoff"><div><b>Ask Waypoint about your IHSS case</b><span>Free instant answers, 24/7, English and Spanish — with the statute citations to back them up.</span></div><button class="btn on-dark" type="button">Ask Waypoint →</button></div>
+
+      <div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div>
+    </div>
+  </div>
+</main>
+<main data-route="/answers/does-my-child-need-ssi-to-get-ihss" id="page-answers">
+  <div class="section on-white">
+    <div class="container narrow">
+      <div class="crumbs"><span>Answers</span> → Does my child need SSI to get IHSS?</div>
+      <h1 class="h1-a">Does my child need SSI to get IHSS?</h1>
+      <div class="answer-first"><b>No.</b> IHSS requires <b>Medi-Cal, not SSI</b> — there is no SSI requirement anywhere in the IHSS rules <span class="cite">MPP §30-757</span>. A child with a developmental disability who lives at home can qualify for Medi-Cal through <b>institutional deeming</b>, which ignores parental income entirely. Many families are wrongly told otherwise and give up before they apply.</div>
+      <p>The myth has an understandable origin: in California, an SSI award brings automatic Medi-Cal with it, so for many families SSI came first and Medi-Cal followed. Somewhere between the county office and the parent forums, that common sequence hardened into a fake requirement — and families denied SSI over parental income assumed IHSS was closed to them too. It is not.</p>
+      <p>What to do instead: get Medi-Cal in place via institutional deeming (your Regional Center service coordinator can help start it), then apply to your county IHSS office and request protective supervision. Our step-by-step guide walks the whole path: <a href="#/guides/benefits/ihss-protective-supervision">IHSS Protective Supervision: how California families qualify</a>. And if you want to know whether SSI is worth pursuing anyway, the <a href="#/tools/ssi-deeming-calculator">SSI deeming calculator</a> estimates how parental income deeming affects your child's eligibility.</p>
+
+      <span class="eyebrow">Keep going</span>
+      <h2>Related questions</h2>
+      <div class="grid-3">
+        <div class="card"><h3>How do families qualify for IHSS protective supervision?</h3><p>The full path — what protective supervision is, the SOC 821 and SOC 873 forms, the home visit, and how to appeal low-balled hours.</p><a class="link" href="#/guides/benefits/ihss-protective-supervision">Read the full guide →</a></div>
+        <div class="card"><h3>Can a parent be paid as their child's IHSS provider? (sample)</h3><p>Who can serve as the provider, how enrollment works, and what it means for your family. (sample)</p><span class="link" aria-disabled="true" style="opacity:.55">Coming soon</span></div>
+        <div class="card"><h3>Does Medi-Cal count our income if my child lives at home? (sample)</h3><p>How institutional deeming works and who to ask to start it. (sample)</p><span class="link" aria-disabled="true" style="opacity:.55">Coming soon</span></div>
+      </div>
+
+      <div class="handoff"><div><b>Have a follow-up question?</b><span>Waypoint answers instantly — free, 24/7, English and Spanish, with statute citations.</span></div><button class="btn on-dark" type="button">Ask Waypoint →</button></div>
+
+      <div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div>
+    </div>
+  </div>
+</main>
+<main data-route="/regional-centers/rceb" id="page-rceb">
+  <div class="section">
+    <div class="container">
+      <div class="crumbs"><a href="#/guides/regional-centers">Regional Centers</a> → East Bay</div>
+      <h1 class="h1-a">Regional Center of the East Bay (RCEB): a parent's field guide</h1>
+      <div class="notice">⚠ Waypoint is an independent guide — not affiliated with RCEB, DDS, or any government agency. Contacts verified as of Sep 2026 (sample).</div>
+      <div class="cols">
+        <article class="prose">
+          <div class="trust-block"><span><span class="avatar">MB</span>By <b>Mike Beebe</b>, parent-founder</span><span><span class="avatar rev">✓</span>Reviewed by <b>[reviewer seat — recruiting]</b></span><span>Updated Sep 2026</span></div>
+          <div class="answer-first">RCEB serves families in <b>Alameda and Contra Costa counties</b> — one of California's <b>21 regional centers</b> providing services under the Lanterman Act <span class="cite">WIC §4500 et seq.</span>, regardless of your income. Once intake begins, RCEB owes you an eligibility decision within <b>120 days</b> — or <b>45 days</b> if your child is under 3 and coming through Early Start <span class="cite">WIC §4643</span>. Write down the date of your first contact. The clock starts then.</div>
+
+          <h2 class="qa-h" id="intake">How does intake work at RCEB?</h2>
+          <p>You can start by <b>phone or online intake form</b> (sample — see the notice above about contact verification). Either way, the process runs the same. A formal diagnosis helps but is <b>not required to start</b> — eligibility turns on "substantial disability," meaning significant functional limits in <b>3 or more of 7 life areas</b> <span class="cite">WIC §4512</span>.</p>
+          <ol>
+            <li><b>Contact intake and say your child's age.</b> Under 3 routes to Early Start and the faster 45-day clock; 3 and over goes through standard Lanterman intake.</li>
+            <li><b>Gather what you have</b> — pediatrician notes, any evaluations or diagnosis reports, IEP or preschool records, insurance card. Missing pieces should not delay your request.</li>
+            <li><b>Do the intake interview.</b> Describe a hard day, not your child's best day. Assessors need the real picture of functional limits.</li>
+            <li><b>Note the deadline.</b> The eligibility decision is due within 120 days of intake — 45 under age 3 <span class="cite">WIC §4643</span>. Put it on your calendar the day you first call.</li>
+            <li><b>Get the decision in writing.</b> If eligible, planning moves to your child's IPP <span class="cite">WIC §4646</span>. If denied, you must receive a written <b>Notice of Action (NOA)</b> with your appeal rights.</li>
+          </ol>
+
+          <h2 class="qa-h" id="local">What do families report locally?</h2>
+          <div class="answer-first">Regional centers vary — in first offers, in spending patterns, in how often families have to push. Waypoint tracks the local picture so you can tell a normal offer from a lowball. Every figure below is illustrative <b>(sample)</b> pending our data build-out.</div>
+          <div class="table-wrap">
+            <table class="data">
+              <tr><th>Local signal</th><th>What it means for you</th></tr>
+              <tr><td><b>Typical respite baseline</b> (sample)</td><td>Parents compare starting respite-hour offers across all 21 regional centers. Knowing the statewide range tells you whether RCEB's first offer is in the normal band — or worth pushing back on. (sample)</td></tr>
+              <tr><td><b>Purchase-of-service data</b> (sample)</td><td>DDS publishes per-capita purchase-of-service spending each year, and it varies by age and ethnicity. Bringing the public numbers to your IPP meeting changes the conversation. (sample)</td></tr>
+              <tr><td><b>If you're denied</b></td><td>Denials must arrive as a written Notice of Action (NOA) listing your appeal routes and deadlines. Waypoint walks each route and gives you a template letter — see the appeal guide below.</td></tr>
+            </table>
+          </div>
+
+          <h2 class="qa-h" id="rceb-appeal">How do I appeal an RCEB decision?</h2>
+          <div class="answer-first">Every denial or service reduction comes with a written <b>Notice of Action</b> — and the NOA is your appeal ticket, not the end of the road. Deadlines are short, so act on the date printed on the notice. Disagreements about the IPP itself also have a resolution path <span class="cite">WIC §4646</span>.</div>
+          <p>The appeal process is the same at all 21 regional centers, so we keep the full walkthrough — routes, timelines, and what to say at each stage — in one place.</p>
+          <p><a class="link" href="#/guides/regional-centers">Read the full Regional Center guide, including appeals →</a></p>
+          <div class="changelog"><b>Change log</b> · Sep 2026: Page created; local data rows marked (sample) pending DDS data integration. · (sample)</div>
+        </article>
+        <aside>
+          <div class="side-card">
+            <b class="t">RCEB AT A GLANCE</b>
+            <dl>
+              <dt>Counties</dt><dd>Alameda · Contra Costa</dd>
+              <dt>Intake</dt><dd>Phone + online form (sample)</dd>
+              <dt>Eligibility clock</dt><dd>120 days · 45 under 3</dd>
+              <dt>Board meetings</dt><dd>Public — you can comment</dd>
+              <dt>Nearby</dt><dd>Golden Gate RC · San Andreas RC</dd>
+            </dl>
+          </div>
+          <div class="side-card">
+            <b class="t">NOT YOUR REGIONAL CENTER?</b>
+            <p>California has 21. Enter your county or city and we'll point you to the right one.</p>
+            <a class="link" href="#/tools/regional-center-finder">Find your regional center →</a>
+          </div>
+        </aside>
+      </div>
+      <div class="handoff"><div><b>Getting ready for RCEB intake?</b><span>Ask Waypoint's AI anything about your situation — free, 24/7, English and Spanish, with statute citations. No email gate.</span></div><button class="btn on-dark" type="button">Ask Waypoint free →</button></div>
+      <div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div>
+    </div>
+  </div>
+</main>
+<main data-route="/letters/iep-evaluation-request" id="page-letters"><div class="section on-white"><div class="container narrow"><div class="crumbs"><a href="#/guides">Guides</a> → Letters → IEP evaluation request</div><h1 class="h1-a">Request an IEP evaluation: the letter that starts the clock</h1><div class="trust-block"><span><span class="avatar">MB</span>By <b>Mike Beebe</b>, parent-founder</span><span><span class="avatar rev">✓</span>Reviewed by <b>[reviewer seat — recruiting]</b></span><span>Updated Sep 2026</span></div><div class="answer-first">Once your district <b>receives a written request</b> for a special education evaluation, it has <b>15 calendar days</b> to respond with an assessment plan — and <b>60 days after your signed consent</b> to complete the evaluation <span class="cite">CA Ed Code §56321</span>. Email the letter below to the principal <b>and</b> the district's special-education director, and keep a dated copy: the clock starts on receipt, not on a phone call.</div><div class="deadline">⏱ Assessment plan due within <b>15 calendar days</b> of your written request (school breaks over 5 school days pause the clock) · evaluation and IEP meeting within <b>60 days</b> of your signed consent <span class="cite">Ed Code §56321 · §56344</span></div><div class="letter-toolbar"><div class="seg"><button class="active" data-lang="en" type="button">English</button><button data-lang="es" type="button">Español</button></div><button class="btn sm ghost" id="letter-copy" type="button">Copy letter</button></div><div class="letter-paper" id="letter-en"><p><span class="fill">[Date]</span></p><p>Dear <span class="fill">[Principal's name]</span> and <span class="fill">[Special-education director's name]</span>,</p><p>I am the parent of <span class="fill">[Child's full name]</span> (date of birth <span class="fill">[DOB]</span>), a <span class="fill">[grade]</span> student at <span class="fill">[School name]</span>. I am writing to formally request a comprehensive special education evaluation of my child in <b>all areas of suspected disability</b>, including <span class="fill">[brief summary of your concerns — e.g., communication, social interaction, attention, sensory needs]</span>.</p><p>I understand that under California Education Code §56321, the district must respond to this written request with a proposed assessment plan within <b>15 calendar days</b>, and complete the evaluation within <b>60 days</b> of receiving my signed consent. Please treat this letter as the start of that timeline.</p><p>Kindly send your written response and the assessment plan to me at the contact information below. I consent to being contacted to schedule any meetings, and I am glad to share records or observations that would help your team.</p><p>Thank you for partnering with me in my child's education.</p><p>Sincerely,<br><span class="fill">[Your full name]</span><br><span class="fill">[Address · phone · email]</span></p></div><div class="letter-paper" id="letter-es" hidden><p><span class="fill">[Fecha]</span></p><p>Estimado/a <span class="fill">[Nombre del director/a]</span> y <span class="fill">[Nombre del director/a de educación especial]</span>:</p><p>Soy madre/padre de <span class="fill">[Nombre completo del niño/a]</span> (fecha de nacimiento: <span class="fill">[fecha]</span>), estudiante de <span class="fill">[grado]</span> en <span class="fill">[Nombre de la escuela]</span>. Por medio de la presente solicito formalmente una evaluación integral de educación especial para mi hijo/a en <b>todas las áreas de posible discapacidad</b>, incluyendo <span class="fill">[resumen breve de sus preocupaciones — p. ej., comunicación, interacción social, atención, necesidades sensoriales]</span>.</p><p>Entiendo que, conforme al Código de Educación de California §56321, el distrito debe responder a esta solicitud escrita con un plan de evaluación propuesto dentro de <b>15 días calendario</b>, y completar la evaluación dentro de <b>60 días</b> a partir de mi consentimiento firmado. Les pido que consideren esta carta como el inicio de ese plazo.</p><p>Por favor envíenme su respuesta por escrito, junto con el plan de evaluación, a los datos de contacto indicados abajo. Doy mi consentimiento para que me contacten para programar cualquier reunión, y con gusto compartiré expedientes u observaciones que puedan ayudar a su equipo.</p><p>Gracias por colaborar conmigo en la educación de mi hijo/a.</p><p>Atentamente,<br><span class="fill">[Su nombre completo]</span><br><span class="fill">[Dirección · teléfono · correo electrónico]</span></p></div><h2 class="qa-h">After you send it</h2><ol><li><b>Calendar day 15.</b> If no assessment plan has arrived by then, follow up in writing and reference your original letter's date — the district's response deadline is 15 calendar days, not business days <span class="cite">CA Ed Code §56321</span>.</li><li><b>Sign the assessment plan promptly when it arrives.</b> The 60-day evaluation clock starts at your signed consent, not at your request — the sooner you sign, the sooner it runs.</li><li><b>Check the plan's scope.</b> The evaluation must cover <b>all areas of suspected disability</b> — if a concern you raised isn't listed, ask in writing for it to be added before you sign.</li></ol><div class="handoff"><div><b>Want it personalized and tracked?</b><span>Waypoint drafts this letter in your name, calendars the 15- and 60-day deadlines, and follows up so nothing slips.</span></div><button class="btn on-dark" type="button">Draft mine in Waypoint →</button></div><div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review. Sample letter — review and adapt before sending.</div></div></div></main>
+<main data-route="/pricing" id="page-pricing">
+  <div class="page-hero"><div class="container">
+    <span class="eyebrow">Pricing</span>
+    <h1>Free to start. Honest when you need more.</h1>
+    <p class="lede">Everything on this site — every guide, tool, and letter — stays free forever. The app is where Waypoint goes from telling you what to do to doing it with you: tracking deadlines, drafting letters, keeping the plan. That part is what you pay for.</p>
+  </div></div>
+
+  <div class="section"><div class="container">
+    <div class="price-grid">
+      <div class="price-card">
+        <span class="plan">FREE</span>
+        <div class="amount">$0</div>
+        <ul>
+          <li>Limited AI Navigator questions</li>
+          <li>Instant eligibility results</li>
+          <li>All guides, tools, and letters</li>
+          <li>English + Spanish, full parity</li>
+          <li>No credit card, no email gate</li>
+        </ul>
+        <button class="btn" type="button">Start free</button>
+      </div>
+      <div class="price-card featured">
+        <span class="badge-featured">Most families</span>
+        <span class="plan">PLUS</span>
+        <div class="amount">$9.99<small>/mo</small></div>
+        <ul>
+          <li>Unlimited AI Navigator, 24/7</li>
+          <li>Document vault for every report and NOA</li>
+          <li>Deadline alerts before clocks run out</li>
+          <li>Expense tracker</li>
+          <li>IEP meeting prep</li>
+          <li>Or $89.99 billed yearly</li>
+        </ul>
+        <button class="btn" type="button">Start Plus →</button>
+      </div>
+      <div class="price-card">
+        <span class="plan">PRO</span>
+        <div class="amount">$19.99<small>/mo</small></div>
+        <ul>
+          <li>Everything in Plus</li>
+          <li>Appeal &amp; letter generation</li>
+          <li>Multi-child support</li>
+          <li>Priority AI</li>
+          <li>Or $179.99 billed yearly</li>
+        </ul>
+        <button class="btn" type="button">Start Pro →</button>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="section on-white"><div class="container narrow">
+    <span class="eyebrow">Comparison</span>
+    <h2>How we compare</h2>
+    <p class="sub">You deserve a straight answer on where your money goes. Here is Waypoint Plus next to the closest alternative.</p>
+    <div class="table-wrap"><table class="data">
+      <tr><th></th><th>Waypoint Plus</th><th>Undivided membership</th></tr>
+      <tr><td>Price</td><td><b>$9.99/mo</b> ($89.99/yr)</td><td>$19/mo ($149/yr)</td></tr>
+      <tr><td>AI access</td><td><b>24/7 — including on the free tier</b></td><td>Behind the paywall</td></tr>
+      <tr><td>Free content gates</td><td><b>Zero</b> — every guide and letter is open</td><td>Lead magnets require name, email, phone</td></tr>
+      <tr><td>Human navigators</td><td>No — software plus your real-life team</td><td>Yes — 2 navigator video sessions</td></tr>
+      <tr><td>Languages</td><td><b>English + Spanish, full parity</b></td><td>3 Spanish PDFs</td></tr>
+    </table></div>
+    <div class="notice">⚠ Competitor details as observed Sept 5, 2026 — verify before publishing.</div>
+
+    <h2 class="qa-h">Why is Waypoint so much cheaper?</h2>
+    <div class="answer-first">Because Waypoint is a <b>software platform, not a consulting firm</b>. Human navigators are wonderful — and expensive, and available by appointment. We put the money into an AI that knows the Lanterman Act, IDEA, Medi-Cal, and SSI, answers at 2 a.m., and works in English and Spanish equally. <b>Other platforms tell you what to do. We do it.</b></div>
+    <p>That economic choice is also a philosophical one. When guidance depends on scheduling a human, it gets rationed. When it's software, it can be unlimited, instant, and cheap enough that no family has to choose between answers and groceries. And the parts a human truly should do — sitting across the IEP table, knowing your child — belong to you and your real-life team, not to a subscription.</p>
+  </div></div>
+
+  <div class="section"><div class="container narrow">
+    <div class="handoff">
+      <div><b>Start free. Upgrade only if it earns it.</b><span>Ask your first questions, run the eligibility tools, and see the plan Waypoint builds — before you pay a cent.</span></div>
+      <button class="btn on-dark" type="button">Create your free account →</button>
+    </div>
+    <div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div>
+  </div></div>
+</main>
+<main data-route="/about" id="page-about">
+  <div class="page-hero"><div class="container">
+    <span class="eyebrow">HOW WAYPOINT EARNS TRUST</span>
+    <h1>Verifiable, or it doesn't publish.</h1>
+    <p class="lede">You're making decisions about your child's services based on what you read here. So every page names its author and its reviewer, cites the statute behind every claim, carries a change log on every dollar figure, and corrects its mistakes in public. If a page can't meet that bar, it doesn't go up.</p>
+  </div></div>
+
+  <div class="section">
+    <div class="container">
+      <span class="eyebrow">THE REVIEW BOARD</span>
+      <h2>The people behind the pages</h2>
+      <p class="sub">Two of these three seats are still being recruited — and we show them empty on purpose. You deserve to know exactly who has, and who hasn't, checked a page yet.</p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Mike Beebe</h3>
+          <p><b>Parent-founder · Oakland, CA · Author.</b> Writes the first draft of every guide from lived experience navigating Regional Centers, IEPs, and Medi-Cal for his own family. Experience is his credential — and the only one he claims. Legal and benefits accuracy is the reviewers' job, and pages say so until those seats are filled.</p>
+        </div>
+        <div class="card">
+          <h3>[Reviewer seat — recruiting]</h3>
+          <p><b>Special-education attorney.</b> Will review every IEP, IDEA, and Ed Code page before it sheds its "pending expert review" label. Until this seat is filled, those pages carry the label right at the top — no pretending.</p>
+        </div>
+        <div class="card">
+          <h3>[Reviewer seat — recruiting]</h3>
+          <p><b>Benefits advocate / former service coordinator.</b> Will review Regional Center, IHSS, Medi-Cal, and SSI content — the pages where a wrong sentence can cost a family real money. Someone who has sat on the agency side of the table, checking our work from yours.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container narrow">
+      <span class="eyebrow">EDITORIAL POLICY</span>
+      <h2>How a page gets published</h2>
+      <article class="prose">
+        <h3 id="ai-disclosure">AI-assisted drafting, disclosed</h3>
+        <p>Waypoint drafts with AI assistance, and we say so — here and on the pages themselves. AI makes us faster. It does not get a byline, and it never gets the last word.</p>
+        <h3 id="human-review">Two humans before publish</h3>
+        <p>Every page gets a founder edit, then credentialed review. Nothing that touches your money, your child's services, or your legal rights publishes unreviewed. While reviewer seats are being recruited, affected pages carry a visible "pending expert review" label instead of a borrowed air of authority.</p>
+        <h3 id="citations">Every claim cites a primary source</h3>
+        <p>Statute, regulation, or an official agency publication — the way you've seen <span class="cite">WIC §4643</span> and <span class="cite">CA Ed Code §56321</span> chips across this site. If we can't cite it, we cut it. That standard exists so you can hand any Waypoint page to a service coordinator or an attorney and have it hold up.</p>
+        <h3 id="change-logs">Dollar figures get dates and change logs</h3>
+        <p>Benefit amounts, income limits, and hour caps change. Any page carrying a dollar figure or a rate shows its last-updated date and a visible change log, so you can see what changed, and when, before you rely on it.</p>
+        <h3 id="corrections">Corrections are public</h3>
+        <p>When we get something wrong, we fix the page, record the correction in its change log, and leave the record up. Quiet edits erode trust. Corrections, made where everyone can see them, build it.</p>
+      </article>
+    </div>
+  </div>
+
+  <div class="section on-cream">
+    <div class="container narrow">
+      <span class="eyebrow">ACCESSIBILITY</span>
+      <h2>Built to be usable by the people it's for</h2>
+      <article class="prose">
+        <p>Waypoint's audience includes disabled parents and disabled young people. A site about disability rights that fails with a screen reader, a switch, or a magnifier would be a contradiction in terms — so this site has to lead by example.</p>
+        <p>We commit to <b>WCAG 2.2 AA</b> and audit against it. Where we fall short, that's a bug, and we'd like you to file it like one: send accessibility feedback through the feedback link on any page. Those reports go to the top of the queue.</p>
+      </article>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container narrow">
+      <span class="eyebrow">A NOTE ON SAFETY</span>
+      <h2>Before anything else</h2>
+      <article class="prose">
+        <p>If you're in crisis while navigating all of this — or you're not sure, which is reason enough — <b>call or text 988</b>, the Suicide &amp; Crisis Lifeline. It's free, 24/7, in English and Spanish. Waypoint is a guide, not an emergency service.</p>
+      </article>
+      <div class="empathy"><span class="label">TO THE PARENT READING AT 2 A.M.</span><p>Caregiver burnout is not a character flaw. It's the predictable result of doing a caseworker's job, a nurse's job, and a parent's job at once — unpaid, untrained, and usually unthanked. Getting help, for your child and for yourself, isn't stepping away from the fight. It's how you stay in it. You found this page. You're still going. That counts.</p></div>
+      <div class="handoff"><div><b>See the receipts for yourself</b><span>Every answer in the Waypoint app carries the same statute citations you see on this site. Free, instant, no email gate.</span></div><button class="btn on-dark" type="button">Try Waypoint free →</button></div>
+      <div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div>
+    </div>
+  </div>
+</main>
+
+<!-- ===================== TOOL: SSI DEEMING CALCULATOR ===================== -->
+<main data-route="/tools/ssi-deeming-calculator" id="page-calc">
+  <div class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Free tool · no email · nothing you type is stored</span>
+      <h1>Could your child qualify for SSI? Run the deeming math.</h1>
+      <p class="lede">A quick estimate of parent-to-child "deeming" — the math Social Security uses to decide whether a child with a disability qualifies for SSI while living at home.</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="container">
+      <div class="cols">
+        <div class="tool-panel">
+          <div class="field">
+            <label for="c-parents">Parents in the household</label>
+            <select id="c-parents"><option value="2">Two parents</option><option value="1">One parent</option></select>
+          </div>
+          <div class="field">
+            <label for="c-kids">Other children in the household (without disabilities)</label>
+            <select id="c-kids"><option>0</option><option selected>1</option><option>2</option><option>3</option><option>4</option></select>
+            <div class="hint">Each gets a living allocation before deeming.</div>
+          </div>
+          <div class="field">
+            <label for="c-earned">Parents' monthly gross earned income</label>
+            <input id="c-earned" type="number" inputmode="numeric" min="0" step="50" value="6200">
+            <div class="hint">Wages before taxes, both parents combined.</div>
+          </div>
+          <div class="field">
+            <label for="c-unearned">Monthly unearned income</label>
+            <input id="c-unearned" type="number" inputmode="numeric" min="0" step="50" value="0">
+            <div class="hint">Unemployment, child support received, etc.</div>
+          </div>
+          <button class="btn" id="c-run" type="button">Estimate eligibility</button>
+        </div>
+        <div>
+          <div class="result-panel" aria-live="polite">
+            <span class="r-label">Estimated monthly SSI</span>
+            <span class="r-big" id="c-result">$—</span>
+            <div class="r-rows" id="c-breakdown"></div>
+            <p class="r-note" id="c-note">Enter your numbers and press <b>Estimate eligibility</b>.</p>
+            <div class="r-save">Save this estimate &amp; track your application in a free Waypoint account →</div>
+          </div>
+          <div class="notice" style="margin-top:14px">Estimate only, using <b>2025 federal figures</b> (FBR $967) and simplified prototype math — the real rules have more moving parts (in-kind support, state supplement, income types). Not a benefits determination.</div>
+        </div>
+      </div>
+      <article class="prose" style="margin-top:34px">
+        <h2 class="qa-h">How the deeming math works</h2>
+        <div class="answer-first">Social Security starts with your income, subtracts a <b>living allocation for each non-disabled child</b>, subtracts a <b>parental living allowance</b>, applies the standard <b>$20 general and $65 earned-income exclusions</b>, halves the remaining earned income, and "deems" what's left to your child. If the deemed amount is below the federal benefit rate, your child may qualify for a partial or full benefit. <span class="cite">SSA deeming rules</span></div>
+        <p><strong>Two things families miss:</strong> a child denied SSI for income can still get <a href="#/guides/benefits/ihss-protective-supervision">Medi-Cal through institutional deeming</a>, which ignores parental income entirely — and SSI comes with Medi-Cal automatically in California.</p>
+        <div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample math pending expert review.</div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<!-- ===================== TOOL: RC FINDER ===================== -->
+<main data-route="/tools/regional-center-finder" id="page-finder">
+  <div class="page-hero">
+    <div class="container">
+      <span class="eyebrow">Free tool · no email</span>
+      <h1>Find your Regional Center</h1>
+      <p class="lede">California has 21 Regional Centers, each serving specific counties. Pick your county — we'll tell you who serves your family and how the intake clock works.</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="container">
+      <div class="cols">
+        <div class="tool-panel">
+          <div class="field">
+            <label for="f-county">Your county</label>
+            <select id="f-county"></select>
+          </div>
+          <button class="btn" id="f-run" type="button">Find my Regional Center</button>
+          <div class="hint" style="margin-top:10px;font-size:.78rem;color:var(--ink-3)">In Los Angeles County, seven Regional Centers divide the map by neighborhood — the full site resolves this by ZIP code.</div>
+        </div>
+        <div>
+          <div class="result-panel" aria-live="polite">
+            <span class="r-label">Your Regional Center</span>
+            <span class="r-big" id="f-result" style="font-size:1.5rem">Select your county</span>
+            <p class="r-note" id="f-note">Every Regional Center must decide eligibility within <b>120 days</b> of intake — <b>45 days</b> for children under 3 through Early Start.</p>
+            <div class="r-save">See intake steps, local respite norms &amp; appeal routes on the center's page →</div>
+          </div>
+        </div>
+      </div>
+      <article class="prose" style="margin-top:30px">
+        <div class="answer-first">Regional Centers are 21 state-funded nonprofits that coordinate services for Californians with developmental disabilities under the <b>Lanterman Act</b>. Services are provided regardless of income — eligibility is about your child's disability, not your paycheck. <span class="cite">WIC §4500 et seq.</span></div>
+        <p><a href="#/regional-centers/rceb">See a sample Regional Center profile →</a></p>
+        <div class="disclaimer">Prototype: county mapping is illustrative sample data pending verification.</div>
+      </article>
+    </div>
+  </div>
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="#/" style="margin-bottom:10px">
+          <svg width="34" height="26" viewBox="0 0 62 48" aria-hidden="true">
+            <rect x="24" y="35.4" width="26" height="4.4" rx="2.2" fill="#0E9E6E"/>
+            <circle cx="54" cy="37.6" r="5.6" fill="#0E9E6E"/>
+            <path d="M22 44 C 22 44 6 28.2 6 18.2 C 6 9.25 13.16 2 22 2 C 30.84 2 38 9.25 38 18.2 C 38 28.2 22 44 22 44 Z" fill="#FFFFFF"/>
+            <circle cx="22" cy="17.6" r="6.3" fill="#0F766E"/>
+          </svg>
+          <span class="word" style="color:#fff">WAYPOINT</span>
+        </a>
+        <p style="font-size:.82rem;max-width:34ch;margin:8px 0 0">Your child's unexpected journey. Every step, mapped. Built with ❤️ by a parent in Oakland, CA.</p>
+      </div>
+      <div>
+        <b>Learn</b>
+        <a href="#/guides">Guides</a>
+        <a href="#/start/autism">Start here</a>
+        <a href="#/answers/does-my-child-need-ssi-to-get-ihss">Answers</a>
+        <a href="#/regional-centers/rceb">Regional Centers</a>
+      </div>
+      <div>
+        <b>Do</b>
+        <a href="#/tools/ssi-deeming-calculator">SSI calculator</a>
+        <a href="#/tools/regional-center-finder">RC finder</a>
+        <a href="#/letters/iep-evaluation-request">Template letters</a>
+        <a href="#/pricing">Pricing</a>
+      </div>
+      <div>
+        <b>Trust</b>
+        <a href="#/about">About &amp; review board</a>
+        <a href="#/about">Editorial policy</a>
+        <a href="#/about">Accessibility</a>
+        <a href="#/about">Privacy &amp; terms</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Waypoint · Informational only — not legal, medical, or benefits advice.</span>
+      <span>Not affiliated with DDS, any Regional Center, CDE, DHCS, or SSA.</span>
+      <span>En español · Feeling overwhelmed? Call or text <b style="color:#E2EEE7">988</b>.</span>
+    </div>
+  </div>
+</footer>
+
+<div class="proto-badge">Prototype · sample copy pending expert review</div>
+
+<script>
+/* ============ hash router ============ */
+(function () {
+  var pages = document.querySelectorAll('[data-route]');
+  var navMap = {
+    '/start/autism': 'start',
+    '/guides': 'guides', '/guides/regional-centers': 'guides',
+    '/guides/benefits/ihss-protective-supervision': 'guides',
+    '/answers/does-my-child-need-ssi-to-get-ihss': 'guides',
+    '/tools/ssi-deeming-calculator': 'tools', '/tools/regional-center-finder': 'tools',
+    '/letters/iep-evaluation-request': 'tools',
+    '/regional-centers/rceb': 'rc',
+    '/pricing': 'pricing'
+  };
+  function route() {
+    var h = location.hash.replace(/^#/, '') || '/';
+    var found = false;
+    pages.forEach(function (p) {
+      var match = p.getAttribute('data-route') === h;
+      p.classList.toggle('visible', match);
+      if (match) found = true;
+    });
+    if (!found) {
+      pages.forEach(function (p) { p.classList.toggle('visible', p.getAttribute('data-route') === '/'); });
+      h = '/';
+    }
+    document.querySelectorAll('[data-nav]').forEach(function (a) {
+      a.classList.toggle('active', a.getAttribute('data-nav') === navMap[h]);
+    });
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+  route();
+})();
+
+/* ============ SSI deeming calculator (2025 figures, simplified) ============ */
+(function () {
+  var FBR_IND = 967, FBR_CPL = 1450;
+  var CHILD_ALLOC = FBR_CPL - FBR_IND; /* $483 per non-disabled child */
+  var btn = document.getElementById('c-run');
+  if (!btn) return;
+  function money(n) { return '$' + Math.max(0, Math.round(n)).toLocaleString(); }
+  btn.addEventListener('click', function () {
+    var parents = +document.getElementById('c-parents').value;
+    var kids = +document.getElementById('c-kids').value;
+    var earned = +document.getElementById('c-earned').value || 0;
+    var unearned = +document.getElementById('c-unearned').value || 0;
+    var alloc = kids * CHILD_ALLOC;
+    /* allocations reduce unearned first, then earned */
+    var u = Math.max(0, unearned - alloc);
+    var e = Math.max(0, earned - Math.max(0, alloc - unearned));
+    var remaining = Math.max(0, u - 20);
+    var genLeft = u >= 20 ? 0 : 20 - u;
+    var eCount = Math.max(0, (Math.max(0, e - genLeft - 65)) / 2);
+    var totalCount = remaining + eCount;
+    var living = parents === 2 ? FBR_CPL : FBR_IND;
+    var deemed = Math.max(0, totalCount - living);
+    var ssi = Math.max(0, FBR_IND - deemed);
+    document.getElementById('c-result').textContent = ssi > 0 ? '≈ ' + money(ssi) + ' / mo' : '$0 — over limit';
+    document.getElementById('c-breakdown').innerHTML =
+      '<div><span>Child allocations (' + kids + ' × $' + CHILD_ALLOC + ')</span><b>−' + money(alloc) + '</b></div>' +
+      '<div><span>Countable income after exclusions</span><b>' + money(totalCount) + '</b></div>' +
+      '<div><span>Parental living allowance</span><b>−' + money(living) + '</b></div>' +
+      '<div><span>Deemed to your child</span><b>' + money(deemed) + '</b></div>';
+    document.getElementById('c-note').innerHTML = ssi > 0
+      ? 'Your child may qualify for SSI — which in California also brings <b>automatic Medi-Cal</b>. Worth applying.'
+      : 'Income looks over the SSI limit — but your child can likely still get <b>Medi-Cal through institutional deeming</b>, which ignores parental income. See the guide.';
+  });
+})();
+
+/* ============ Regional Center finder ============ */
+(function () {
+  var MAP = {
+    'Alameda': 'Regional Center of the East Bay (RCEB)',
+    'Contra Costa': 'Regional Center of the East Bay (RCEB)',
+    'San Francisco': 'Golden Gate Regional Center',
+    'Marin': 'Golden Gate Regional Center',
+    'San Mateo': 'Golden Gate Regional Center',
+    'Santa Clara': 'San Andreas Regional Center',
+    'Santa Cruz': 'San Andreas Regional Center',
+    'Monterey': 'San Andreas Regional Center',
+    'San Benito': 'San Andreas Regional Center',
+    'Sacramento': 'Alta California Regional Center',
+    'Fresno': 'Central Valley Regional Center',
+    'Kern': 'Kern Regional Center',
+    'Orange': 'Regional Center of Orange County',
+    'San Diego': 'San Diego Regional Center',
+    'Imperial': 'San Diego Regional Center',
+    'Riverside': 'Inland Regional Center',
+    'San Bernardino': 'Inland Regional Center',
+    'Ventura': 'Tri-Counties Regional Center',
+    'Santa Barbara': 'Tri-Counties Regional Center',
+    'San Luis Obispo': 'Tri-Counties Regional Center',
+    'San Joaquin': 'Valley Mountain Regional Center',
+    'Stanislaus': 'Valley Mountain Regional Center',
+    'Napa': 'North Bay Regional Center',
+    'Sonoma': 'North Bay Regional Center',
+    'Solano': 'North Bay Regional Center',
+    'Humboldt': 'Redwood Coast Regional Center',
+    'Mendocino': 'Redwood Coast Regional Center',
+    'Shasta': 'Far Northern Regional Center',
+    'Butte': 'Far Northern Regional Center',
+    'Los Angeles': 'LA-7'
+  };
+  var sel = document.getElementById('f-county');
+  if (!sel) return;
+  Object.keys(MAP).sort().forEach(function (c) {
+    var o = document.createElement('option'); o.textContent = c; sel.appendChild(o);
+  });
+  sel.value = 'Alameda';
+  document.getElementById('f-run').addEventListener('click', function () {
+    var c = sel.value, rc = MAP[c];
+    var out = document.getElementById('f-result');
+    var note = document.getElementById('f-note');
+    if (rc === 'LA-7') {
+      out.textContent = 'One of 7 LA-area centers';
+      note.innerHTML = 'Los Angeles County is served by <b>seven</b> Regional Centers (North LA County, San Gabriel/Pomona, Eastern LA, Frank D. Lanterman, Westside, South Central LA, Harbor) — your neighborhood decides. The full site resolves this by ZIP.';
+    } else {
+      out.textContent = rc;
+      note.innerHTML = rc + ' serves ' + c + ' County. Eligibility decision within <b>120 days</b> of intake — <b>45 days</b> under age 3.';
+    }
+  });
+})();
+
+/* ============ start-page checklist ============ */
+function wireChecklist() {
+  var items = document.querySelectorAll('#page-start .check-item');
+  if (!items.length) return;
+  function update() {
+    var done = document.querySelectorAll('#page-start .check-item.done').length;
+    var pct = Math.round(done / items.length * 100);
+    var fill = document.getElementById('start-progress-fill');
+    var lbl = document.getElementById('start-progress-label');
+    if (fill) fill.style.width = pct + '%';
+    if (lbl) lbl.textContent = done + ' of ' + items.length + ' started';
+    var cheer = document.getElementById('start-cheer');
+    if (cheer) cheer.hidden = done < 2;
+  }
+  items.forEach(function (it) {
+    it.setAttribute('role', 'checkbox');
+    it.setAttribute('tabindex', '0');
+    it.setAttribute('aria-checked', 'false');
+    function toggle() {
+      it.classList.toggle('done');
+      var on = it.classList.contains('done');
+      it.setAttribute('aria-checked', on ? 'true' : 'false');
+      it.querySelector('.box').textContent = on ? '✓' : '';
+      update();
+    }
+    it.addEventListener('click', toggle);
+    it.addEventListener('keydown', function (e) {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); }
+    });
+  });
+  update();
+}
+
+/* ============ letters: language toggle + copy ============ */
+function wireLetters() {
+  var seg = document.querySelectorAll('#page-letters .seg button');
+  if (!seg.length) return;
+  seg.forEach(function (b) {
+    b.addEventListener('click', function () {
+      seg.forEach(function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      var lang = b.getAttribute('data-lang');
+      document.getElementById('letter-en').hidden = lang !== 'en';
+      document.getElementById('letter-es').hidden = lang !== 'es';
+    });
+  });
+  var copyBtn = document.getElementById('letter-copy');
+  if (copyBtn) copyBtn.addEventListener('click', function () {
+    var visible = document.getElementById('letter-en').hidden ? 'letter-es' : 'letter-en';
+    var text = document.getElementById(visible).innerText;
+    function ok() { copyBtn.textContent = 'Copied ✓'; setTimeout(function () { copyBtn.textContent = 'Copy letter'; }, 1600); }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(ok, ok); } else { ok(); }
+  });
+}
+document.addEventListener('DOMContentLoaded', function () { wireChecklist(); wireLetters(); });
+</script>
+</body>
+</html>

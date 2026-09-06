@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import DateInput from '@/components/DateInput';
 import type { Action, ActionCategory, ActionPriority, ActionStep } from '@/types/database';
+import { PRIORITY_META, PRIORITY_ORDER, priorityLabel } from '@/lib/actionMeta';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 const CATEGORIES: Array<{ value: ActionCategory; label: string; emoji: string }> = [
@@ -32,12 +33,13 @@ const CATEGORIES: Array<{ value: ActionCategory; label: string; emoji: string }>
   { value: 'general', label: 'General', emoji: '📋' },
 ];
 
-const PRIORITIES: Array<{ value: ActionPriority; label: string; color: string }> = [
-  { value: 'urgent', label: 'Urgent', color: '#DC2626' },
-  { value: 'high', label: 'High', color: '#EA580C' },
-  { value: 'medium', label: 'Medium', color: '#2563EB' },
-  { value: 'low', label: 'Low', color: '#64748B' },
-];
+/** The one priority table — labels and colours shared with both screens. */
+const PRIORITIES: Array<{ value: ActionPriority; label: string; color: string }> =
+  PRIORITY_ORDER.map((value) => ({
+    value,
+    label: priorityLabel(value),
+    color: PRIORITY_META[value].color,
+  }));
 
 export interface ActionFormValues {
   title: string;

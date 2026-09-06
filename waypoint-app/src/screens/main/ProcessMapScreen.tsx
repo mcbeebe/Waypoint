@@ -28,6 +28,7 @@ import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { Action } from '@/types/database';
 import { useI18n } from '@/i18n';
+import { statusLabel, type ActionLocale } from '@/lib/actionMeta';
 import { useToast } from '@/components/Toast';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
@@ -46,7 +47,6 @@ const STRINGS: Record<FunnelLocale, {
   trust: string;
   yourChild: string;
   inPlan: string;
-  statusLabel: Record<Action['status'], string>;
   ippHaveTitle: string;
   ippHaveBody: string;
   ippUpload: string;
@@ -78,12 +78,6 @@ const STRINGS: Record<FunnelLocale, {
       'Every deadline above cites the statute it comes from. When a step has no legal deadline, we say so — and give you the lever that creates one.',
     yourChild: 'your child',
     inPlan: 'IN YOUR PLAN',
-    statusLabel: {
-      not_started: 'To do',
-      in_progress: 'In progress',
-      completed: 'Done ✓',
-      dismissed: 'Dismissed',
-    },
     ippHaveTitle: 'Do you already have an IPP?',
     ippHaveBody:
       "It's a document titled \"Individual Program Plan,\" written at a meeting with your Service Coordinator (at least yearly). If you've never seen one, your coordinator has it — and you're entitled to a copy.",
@@ -117,12 +111,6 @@ const STRINGS: Record<FunnelLocale, {
       'Cada plazo de arriba cita el estatuto del que proviene. Cuando un paso no tiene plazo legal, se lo decimos — y le damos la herramienta que crea uno.',
     yourChild: 'su hijo/a',
     inPlan: 'EN SU PLAN',
-    statusLabel: {
-      not_started: 'Pendiente',
-      in_progress: 'En curso',
-      completed: 'Hecho ✓',
-      dismissed: 'Descartado',
-    },
     ippHaveTitle: '¿Ya tiene un IPP?',
     ippHaveBody:
       'Es un documento titulado "Plan de Programa Individual", escrito en una reunión con su coordinador/a de servicios (al menos una vez al año). Si nunca lo ha visto, su coordinador/a lo tiene — y usted tiene derecho a una copia.',
@@ -156,12 +144,6 @@ const STRINGS: Record<FunnelLocale, {
       'Mỗi thời hạn ở trên đều trích dẫn điều luật gốc. Khi một bước không có thời hạn pháp lý, chúng tôi nói rõ — và đưa quý vị công cụ để tạo ra một thời hạn.',
     yourChild: 'con quý vị',
     inPlan: 'TRONG KẾ HOẠCH CỦA QUÝ VỊ',
-    statusLabel: {
-      not_started: 'Chưa làm',
-      in_progress: 'Đang làm',
-      completed: 'Xong ✓',
-      dismissed: 'Đã bỏ qua',
-    },
     ippHaveTitle: 'Quý vị đã có IPP chưa?',
     ippHaveBody:
       'Đó là tài liệu có tên "Individual Program Plan" (Kế hoạch Chương trình Cá nhân), được lập trong cuộc họp với điều phối viên dịch vụ (ít nhất mỗi năm một lần). Nếu quý vị chưa từng thấy, điều phối viên đang giữ nó — và quý vị có quyền nhận một bản sao.',
@@ -195,6 +177,7 @@ export default function ProcessMapScreen() {
   const [saving, setSaving] = useState(false);
   const { locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
+  const metaLocale: ActionLocale = funnelLocale;
   const S = STRINGS[funnelLocale];
   const rcStages =
     system === 'school' ? getSchoolStages(funnelLocale) : getRcStages(funnelLocale);
@@ -275,7 +258,12 @@ export default function ProcessMapScreen() {
               ]}
             />
             <Text style={styles.planLinkTitle} numberOfLines={1}>{a.title}</Text>
-            <Text style={styles.planLinkStatus}>{S.statusLabel[a.status]} ›</Text>
+            {/* From `actionMeta`, the one status table. This screen kept a
+                fourth copy that said "To do" where the plan says "To Do",
+                "Pendiente" where it says "Por hacer", and "Chưa làm" where
+                it says "Cần làm" — the same step, two words, depending on
+                which tab a parent was looking at. */}
+            <Text style={styles.planLinkStatus}>{statusLabel(a.status, metaLocale)} ›</Text>
           </Pressable>
         ))}
       </View>
