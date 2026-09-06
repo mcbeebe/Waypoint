@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Waypoint Marketing Site Prototype</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Hanken+Grotesk:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
 <style>
   /* ============================================================
      WAYPOINT MARKETING SITE — working prototype
@@ -39,9 +39,10 @@
     --sage-ink: #047857;
     --sage-soft: #E7F5EE;
     --amber-soft: #FDF3E3;
-    --amber-ink: #92610A;
+    --amber-ink: #B45309;
+    --amber-border: #F3DFB6;
     --cite-bg: #E6F1EF;
-    --cite-ink: #115E56;
+    --cite-ink: #6D6555;
     --shadow: 0 1px 2px rgba(60,45,25,.06), 0 8px 28px rgba(60,45,25,.07);
   }
   * { box-sizing: border-box; }
@@ -69,7 +70,7 @@
   .topnav .row { display: flex; align-items: center; gap: 22px; padding: 12px 24px; max-width: 1160px; margin: 0 auto; flex-wrap: wrap; }
   .logo { display: flex; align-items: center; gap: 9px; text-decoration: none; }
   .logo svg { display: block; }
-  .logo .word { font-weight: 800; letter-spacing: .06em; color: var(--navy); font-size: 17px; }
+  .logo .word { font-weight: 800; letter-spacing: .1em; color: var(--navy); font-size: 17px; }
   .topnav nav { display: flex; gap: 20px; flex-wrap: wrap; }
   .topnav nav a {
     color: var(--ink-2); text-decoration: none; font-size: 14.5px; font-weight: 500;
@@ -84,16 +85,22 @@
   /* ---------- buttons ---------- */
   .btn {
     display: inline-block; background: var(--teal); color: #FFFFFF; text-decoration: none;
-    font-weight: 700; font-size: 15px; border: none; border-radius: 10px;
+    font-weight: 700; font-size: 15px; border: none; border-radius: 12px;
     padding: 11px 20px; cursor: pointer; font-family: inherit;
   }
   .btn:hover { background: var(--teal-deep); }
   .btn.sm { font-size: 13px; padding: 8px 14px; }
-  .btn.ghost { background: transparent; color: var(--teal-ink); border: 1.5px solid #BFDCD6; }
+  .btn.ghost { background: transparent; color: var(--teal-ink); border: 1.5px solid var(--teal); }
   .btn.ghost:hover { background: var(--mint); }
   .btn.on-dark { background: #FFFFFF; color: var(--navy); }
-  .btn.on-dark:hover { background: #E8F5F3; }
+  .btn.on-dark:hover { background: var(--mint); }
   .btn.ghost-dark { background: rgba(255,255,255,.12); color: #EEF6F1; border: 1.5px solid rgba(255,255,255,.35); }
+  .btn:not(.on-dark):not(.ghost):not(.ghost-dark):active { background: var(--teal-deep); }
+  .btn.ghost:active { background: var(--mint-border); }
+  .btn.on-dark:active { background: #DCEEE9; }
+  .btn.ghost-dark:active { background: rgba(255,255,255,.22); }
+  .seg button:not(.active):active { background: var(--mint-border); }
+  .check-item:active { background: var(--mint); }
 
   /* ---------- hero ---------- */
   .hero {
@@ -113,9 +120,9 @@
   .stat span { font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; color: #9FC5B9; }
 
   /* page hero (interior pages) */
-  .page-hero { background: linear-gradient(165deg, #22303A 0%, #123F39 60%, #0F766E 150%); color: #EEF6F1; padding: 44px 0 36px; }
-  .page-hero h1 { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: clamp(1.7rem, 4vw, 2.4rem); color: #fff; margin: 10px 0 6px; }
-  .page-hero .lede { color: #D3E7DE; max-width: 62ch; margin: 6px 0 0; }
+  .page-hero { background: var(--cream); color: var(--ink-2); border-bottom: 1px solid var(--border); padding: 44px 0 36px; }
+  .page-hero h1 { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: clamp(1.7rem, 4vw, 2.4rem); color: var(--ink); margin: 10px 0 6px; }
+  .page-hero .lede { color: var(--ink-2); max-width: 62ch; margin: 6px 0 0; }
 
   .trustband { background: var(--surface); border-bottom: 1px solid var(--border); }
   .trustband .container { display: flex; flex-wrap: wrap; gap: 10px 34px; padding-top: 13px; padding-bottom: 13px; font-size: 13.5px; color: var(--ink-2); font-weight: 500; }
@@ -133,7 +140,7 @@
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 800px) { .grid-3 { grid-template-columns: 1fr; } .grid-2 { grid-template-columns: 1fr; } }
   .card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
     padding: 20px 22px; box-shadow: var(--shadow);
   }
   .card h3 { font-size: 1.05rem; margin: 0 0 6px; }
@@ -143,7 +150,7 @@
 
   /* human layer — cream + coral, used sparingly for emotional moments */
   .empathy {
-    background: var(--cream); border: 1px solid var(--cream-border); border-radius: 14px;
+    background: var(--cream); border: 1px solid var(--cream-border); border-radius: 16px;
     padding: 20px 24px; margin: 22px 0;
   }
   .empathy .label { font-size: .68rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; color: var(--sage-ink); display: block; margin-bottom: 6px; }
@@ -168,12 +175,12 @@
   .avatar.rev { background: var(--teal-ink); }
   .plain-box {
     background: var(--mint); border: 1px solid var(--mint-border); border-radius: 12px;
-    padding: 16px 20px; margin: 18px 0; color: #134E4A; font-size: 1rem;
+    padding: 16px 20px; margin: 18px 0; color: var(--teal-deep); font-size: 1rem;
   }
   .plain-box b.tag { display: block; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--teal-deep); margin-bottom: 5px; }
   .qa-h { font-size: 1.25rem; font-weight: 700; color: var(--navy); margin: 30px 0 8px; font-family: "Hanken Grotesk", sans-serif; }
   .answer-first {
-    background: var(--surface); border-left: 4px solid var(--teal); border-radius: 0 10px 10px 0;
+    background: var(--surface); border-left: 4px solid var(--teal); border-radius: 0 12px 12px 0;
     padding: 14px 18px; margin: 10px 0 16px; color: var(--ink-2);
   }
   .answer-first b { color: var(--ink); }
@@ -187,14 +194,18 @@
   table.data th { background: var(--paper); text-align: left; font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3); padding: 10px 14px; border-bottom: 1px solid var(--border); }
   table.data td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
   table.data tr:last-child td { border-bottom: none; }
-  .changelog { font-size: .82rem; color: var(--ink-3); background: var(--surface); border: 1px dashed var(--border); border-radius: 10px; padding: 10px 14px; margin: 16px 0; }
+  .changelog { font-size: .82rem; color: var(--ink-3); background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 10px 14px; margin: 16px 0; }
   .changelog b { color: var(--ink-2); }
   .notice {
-    background: var(--amber-soft); border: 1px solid #F3DFB6; color: var(--amber-ink);
-    border-radius: 10px; padding: 11px 15px; font-size: .88rem; margin: 14px 0;
+    background: var(--amber-soft); border: 1px solid var(--amber-border); color: var(--amber-ink);
+    border-radius: 12px; padding: 11px 15px; font-size: .88rem; margin: 14px 0;
+  }
+  .deadline {
+    background: var(--amber-soft); border: 1px solid var(--amber-border); color: var(--amber-ink);
+    border-radius: 12px; padding: 11px 15px; font-size: .88rem; font-weight: 600; margin: 14px 0;
   }
   .handoff {
-    background: linear-gradient(135deg, #115E56, #0F766E); border-radius: 14px;
+    background: var(--teal); border-radius: 16px;
     color: #EEF6F1; padding: 20px 24px; margin: 26px 0 8px;
     display: flex; flex-wrap: wrap; align-items: center; gap: 14px; justify-content: space-between;
   }
@@ -223,20 +234,20 @@
     display: flex; gap: 14px; align-items: flex-start; padding: 13px 16px; margin-bottom: 8px;
     background: var(--surface); border: 1px solid var(--border); border-radius: 12px; cursor: pointer;
   }
-  .check-item:hover { border-color: #BFDCD6; }
+  .check-item:hover { border-color: var(--mint-border); }
   .check-item .box {
     width: 20px; height: 20px; border: 2px solid var(--teal); border-radius: 6px; flex: none; margin-top: 2px;
     display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 13px;
     background: transparent; transition: background .12s;
   }
-  .check-item.done .box { background: var(--teal); }
+  .check-item.done .box { background: var(--sage); border-color: var(--sage); }
   .check-item.done .txt { opacity: .62; }
   .check-item .txt b { color: var(--ink); display: block; font-size: .95rem; }
   .check-item .txt span { font-size: .85rem; color: var(--ink-2); }
   .progress-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin: 18px 0; }
   .progress-wrap .lbl { display: flex; justify-content: space-between; font-size: .82rem; color: var(--ink-2); margin-bottom: 8px; }
-  .progress-track { height: 10px; border-radius: 5px; background: var(--paper); overflow: hidden; border: 1px solid var(--border); }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--sage)); width: 0%; transition: width .25s; }
+  .progress-track { height: 8px; border-radius: 8px; background: var(--sage-soft); overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--sage); width: 0%; transition: width .25s; }
 
   /* ---------- tools ---------- */
   .tool-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 26px; box-shadow: var(--shadow); }
@@ -244,22 +255,22 @@
   .field label { display: block; font-size: .8rem; font-weight: 700; color: var(--ink); margin-bottom: 5px; }
   .field .hint { font-size: .76rem; color: var(--ink-3); margin-top: 3px; }
   .field input, .field select {
-    width: 100%; border: 1.5px solid var(--border); border-radius: 10px; background: #FFFFFF;
+    width: 100%; border: 1.5px solid var(--border); border-radius: 12px; background: #FFFFFF;
     padding: 10px 12px; font-size: .95rem; font-family: inherit; color: var(--ink);
   }
-  .field input:focus, .field select:focus { border-color: var(--teal); outline: none; }
-  .result-panel { background: var(--navy); border-radius: 14px; color: #EEF6F1; padding: 22px 24px; }
-  .result-panel .r-label { font-size: .68rem; letter-spacing: .13em; text-transform: uppercase; color: #9FC5B9; }
-  .result-panel .r-big { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 2.3rem; color: #A9EFE0; line-height: 1.15; font-variant-numeric: tabular-nums; }
-  .result-panel .r-note { font-size: .84rem; color: #D3E7DE; margin-top: 8px; }
-  .result-panel .r-save { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.2); font-size: .88rem; color: #D3E7DE; }
+  .field input:focus, .field select:focus { border-color: var(--teal); }
+  .result-panel { background: var(--surface); border: 2px solid var(--teal); border-radius: 16px; color: var(--ink-2); padding: 22px 24px; }
+  .result-panel .r-label { font-size: .68rem; letter-spacing: .13em; text-transform: uppercase; color: var(--teal-ink); }
+  .result-panel .r-big { font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 2.3rem; color: var(--ink); line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .result-panel .r-note { font-size: .84rem; color: var(--ink-2); margin-top: 8px; }
+  .result-panel .r-save { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: .88rem; color: var(--ink-2); }
   .r-rows { margin: 12px 0 0; font-size: .84rem; }
-  .r-rows div { display: flex; justify-content: space-between; gap: 18px; padding: 3px 0; color: #D3E7DE; }
-  .r-rows div b { color: #EEF6F1; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .r-rows div { display: flex; justify-content: space-between; gap: 18px; padding: 3px 0; color: var(--ink-2); }
+  .r-rows div b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 500; }
 
   /* ---------- letters ---------- */
   .letter-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 16px 0; }
-  .seg { display: inline-flex; border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
+  .seg { display: inline-flex; border: 1.5px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); }
   .seg button { border: none; background: transparent; padding: 8px 16px; font-family: inherit; font-size: .88rem; font-weight: 600; color: var(--ink-2); cursor: pointer; }
   .seg button.active { background: var(--teal); color: #fff; }
   .letter-paper {
@@ -282,7 +293,7 @@
   .price-card li:last-child { border-bottom: none; }
   .price-card li::before { content: "✓  "; color: var(--sage-ink); font-weight: 700; }
   .price-card .btn { margin-top: auto; text-align: center; }
-  .badge-featured { position: absolute; top: -12px; left: 24px; background: var(--teal); color: #fff; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; border-radius: 999px; padding: 3px 12px; }
+  .badge-featured { position: absolute; top: -12px; left: 24px; background: var(--mint); color: var(--teal-deep); border: 1px solid var(--mint-border); font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; border-radius: 999px; padding: 3px 12px; }
 
   /* ---------- footer ---------- */
   .site-footer { background: var(--navy); color: #A7B8B0; margin-top: 64px; }
@@ -409,10 +420,10 @@
   </div>
 </main>
 
-<main data-route="/start/autism" id="page-start"><div class="page-hero"><div class="container"><span class="eyebrow" style="color:#9FE8DB">Just diagnosed · California</span><h1>Take a breath. You are not behind.</h1><p class="lede">This is often the hardest moment a family ever stands in — and there is a sequence that works. Below are your first 100 days, in order, with why each step unlocks the next. You don't have to do them all today. You just have to start one.</p></div></div><div class="section on-white"><div class="container narrow"><div class="progress-wrap"><div class="lbl"><span>Your first 100 days</span><span id="start-progress-label">0 started</span></div><div class="progress-track"><div class="progress-fill" id="start-progress-fill"></div></div></div><div class="phase-label">Days 0–30 · Get in every line at once</div><div class="check-item"><span class="box"></span><div class="txt"><b>Call your Regional Center and ask for an intake appointment</b><span>The evaluation is free, regardless of your income — that's the Lanterman Act <span class="cite">WIC §4500</span>. If your child is under 3, Early Start requires an eligibility decision within <b>45 days</b>; at 3 and older, within <b>120 days</b> of intake <span class="cite">WIC §4643</span>. This one call opens the path to respite and Medi-Cal. Not sure which of the 21 centers is yours? <a class="link" href="#/tools/regional-center-finder">Find your Regional Center →</a></span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Request a school evaluation — in writing, today</b><span>The moment your district receives a written request, a <b>15-calendar-day</b> clock starts for them to respond with an assessment plan <span class="cite">CA Ed Code §56043</span>. A phone call starts nothing; a letter starts everything. Use our ready-to-send version: <a class="link" href="#/letters/iep-evaluation-request">IEP evaluation request letter →</a></span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Ask your insurer whether ABA is covered</b><span>California's <b>SB 946</b> requires most fully-insured health plans to cover behavioral health treatment, including ABA. (Self-funded ERISA plans are exempt — ask which kind yours is.) If they say no, ask for the denial in writing: written denials can be appealed, all the way to an Independent Medical Review.</span></div></div><div class="phase-label">Days 31–60 · Build the paper trail</div><div class="check-item"><span class="box"></span><div class="txt"><b>Start a document binder</b><span>Every evaluation, letter, Notice of Action, and denial in one place, in date order. Systems respond to paper — the family with the organized record is the family that gets the faster yes, and the stronger appeal when the answer is no.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Apply for Medi-Cal through institutional deeming</b><span>A child with a developmental disability living at home can qualify for Medi-Cal with <b>parental income ignored</b>, via an HCBS waiver. Medi-Cal is the door to IHSS and more — your Regional Center service coordinator can help you start the application.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Find your people</b><span>Ask your Regional Center about parent support groups, and put your first respite request in writing while you're at it. Parents six months ahead of you on this road are the best map there is. (sample resources)</span></div></div><div class="phase-label">Days 61–100 · First meetings, prepared</div><div class="check-item"><span class="box"></span><div class="txt"><b>Prepare for your first IPP meeting</b><span>The Individual Program Plan <span class="cite">WIC §4646</span> is where Regional Center services actually get written down. Bring your goals in writing and ask for each one by name. If something is refused, request a written Notice of Action — that document is what carries your appeal rights.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Prepare for the IEP meeting</b><span>Read the evaluation before the meeting, not at the table. List what you want as measurable goals, ask how progress will be reported, and remember: you can take the IEP home to read before signing. You never have to decide in the room.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Breathe, then review</b><span>Look back over days 0–100: what's working, what's stalled, and which clock needs a written nudge. Then rest. The systems will still be there tomorrow — and now you know how to move them.</span></div></div><div class="empathy" id="start-cheer" hidden><span class="label">You did this</span><p>Two lines in the water already. Most families take months to get here — you're doing it in days.</p></div><div class="handoff"><div><b>Keep the momentum.</b><span>Check items here — they become your saved, deadline-tracked plan in Waypoint.</span></div><button class="btn on-dark" type="button">Save my plan →</button></div><div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div></div></div></main>
+<main data-route="/start/autism" id="page-start"><div class="page-hero"><div class="container"><span class="eyebrow">Just diagnosed · California</span><h1>Take a breath. You are not behind.</h1><p class="lede">This is often the hardest moment a family ever stands in — and there is a sequence that works. Below are your first 100 days, in order, with why each step unlocks the next. You don't have to do them all today. You just have to start one.</p></div></div><div class="section on-white"><div class="container narrow"><div class="progress-wrap"><div class="lbl"><span>Your first 100 days</span><span id="start-progress-label">0 of 9 started</span></div><div class="progress-track"><div class="progress-fill" id="start-progress-fill"></div></div></div><p style="font-size:.85rem;margin:6px 0 14px"><a href="#start-why">How Waypoint decided this order ↓</a></p><div class="phase-label">Days 0–30 · Get in every line at once</div><div class="check-item"><span class="box"></span><div class="txt"><b>Call your Regional Center and ask for an intake appointment</b><span>The evaluation is free, regardless of your income — that's the Lanterman Act <span class="cite">WIC §4500</span>. If your child is under 3, Early Start requires an eligibility decision within <b>45 days</b>; at 3 and older, within <b>120 days</b> of intake <span class="cite">WIC §4643</span>. This one call opens the path to respite and Medi-Cal. Not sure which of the 21 centers is yours? <a class="link" href="#/tools/regional-center-finder">Find your Regional Center →</a></span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Request a school evaluation — in writing, today</b><span>The moment your district receives a written request, a <b>15-calendar-day</b> clock starts for them to respond with an assessment plan <span class="cite">CA Ed Code §56321</span>. A phone call starts nothing; a letter starts everything. Use our ready-to-send version: <a class="link" href="#/letters/iep-evaluation-request">IEP evaluation request letter →</a></span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Ask your insurer whether ABA is covered</b><span>California's <b>SB 946</b> requires most fully-insured health plans to cover behavioral health treatment, including ABA. (Self-funded ERISA plans are exempt — ask which kind yours is.) If they say no, ask for the denial in writing: written denials can be appealed, all the way to an Independent Medical Review.</span></div></div><div class="phase-label">Days 31–60 · Build the paper trail</div><div class="check-item"><span class="box"></span><div class="txt"><b>Start a document binder</b><span>Every evaluation, letter, Notice of Action, and denial in one place, in date order. Systems respond to paper — the family with the organized record is the family that gets the faster yes, and the stronger appeal when the answer is no.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Apply for Medi-Cal through institutional deeming</b><span>A child with a developmental disability living at home can qualify for Medi-Cal with <b>parental income ignored</b>, via an HCBS waiver. Medi-Cal is the door to IHSS and more — your Regional Center service coordinator can help you start the application.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Find your people</b><span>Ask your Regional Center about parent support groups, and put your first respite request in writing while you're at it. Parents six months ahead of you on this road are the best map there is. (sample resources)</span></div></div><div class="phase-label">Days 61–100 · First meetings, prepared</div><div class="check-item"><span class="box"></span><div class="txt"><b>Prepare for your first IPP meeting</b><span>The Individual Program Plan <span class="cite">WIC §4646</span> is where Regional Center services actually get written down. Bring your goals in writing and ask for each one by name. If something is refused, request a written Notice of Action — that document is what carries your appeal rights.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Prepare for the IEP meeting</b><span>Read the evaluation before the meeting, not at the table. List what you want as measurable goals, ask how progress will be reported, and remember: you can take the IEP home to read before signing. You never have to decide in the room.</span></div></div><div class="check-item"><span class="box"></span><div class="txt"><b>Breathe, then review</b><span>Look back over days 0–100: what's working, what's stalled, and which clock needs a written nudge. Then rest. The systems will still be there tomorrow — and now you know how to move them.</span></div></div><div class="plain-box" id="start-why"><b class="tag">Why this order</b>Every clock — Regional Center, school, insurance — runs independently, so days 0–30 start them all in parallel. Days 31–60 build the paper trail those systems will ask for. Days 61–100 walk into the first meetings prepared. That is the whole ladder — nothing hidden.</div><div class="empathy" id="start-cheer" hidden><span class="label">You did this</span><p>Two lines in the water already. Most families take months to get here — you're doing it in days.</p></div><div class="handoff"><div><b>Keep the momentum.</b><span>Check items here — they become your saved, deadline-tracked plan in Waypoint.</span></div><button class="btn on-dark" type="button">Save my plan →</button></div><div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review.</div></div></div></main>
 <main data-route="/guides" id="page-guides">
   <div class="page-hero"><div class="container">
-    <span class="eyebrow" style="color:#9FE8DB">The library</span>
+    <span class="eyebrow">The library</span>
     <h1>Every system, mapped. Free, in plain language.</h1>
     <p class="lede">Six pillars cover every system your family will touch — Regional Centers, school, money, insurance, and the first steps after a diagnosis. Every guide is written in plain language, cites the actual statute, and is searchable. Reviewed, updated, and free. No email gate. No paywall. Ever.</p>
   </div></div>
@@ -694,10 +705,10 @@
     </div>
   </div>
 </main>
-<main data-route="/letters/iep-evaluation-request" id="page-letters"><div class="section on-white"><div class="container narrow"><div class="crumbs"><a href="#/guides">Guides</a> → Letters → IEP evaluation request</div><h1 class="h1-a">Request an IEP evaluation: the letter that starts the clock</h1><div class="trust-block"><span><span class="avatar">MB</span>By <b>Mike Beebe</b>, parent-founder</span><span><span class="avatar rev">✓</span>Reviewed by <b>[reviewer seat — recruiting]</b></span><span>Updated Sep 2026</span></div><div class="answer-first">Once your district <b>receives a written request</b> for a special education evaluation, it has <b>15 calendar days</b> to respond with an assessment plan — and <b>60 days after your signed consent</b> to complete the evaluation <span class="cite">CA Ed Code §56043</span>. Email the letter below to the principal <b>and</b> the district's special-education director, and keep a dated copy: the clock starts on receipt, not on a phone call.</div><div class="letter-toolbar"><div class="seg"><button class="active" data-lang="en" type="button">English</button><button data-lang="es" type="button">Español</button></div><button class="btn sm ghost" id="letter-copy" type="button">Copy letter</button></div><div class="letter-paper" id="letter-en"><p><span class="fill">[Date]</span></p><p>Dear <span class="fill">[Principal's name]</span> and <span class="fill">[Special-education director's name]</span>,</p><p>I am the parent of <span class="fill">[Child's full name]</span> (date of birth <span class="fill">[DOB]</span>), a <span class="fill">[grade]</span> student at <span class="fill">[School name]</span>. I am writing to formally request a comprehensive special education evaluation of my child in <b>all areas of suspected disability</b>, including <span class="fill">[brief summary of your concerns — e.g., communication, social interaction, attention, sensory needs]</span>.</p><p>I understand that under California Education Code §56043, the district must respond to this written request with a proposed assessment plan within <b>15 calendar days</b>, and complete the evaluation within <b>60 days</b> of receiving my signed consent. Please treat this letter as the start of that timeline.</p><p>Kindly send your written response and the assessment plan to me at the contact information below. I consent to being contacted to schedule any meetings, and I am glad to share records or observations that would help your team.</p><p>Thank you for partnering with me in my child's education.</p><p>Sincerely,<br><span class="fill">[Your full name]</span><br><span class="fill">[Address · phone · email]</span></p></div><div class="letter-paper" id="letter-es" hidden><p><span class="fill">[Fecha]</span></p><p>Estimado/a <span class="fill">[Nombre del director/a]</span> y <span class="fill">[Nombre del director/a de educación especial]</span>:</p><p>Soy madre/padre de <span class="fill">[Nombre completo del niño/a]</span> (fecha de nacimiento: <span class="fill">[fecha]</span>), estudiante de <span class="fill">[grado]</span> en <span class="fill">[Nombre de la escuela]</span>. Por medio de la presente solicito formalmente una evaluación integral de educación especial para mi hijo/a en <b>todas las áreas de posible discapacidad</b>, incluyendo <span class="fill">[resumen breve de sus preocupaciones — p. ej., comunicación, interacción social, atención, necesidades sensoriales]</span>.</p><p>Entiendo que, conforme al Código de Educación de California §56043, el distrito debe responder a esta solicitud escrita con un plan de evaluación propuesto dentro de <b>15 días calendario</b>, y completar la evaluación dentro de <b>60 días</b> a partir de mi consentimiento firmado. Les pido que consideren esta carta como el inicio de ese plazo.</p><p>Por favor envíenme su respuesta por escrito, junto con el plan de evaluación, a los datos de contacto indicados abajo. Doy mi consentimiento para que me contacten para programar cualquier reunión, y con gusto compartiré expedientes u observaciones que puedan ayudar a su equipo.</p><p>Gracias por colaborar conmigo en la educación de mi hijo/a.</p><p>Atentamente,<br><span class="fill">[Su nombre completo]</span><br><span class="fill">[Dirección · teléfono · correo electrónico]</span></p></div><h2 class="qa-h">After you send it</h2><ol><li><b>Calendar day 15.</b> If no assessment plan has arrived by then, follow up in writing and reference your original letter's date — the district's response deadline is 15 calendar days, not business days <span class="cite">CA Ed Code §56043</span>.</li><li><b>Sign the assessment plan promptly when it arrives.</b> The 60-day evaluation clock starts at your signed consent, not at your request — the sooner you sign, the sooner it runs.</li><li><b>Check the plan's scope.</b> The evaluation must cover <b>all areas of suspected disability</b> — if a concern you raised isn't listed, ask in writing for it to be added before you sign.</li></ol><div class="handoff"><div><b>Want it personalized and tracked?</b><span>Waypoint drafts this letter in your name, calendars the 15- and 60-day deadlines, and follows up so nothing slips.</span></div><button class="btn on-dark" type="button">Draft mine in Waypoint →</button></div><div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review. Sample letter — review and adapt before sending.</div></div></div></main>
+<main data-route="/letters/iep-evaluation-request" id="page-letters"><div class="section on-white"><div class="container narrow"><div class="crumbs"><a href="#/guides">Guides</a> → Letters → IEP evaluation request</div><h1 class="h1-a">Request an IEP evaluation: the letter that starts the clock</h1><div class="trust-block"><span><span class="avatar">MB</span>By <b>Mike Beebe</b>, parent-founder</span><span><span class="avatar rev">✓</span>Reviewed by <b>[reviewer seat — recruiting]</b></span><span>Updated Sep 2026</span></div><div class="answer-first">Once your district <b>receives a written request</b> for a special education evaluation, it has <b>15 calendar days</b> to respond with an assessment plan — and <b>60 days after your signed consent</b> to complete the evaluation <span class="cite">CA Ed Code §56321</span>. Email the letter below to the principal <b>and</b> the district's special-education director, and keep a dated copy: the clock starts on receipt, not on a phone call.</div><div class="deadline">⏱ Assessment plan due within <b>15 calendar days</b> of your written request (school breaks over 5 school days pause the clock) · evaluation and IEP meeting within <b>60 days</b> of your signed consent <span class="cite">Ed Code §56321 · §56344</span></div><div class="letter-toolbar"><div class="seg"><button class="active" data-lang="en" type="button">English</button><button data-lang="es" type="button">Español</button></div><button class="btn sm ghost" id="letter-copy" type="button">Copy letter</button></div><div class="letter-paper" id="letter-en"><p><span class="fill">[Date]</span></p><p>Dear <span class="fill">[Principal's name]</span> and <span class="fill">[Special-education director's name]</span>,</p><p>I am the parent of <span class="fill">[Child's full name]</span> (date of birth <span class="fill">[DOB]</span>), a <span class="fill">[grade]</span> student at <span class="fill">[School name]</span>. I am writing to formally request a comprehensive special education evaluation of my child in <b>all areas of suspected disability</b>, including <span class="fill">[brief summary of your concerns — e.g., communication, social interaction, attention, sensory needs]</span>.</p><p>I understand that under California Education Code §56321, the district must respond to this written request with a proposed assessment plan within <b>15 calendar days</b>, and complete the evaluation within <b>60 days</b> of receiving my signed consent. Please treat this letter as the start of that timeline.</p><p>Kindly send your written response and the assessment plan to me at the contact information below. I consent to being contacted to schedule any meetings, and I am glad to share records or observations that would help your team.</p><p>Thank you for partnering with me in my child's education.</p><p>Sincerely,<br><span class="fill">[Your full name]</span><br><span class="fill">[Address · phone · email]</span></p></div><div class="letter-paper" id="letter-es" hidden><p><span class="fill">[Fecha]</span></p><p>Estimado/a <span class="fill">[Nombre del director/a]</span> y <span class="fill">[Nombre del director/a de educación especial]</span>:</p><p>Soy madre/padre de <span class="fill">[Nombre completo del niño/a]</span> (fecha de nacimiento: <span class="fill">[fecha]</span>), estudiante de <span class="fill">[grado]</span> en <span class="fill">[Nombre de la escuela]</span>. Por medio de la presente solicito formalmente una evaluación integral de educación especial para mi hijo/a en <b>todas las áreas de posible discapacidad</b>, incluyendo <span class="fill">[resumen breve de sus preocupaciones — p. ej., comunicación, interacción social, atención, necesidades sensoriales]</span>.</p><p>Entiendo que, conforme al Código de Educación de California §56321, el distrito debe responder a esta solicitud escrita con un plan de evaluación propuesto dentro de <b>15 días calendario</b>, y completar la evaluación dentro de <b>60 días</b> a partir de mi consentimiento firmado. Les pido que consideren esta carta como el inicio de ese plazo.</p><p>Por favor envíenme su respuesta por escrito, junto con el plan de evaluación, a los datos de contacto indicados abajo. Doy mi consentimiento para que me contacten para programar cualquier reunión, y con gusto compartiré expedientes u observaciones que puedan ayudar a su equipo.</p><p>Gracias por colaborar conmigo en la educación de mi hijo/a.</p><p>Atentamente,<br><span class="fill">[Su nombre completo]</span><br><span class="fill">[Dirección · teléfono · correo electrónico]</span></p></div><h2 class="qa-h">After you send it</h2><ol><li><b>Calendar day 15.</b> If no assessment plan has arrived by then, follow up in writing and reference your original letter's date — the district's response deadline is 15 calendar days, not business days <span class="cite">CA Ed Code §56321</span>.</li><li><b>Sign the assessment plan promptly when it arrives.</b> The 60-day evaluation clock starts at your signed consent, not at your request — the sooner you sign, the sooner it runs.</li><li><b>Check the plan's scope.</b> The evaluation must cover <b>all areas of suspected disability</b> — if a concern you raised isn't listed, ask in writing for it to be added before you sign.</li></ol><div class="handoff"><div><b>Want it personalized and tracked?</b><span>Waypoint drafts this letter in your name, calendars the 15- and 60-day deadlines, and follows up so nothing slips.</span></div><button class="btn on-dark" type="button">Draft mine in Waypoint →</button></div><div class="disclaimer">Informational only — not legal, medical, or benefits advice. Prototype: sample copy pending expert review. Sample letter — review and adapt before sending.</div></div></div></main>
 <main data-route="/pricing" id="page-pricing">
   <div class="page-hero"><div class="container">
-    <span class="eyebrow" style="color:#9FE8DB">Pricing</span>
+    <span class="eyebrow">Pricing</span>
     <h1>Free to start. Honest when you need more.</h1>
     <p class="lede">Everything on this site — every guide, tool, and letter — stays free forever. The app is where Waypoint goes from telling you what to do to doing it with you: tracking deadlines, drafting letters, keeping the plan. That part is what you pay for.</p>
   </div></div>
@@ -774,7 +785,7 @@
 </main>
 <main data-route="/about" id="page-about">
   <div class="page-hero"><div class="container">
-    <span class="eyebrow" style="color:#9FE8DB">HOW WAYPOINT EARNS TRUST</span>
+    <span class="eyebrow">HOW WAYPOINT EARNS TRUST</span>
     <h1>Verifiable, or it doesn't publish.</h1>
     <p class="lede">You're making decisions about your child's services based on what you read here. So every page names its author and its reviewer, cites the statute behind every claim, carries a change log on every dollar figure, and corrects its mistakes in public. If a page can't meet that bar, it doesn't go up.</p>
   </div></div>
@@ -811,7 +822,7 @@
         <h3 id="human-review">Two humans before publish</h3>
         <p>Every page gets a founder edit, then credentialed review. Nothing that touches your money, your child's services, or your legal rights publishes unreviewed. While reviewer seats are being recruited, affected pages carry a visible "pending expert review" label instead of a borrowed air of authority.</p>
         <h3 id="citations">Every claim cites a primary source</h3>
-        <p>Statute, regulation, or an official agency publication — the way you've seen <span class="cite">WIC §4643</span> and <span class="cite">CA Ed Code §56043</span> chips across this site. If we can't cite it, we cut it. That standard exists so you can hand any Waypoint page to a service coordinator or an attorney and have it hold up.</p>
+        <p>Statute, regulation, or an official agency publication — the way you've seen <span class="cite">WIC §4643</span> and <span class="cite">CA Ed Code §56321</span> chips across this site. If we can't cite it, we cut it. That standard exists so you can hand any Waypoint page to a service coordinator or an attorney and have it hold up.</p>
         <h3 id="change-logs">Dollar figures get dates and change logs</h3>
         <p>Benefit amounts, income limits, and hour caps change. Any page carrying a dollar figure or a rate shows its last-updated date and a visible change log, so you can see what changed, and when, before you rely on it.</p>
         <h3 id="corrections">Corrections are public</h3>
@@ -849,7 +860,7 @@
 <main data-route="/tools/ssi-deeming-calculator" id="page-calc">
   <div class="page-hero">
     <div class="container">
-      <span class="eyebrow" style="color:#9FE8DB">Free tool · no email · nothing you type is stored</span>
+      <span class="eyebrow">Free tool · no email · nothing you type is stored</span>
       <h1>Could your child qualify for SSI? Run the deeming math.</h1>
       <p class="lede">A quick estimate of parent-to-child "deeming" — the math Social Security uses to decide whether a child with a disability qualifies for SSI while living at home.</p>
     </div>
@@ -904,7 +915,7 @@
 <main data-route="/tools/regional-center-finder" id="page-finder">
   <div class="page-hero">
     <div class="container">
-      <span class="eyebrow" style="color:#9FE8DB">Free tool · no email</span>
+      <span class="eyebrow">Free tool · no email</span>
       <h1>Find your Regional Center</h1>
       <p class="lede">California has 21 Regional Centers, each serving specific counties. Pick your county — we'll tell you who serves your family and how the intake clock works.</p>
     </div>
@@ -1125,10 +1136,19 @@ function wireChecklist() {
     if (cheer) cheer.hidden = done < 2;
   }
   items.forEach(function (it) {
-    it.addEventListener('click', function () {
+    it.setAttribute('role', 'checkbox');
+    it.setAttribute('tabindex', '0');
+    it.setAttribute('aria-checked', 'false');
+    function toggle() {
       it.classList.toggle('done');
-      it.querySelector('.box').textContent = it.classList.contains('done') ? '✓' : '';
+      var on = it.classList.contains('done');
+      it.setAttribute('aria-checked', on ? 'true' : 'false');
+      it.querySelector('.box').textContent = on ? '✓' : '';
       update();
+    }
+    it.addEventListener('click', toggle);
+    it.addEventListener('keydown', function (e) {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); }
     });
   });
   update();
