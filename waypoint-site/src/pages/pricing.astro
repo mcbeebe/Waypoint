@@ -1,0 +1,130 @@
+---
+/**
+ * Pricing at prototype parity. Tier figures come from the owner-approved
+ * prototype (PR #195/#198); final pricing is the owner's call (D13) and the
+ * competitor table keeps its verify-before-publish notice until confirmed.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AnswerFirst from '../components/AnswerFirst.astro';
+import NoticeBox from '../components/NoticeBox.astro';
+import HandoffCTA from '../components/HandoffCTA.astro';
+import InlineDisclaimer from '../components/InlineDisclaimer.astro';
+import PageHero from '../components/PageHero.astro';
+import { appStartUrl } from '../lib/appLinks';
+
+const planLink = (plan: string) => ({
+  href: appStartUrl({ slug: 'pricing', cta: 'pricing-card', ctx: { v: 1, kind: 'guide', slug: 'pricing', next_action: `plan-${plan}` } }),
+  props: JSON.stringify({ slug: 'pricing', locale: 'en', cta_id: 'pricing-card' }),
+});
+const free = planLink('free');
+const plus = planLink('plus');
+const pro = planLink('pro');
+---
+
+<BaseLayout
+  title="Waypoint pricing — free to start, honest when you need more"
+  description="Every Waypoint guide, tool, and letter is free forever. The app adds deadline tracking, letter drafting, and an AI navigator — plans from $0 to $19.99/month."
+>
+  <PageHero
+    eyebrow="Pricing"
+    title="Free to start. Honest when you need more."
+    lede="Everything on this site — every guide, tool, and letter — stays free forever. The app is where Waypoint goes from telling you what to do to doing it with you: tracking deadlines, drafting letters, keeping the plan. That part is what you pay for."
+  />
+
+  <div class="section">
+    <div class="container">
+      <div class="price-grid">
+        <div class="price-card">
+          <span class="plan">FREE</span>
+          <div class="amount">$0</div>
+          <ul>
+            <li>Limited AI Navigator questions</li>
+            <li>Instant eligibility results</li>
+            <li>All guides, tools, and letters</li>
+            <li>English + Spanish, full parity</li>
+            <li>No credit card, no email gate</li>
+          </ul>
+          <a class="btn" href={free.href} data-wp-event="app_signup_click" data-wp-props={free.props}>Start free</a>
+        </div>
+        <div class="price-card featured">
+          <span class="badge-featured">Most families</span>
+          <span class="plan">PLUS</span>
+          <div class="amount">$9.99<small>/mo</small></div>
+          <ul>
+            <li>Unlimited AI Navigator, 24/7</li>
+            <li>Document vault for every report and NOA</li>
+            <li>Deadline alerts before clocks run out</li>
+            <li>Expense tracker</li>
+            <li>IEP meeting prep</li>
+            <li>Or $89.99 billed yearly</li>
+          </ul>
+          <a class="btn" href={plus.href} data-wp-event="app_signup_click" data-wp-props={plus.props}>Start Plus →</a>
+        </div>
+        <div class="price-card">
+          <span class="plan">PRO</span>
+          <div class="amount">$19.99<small>/mo</small></div>
+          <ul>
+            <li>Everything in Plus</li>
+            <li>Appeal &amp; letter generation</li>
+            <li>Multi-child support</li>
+            <li>Priority AI</li>
+            <li>Or $179.99 billed yearly</li>
+          </ul>
+          <a class="btn" href={pro.href} data-wp-event="app_signup_click" data-wp-props={pro.props}>Start Pro →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container narrow">
+      <span class="eyebrow">Comparison</span>
+      <h2>How we compare</h2>
+      <p class="sub">
+        You deserve a straight answer on where your money goes. Here is Waypoint Plus next to
+        the closest alternative.
+      </p>
+      <div class="table-wrap">
+        <table class="data">
+          <tr><th></th><th>Waypoint Plus</th><th>Undivided membership</th></tr>
+          <tr><td>Price</td><td><b>$9.99/mo</b> ($89.99/yr)</td><td>$19/mo ($149/yr)</td></tr>
+          <tr><td>AI access</td><td><b>24/7 — including on the free tier</b></td><td>Behind the paywall</td></tr>
+          <tr><td>Free content gates</td><td><b>Zero</b> — every guide and letter is open</td><td>Lead magnets require name, email, phone</td></tr>
+          <tr><td>Human navigators</td><td>No — software plus your real-life team</td><td>Yes — 2 navigator video sessions</td></tr>
+          <tr><td>Languages</td><td><b>English + Spanish, full parity</b></td><td>3 Spanish PDFs</td></tr>
+        </table>
+      </div>
+      <NoticeBox>
+        Competitor details as observed Sept 5, 2026 — verify before publishing.
+      </NoticeBox>
+
+      <h2 class="qa-h">Why is Waypoint so much cheaper?</h2>
+      <AnswerFirst>
+        Because Waypoint is a <b>software platform, not a consulting firm</b>. Human navigators
+        are wonderful — and expensive, and available by appointment. We put the money into an AI
+        that knows the Lanterman Act, IDEA, Medi-Cal, and SSI, answers at 2 a.m., and works in
+        English and Spanish equally. <b>Other platforms tell you what to do. We do it.</b>
+      </AnswerFirst>
+      <p>
+        That economic choice is also a philosophical one. When guidance depends on scheduling a
+        human, it gets rationed. When it's software, it can be unlimited, instant, and cheap
+        enough that no family has to choose between answers and groceries. And the parts a human
+        truly should do — sitting across the IEP table, knowing your child — belong to you and
+        your real-life team, not to a subscription.
+      </p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container narrow">
+      <HandoffCTA
+        heading="Start free. Upgrade only if it earns it."
+        body="Ask your first questions, run the eligibility tools, and see the plan Waypoint builds — before you pay a cent."
+        action="Create your free account →"
+        slug="pricing"
+        cta="pricing-card"
+      />
+      <InlineDisclaimer variant="legal" />
+    </div>
+  </div>
+</BaseLayout>

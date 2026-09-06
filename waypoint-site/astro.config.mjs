@@ -11,7 +11,15 @@ export default defineConfig({
   site: 'https://waypointchild.com',
   trailingSlash: 'always',
   output: 'static',
-  integrations: [mdx(), sitemap()],
+  integrations: [
+    mdx(),
+    sitemap({
+      // Keep noindexed surfaces out of the sitemap: the 404 page, and the
+      // tool pages while they carry noindex pending expert review — remove
+      // the /tools/ exclusion in the same PR that flips their noindex off.
+      filter: (page) => !page.includes('/404') && !page.includes('/tools/'),
+    }),
+  ],
   vite: {
     plugins: [tailwindcss()],
   },

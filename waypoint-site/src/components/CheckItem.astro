@@ -1,0 +1,18 @@
+---
+/**
+ * One step in a start-here checklist. The stable id rides the checklist
+ * deep-link ctx (D3) so the app can pre-check saved steps; interactivity is
+ * wired by the start route's script.
+ */
+interface Props {
+  /** Stable, write-once item id — part of the wp_ctx contract. */
+  id: string;
+  title: string;
+}
+const { id, title } = Astro.props;
+---
+
+<div class="check-item" data-item-id={id}>
+  <span class="box"></span>
+  <div class="txt"><b>{title}</b><span><slot /></span></div>
+</div>

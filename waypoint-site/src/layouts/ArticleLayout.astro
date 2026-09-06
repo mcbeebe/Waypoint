@@ -1,0 +1,142 @@
+---
+/**
+ * Shared article template for guides, answers, letters, and regional-center
+ * pages. The MDX body owns its column structure (cols/aside via components);
+ * the layout owns the trust chrome: breadcrumbs, draft banner, trust block,
+ * change log, disclaimer, JSON-LD, and the read_complete beacon.
+ *
+ * Article JSON-LD is emitted ONLY for published entries — datePublished and
+ * reviewer fields must match frontmatter, never be invented (checklist row 7).
+ */
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import DraftBanner from '../components/DraftBanner.astro';
+import TrustBlock from '../components/TrustBlock.astro';
+import ChangelogBox from '../components/ChangelogBox.astro';
+import InlineDisclaimer from '../components/InlineDisclaimer.astro';
+import CrisisBanner from '../components/CrisisBanner.astro';
+import { articleJsonLd } from '../lib/jsonld';
+import type { Crumb } from '../lib/jsonld';
+
+interface Props {
+  /** SEO title (frontmatter title, ≤70 chars). */
+  title: string;
+  description: string;
+  /** On-page H1 — may be longer than the SEO title. */
+  heading: string;
+  crumbs: Crumb[];
+  locale: 'en' | 'es';
+  status: string;
+  author: string;
+  review: { reviewedBy: string; credential: string; date: Date; versionReviewed: string } | null;
+  datePublished: Date | null;
+  dateModified: Date;
+  changelog: { date: Date; note: string }[];
+  disclaimerVariant: 'legal' | 'benefits' | 'medical' | 'none';
+  noindex: boolean;
+  /** Page slug (path without slashes) + pillar for the read_complete beacon. */
+  slug: string;
+  pillar?: string;
+  /** Narrow single-column container (answers, letters). */
+  narrow?: boolean;
+  /** Crisis surface emphasis for emotionally heavy topics. */
+  crisis?: boolean;
+}
+const {
+  title,
+  description,
+  heading,
+  crumbs,
+  locale,
+  status,
+  author,
+  review,
+  datePublished,
+  dateModified,
+  changelog,
+  disclaimerVariant,
+  noindex,
+  slug,
+  pillar,
+  narrow = false,
+  crisis = false,
+} = Astro.props;
+
+const isDraft = status !== 'published';
+const pageUrl = new URL(Astro.url.pathname, Astro.site).toString();
+const jsonLd = !isDraft
+  ? articleJsonLd({
+      url: pageUrl,
+      title,
+      description,
+      locale,
+      author,
+      datePublished,
+      dateModified,
+      review: review ? { reviewedBy: review.reviewedBy, credential: review.credential } : null,
+    })
+  : null;
+---
+
+<BaseLayout title={`${title} — Waypoint`} description={description} locale={locale} noindex={noindex || isDraft}>
+  <div class="section on-white">
+    <div class:list={['container', { narrow }]}>
+      <Breadcrumbs crumbs={crumbs} />
+      {isDraft && <DraftBanner status={status} />}
+      <h1 class="h1-a">{heading}</h1>
+      <slot name="notice" />
+      <TrustBlock author={author} review={review} dateModified={dateModified} />
+      <slot name="summary" />
+      <div
+        id="article-root"
+        data-slug={slug}
+        data-pillar={pillar ?? ''}
+        data-locale={locale}
+      >
+        <slot />
+      </div>
+      <ChangelogBox entries={changelog} />
+      {crisis && <CrisisBanner emphasized />}
+      <slot name="handoff" />
+      <InlineDisclaimer variant={disclaimerVariant} />
+    </div>
+  </div>
+  {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+</BaseLayout>
+
+<script>
+  // read_complete v1 (docs/analytics-taxonomy.md): 75% scroll depth AND
+  // ≥45s dwell, fired once per pageview. Never compare across heuristic
+  // versions.
+  const root = document.getElementById('article-root');
+  if (root) {
+    const DWELL_MS = 45_000;
+    const start = Date.now();
+    let scrolled75 = false;
+    let fired = false;
+    const maybeFire = () => {
+      if (fired || !scrolled75 || Date.now() - start < DWELL_MS) return;
+      fired = true;
+      window.plausible?.('read_complete', {
+        props: {
+          slug: root.dataset.slug ?? '',
+          pillar: root.dataset.pillar ?? '',
+          locale: root.dataset.locale ?? 'en',
+        },
+      });
+    };
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const depth = (window.scrollY + window.innerHeight) / doc.scrollHeight;
+      if (depth >= 0.75) {
+        scrolled75 = true;
+        maybeFire();
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    setTimeout(() => {
+      onScroll();
+      maybeFire();
+    }, DWELL_MS + 500);
+  }
+</script>

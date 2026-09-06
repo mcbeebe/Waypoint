@@ -40,7 +40,7 @@ entries:
     url: "/guides/regional-centers/"
     pillar: regional-centers
     priority: P0
-    status: planned
+    status: drafting
     piece_no: null
     serp_notes: "Hub page; links every RC deep-dive + pieces 6, 7, 9."
 
@@ -121,7 +121,7 @@ entries:
     url: "/start/autism/"
     pillar: start
     priority: P0
-    status: planned
+    status: drafting
     piece_no: 1
     serp_notes: "Flagship. Timeline format; heavy internal linking to pieces 2-8."
 
@@ -134,7 +134,7 @@ entries:
     url: "/guides/benefits/ihss-protective-supervision/"
     pillar: benefits
     priority: P0
-    status: planned
+    status: drafting
     piece_no: 2
     serp_notes: "High-stakes YMYL; hour figures and rates are [TBC] until verified."
 
@@ -283,7 +283,7 @@ entries:
     url: "/letters/iep-evaluation-request/"
     pillar: iep
     priority: P0
-    status: planned
+    status: drafting
     piece_no: 4
     serp_notes: "Fixed slug (letterId contract). Ships with piece 4; letter_copied event per D3."
 
@@ -456,7 +456,7 @@ entries:
     url: "/regional-centers/east-bay/"
     pillar: regional-centers
     priority: P1
-    status: planned
+    status: drafting
     piece_no: null
     serp_notes: ""
 
@@ -675,3 +675,20 @@ entries:
     status: planned
     piece_no: null
     serp_notes: ""
+
+  # ---------------------------------------------------------------
+  # Answers (interim sources: KB / People-Also-Ask — chat mining waits
+  # on the privacy disclosure, see ANSWERS-PIPELINE.md)
+  # ---------------------------------------------------------------
+  - primary_kw: "does my child need ssi to get ihss"
+    secondary_kws:
+      - "ihss without ssi california"
+      - "can my child get ihss if we make too much money"
+      - "ihss medi-cal requirement child"
+    intent: info
+    url: "/answers/does-my-child-need-ssi-to-get-ihss/"
+    pillar: benefits
+    priority: P0
+    status: drafting
+    piece_no: null
+    serp_notes: "First /answers/ page (questionSource: kb). Companion to piece 2; shareable myth-debunk."

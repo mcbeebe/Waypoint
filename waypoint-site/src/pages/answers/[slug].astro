@@ -1,0 +1,40 @@
+---
+/** Answer pages — short, direct, answer-first (answers collection). */
+import { render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import { visibleEntries } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const answers = await visibleEntries('answers');
+  return answers.map((entry) => ({
+    params: { slug: entry.id.replace(/\.mdx?$/, '') },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const id = entry.id.replace(/\.mdx?$/, '');
+---
+
+<ArticleLayout
+  title={d.title}
+  description={d.description}
+  heading={d.title}
+  crumbs={[{ name: 'Answers' }, { name: d.title }]}
+  locale={d.locale}
+  status={d.status}
+  author={d.author}
+  review={d.review}
+  datePublished={d.datePublished}
+  dateModified={d.dateModified}
+  changelog={d.changelog}
+  disclaimerVariant={d.disclaimerVariant}
+  noindex={d.noindex}
+  slug={`answers/${id}`}
+  pillar={d.pillar}
+  narrow
+>
+  <Content />
+</ArticleLayout>

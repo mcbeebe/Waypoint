@@ -165,7 +165,7 @@ The mechanics (URL, params, events) are frozen in `docs/analytics-taxonomy.md`. 
 - CTA microcopy states it's free to start if space allows; never invent pricing claims — link, don't promise.
 - ES pages carry ES CTA copy and `wp_locale=es`; never an EN button on an ES page.
 
-**`cta_id` naming:** kebab-case, placement-based, from a small registry — `guide-footer`, `tool-result`, `checklist`, `answer-inline`, `letter-after-copy`. New ids require adding them to this list in the same PR (the taxonomy doc's examples are the pattern; don't proliferate near-duplicates).
+**`cta_id` naming:** kebab-case, placement-based, from a small registry — `header`, `hero`, `home-footer`, `hub-footer`, `guide-footer`, `answer-inline`, `answer-footer`, `letter-footer`, `letter-after-copy`, `rc-footer`, `checklist`, `tool-result`, `pricing-card`, `about-footer`. New ids require adding them to this list AND to `CTA_IDS` in `src/lib/appLinks.ts` in the same PR (the taxonomy doc's examples are the pattern; don't proliferate near-duplicates).
 
 **Param hygiene:** every deep-link CTA carries `wp_slug`, `wp_pillar`, `wp_cta`, `wp_locale`, and the fixed `utm_source=site&utm_medium=organic-content`; `wp_ctx` only when there's real context to carry, and **summaries only — never raw benefit figures the user typed** (taxonomy doc, privacy rule). If a CTA can't populate a required param, that's a build bug, not a copy choice.
 

@@ -1,0 +1,111 @@
+---
+/**
+ * Start-here checklists by diagnosis (guides collection, `start/` prefix,
+ * keyword rows /start/<diagnosis>/). The emotional page-hero H1 replaces the
+ * article H1 treatment; the interactive checklist lives in the MDX body.
+ */
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import DraftBanner from '../../components/DraftBanner.astro';
+import ChangelogBox from '../../components/ChangelogBox.astro';
+import InlineDisclaimer from '../../components/InlineDisclaimer.astro';
+import { visibleEntries } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const guides = await visibleEntries('guides');
+  return guides
+    .filter((entry) => entry.id.startsWith('start/'))
+    .map((entry) => ({
+      params: { slug: entry.id.replace(/^start\//, '').replace(/\.mdx?$/, '') },
+      props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const id = entry.id.replace(/\.mdx?$/, '');
+const isDraft = d.status !== 'published';
+---
+
+<BaseLayout
+  title={`${d.title} — Waypoint`}
+  description={d.description}
+  locale={d.locale}
+  noindex={d.noindex || isDraft}
+>
+  <PageHero eyebrow="Just diagnosed · California" title={d.title} />
+  <div class="section on-white">
+    <div class="container narrow">
+      {isDraft && <DraftBanner status={d.status} />}
+      <div id="article-root" data-slug={id} data-pillar={d.pillar} data-locale={d.locale}>
+        <Content />
+      </div>
+      <ChangelogBox entries={d.changelog} />
+      <InlineDisclaimer variant={d.disclaimerVariant} />
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  // Checklist interactivity: accessible checkbox semantics, progress bar,
+  // the two-items cheer, and the checklist deep-link ctx (D3: checked item
+  // ids ride wp_ctx so the app can pre-check them in the saved plan).
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.check-item'));
+  if (items.length) {
+    const fill = document.getElementById('start-progress-fill');
+    const label = document.getElementById('start-progress-label');
+    const cheer = document.getElementById('start-cheer');
+    const cta = document.querySelector<HTMLAnchorElement>('[data-checklist-cta]');
+    const slug = document.getElementById('article-root')?.dataset.slug ?? '';
+
+    const checkedIds = () =>
+      items.filter((i) => i.classList.contains('done')).map((i) => i.dataset.itemId ?? '');
+
+    const update = () => {
+      const done = checkedIds().length;
+      if (fill) fill.style.width = `${Math.round((done / items.length) * 100)}%`;
+      if (label) label.textContent = `${done} of ${items.length} started`;
+      if (cheer) cheer.hidden = done < 2;
+      if (cta) {
+        // Rebuild wp_ctx on the checklist CTA so checked items carry over.
+        const url = new URL(cta.href);
+        const ctx = { v: 1, kind: 'checklist', slug, checked: checkedIds() };
+        const b64 = btoa(JSON.stringify(ctx))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+        url.searchParams.set('wp_ctx', b64);
+        cta.href = url.toString();
+      }
+    };
+
+    items.forEach((it, idx) => {
+      it.setAttribute('role', 'checkbox');
+      it.setAttribute('tabindex', '0');
+      it.setAttribute('aria-checked', 'false');
+      if (!it.dataset.itemId) it.dataset.itemId = `item-${idx + 1}`;
+      const toggle = () => {
+        it.classList.toggle('done');
+        const on = it.classList.contains('done');
+        it.setAttribute('aria-checked', String(on));
+        const box = it.querySelector('.box');
+        if (box) box.textContent = on ? '✓' : '';
+        update();
+      };
+      it.addEventListener('click', (e) => {
+        // Links inside a step should navigate, not toggle the step.
+        if ((e.target as Element).closest('a')) return;
+        toggle();
+      });
+      it.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggle();
+        }
+      });
+    });
+    update();
+  }
+</script>

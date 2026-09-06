@@ -1,0 +1,21 @@
+---
+/** Breadcrumb trail + BreadcrumbList JSON-LD (launch checklist row 7). */
+import { breadcrumbsJsonLd, type Crumb } from '../lib/jsonld';
+
+interface Props {
+  crumbs: Crumb[];
+}
+const { crumbs } = Astro.props;
+---
+
+<nav class="crumbs" aria-label="Breadcrumb">
+  {
+    crumbs.map((c, i) => (
+      <>
+        {i > 0 && <span aria-hidden="true"> → </span>}
+        {c.href ? <a href={c.href}>{c.name}</a> : <span>{c.name}</span>}
+      </>
+    ))
+  }
+</nav>
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbsJsonLd(crumbs))} />

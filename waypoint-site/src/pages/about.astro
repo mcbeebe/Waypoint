@@ -1,0 +1,151 @@
+---
+/**
+ * About / trust page: review board (empty seats shown on purpose),
+ * editorial policy, accessibility commitment, crisis note.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Cite from '../components/Cite.astro';
+import EmpathyCallout from '../components/EmpathyCallout.astro';
+import HandoffCTA from '../components/HandoffCTA.astro';
+import InlineDisclaimer from '../components/InlineDisclaimer.astro';
+---
+
+<BaseLayout
+  title="About Waypoint — how we earn trust"
+  description="Every Waypoint page names its author and reviewer, cites the statute behind every claim, logs changes to every figure, and corrects mistakes in public."
+>
+  <PageHero
+    eyebrow="How Waypoint earns trust"
+    title="Verifiable, or it doesn't publish."
+    lede="You're making decisions about your child's services based on what you read here. So every page names its author and its reviewer, cites the statute behind every claim, carries a change log on every dollar figure, and corrects its mistakes in public. If a page can't meet that bar, it doesn't go up."
+  />
+
+  <div class="section">
+    <div class="container">
+      <span class="eyebrow">The review board</span>
+      <h2>The people behind the pages</h2>
+      <p class="sub">
+        Two of these three seats are still being recruited — and we show them empty on purpose.
+        You deserve to know exactly who has, and who hasn't, checked a page yet.
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Mike Beebe</h3>
+          <p>
+            <b>Parent-founder · Oakland, CA · Author.</b> Writes the first draft of every guide
+            from lived experience navigating Regional Centers, IEPs, and Medi-Cal for his own
+            family. Experience is his credential — and the only one he claims. Legal and
+            benefits accuracy is the reviewers' job, and pages say so until those seats are
+            filled.
+          </p>
+        </div>
+        <div class="card">
+          <h3>[Reviewer seat — recruiting]</h3>
+          <p>
+            <b>Special-education attorney.</b> Will review every IEP, IDEA, and Ed Code page
+            before it sheds its "pending expert review" label. Until this seat is filled, those
+            pages carry the label right at the top — no pretending.
+          </p>
+        </div>
+        <div class="card">
+          <h3>[Reviewer seat — recruiting]</h3>
+          <p>
+            <b>Benefits advocate / former service coordinator.</b> Will review Regional Center,
+            IHSS, Medi-Cal, and SSI content — the pages where a wrong sentence can cost a family
+            real money. Someone who has sat on the agency side of the table, checking our work
+            from yours.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container narrow">
+      <span class="eyebrow">Editorial policy</span>
+      <h2>How a page gets published</h2>
+      <article class="prose">
+        <h3 id="ai-disclosure">AI-assisted drafting, disclosed</h3>
+        <p>
+          Waypoint drafts with AI assistance, and we say so — here and on the pages themselves.
+          AI makes us faster. It does not get a byline, and it never gets the last word.
+        </p>
+        <h3 id="human-review">Two humans before publish</h3>
+        <p>
+          Every page gets a founder edit, then credentialed review. Nothing that touches your
+          money, your child's services, or your legal rights publishes unreviewed. While
+          reviewer seats are being recruited, affected pages carry a visible "pending expert
+          review" label instead of a borrowed air of authority.
+        </p>
+        <h3 id="citations">Every claim cites a primary source</h3>
+        <p>
+          Statute, regulation, or an official agency publication — the way you've seen
+          <Cite>WIC §4643</Cite> and <Cite>CA Ed Code §56321</Cite> chips across this site. If
+          we can't cite it, we cut it. That standard exists so you can hand any Waypoint page to
+          a service coordinator or an attorney and have it hold up.
+        </p>
+        <h3 id="change-logs">Dollar figures get dates and change logs</h3>
+        <p>
+          Benefit amounts, income limits, and hour caps change. Any page carrying a dollar
+          figure or a rate shows its last-updated date and a visible change log, so you can see
+          what changed, and when, before you rely on it.
+        </p>
+        <h3 id="corrections">Corrections are public</h3>
+        <p>
+          When we get something wrong, we fix the page, record the correction in its change
+          log, and leave the record up. Quiet edits erode trust. Corrections, made where
+          everyone can see them, build it.
+        </p>
+      </article>
+    </div>
+  </div>
+
+  <div class="section on-cream">
+    <div class="container narrow">
+      <span class="eyebrow">Accessibility</span>
+      <h2>Built to be usable by the people it's for</h2>
+      <article class="prose">
+        <p>
+          Waypoint's audience includes disabled parents and disabled young people. A site about
+          disability rights that fails with a screen reader, a switch, or a magnifier would be a
+          contradiction in terms — so this site has to lead by example.
+        </p>
+        <p>
+          We commit to <b>WCAG 2.2 AA</b> and audit against it. Where we fall short, that's a
+          bug, and we'd like you to file it like one: send accessibility feedback through the
+          feedback link on any page. Those reports go to the top of the queue.
+        </p>
+      </article>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container narrow">
+      <span class="eyebrow">A note on safety</span>
+      <h2>Before anything else</h2>
+      <article class="prose">
+        <p>
+          If you're in crisis while navigating all of this — or you're not sure, which is reason
+          enough — <b>call or text 988</b>, the Suicide &amp; Crisis Lifeline. It's free, 24/7,
+          in English and Spanish. Waypoint is a guide, not an emergency service.
+        </p>
+      </article>
+      <EmpathyCallout label="To the parent reading at 2 a.m.">
+        Caregiver burnout is not a character flaw. It's the predictable result of doing a
+        caseworker's job, a nurse's job, and a parent's job at once — unpaid, untrained, and
+        usually unthanked. Getting help, for your child and for yourself, isn't stepping away
+        from the fight. It's how you stay in it. You found this page. You're still going. That
+        counts.
+      </EmpathyCallout>
+      <HandoffCTA
+        heading="See the receipts for yourself"
+        body="Every answer in the Waypoint app carries the same statute citations you see on this site. Free, instant, no email gate."
+        action="Try Waypoint free →"
+        slug="about"
+        cta="about-footer"
+      />
+      <InlineDisclaimer variant="legal" />
+    </div>
+  </div>
+</BaseLayout>

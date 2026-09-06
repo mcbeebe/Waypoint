@@ -47,5 +47,38 @@ const { title, description, locale = 'en', noindex = false } = Astro.props;
       <slot />
     </main>
     <SiteFooter />
+    <script>
+      // Delegated analytics per docs/analytics-taxonomy.md (D3).
+      // app_signup_click: any element carrying data-wp-event fires its event
+      // with the JSON props in data-wp-props (Plausible uses keepalive
+      // requests, so the event survives the navigation).
+      document.addEventListener('click', (e) => {
+        const el = (e.target as Element | null)?.closest<HTMLElement>('[data-wp-event]');
+        if (!el?.dataset.wpEvent) return;
+        let props: Record<string, string | number> = {};
+        try {
+          props = JSON.parse(el.dataset.wpProps ?? '{}');
+        } catch {
+          /* malformed props: still record the event itself */
+        }
+        window.plausible?.(el.dataset.wpEvent, { props });
+      });
+
+      // js_error beacon (page + hashed message — never message text, which
+      // could contain URLs or user input).
+      const hash = (s: string) => {
+        let h = 5381;
+        for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+        return (h >>> 0).toString(36);
+      };
+      const beacon = (message: string) =>
+        window.plausible?.('js_error', {
+          props: { page: location.pathname, message_hash: hash(message) },
+        });
+      window.addEventListener('error', (e) => beacon(String(e.message ?? 'error')));
+      window.addEventListener('unhandledrejection', (e) =>
+        beacon(String((e as PromiseRejectionEvent).reason ?? 'rejection')),
+      );
+    </script>
   </body>
 </html>

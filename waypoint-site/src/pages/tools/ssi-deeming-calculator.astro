@@ -1,0 +1,209 @@
+---
+/**
+ * SSI deeming calculator — stateless, zero network, no email (compliance:
+ * nothing typed here is stored or transmitted; grep-verifiable claim in
+ * /privacy/). Bound to src/data/benefit-constants.json (D4): while the
+ * current-year figures are null-until-verified the tool renders a pending
+ * state instead of computing with unverified numbers.
+ *
+ * noindex stays true until the tool's copy passes expert review (flip it in
+ * the review PR — launch checklist tools row).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import DraftBanner from '../../components/DraftBanner.astro';
+import AnswerFirst from '../../components/AnswerFirst.astro';
+import Cite from '../../components/Cite.astro';
+import NoticeBox from '../../components/NoticeBox.astro';
+import InlineDisclaimer from '../../components/InlineDisclaimer.astro';
+import { currentDeemingConstants, ssiSourceUrl } from '../../lib/benefitConstants';
+import { appStartUrl } from '../../lib/appLinks';
+
+const constants = currentDeemingConstants();
+const ready = constants !== null;
+const saveHref = appStartUrl({ slug: 'tools/ssi-deeming-calculator', cta: 'tool-result' });
+const saveProps = JSON.stringify({
+  slug: 'tools/ssi-deeming-calculator',
+  pillar: 'benefits',
+  locale: 'en',
+  cta_id: 'tool-result',
+  tool_id: 'ssi-deeming-calculator',
+});
+---
+
+<BaseLayout
+  title="SSI deeming calculator for California families — Waypoint"
+  description="Estimate whether your child could qualify for SSI while living at home: a quick parent-to-child deeming estimate, free, private, and stored nowhere."
+  noindex={true}
+>
+  <PageHero
+    eyebrow="Free tool · no email · nothing you type is stored"
+    title="Could your child qualify for SSI? Run the deeming math."
+    lede='A quick estimate of parent-to-child "deeming" — the math Social Security uses to decide whether a child with a disability qualifies for SSI while living at home.'
+  />
+  <div class="section">
+    <div class="container">
+      <DraftBanner status="draft" />
+      <div class="cols">
+        <div class="tool-panel">
+          <div class="field">
+            <label for="c-parents">Parents in the household</label>
+            <select id="c-parents" disabled={!ready}>
+              <option value="2">Two parents</option>
+              <option value="1">One parent</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="c-kids">Other children in the household (without disabilities)</label>
+            <select id="c-kids" disabled={!ready}>
+              <option>0</option>
+              <option selected>1</option>
+              <option>2</option>
+              <option>3</option>
+              <option>4</option>
+            </select>
+            <div class="hint">Each gets a living allocation before deeming.</div>
+          </div>
+          <div class="field">
+            <label for="c-earned">Parents' monthly gross earned income</label>
+            <input id="c-earned" type="number" inputmode="numeric" min="0" step="50" value="6200" disabled={!ready} />
+            <div class="hint">Wages before taxes, both parents combined.</div>
+          </div>
+          <div class="field">
+            <label for="c-unearned">Monthly unearned income</label>
+            <input id="c-unearned" type="number" inputmode="numeric" min="0" step="50" value="0" disabled={!ready} />
+            <div class="hint">Unemployment, child support received, etc.</div>
+          </div>
+          <button class="btn" id="c-run" type="button" disabled={!ready}>Estimate eligibility</button>
+        </div>
+        <div>
+          <div class="result-panel" aria-live="polite">
+            <span class="r-label">Estimated monthly SSI</span>
+            <span class="r-big" id="c-result">$—</span>
+            <div class="r-rows" id="c-breakdown"></div>
+            <p class="r-note" id="c-note">
+              {
+                ready
+                  ? 'Enter your numbers and press Estimate eligibility.'
+                  : 'The calculator is briefly offline while we verify the 2026 SSI figures against Social Security’s published rates. The guide below still walks the whole path.'
+              }
+            </p>
+            <div class="r-save">
+              <a href={saveHref} id="c-save" data-wp-event="app_signup_click" data-wp-props={saveProps}>
+                Save this estimate &amp; track your application in a free Waypoint account →
+              </a>
+            </div>
+          </div>
+          {
+            ready ? (
+              <NoticeBox>
+                Estimate only, using {constants!.year} federal figures (
+                <a href={ssiSourceUrl()}>SSA.gov</a>) and simplified math — the real rules have
+                more moving parts (in-kind support, state supplement, income types). Not a
+                benefits determination.
+              </NoticeBox>
+            ) : (
+              <NoticeBox>
+                2026 federal benefit figures are pending verification against SSA.gov before
+                this tool computes anything — no guessed numbers, ever.
+              </NoticeBox>
+            )
+          }
+        </div>
+      </div>
+      <article class="prose" style="margin-top:34px">
+        <h2 class="qa-h">How the deeming math works</h2>
+        <AnswerFirst>
+          Social Security starts with your income, subtracts a <b>living allocation for each
+          non-disabled child</b>, subtracts a <b>parental living allowance</b>, applies the
+          standard <b>$20 general and $65 earned-income exclusions</b>, halves the remaining
+          earned income, and "deems" what's left to your child. If the deemed amount is below
+          the federal benefit rate, your child may qualify for a partial or full benefit.
+          <Cite>SSA deeming rules</Cite>
+        </AnswerFirst>
+        <p>
+          <strong>Two things families miss:</strong> a child denied SSI for income can still get
+          Medi-Cal through institutional deeming, which ignores parental income entirely — and
+          SSI comes with Medi-Cal automatically in California.
+        </p>
+        <InlineDisclaimer variant="benefits" />
+      </article>
+    </div>
+  </div>
+
+  {
+    ready && (
+      <script
+        type="application/json"
+        id="deeming-constants"
+        set:html={JSON.stringify(constants)}
+      />
+    )
+  }
+</BaseLayout>
+
+<script>
+  import { estimateDeeming, type DeemingConstants } from '../../lib/ssiDeeming';
+
+  const constantsEl = document.getElementById('deeming-constants');
+  const btn = document.getElementById('c-run') as HTMLButtonElement | null;
+  if (constantsEl && btn) {
+    const constants = JSON.parse(constantsEl.textContent ?? '{}') as DeemingConstants;
+    const TOOL = 'ssi-deeming-calculator';
+    const money = (n: number) => '$' + Math.max(0, Math.round(n)).toLocaleString();
+    let started = false;
+    const markStarted = () => {
+      if (started) return;
+      started = true;
+      window.plausible?.('tool_started', { props: { tool_id: TOOL, locale: 'en' } });
+    };
+    for (const id of ['c-parents', 'c-kids', 'c-earned', 'c-unearned']) {
+      document.getElementById(id)?.addEventListener('input', markStarted);
+    }
+
+    btn.addEventListener('click', () => {
+      markStarted();
+      const parents = Number((document.getElementById('c-parents') as HTMLSelectElement).value) as 1 | 2;
+      const otherChildren = Number((document.getElementById('c-kids') as HTMLSelectElement).value);
+      const earnedMonthly = Number((document.getElementById('c-earned') as HTMLInputElement).value) || 0;
+      const unearnedMonthly = Number((document.getElementById('c-unearned') as HTMLInputElement).value) || 0;
+
+      const r = estimateDeeming(constants, { parents, otherChildren, earnedMonthly, unearnedMonthly });
+      const qualifies = r.estimatedSsi > 0;
+
+      document.getElementById('c-result')!.textContent = qualifies
+        ? `≈ ${money(r.estimatedSsi)} / mo`
+        : '$0 — over limit';
+      const childAlloc = constants.fbrCouple - constants.fbrIndividual;
+      document.getElementById('c-breakdown')!.innerHTML =
+        `<div><span>Child allocations (${otherChildren} × $${childAlloc})</span><b>−${money(r.childAllocations)}</b></div>` +
+        `<div><span>Countable income after exclusions</span><b>${money(r.countableIncome)}</b></div>` +
+        `<div><span>Parental living allowance</span><b>−${money(r.parentalAllowance)}</b></div>` +
+        `<div><span>Deemed to your child</span><b>${money(r.deemedToChild)}</b></div>`;
+      document.getElementById('c-note')!.innerHTML = qualifies
+        ? 'Your child may qualify for SSI — which in California also brings <b>automatic Medi-Cal</b>. Worth applying.'
+        : 'Income looks over the SSI limit — but your child can likely still get <b>Medi-Cal through institutional deeming</b>, which ignores parental income. See the guide.';
+
+      // tool_completed with the outcome; the save CTA's ctx carries
+      // SUMMARIES only — never the raw figures the parent typed (D3 privacy).
+      const outcome = qualifies ? 'may-qualify' : 'over-limit';
+      window.plausible?.('tool_completed', { props: { tool_id: TOOL, locale: 'en', outcome } });
+      const save = document.getElementById('c-save') as HTMLAnchorElement | null;
+      if (save) {
+        const url = new URL(save.href);
+        const ctx = {
+          v: 1,
+          kind: 'tool',
+          tool_id: TOOL,
+          inputs_summary: `${parents}-parent household, ${otherChildren} other children`,
+          result_summary: outcome,
+        };
+        url.searchParams.set(
+          'wp_ctx',
+          btoa(JSON.stringify(ctx)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
+        );
+        save.href = url.toString();
+      }
+    });
+  }
+</script>

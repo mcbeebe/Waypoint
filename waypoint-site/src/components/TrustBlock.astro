@@ -1,0 +1,42 @@
+---
+/**
+ * The trust block under every article H1: author, reviewer, updated date.
+ * Reviewer state comes from the schema review block — an empty seat renders
+ * honestly as "pending review", never as a borrowed air of authority.
+ */
+interface Props {
+  author: string;
+  review: { reviewedBy: string; credential: string; date: Date } | null;
+  dateModified: Date;
+}
+const { author, review, dateModified } = Astro.props;
+const initials = author
+  .split(/\s+/)
+  .map((w) => w[0])
+  .join('')
+  .slice(0, 2)
+  .toUpperCase();
+const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+---
+
+<div class="trust-block">
+  <span><span class="avatar" aria-hidden="true">{initials}</span>By <b>{author}</b>, parent-founder</span>
+  {
+    review ? (
+      <span>
+        <span class="avatar rev" aria-hidden="true">
+          ✓
+        </span>
+        Reviewed by <b>{review.reviewedBy}</b>, {review.credential} ({fmt(review.date)})
+      </span>
+    ) : (
+      <span>
+        <span class="avatar rev" aria-hidden="true">
+          …
+        </span>
+        Expert review <b>pending</b> — reviewer seat being recruited
+      </span>
+    )
+  }
+  <span>Updated {fmt(dateModified)}</span>
+</div>
