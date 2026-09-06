@@ -35,6 +35,7 @@ const saveProps = JSON.stringify({
   title="SSI deeming calculator for California families — Waypoint"
   description="Estimate whether your child could qualify for SSI while living at home: a quick parent-to-child deeming estimate, free, private, and stored nowhere."
   noindex={true}
+  pillar="benefits"
 >
   <PageHero
     eyebrow="Free tool · no email · nothing you type is stored"
@@ -174,9 +175,8 @@ const saveProps = JSON.stringify({
       document.getElementById('c-result')!.textContent = qualifies
         ? `≈ ${money(r.estimatedSsi)} / mo`
         : '$0 — over limit';
-      const childAlloc = constants.fbrCouple - constants.fbrIndividual;
       document.getElementById('c-breakdown')!.innerHTML =
-        `<div><span>Child allocations (${otherChildren} × $${childAlloc})</span><b>−${money(r.childAllocations)}</b></div>` +
+        `<div><span>Child allocations (${otherChildren} × $${constants.childAllocation})</span><b>−${money(r.childAllocations)}</b></div>` +
         `<div><span>Countable income after exclusions</span><b>${money(r.countableIncome)}</b></div>` +
         `<div><span>Parental living allowance</span><b>−${money(r.parentalAllowance)}</b></div>` +
         `<div><span>Deemed to your child</span><b>${money(r.deemedToChild)}</b></div>`;

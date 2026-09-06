@@ -78,10 +78,16 @@ const jsonLd = !isDraft
   : null;
 ---
 
-<BaseLayout title={`${title} — Waypoint`} description={description} locale={locale} noindex={noindex || isDraft}>
+<BaseLayout
+  title={`${title} — Waypoint`}
+  description={description}
+  locale={locale}
+  noindex={noindex || isDraft}
+  pillar={pillar}
+>
   <div class="section on-white">
     <div class:list={['container', { narrow }]}>
-      <Breadcrumbs crumbs={crumbs} />
+      <Breadcrumbs crumbs={crumbs} jsonld={!isDraft} />
       {isDraft && <DraftBanner status={status} />}
       <h1 class="h1-a">{heading}</h1>
       <slot name="notice" />

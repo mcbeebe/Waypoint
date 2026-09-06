@@ -17,6 +17,16 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 export const showDrafts: boolean =
   import.meta.env.DEV || process.env.WAYPOINT_SHOW_DRAFTS === '1';
 
+// The drafts flag on a PRODUCTION deploy would publish every unverified YMYL
+// draft with one dashboard checkbox. Refuse to build instead: the gate must
+// not depend on out-of-band Vercel configuration staying correct.
+if (process.env.WAYPOINT_SHOW_DRAFTS === '1' && process.env.VERCEL_ENV === 'production') {
+  throw new Error(
+    'WAYPOINT_SHOW_DRAFTS=1 is set on a production Vercel build. Draft YMYL content must ' +
+      'never ship to production — unset the variable on the Production environment.',
+  );
+}
+
 type ReviewedCollection = 'guides' | 'answers' | 'letters' | 'regionalCenters' | 'research';
 
 type ReviewedEntry = CollectionEntry<ReviewedCollection>;

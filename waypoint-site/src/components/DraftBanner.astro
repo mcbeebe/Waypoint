@@ -16,7 +16,9 @@ const label: Record<string, string> = {
 };
 ---
 
-<div class="draft-banner" role="status">
+{/* role="note", not "status": live regions announce changes, and this is
+    static content that must be read in document order. */}
+<div class="draft-banner" role="note">
   <strong>{label[status] ?? 'Draft'} — pending expert review.</strong>
   This is a working preview. Facts, figures, and citations have not yet been verified —
   do not rely on this page.

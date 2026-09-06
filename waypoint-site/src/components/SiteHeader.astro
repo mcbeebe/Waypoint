@@ -7,7 +7,14 @@
  */
 import Brandmark from './Brandmark.astro';
 import { visibleContentUrls } from '../lib/content';
-import { appStartUrl, slugFromPath } from '../lib/appLinks';
+import { appStartUrl, slugFromPath, type Pillar } from '../lib/appLinks';
+
+interface Props {
+  /** Pillar of the current page (D3: wp_pillar required on pillar content). */
+  pillar?: string;
+  locale?: 'en' | 'es';
+}
+const { pillar, locale = 'en' } = Astro.props;
 
 const APP_URL = 'https://app.waypointchild.com';
 const urls = await visibleContentUrls();
@@ -27,8 +34,8 @@ const navItems = [
 
 const isActive = (item: { active: string[] }) => item.active.some((p) => path.startsWith(p));
 
-const ctaHref = appStartUrl({ slug, cta: 'header' });
-const ctaProps = JSON.stringify({ slug, locale: 'en', cta_id: 'header' });
+const ctaHref = appStartUrl({ slug, cta: 'header', locale, pillar: pillar as Pillar | undefined });
+const ctaProps = JSON.stringify({ slug, ...(pillar ? { pillar } : {}), locale, cta_id: 'header' });
 ---
 
 <header class="topnav">

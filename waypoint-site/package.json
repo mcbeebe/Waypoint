@@ -13,7 +13,7 @@
     "check": "astro check",
     "test": "vitest run",
     "build:drafts": "WAYPOINT_SHOW_DRAFTS=1 astro build",
-    "gates": "astro check && vitest run && npm run build:drafts && astro build && node scripts/validate-keyword-map.mjs",
+    "gates": "astro check && vitest run && npm run build:drafts && node scripts/check-internal-links.mjs && astro build && node scripts/check-internal-links.mjs && node scripts/validate-keyword-map.mjs",
     "refresh-due": "node scripts/refresh-due.mjs"
   },
   "dependencies": {

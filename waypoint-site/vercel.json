@@ -32,13 +32,19 @@
       "permanent": true
     },
     {
-      "source": "/:prefix(start|login|signup|auth|onboarding|home|chat)/:path*",
+      "source": "/start",
+      "has": [{ "type": "host", "value": "www.waypointchild.com" }],
+      "destination": "https://app.waypointchild.com/start",
+      "permanent": true
+    },
+    {
+      "source": "/:prefix(login|signup|auth|onboarding|home|chat)/:path*",
       "has": [{ "type": "host", "value": "www.waypointchild.com" }],
       "destination": "https://app.waypointchild.com/:prefix/:path*",
       "permanent": true
     },
     {
-      "source": "/:prefix(start|login|signup|auth|onboarding|home|chat)",
+      "source": "/:prefix(login|signup|auth|onboarding|home|chat)",
       "has": [{ "type": "host", "value": "www.waypointchild.com" }],
       "destination": "https://app.waypointchild.com/:prefix",
       "permanent": true

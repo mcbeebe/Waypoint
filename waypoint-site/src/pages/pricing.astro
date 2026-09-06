@@ -1,8 +1,10 @@
 ---
 /**
- * Pricing at prototype parity. Tier figures come from the owner-approved
- * prototype (PR #195/#198); final pricing is the owner's call (D13) and the
- * competitor table keeps its verify-before-publish notice until confirmed.
+ * Pricing. Tier figures and the competitor table come from the owner-approved
+ * prototype (PR #195/#198), but final pricing is the owner's call (D13) and
+ * the competitor rows are unverified — so BOTH render only on drafts builds
+ * (adversary finding A2). Production shows the free tier (true today) and an
+ * honest "final pricing at launch" state until the owner confirms figures.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AnswerFirst from '../components/AnswerFirst.astro';
@@ -11,6 +13,7 @@ import HandoffCTA from '../components/HandoffCTA.astro';
 import InlineDisclaimer from '../components/InlineDisclaimer.astro';
 import PageHero from '../components/PageHero.astro';
 import { appStartUrl } from '../lib/appLinks';
+import { showDrafts } from '../lib/content';
 
 const planLink = (plan: string) => ({
   href: appStartUrl({ slug: 'pricing', cta: 'pricing-card', ctx: { v: 1, kind: 'guide', slug: 'pricing', next_action: `plan-${plan}` } }),
@@ -23,7 +26,7 @@ const pro = planLink('pro');
 
 <BaseLayout
   title="Waypoint pricing — free to start, honest when you need more"
-  description="Every Waypoint guide, tool, and letter is free forever. The app adds deadline tracking, letter drafting, and an AI navigator — plans from $0 to $19.99/month."
+  description="Every Waypoint guide, tool, and letter is free forever. The app adds deadline tracking, letter drafting, and an AI navigator — free to start, with paid plans for more."
 >
   <PageHero
     eyebrow="Pricing"
@@ -31,8 +34,51 @@ const pro = planLink('pro');
     lede="Everything on this site — every guide, tool, and letter — stays free forever. The app is where Waypoint goes from telling you what to do to doing it with you: tracking deadlines, drafting letters, keeping the plan. That part is what you pay for."
   />
 
+  {
+    !showDrafts && (
+      <div class="section">
+        <div class="container narrow">
+          <div class="price-grid" style="grid-template-columns: 1fr 1fr">
+            <div class="price-card">
+              <span class="plan">FREE</span>
+              <div class="amount">$0</div>
+              <ul>
+                <li>Limited AI Navigator questions</li>
+                <li>Instant eligibility results</li>
+                <li>All guides, tools, and letters</li>
+                <li>English + Spanish, full parity</li>
+                <li>No credit card, no email gate</li>
+              </ul>
+              <a class="btn" href={free.href} data-wp-event="app_signup_click" data-wp-props={free.props}>
+                Start free
+              </a>
+            </div>
+            <div class="price-card">
+              <span class="plan">PLUS &amp; PRO</span>
+              <div class="amount">Coming</div>
+              <ul>
+                <li>Unlimited AI Navigator, 24/7</li>
+                <li>Document vault, deadline alerts</li>
+                <li>Letter &amp; appeal generation</li>
+                <li>Final pricing announced at launch</li>
+              </ul>
+              <a class="btn ghost" href={free.href} data-wp-event="app_signup_click" data-wp-props={free.props}>
+                Start free, upgrade later
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  {showDrafts && (
   <div class="section">
     <div class="container">
+      <NoticeBox>
+        Draft pricing — figures below are the prototype's and await the owner's pricing
+        decision (D13). This section renders on preview builds only.
+      </NoticeBox>
       <div class="price-grid">
         <div class="price-card">
           <span class="plan">FREE</span>
@@ -75,7 +121,9 @@ const pro = planLink('pro');
       </div>
     </div>
   </div>
+  )}
 
+  {showDrafts && (
   <div class="section on-white">
     <div class="container narrow">
       <span class="eyebrow">Comparison</span>
@@ -114,6 +162,7 @@ const pro = planLink('pro');
       </p>
     </div>
   </div>
+  )}
 
   <div class="section">
     <div class="container narrow">
@@ -123,6 +172,7 @@ const pro = planLink('pro');
         action="Create your free account →"
         slug="pricing"
         cta="pricing-card"
+        ctx={{ v: 1, kind: 'guide', slug: 'pricing', next_action: 'pricing-footer' }}
       />
       <InlineDisclaimer variant="legal" />
     </div>

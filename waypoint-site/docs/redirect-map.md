@@ -121,7 +121,7 @@ Already implemented in `waypoint-site/vercel.json`:
 
 | # | Match (host = `www.waypointchild.com`) | Target |
 |---|---|---|
-| 1 | Path starts with an app route prefix: `/start`, `/login`, `/signup`, `/auth`, `/onboarding`, `/home`, `/chat` **[TBC — regenerate the full prefix list from the waypoint-app navigator/router at cutover time; do not assume]** | `https://app.waypointchild.com/<same path>` |
+| 1 | The app deep-link path `/start` (BARE path only — `/start/<anything>` belongs to the site's start-here checklists, e.g. `/start/autism/`, and falls through to rule 2), or a path starting with `/login`, `/signup`, `/auth`, `/onboarding`, `/home`, `/chat` **[TBC — regenerate the full prefix list from the waypoint-app navigator/router at cutover time; do not assume]** | `https://app.waypointchild.com/<same path>` |
 | 2 | Everything else on `www` (catch-all, last) | `https://waypointchild.com/<same path>` |
 
 Rule 2 sends unknown `www` paths to the **same path on the apex** (not the homepage): the marketing site's 404 page then handles genuinely dead paths, which keeps the 404 measurable via the `not_found` Plausible event instead of silently flattening everything to `/`.

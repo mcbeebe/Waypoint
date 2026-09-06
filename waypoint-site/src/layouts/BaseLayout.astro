@@ -9,8 +9,11 @@ interface Props {
   description: string;
   locale?: 'en' | 'es';
   noindex?: boolean;
+  /** Pillar of the current page — required on pillar content so the header
+   * CTA can carry wp_pillar (D3: required on pillar content). */
+  pillar?: string;
 }
-const { title, description, locale = 'en', noindex = false } = Astro.props;
+const { title, description, locale = 'en', noindex = false, pillar } = Astro.props;
 ---
 
 <!doctype html>
@@ -34,20 +37,33 @@ const { title, description, locale = 'en', noindex = false } = Astro.props;
       crossorigin
     />
     <Seo title={title} description={description} noindex={noindex} />
-    {/* Plausible: cookieless analytics — events per docs/analytics-taxonomy.md (D3). */}
-    <script
-      defer
-      data-domain="waypointchild.com"
-      src="https://plausible.io/js/script.js"></script>
+    {/* Plausible: cookieless analytics — events per docs/analytics-taxonomy.md
+        (D3). Loaded only on production deploys so preview/branch QA traffic
+        never pollutes the production data-domain (local non-Vercel builds
+        keep it for testing; those pages aren't visited by anyone). */}
+    {
+      (process.env.VERCEL_ENV ?? 'production') === 'production' && (
+        <script defer data-domain="waypointchild.com" src="https://plausible.io/js/script.js" />
+      )
+    }
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <SiteHeader />
+    <SiteHeader pillar={pillar} locale={locale} />
     <main id="main">
       <slot />
     </main>
     <SiteFooter />
     <script>
+      // Plausible init queue stub (the official snippet's pattern): events
+      // fired before the deferred script loads are queued, not lost.
+      window.plausible =
+        window.plausible ||
+        function (this: unknown) {
+          const p = window.plausible as unknown as { q?: IArguments[] };
+          (p.q = p.q || []).push(arguments);
+        };
+
       // Delegated analytics per docs/analytics-taxonomy.md (D3).
       // app_signup_click: any element carrying data-wp-event fires its event
       // with the JSON props in data-wp-props (Plausible uses keepalive

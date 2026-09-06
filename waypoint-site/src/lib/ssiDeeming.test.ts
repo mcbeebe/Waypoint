@@ -9,11 +9,14 @@ import { describe, expect, it } from 'vitest';
 import { estimateDeeming, type DeemingConstants } from './ssiDeeming';
 import constants from '../data/benefit-constants.json';
 
+const CHILD_ALLOC = constants._2025_ssi_child_allocation.value; // 483
 const FBR_2025: DeemingConstants = {
   fbrIndividual: constants._2025_ssi_fbr_individual.value,
   fbrCouple: constants._2025_ssi_fbr_couple.value,
+  childAllocation: CHILD_ALLOC,
+  generalExclusion: constants.ssi_general_exclusion.value,
+  earnedExclusion: constants.ssi_earned_exclusion.value,
 };
-const CHILD_ALLOC = constants._2025_ssi_child_allocation.value; // 483
 
 describe('estimateDeeming (2025 reference figures)', () => {
   it('zero income → full individual FBR', () => {

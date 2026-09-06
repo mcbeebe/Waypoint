@@ -24,12 +24,25 @@ function entry(key: string): ConstantEntry {
 /**
  * Verified current-year deeming constants, or null while any needed figure
  * is still unverified — the calculator renders its pending state on null.
+ * The child allocation is a real entry, not a derivation, so a verified
+ * value that differs from (couple − individual) is used, not ignored (D4).
  */
 export function currentDeemingConstants(): (DeemingConstants & { year: number }) | null {
   const ind = entry('ssi_fbr_individual');
   const cpl = entry('ssi_fbr_couple');
-  if (ind.value == null || cpl.value == null) return null;
-  return { fbrIndividual: ind.value, fbrCouple: cpl.value, year: ind.year };
+  const alloc = entry('ssi_child_allocation');
+  const general = entry('ssi_general_exclusion');
+  const earned = entry('ssi_earned_exclusion');
+  if (ind.value == null || cpl.value == null || alloc.value == null) return null;
+  if (general.value == null || earned.value == null) return null;
+  return {
+    fbrIndividual: ind.value,
+    fbrCouple: cpl.value,
+    childAllocation: alloc.value,
+    generalExclusion: general.value,
+    earnedExclusion: earned.value,
+    year: ind.year,
+  };
 }
 
 /** The SSA source URL shown beside calculator output and pending states. */

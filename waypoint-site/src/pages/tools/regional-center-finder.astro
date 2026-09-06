@@ -26,6 +26,7 @@ const covered = records.length;
   title="Find your California Regional Center — Waypoint"
   description="California has 21 Regional Centers, each serving specific counties. Pick your county to find the center that serves your family and how the intake clock works."
   noindex={true}
+  pillar="regional-centers"
 >
   <PageHero
     eyebrow="Free tool · no email"
@@ -45,32 +46,55 @@ const covered = records.length;
           </NoticeBox>
         )
       }
-      <div class="cols">
-        <div class="tool-panel">
-          <div class="field">
-            <label for="f-county">Your county</label>
-            <select id="f-county">
-              {counties.map((c) => <option>{c}</option>)}
-            </select>
-          </div>
-          <button class="btn" id="f-run" type="button">Find my Regional Center</button>
-          <div class="hint" style="margin-top:10px">
-            In Los Angeles County, seven Regional Centers divide the map by neighborhood — pick
-            your county and we'll show every center that serves it.
-          </div>
-        </div>
-        <div>
-          <div class="result-panel" aria-live="polite">
-            <span class="r-label">Your Regional Center</span>
-            <span class="r-big" id="f-result" style="font-size:1.5rem">Select your county</span>
-            <p class="r-note" id="f-note">
-              Every Regional Center must decide eligibility within <b>120 days</b> of intake —
-              <b>45 days</b> for children under 3 through Early Start.
+      {
+        counties.length === 0 ? (
+          <div class="tool-panel">
+            {/* Zero verified centers in this build: no dead dropdown, no
+                button that silently does nothing (adversary finding A4). */}
+            <p style="margin:0 0 10px">
+              <strong>The finder comes online center by center.</strong> Each of the 21
+              Regional Centers is added here once its counties and contact details are verified
+              against official sources — none have completed verification yet.
             </p>
-            <div class="r-save" id="f-link"></div>
+            <p style="margin:0">
+              Meanwhile, the Department of Developmental Services (
+              <a href="https://www.dds.ca.gov/">dds.ca.gov</a>) lists all 21 centers, and our
+              guides explain how intake works at any of them.
+            </p>
           </div>
-        </div>
-      </div>
+        ) : (
+          <div class="cols">
+            <div class="tool-panel">
+              <div class="field">
+                <label for="f-county">Your county</label>
+                <select id="f-county">
+                  {counties.map((c) => (
+                    <option>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <button class="btn" id="f-run" type="button">Find my Regional Center</button>
+              <div class="hint" style="margin-top:10px">
+                In Los Angeles County, seven Regional Centers divide the map by neighborhood —
+                pick your county and we'll show every center that serves it.
+              </div>
+            </div>
+            <div>
+              <div class="result-panel" aria-live="polite">
+                <span class="r-label">Your Regional Center</span>
+                <span class="r-big" id="f-result" style="font-size:1.5rem">
+                  Select your county
+                </span>
+                <p class="r-note" id="f-note">
+                  Every Regional Center must decide eligibility within <b>120 days</b> of
+                  intake — <b>45 days</b> for children under 3 through Early Start.
+                </p>
+                <div class="r-save" id="f-link" />
+              </div>
+            </div>
+          </div>
+        )
+      }
       <article class="prose" style="margin-top:30px">
         <AnswerFirst>
           Regional Centers are 21 state-funded nonprofits that coordinate services for

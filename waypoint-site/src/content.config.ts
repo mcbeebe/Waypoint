@@ -93,11 +93,18 @@ const seoBase = z.object({
   noindex: z.boolean().default(false),
 });
 
-/** Published YMYL pages must carry a completed review block. */
-const requireReviewWhenPublished = (data: { status: string; review: unknown }) =>
-  data.status !== 'published' || data.review !== null;
+/**
+ * Published YMYL pages must carry a completed review block AND a real
+ * datePublished — Article JSON-LD must never have to invent one.
+ */
+const requireReviewWhenPublished = (data: {
+  status: string;
+  review: unknown;
+  datePublished: unknown;
+}) => data.status !== 'published' || (data.review !== null && data.datePublished !== null);
 const REVIEW_MSG = {
-  message: "status 'published' requires a completed review block (D2 / trust contract)",
+  message:
+    "status 'published' requires a completed review block and datePublished (D2 / trust contract)",
   path: ['review'],
 };
 

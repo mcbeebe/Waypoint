@@ -98,6 +98,11 @@ a {
 .section {
   padding: 52px 0;
 }
+.lede {
+  font-size: 1.05rem;
+  color: var(--color-ink-soft);
+  max-width: 62ch;
+}
 .section.on-white {
   background: var(--color-panel);
 }

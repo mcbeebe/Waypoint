@@ -34,6 +34,7 @@ const isDraft = d.status !== 'published';
   description={d.description}
   locale={d.locale}
   noindex={d.noindex || isDraft}
+  pillar={d.pillar}
 >
   <PageHero eyebrow="Just diagnosed · California" title={d.title} />
   <div class="section on-white">
@@ -82,28 +83,27 @@ const isDraft = d.status !== 'published';
     };
 
     items.forEach((it, idx) => {
-      it.setAttribute('role', 'checkbox');
-      it.setAttribute('tabindex', '0');
-      it.setAttribute('aria-checked', 'false');
       if (!it.dataset.itemId) it.dataset.itemId = `item-${idx + 1}`;
+      // The checkbox semantics live on the real <button role="checkbox">
+      // inside the card (CheckItem.astro); the card itself is a click
+      // convenience only, so links inside step text keep their semantics.
+      const box = it.querySelector<HTMLButtonElement>('[data-check-toggle]');
+      if (!box) return;
       const toggle = () => {
         it.classList.toggle('done');
         const on = it.classList.contains('done');
-        it.setAttribute('aria-checked', String(on));
-        const box = it.querySelector('.box');
-        if (box) box.textContent = on ? '✓' : '';
+        box.setAttribute('aria-checked', String(on));
+        box.textContent = on ? '✓' : '';
         update();
       };
-      it.addEventListener('click', (e) => {
-        // Links inside a step should navigate, not toggle the step.
-        if ((e.target as Element).closest('a')) return;
+      box.addEventListener('click', (e) => {
+        e.stopPropagation();
         toggle();
       });
-      it.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault();
-          toggle();
-        }
+      it.addEventListener('click', (e) => {
+        // Links inside a step should navigate, not toggle the step.
+        if ((e.target as Element).closest('a, button')) return;
+        toggle();
       });
     });
     update();

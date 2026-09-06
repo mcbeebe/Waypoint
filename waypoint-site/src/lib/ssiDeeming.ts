@@ -30,6 +30,14 @@ export interface DeemingConstants {
   fbrIndividual: number;
   /** SSI federal benefit rate, eligible couple, monthly. */
   fbrCouple: number;
+  /** Deeming allocation per ineligible child (its own verified entry — not
+   * derived here, so a verified value that differs from couple−individual
+   * wins; D4). */
+  childAllocation: number;
+  /** $20 general income exclusion. */
+  generalExclusion: number;
+  /** $65 earned income exclusion. */
+  earnedExclusion: number;
 }
 
 export interface DeemingInputs {
@@ -55,26 +63,22 @@ export interface DeemingResult {
   estimatedSsi: number;
 }
 
-const GENERAL_EXCLUSION = 20;
-const EARNED_EXCLUSION = 65;
-
 /** Run the simplified deeming estimate. Inputs are clamped to ≥ 0. */
 export function estimateDeeming(c: DeemingConstants, input: DeemingInputs): DeemingResult {
   const earned = Math.max(0, input.earnedMonthly);
   const unearned = Math.max(0, input.unearnedMonthly);
-  const childAllocation = c.fbrCouple - c.fbrIndividual;
-  const childAllocations = Math.max(0, input.otherChildren) * childAllocation;
+  const childAllocations = Math.max(0, input.otherChildren) * c.childAllocation;
 
   // Allocations reduce unearned income first, then earned.
   const unearnedAfterAlloc = Math.max(0, unearned - childAllocations);
   const earnedAfterAlloc = Math.max(0, earned - Math.max(0, childAllocations - unearned));
 
-  // $20 general exclusion applies to unearned first; any unused remainder
-  // carries over to earned income before the $65 earned exclusion.
-  const countableUnearned = Math.max(0, unearnedAfterAlloc - GENERAL_EXCLUSION);
+  // The general exclusion applies to unearned first; any unused remainder
+  // carries over to earned income before the earned exclusion.
+  const countableUnearned = Math.max(0, unearnedAfterAlloc - c.generalExclusion);
   const generalLeftover =
-    unearnedAfterAlloc >= GENERAL_EXCLUSION ? 0 : GENERAL_EXCLUSION - unearnedAfterAlloc;
-  const countableEarned = Math.max(0, earnedAfterAlloc - generalLeftover - EARNED_EXCLUSION) / 2;
+    unearnedAfterAlloc >= c.generalExclusion ? 0 : c.generalExclusion - unearnedAfterAlloc;
+  const countableEarned = Math.max(0, earnedAfterAlloc - generalLeftover - c.earnedExclusion) / 2;
 
   const countableIncome = countableUnearned + countableEarned;
   const parentalAllowance = input.parents === 2 ? c.fbrCouple : c.fbrIndividual;
