@@ -144,7 +144,7 @@ chase at two weeks).
 | 2026-09-06 | #207 | D13 pricing decided by the owner: Plus $4.99/mo, Pro $9.99/mo, 3-month free trial — /pricing/ tier grid unlocked in production; competitor comparison stays preview-only until verified (checklist row 25) |
 | 2026-09-06 | #208 | Wedge drafts #3 (Medi-Cal institutional deeming) + #5 (SSI for children; zero dollar figures until D4 constants verify). #6+ held for the reviewer per plan |
 | 2026-09-06 | #209 | 20 RC draft stubs — the D11 county spine AUTHORED (plan correction: the Entity Matrix has one RC row, nothing to convert); counties [TBC] pending DDS verification; finder county map complete in preview |
-| 2026-09-06 | (this PR) | SEO/CI tranche: Pagefind search (+/search/, search_used), RSS (published-only), axe-core CI gate (checklist row 8 — fails on serious/critical; its first run caught and fixed 24 real WCAG issues: handoff/draft-banner contrast, underlines for in-text links, .soon states), content scaffolder (`npm run new`, enforces no-row-no-draft). The D9 /accessibility/ statement still waits on the manual keyboard/VoiceOver pass (human step) |
+| 2026-09-06 | #210 | SEO/CI tranche: Pagefind search (+/search/, search_used), RSS (published-only), axe-core CI gate (checklist row 8 — fails on serious/critical; its first run caught and fixed 24 real WCAG issues: handoff/draft-banner contrast, underlines for in-text links, .soon states), content scaffolder (`npm run new`, enforces no-row-no-draft). The D9 /accessibility/ statement still waits on the manual keyboard/VoiceOver pass (human step) |
 
 **Recorded deviation (2026-09-06):** the two launch tools are framework-free
 Astro `<script>` islands over pure tested modules, not Preact components as
