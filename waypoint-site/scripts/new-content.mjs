@@ -10,6 +10,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { load as yamlLoad } from 'js-yaml';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
@@ -19,6 +20,11 @@ const KINDS = ['guide', 'answer', 'letter', 'rc'];
 if (!KINDS.includes(kind) || !slug || !/^[a-z0-9/-]+$/.test(slug)) {
   console.error('Usage: npm run new -- <guide|answer|letter|rc> <slug>');
   console.error('  guide slugs may nest (e.g. benefits/my-guide, start/my-diagnosis)');
+  process.exit(1);
+}
+// Only guides route nested slugs; answers/letters/rc routes are single-segment.
+if (kind !== 'guide' && slug.includes('/')) {
+  console.error(`ERROR: ${kind} slugs cannot nest (that route is single-segment).`);
   process.exit(1);
 }
 
@@ -32,8 +38,9 @@ const urlByKind = {
   letter: `/letters/${slug}/`,
   rc: `/regional-centers/${slug}/`,
 };
-const map = readFileSync(path.join(ROOT, 'content-ops', 'keyword-map.yaml'), 'utf8');
-if (!map.includes(`url: "${urlByKind[kind]}"`)) {
+const map = yamlLoad(readFileSync(path.join(ROOT, 'content-ops', 'keyword-map.yaml'), 'utf8'));
+const hasRow = Array.isArray(map?.entries) && map.entries.some((e) => e?.url === urlByKind[kind]);
+if (!hasRow) {
   console.error(
     `ERROR: no keyword-map row for ${urlByKind[kind]} — add the row first (pipeline §1.1: no row → no draft).`,
   );
@@ -60,6 +67,12 @@ const extra = {
   rc: `rcId: ${leaf} # must be in RC_IDS (src/content.config.ts)\nrcName: "[TBC: full center name]"\ncounties:\n  - "[TBC: verify against the DDS listing]"\nintakePhone: null\nintakeUrl: null\nddsListingUrl: null\nverifiedAsOf: ${today}`,
 }[kind];
 
+// D3 identity per template — a wrong cta_id ships misattributed analytics.
+const ctaByKind = { guide: 'guide-footer', answer: 'answer-footer', letter: 'letter-footer', rc: 'rc-footer' };
+const pillarByKind = { guide: 'benefits', answer: 'benefits', letter: 'iep', rc: 'regional-centers' };
+// Import depth: src/content/<collection>/(nested dirs)/file.mdx → src/components.
+const up = '../'.repeat(2 + slug.split('/').length - 1);
+
 const body = `---
 title: "[TBC: SEO title, ≤70 chars]"
 description: "[TBC: meta description, 40–160 chars — the direct answer, not a teaser.]"
@@ -78,10 +91,10 @@ disclaimerVariant: legal # legal | benefits | medical
   sources[] stays empty until the founder-edit verify pass confirms URLs.
 */}
 
-import AnswerFirst from '../../components/AnswerFirst.astro';
-import Cite from '../../components/Cite.astro';
-import HandoffCTA from '../../components/HandoffCTA.astro';
-import PlainBox from '../../components/PlainBox.astro';
+import AnswerFirst from '${up}components/AnswerFirst.astro';
+import Cite from '${up}components/Cite.astro';
+import HandoffCTA from '${up}components/HandoffCTA.astro';
+import PlainBox from '${up}components/PlainBox.astro';
 
 <PlainBox>
   [TBC: plain-language summary, grade ≤6 — what this is, who it’s for, the one thing to know.]
@@ -100,12 +113,12 @@ and ≥2 siblings.]
   body="[TBC]"
   action="[TBC] →"
   slug="${urlByKind[kind].replace(/^\/|\/$/g, '')}"
-  cta="guide-footer"
-  pillar="benefits"
+  cta="${ctaByKind[kind]}"
+  pillar="${pillarByKind[kind]}"
 />
 `;
 
 mkdirSync(path.dirname(target), { recursive: true });
 writeFileSync(target, body);
 console.log(`Created ${path.relative(ROOT, target)} (status: draft).`);
-console.log('Next: fix the relative import depth if the slug nests, fill [TBC]s, run npm run gates.');
+console.log("Next: set pillar to the keyword-map row's value, fill [TBC]s, run npm run gates.");

@@ -544,7 +544,7 @@ article.prose strong {
    WCAG 1.4.1 (axe link-in-text-block): pine on ink-soft is ~1.2:1, so
    in-text links need a non-color cue. Underline them; standalone UI links
    (.link card links, nav, buttons) stay clean. */
-article.prose a:not(.btn),
+article.prose a:not(.btn):not(.link),
 .answer-first a,
 .plain-box a,
 .empathy a,

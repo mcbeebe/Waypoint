@@ -1,9 +1,11 @@
 ---
 /**
- * Site search (Pagefind). The index is built by the postbuild step
- * (`pagefind --site dist`), so search works on built deployments, not the
- * dev server — the page says so instead of failing silently. Only elements
- * inside [data-pagefind-body] are indexed (article content, not chrome).
+ * Site search (Pagefind). The index is built by scripts/pagefind-index.mjs —
+ * only when the build contains at least one article body, so a production
+ * build with nothing published has no index and this page says so instead of
+ * mounting a dead search box. The stylesheet is injected on successful mount
+ * (no static <link>, so the internal-link gate never depends on the index
+ * existing, and no markup lands after </html>).
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
@@ -29,36 +31,46 @@ import PageHero from '../components/PageHero.astro';
       </noscript>
     </div>
   </div>
-</BaseLayout>
 
-<link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
-
-<script>
-  // Pagefind UI ships with the built site (same-origin — CSP script-src
-  // 'self' allows it). On the dev server the index doesn't exist yet;
-  // explain instead of silently showing nothing.
-  async function mountSearch() {
-    const el = document.getElementById('search');
-    if (!el) return;
-    try {
-      // Built asset, present only after `pagefind --site dist` — resolved in
-      // the browser, never by vite or tsc.
-      // @ts-expect-error: no module declaration for the build-time asset.
-      const mod = await import(/* @vite-ignore */ '/pagefind/pagefind-ui.js');
-      const PagefindUI = (mod as { PagefindUI: new (opts: object) => unknown }).PagefindUI;
-      new PagefindUI({ element: '#search', showSubResults: true, showImages: false });
-      // search_used (D3): first query typed in this pageview.
-      let fired = false;
-      el.addEventListener('input', (e) => {
-        if (fired || !(e.target as HTMLInputElement).value?.trim()) return;
-        fired = true;
-        window.plausible?.('search_used', { props: { locale: 'en' } });
-      });
-    } catch {
-      el.innerHTML =
-        '<p>Search is available on the published site (the index builds at deploy time). ' +
-        'Meanwhile, start from the <a href="/guides/">guides library</a>.</p>';
+  <script>
+    // Pagefind UI ships with the built site (same-origin; the CSP carries
+    // 'wasm-unsafe-eval' for its search core). When the index doesn't exist —
+    // dev server, or a build with nothing published yet — explain instead of
+    // showing a dead box.
+    async function mountSearch() {
+      const el = document.getElementById('search');
+      if (!el) return;
+      try {
+        // Built asset, resolved in the browser — never by vite or tsc.
+        // @ts-expect-error: no module declaration for the build-time asset.
+        const mod = await import(/* @vite-ignore */ '/pagefind/pagefind-ui.js');
+        const PagefindUI = (mod as { PagefindUI: new (opts: object) => unknown }).PagefindUI;
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = '/pagefind/pagefind-ui.css';
+        document.head.appendChild(css);
+        new PagefindUI({ element: '#search', showSubResults: true, showImages: false });
+        // search_used (D3, "query submitted"): fired once per pageview when a
+        // non-empty query settles (1.2s after the last keystroke).
+        let fired = false;
+        let timer: ReturnType<typeof setTimeout>;
+        el.addEventListener('input', (e) => {
+          if (fired) return;
+          clearTimeout(timer);
+          const value = (e.target as HTMLInputElement).value?.trim();
+          if (!value) return;
+          timer = setTimeout(() => {
+            if (fired) return;
+            fired = true;
+            window.plausible?.('search_used', { props: { locale: 'en' } });
+          }, 1200);
+        });
+      } catch {
+        el.innerHTML =
+          '<p>Search comes online with the first published guides. ' +
+          'Meanwhile, start from the <a href="/guides/">guides library</a> — every page is two clicks from there.</p>';
+      }
     }
-  }
-  mountSearch();
-</script>
+    mountSearch();
+  </script>
+</BaseLayout>

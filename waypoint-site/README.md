@@ -22,7 +22,8 @@ npm run dev          # dev server (drafts visible; search index absent until a b
 npm run gates        # check + tests + drafts build + link check + axe scan
                      #   + production build + link check + keyword map — the CI gate
 npm test             # vitest (pure modules: deeming math, deep-link builder)
-npm run axe          # axe-core scan of the built dist (fails on serious/critical)
+npm run axe          # drafts build + axe scan of every page (fails on serious/critical;
+                     #   fresh clones need `npx playwright install chromium` once)
 npm run new -- guide benefits/my-slug   # scaffold a draft (keyword-map row required first)
 npm run build        # production build + Pagefind index — publishes ONLY status:published
 npm run build:drafts # preview build — drafts render with banners + noindex
