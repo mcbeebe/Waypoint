@@ -114,9 +114,33 @@ describe('DraftQuestionsSheet', () => {
         onComplete={() => {}}
       />
     );
-    expect(screen.getByText('Waypoint read their reply')).toBeTruthy();
+    expect(screen.getByText("Waypoint's AI read their reply")).toBeTruthy();
     expect(screen.getByText('They declined the request and cited caseload.')).toBeTruthy();
   });
+
+  /**
+   * The draft flow is the model reading an agency's email and writing a reply
+   * the parent sends in-thread, under their own name. Before this, every
+   * string here said "Waypoint" — a company — and the word AI appeared
+   * nowhere, in any of the three languages.
+   *
+   * Asserted by meaning, per locale: the copy can be rewritten freely as long
+   * as it still says a machine did the reading and the writing.
+   */
+  const AI_TERM: Record<string, RegExp> = { en: /\bAI\b/, es: /\bIA\b/, vi: /\bAI\b/ };
+
+  for (const locale of ['en', 'es', 'vi'] as const) {
+    it(`[${locale}] says a machine wrote the draft, before the parent sends it`, () => {
+      // The standing hint under the questions, which every parent passes.
+      sheet({ locale });
+      expect(document.body.textContent).toMatch(AI_TERM[locale]);
+    });
+
+    it(`[${locale}] says a machine READ the agency's reply, not "Waypoint"`, () => {
+      sheet({ locale, aiSummary: 'They ask for the assessment request in writing.' });
+      expect(screen.getAllByText(AI_TERM[locale]).length).toBeGreaterThan(0);
+    });
+  }
 
   it('renders nothing when there is no item', () => {
     const { container } = render(

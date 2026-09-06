@@ -31,10 +31,18 @@ interface DraftQuestionsSheetProps {
   onComplete: (answers: Record<string, string>) => void;
 }
 
+/**
+ * "Waypoint" is a company; a parent reading this needs to know it was a
+ * machine that read their Regional Center's letter. The draft flow said
+ * "Waypoint read their reply" and "Waypoint writes the draft" in all three
+ * languages, and mentioned AI nowhere — so a parent could have an agency's
+ * email summarised, a reply drafted, and send it in-thread under their own
+ * name, never told a model was involved.
+ */
 const SUMMARY_LABEL: Record<FunnelLocale, string> = {
-  en: 'Waypoint read their reply',
-  es: 'Waypoint leyó su respuesta',
-  vi: 'Waypoint đã đọc thư trả lời',
+  en: "Waypoint's AI read their reply",
+  es: 'La IA de Waypoint leyó su respuesta',
+  vi: 'AI của Waypoint đã đọc thư trả lời',
 };
 
 const STRINGS: Record<FunnelLocale, { title: string; write: string; close: string; skipHint: string }> = {
@@ -42,19 +50,19 @@ const STRINGS: Record<FunnelLocale, { title: string; write: string; close: strin
     title: 'A couple of quick questions',
     write: 'Write my letter',
     close: 'Close — nothing is lost',
-    skipHint: 'Then Waypoint writes the draft. Nothing sends until you press Send.',
+    skipHint: "Then Waypoint's AI writes the draft — read it before you send. Nothing sends until you press Send.",
   },
   es: {
     title: 'Un par de preguntas rápidas',
     write: 'Escribir mi carta',
     close: 'Cerrar — no se pierde nada',
-    skipHint: 'Luego Waypoint escribe el borrador. Nada se envía hasta que usted pulse Enviar.',
+    skipHint: 'Luego la IA de Waypoint escribe el borrador — léalo antes de enviar. Nada se envía hasta que usted pulse Enviar.',
   },
   vi: {
     title: 'Vài câu hỏi nhanh',
     write: 'Viết thư của tôi',
     close: 'Đóng — không mất gì',
-    skipHint: 'Sau đó Waypoint viết bản nháp. Không có gì được gửi cho đến khi quý vị bấm Gửi.',
+    skipHint: 'Sau đó AI của Waypoint viết bản nháp — hãy đọc kỹ trước khi gửi. Không có gì được gửi cho đến khi quý vị bấm Gửi.',
   },
 };
 
