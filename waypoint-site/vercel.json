@@ -17,6 +17,16 @@
   ],
   "redirects": [
     {
+      "source": "/join",
+      "destination": "https://app.waypointchild.com/join",
+      "permanent": true
+    },
+    {
+      "source": "/actions/:path*",
+      "destination": "https://app.waypointchild.com/actions/:path*",
+      "permanent": true
+    },
+    {
       "source": "/:prefix(start|login|signup|auth|onboarding|home|chat)/:path*",
       "has": [{ "type": "host", "value": "www.waypointchild.com" }],
       "destination": "https://app.waypointchild.com/:prefix/:path*",
