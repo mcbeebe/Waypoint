@@ -1,0 +1,84 @@
+---
+import Brandmark from './Brandmark.astro';
+---
+
+<footer class="site-footer">
+  <div class="container inner">
+    <div class="brand">
+      <span class="mark"><Brandmark size={26} tone="light" /><span class="word">WAYPOINT</span></span>
+      <p>Your child's unexpected journey. Every step, mapped. Built with ❤️ by a parent in Oakland, CA.</p>
+    </div>
+    <nav aria-label="Legal">
+      <b>Trust</b>
+      <a href="/privacy/">Privacy</a>
+      <a href="/terms/">Terms</a>
+      <a href="/disclaimer/">Disclaimer</a>
+    </nav>
+  </div>
+  <div class="container bottom">
+    <span>© 2026 Waypoint · Informational only — not legal, medical, or benefits advice.</span>
+    <span>Not affiliated with DDS, any Regional Center, CDE, DHCS, or SSA.</span>
+    <span>Feeling overwhelmed? Call or text <b>988</b>.</span>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-ink);
+    color: #a7b8b0;
+    margin-top: 64px;
+    font-size: 0.85rem;
+  }
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 26px 60px;
+    padding-top: 38px;
+    padding-bottom: 30px;
+  }
+  .brand p {
+    max-width: 34ch;
+    margin: 10px 0 0;
+    font-size: 0.82rem;
+  }
+  .mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .word {
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: #ffffff;
+    font-size: 15px;
+  }
+  nav b {
+    display: block;
+    color: #e2eee7;
+    margin-bottom: 8px;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  nav a {
+    display: block;
+    color: #a7b8b0;
+    text-decoration: none;
+    padding: 2px 0;
+  }
+  nav a:hover {
+    color: #ffffff;
+  }
+  .bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    padding-top: 14px;
+    padding-bottom: 26px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    font-size: 0.76rem;
+  }
+  .bottom b {
+    color: #e2eee7;
+  }
+</style>

@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "purpose": "Single source of truth for every benefit dollar figure the site displays or computes with (Decision D4). Page prose, MDX components, and stateless tools all import from this file — no benefit figure is ever hard-coded elsewhere.",
+    "rule": "every consumer of a benefit figure imports THIS file",
+    "updated": "2026-09-06",
+    "conventions": "Current-year entries carry value:null until verified against sourceUrl (verifiedAsOf set on verification). Entries prefixed _2025_ are known prior-year reference figures for context and test fixtures — never display them as current. Refresh events and SOPs live in content-ops/refresh-calendar.yaml (ssa-cola-oct, ssi-fbr-jan, ihss-wages-jan)."
+  },
+
+  "ssi_fbr_individual": {
+    "value": null,
+    "year": 2026,
+    "sourceUrl": "https://www.ssa.gov/oact/cola/SSI.html",
+    "verifiedAsOf": null,
+    "note": "SSI federal benefit rate, individual, monthly. VERIFY against SSA before calculator launch."
+  },
+  "ssi_fbr_couple": {
+    "value": null,
+    "year": 2026,
+    "sourceUrl": "https://www.ssa.gov/oact/cola/SSI.html",
+    "verifiedAsOf": null,
+    "note": "SSI federal benefit rate, eligible couple, monthly. VERIFY against SSA before calculator launch."
+  },
+  "ssi_child_allocation": {
+    "value": null,
+    "year": 2026,
+    "sourceUrl": "https://www.ssa.gov/oact/cola/SSI.html",
+    "verifiedAsOf": null,
+    "note": "Deeming allocation per ineligible child in the household (equals couple FBR minus individual FBR). VERIFY against SSA before calculator launch."
+  },
+
+  "_2025_ssi_fbr_individual": {
+    "value": 967,
+    "year": 2025,
+    "sourceUrl": "https://www.ssa.gov/oact/cola/SSI.html",
+    "verifiedAsOf": null,
+    "note": "Known 2025 figure — reference and test fixtures only, never display as current. Re-verify against sourceUrl before citing on any published page."
+  },
+  "_2025_ssi_fbr_couple": {
+    "value": 1450,
+    "year": 2025,
+    "sourceUrl": "https://www.ssa.gov/oact/cola/SSI.html",
+    "verifiedAsOf": null,
+    "note": "Known 2025 figure — reference and test fixtures only, never display as current. Re-verify against sourceUrl before citing on any published page."
+  },
+  "_2025_ssi_child_allocation": {
+    "value": 483,
+    "year": 2025,
+    "sourceUrl": "https://www.ssa.gov/oact/cola/SSI.html",
+    "verifiedAsOf": null,
+    "note": "Known 2025 figure (1450 - 967) — reference and test fixtures only, never display as current. Re-verify against sourceUrl before citing on any published page."
+  },
+
+  "ihss_wage_table": {
+    "value": null,
+    "year": 2026,
+    "sourceUrl": "https://www.cdss.ca.gov/inforesources/county-ihss-wage-rates",
+    "verifiedAsOf": null,
+    "note": "IHSS provider wages vary by county (58 counties) and change on different dates; the site links out to the CDSS table rather than mirroring it. [TBC] Confirm this CDSS URL still resolves before first use. If we ever embed per-county rates, they go here keyed by county with their own verifiedAsOf."
+  }
+}

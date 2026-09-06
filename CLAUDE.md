@@ -261,3 +261,10 @@ deployed Pages site.)
 - Standalone `.jsx` and `.js` files in the root are **prototypes** — they were used for design exploration and may be referenced but aren't deployed.
 - Business documents (`.docx`, `.xlsx`, `.pptx`) are tracked in git for version control. They contain product strategy, financials, and project plans.
 - The Entity Navigation Matrix (in `gas-mvp/Waypoint-Entity-Navigation-Matrix-v9_4.xlsx` and documented in `WayPoint-Dev-Session-EntityKB-v9.4.txt`) is the core knowledge base powering the AI engine.
+
+## waypoint-site (marketing site — waypointchild.com)
+
+- **Lives in `waypoint-site/`** (Astro, static output, Cloudflare Workers assets). The design source of truth for its templates is `Waypoint-Marketing-Site-Prototype.html` at repo root — port, don't redesign. Brand tokens mirror `waypoint-app/src/lib/theme.ts` (`brand`/`brandType`, initiative 006).
+- **Site gates** (run from `waypoint-site/`): `npm run gates` — `astro check` + `astro build` (Zod frontmatter failures fail the build by design) + `node scripts/validate-keyword-map.mjs`. Same auto-PR-and-merge-on-green convention as waypoint-app. **Exception:** content PRs labeled `content-review` wait for the credentialed reviewer's sign-off — never auto-merged.
+- **Frozen contracts:** the content schema is `waypoint-site/src/content.config.ts` (documented in `content-ops/SCHEMA.md`); events + deep-link params are `waypoint-site/docs/analytics-taxonomy.md`. Change those docs first, in their own PR, before changing any consumer.
+- **Content rules:** nothing YMYL publishes without a completed `review` block (schema-enforced); benefit figures come only from `src/data/benefit-constants.json`; zero email gates; no HIPAA claims; statutes cited to primary sources.

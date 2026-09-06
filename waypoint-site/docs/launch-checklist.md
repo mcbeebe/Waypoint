@@ -1,0 +1,37 @@
+# Launch checklist — waypointchild.com go/no-go gates
+
+**Rule:** the apex cutover (redirect-map.md Phase C) does not happen until every **BLOCKER** row is green. **fast-follow** rows must land within 2 weeks of launch and are tracked to closure — "fast-follow" is a scheduling class, not permission to forget.
+
+**Phases:** `pre-cutover` (can and should be done before DNS moves) · `cutover` (during redirect-map Phase B/C) · `launch-day` (verified the day the apex flips) · `post-launch` (first 2 weeks).
+
+| # | Item | Owner | Phase | Class |
+|---|---|---|---|---|
+| 1 | Three legal pages live and linked in footer: Privacy Policy, Terms of Use, Disclaimer (`src/content/legal/`, EN; ES twins per translationKey plan) — counsel-reviewed per `docs/legal-review-packet.md`, `lastLegalReview` set | Mike (counsel sign-off) / Claude (wiring) | pre-cutover | **BLOCKER** |
+| 2 | Inline disclaimers wired: `disclaimerVariant` (`legal` / `benefits` / `medical`) renders the correct block on every guide, answer, letter, and RC page; `none` only where counsel agreed | Claude | pre-cutover | **BLOCKER** |
+| 3 | Crisis surface live: site-wide crisis-resources block (footer + high-distress content) pointing to 988 Suicide & Crisis Lifeline and appropriate CA parent-support lines — every number and link verified against the official source before publish (no invented numbers, per YMYL rule) | Mike (verify numbers) / Claude (component) | pre-cutover | **BLOCKER** |
+| 4 | App noindex verified by curl: `X-Robots-Tag: noindex, nofollow` on `app.waypointchild.com` every path + real `robots.txt` `Disallow: /` (not the SPA shell) — redirect-map §3/§7 curls pass, output attached to PR | Claude | pre-cutover | **BLOCKER** |
+| 5 | Cloudflare zone AI-crawler blocking **OFF**: "Block AI bots" / AI Audit blocking disabled for the marketing zone; verify GPTBot/ClaudeBot/PerplexityBot get 200 on a published page (answer-engine visibility is a distribution channel, not a threat) | Claude (config) / Mike (dashboard confirm) | cutover | **BLOCKER** |
+| 6 | Sitemap + hreflang valid: sitemap.xml served and referenced from robots.txt; only `status: published` pages included; en/es pairs carry reciprocal hreflang + x-default via translationKey; validated with a crawler (e.g. Screaming Frog free tier) — zero orphan hreflang | Claude | launch-day | **BLOCKER** |
+| 7 | JSON-LD passing: Article/FAQPage/BreadcrumbList (as applicable) validate clean in Google Rich Results Test + Schema.org validator on one page per template; no invented `datePublished`/review fields — must match frontmatter | Claude | launch-day | **BLOCKER** |
+| 8 | Accessibility: axe scan zero **serious/critical** issues on every template (home, guide, answer, letter, RC page, tool page, 404) in EN and ES; keyboard-only pass on tools | Claude | pre-cutover | **BLOCKER** |
+| 9 | Plausible events QA'd against D3 (`docs/analytics-taxonomy.md`): every event name + prop matches the frozen taxonomy exactly; `app_signup_click` fires with full `wp_*` param set; no events outside the doc; verified in Plausible live view | Claude | launch-day | **BLOCKER** |
+| 10 | Deep-link param survival test: `wp_*` + `utm_*` params survive www→app 301 AND the app's auth flows (incl. Apple Sign-In) per D3 redirect-survival requirement — tested per auth path | Claude (site+app) / Mike (Apple auth device test) | launch-day | **BLOCKER** |
+| 11 | Google Search Console: domain property for `waypointchild.com` verified via Cloudflare DNS TXT; sitemap submitted; old `www` app-shell coverage monitored for drop-out | Mike (GSC account) / Claude (DNS record) | cutover | **BLOCKER** |
+| 12 | 404 + robots sane: custom 404 renders (fires `not_found` event), returns real HTTP 404; site robots.txt allows crawl, lists sitemap, has no stray `Disallow: /`; no page unintentionally carries `noindex: true` frontmatter | Claude | launch-day | **BLOCKER** |
+| 13 | Security headers on the marketing site: HSTS, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (camera/mic/geolocation off), CSP at least in Report-Only with a tightening plan | Claude | launch-day | **BLOCKER** |
+| 14 | Account custody: 2FA enabled (authenticator app, not SMS-only) + recovery codes stored in password manager for **Namecheap, Cloudflare, Vercel** (the three accounts that can take the site down or hijack the domain); registrar lock ON at Namecheap | Mike | pre-cutover | **BLOCKER** |
+| 15 | Redirect verification curls (redirect-map §7) all pass; outputs archived in the cutover PR | Claude | launch-day | **BLOCKER** |
+| 16 | Zero email gates confirmed: no content or tool requires an email; newsletter is opt-in only with double opt-in wired (D3 `newsletter_subscribe` fires on confirm, not submit) | Claude | launch-day | **BLOCKER** |
+| 17 | Review-ladder audit: every publicly rendered YMYL page is `status: published` with a completed review block (D2 refine enforces at build, but run the query anyway and attach output) | Claude | launch-day | **BLOCKER** |
+| 18 | Old Vercel domain bindings for `www`/apex removed after curls pass (Vercel must stop answering for marketing hosts) | Mike (Vercel dashboard) | post-launch | fast-follow |
+| 19 | GSC coverage check at day 7: app-shell URLs dropping, marketing pages indexing; log any anomalies in analytics-taxonomy leakage list | Claude | post-launch | fast-follow |
+| 20 | Uptime + SSL expiry monitoring on apex and app host (external pinger, alert to Mike) | Claude (setup) / Mike (alert destination) | post-launch | fast-follow |
+| 21 | CSP moves from Report-Only to enforced after 1 week of clean reports | Claude | post-launch | fast-follow |
+| 22 | Plausible goal/dashboard setup for north-star reconciliation (organic-attributed accounts, per D3) + first monthly reconciliation calendar hold | Mike (calendar) / Claude (dashboard) | post-launch | fast-follow |
+| 23 | 2FA custody extended to Plausible, GSC/Google account, and Supabase; documented in the same custody note as #14 | Mike | post-launch | fast-follow |
+| 24 | Lighthouse performance budget recorded as baseline (mobile, throttled) for the four main templates; regressions tracked from this number | Claude | post-launch | fast-follow |
+
+## Go/no-go call
+
+- **Go** = rows 1–17 green, rollback artifact from redirect-map §8 in hand, and Mike explicitly says go.
+- Any BLOCKER regressing after launch (noindex leak on app, disclaimer not rendering, crisis surface broken, review-ladder violation) is treated as a rollback trigger for the affected surface, not a fast-follow.

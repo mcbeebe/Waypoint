@@ -1,0 +1,35 @@
+---
+/**
+ * The Waypoint marker (ports waypoint-app/src/components/Brandmark.tsx):
+ * an ink teardrop pin with a pine center, trailing a sage route line to the
+ * next point — "a marked point on a route you're already walking." Never a
+ * compass (the rejected metaphor: it implied you're lost).
+ */
+interface Props {
+  /** Visual height in px. The full mark is wider than tall. */
+  size?: number;
+  /** 'ink' on light grounds; 'light' (white pin) on dark ones. */
+  tone?: 'ink' | 'light';
+  /** Screen-reader label. Omit to keep the mark decorative. */
+  label?: string;
+}
+const { size = 30, tone = 'ink', label } = Astro.props;
+const pinFill = tone === 'light' ? '#FFFFFF' : '#22303A';
+const width = Math.round(size * (62 / 48));
+---
+
+<svg
+  width={width}
+  height={size}
+  viewBox="0 0 62 48"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+>
+  <rect x="24" y="35.4" width="26" height="4.4" rx="2.2" fill="#0E9E6E"></rect>
+  <circle cx="54" cy="37.6" r="5.6" fill="#0E9E6E"></circle>
+  <path
+    d="M22 44 C 22 44 6 28.2 6 18.2 C 6 9.25 13.16 2 22 2 C 30.84 2 38 9.25 38 18.2 C 38 28.2 22 44 22 44 Z"
+    fill={pinFill}></path>
+  <circle cx="22" cy="17.6" r="6.3" fill="#0F766E"></circle>
+</svg>

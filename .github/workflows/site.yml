@@ -1,0 +1,31 @@
+name: waypoint-site
+
+on:
+  pull_request:
+    paths:
+      - 'waypoint-site/**'
+      - '.github/workflows/site.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'waypoint-site/**'
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: waypoint-site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: waypoint-site/package-lock.json
+      - run: npm ci
+      - run: npm run gates
+
+  # Deploy jobs land once Cloudflare credentials exist (launch-checklist item:
+  # CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID as repo secrets — Mike adds).
+  # PR → `wrangler deploy --env preview` with URL comment; main → production.
