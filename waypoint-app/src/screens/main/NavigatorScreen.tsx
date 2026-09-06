@@ -37,6 +37,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { RC_DATABASE } from '@/data/regionalCenters';
 import TrackedEmailModal from '@/components/TrackedEmailModal';
+import { extractProposedEmail } from '@/lib/answerEmail';
 import { useContacts } from '@/hooks/useContacts';
 import AIConsentModal from '@/components/AIConsentModal';
 import ChatMetaCards from '@/components/ChatMetaCards';
@@ -410,10 +411,20 @@ export default function NavigatorScreen() {
     setEmailComposeMessage(message);
   }, []);
 
-  const emailBody = useMemo(
-    () => (emailComposeMessage ? stripInlineMarkdown(emailComposeMessage.content) : ''),
-    [emailComposeMessage]
-  );
+  /**
+    * When the answer proposes an actual email — "Subject: …" followed by the
+    * letter — send THAT, under THAT subject. Sending the whole answer meant
+    * the agency read "Here's the combined version — one email, two asks, same
+    * warm tone" first, under a subject that said nothing about the request
+    * (owner report, 2026-09-05).
+    */
+   const proposed = useMemo(
+     () =>
+       extractProposedEmail(
+         emailComposeMessage ? stripInlineMarkdown(emailComposeMessage.content) : ''
+       ),
+     [emailComposeMessage]
+   );
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -757,8 +768,8 @@ export default function NavigatorScreen() {
         visible={!!emailComposeMessage}
         familyId={family?.id}
         title="Email this answer"
-        defaultSubject="Waypoint: Disability Services Guidance"
-        body={emailBody}
+        defaultSubject={proposed.subject ?? 'Waypoint: Disability Services Guidance'}
+        body={proposed.body}
         contacts={emailableContacts}
         childId={primaryChild?.id ?? null}
         templateKey="navigator_answer"

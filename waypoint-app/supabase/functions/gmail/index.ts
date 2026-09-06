@@ -24,6 +24,7 @@
  */
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { b64url, buildRawMessage } from '../_shared/mime.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -49,13 +50,12 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-/** Base64url for the Gmail raw message format. */
-function b64url(input: string): string {
-  const bytes = new TextEncoder().encode(input);
-  let bin = '';
-  for (const b of bytes) bin += String.fromCharCode(b);
-  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
+/**
+ * Message construction lives in _shared/mime.ts, which is pure and covered by
+ * src/lib/gmailMime.test.ts — the only part of this function CI can see. It is
+ * there because the inline version shipped a bug that made every Gmail send
+ * arrive with an empty body (owner report, 2026-09-05).
+ */
 
 function decodeB64url(data: string): string {
   const b64 = data.replace(/-/g, '+').replace(/_/g, '/');
@@ -66,10 +66,7 @@ function decodeB64url(data: string): string {
 }
 
 /** RFC 2047 encode a header value if it has non-ASCII characters. */
-function encodeHeader(value: string): string {
-  // deno-lint-ignore no-control-regex
-  return /[^\x00-\x7F]/.test(value) ? `=?UTF-8?B?${b64url(value).replace(/-/g, '+').replace(/_/g, '/')}?=` : value;
-}
+
 
 interface GmailPayload {
   mimeType?: string;
@@ -169,7 +166,13 @@ serve(async (req) => {
   const { data: family } = await userClient.from('families').select('id').maybeSingle();
 
   // ── Send (new message or threaded reply) ─────────────────────────
-  if (action === 'send') {
+  // 'draft' creates the message in the parent's own Gmail Drafts instead of
+  // sending it (owner request, 2026-09-05: "it would truly be most reassuring
+  // if it could go to my drafts and then track the email thread once sent").
+  // Everything else — threading, the paper-trail row, the thread id we key
+  // reply-sync off — is identical, so the two share one path.
+  if (action === 'send' || action === 'draft') {
+    const asDraft = action === 'draft';
     const to = String(body.to ?? '').trim();
     const subject = String(body.subject ?? '').trim();
     const messageBody = String(body.body ?? '');
@@ -210,41 +213,48 @@ serve(async (req) => {
       }
     }
 
-    const raw = [
-      `To: ${to}`,
-      `Subject: ${encodeHeader(replySubject || subject || '(no subject)')}`,
-      inReplyTo ? `In-Reply-To: ${inReplyTo}` : '',
-      references ? `References: ${references}` : '',
-      'MIME-Version: 1.0',
-      'Content-Type: text/plain; charset="UTF-8"',
-      'Content-Transfer-Encoding: base64',
-      '',
-      b64url(messageBody).replace(/-/g, '+').replace(/_/g, '/'),
-    ]
-      .filter((l) => l !== '')
-      .join('\r\n');
-
-    const sendResp = await fetch(`${GMAIL_API}/messages/send`, {
-      method: 'POST',
-      headers: { ...gmailHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ raw: b64url(raw), ...(threadId ? { threadId } : {}) }),
+    const raw = buildRawMessage({
+      to,
+      subject: replySubject || subject,
+      body: messageBody,
+      inReplyTo,
+      references,
     });
+
+    const message = { raw: b64url(raw), ...(threadId ? { threadId } : {}) };
+    const sendResp = await fetch(
+      asDraft ? `${GMAIL_API}/drafts` : `${GMAIL_API}/messages/send`,
+      {
+        method: 'POST',
+        headers: { ...gmailHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify(asDraft ? { message } : message),
+      }
+    );
     if (!sendResp.ok) {
       const err = await sendResp.json().catch(() => null);
       return json(
-        { error: err?.error?.message ?? `Gmail send failed (${sendResp.status})` },
+        {
+          error:
+            err?.error?.message ??
+            `Gmail ${asDraft ? 'draft' : 'send'} failed (${sendResp.status})`,
+        },
         502
       );
     }
-    const sent = await sendResp.json();
+    const result = await sendResp.json();
+    // drafts.create nests the message; messages.send returns it flat.
+    const sent = asDraft ? { ...(result.message ?? {}), draftId: result.id } : result;
 
     // Paper trail: update the existing draft row, or record the reply
     if (communicationId) {
       await userClient
         .from('communications')
         .update({
-          status: 'sent',
-          sent_at: new Date().toISOString(),
+          // A draft is NOT a send. The row stays a draft and sent_at stays
+          // null; the thread id is stored anyway so reply-sync can follow the
+          // thread the moment the parent sends it from Gmail.
+          status: asDraft ? 'draft' : 'sent',
+          ...(asDraft ? {} : { sent_at: new Date().toISOString() }),
           gmail_thread_id: sent.threadId ?? null,
           gmail_message_id: sent.id ?? null,
           direction: 'outgoing',
