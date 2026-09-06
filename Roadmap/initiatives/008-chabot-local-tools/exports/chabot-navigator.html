@@ -1,0 +1,246 @@
+<title>The Chabot Family Navigator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,650;1,9..144,500&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+  :root {
+    --paper: #F5F1E9;
+    --card: #FDFBF7;
+    --ink: #1B2A4A;
+    --body-ink: #37415C;
+    --mut: #6B7280;
+    --teal: #0876A0;
+    --teal-soft: #E4F0F5;
+    --sage: #0E9F6E;
+    --sage-soft: #E6F7F1;
+    --gold: #FDF3C9;
+    --gold-ink: #92590A;
+    --line: #E3DCCE;
+    --script-bg: #EFF6F9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #101827; --card: #182032; --ink: #EDF1F7; --body-ink: #C4CCDA;
+      --mut: #8B95A7; --teal: #4FB3D4; --teal-soft: #143244; --sage: #34C48E;
+      --sage-soft: #123529; --gold: #4A3A10; --gold-ink: #F3CE6E;
+      --line: #2A3550; --script-bg: #16283A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #101827; --card: #182032; --ink: #EDF1F7; --body-ink: #C4CCDA;
+    --mut: #8B95A7; --teal: #4FB3D4; --teal-soft: #143244; --sage: #34C48E;
+    --sage-soft: #123529; --gold: #4A3A10; --gold-ink: #F3CE6E;
+    --line: #2A3550; --script-bg: #16283A;
+  }
+  body {
+    background: var(--paper); color: var(--body-ink);
+    font-family: "Public Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 16.5px; line-height: 1.6;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 46px 22px 70px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--teal); margin: 0 0 10px; }
+  h1 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 650;
+    font-size: clamp(34px, 6.4vw, 48px); line-height: 1.06;
+    color: var(--ink); margin: 0 0 12px; text-wrap: balance;
+  }
+  .lede { font-size: 19px; margin: 0 0 10px; max-width: 60ch; }
+  .tagline { font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 17px; color: var(--mut); border-bottom: 2px solid var(--teal); padding-bottom: 24px; margin: 0; }
+  h2 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 650;
+    font-size: 26px; color: var(--ink); margin: 48px 0 8px; text-wrap: balance;
+  }
+  .h2-sub { font-size: 15px; color: var(--mut); margin: 0 0 18px; }
+  .path {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 22px 24px; margin: 0 0 16px;
+  }
+  .path h3 {
+    font-family: "Fraunces", Georgia, serif; font-weight: 650; font-size: 20px;
+    color: var(--teal); margin: 0 0 8px; line-height: 1.3;
+  }
+  .path p { margin: 0 0 10px; font-size: 15.5px; }
+  ol.steps { margin: 0; padding: 0 0 0 4px; list-style: none; counter-reset: s; display: flex; flex-direction: column; gap: 8px; }
+  ol.steps li { counter-increment: s; display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 15.5px; }
+  ol.steps li::before {
+    content: counter(s); font-family: "Fraunces", Georgia, serif; font-weight: 650;
+    color: var(--teal); font-size: 17px; text-align: center;
+    border: 1.5px solid var(--teal); border-radius: 50%; width: 24px; height: 24px; line-height: 22px; margin-top: 1px;
+  }
+  .callout {
+    background: var(--teal-soft); border-radius: 8px; padding: 14px 18px;
+    margin: 14px 0 0; font-size: 15px;
+  }
+  .callout strong { color: var(--ink); }
+  strong { color: var(--ink); }
+  em.q { color: var(--body-ink); }
+  .fill {
+    background: var(--gold); color: var(--gold-ink); font-weight: 700;
+    border-radius: 4px; padding: 1px 7px; white-space: nowrap;
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+  th { background: var(--teal); color: #FFFFFF; text-align: left; font-size: 13.5px; letter-spacing: .03em; padding: 9px 14px; }
+  td { padding: 10px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+  td:first-child { font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .schedule { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0; }
+  .schedule > div {
+    background: var(--teal-soft); border-radius: 10px; padding: 18px 14px; text-align: center;
+  }
+  .schedule .day { font-family: "Fraunces", Georgia, serif; font-weight: 650; font-size: 24px; color: var(--teal); margin-bottom: 6px; }
+  .schedule p { margin: 0; font-size: 14px; }
+  .fine { font-size: 13.5px; font-style: italic; color: var(--mut); }
+  .script {
+    background: var(--script-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; margin: 0 0 10px; display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap;
+  }
+  .script .txt { flex: 1 1 380px; }
+  .script .want { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--teal); display: block; margin-bottom: 4px; }
+  .script q { font-style: italic; font-size: 15px; quotes: "“" "”"; }
+  .script button {
+    font: 700 13px "Public Sans", sans-serif; color: var(--teal);
+    background: none; border: 1.5px solid var(--teal); border-radius: 99px;
+    padding: 5px 14px; cursor: pointer; margin-top: 2px;
+  }
+  .script button:hover, .script button:focus-visible { background: var(--teal); color: #FFFFFF; outline: none; }
+  .promise { display: grid; grid-template-columns: 30px 1fr; gap: 12px; margin: 0 0 12px; font-size: 15.5px; }
+  .promise .star { color: var(--sage); font-size: 19px; }
+  .crew-note, .habit {
+    background: var(--sage-soft); border-radius: 8px; padding: 14px 18px; margin: 16px 0 0; font-size: 15px;
+  }
+  ul.orgs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.orgs li { font-size: 15.5px; }
+  a { color: var(--teal); }
+  footer { margin-top: 52px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--mut); font-style: italic; }
+  @media (max-width: 560px) { .schedule { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: no-preference) { .script button { transition: background .15s, color .15s; } }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Chabot Elementary · Oakland</p>
+  <h1>The Chabot Family Navigator</h1>
+  <p class="lede"><strong>A friendly map for families of kids with ADHD, autism, and other brains that work differently.</strong></p>
+  <p class="tagline">Written by a Chabot parent who's been exactly where you are. The short version: you're not alone, it's always okay to ask, and you and the school are on the same team. Here's the map.</p>
+
+  <h2>Find your path</h2>
+  <p class="h2-sub">School support can feel like a maze full of acronyms. It isn't, really. It's three paths, a few magic words, and a shared schedule. Find the path that sounds like your family — and whenever a word makes your eyes cross, the decoder below has you covered.</p>
+
+  <div class="path">
+    <h3>🌱 Path 1 — "Something's going on with my kid, but nobody's named it yet."</h3>
+    <p>Maybe it's big feelings after school. Trouble sitting still, or making friends, or notes coming home. You don't need a diagnosis to start — just curiosity, and a team. The school wants to figure this out with you.</p>
+    <ol class="steps">
+      <li><span><strong>Start with the teacher.</strong> Ask the simplest question there is: <em class="q">"What are you seeing?"</em> Teachers see 25 kids a day; their answer is gold — and they'll be glad you asked.</span></li>
+      <li><span><strong>Ask for an SST.</strong> That's just a meeting — you, the teacher, and a few school folks around a table comparing notes and trying ideas together. No forms to fear, nothing signed away. The front office can set one up.</span></li>
+      <li><span><strong>Or ask for free testing.</strong> The school can test how your child learns — for free — so everyone understands what helps. Just ask <strong>in writing</strong> (the magic words are below).</span></li>
+    </ol>
+    <div class="callout"><strong>The friendly secret:</strong> when you ask in writing, an official schedule begins — set by California law so that nothing gets lost in a busy school year. A hallway chat is lovely; an email is a hallway chat the calendar remembers. Do both!</div>
+  </div>
+
+  <div class="path">
+    <h3>💬 Path 2 — "A doctor gave us a diagnosis, but school looks the same."</h3>
+    <p>Here's the plain truth, with no villain in it: doctors and schools run on different paperwork, so a diagnosis doesn't automatically flow into the classroom. Bridging that gap is a conversation — and there are <strong>two menus</strong> to talk through together:</p>
+    <ol class="steps">
+      <li><span><strong>A 504 plan = the small-changes list.</strong> Sitting near the teacher. Movement breaks. Extra time on tests. Little adjustments, written down, so every adult at school knows them — even a substitute on day one.</span></li>
+      <li><span><strong>An IEP = the big plan.</strong> Actual extra teaching and services — small-group help, speech, occupational therapy — with written goals the whole team celebrates and updates every year.</span></li>
+    </ol>
+    <div class="callout"><strong>Not sure which fits?</strong> Nobody expects you to be. Ask for the free testing (Path 1, step 3). The results help you <em>and</em> the school pick together — and testing often explains your kid better than years of guessing.</div>
+  </div>
+
+  <div class="path">
+    <h3>🌟 Path 3 — "We have an IEP or 504, and something needs a tune-up."</h3>
+    <p>Plans are living things. Kids grow, classrooms change, and what worked in fall might need adjusting by spring. That's normal — and it's what the team is for.</p>
+    <ol class="steps">
+      <li><span><strong>Start with a friendly check-in.</strong> <em class="q">"Could we look at how the reading help is going? Here's what we're seeing at home."</em> Most tune-ups happen right here, in one conversation.</span></li>
+      <li><span><strong>You can gather the team any time.</strong> Not just at the once-a-year review. Ask in writing, and the meeting lands on the calendar within <strong>30 days</strong>.</span></li>
+      <li><span><strong>Before any meeting:</strong> ask for the reports and goals ahead of time, and bring one page of notes about what you see at home. You know your kid best — that page helps the team see the whole child.</span></li>
+    </ol>
+  </div>
+
+  <h2>🔤 The decoder ring</h2>
+  <p class="h2-sub">Every field has its alphabet soup. Here's yours, translated:</p>
+  <div class="scroll">
+    <table>
+      <tr><th>The letters</th><th>Stand for</th><th>What it actually means</th></tr>
+      <tr><td>IEP</td><td>Individualized Education Program</td><td>The big plan: extra teaching and services, with goals, in writing, that the whole team works toward together.</td></tr>
+      <tr><td>504</td><td>Section 504 (a 1973 civil-rights law)</td><td>The small-changes list: seating, breaks, extra time — written down so every adult knows, every day.</td></tr>
+      <tr><td>SST</td><td>Student Success Team</td><td>A no-pressure meeting where you and the school compare notes and try ideas. Often the first step.</td></tr>
+      <tr><td>IDEA</td><td>Individuals with Disabilities Education Act</td><td>The national promise behind all of this: every kid gets what they need to learn, for free.</td></tr>
+      <tr><td>Evaluation</td><td>(also "assessment")</td><td>Free testing by school specialists so everyone understands how your child learns and what helps.</td></tr>
+      <tr><td>RSP</td><td>Resource Specialist Program</td><td>The teacher whose whole job is giving kids extra help. Chabot has one — go say hi.</td></tr>
+      <tr><td>OT</td><td>Occupational Therapy</td><td>Help with hands and bodies: handwriting, scissors, staying comfortable and calm in a busy classroom.</td></tr>
+      <tr><td>ESY</td><td>Extended School Year</td><td>Summer learning for kids who lose skills over long breaks — part of some IEPs. Ask in spring.</td></tr>
+    </table>
+  </div>
+
+  <h2>📅 The shared schedule</h2>
+  <p class="h2-sub">This is the part to remember. When you ask <strong>in writing</strong>, California sets a schedule everyone can count on — so you always know what happens next:</p>
+  <div class="schedule">
+    <div><div class="day">Day 0</div><p>You send the magic words asking for testing.</p></div>
+    <div><div class="day">By day 15</div><p>The school sends you a testing plan to sign.</p></div>
+    <div><div class="day">By day 60</div><p>Testing is done — the team meets to talk it through with you.</p></div>
+  </div>
+  <p>And any time you already have a plan: a written request for a team meeting puts it on the calendar <strong>within 30 days</strong>.</p>
+  <p class="fine">The fine print: Cal. Ed. Code §§ 56321, 56344, 56343.5. School breaks longer than 5 days pause the schedule — so asks sent before winter break land sooner than asks sent after.</p>
+
+  <h2>✉️ The magic words</h2>
+  <p class="h2-sub">Copy, add your kid's name, and email the principal. One sentence is genuinely enough — it gives the school exactly what it needs to get started.</p>
+
+  <div class="script"><div class="txt"><span class="want">You'd like free testing</span><q>I'm requesting a special education assessment for my child, [name], under IDEA. Please send me an assessment plan.</q></div><button data-copy>Copy</button></div>
+  <div class="script"><div class="txt"><span class="want">You'd like a team meeting (IEP)</span><q>I'd like to request an IEP team meeting for [name] to talk about [topic]. What dates work for the team?</q></div><button data-copy>Copy</button></div>
+  <div class="script"><div class="txt"><span class="want">You'd like the small-changes list (504)</span><q>I'd like to talk about a 504 plan for [name]. Who should I meet with, and when?</q></div><button data-copy>Copy</button></div>
+  <div class="script"><div class="txt"><span class="want">You'd like your kid's file</span><q>I'm requesting a complete copy of [name]'s student records, including all assessments. Thank you!</q></div><button data-copy>Copy</button></div>
+
+  <div class="habit"><strong>Two tiny habits that change everything:</strong> keep a copy of every email, and lead with kindness every time. Writing keeps everyone organized; kindness keeps everyone on the same team. That combination solves almost everything.</div>
+
+  <h2>🏫 Your Chabot crew</h2>
+  <p class="h2-sub">These are the humans — and they're your partners from day one. They chose jobs helping kids; start from that.</p>
+  <div class="scroll">
+    <table>
+      <tr><th>Who</th><th>Name</th><th>How to reach them</th></tr>
+      <tr><td>Principal</td><td><span class="fill">[fill in]</span></td><td><span class="fill">[email]</span></td></tr>
+      <tr><td>RSP teacher <span style="font-weight:400">(the extra-help teacher)</span></td><td><span class="fill">[fill in]</span></td><td><span class="fill">[email]</span></td></tr>
+      <tr><td>School psychologist <span style="font-weight:400">(runs the testing)</span></td><td><span class="fill">[fill in]</span></td><td><span class="fill">[email]</span></td></tr>
+      <tr><td>504 coordinator <span style="font-weight:400">(keeper of the small-changes lists)</span></td><td><span class="fill">[fill in]</span></td><td><span class="fill">[email]</span></td></tr>
+      <tr><td>Front office <span style="font-weight:400">(they know everything)</span></td><td><span class="fill">[fill in]</span></td><td><span class="fill">[phone]</span></td></tr>
+      <tr><td>PTA inclusion contact <span style="font-weight:400">(a fellow parent)</span></td><td><span class="fill">[fill in]</span></td><td><span class="fill">[email]</span></td></tr>
+    </table>
+  </div>
+
+  <h2>🗺️ The wider world, translated</h2>
+  <ul class="orgs">
+    <li><strong><a href="https://www.ousd.org/specialeducation">OUSD Special Education</a></strong> — the district office that supports every Oakland school's plans and testing. <span class="fill">[dept phone]</span></li>
+    <li><strong><a href="https://www.ousd.org/specialeducation/our-selpa/community-advisory-committee">CAC (Community Advisory Committee)</a></strong> — Oakland's parent group for special education. Real parents, real answers, and the district's special-ed leaders in the room, listening. Meets the 1st Monday of each month <span class="fill">[re-verify time/place]</span>.</li>
+    <li><strong><a href="https://www.rceb.org">RCEB (Regional Center of the East Bay)</a></strong> — a state-funded office that pays for help <em>outside</em> school: therapy, parent coaching, breaks for caregivers. <strong>Autism qualifies; ADHD alone usually doesn't</strong> — but the phone call is free and they're kind, so make it.</li>
+    <li><strong><a href="https://dredf.org">DREDF</a></strong> — a Berkeley nonprofit of parents and lawyers who teach families how school support works, free. Classes, guides, and a phone line for when you're stuck.</li>
+    <li><strong><a href="https://www.familyresourcenavigators.org">Family Resource Navigators</a></strong> — Alameda County parents (who've been there) helping families find services and untangle insurance and Medi-Cal.</li>
+    <li><strong>The insurance thing worth knowing:</strong> California law requires health plans — including Medi-Cal — to cover autism behavioral therapy (ABA). If a plan says no, it's worth a second ask, and the folks above can help you make it. (SB 946)</li>
+  </ul>
+
+  <h2>💛 Find your people</h2>
+  <ul class="orgs">
+    <li><strong>Chabot Neurodiverse Families Google Group</strong> — private and parent-run. Which camps actually work. Which therapists have openings. How the IEP meeting really went. Zero judgment, because everyone in it gets it. Join: <span class="fill">[group link]</span></li>
+    <li><strong><a href="https://www.berkeleyparentsnetwork.org/recommend/schools/oakland/IEP504">Berkeley Parents Network</a></strong> — twenty years of Oakland parents answering each other's exact questions.</li>
+  </ul>
+
+  <h2>⭐ Three promises from parents who've been there</h2>
+  <div class="promise"><span class="star">✦</span><span><strong>Ask in writing, every time.</strong> Writing keeps busy people organized, makes plans official, and keeps everyone's promises easy to keep — yours included.</span></div>
+  <div class="promise"><span class="star">✦</span><span><strong>Lead with friendly.</strong> The teachers and specialists want your kid to succeed. Start every ask like you believe that — because it's true, and because this team is yours for years.</span></div>
+  <div class="promise"><span class="star">✦</span><span><strong>Bring a buddy whenever you like.</strong> A friend, a Group parent, or a free DREDF-trained advocate is welcome at any meeting. A second set of ears makes everything easier.</span></div>
+
+  <footer>Made with love by a Chabot parent. This is a map, not legal advice — the schedule cites California Education Code, and details change, so double-check with OUSD. Version 0.3 · September 2026 · A Waypoint community project.</footer>
+</div>
+
+<script>
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const q = btn.parentElement.querySelector('q');
+      try {
+        await navigator.clipboard.writeText(q.textContent);
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1600);
+      } catch (e) {
+        const r = document.createRange(); r.selectNodeContents(q);
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+        btn.textContent = 'Select & copy';
+      }
+    });
+  });
+</script>
