@@ -453,7 +453,9 @@ table.data tr:last-child td {
 }
 .handoff span {
   font-size: 0.88rem;
-  color: #d3e7de;
+  /* #e2eee7, not the prototype's #d3e7de: 4.23:1 on pine failed WCAG AA
+     (axe gate) — this is the nearest on-brand tint that passes. */
+  color: #e2eee7;
 }
 .cols {
   display: grid;
@@ -529,6 +531,37 @@ article.prose li::marker {
 }
 article.prose strong {
   color: var(--color-ink);
+}
+
+/* Publishing-soon / coming-soon placeholder for gated card links.
+   ink-faint, never opacity — pine at 55% opacity failed WCAG contrast. */
+.link.soon {
+  color: var(--color-ink-faint);
+  cursor: default;
+}
+
+/* ---------- links inside running text ----------
+   WCAG 1.4.1 (axe link-in-text-block): pine on ink-soft is ~1.2:1, so
+   in-text links need a non-color cue. Underline them; standalone UI links
+   (.link card links, nav, buttons) stay clean. */
+article.prose a:not(.btn):not(.link),
+.answer-first a,
+.plain-box a,
+.empathy a,
+.check-item .txt a,
+.disclaimer a,
+.draft-banner a,
+.notice a,
+.deadline a,
+.r-note a,
+.r-save a,
+.hint a,
+.side-card p a:not(.link),
+p a:not(.btn):not(.link),
+li a:not(.btn):not(.link),
+td a,
+dd a {
+  text-decoration: underline;
 }
 
 /* ---------- checklist (start pages) ---------- */
