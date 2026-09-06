@@ -147,7 +147,7 @@ entries:
     url: "/guides/benefits/medi-cal-institutional-deeming/"
     pillar: benefits
     priority: P0
-    status: planned
+    status: drafting
     piece_no: 3
     serp_notes: "Low-competition, high-value; explain waiver jargon in plain language."
 
@@ -173,7 +173,7 @@ entries:
     url: "/guides/benefits/ssi-for-children/"
     pillar: benefits
     priority: P0
-    status: planned
+    status: drafting
     piece_no: 5
     serp_notes: "Ships with /tools/ssi-deeming-calculator/. FBR figures refresh on ssi-fbr-jan; all dollar amounts [TBC] until verified."
 
