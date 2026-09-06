@@ -345,9 +345,9 @@ export default function CommunicationLogScreen() {
                     style={styles.replyBtn}
                     onPress={() => openReply(item)}
                     accessibilityRole="button"
-                    accessibilityLabel="Draft a reply in this thread with Waypoint"
+                    accessibilityLabel="Draft a reply in this thread with AI"
                   >
-                    <Text style={styles.replyBtnText}>✨ Draft a reply with Waypoint</Text>
+                    <Text style={styles.replyBtnText}>✨ Draft a reply with AI</Text>
                   </TouchableOpacity>
                 )}
                 {item.status === 'draft' && (
