@@ -1,10 +1,14 @@
 ---
 /**
- * Pricing. Tier figures and the competitor table come from the owner-approved
- * prototype (PR #195/#198), but final pricing is the owner's call (D13) and
- * the competitor rows are unverified — so BOTH render only on drafts builds
- * (adversary finding A2). Production shows the free tier (true today) and an
- * honest "final pricing at launch" state until the owner confirms figures.
+ * Pricing. Tier figures are the OWNER'S DECISION (D13, set 2026-09-06 in
+ * session: Plus $4.99/mo, Pro $9.99/mo, 3-month free trial; yearly prices
+ * halved from the prototype's pending explicit confirmation) — so the tier
+ * grid renders in production. The competitor comparison stays drafts-only
+ * until its details are verified (launch checklist row 25).
+ *
+ * NOTE: these figures must move in lockstep with Stripe / App Store products
+ * before any real checkout exists — the page states prices, billing enforces
+ * them, and only the owner can change billing.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AnswerFirst from '../components/AnswerFirst.astro';
@@ -26,59 +30,16 @@ const pro = planLink('pro');
 
 <BaseLayout
   title="Waypoint pricing — free to start, honest when you need more"
-  description="Every Waypoint guide, tool, and letter is free forever. The app adds deadline tracking, letter drafting, and an AI navigator — free to start, with paid plans for more."
+  description="Every Waypoint guide, tool, and letter is free forever. The app adds deadline tracking, letter drafting, and an AI navigator — plans from $0 to $9.99/month, first 3 months free."
 >
   <PageHero
     eyebrow="Pricing"
     title="Free to start. Honest when you need more."
-    lede="Everything on this site — every guide, tool, and letter — stays free forever. The app is where Waypoint goes from telling you what to do to doing it with you: tracking deadlines, drafting letters, keeping the plan. That part is what you pay for."
+    lede="Everything on this site — every guide, tool, and letter — stays free forever. The app is where Waypoint goes from telling you what to do to doing it with you: tracking deadlines, drafting letters, keeping the plan. That part is what you pay for — and your first 3 months are free."
   />
 
-  {
-    !showDrafts && (
-      <div class="section">
-        <div class="container narrow">
-          <div class="price-grid" style="grid-template-columns: 1fr 1fr">
-            <div class="price-card">
-              <span class="plan">FREE</span>
-              <div class="amount">$0</div>
-              <ul>
-                <li>Limited AI Navigator questions</li>
-                <li>Instant eligibility results</li>
-                <li>All guides, tools, and letters</li>
-                <li>English + Spanish, full parity</li>
-                <li>No credit card, no email gate</li>
-              </ul>
-              <a class="btn" href={free.href} data-wp-event="app_signup_click" data-wp-props={free.props}>
-                Start free
-              </a>
-            </div>
-            <div class="price-card">
-              <span class="plan">PLUS &amp; PRO</span>
-              <div class="amount">Coming</div>
-              <ul>
-                <li>Unlimited AI Navigator, 24/7</li>
-                <li>Document vault, deadline alerts</li>
-                <li>Letter &amp; appeal generation</li>
-                <li>Final pricing announced at launch</li>
-              </ul>
-              <a class="btn ghost" href={free.href} data-wp-event="app_signup_click" data-wp-props={free.props}>
-                Start free, upgrade later
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  {showDrafts && (
   <div class="section">
     <div class="container">
-      <NoticeBox>
-        Draft pricing — figures below are the prototype's and await the owner's pricing
-        decision (D13). This section renders on preview builds only.
-      </NoticeBox>
       <div class="price-grid">
         <div class="price-card">
           <span class="plan">FREE</span>
@@ -95,33 +56,38 @@ const pro = planLink('pro');
         <div class="price-card featured">
           <span class="badge-featured">Most families</span>
           <span class="plan">PLUS</span>
-          <div class="amount">$9.99<small>/mo</small></div>
+          <div class="amount">$4.99<small>/mo</small></div>
           <ul>
+            <li><b>First 3 months free</b></li>
             <li>Unlimited AI Navigator, 24/7</li>
             <li>Document vault for every report and NOA</li>
             <li>Deadline alerts before clocks run out</li>
             <li>Expense tracker</li>
             <li>IEP meeting prep</li>
-            <li>Or $89.99 billed yearly</li>
+            <li>Or $44.99 billed yearly</li>
           </ul>
           <a class="btn" href={plus.href} data-wp-event="app_signup_click" data-wp-props={plus.props}>Start Plus →</a>
         </div>
         <div class="price-card">
           <span class="plan">PRO</span>
-          <div class="amount">$19.99<small>/mo</small></div>
+          <div class="amount">$9.99<small>/mo</small></div>
           <ul>
+            <li><b>First 3 months free</b></li>
             <li>Everything in Plus</li>
             <li>Appeal &amp; letter generation</li>
             <li>Multi-child support</li>
             <li>Priority AI</li>
-            <li>Or $179.99 billed yearly</li>
+            <li>Or $89.99 billed yearly</li>
           </ul>
           <a class="btn" href={pro.href} data-wp-event="app_signup_click" data-wp-props={pro.props}>Start Pro →</a>
         </div>
       </div>
+      <p class="trial-note">
+        The 3-month free trial applies to Plus and Pro. Cancel anytime during the trial and pay
+        nothing — and the free tier stays free either way.
+      </p>
     </div>
   </div>
-  )}
 
   {showDrafts && (
   <div class="section on-white">
@@ -135,7 +101,7 @@ const pro = planLink('pro');
       <div class="table-wrap">
         <table class="data">
           <tr><th></th><th>Waypoint Plus</th><th>Undivided membership</th></tr>
-          <tr><td>Price</td><td><b>$9.99/mo</b> ($89.99/yr)</td><td>$19/mo ($149/yr)</td></tr>
+          <tr><td>Price</td><td><b>$4.99/mo</b> ($44.99/yr) · first 3 months free</td><td>$19/mo ($149/yr)</td></tr>
           <tr><td>AI access</td><td><b>24/7 — including on the free tier</b></td><td>Behind the paywall</td></tr>
           <tr><td>Free content gates</td><td><b>Zero</b> — every guide and letter is open</td><td>Lead magnets require name, email, phone</td></tr>
           <tr><td>Human navigators</td><td>No — software plus your real-life team</td><td>Yes — 2 navigator video sessions</td></tr>
@@ -143,7 +109,8 @@ const pro = planLink('pro');
         </table>
       </div>
       <NoticeBox>
-        Competitor details as observed Sept 5, 2026 — verify before publishing.
+        Competitor details as observed Sept 5, 2026 — verify before publishing (this section
+        renders on preview builds only until then; launch checklist row 25).
       </NoticeBox>
 
       <h2 class="qa-h">Why is Waypoint so much cheaper?</h2>
@@ -168,7 +135,7 @@ const pro = planLink('pro');
     <div class="container narrow">
       <HandoffCTA
         heading="Start free. Upgrade only if it earns it."
-        body="Ask your first questions, run the eligibility tools, and see the plan Waypoint builds — before you pay a cent."
+        body="Ask your first questions, run the eligibility tools, and see the plan Waypoint builds — your first 3 months of Plus or Pro are free."
         action="Create your free account →"
         slug="pricing"
         cta="pricing-card"
@@ -178,3 +145,12 @@ const pro = planLink('pro');
     </div>
   </div>
 </BaseLayout>
+
+<style>
+  .trial-note {
+    font-size: 0.88rem;
+    color: var(--color-ink-soft);
+    max-width: 66ch;
+    margin: 18px 0 0;
+  }
+</style>
