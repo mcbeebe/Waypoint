@@ -50,6 +50,21 @@
     "note": "Known 2025 figure (1450 - 967) — reference and test fixtures only, never display as current. Re-verify against sourceUrl before citing on any published page."
   },
 
+  "ssi_general_exclusion": {
+    "value": 20,
+    "year": 2026,
+    "sourceUrl": "https://www.ecfr.gov/current/title-20/chapter-III/part-416/subpart-K",
+    "verifiedAsOf": null,
+    "note": "SSI $20 general income exclusion (20 CFR 416.1124(c)(12) / 416.1112(c)(4)). Statutory, not year-keyed — [TBC] verify once against eCFR during the founder edit that verifies the FBRs; the calculator cannot run before that pass anyway (FBRs ship null)."
+  },
+  "ssi_earned_exclusion": {
+    "value": 65,
+    "year": 2026,
+    "sourceUrl": "https://www.ecfr.gov/current/title-20/chapter-III/part-416/subpart-K",
+    "verifiedAsOf": null,
+    "note": "SSI $65 earned income exclusion (20 CFR 416.1112(c)(5)). Statutory, not year-keyed — [TBC] verify once, same pass as above."
+  },
+
   "ihss_wage_table": {
     "value": null,
     "year": 2026,

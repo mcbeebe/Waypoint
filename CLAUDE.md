@@ -35,6 +35,11 @@ WayPoint/
 │   ├── qa/                     # promptRegression.golden.json — 78-case golden set
 │   └── scripts/                # prompt-regression.mjs, build-pending-migrations.mjs
 │
+├── waypoint-site/              # Marketing/content site (Astro, Vercel) — waypointchild.com
+│   ├── src/                    # content collections (D2 schema), components, routes
+│   ├── content-ops/            # keyword map + validator, pipeline SOP, style guide
+│   └── docs/                   # analytics taxonomy (D3), redirect map, launch checklist
+│
 ├── gas-mvp/                    # Google Apps Script MVP — still serving users
 │   ├── Code.gs                 # Backend: AI engine, user mgmt, sheet ops (~3200 lines)
 │   ├── Index.html              # Frontend: SPA with chat UI (~4800 lines)
@@ -265,6 +270,7 @@ deployed Pages site.)
 ## waypoint-site (marketing site — waypointchild.com)
 
 - **Lives in `waypoint-site/`** (Astro, static output, hosted on Vercel — same account as the app; deploys via Vercel git integration, per D14). The design source of truth for its templates is `Waypoint-Marketing-Site-Prototype.html` at repo root — port, don't redesign. Brand tokens mirror `waypoint-app/src/lib/theme.ts` (`brand`/`brandType`, initiative 006).
-- **Site gates** (run from `waypoint-site/`): `npm run gates` — `astro check` + `astro build` (Zod frontmatter failures fail the build by design) + `node scripts/validate-keyword-map.mjs`. Same auto-PR-and-merge-on-green convention as waypoint-app. **Exception:** content PRs labeled `content-review` wait for the credentialed reviewer's sign-off — never auto-merged.
+- **Site gates** (run from `waypoint-site/`): `npm run gates` — `astro check` + `vitest run` + a drafts build (`WAYPOINT_SHOW_DRAFTS=1`) + a plain production build (Zod frontmatter failures fail the build by design) + `node scripts/validate-keyword-map.mjs`. Same auto-PR-and-merge-on-green convention as waypoint-app. **Exception:** content PRs labeled `content-review` wait for the credentialed reviewer's sign-off — never auto-merged.
+- **The publish gate:** collection content renders only at `status: published` unless the build sets `WAYPOINT_SHOW_DRAFTS=1` (dev + Vercel Preview env); drafts render with a red banner + noindex, and hub/nav links gate on what exists in the build. See `waypoint-site/README.md`.
 - **Frozen contracts:** the content schema is `waypoint-site/src/content.config.ts` (documented in `content-ops/SCHEMA.md`); events + deep-link params are `waypoint-site/docs/analytics-taxonomy.md`. Change those docs first, in their own PR, before changing any consumer.
 - **Content rules:** nothing YMYL publishes without a completed `review` block (schema-enforced); benefit figures come only from `src/data/benefit-constants.json`; zero email gates; no HIPAA claims; statutes cited to primary sources.

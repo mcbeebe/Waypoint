@@ -23,6 +23,7 @@
 | 15 | Redirect verification curls (redirect-map §7) all pass; outputs archived in the cutover PR | Claude | launch-day | **BLOCKER** |
 | 16 | Zero email gates confirmed: no content or tool requires an email; newsletter is opt-in only with double opt-in wired (D3 `newsletter_subscribe` fires on confirm, not submit) | Claude | launch-day | **BLOCKER** |
 | 17 | Review-ladder audit: every publicly rendered YMYL page is `status: published` with a completed review block (D2 refine enforces at build, but run the query anyway and attach output) | Claude | launch-day | **BLOCKER** |
+| 25 | Static-page claim audit: every statute citation, day-count, dollar figure, product stat, and competitor claim on **ungated `.astro` pages** (home, hubs, tools, about, pricing) verified against primary sources — the same `[TBC]` hunt as a founder edit; the review ladder only covers collection content, so this closes the gap for pages outside it | Mike (verify) / Claude (inventory the claims) | pre-cutover | **BLOCKER** |
 | 18 | Old Vercel domain bindings for `www`/apex removed after curls pass (Vercel must stop answering for marketing hosts) | Mike (Vercel dashboard) | post-launch | fast-follow |
 | 19 | GSC coverage check at day 7: app-shell URLs dropping, marketing pages indexing; log any anomalies in analytics-taxonomy leakage list | Claude | post-launch | fast-follow |
 | 20 | Uptime + SSL expiry monitoring on apex and app host (external pinger, alert to Mike) | Claude (setup) / Mike (alert destination) | post-launch | fast-follow |
@@ -33,5 +34,5 @@
 
 ## Go/no-go call
 
-- **Go** = rows 1–17 green, rollback artifact from redirect-map §8 in hand, and Mike explicitly says go.
+- **Go** = rows 1–17 and 25 green, rollback artifact from redirect-map §8 in hand, and Mike explicitly says go.
 - Any BLOCKER regressing after launch (noindex leak on app, disclaimer not rendering, crisis surface broken, review-ladder violation) is treated as a rollback trigger for the affected surface, not a fast-follow.

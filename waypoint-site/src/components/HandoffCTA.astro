@@ -1,0 +1,42 @@
+---
+/**
+ * The conversion primitive — the ONLY way a page hands off into the app.
+ * Builds the deep link per docs/analytics-taxonomy.md (D3) and fires
+ * app_signup_click via the delegated listener in BaseLayout.
+ */
+import { appStartUrl, type CtaId, type Pillar, type WpCtx } from '../lib/appLinks';
+
+interface Props {
+  heading: string;
+  body: string;
+  action: string;
+  slug: string;
+  cta: CtaId;
+  pillar?: Pillar;
+  locale?: 'en' | 'es';
+  ctx?: WpCtx;
+  /** Marks the link so the checklist script can refresh its wp_ctx. */
+  checklist?: boolean;
+}
+const { heading, body, action, slug, cta, pillar, locale = 'en', ctx, checklist = false } = Astro.props;
+const href = appStartUrl({ slug, cta, pillar, locale, ctx });
+const props = JSON.stringify({
+  slug,
+  ...(pillar ? { pillar } : {}),
+  locale,
+  cta_id: cta,
+});
+---
+
+<div class="handoff">
+  <div><b>{heading}</b><span>{body}</span></div>
+  <a
+    class="btn on-dark"
+    href={href}
+    data-wp-event="app_signup_click"
+    data-wp-props={props}
+    data-checklist-cta={checklist || undefined}
+  >
+    {action}
+  </a>
+</div>

@@ -1,0 +1,54 @@
+---
+/**
+ * Regional Center field guides (regionalCenters collection — the D11 data
+ * spine). The not-affiliated notice + contact verification date render from
+ * frontmatter on every page (compliance components spec).
+ */
+import { render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import NoticeBox from '../../components/NoticeBox.astro';
+import { visibleContentUrls, visibleEntries } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const centers = await visibleEntries('regionalCenters');
+  return centers.map((entry) => ({
+    params: { rc: entry.data.rcId },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const verified = d.verifiedAsOf.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+// The pillar-guide crumb only links when that page exists in this build —
+// an out-of-order publish must not 404 the breadcrumb (adversary A6).
+const urls = await visibleContentUrls();
+const pillarCrumb = urls.has('/guides/regional-centers/')
+  ? { name: 'Regional Centers', href: '/guides/regional-centers/' }
+  : { name: 'Regional Centers' };
+---
+
+<ArticleLayout
+  title={d.title}
+  description={d.description}
+  heading={d.title}
+  crumbs={[pillarCrumb, { name: d.rcName }]}
+  locale={d.locale}
+  status={d.status}
+  author={d.author}
+  review={d.review}
+  datePublished={d.datePublished}
+  dateModified={d.dateModified}
+  changelog={d.changelog}
+  disclaimerVariant={d.disclaimerVariant}
+  noindex={d.noindex}
+  slug={`regional-centers/${d.rcId}`}
+  pillar="regional-centers"
+>
+  <NoticeBox slot="notice">
+    Waypoint is an independent guide — not affiliated with {d.rcName}, DDS, or any government
+    agency. Contacts verified as of {verified}.
+  </NoticeBox>
+  <Content />
+</ArticleLayout>

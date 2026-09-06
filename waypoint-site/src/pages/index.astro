@@ -1,9 +1,65 @@
 ---
+/**
+ * Homepage at prototype parity. Content-backed card links render only when
+ * their target exists in this build (src/lib/content.ts); gated cards show
+ * an honest "publishing soon" state instead of a dead link.
+ */
 import BaseLayout from '../layouts/BaseLayout.astro';
-// Phase 0 homepage: the prototype's hero, trust band, and pillar preview —
-// ported for shell verification. Pillar cards link nowhere yet on purpose;
-// their routes ship in Phase 1 with the content collections.
-const APP_URL = 'https://app.waypointchild.com';
+import EmpathyCallout from '../components/EmpathyCallout.astro';
+import HandoffCTA from '../components/HandoffCTA.astro';
+import { visibleContentUrls } from '../lib/content';
+import { appStartUrl } from '../lib/appLinks';
+import { organizationJsonLd } from '../lib/jsonld';
+
+const urls = await visibleContentUrls();
+const has = (u: string) => urls.has(u);
+
+const heroHref = has('/start/autism/')
+  ? '/start/autism/'
+  : appStartUrl({ slug: 'home', cta: 'hero' });
+const heroIsAppLink = !has('/start/autism/');
+const heroProps = JSON.stringify({ slug: 'home', locale: 'en', cta_id: 'hero' });
+
+const pillars = [
+  {
+    title: 'Regional Centers',
+    body: 'Eligibility, the 120-day clock, IPP meetings, respite, and appeals under the Lanterman Act.',
+    href: '/guides/regional-centers/',
+    label: 'Pillar guide →',
+  },
+  {
+    title: 'School & IEPs',
+    body: 'Request an evaluation, IEP vs 504, what to sign, and the dispute ladder — with copy-paste letters.',
+    href: '/letters/iep-evaluation-request/',
+    label: 'Get the letter →',
+  },
+  {
+    title: 'Money & benefits',
+    body: 'Medi-Cal regardless of income, IHSS protective supervision, SSI for children, CCS.',
+    href: '/guides/benefits/ihss-protective-supervision/',
+    label: 'Start here →',
+  },
+  {
+    title: 'Insurance & therapies',
+    body: "California's SB 946 ABA mandate, appealing denials, and the DMHC Independent Medical Review.",
+    href: '/guides/',
+    label: 'Browse guides →',
+    always: true,
+  },
+  {
+    title: 'First steps (0–5)',
+    body: 'Early Start, getting an evaluation without the year-long wait, and the turning-three transition.',
+    href: '/start/autism/',
+    label: 'First 100 Days →',
+  },
+  {
+    title: 'Free tools',
+    body: 'The SSI deeming calculator, your Regional Center finder, and template letters — no email required.',
+    href: '/tools/ssi-deeming-calculator/',
+    label: 'Try a tool →',
+    always: true,
+  },
+];
 ---
 
 <BaseLayout
@@ -18,42 +74,118 @@ const APP_URL = 'https://app.waypointchild.com';
         Waypoint is the AI-powered platform that helps families navigate disability services —
         from diagnosis to adulthood. Every benefit. Every deadline. Every right. Mapped.
       </p>
-      <div class="actions">
-        <a class="btn on-dark" href={`${APP_URL}/start?utm_source=site&utm_medium=organic-content&wp_cta=hero`}>
-          See your child's roadmap →
-        </a>
+      <div class="hero-actions">
+        {
+          heroIsAppLink ? (
+            <a class="btn on-dark" href={heroHref} data-wp-event="app_signup_click" data-wp-props={heroProps}>
+              See your child's roadmap →
+            </a>
+          ) : (
+            <a class="btn on-dark" href={heroHref}>
+              See your child's roadmap →
+            </a>
+          )
+        }
+        <a class="btn ghost-dark" href="/guides/">Browse free guides</a>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><b>23</b><span>agencies mapped</span></div>
+        <div class="stat"><b>21</b><span>regional centers profiled</span></div>
+        <div class="stat"><b>13</b><span>diagnoses covered</span></div>
+        <div class="stat"><b>2</b><span>languages, full parity</span></div>
       </div>
     </div>
   </div>
 
   <div class="trustband">
     <div class="container band-inner">
+      {/* Process-framed on purpose: reviewer seats are still being recruited
+          (see /about/) — the band states the publishing bar, not a claim that
+          review already happened (adversary finding A2). */}
       <span><i>✓</i>Free guides — no email required</span>
-      <span><i>✓</i>Reviewed by credentialed experts</span>
-      <span><i>✓</i>Every claim cited to statute</span>
+      <span><i>✓</i>Expert-reviewed before anything publishes</span>
+      <span><i>✓</i>Every claim cited to statute — or it's cut</span>
       <span><i>✓</i>En español</span>
     </div>
   </div>
 
   <div class="section">
     <div class="container">
-      <span class="eyebrow">Coming with our first guides</span>
-      <h2>Six systems. One map.</h2>
+      <span class="eyebrow">Know the system</span>
+      <h2>Start with the fight you're in today</h2>
       <p class="sub">
-        Regional Centers &amp; the Lanterman Act · School &amp; IEPs · Money &amp; benefits ·
-        Insurance &amp; SB&nbsp;946 · First steps (0–5) · Start here by diagnosis — publishing
-        soon, in plain language, with the deadlines and template letters that make the next
-        step obvious.
+        Six pillars cover every system a California family navigates — each in plain language,
+        with the deadlines, scripts, and template letters that make the next step obvious.
       </p>
+      <div class="grid-3">
+        {
+          pillars.map((p) => (
+            <div class="card">
+              <h3>{p.title}</h3>
+              <p>{p.body}</p>
+              {p.always || has(p.href) ? (
+                <a class="link" href={p.href}>
+                  {p.label}
+                </a>
+              ) : (
+                <span class="link soon" aria-disabled="true">
+                  Publishing soon
+                </span>
+              )}
+            </div>
+          ))
+        }
+      </div>
     </div>
   </div>
+
+  <div class="section on-white">
+    <div class="container">
+      <span class="eyebrow">Why Waypoint</span>
+      <h2>Other platforms tell you what to do. <span class="accent">We do it.</span></h2>
+      <div class="grid-2 compare">
+        <div class="card generic">
+          <h3>Generic advice</h3>
+          <p>
+            "You may want to consider requesting an assessment from your school district and
+            following up with your regional center about available services."
+          </p>
+        </div>
+        <div class="card waypoint">
+          <h3>Waypoint</h3>
+          <p>
+            A drafted assessment-request letter in your name, the 15-day clock it starts, the
+            calendar reminder for day 16 — and the fallback script if the district stalls.
+          </p>
+        </div>
+      </div>
+      <EmpathyCallout label="Built by a parent">
+        "I'm Mike, father of two boys in Oakland. When my son needed services, I spent hundreds
+        of hours navigating the system. I built Waypoint so no family has to do it alone."
+      </EmpathyCallout>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container narrow">
+      <HandoffCTA
+        heading="Three steps to clarity"
+        body="Tell us about your child · see what they qualify for · get your step-by-step plan. Free to start."
+        action="Get started free"
+        slug="home"
+        cta="home-footer"
+      />
+    </div>
+  </div>
+
+  <script type="application/ld+json" set:html={JSON.stringify(organizationJsonLd())} />
 </BaseLayout>
 
 <style>
   .hero {
     background: linear-gradient(165deg, #22303a 0%, #123f39 55%, #0f766e 135%);
     color: #eef6f1;
-    padding: 72px 0 60px;
+    padding: 72px 0 56px;
   }
   .hero .eyebrow {
     color: #9fe8db;
@@ -76,27 +208,30 @@ const APP_URL = 'https://app.waypointchild.com';
     max-width: 58ch;
     margin: 10px 0 26px;
   }
-  .eyebrow {
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .stat-row {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+  }
+  .stat b {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 2rem;
+    color: #ffffff;
+    display: block;
+    line-height: 1.1;
+  }
+  .stat span {
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: var(--color-pine);
-  }
-  .btn {
-    display: inline-block;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 15px;
-    border-radius: 12px;
-    padding: 11px 20px;
-  }
-  .btn.on-dark {
-    background: #ffffff;
-    color: var(--color-ink);
-  }
-  .btn.on-dark:hover {
-    background: var(--color-pine-tint);
+    color: #9fc5b9;
   }
   .trustband {
     background: var(--color-panel);
@@ -116,17 +251,26 @@ const APP_URL = 'https://app.waypointchild.com';
     font-style: normal;
     margin-right: 6px;
   }
-  .section {
-    padding: 52px 0;
+  .accent {
+    color: var(--color-pine);
   }
-  .section h2 {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: 1.85rem;
-    margin: 8px 0 14px;
+  .compare {
+    margin-top: 20px;
   }
-  .sub {
-    max-width: 66ch;
-    margin: 0;
+  .card.generic {
+    border-left: 4px solid var(--color-border);
+  }
+  .card.generic h3 {
+    color: var(--color-ink-faint);
+  }
+  .card.waypoint {
+    border-left: 4px solid var(--color-pine);
+  }
+  .card.waypoint h3 {
+    color: var(--color-pine);
+  }
+  .soon {
+    opacity: 0.55;
+    cursor: default;
   }
 </style>

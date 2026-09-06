@@ -1,0 +1,37 @@
+---
+/**
+ * Visible draft state for any page rendered before credentialed review
+ * (drafts render only in dev/preview builds — src/lib/content.ts). Same
+ * honesty pattern as the Phase 0 legal-page draft banners.
+ */
+interface Props {
+  status: string;
+}
+const { status } = Astro.props;
+const label: Record<string, string> = {
+  draft: 'Draft',
+  founder_edit: 'In founder edit',
+  in_review: 'In expert review',
+  approved: 'Approved — awaiting publication',
+};
+---
+
+{/* role="note", not "status": live regions announce changes, and this is
+    static content that must be read in document order. */}
+<div class="draft-banner" role="note">
+  <strong>{label[status] ?? 'Draft'} — pending expert review.</strong>
+  This is a working preview. Facts, figures, and citations have not yet been verified —
+  do not rely on this page.
+</div>
+
+<style>
+  .draft-banner {
+    background: var(--color-urgent-tint);
+    border: 1px solid #f3d5c2;
+    color: var(--color-urgent);
+    border-radius: 12px;
+    padding: 11px 15px;
+    font-size: 0.88rem;
+    margin: 0 0 16px;
+  }
+</style>

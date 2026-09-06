@@ -1,0 +1,22 @@
+---
+/** On-page change log rendered from frontmatter changelog[] entries. */
+interface Props {
+  entries: { date: Date; note: string }[];
+}
+const { entries } = Astro.props;
+const fmt = (d: Date) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+---
+
+{
+  entries.length > 0 && (
+    <div class="changelog">
+      <b>Change log</b>
+      {entries.map((e) => (
+        <span>
+          {' '}
+          · {fmt(e.date)}: {e.note}
+        </span>
+      ))}
+    </div>
+  )
+}

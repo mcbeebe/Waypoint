@@ -1,0 +1,131 @@
+---
+title: "Take a breath. You are not behind."
+description: "Just got an autism diagnosis in California? Your first 100 days, in order — Regional Center, school, insurance — and why each step unlocks the next."
+locale: en
+translationKey: start-autism
+status: draft
+pillar: start
+dateModified: 2026-09-06
+nextReviewEvent: annual
+disclaimerVariant: legal
+---
+
+{/*
+  DRAFT — piece #1 (keyword row /start/autism/), ported from the prototype.
+  Verification pending:
+  [TBC: verify — WIC §4500 (services regardless of income)]
+  [TBC: verify — WIC §4643 45-day Early Start / 120-day decision clocks]
+  [TBC: verify — CA Ed Code §56321 15-calendar-day assessment plan response]
+  [TBC: verify — SB 946 scope + ERISA exemption phrasing]
+  [TBC: verify — WIC §4646 IPP]
+  [TBC: "Find your people" step needs real, verified parent-support resources
+   before publish — the prototype's "(sample resources)" placeholder was cut.]
+  Item ids below are write-once (they ride wp_ctx into the app — D3).
+*/}
+
+import CheckItem from '../../../components/CheckItem.astro';
+import EmpathyCallout from '../../../components/EmpathyCallout.astro';
+import HandoffCTA from '../../../components/HandoffCTA.astro';
+import PhaseLabel from '../../../components/PhaseLabel.astro';
+import PlainBox from '../../../components/PlainBox.astro';
+
+<p class="lede" style="margin-top:0">
+  This is often the hardest moment a family ever stands in — and there is a sequence that
+  works. Below are your first 100 days, in order, with why each step unlocks the next. You
+  don't have to do them all today. You just have to start one.
+</p>
+
+<div class="progress-wrap">
+  <div class="lbl"><span>Your first 100 days</span><span id="start-progress-label">0 of 9 started</span></div>
+  <div class="progress-track"><div class="progress-fill" id="start-progress-fill"></div></div>
+</div>
+
+<p style="font-size:.85rem;margin:6px 0 14px"><a href="#start-why">How Waypoint decided this order ↓</a></p>
+
+<PhaseLabel>Days 0–30 · Get in every line at once</PhaseLabel>
+
+<CheckItem id="rc-intake-call" title="Call your Regional Center and ask for an intake appointment">
+  The evaluation is free, regardless of your income — that's the Lanterman Act
+  <span class="cite">WIC §4500</span>. If your child is under 3, Early Start requires an
+  eligibility decision within <b>45 days</b>; at 3 and older, within <b>120 days</b> of intake
+  <span class="cite">WIC §4643</span>. This one call opens the path to respite and Medi-Cal.
+  Not sure which of the 21 centers is yours?
+  <a class="link" href="/tools/regional-center-finder/">Find your Regional Center →</a>
+</CheckItem>
+
+<CheckItem id="school-eval-request" title="Request a school evaluation — in writing, today">
+  The moment your district receives a written request, a <b>15-calendar-day</b> clock starts
+  for them to respond with an assessment plan <span class="cite">CA Ed Code §56321</span>. A
+  phone call starts nothing; a letter starts everything. Use our ready-to-send version:
+  <a class="link" href="/letters/iep-evaluation-request/">IEP evaluation request letter →</a>
+</CheckItem>
+
+<CheckItem id="insurance-aba" title="Ask your insurer whether ABA is covered">
+  California's <b>SB 946</b> requires most fully-insured health plans to cover behavioral
+  health treatment, including ABA. (Self-funded ERISA plans are exempt — ask which kind yours
+  is.) If they say no, ask for the denial in writing: written denials can be appealed, all the
+  way to an Independent Medical Review.
+</CheckItem>
+
+<PhaseLabel>Days 31–60 · Build the paper trail</PhaseLabel>
+
+<CheckItem id="document-binder" title="Start a document binder">
+  Every evaluation, letter, Notice of Action, and denial in one place, in date order. Systems
+  respond to paper — the family with the organized record is the family that gets the faster
+  yes, and the stronger appeal when the answer is no.
+</CheckItem>
+
+<CheckItem id="medi-cal-deeming" title="Apply for Medi-Cal through institutional deeming">
+  A child with a developmental disability living at home can qualify for Medi-Cal with
+  <b> parental income ignored</b>, via an HCBS waiver. Medi-Cal is the door to IHSS and more —
+  your Regional Center service coordinator can help you start the application.
+</CheckItem>
+
+<CheckItem id="find-your-people" title="Find your people">
+  Ask your Regional Center about parent support groups, and put your first respite request in
+  writing while you're at it. Parents six months ahead of you on this road are the best map
+  there is. [TBC: add verified parent-support resources before publish]
+</CheckItem>
+
+<PhaseLabel>Days 61–100 · First meetings, prepared</PhaseLabel>
+
+<CheckItem id="ipp-prep" title="Prepare for your first IPP meeting">
+  The Individual Program Plan <span class="cite">WIC §4646</span> is where Regional Center
+  services actually get written down. Bring your goals in writing and ask for each one by
+  name. If something is refused, request a written Notice of Action — that document is what
+  carries your appeal rights.
+</CheckItem>
+
+<CheckItem id="iep-prep" title="Prepare for the IEP meeting">
+  Read the evaluation before the meeting, not at the table. List what you want as measurable
+  goals, ask how progress will be reported, and remember: you can take the IEP home to read
+  before signing. You never have to decide in the room.
+</CheckItem>
+
+<CheckItem id="review-and-rest" title="Breathe, then review">
+  Look back over days 0–100: what's working, what's stalled, and which clock needs a written
+  nudge. Then rest. The systems will still be there tomorrow — and now you know how to move
+  them.
+</CheckItem>
+
+<PlainBox tag="Why this order">
+  <span id="start-why"></span>
+  Every clock — Regional Center, school, insurance — runs independently, so days 0–30 start
+  them all in parallel. Days 31–60 build the paper trail those systems will ask for. Days
+  61–100 walk into the first meetings prepared. That is the whole ladder — nothing hidden.
+</PlainBox>
+
+<div class="empathy" id="start-cheer" hidden>
+  <span class="label">You did this</span>
+  <p>Two lines in the water already. Most families take months to get here — you're doing it in days.</p>
+</div>
+
+<HandoffCTA
+  heading="Keep the momentum."
+  body="Check items here — they become your saved, deadline-tracked plan in Waypoint."
+  action="Save my plan →"
+  slug="start/autism"
+  cta="checklist"
+  pillar="start"
+  checklist
+/>

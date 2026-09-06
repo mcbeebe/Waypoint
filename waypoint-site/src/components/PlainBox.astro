@@ -1,0 +1,9 @@
+---
+/** Plain-language summary box (STYLE-GUIDE §5 — grade ≤6, under the H1). */
+interface Props {
+  tag?: string;
+}
+const { tag = 'Plain-language summary' } = Astro.props;
+---
+
+<div class="plain-box"><b class="tag">{tag}</b><slot /></div>
