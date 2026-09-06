@@ -1,0 +1,99 @@
+/*
+ * Waypoint site global styles.
+ * Tokens are the initiative-006 brand system from waypoint-app/src/lib/theme.ts —
+ * the app and the site share one visual vocabulary. Roles, not taste:
+ * ink = text · pine = the only thing you tap · sage = progress · urgent = true urgency.
+ */
+@import 'tailwindcss';
+@import './fonts.css';
+
+@theme {
+  --color-paper: #f5f1e9;
+  --color-panel: #ffffff;
+  --color-cream: #fbf6ec;
+  --color-ink: #22303a;
+  --color-ink-soft: #55606b;
+  --color-ink-faint: #6d6555;
+  --color-border: #eae3d5;
+  --color-border-strong: #e2d8c4;
+  --color-pine: #0f766e;
+  --color-pine-deep: #115e56;
+  --color-pine-tint: #e6f1ef;
+  --color-pine-tint-pressed: #d4e7e3;
+  --color-sage: #0e9e6e;
+  --color-sage-ink: #047857;
+  --color-sage-tint: #e7f5ee;
+  --color-urgent: #c2410c;
+  --color-urgent-tint: #fbeadd;
+  --color-amber: #b45309;
+  --color-amber-soft: #fdf3e3;
+  --color-amber-border: #f3dfb6;
+
+  --font-display: 'Newsreader', Georgia, serif;
+  --font-sans: 'Hanken Grotesk', system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink-soft);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+a {
+  color: var(--color-pine);
+}
+
+::selection {
+  background: var(--color-pine-tint-pressed);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-pine);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-inline: 24px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 8px;
+  background: var(--color-panel);
+  color: var(--color-pine-deep);
+  padding: 10px 16px;
+  border-radius: 10px;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 8px;
+}

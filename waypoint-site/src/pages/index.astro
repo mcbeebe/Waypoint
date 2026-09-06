@@ -1,0 +1,132 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+// Phase 0 homepage: the prototype's hero, trust band, and pillar preview —
+// ported for shell verification. Pillar cards link nowhere yet on purpose;
+// their routes ship in Phase 1 with the content collections.
+const APP_URL = 'https://app.waypointchild.com';
+---
+
+<BaseLayout
+  title="Waypoint — every step of your child's journey, mapped"
+  description="Waypoint helps California families of children with disabilities navigate Regional Centers, IEPs, Medi-Cal, and SSI — free guides, tools, and letters, no login required."
+>
+  <div class="hero">
+    <div class="container">
+      <span class="eyebrow">For California families</span>
+      <h1>Your child was just diagnosed.<br />You have questions. <em>We have a roadmap.</em></h1>
+      <p class="lede">
+        Waypoint is the AI-powered platform that helps families navigate disability services —
+        from diagnosis to adulthood. Every benefit. Every deadline. Every right. Mapped.
+      </p>
+      <div class="actions">
+        <a class="btn on-dark" href={`${APP_URL}/start?utm_source=site&utm_medium=organic-content&wp_cta=hero`}>
+          See your child's roadmap →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="trustband">
+    <div class="container band-inner">
+      <span><i>✓</i>Free guides — no email required</span>
+      <span><i>✓</i>Reviewed by credentialed experts</span>
+      <span><i>✓</i>Every claim cited to statute</span>
+      <span><i>✓</i>En español</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <span class="eyebrow">Coming with our first guides</span>
+      <h2>Six systems. One map.</h2>
+      <p class="sub">
+        Regional Centers &amp; the Lanterman Act · School &amp; IEPs · Money &amp; benefits ·
+        Insurance &amp; SB&nbsp;946 · First steps (0–5) · Start here by diagnosis — publishing
+        soon, in plain language, with the deadlines and template letters that make the next
+        step obvious.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .hero {
+    background: linear-gradient(165deg, #22303a 0%, #123f39 55%, #0f766e 135%);
+    color: #eef6f1;
+    padding: 72px 0 60px;
+  }
+  .hero .eyebrow {
+    color: #9fe8db;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2.1rem, 5vw, 3.3rem);
+    line-height: 1.12;
+    color: #ffffff;
+    margin: 12px 0 8px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: #a9efe0;
+  }
+  .hero .lede {
+    font-size: 1.12rem;
+    color: #d3e7de;
+    max-width: 58ch;
+    margin: 10px 0 26px;
+  }
+  .eyebrow {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-pine);
+  }
+  .btn {
+    display: inline-block;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+    border-radius: 12px;
+    padding: 11px 20px;
+  }
+  .btn.on-dark {
+    background: #ffffff;
+    color: var(--color-ink);
+  }
+  .btn.on-dark:hover {
+    background: var(--color-pine-tint);
+  }
+  .trustband {
+    background: var(--color-panel);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .band-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 34px;
+    padding-block: 13px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--color-ink-soft);
+  }
+  .band-inner i {
+    color: var(--color-sage-ink);
+    font-style: normal;
+    margin-right: 6px;
+  }
+  .section {
+    padding: 52px 0;
+  }
+  .section h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.85rem;
+    margin: 8px 0 14px;
+  }
+  .sub {
+    max-width: 66ch;
+    margin: 0;
+  }
+</style>

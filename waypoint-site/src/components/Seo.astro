@@ -1,0 +1,25 @@
+---
+/**
+ * Head metadata. Phase 0 covers the basics; Phase 1 adds JSON-LD builders,
+ * per-page OG images (satori), and hreflang link alternates.
+ */
+interface Props {
+  title: string;
+  description: string;
+  noindex?: boolean;
+  ogType?: 'website' | 'article';
+}
+const { title, description, noindex = false, ogType = 'website' } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+<meta property="og:type" content={ogType} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content="Waypoint" />
+<meta name="twitter:card" content="summary" />
