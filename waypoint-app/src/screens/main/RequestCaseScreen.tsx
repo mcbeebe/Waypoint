@@ -479,9 +479,9 @@ export default function RequestCaseScreen() {
                     style={styles.eventReplyBtn}
                     onPress={() => openReply(c)}
                     accessibilityRole="button"
-                    accessibilityLabel="Draft a reply in this thread"
+                    accessibilityLabel="Draft a reply in this thread with AI"
                   >
-                    <Text style={styles.eventReplyText}>✨ Draft a reply with Waypoint</Text>
+                    <Text style={styles.eventReplyText}>✨ Draft a reply with AI</Text>
                   </Pressable>
                 )}
               </Pressable>

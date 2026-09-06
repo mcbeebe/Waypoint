@@ -124,23 +124,46 @@ describe('DraftQuestionsSheet', () => {
    * string here said "Waypoint" — a company — and the word AI appeared
    * nowhere, in any of the three languages.
    *
-   * Asserted by meaning, per locale: the copy can be rewritten freely as long
-   * as it still says a machine did the reading and the writing.
+   * THESE ASSERT ON THE SPECIFIC STRING THEY NAME. The first version used
+   * `getAllByText(/\bIA\b/)`, which RTL matches unanchored against every
+   * element — and the skipHint always renders and always contains AI/IA, so
+   * the "says a machine READ the reply" test was satisfied by the hint no
+   * matter what the summary label said. A mutation pass proved it: reverting
+   * the Spanish and Vietnamese summary labels to "Waypoint" left all 14 tests
+   * green. Those two strings had no coverage anywhere in the suite.
    */
+  const READ_LABEL: Record<string, string> = {
+    en: "Waypoint's AI read their reply",
+    es: 'La IA de Waypoint leyó la respuesta de ellos',
+    vi: 'AI của Waypoint đã đọc thư trả lời của họ',
+  };
   const AI_TERM: Record<string, RegExp> = { en: /\bAI\b/, es: /\bIA\b/, vi: /\bAI\b/ };
 
   for (const locale of ['en', 'es', 'vi'] as const) {
-    it(`[${locale}] says a machine wrote the draft, before the parent sends it`, () => {
-      // The standing hint under the questions, which every parent passes.
+    it(`[${locale}] the standing hint says a machine writes the draft`, () => {
       sheet({ locale });
-      expect(document.body.textContent).toMatch(AI_TERM[locale]);
+      // Scoped to the hint element, not the whole document: a body-text check
+      // passes on any other string that happens to contain "AI".
+      const hint = screen.getByText(/Waypoint|IA de Waypoint|AI của Waypoint/);
+      expect(hint.textContent).toMatch(AI_TERM[locale]);
     });
 
-    it(`[${locale}] says a machine READ the agency's reply, not "Waypoint"`, () => {
+    it(`[${locale}] the summary label says a machine READ the agency's reply`, () => {
       sheet({ locale, aiSummary: 'They ask for the assessment request in writing.' });
-      expect(screen.getAllByText(AI_TERM[locale]).length).toBeGreaterThan(0);
+      // The exact string. Copy may be rewritten — but then this line moves
+      // with it, in a diff a reviewer can see, which is the point for
+      // family-facing legal-adjacent text.
+      expect(screen.getByText(READ_LABEL[locale])).toBeTruthy();
+      expect(READ_LABEL[locale]).toMatch(AI_TERM[locale]);
     });
   }
+
+  it('[es] never tells the parent the AI read THEIR OWN reply', () => {
+    // "su respuesta" under usted reads first as "your reply" — the opposite of
+    // what this label means, in the one string whose job is saying what the
+    // machine read.
+    expect(READ_LABEL.es).not.toMatch(/\bsu respuesta\b/);
+  });
 
   it('renders nothing when there is no item', () => {
     const { container } = render(

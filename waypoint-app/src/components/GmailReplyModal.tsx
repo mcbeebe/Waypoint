@@ -148,7 +148,7 @@ export default function GmailReplyModal({
             )}
             {analysis && (
               <View style={styles.readBox}>
-                <Text style={styles.readLabel}>WHAT WAYPOINT'S AI READ</Text>
+                <Text style={styles.readLabel}>HOW WAYPOINT'S AI READ IT</Text>
                 <Text style={styles.readSummary}>{analysis.summary}</Text>
                 {analysis.red_flags.map((f, i) => (
                   <Text key={`f${i}`} style={styles.readItem}>

@@ -41,8 +41,10 @@ interface DraftQuestionsSheetProps {
  */
 const SUMMARY_LABEL: Record<FunnelLocale, string> = {
   en: "Waypoint's AI read their reply",
-  es: 'La IA de Waypoint leyó su respuesta',
-  vi: 'AI của Waypoint đã đọc thư trả lời',
+  // NOT 'su respuesta': the app addresses the parent as usted, so 'su'
+  // reads first as YOUR reply — the opposite of what this label means.
+  es: 'La IA de Waypoint leyó la respuesta de ellos',
+  vi: 'AI của Waypoint đã đọc thư trả lời của họ',
 };
 
 const STRINGS: Record<FunnelLocale, { title: string; write: string; close: string; skipHint: string }> = {
@@ -50,19 +52,19 @@ const STRINGS: Record<FunnelLocale, { title: string; write: string; close: strin
     title: 'A couple of quick questions',
     write: 'Write my letter',
     close: 'Close — nothing is lost',
-    skipHint: "Then Waypoint's AI writes the draft — read it before you send. Nothing sends until you press Send.",
+    skipHint: "Next screen: Waypoint's AI writes the draft. Read it — nothing goes out until you send it yourself.",
   },
   es: {
     title: 'Un par de preguntas rápidas',
     write: 'Escribir mi carta',
     close: 'Cerrar — no se pierde nada',
-    skipHint: 'Luego la IA de Waypoint escribe el borrador — léalo antes de enviar. Nada se envía hasta que usted pulse Enviar.',
+    skipHint: 'En la siguiente pantalla, la IA de Waypoint escribe el borrador. Léalo — nada sale hasta que usted lo envíe.',
   },
   vi: {
     title: 'Vài câu hỏi nhanh',
     write: 'Viết thư của tôi',
     close: 'Đóng — không mất gì',
-    skipHint: 'Sau đó AI của Waypoint viết bản nháp — hãy đọc kỹ trước khi gửi. Không có gì được gửi cho đến khi quý vị bấm Gửi.',
+    skipHint: 'Ở màn hình kế tiếp, AI của Waypoint sẽ viết bản nháp. Quý vị hãy đọc — không có gì được gửi đi cho đến khi quý vị tự gửi.',
   },
 };
 
