@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   StyleSheet,
   ActivityIndicator,
   ViewStyle,
 } from 'react-native';
-import { colors, fonts, radii } from '../lib/theme';
+import { brand, colors, fonts, radii } from '../lib/theme';
 
 interface ButtonProps {
   title: string;
@@ -17,6 +17,12 @@ interface ButtonProps {
   style?: ViewStyle;
 }
 
+/**
+ * The shared button, on the warm brand system (initiative 006): pine fill for
+ * the primary action (pineDeep pressed), ink fill for secondary, pine outline
+ * for tertiary (pineTint pressed). White text on pine and on ink both clear
+ * WCAG AA — the palette is pinned in theme.test.ts.
+ */
 export default function Button({
   title,
   onPress,
@@ -28,33 +34,34 @@ export default function Button({
   const isDisabled = disabled || loading;
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      style={[
+      accessibilityRole="button"
+      // The label is explicit so the button keeps its name while `loading`
+      // swaps the title text for the spinner
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
+      // Caller `style` sits below the pressed/disabled layers so an override
+      // (width, margin, even a custom fill) can never erase press feedback
+      style={({ pressed }) => [
         styles.base,
         styles[variant],
-        isDisabled && styles.disabled,
         style,
+        pressed && styles[`${variant}Pressed`],
+        isDisabled && styles.disabled,
       ]}
-      activeOpacity={0.8}
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'outline' ? colors.teal : colors.white}
+          color={variant === 'outline' ? brand.pine : colors.white}
         />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            variant === 'outline' && styles.outlineText,
-            variant === 'secondary' && styles.secondaryText,
-          ]}
-        >
+        <Text style={[styles.text, variant === 'outline' && styles.outlineText]}>
           {title}
         </Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -67,15 +74,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   primary: {
-    backgroundColor: colors.teal,
+    backgroundColor: brand.pine,
+  },
+  primaryPressed: {
+    backgroundColor: brand.pineDeep,
   },
   secondary: {
-    backgroundColor: colors.navy,
+    backgroundColor: brand.ink,
+  },
+  // No darker step exists for an ink fill, so pressed feedback is opacity
+  secondaryPressed: {
+    opacity: 0.85,
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 1.5,
-    borderColor: colors.teal,
+    borderColor: brand.pine,
+  },
+  outlinePressed: {
+    backgroundColor: brand.pineTint,
   },
   disabled: {
     opacity: 0.5,
@@ -86,9 +103,6 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold,
   },
   outlineText: {
-    color: colors.teal,
-  },
-  secondaryText: {
-    color: colors.white,
+    color: brand.pine,
   },
 });
