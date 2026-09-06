@@ -24,6 +24,8 @@ jobs:
           cache: npm
           cache-dependency-path: waypoint-site/package-lock.json
       - run: npm ci
+      # Browser for the axe accessibility gate (scripts/axe-scan.mjs).
+      - run: npx playwright install --with-deps chromium
       - run: npm run gates
 
   # Deploys are handled by Vercel's git integration (D14): the `waypoint-site`

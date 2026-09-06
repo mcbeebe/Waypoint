@@ -7,13 +7,15 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
     "test": "vitest run",
-    "build:drafts": "WAYPOINT_SHOW_DRAFTS=1 astro build",
-    "gates": "astro check && vitest run && npm run build:drafts && node scripts/check-internal-links.mjs && astro build && node scripts/check-internal-links.mjs && node scripts/validate-keyword-map.mjs",
+    "new": "node scripts/new-content.mjs",
+    "build:drafts": "WAYPOINT_SHOW_DRAFTS=1 astro build && pagefind --site dist",
+    "axe": "node scripts/axe-scan.mjs",
+    "gates": "astro check && vitest run && npm run build:drafts && node scripts/check-internal-links.mjs && node scripts/axe-scan.mjs && npm run build && node scripts/check-internal-links.mjs && node scripts/validate-keyword-map.mjs",
     "refresh-due": "node scripts/refresh-due.mjs"
   },
   "dependencies": {
@@ -29,8 +31,11 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@axe-core/playwright": "^4.13.0",
     "gray-matter": "^4.0.3",
     "js-yaml": "^5.4.1",
+    "pagefind": "^1.5.2",
+    "playwright": "^1.63.0",
     "typescript": "^6.0.3",
     "vitest": "^3.2.7"
   }

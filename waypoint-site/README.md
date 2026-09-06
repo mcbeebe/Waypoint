@@ -18,10 +18,13 @@ root — **port it, don't redesign it**. The plan of record is
 ## Commands
 
 ```bash
-npm run dev          # dev server (drafts visible)
-npm run gates        # check + tests + drafts build + production build + keyword map — the CI gate
+npm run dev          # dev server (drafts visible; search index absent until a build)
+npm run gates        # check + tests + drafts build + link check + axe scan
+                     #   + production build + link check + keyword map — the CI gate
 npm test             # vitest (pure modules: deeming math, deep-link builder)
-npm run build        # production build — publishes ONLY status:published content
+npm run axe          # axe-core scan of the built dist (fails on serious/critical)
+npm run new -- guide benefits/my-slug   # scaffold a draft (keyword-map row required first)
+npm run build        # production build + Pagefind index — publishes ONLY status:published
 npm run build:drafts # preview build — drafts render with banners + noindex
 ```
 

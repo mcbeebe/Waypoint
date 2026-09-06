@@ -28,7 +28,8 @@ const label: Record<string, string> = {
   .draft-banner {
     background: var(--color-urgent-tint);
     border: 1px solid #f3d5c2;
-    color: var(--color-urgent);
+    /* Darker than --color-urgent: 4.41:1 on the tint failed WCAG AA (axe). */
+    color: #9a3412;
     border-radius: 12px;
     padding: 11px 15px;
     font-size: 0.88rem;

@@ -30,6 +30,7 @@ const navItems = [
   { label: 'Free Tools', href: '/tools/ssi-deeming-calculator/', gated: false, active: ['/tools/'] },
   { label: 'Regional Centers', href: '/guides/regional-centers/', gated: true, active: ['/regional-centers/'] },
   { label: 'Pricing', href: '/pricing/', gated: false, active: ['/pricing/'] },
+  { label: 'Search', href: '/search/', gated: false, active: ['/search/'] },
 ].filter((item) => !item.gated || urls.has(item.href));
 
 const isActive = (item: { active: string[] }) => item.active.some((p) => path.startsWith(p));

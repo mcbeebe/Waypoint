@@ -40,7 +40,13 @@ const isDraft = d.status !== 'published';
   <div class="section on-white">
     <div class="container narrow">
       {isDraft && <DraftBanner status={d.status} />}
-      <div id="article-root" data-slug={id} data-pillar={d.pillar} data-locale={d.locale}>
+      <div
+        id="article-root"
+        data-slug={id}
+        data-pillar={d.pillar}
+        data-locale={d.locale}
+        data-pagefind-body
+      >
         <Content />
       </div>
       <ChangelogBox entries={d.changelog} />
