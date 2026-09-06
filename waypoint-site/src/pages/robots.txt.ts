@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 
 // AI crawlers are explicitly welcome — being the cited source for California
 // disability-services answers is the strategy (see the marketing-site plan).
-// NOTE: Cloudflare's zone-level AI-bot blocking must also be OFF (launch checklist).
+// NOTE: Vercel Firewall/bot protection must not challenge these crawlers (launch checklist).
 const body = `User-agent: *
 Allow: /
 
