@@ -82,9 +82,16 @@ const answers = await visibleEntries('answers');
             parental income.
           </p>
           {
+            /* Gate on the HUB, then prefer the deepest published page. Gating a
+               card on a spoke stranded the published hub with zero inbound
+               links — an orphan page reachable only from the sitemap. */
             has('/guides/benefits/ihss-protective-supervision/') ? (
               <a class="link" href="/guides/benefits/ihss-protective-supervision/">
                 Read the IHSS protective supervision guide →
+              </a>
+            ) : has('/guides/benefits/') ? (
+              <a class="link" href="/guides/benefits/">
+                See every benefit your child may qualify for →
               </a>
             ) : (
               <span class="link soon">Publishing soon</span>

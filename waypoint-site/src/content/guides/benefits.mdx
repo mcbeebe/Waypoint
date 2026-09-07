@@ -16,11 +16,11 @@ nextReviewEvent: annual
 disclaimerVariant: benefits
 changelog:
   - date: 2026-09-07
-    note: "Founder reviewed full text and approved content (2 edit rounds: general resource-map reframing, private-services fast lane). Awaiting fact verification + credentialed review before publish."
+    note: "Rewritten as a map of every resource door, not just SSI, and a section added on private services and what they cost you in money versus waiting."
   - date: 2026-09-07
-    note: "Fact-check pass applied: IHSS 195/283 restated as the program's monthly maxima (not a protective-supervision add-on); CCS income rules stated ($40k AGI / 20% test); SB 946, deeming, IPP-attachment, SSI→Medi-Cal linkage, and AB 136 camp/social-rec authority confirmed and cited."
+    note: "Figures checked against their sources. Corrected: 195 and 283 hours are IHSS's monthly maximums, not extra hours added on top of other care. CCS income limits, the SB 946 coverage mandate, and the Medi-Cal deeming rules are confirmed and cited below."
   - date: 2026-09-07
-    note: "Published. Owner decision (chat, 2026-09-07): founder signs the review block; respite authority confirmed against WIC §4512(b); reimbursement framing softened to instructions rather than claims."
+    note: "Published. Reviewed by Waypoint's founder against the sources listed below. An outside credentialed review is still planned, and will be credited here when it happens."
 sources:
   - label: "WIC §4646 / §4646.5 (IPP; services flow from identified needs)"
     url: "https://codes.findlaw.com/ca/welfare-and-institutions-code/wic-sect-4646/"
@@ -72,6 +72,7 @@ import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
 import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+import { ccsIncomeCeiling, ccsCostSharePercent } from '../../lib/benefitConstants';
 
 <PlainBox>
   California has more help for your child than any one office will ever tell you about —
@@ -117,9 +118,11 @@ place, with the guides that go deep on each door.
 
 <AnswerFirst>
   If your child is Regional Center–eligible, the center coordinates and funds services —
-  and <b>respite</b> (paid breaks for you, with a trained provider for your child) is the one
-  most families need first and hear about last <Cite>WIC §4512(b)</Cite>. Services are
-  free regardless of income, but many are <b>not automatic</b>: they attach to needs written
+  <b>respite</b> among them: paid breaks for you, with a trained provider for your child
+  <Cite>WIC §4512(b)</Cite>. In our experience it is the support families need soonest and
+  hear about last. Services carry <b>no income test and no family fee</b> — California's
+  family cost participation and annual family program fees were repealed effective July 1,
+  2024 <Cite>DDS</Cite> — but many are <b>not automatic</b>: they attach to needs written
   into your child's IPP, so they have to be asked for <Cite>WIC §4646</Cite>.
 </AnswerFirst>
 
@@ -170,10 +173,10 @@ is in <GatedLink href="/guides/benefits/ihss-protective-supervision/">the IHSS p
 
 Two supplements worth knowing: <b>CCS</b> (California Children's Services) can fund
 treatment for specific eligible medical conditions — the income tests are a family adjusted
-gross income under $40,000, or expected out-of-pocket medical costs for the child above 20%
-of family income (and income isn't a factor at all for diagnostic services or the school-based
-Medical Therapy Program). And Regional Center funding can cover some services insurance
-won't — another reason the IPP matters.
+gross income under {ccsIncomeCeiling()}, or expected out-of-pocket medical costs for the
+child above {ccsCostSharePercent()}% of family income (and income isn't a factor at all for
+diagnostic services or the school-based Medical Therapy Program). And Regional Center funding
+can cover some services insurance won't — another reason the IPP matters.
 
 <h2 class="qa-h" id="private">Private services — the fast lane, if you can fund it</h2>
 

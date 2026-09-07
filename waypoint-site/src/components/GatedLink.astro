@@ -1,20 +1,37 @@
 ---
 /**
- * Prose link that gates on the publish state of its target, like the header
- * and hubs do: if the target URL exists in this build, render a normal link;
- * if it's still in review (draft-gated out of production), render the text
- * with an honest "coming soon" tag instead of a dead link. Published pages
- * may therefore reference unpublished spokes freely — the link appears by
- * itself the moment the spoke publishes, with no edit to the citing page.
+ * Prose link that gates on the publish state of its target, like the header,
+ * hubs, and footer do: if the target URL exists in this build, render a normal
+ * link; if it's still in review (draft-gated out of production), render the
+ * text with an honest "coming soon" tag instead of a dead link. Published
+ * pages may therefore reference unpublished spokes freely — the link appears
+ * by itself the moment the spoke publishes, with no edit to the citing page.
+ *
+ * Two things this component must keep doing, both learned from an adversarial
+ * review of the first publish:
+ *  - carry `class` through to BOTH branches, or a card link silently loses
+ *    `.link` styling and a whole SideCard degrades to run-together grey text;
+ *  - fail the build on an href that matches no content entry at all. The
+ *    internal-link checker only sees `<a href>` in dist, so without this a
+ *    typo'd href renders as a placeholder forever and no gate ever notices.
  */
-import { visibleContentUrls } from '../lib/content';
+import { allContentUrls, visibleContentUrls } from '../lib/content';
 
 interface Props {
   href: string;
   class?: string;
 }
 const { href, class: cls } = Astro.props;
+
+if (!(await allContentUrls()).has(href)) {
+  throw new Error(
+    `GatedLink: "${href}" matches no content entry (published or draft). ` +
+      `A typo here would render as a permanent "coming soon" placeholder that no ` +
+      `link check can see — fix the href, or link it with a plain <a> if it is a route, not content.`
+  );
+}
 const live = (await visibleContentUrls()).has(href);
+const soonClass = [cls, 'soon'].filter(Boolean).join(' ');
 ---
 
 {
@@ -23,19 +40,22 @@ const live = (await visibleContentUrls()).has(href);
       <slot />
     </a>
   ) : (
-    <span class="gated-soon">
+    <span class={soonClass} aria-disabled="true">
       <slot />
-      <span class="tag">(in review — coming soon)</span>
+      <span class="gated-tag">(in review — coming soon)</span>
     </span>
   )
 }
 
 <style>
-  .gated-soon {
+  /* `.link.soon` (global.css) already colours gated card links ink-faint;
+     this covers the in-prose case, where there is no `.link` class. */
+  .soon:not(.link) {
     color: var(--color-ink-faint);
   }
-  .gated-soon .tag {
+  .gated-tag {
     font-size: 0.85em;
     white-space: nowrap;
+    margin-left: 0.25em;
   }
 </style>

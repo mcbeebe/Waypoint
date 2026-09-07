@@ -2,9 +2,13 @@
  * Deeming-math tests against the KNOWN 2025 reference figures from
  * benefit-constants.json (`_2025_*` entries exist for exactly this — test
  * fixtures, never display). Scenario expectations follow the documented
- * simplified algorithm; [TBC: cross-check against POMS SI 01320.500 worked
- * examples during founder edit] (see ssiDeeming.ts header).
+ * simplified algorithm, whose step order was cross-checked against POMS
+ * SI 01320.500 on 2026-09-07 (see the ssiDeeming.ts header). What these
+ * do NOT cover: that the page's prose describes the same order the code
+ * uses — that drifted once and shipped. The `documented step order` test
+ * below is the guard.
  */
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { estimateDeeming, type DeemingConstants } from './ssiDeeming';
 import constants from '../data/benefit-constants.json';
@@ -100,5 +104,35 @@ describe('estimateDeeming (2025 reference figures)', () => {
       unearnedMonthly: -10,
     });
     expect(r.estimatedSsi).toBe(FBR_2025.fbrIndividual);
+  });
+});
+
+/**
+ * Guard for the defect an adversarial review caught after the calculator went
+ * live: the page's "How the deeming math works" prose described the parental
+ * allowance BEFORE the exclusions, i.e. the reverse of both this module and
+ * POMS SI 01320.500. A parent checking the tool by hand got a number ~$500/mo
+ * different from the tool's own answer. The code was right; the words were
+ * wrong, and nothing tested the words.
+ */
+describe('the page prose matches the implemented step order', () => {
+  const page = readFileSync(
+    new URL('../pages/tools/ssi-deeming-calculator.astro', import.meta.url),
+    'utf8'
+  );
+  const explainer = page.slice(page.indexOf('How the deeming math works'));
+
+  it('introduces the exclusions before the parental living allowance', () => {
+    const exclusions = explainer.indexOf('general exclusion');
+    const allowance = explainer.indexOf('parental living allowance');
+    expect(exclusions).toBeGreaterThan(-1);
+    expect(allowance).toBeGreaterThan(-1);
+    expect(exclusions).toBeLessThan(allowance);
+  });
+
+  it('still tells the reader the child allocation comes first', () => {
+    const allocation = explainer.indexOf('living allocation for each');
+    expect(allocation).toBeGreaterThan(-1);
+    expect(allocation).toBeLessThan(explainer.indexOf('general exclusion'));
   });
 });
