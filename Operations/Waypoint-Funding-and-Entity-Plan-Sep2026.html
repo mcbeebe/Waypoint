@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waypoint — Funding &amp; Entity Plan</title>
+<style>
+:root{
+  --navy:#1B2A4A; --teal:#0891B2; --coral:#F97316; --sage:#10B981;
+  --ink:#1e2a3a; --mid:#64748B; --line:#E2E8F0; --bg:#F8FAFC; --paper:#fff;
+  --amber:#B45309; --amberbg:#FDF3E3; --blue:#2563EB; --bluebg:#EFF6FF;
+  --red:#DC2626; --redbg:#FEE2E2;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,system-ui,sans-serif}
+
+/* ---------- toolbar ---------- */
+#bar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  padding:10px 16px;background:var(--navy);color:#fff;box-shadow:0 1px 6px rgba(0,0,0,.18)}
+#bar .brand{font-weight:700;letter-spacing:.06em;font-size:12px;text-transform:uppercase;
+  color:#8fd3e8;margin-right:6px}
+#bar button{font:inherit;font-size:13px;padding:6px 12px;border-radius:6px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff}
+#bar button:hover{background:rgba(255,255,255,.14)}
+#bar button.on{background:var(--sage);border-color:var(--sage);color:#04291d;font-weight:600}
+#bar .sp{flex:1}
+#status{font-size:12px;color:#b9c6d8;min-width:150px;text-align:right}
+
+/* ---------- page ---------- */
+main{max-width:52rem;margin:26px auto 80px;background:var(--paper);padding:52px 60px;
+  border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 3px rgba(15,23,42,.05)}
+.kicker{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--teal);margin:0}
+h1.doctitle{font-size:34px;line-height:1.15;color:var(--navy);margin:6px 0 4px;letter-spacing:-.015em}
+p.sub{font-size:17px;color:var(--mid);font-style:italic;margin:0 0 22px}
+
+h1{font-size:24px;color:var(--navy);margin:38px 0 10px;padding-bottom:7px;
+  border-bottom:2px solid var(--navy);letter-spacing:-.01em}
+h2{font-size:18px;color:var(--navy);margin:28px 0 8px}
+h3{font-size:15px;color:var(--teal);margin:20px 0 6px}
+p{margin:0 0 11px}
+ul{margin:0 0 12px;padding-left:22px}
+li{margin:0 0 5px}
+a{color:var(--teal);word-break:break-word}
+
+ul.checks{list-style:none;padding-left:2px}
+ul.checks li{display:flex;gap:9px;align-items:flex-start;margin-bottom:7px}
+ul.checks input{margin-top:5px;flex:0 0 auto;width:15px;height:15px;accent-color:var(--teal)}
+ul.sources li{font-size:13px;color:var(--mid);margin-bottom:4px}
+ul.sources a{font-size:12.5px}
+
+.tw{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+thead th{background:var(--navy);color:#fff;text-align:left;font-weight:600;padding:9px 11px;
+  font-size:12.5px;vertical-align:bottom}
+td{padding:9px 11px;border-top:1px solid var(--line);vertical-align:top}
+tbody tr:nth-child(even){background:#fbfcfe}
+table.meta{border:1px solid var(--line);border-radius:8px;margin:0 0 20px;font-size:14px}
+table.meta th{text-align:left;font-weight:600;color:var(--navy);padding:8px 11px;width:12rem;
+  vertical-align:top;background:#f6f8fb;border-top:1px solid var(--line)}
+table.meta tr:first-child th,table.meta tr:first-child td{border-top:0}
+
+.callout{border-left:4px solid;border-radius:0 8px 8px 0;padding:13px 16px;margin:0 0 18px;font-size:14.5px}
+.callout .ct{font-weight:700;margin:0 0 5px}
+.callout p:last-child{margin-bottom:0}
+.callout.warn{background:var(--amberbg);border-color:var(--coral)}
+.callout.warn .ct{color:var(--amber)}
+.callout.info{background:var(--bluebg);border-color:var(--blue)}
+.callout.info .ct{color:var(--blue)}
+.callout.danger{background:var(--redbg);border-color:var(--red)}
+.callout.danger .ct{color:var(--red)}
+
+#toc{background:#f6f8fb;border:1px solid var(--line);border-radius:8px;padding:16px 20px;margin:0 0 26px}
+#toc p{font-weight:700;color:var(--navy);font-size:12px;letter-spacing:.07em;text-transform:uppercase;margin:0 0 8px}
+#toc ul{list-style:none;padding:0;margin:0;columns:2;column-gap:30px}
+#toc li{font-size:13.5px;margin-bottom:3px;break-inside:avoid}
+#toc li.h1{font-weight:700;margin-top:6px;columns:1}
+#toc a{text-decoration:none}
+#toc a:hover{text-decoration:underline}
+
+.pb{height:0}
+[contenteditable="true"]:focus{outline:2px solid rgba(8,145,178,.35);outline-offset:3px;border-radius:3px}
+body.editing main{background:#fffdf7}
+
+@media (max-width:720px){
+  main{padding:28px 20px;margin:12px;border-radius:8px}
+  h1.doctitle{font-size:26px}
+  #toc ul{columns:1}
+}
+@media print{
+  body{background:#fff}
+  #bar,#toc{display:none!important}
+  main{max-width:none;margin:0;padding:0;border:0;box-shadow:none;border-radius:0}
+  .pb{break-after:page;page-break-after:always}
+  h1,h2,h3{break-after:avoid;page-break-after:avoid}
+  tr,li,.callout,table{break-inside:avoid;page-break-inside:avoid}
+  a{color:#0b5a70;text-decoration:none}
+  @page{margin:16mm}
+}
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <span class="brand">Waypoint</span>
+  <button id="edit" type="button">✏️ Enable editing</button>
+  <button id="save" type="button">💾 Download edited copy</button>
+  <button id="print" type="button">🖨️ Print / PDF</button>
+  <button id="reset" type="button">↺ Revert to original</button>
+  <span class="sp"></span>
+  <span id="status">Read-only</span>
+</div>
+
+<main id="doc" contenteditable="false">
+  <p class="kicker">Waypoint</p>
+  <h1 class="doctitle">Waypoint — Funding &amp; Entity Plan</h1>
+  <p class="sub">Grant pipeline, and the steps to register a benefit entity</p>
+
+  <nav id="toc" contenteditable="false">
+    <p>Contents</p>
+    <ul><li class="h1"><a href="#s0">Part I · Grant &amp; non-dilutive funding pipeline</a></li><li class="h2"><a href="#s1">1 · Three corrections to the plan of record</a></li><li class="h2"><a href="#s2">2 · The structural fact that shapes the pipeline</a></li><li class="h2"><a href="#s3">3 · Tier 1 — best fit, for-profit eligible, actionable</a></li><li class="h2"><a href="#s4">4 · Tier 2 — mission-perfect, but gated behind 501(c)(3)</a></li><li class="h2"><a href="#s5">5 · Tiers 3 &amp; 4 — small, fast, and in-kind</a></li><li class="h2"><a href="#s6">6 · The critical path — registrations gate everything federal</a></li><li class="h2"><a href="#s7">7 · Honest expected value</a></li><li class="h1"><a href="#s8">Part II · Entity formation — benefit-entity options and steps</a></li><li class="h2"><a href="#s9">8 · The finding that changes the question</a></li><li class="h2"><a href="#s10">9 · The three real paths</a></li><li class="h2"><a href="#s11">10 · Recommendation — Path A, California Benefit Corporation</a></li><li class="h2"><a href="#s12">11 · Path A — step by step</a></li><li class="h2"><a href="#s13">12 · Path B — California LLC + B Corp certification (only if you overrule §10)</a></li><li class="h2"><a href="#s14">13 · What this does and does not buy you</a></li><li class="h2"><a href="#s15">14 · Immediate next actions</a></li><li class="h2"><a href="#s16">15 · Open questions</a></li><li class="h2"><a href="#s17">16 · Sources</a></li></ul>
+  </nav>
+
+<table class="meta"><tbody><tr><th scope="row">Date</th><td>September 7, 2026</td></tr><tr><th scope="row">Status</th><td>Draft — decision required from owner before entity filing</td></tr><tr><th scope="row">Prepared for</th><td>Waypoint · waypointchild.com</td></tr><tr><th scope="row">Source of record</th><td>Operations/Grant-Pipeline-Sep2026.md · Operations/Entity-Formation-Plan-Sep2026.md</td></tr><tr><th scope="row">Companion</th><td>Operations/Waypoint-Grant-Pipeline-Sep2026.xlsx (21 programs, 3 sheets)</td></tr></tbody></table>
+<aside class="callout warn"><p class="ct">Two findings worth reading before anything else</p><p>First: a “benefit corporation LLC” does not exist in California. Corporations Code § 14600 defines a benefit corporation as a corporation organized under the General Corporation Law; LLCs sit in a separate title with no parallel provision. Delaware has a statutory benefit LLC (6 Del. C. § 18-1201); California does not. The request therefore resolves to one of three real filings, compared in Part II.</p><p>Second: three of the four grant sources named in the August 2026 plan of record are wrong or unusable as stated, and the one it got right — the DDS Service Access &amp; Equity program — was undersold. Part I sets out the corrections.</p></aside>
+<h1 id="s0">Part I · Grant &amp; non-dilutive funding pipeline</h1>
+<h2 id="s1">1 · Three corrections to the plan of record</h2>
+<p>The grant stack in <em>Payer-Funded-Pivot-Review-Aug2026.md</em> §5.7 was written without verification. Checked on September 7, 2026:</p>
+<div class="tw"><table><thead><tr><th>Claim in §5.7</th><th>Verified reality</th></tr></thead><tbody><tr><td><strong>CalOSBA</strong> as a funding source</td><td>Wrong. CalOSBA&#x27;s two grant programs — Technical Assistance (TAP) and Capital Infusion (CIP) — are not grants to small businesses. TAP funds designated technical-assistance centers; CIP funds only SBDC Lead Centers. Both require 1:1 match. The one program that did pay small businesses directly, the California Dream Fund ($10k microgrants), concluded its original $35M round in April 2026.</td></tr><tr><td><strong>WITH Foundation</strong></td><td>Poor fit twice over. WITH funds 501(c)(3) nonprofits only, and is scoped to healthcare for adults with I/DD. Waypoint is a for-profit serving families of children.</td></tr><tr><td><strong>Foundation grants</strong> (Lucile Packard, family foundations)</td><td>Directionally right, structurally blocked. Private foundations overwhelmingly require 501(c)(3) status, and fiscal sponsorship is generally not available to LLCs and for-profit entities.</td></tr><tr><td><strong>NIH STTR</strong> (&quot;Jan 2027 deadline&quot;)</td><td>Deadline right, everything else stale. SBIR/STTR lapsed entirely on Sept 30, 2025; NIH terminated all open NOFOs effective Oct 1, 2025. Congress reauthorized via S.3971, signed April 13, 2026, through Sept 30, 2031. NIH reissued the parent NOFOs under NEW numbers — PA-27-100 (SBIR), PA-27-102 (STTR). An application drafted against the old numbers is void.</td></tr></tbody></table></div>
+<p><strong>The one source §5.7 got right, and undersold: </strong>the DDS Service Access &amp; Equity program explicitly defines an eligible community-based organization as “a public or private nonprofit, <strong>or private for-profit</strong> organization.” It is the best-fit money in this document and it is open to Waypoint as a for-profit, with no nonprofit arm required.</p>
+<h2 id="s2">2 · The structural fact that shapes the pipeline</h2>
+<p>Waypoint is a <strong>for-profit</strong> company. That is not neutral for grant purposes — it splits the funding universe cleanly in two.</p>
+<ul><li><strong>Open to Waypoint as-is: </strong>federal SBIR/STTR (statutorily restricted to for-profit small business concerns — a nonprofit is ineligible), DDS SAE, the CHCF Innovation Fund, and commercial small-business grants.</li><li><strong>Closed to Waypoint as-is: </strong>essentially every private foundation — Lucile Packard, WITH, Blue Shield of California Foundation. These need 501(c)(3), and a for-profit generally cannot borrow one through fiscal sponsorship.</li></ul>
+<p><strong>Implication: </strong>do not budget staff time chasing foundation money in FY27. The realistic FY27 pipeline is federal SBIR + DDS SAE + CHCF + in-kind credits. Foundation money becomes reachable only if a separate 501(c)(3) affiliate is stood up — a real option, but a second entity with its own board, filings, and arm&#x27;s-length discipline. That is an FY28 decision.</p>
+<div class="pb"></div>
+<h2 id="s3">3 · Tier 1 — best fit, for-profit eligible, actionable</h2>
+<div class="tw"><table><thead><tr><th>Program</th><th>Money</th><th>Next deadline</th><th>Why it fits</th></tr></thead><tbody><tr><td><strong>NIH Parent SBIR</strong> (PA-27-100)</td><td>Non-dilutive. Per-award caps reach $3M (Phase II); Phase I is the entry point</td><td>Jan 5, 2027 (Sept 5/8 2026 has passed)</td><td>The E8 outcomes engine is already scoped as the grant aim. Fundable question: does AI-guided navigation measurably close the service-access gap for Spanish-speaking families in the Lanterman system? Requires &gt;50% US-individual ownership, ≤500 employees; PI &gt;50% employed by the company.</td></tr><tr><td><strong>NIH Parent STTR</strong> (PA-27-102)</td><td>Same caps</td><td>Jan 5, 2027</td><td>Requires a research-institution partner (≥30% of work there, ≥40% at the company), but the PI may sit at the university. Prefer this only if a UC/CSU partner is real by Nov 15 — the partner also answers the credibility gap in a solo-founder application.</td></tr><tr><td><strong>NIDILRR / ACL SBIR</strong> (93.433)</td><td>Phase I; a recent round funded 10 grants</td><td>Watch grants.gov for the FY27 NOFO</td><td>Strongest mission match in this document. Every funded project must address the needs of people with disabilities and promote health/function, community living, or employment. Small program, therefore winnable.</td></tr><tr><td><strong>ED / IES SBIR</strong></td><td>FY26 Phase IA: $250,000 / 9 months. Phase II: $1,000,000 / 2 years</td><td>FY27 solicitation expected spring 2027</td><td>Aims at the other market: ~850–884k California students with IEPs, versus ~7,459 SDP enrollees. IES explicitly funds special-education technology.</td></tr><tr><td><strong>DDS Service Access &amp; Equity (SAE)</strong></td><td>$11M/year across many awards</td><td>FY2027-29 cycle expected ~fall 2027</td><td>BEST FIT. For-profit CBOs are explicitly eligible; an EIN is required. DDS is under sustained public pressure over the Latino–White purchase-of-service spending gap. Waypoint&#x27;s Spanish-first work — deferred to Phase 4 for lack of funding — is exactly what this program buys.</td></tr><tr><td><strong>CHCF Innovation Fund</strong></td><td>Up to $3M combined investment and grant per company</td><td>Rolling — unsolicited LOIs accepted</td><td>PARTLY DILUTIVE — an impact investment fund that also grants. Targets access for low-income Californians in the Medi-Cal ecosystem: the credible door into the CalAIM channel. Only Tier-1 source with no deadline to wait for.</td></tr></tbody></table></div>
+<h2 id="s4">4 · Tier 2 — mission-perfect, but gated behind 501(c)(3)</h2>
+<p>Do <strong>not</strong> spend FY27 cycles on these as a for-profit. Listed so the option is documented, and so a future nonprofit-affiliate decision has its target list ready.</p>
+<div class="tw"><table><thead><tr><th>Program</th><th>Why it fits</th><th>Why it&#x27;s blocked</th></tr></thead><tbody><tr><td><strong>Lucile Packard Foundation</strong> — CYSHCN program</td><td>Funds systems and policy change for children and youth with special health care needs; requires grantees to engage families meaningfully AND compensate them for their time and expertise.</td><td>Foundation grantmaking; nonprofit-oriented.</td></tr><tr><td><strong>SCDD Program Development Grants</strong></td><td>California&#x27;s DD Council; funds CA-based organizations serving people with I/DD. Recent cycle: $300,000 across topic areas.</td><td>Requires 10% match (poverty areas) or 25% (non-poverty) — real cash exposure pre-revenue. None open.</td></tr><tr><td><strong>WITH Foundation</strong></td><td>Healthcare access for people with I/DD. Awards $150k–$250k.</td><td>501(c)(3) only, and scoped to adults. Named in the Aug 2026 plan in error.</td></tr><tr><td><strong>Blue Shield of CA Foundation</strong></td><td>Health equity in California.</td><td>Nonprofit / tax-exempt only. Explicitly ineligible.</td></tr></tbody></table></div>
+<h2 id="s5">5 · Tiers 3 &amp; 4 — small, fast, and in-kind</h2>
+<h3>Tier 3 — commercial small-business grants (LLC-eligible, no 501(c)(3))</h3>
+<ul><li><strong>Hello Alice</strong> — rolling grant marketplace, $57M+ distributed via corporate partners. Low effort per application; treat as background noise, not a plan.</li><li><strong>Amber Grant</strong> — three $10,000 grants monthly, closing the last day of each month. <strong>Conditional:</strong> requires a woman aged 18+ owning ≥50% of the business. Applies only if the cap table meets that test.</li><li><strong>Do not chase: </strong>FedEx retired its small-business grant after 2024; Comcast RISE had no application site as of Aug 31, 2026.</li></ul>
+<h3>Tier 4 — in-kind credits (fastest payback in this document)</h3>
+<p>The roadmap flags free-tier AI inference as <em>“unfunded… a cost center defended only by conversion.”</em> Credits are the direct answer, and they arrive in days rather than quarters.</p>
+<div class="tw"><table><thead><tr><th>Program</th><th>Self-serve tier (no VC required)</th><th>Larger tier</th></tr></thead><tbody><tr><td><strong>Anthropic — Claude for Startups</strong></td><td>Public application, no VC required</td><td>~$25k reported</td></tr><tr><td><strong>AWS Activate</strong></td><td>~$1,000 (up to $5,000 for select participants)</td><td>up to ~$300k (GenAI track) — typically needs VC or an accelerator</td></tr><tr><td><strong>Microsoft for Startups Founders Hub</strong></td><td>~$1,000 Azure instantly; ~$25k baseline</td><td>up to ~$150k</td></tr><tr><td><strong>Google Cloud for Startups</strong></td><td>—</td><td>~$200k standard / up to ~$350k AI-first track</td></tr></tbody></table></div>
+<p><strong>Action: </strong>apply for the self-serve tiers the week the entity and EIN exist. A few hours of work against a recurring cost line that currently has no funding at all. Amounts are secondary-source and move often — verify on each provider&#x27;s page at application time.</p>
+<div class="pb"></div>
+<h2 id="s6">6 · The critical path — registrations gate everything federal</h2>
+<p>None of the federal money is reachable without a legal entity, an EIN, and a registration chain that must be done <strong>in order</strong>, because each system depends on the one before it. Total: <strong>4–6+ weeks</strong>, assuming nothing goes wrong.</p>
+<div class="tw"><table><thead><tr><th>Date</th><th>Milestone</th><th>Typical duration</th></tr></thead><tbody><tr><td>Week of Sept 7, 2026</td><td><strong>Decide the entity path</strong> (Part II). Book attorney + CPA consults.</td><td>—</td></tr><tr><td>Sept 2026</td><td>Email SAEgrantprogram@dds.ca.gov re: the next SAE cycle — bundle with the DDS Question-Zero letter (one relationship, two asks)</td><td>—</td></tr><tr><td><strong>By ~Oct 15, 2026</strong></td><td><strong>ENTITY FORMED + EIN ISSUED — the binding constraint</strong></td><td>EIN same day</td></tr><tr><td>Oct 2026</td><td>Apply for self-serve AI/cloud credits</td><td>Days</td></tr><tr><td>Oct 15 – Nov 5, 2026</td><td>SAM.gov → issues the UEI (START FIRST)</td><td>3 wks typical / 6+ worst case</td></tr><tr><td>Nov 2026</td><td>eRA Commons (organization, then PI account)</td><td>2+ weeks</td></tr><tr><td>Nov 2026</td><td>SBA Company Registry → SBC Control ID</td><td>1–2 business days</td></tr><tr><td>Nov 2026</td><td>Grants.gov registration</td><td>Days</td></tr><tr><td>By Nov 15, 2026</td><td><strong>Decide SBIR vs STTR</strong> — is a UC/CSU research partner real?</td><td>—</td></tr><tr><td>Oct – Dec 2026</td><td>Draft specific aims, research plan, commercialization plan</td><td>80–120 hours</td></tr><tr><td><strong>Jan 5, 2027</strong></td><td><strong>NIH SBIR/STTR submission</strong></td><td>—</td></tr><tr><td>Apr 5, 2027</td><td>Fallback NIH cycle if January slips</td><td>—</td></tr><tr><td>~Spring 2027</td><td>ED/IES SBIR FY27 solicitation expected to open</td><td>—</td></tr><tr><td>~Fall 2027</td><td>DDS SAE FY2027-29 cycle (confirm with DDS)</td><td>—</td></tr></tbody></table></div>
+<h2 id="s7">7 · Honest expected value</h2>
+<p>Grants are <strong>bridge funding, not a channel</strong> — the options stack-rank puts them #10 of 10 and says “pursue in parallel; never plan on it.” That ranking stands, with one amendment: the DDS SAE program is better-fit and more winnable than that row implies, because for-profits are eligible, the disparity data makes the case <em>for</em> Waypoint rather than against it, and $11M/year is spread across many modest awards rather than a few large ones.</p>
+<ul><li><strong>Highest probability: </strong>in-kind credits (near-certain, days); Hello Alice (low value, low effort).</li><li><strong>Best expected value: </strong>DDS SAE — but the next window is about a year out, so the work now is relationship-building, not writing.</li><li><strong>Biggest prize, longest odds: </strong>NIH SBIR/STTR. One application per cycle is the right cadence; two is a distraction from revenue.</li><li><strong>Most strategically valuable per dollar: </strong>CHCF — the network into Medi-Cal managed care is worth more than the capital, and it has no deadline.</li></ul>
+<aside class="callout info"><p class="ct">The trade-off to hold onto</p><p>Do not let grant writing displace the W1b gate items — first family through the pipeline, first paid invoice. A paid invoice is worth more than a submitted application. A first NIH SBIR is realistically 80–120 hours, which is why most solo-founder SBIR plans are quietly never submitted.</p></aside>
+<div class="pb"></div>
+<h1 id="s8">Part II · Entity formation — benefit-entity options and steps</h1>
+<h2 id="s9">8 · The finding that changes the question</h2>
+<p><strong>A “benefit corporation LLC” does not exist in California.</strong> This is not a technicality — it decides which of three different filings you make. California&#x27;s benefit corporation statute, Corporations Code § 14600 et seq., defines a benefit corporation as <em>a corporation organized under the General Corporation Law</em> that has elected benefit status. LLCs are governed by an entirely separate title, and there is no parallel benefit-LLC provision anywhere in it. An LLC in California cannot elect benefit status, full stop.</p>
+<p>Some states <em>do</em> have a statutory benefit LLC — Delaware&#x27;s statutory public benefit limited liability company, 6 Del. C. § 18-1201–18-1208, added in 2018. California is not one of them. So the request resolves to one of three real filings, and they are not close substitutes.</p>
+<h2 id="s10">9 · The three real paths</h2>
+<div class="tw"><table><thead><tr><th></th><th>A · CA Benefit Corporation</th><th>B · CA LLC + B Corp cert.</th><th>C · DE Public Benefit LLC</th></tr></thead><tbody><tr><td><strong>Benefit status is…</strong></td><td>Statutory — in the Articles and the Corporations Code</td><td>Contractual + certified — operating agreement, verified by B Lab</td><td>Statutory, but under Delaware law</td></tr><tr><td><strong>Formation filing</strong></td><td>Articles of Incorporation w/ benefit provision, CA SoS</td><td>Form LLC-1, CA SoS</td><td>DE Certificate of Formation + CA Form LLC-5</td></tr><tr><td><strong>Formation fee</strong></td><td>~$100</td><td>$70</td><td>DE fees + $70 + certificate of good standing</td></tr><tr><td><strong>Year-1 CA franchise tax</strong></td><td>$0 — corporations are exempt in their first taxable year (R&amp;TC § 23153(f))</td><td>$800 — the LLC waiver expired for LLCs formed after Dec 31, 2023</td><td>$800 CA + ~$300 DE</td></tr><tr><td><strong>Year-2+ recurring</strong></td><td>$800 CA + $25 Statement of Information (annual)</td><td>$800 CA + $20 Statement of Information (biennial)</td><td>$800 CA + ~$300 DE + two registered agents</td></tr><tr><td><strong>Ongoing benefit duty</strong></td><td>Annual benefit report (§ 14630) — self-certification against a third-party standard is permitted; no audit</td><td>B Impact Assessment ≥ 80, third-party verification, annual fee, recertification — heavier</td><td>Delaware statement to members, plus CA foreign-LLC obligations</td></tr><tr><td><strong>Licensed staff on payroll</strong></td><td>Fine</td><td>RISK — Corp. Code § 17701.04(e) bars a CA LLC from rendering professional services (LCSW, OT, SLP, MFT…)</td><td>Same bar — it applies to foreign LLCs in California too</td></tr><tr><td><strong>SBIR / STTR eligible</strong></td><td>Yes</td><td>Yes — LLC is an acceptable legal form</td><td>Yes</td></tr><tr><td><strong>DDS / Regional Center vendor</strong></td><td>Yes</td><td>Yes — DS 1891 lists Limited Liability Company</td><td>Yes, as a registered foreign LLC</td></tr><tr><td><strong>Outside investment</strong></td><td>Standard — stock, option pool, SAFEs</td><td>Awkward — no stock, K-1s to every member</td><td>Awkward</td></tr><tr><td><strong>Tax default</strong></td><td>C corp (or S election)</td><td>Pass-through</td><td>Pass-through</td></tr></tbody></table></div>
+<h3>Path C is a trap — rule it out now</h3>
+<p>A Delaware public benefit LLC that operates in California must register as a foreign LLC in California anyway, which means California&#x27;s $800 franchise tax applies regardless — plus Delaware&#x27;s ~$300, plus two registered agents, plus two sets of filings. And it still carries the § 17701.04(e) professional-services bar. You buy a Delaware label for roughly $1,170+ per year in pure overhead and gain nothing California recognizes. The only reason to incorporate in Delaware is an institutional priced round — and that argues for a Delaware <em>corporation</em>, not an LLC.</p>
+<div class="pb"></div>
+<h2 id="s11">10 · Recommendation — Path A, California Benefit Corporation</h2>
+<p>Five reasons, in order of weight.</p>
+<ul><li><strong>1. It is what you actually asked for. </strong>The intent behind “LLC benefit corporation” is a mission-locked entity. Path A is the only one where that lock is statutory in your own state rather than contractual or certified by a private body.</li><li><strong>2. It is what the plan of record already assumed. </strong>Both the pivot review §8.2 and the 099 vendorization checklist already say “CA corporation w/ benefit election.” Path A is not a new decision — it is the existing one, now verified.</li><li><strong>3. The professional-services bar is a live risk, not a theoretical one. </strong>Corp. Code § 17701.04(e) prohibits a California LLC from rendering professional services. The roadmap has Waypoint hiring W-2 coaches (Phase 3, code 108) and contemplates outcome instruments and clinical-adjacent progress notes. The moment one hire needs an LCSW, OT, SLP or MFT license, an LLC is the wrong container — and you are re-forming mid-flight, during vendorization, which is the worst possible time.</li><li><strong>4. Year one is cheaper, which is the opposite of most people&#x27;s assumption. </strong>A California corporation is exempt from the $800 minimum franchise tax in its first taxable year (R&amp;TC § 23153(f)). A California LLC is not. Forming a corporation now costs ~$100 in year one; forming an LLC now costs $70 + $800.</li><li><strong>5. It keeps the platform option open. </strong>The pivot review&#x27;s central argument is that the multi-tenant staff platform is “the only branch of this decision tree with venture-class valuation attached.” If that branch is ever taken, a corporation is already the right shape. Converting an LLC later is a taxable, lawyer-billable event you would pay for exactly when cash is tightest.</li></ul>
+<aside class="callout info"><p class="ct">The honest cost of Path A</p><p>It is more formal than an LLC: a board (even a board of one), bylaws, minutes, and an annual benefit report. And a C corp pays entity-level tax, so early losses sit at the entity as NOLs rather than flowing to your personal return — for a pre-revenue company with a founder who has W-2 day-job income, that is a real, quantifiable give-up. Ask your CPA to price it before you file. If the personal-tax benefit of pass-through losses is large enough, an S election on the corporation preserves most of it without giving up the corporate form. That is the question to put to them — not “LLC or corporation.”</p></aside>
+<p><strong>If you overrule this and want the LLC anyway</strong> — entirely reasonable if you want pass-through simplicity, never intend to raise, and are confident you will never employ licensed professionals — then Path B is the honest LLC version, and §12 gives its steps. Do not use Path C.</p>
+<h2 id="s12">11 · Path A — step by step</h2>
+<h3>Phase 0 · Decide, before filing anything (week of Sept 7)</h3>
+<ul class="checks"><li><input type="checkbox" contenteditable="false"><span><strong>Confirm the path</strong> (§10). Blocks everything below.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>Engage a California business attorney</strong> — a few hours, not a retainer. Ask specifically about: (a) benefit-corporation Articles language; (b) whether code-108 staffing will ever require licensed professionals; (c) HIPAA posture — the pivot review flags likely covered-entity or business-associate status; (d) the conflict-of-interest structure between Waypoint as facilitator and Waypoint as provider, which the pivot review calls structural, not cosmetic.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>Engage a CPA</strong> — C corp vs S election, reasonable-compensation rules, and how the day job interacts. Get this before filing; the S election has a deadline tied to formation.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>Choose the name.</strong> Check availability with the CA Secretary of State business search, and check USPTO TESS for conflicts. Confirm alignment with waypointchild.com.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>Write the specific public benefit purpose.</strong> § 14610 requires a general public benefit; you may also state a specific one, and the annual benefit report must then address it. Draft it narrow enough to mean something and broad enough to survive the pivot — e.g. “to improve access to publicly funded disability services for families of children with developmental disabilities, with particular attention to families underserved by reason of language, income, or geography.” This language is later quoted verbatim in grant narratives, the DDS SAE application, and the RCEB program design. Write it once, well.</span></li></ul>
+<h3>Phase 1 · Form the entity (complete by ~Oct 15, 2026)</h3>
+<p><em><strong>Why that date: </strong></em><em>the federal registration chain runs 4–6+ weeks and cannot start without an EIN. January 5, 2027 works backward to mid-October.</em></p>
+<ul class="checks"><li><input type="checkbox" contenteditable="false"><span><strong>1.1  File Articles of Incorporation with the benefit provision</strong> — California Secretary of State, ~$100. Must state the corporation is a benefit corporation and include the public benefit purpose from Phase 0. Do not use a generic online formation service&#x27;s default template for this step: the benefit language is the whole point, and it belongs in the Articles, not a side agreement.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.2  Appoint a registered agent</strong> for service of process in California. You may serve, at your own address — which then becomes public record. A commercial agent is ~$50–150/yr and keeps your home address off the public file.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.3  Adopt bylaws,</strong> appoint the initial board, issue founder stock, hold the organizational meeting, and open the minute book. Include the § 14620 stakeholder-consideration duty so the board&#x27;s standard of care is documented from day one.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.4  File the Statement of Information</strong> — within 90 days of incorporation, then annually. $25.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.5  Obtain the EIN</strong> from the IRS — free, online, same day. Do not pay a third party. This is the gate for everything in Phase 2.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.6  Make the S-election decision</strong> with your CPA (Form 2553) if that is the outcome of Phase 0 — it is deadline-bound relative to formation.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.7  Open a business bank account</strong> (EIN + Articles + bylaws). Never commingle. For a single-founder entity this is the #1 way the liability shield gets pierced, and the first thing a grant auditor looks at.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.8  City business license / tax certificate</strong> for your operating city, plus a fictitious business name (DBA) filing if you will trade under anything other than the exact legal name.</span></li></ul>
+<h3>Phase 2 · Federal &amp; grant registrations (Oct 15 – Nov 30, 2026)</h3>
+<p><em>Strictly ordered — each depends on the one before.</em></p>
+<ul class="checks"><li><input type="checkbox" contenteditable="false"><span><strong>2.1  SAM.gov</strong> → issues the UEI. Start first. 3 weeks typical, 6+ worst case.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>2.2  eRA Commons</strong> (NIH) — 2+ weeks. Register the organization, then the PI account.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>2.3  SBA Company Registry</strong> — 1–2 business days; issues the SBC Control ID the NIH application requires.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>2.4  Grants.gov</strong> — after SAM.gov is active.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>2.5  Set grants.gov saved-search alerts</strong> for “NIDILRR” and “93.433”.</span></li></ul>
+<h3>Phase 3 · Operating readiness (parallel with Phase 2)</h3>
+<ul class="checks"><li><input type="checkbox" contenteditable="false"><span><strong>3.1  Liability insurance</strong> — general + professional/E&amp;O. Required for RCEB vendorization; confirm RCEB&#x27;s limits at the intake call.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>3.2  Workers&#x27; compensation</strong> — legally required in California from the first W-2 employee. Post-AB5 the coaches are W-2, not 1099.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>3.3  BAAs</strong> — Supabase (paid tiers) and Anthropic, per the HIPAA posture item.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>3.4  Feed the entity into the 099 packet</strong> — the vendorization checklist&#x27;s line 1 (“Legal entity formed + EIN”) closes here, unblocking DS 1890 / DS 1891 / W-9.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>3.5  Publish the benefit commitment</strong> on waypointchild.com — § 14630 requires the annual benefit report to be posted publicly, and it is a credibility asset in the DDS SAE narrative and with RC service coordinators.</span></li></ul>
+<h3>Phase 4 · Ongoing compliance — calendar these now</h3>
+<div class="tw"><table><thead><tr><th>Cadence</th><th>Obligation</th></tr></thead><tbody><tr><td><strong>Annually, within 120 days of FY end</strong></td><td>Annual benefit report (§ 14630) — narrative on general and specific public benefit against a third-party standard; delivered to shareholders and posted on the website. Self-certification against the standard is permitted; no audit required.</td></tr><tr><td><strong>Annually</strong></td><td>Statement of Information ($25); CA franchise tax ($800 minimum from year 2 — year 1 is exempt); federal and state returns.</td></tr><tr><td><strong>Annually</strong></td><td>Insurance renewal; RCEB vendor-file updates.</td></tr><tr><td><strong>Ongoing</strong></td><td>Board minutes; keep personal and corporate funds strictly separate.</td></tr></tbody></table></div>
+<h3>Optional · B Corp certification — defer to FY28</h3>
+<p>B Lab certification is a <strong>separate, private certification</strong> — not the same thing as being a benefit corporation, though the two are routinely confused. It requires a B Impact Assessment score of ≥ 80, third-party verification, an annual fee, and recertification. A California benefit corporation already satisfies B Lab&#x27;s legal requirement by virtue of its Articles. Recommendation: skip for now. It is a marketing asset, not a funding unlock — no grant in Part I requires or rewards it.</p>
+<div class="pb"></div>
+<h2 id="s13">12 · Path B — California LLC + B Corp certification (only if you overrule §10)</h2>
+<p>The honest LLC version. Phase 0, Phase 2 and Phase 3 are identical to Path A. Phase 1 differs.</p>
+<ul class="checks"><li><input type="checkbox" contenteditable="false"><span><strong>1.1  File Form LLC-1</strong> (Articles of Organization) — CA Secretary of State, $70.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.2  Appoint a registered agent</strong> for service of process.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.3  Draft the operating agreement — this is where the benefit lock lives.</strong> California does not give you § 14600, so the mission commitment has to be written into the operating agreement as a contractual purpose and a manager duty to weigh stakeholder interests. Do not self-draft this. It is the entire difference between Path B and a plain LLC — and B Lab will later require language of this kind anyway (LLCs must amend their operating agreement within 90 days of certification to add a social-purpose clause and stakeholder-balancing provisions).</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.4  File Form LLC-12</strong> (Statement of Information) within 90 days, then biennially. $20.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.5  EIN</strong> — free, same day.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.6  Budget the $800 CA franchise tax</strong> — due by the 15th day of the 4th month after formation. No first-year waiver for LLCs formed after Dec 31, 2023.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.7  Business bank account;</strong> never commingle.</span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.8  City business license / DBA.</strong></span></li><li><input type="checkbox" contenteditable="false"><span><strong>1.9  B Corp certification</strong> (optional, FY28) — B Impact Assessment ≥ 80, verification, operating-agreement amendment within 90 days of certification.</span></li></ul>
+<aside class="callout warn"><p class="ct">Watch item if you take Path B — the SB 122 timing trap</p><p>The $800 franchise tax also applies in year one, and there is a genuine timing wrinkle. SB 122 (signed June 29, 2026) reduces the first-year minimum tax to $400 for LLCs, LPs and LLPs formed in tax years 2027–2029. Forming in January 2027 instead of October 2026 saves roughly $1,200 across 2026–27 — but it misses the January 5, 2027 NIH deadline entirely (the registration chain alone is 4–6 weeks) and pushes the federal lane to April 5, 2027. Recommendation: form now and pay the $800. $1,200 is not worth a lost grant cycle, and it is certainly not worth delaying the 099 vendorization packet, which is gated on the entity and is Phase-1 revenue, not speculative funding.</p></aside>
+<h2 id="s14">13 · What this does and does not buy you</h2>
+<p><strong>Being a benefit corporation does not win grants.</strong> No program in Part I gives benefit corporations preference, a scoring bump, or separate eligibility. Federal SBIR/STTR cares only that you are a for-profit small business concern; DDS SAE cares that you are a CBO with an EIN; CHCF cares about the Medi-Cal thesis. Anyone telling you benefit status unlocks funding is selling something.</p>
+<p><strong>What it actually buys:</strong></p>
+<ul><li><strong>A liability shield and a real counterparty</strong> — required before you can sign an RCEB vendor agreement, a BAA, an FMS invoice, or a grant award.</li><li><strong>An EIN</strong>, a hard prerequisite for the DDS SAE grant and every federal registration.</li><li><strong>A mission lock with teeth</strong>. § 14620 obliges directors to consider families, staff and community — not shareholders alone. For a company whose thesis is “free to the family, paid by whoever the system already pays,” that duty is a guardrail against the pressure that will eventually arrive to monetize the family side.</li><li><strong>Credibility with the counterparties that matter</strong>. Regional Centers, DDS and family advocates are structurally skeptical of for-profits in this space. The public benefit purpose and the published annual report are a straightforward answer to a question you will be asked repeatedly.</li></ul>
+<h2 id="s15">14 · Immediate next actions</h2>
+<div class="tw"><table><thead><tr><th>#</th><th>Action</th><th>Owner</th><th>By</th></tr></thead><tbody><tr><td>1</td><td><strong>Decide Path A or Path B</strong></td><td>Owner</td><td>This week</td></tr><tr><td>2</td><td>Book a CA business attorney consult (§11 Phase 0 questions)</td><td>Owner</td><td>This week</td></tr><tr><td>3</td><td>Book a CPA consult — C corp vs S election vs LLC pass-through</td><td>Owner</td><td>This week</td></tr><tr><td>4</td><td>Name availability check (CA SoS + USPTO)</td><td>Owner</td><td>This week</td></tr><tr><td>5</td><td>Draft the specific public benefit purpose</td><td>Owner + Claude</td><td>Next week</td></tr><tr><td>6</td><td>File formation documents</td><td>Attorney</td><td>By ~Oct 15, 2026</td></tr><tr><td>7</td><td>EIN same day; then start SAM.gov immediately</td><td>Owner</td><td>Day of filing</td></tr><tr><td>8</td><td>Email SAEgrantprogram@dds.ca.gov re: next SAE cycle — bundle with the DDS Question-Zero letter</td><td>Owner</td><td>This month</td></tr><tr><td>9</td><td>Apply for self-serve AI/cloud credits</td><td>Owner</td><td>Week after EIN</td></tr></tbody></table></div>
+<h2 id="s16">15 · Open questions</h2>
+<div class="tw"><table><thead><tr><th>#</th><th>Question</th><th>Why it matters</th></tr></thead><tbody><tr><td>1</td><td><strong>Entity path</strong> — Path A or Path B?</td><td>Blocks the entire federal lane and the 099 vendorization packet.</td></tr><tr><td>2</td><td>Is there a UC or CSU research contact worth approaching before Nov 15, 2026?</td><td>Decides SBIR (no partner) vs STTR (partner required). Also answers the credibility gap in a solo-founder application.</td></tr><tr><td>3</td><td>Does the cap table satisfy ≥50% ownership by a woman aged 18+?</td><td>Yes/no determines whether the Amber Grant is a real row or should be deleted.</td></tr><tr><td>4</td><td>Nonprofit 501(c)(3) affiliate — park until FY28, or scope now?</td><td>Unlocks all of Tier 2. Cost: a second entity, its own board and filings, and arm&#x27;s-length discipline.</td></tr><tr><td>5</td><td>Who writes the NIH application — founder, or a paid grant writer?</td><td>80–120 hours for a first SBIR. A cash question, and the reason most solo-founder SBIR plans are never submitted.</td></tr><tr><td>6</td><td>Which subfolder should these deliverables live in?</td><td>Currently Operations/. Confirm or reassign before this becomes the reference copy.</td></tr></tbody></table></div>
+<h2 id="s17">16 · Sources</h2>
+<p><em>Every statute, fee, figure and deadline above was verified against a primary or named source on September 7, 2026.</em></p>
+<ul class="sources"><li>Cal. Corp. Code § 14600 — benefit corporations are corporations — <a href="https://law.justia.com/codes/california/code-corp/title-1/division-3/part-13/chapter-1/section-14600/" target="_blank" rel="noopener">https://law.justia.com/codes/california/code-corp/title-1/division-3/part-13/chapter-1/section-14600/</a></li><li>Cal. Corp. Code § 14630 — annual benefit report — <a href="https://law.justia.com/codes/california/code-corp/title-1/division-3/part-13/chapter-4/section-14630/" target="_blank" rel="noopener">https://law.justia.com/codes/california/code-corp/title-1/division-3/part-13/chapter-4/section-14630/</a></li><li>CLA guide &amp; template — California benefit corporation annual benefit report — <a href="https://calawyers.org/california-lawyers-association/cla-esg-committee-guide-template-a-california-benefit-corporations-annual-benefit-report/" target="_blank" rel="noopener">https://calawyers.org/california-lawyers-association/cla-esg-committee-guide-template-a-california-benefit-corporations-annual-benefit-report/</a></li><li>Cal. Corp. Code § 17701.04 — LLCs may not render professional services — <a href="https://codes.findlaw.com/ca/corporations-code/corp-sect-17701-04/" target="_blank" rel="noopener">https://codes.findlaw.com/ca/corporations-code/corp-sect-17701-04/</a></li><li>Cal. R&amp;TC § 23153 — first-year minimum franchise tax exemption for corporations — <a href="https://codes.findlaw.com/ca/revenue-and-taxation-code/rtc-sect-23153/" target="_blank" rel="noopener">https://codes.findlaw.com/ca/revenue-and-taxation-code/rtc-sect-23153/</a></li><li>SB 122 (2026) — $400 first-year minimum tax for LLCs formed in TY 2027–2029 — <a href="https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260SB122" target="_blank" rel="noopener">https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260SB122</a></li><li>6 Del. C. § 18-1201 — statutory public benefit LLC — <a href="https://law.justia.com/codes/delaware/title-6/chapter-18/subchapter-xii/section-18-1201/" target="_blank" rel="noopener">https://law.justia.com/codes/delaware/title-6/chapter-18/subchapter-xii/section-18-1201/</a></li><li>CA Form LLC-5 — Application to Register a Foreign LLC — <a href="https://bpd.cdn.sos.ca.gov/llc/forms/llc-5.pdf" target="_blank" rel="noopener">https://bpd.cdn.sos.ca.gov/llc/forms/llc-5.pdf</a></li><li>DDS Service Access &amp; Equity Grant Program — <a href="https://www.dds.ca.gov/rc/disparities/disparity-funds-program/" target="_blank" rel="noopener">https://www.dds.ca.gov/rc/disparities/disparity-funds-program/</a></li><li>DDS SAE FY2025-27 FAQs — the for-profit CBO definition — <a href="https://www.dds.ca.gov/wp-content/uploads/2025/09/SAEGRANT_FAQs_FY2025-27.pdf" target="_blank" rel="noopener">https://www.dds.ca.gov/wp-content/uploads/2025/09/SAEGRANT_FAQs_FY2025-27.pdf</a></li><li>DDS DS 1891 — Applicant/Vendor Disclosure Statement (lists LLC as an entity type) — <a href="https://www.dds.ca.gov/wp-content/uploads/2024/05/DS_1891_2024.pdf" target="_blank" rel="noopener">https://www.dds.ca.gov/wp-content/uploads/2024/05/DS_1891_2024.pdf</a></li><li>NIH SBIR/STTR funding opportunities (PA-27-100 / PA-27-102) — <a href="https://seed.nih.gov/small-business-funding/find-funding/sbir-sttr-funding-opportunities" target="_blank" rel="noopener">https://seed.nih.gov/small-business-funding/find-funding/sbir-sttr-funding-opportunities</a></li><li>NIH — organization registrations (SAM, eRA Commons, SBA Registry, Grants.gov) — <a href="https://grants.nih.gov/new-to-nih/organization-registration" target="_blank" rel="noopener">https://grants.nih.gov/new-to-nih/organization-registration</a></li><li>SBA — SBIR/STTR eligibility &amp; size compliance guide (LLCs are an acceptable form) — <a href="https://www.sbir.gov/sites/default/files/elig_size_compliance_guide.pdf" target="_blank" rel="noopener">https://www.sbir.gov/sites/default/files/elig_size_compliance_guide.pdf</a></li><li>Crowell &amp; Moring — SBIR/STTR reauthorized after a six-month lapse (signed Apr 13, 2026) — <a href="https://www.crowell.com/en/insights/client-alerts/sbirsttr-programs-reauthorized-after-six-month-lapse" target="_blank" rel="noopener">https://www.crowell.com/en/insights/client-alerts/sbirsttr-programs-reauthorized-after-six-month-lapse</a></li><li>ACL / NIDILRR SBIR program — <a href="https://acl.gov/news-and-events/announcements/new-funding-opportunity-small-business-innovation-research-program-2" target="_blank" rel="noopener">https://acl.gov/news-and-events/announcements/new-funding-opportunity-small-business-innovation-research-program-2</a></li><li>ED / IES SBIR solicitation information — <a href="https://ies.ed.gov/funding/research/programs/small-business-innovation-research-sbir/solicitation-information" target="_blank" rel="noopener">https://ies.ed.gov/funding/research/programs/small-business-innovation-research-sbir/solicitation-information</a></li><li>CHCF Innovation Fund — <a href="https://www.chcf.org/network/chcf-innovation-fund/" target="_blank" rel="noopener">https://www.chcf.org/network/chcf-innovation-fund/</a></li><li>CalOSBA Technical Assistance Program — not a small-business grant — <a href="https://www.grants.ca.gov/grants/technical-assistance-program-tap-2025-2026/" target="_blank" rel="noopener">https://www.grants.ca.gov/grants/technical-assistance-program-tap-2025-2026/</a></li><li>B Lab — the legal requirement for B Corp certification — <a href="https://www.bcorporation.net/en-us/about-b-corps/legal-requirements/" target="_blank" rel="noopener">https://www.bcorporation.net/en-us/about-b-corps/legal-requirements/</a></li></ul>
+<aside class="callout danger"><p class="ct">Not legal or tax advice</p><p>This is research to make you a well-prepared client; no attorney-client relationship exists. Do not file formation documents for an entity that will hold protected health information, employ W-2 staff in California, and contract with a state agency without a California business attorney and a CPA reviewing the structure first. The conflict-of-interest question between Waypoint-as-facilitator and Waypoint-as-provider is specifically a question for counsel, not for this document. Filing fees, grant terms and tax rules change without notice — re-verify at filing and application time.</p></aside>
+</main>
+
+<script>
+(function () {
+  var doc = document.getElementById('doc');
+  var status = document.getElementById('status');
+  var btnEdit = document.getElementById('edit');
+  var KEY = 'waypoint-funding-entity-plan-v1';
+  var ORIGINAL = doc.innerHTML;
+  var editing = false, timer = null;
+
+  function say(msg) { status.textContent = msg; }
+
+  function store() {
+    try { localStorage.setItem(KEY, doc.innerHTML); say('Saved locally · ' + new Date().toLocaleTimeString()); }
+    catch (e) { say('Edits not saved (storage blocked)'); }
+  }
+
+  // restore any previous edits
+  try {
+    var saved = localStorage.getItem(KEY);
+    if (saved) { doc.innerHTML = saved; say('Restored your saved edits'); }
+  } catch (e) {}
+
+  btnEdit.addEventListener('click', function () {
+    editing = !editing;
+    doc.setAttribute('contenteditable', editing ? 'true' : 'false');
+    document.body.classList.toggle('editing', editing);
+    btnEdit.classList.toggle('on', editing);
+    btnEdit.textContent = editing ? '✔️ Editing on' : '✏️ Enable editing';
+    say(editing ? 'Editing — changes save automatically' : 'Read-only');
+    if (editing) doc.focus();
+  });
+
+  doc.addEventListener('input', function () {
+    clearTimeout(timer);
+    say('Saving…');
+    timer = setTimeout(store, 600);
+  });
+
+  // checkboxes stay clickable even when not in edit mode
+  doc.addEventListener('click', function (e) {
+    if (e.target && e.target.type === 'checkbox') {
+      if (e.target.checked) e.target.setAttribute('checked', 'checked');
+      else e.target.removeAttribute('checked');
+      store();
+    }
+  });
+
+  document.getElementById('print').addEventListener('click', function () { window.print(); });
+
+  document.getElementById('reset').addEventListener('click', function () {
+    if (!confirm('Discard all your edits and restore the original document?')) return;
+    doc.innerHTML = ORIGINAL;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    say('Reverted to original');
+  });
+
+  document.getElementById('save').addEventListener('click', function () {
+    // serialise the live DOM back into a standalone, still-editable file
+    var clone = document.documentElement.cloneNode(true);
+    var m = clone.querySelector('#doc');
+    if (m) m.setAttribute('contenteditable', 'false');
+    var b = clone.querySelector('body');
+    if (b) b.classList.remove('editing');
+    var st = clone.querySelector('#status');
+    if (st) st.textContent = 'Read-only';
+    var be = clone.querySelector('#edit');
+    if (be) { be.classList.remove('on'); be.textContent = '✏️ Enable editing'; }
+    var out = '<!doctype html>\n' + clone.outerHTML;
+    var url = URL.createObjectURL(new Blob([out], { type: 'text/html;charset=utf-8' }));
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'Waypoint-Funding-and-Entity-Plan-edited.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    say('Downloaded');
+  });
+})();
+</script>
+</body>
+</html>
