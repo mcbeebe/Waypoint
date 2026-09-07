@@ -36,7 +36,7 @@ const isDraft = d.status !== 'published';
   noindex={d.noindex || isDraft}
   pillar={d.pillar}
 >
-  <PageHero eyebrow="Just diagnosed · California" title={d.title} />
+  <PageHero eyebrow="Worried, or just diagnosed · California" title={d.title} />
   <div class="section on-white">
     <div class="container narrow">
       {isDraft && <DraftBanner status={d.status} />}
