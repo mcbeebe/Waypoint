@@ -46,6 +46,7 @@ import type {
   DeadlineStatus,
 } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { toLocalISODate, todayLocalISO } from '@/lib/localDate';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -269,7 +270,7 @@ export default function CalendarScreen() {
 
   // Upcoming deadlines sorted by urgency
   const sortedDeadlines = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayLocalISO();
     return [...deadlines]
       .filter((d) => d.status !== 'completed')
       .sort((a, b) => {
@@ -398,7 +399,10 @@ export default function CalendarScreen() {
           <View style={styles.dayHeaderRow}>
             {weekDays.map((d) => {
               const isToday = d.toDateString() === new Date().toDateString();
-              const dateKey = d.toISOString().split('T')[0];
+              // Was a UTC slice while `isToday` above uses a LOCAL day — so
+              // the highlighted cell and the events looked up for it could
+              // disagree, on adjacent lines.
+              const dateKey = toLocalISODate(d);
               const hasEvents = (appointmentsByDay[dateKey]?.length ?? 0) > 0;
               return (
                 <TouchableOpacity
@@ -604,7 +608,7 @@ function DeadlineCard({
   onComplete: () => void;
 }) {
   const config = DEADLINE_TYPE_CONFIG[deadline.deadline_type] ?? DEADLINE_TYPE_CONFIG.other;
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayLocalISO();
   const daysLeft = daysUntil(deadline.due_date);
   const isOverdue = deadline.due_date < today;
   const isUrgent = daysLeft <= 7 && !isOverdue;

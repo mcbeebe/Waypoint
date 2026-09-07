@@ -54,6 +54,7 @@ import type { RequestDeadline } from '@/lib/requestClocks';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { todayLocalISO } from '@/lib/localDate';
 
 /**
  * "Filled from your records" note (draft flow 9c), trilingual. Deliberately
@@ -338,7 +339,7 @@ export default function LettersScreen() {
         const created = await createRequest({
           request_type: track.requestType,
           title: trackTitle ?? track.title,
-          requested_on: new Date().toISOString().slice(0, 10),
+          requested_on: todayLocalISO(),
           child_id: primaryChild?.id ?? null,
           channel: 'email',
           notes: 'Sent via Waypoint Letters',
@@ -363,7 +364,7 @@ export default function LettersScreen() {
       updateChild(primaryChild.id, { medi_cal_status: 'applied' }).catch(() => undefined);
     }
     const deadline = track
-      ? deadlineFor(track.requestType, new Date().toISOString().slice(0, 10))
+      ? deadlineFor(track.requestType, todayLocalISO())
       : null;
     setSentMoment({ next, deadline, tracked });
   }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId]);

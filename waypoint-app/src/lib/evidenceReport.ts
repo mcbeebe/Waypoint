@@ -7,6 +7,7 @@
  */
 import { FUNNEL_GATE, HOURS_PER_FAMILY_MODEL } from '@/lib/evidenceTargets';
 import { formatCents } from '@/lib/spendingPlan';
+import { toLocalISODate } from './localDate';
 
 export interface FunnelEventRow {
   family_id: string;
@@ -176,7 +177,7 @@ export function buildEvidenceReport(inputs: EvidenceInputs, now = new Date()): E
   }
 
   return {
-    generatedOn: now.toISOString().slice(0, 10),
+    generatedOn: toLocalISODate(now),
     pipelineValueCents,
     invoicedCents,
     paidCents,

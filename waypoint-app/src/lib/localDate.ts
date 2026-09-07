@@ -48,3 +48,35 @@ export function toLocalISODate(date: Date): string {
 export function todayLocalISO(now: Date = new Date()): string {
   return toLocalISODate(now);
 }
+
+/**
+ * Add calendar days to a `YYYY-MM-DD`, staying on the local calendar.
+ *
+ * Lives here rather than in `iepDeadlines.ts` because it is pure date math and
+ * that module talks to Supabase — which drags `react-native` in and makes the
+ * arithmetic untestable in the node-environment timezone projects. It computes
+ * STATUTORY dates (Ed Code §56321's 15 days, §56344's 60), and the UTC slice it
+ * used to end with moved every one of them a day earlier east of Greenwich.
+ *
+ * @param dateStr - the start day, `YYYY-MM-DD`
+ * @param days - calendar days to add
+ * @returns the resulting local calendar day
+ */
+export function addDaysISO(dateStr: string, days: number): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return toLocalISODate(d);
+}
+
+/**
+ * Add whole years to a `YYYY-MM-DD`, staying on the local calendar.
+ *
+ * @param dateStr - the start day, `YYYY-MM-DD`
+ * @param years - years to add
+ * @returns the resulting local calendar day
+ */
+export function addYearsISO(dateStr: string, years: number): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setFullYear(d.getFullYear() + years);
+  return toLocalISODate(d);
+}

@@ -20,6 +20,9 @@
  */
 
 import { supabase } from '@/lib/supabase';
+// The day arithmetic is pure and lives in localDate.ts, where the timezone
+// suites can reach it without dragging Supabase (and react-native) along.
+import { addDaysISO as addDays, addYearsISO as addYears } from './localDate';
 
 const IEP_DEADLINE_TYPES = [
   'iep_annual_review',
@@ -35,17 +38,9 @@ export interface IEPDates {
   assessmentConsentSigned: string | null;
 }
 
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
-}
 
-function addYears(dateStr: string, years: number): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  d.setFullYear(d.getFullYear() + years);
-  return d.toISOString().split('T')[0];
-}
+
+
 
 /**
  * Replace the child's IEP-derived deadlines with freshly computed ones.

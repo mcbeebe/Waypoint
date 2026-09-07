@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { Deadline, DeadlineType, DeadlineStatus } from '@/types/database';
+import { todayLocalISO } from '@/lib/localDate';
 
 interface UseDeadlinesOptions {
   familyId: string;
@@ -105,7 +106,9 @@ export function useDeadlines(options: UseDeadlinesOptions) {
 
   /** Auto-compute overdue statuses */
   const refreshStatuses = useCallback(async () => {
-    const today = new Date().toISOString().split('T')[0];
+    // LOCAL today: the UTC day rolls over at 4pm Pacific, so this used to
+    // call a deadline overdue a day early every California evening.
+    const today = todayLocalISO();
     const overdue = deadlines.filter(
       (d) => d.status !== 'completed' && d.due_date < today
     );

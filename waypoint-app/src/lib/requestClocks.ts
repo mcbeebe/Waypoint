@@ -4,6 +4,8 @@
  * request, we say so instead of inventing one, and hand the family the
  * lever that creates pressure anyway.
  */
+import { toLocalISODate } from './localDate';
+
 
 export type RequestType =
   | 'rc_intake'
@@ -85,9 +87,7 @@ export function deadlineFor(
     // Local calendar date, never a UTC slice: `due` is built at local
     // midnight, so toISOString() moved the statutory date back a day on
     // every UTC+ device — a citation attached to a date the law never gave.
-    dueOn: `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(
-      due.getDate()
-    ).padStart(2, '0')}`,
+    dueOn: toLocalISODate(due),
     daysRemaining,
     overdue: daysRemaining < 0,
     citation: clock.citation,

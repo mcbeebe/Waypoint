@@ -28,6 +28,7 @@ import {
 import DateInput from '@/components/DateInput';
 import { useToast } from '@/components/Toast';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+import { todayLocalISO } from '@/lib/localDate';
 
 /** How the family asked — drives the case file's provenance line. */
 const CHANNEL_OPTIONS: Array<{ value: string; label: string }> = [
@@ -37,11 +38,12 @@ const CHANNEL_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'letter', label: '📄 Letter' },
 ];
 
-/** The LOCAL calendar date — toISOString() is UTC and shows "tomorrow" to evening users. */
-function localToday(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+/**
+ * The LOCAL calendar date. This file solved it inline first — correctly — but
+ * the fix stayed local while 23 other sites kept the UTC slice. It now routes
+ * through the shared helper so the next reader finds one answer, not three.
+ */
+const localToday = todayLocalISO;
 
 const ADDABLE_TYPES: RequestType[] = [
   'service_request',

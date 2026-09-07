@@ -7,6 +7,7 @@
  */
 import { SDP_TRANSITION_HOURS_CAP } from '@/data/benefitFigures';
 import type { ServiceEvent, TransitionExtension } from '@/types/database';
+import { toLocalISODate } from './localDate';
 
 export interface TransitionHoursStatus {
   usedHours: number;
@@ -59,7 +60,7 @@ export function transitionHoursStatus(
     const daysToCap = Math.ceil(remainingHours / hoursPerDay);
     const d = new Date(today);
     d.setDate(d.getDate() + daysToCap);
-    forecastCapDate = d.toISOString().slice(0, 10);
+    forecastCapDate = toLocalISODate(d);
   }
 
   return {

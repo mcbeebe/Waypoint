@@ -27,6 +27,7 @@ import { useDocuments } from '@/hooks/useDocuments';
 import { useToast } from '@/components/Toast';
 import type { Expense, ExpenseCategory, ReimbursementStatus, Document } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { todayLocalISO } from '@/lib/localDate';
 
 /**
  * IRS medical-mileage rate: driving to therapy, evaluations, and medical
@@ -364,7 +365,7 @@ function ExpenseModal({
   const [miles, setMiles] = useState('');
   const [category, setCategory] = useState<ExpenseCategory>('therapy');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(todayLocalISO());
   const [fundingSource, setFundingSource] = useState('');
   const [isTaxDeductible, setIsTaxDeductible] = useState(false);
   const [reimbStatus, setReimbStatus] = useState<ReimbursementStatus>('none');
@@ -391,7 +392,7 @@ function ExpenseModal({
       setMiles('');
       setCategory('therapy');
       setDescription('');
-      setDate(new Date().toISOString().split('T')[0]);
+      setDate(todayLocalISO());
       setFundingSource('');
       setIsTaxDeductible(false);
       setReimbStatus('none');
