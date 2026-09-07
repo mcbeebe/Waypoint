@@ -88,6 +88,10 @@ const seoBase = z.object({
   sources: z
     .array(z.object({ label: z.string(), url: z.string().url(), accessed: z.coerce.date() }))
     .default([]),
+  /** Maintenance record, NOT rendered on the page (owner decision 2026-09-07 —
+   *  the on-page block was noise for parents). Kept in frontmatter and git so
+   *  every content change stays auditable; the pipeline still requires an entry
+   *  per edit (CONTENT-PIPELINE.md). Write it for the next maintainer. */
   changelog: z.array(z.object({ date: z.coerce.date(), note: z.string() })).default([]),
   disclaimerVariant: z.enum(['legal', 'benefits', 'medical', 'none']).default('legal'),
   noindex: z.boolean().default(false),

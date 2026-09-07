@@ -216,9 +216,14 @@ The credentialed-review attestation. `null` until the reviewer signs off.
 
 ### `changelog` — array of `{ date, note }`, default `[]`
 
-- **Purpose:** Human-readable history of substantive changes, shown to readers.
-  Parents making decisions off this content deserve to know what changed and
-  when. Also the audit trail connecting re-reviews and refreshes.
+- **Purpose:** The audit trail connecting drafts, re-reviews and refreshes —
+  a maintenance record, kept in frontmatter and in git.
+- **NOT rendered on the page.** It used to be (an on-page "Change log" block),
+  and the owner removed it on 2026-09-07: it was noise for a parent trying to
+  read a letter, and it invited engineering shorthand into public copy — a
+  published page shipped the string `esReady=false` to readers before it came
+  out. Freshness is still visible to readers through `dateModified` and the
+  trust block. Write entries for the next maintainer, not for parents.
 - **Who fills:** Whoever makes the change (founder for edits, Claude for drafts
   it updates — founder confirms).
 - **When it changes:** Append-only. Every post-publish substantive edit gets an

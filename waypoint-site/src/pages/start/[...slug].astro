@@ -8,7 +8,6 @@ import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import DraftBanner from '../../components/DraftBanner.astro';
-import ChangelogBox from '../../components/ChangelogBox.astro';
 import InlineDisclaimer from '../../components/InlineDisclaimer.astro';
 import { visibleEntries } from '../../lib/content';
 import { articleJsonLd, breadcrumbsJsonLd } from '../../lib/jsonld';
@@ -71,7 +70,6 @@ const crumbLd = !isDraft ? breadcrumbsJsonLd(crumbs) : null;
       >
         <Content />
       </div>
-      <ChangelogBox entries={d.changelog} />
       <InlineDisclaimer variant={d.disclaimerVariant} />
     </div>
   </div>
