@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 // URL polyfill only needed on native (browsers have native URL support)
 if (Platform.OS !== 'web') {
-  require('react-native-url-polyfill/dist/polyfill');
+  require('react-native-url-polyfill/auto');
 }
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
