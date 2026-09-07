@@ -3,12 +3,30 @@ title: "Request an IEP evaluation: the letter that starts the clock"
 description: "A ready-to-send letter (English and Spanish) requesting a special education evaluation — and the 15-calendar-day clock it starts under Ed Code §56321."
 locale: en
 translationKey: letter-iep-evaluation-request
-status: draft
+status: founder_edit
 pillar: iep
 letterId: iep-evaluation-request
-dateModified: 2026-09-06
+dateModified: 2026-09-07
 nextReviewEvent: annual
 disclaimerVariant: legal
+changelog:
+  - date: 2026-09-07
+    note: "Founder reviewed full text and approved content (2 edit rounds: warm collaborative register, Regional Center parallel-evaluation section). Awaiting fact verification + credentialed review before publish; ES text additionally awaits the bilingual reviewer."
+  - date: 2026-09-07
+    note: "Fact-check pass applied: §56321/§56344/§56043 timelines confirmed and cited; Regional Center clocks corrected (45-day Early Start clock is 17 CCR §52086, not WIC §4643)."
+sources:
+  - label: "CA Ed Code §56321 (15-day assessment plan; vacation pause)"
+    url: "https://california.public.law/codes/ca_educ_code_section_56321"
+    accessed: 2026-09-07
+  - label: "CA Ed Code §56043 (60-day IEP meeting after signed consent, per §56344)"
+    url: "https://codes.findlaw.com/ca/education-code/edc-sect-56043/"
+    accessed: 2026-09-07
+  - label: "WIC §4643 (regional center intake and assessment clocks)"
+    url: "https://california.public.law/codes/welfare_and_institutions_code_section_4643"
+    accessed: 2026-09-07
+  - label: "17 CCR §52086 (Early Start 45-day timeline)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-07
 ---
 
 {/*
@@ -18,9 +36,13 @@ disclaimerVariant: legal
   asks), while keeping the legally operative elements: a clear WRITTEN
   request, "all areas of suspected disability", and one plain citation that
   starts the 15-day clock. ES twin rewritten to match the same register.
-  [TBC: verify — CA Ed Code §56321 15-calendar-day response + 60-day
-   evaluation after signed consent; school-break pause rule]
-  [TBC: verify — CA Ed Code §56344 (IEP meeting timeline)]
+  FACT-CHECKED 2026-09-07 (verbatim-statute snippets; see sources[]):
+  §56321 15-day plan + vacation-pause rule confirmed; 60-day IEP meeting
+  after signed consent confirmed (§56043, per §56344). RC clocks CORRECTED:
+  45-day Early Start clock is 17 CCR §52086 (referral → evaluation + IFSP),
+  not WIC §4643; §4643 governs 3+ intake (15 working days) and assessment
+  (120 days from intake).
+  [TBC: human click-through of linked sources before publish]
   [TBC: ES letter text needs the credited bilingual reviewer before publish]
 */}
 
@@ -32,8 +54,9 @@ import LetterBlock from '../../components/LetterBlock.astro';
 
 <AnswerFirst>
   Once your district <b>receives a written request</b> for a special education evaluation, it
-  has <b>15 calendar days</b> to respond with an assessment plan — and <b>60 days after your
-  signed consent</b> to complete the evaluation <Cite>CA Ed Code §56321</Cite>. Email the
+  has <b>15 calendar days</b> to respond with an assessment plan <Cite>CA Ed Code §56321</Cite> —
+  and <b>60 days after your signed consent</b> to complete the evaluation and hold the IEP
+  meeting <Cite>CA Ed Code §56344</Cite>. Email the
   letter below to the principal <b>and</b> the district's special-education director, and keep
   a dated copy: the clock starts on receipt, not on a phone call.
 </AnswerFirst>
@@ -49,7 +72,7 @@ import LetterBlock from '../../components/LetterBlock.astro';
     <p><span class="fill">[Date]</span></p>
     <p>Dear <span class="fill">[Principal's name]</span> and <span class="fill">[Special-education director's name]</span>,</p>
     <p>I'm the parent of <span class="fill">[Child's full name]</span> (born <span class="fill">[DOB]</span>), a <span class="fill">[grade]</span> student at <span class="fill">[School name]</span>. I'm reaching out because I've been seeing some things that worry me — especially around <span class="fill">[brief summary of your concerns — e.g., communication, social interaction, attention, sensory needs]</span> — and I'd like your team's help understanding what's going on.</p>
-    <p>So we can all work from the same information, I'd like to ask for a special education evaluation of <span class="fill">[Child's first name]</span> in <b>all areas of suspected disability</b>. Please treat this letter as my written request — I understand that starts a <b>15-calendar-day</b> window for the assessment plan, and <b>60 days</b> after I sign it for the evaluation (Ed Code §56321), so I wanted to get us going.</p>
+    <p>So we can all work from the same information, I'd like to ask for a special education evaluation of <span class="fill">[Child's first name]</span> in <b>all areas of suspected disability</b>. Please treat this letter as my written request — I understand that starts a <b>15-calendar-day</b> window for the assessment plan, and <b>60 days</b> after I sign it for the evaluation (Ed Code §56321 and §56344), so I wanted to get us going.</p>
     <p>I'm glad to help however I can — records, notes from home, or a conversation. Please send the assessment plan and any questions to me at the contact information below.</p>
     <p>Thank you for everything you do for <span class="fill">[Child's first name]</span>. I'm looking forward to working on this together.</p>
     <p>Sincerely,<br /><span class="fill">[Your full name]</span><br /><span class="fill">[Address · phone · email]</span></p>
@@ -58,7 +81,7 @@ import LetterBlock from '../../components/LetterBlock.astro';
     <p><span class="fill">[Fecha]</span></p>
     <p>Estimado/a <span class="fill">[Nombre del director/a]</span> y <span class="fill">[Nombre del director/a de educación especial]</span>:</p>
     <p>Soy madre/padre de <span class="fill">[Nombre completo del niño/a]</span> (nacido/a el <span class="fill">[fecha]</span>), estudiante de <span class="fill">[grado]</span> en <span class="fill">[Nombre de la escuela]</span>. Les escribo porque he notado algunas cosas que me preocupan — especialmente en cuanto a <span class="fill">[resumen breve de sus preocupaciones — p. ej., comunicación, interacción social, atención, necesidades sensoriales]</span> — y me gustaría contar con la ayuda de su equipo para entender qué está pasando.</p>
-    <p>Para que todos tengamos la misma información, quisiera pedir una evaluación de educación especial para <span class="fill">[nombre del niño/a]</span> en <b>todas las áreas de posible discapacidad</b>. Les pido que consideren esta carta como mi solicitud por escrito — entiendo que con ella empieza un plazo de <b>15 días calendario</b> para el plan de evaluación, y de <b>60 días</b> después de mi firma para completar la evaluación (Código de Educación §56321), así que quise ponernos en marcha.</p>
+    <p>Para que todos tengamos la misma información, quisiera pedir una evaluación de educación especial para <span class="fill">[nombre del niño/a]</span> en <b>todas las áreas de posible discapacidad</b>. Les pido que consideren esta carta como mi solicitud por escrito — entiendo que con ella empieza un plazo de <b>15 días calendario</b> para el plan de evaluación, y de <b>60 días</b> después de mi firma para completar la evaluación (Código de Educación §56321 y §56344), así que quise ponernos en marcha.</p>
     <p>Con gusto ayudo en lo que haga falta — expedientes, observaciones de casa, o una conversación. Por favor envíenme el plan de evaluación y cualquier pregunta a los datos de contacto de abajo.</p>
     <p>Gracias por todo lo que hacen por <span class="fill">[nombre del niño/a]</span>. Me da gusto trabajar en esto juntos.</p>
     <p>Atentamente,<br /><span class="fill">[Su nombre completo]</span><br /><span class="fill">[Dirección · teléfono · correo electrónico]</span></p>
@@ -81,14 +104,16 @@ import LetterBlock from '../../components/LetterBlock.astro';
 The school evaluation is one of two free evaluation doors. If your child may have a
 developmental disability — or is under 3 — start the **Regional Center's** evaluation as
 well. The two clocks run in parallel, neither waits for the other, and the Regional Center
-door is where respite and Medi-Cal help live [TBC: verify framing].
+door is where respite and Medi-Cal help live.
 
 1. **Call your Regional Center's intake line** and say: *"I'd like to request an intake and
    assessment for my child."* Those words are the formal trigger — no doctor's referral or
-   completed diagnosis needed to start [TBC: verify].
-2. **Write down the date of your call, and ask them to confirm it in writing.** The center
-   owes you an eligibility decision within **120 days** of intake — **45 days** if your child
-   is under 3, through Early Start <Cite>WIC §4643</Cite> [TBC: verify].
+   completed diagnosis needed to start [TBC: verify no-referral framing against WIC §4642].
+2. **Write down the date of your call, and ask them to confirm it in writing.** For age 3 and
+   up, intake starts within 15 working days and any needed assessment is due within
+   **120 days** of intake <Cite>WIC §4643</Cite>. Under 3, Early Start must complete the
+   evaluation and initial family service plan within **45 days** of the referral
+   <Cite>17 CCR §52086</Cite>.
 3. **Not sure which of the 21 centers is yours?** The
    <a href="/tools/regional-center-finder/">Regional Center finder</a> answers in seconds —
    and the <a href="/guides/regional-centers/">Regional Center guide</a> has the whole

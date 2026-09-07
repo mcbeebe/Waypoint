@@ -3,11 +3,41 @@ title: "Take a breath. You are not behind."
 description: "Worried something's off, or just got a diagnosis? Your first 100 days in California, in order — evaluation, Regional Center, school, insurance."
 locale: en
 translationKey: start-autism
-status: draft
+status: founder_edit
 pillar: start
 dateModified: 2026-09-07
 nextReviewEvent: annual
 disclaimerVariant: medical
+changelog:
+  - date: 2026-09-07
+    note: "Founder reviewed full text and approved content (4 edit rounds: Step 0 evaluation tracks, approach-agnostic therapies, trust-the-signal lede, streamlined). Awaiting fact verification + credentialed review before publish."
+  - date: 2026-09-07
+    note: "Fact-check pass applied: Early Start 45-day clock re-attributed to 17 CCR §52086 (was wrongly WIC §4643); WIC §4643 intake/assessment clocks stated precisely; AAP 2020, Child Find (EC §56301), SB 946, WIC §4512, and FRC/PTI claims confirmed and cited."
+sources:
+  - label: "Hyman, Levy & Myers, Identification, Evaluation, and Management of Children With ASD (AAP clinical report), Pediatrics 2020;145(1):e20193447"
+    url: "https://publications.aap.org/pediatrics/article/145/1/e20193447/36917/Identification-Evaluation-and-Management-of"
+    accessed: 2026-09-07
+  - label: "CA Ed Code §56321 (15-day assessment plan)"
+    url: "https://california.public.law/codes/ca_educ_code_section_56321"
+    accessed: 2026-09-07
+  - label: "CA Ed Code §56301 (Child Find)"
+    url: "https://law.justia.com/codes/california/2020/code-edc/title-2/division-4/part-30/chapter-4/article-1/section-56301/"
+    accessed: 2026-09-07
+  - label: "17 CCR §52086 (Early Start 45-day timeline)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-07
+  - label: "WIC §4643 (regional center intake and assessment clocks)"
+    url: "https://california.public.law/codes/welfare_and_institutions_code_section_4643"
+    accessed: 2026-09-07
+  - label: "WIC §4512 (developmental disability; substantial disability)"
+    url: "https://law.justia.com/codes/california/code-wic/division-4-5/chapter-1-6/section-4512/"
+    accessed: 2026-09-07
+  - label: "HSC §1374.73 (SB 946 behavioral health treatment mandate)"
+    url: "https://codes.findlaw.com/ca/health-and-safety-code/hsc-sect-1374-73/"
+    accessed: 2026-09-07
+  - label: "DDS Early Start Family Resource Centers (47 FRCs, all 58 counties)"
+    url: "https://www.dds.ca.gov/services/early-start/family-resource-center/"
+    accessed: 2026-09-07
 ---
 
 {/*
@@ -19,26 +49,31 @@ disclaimerVariant: medical
   disclaimerVariant flipped legal→medical: the page now discusses
   diagnostic evaluation.
 
-  Verification pending (candidate sources found via search 2026-09-07;
-  founder confirms before publish):
-  [TBC: verify — AAP 2020 clinical report (Pediatrics e20193447,
-   publications.aap.org): primary care pediatricians can diagnose ASD;
-   developmental-behavioral pediatricians / child neurologists / child
-   psychologists as subspecialist evaluators; subspecialty waitlists]
-  [TBC: verify — educational eligibility vs clinical diagnosis are separate
-   tracks pursued in parallel (CHOP CAR roadmap; SERR §3.8,
-   serr.disabilityrightsca.org)]
-  [TBC: verify — Child Find: districts must evaluate age 3+ residents on
-   request even if not enrolled; exact CA mechanics]
-  [TBC: verify — WIC §4500 / §4643 / §4646 / §4512 claims (shared with
-   pillar guide)]
-  [TBC: verify — CA Ed Code §56321 15-calendar-day assessment plan response]
-  [TBC: verify — SB 946 scope: behavioral health treatment for autism/PDD;
-   ERISA exemption phrasing; what applies to non-autism diagnoses]
-  [TBC: verify — RC qualifying conditions list + "ADHD alone typically
-   doesn't qualify" framing against WIC §4512 / DDS guidance]
-  [TBC: verify — FRC/PTI landscape: which orgs serve which counties
-   (MATRIX, TASK, EPU, PHP; FRCNCA network; Parent to Parent USA)]
+  FACT-CHECKED 2026-09-07 (research pass, verbatim-statute snippets from
+  the sources in sources[]; egress blocked direct fetches, so a human
+  click-through of the linked pages is the last verification step):
+  — AAP 2020 clinical report confirmed: Hyman/Levy/Myers, Pediatrics
+    2020;145(1):e20193447 — ASD diagnosis "well within the scope of
+    practice for a primary care pediatrician."
+  — Educational eligibility vs clinical diagnosis: separate parallel
+    determinations confirmed (CHOP CAR roadmap; CDE).
+  — Child Find confirmed: EC §56301 ("including children not enrolled in
+    public school programs, who reside in the district").
+  — CORRECTED: Early Start 45-day clock is 17 CCR §52086 (referral →
+    evaluation + IFSP), implementing 34 CFR §303.310 — NOT WIC §4643.
+    §4643 is the 3+ track: intake within 15 working days, assessment
+    within 120 days of intake.
+  — Ed Code §56321 15-day assessment plan confirmed.
+  — SB 946 confirmed (HSC §1374.73; sunset repealed by AB 796 (2016);
+    self-funded ERISA plans exempt).
+  — WIC §4512 3-of-7 + qualifying conditions confirmed; ADHD-alone
+    framing supported by 17 CCR §54000(c)(1) ("solely psychiatric"
+    excluded) — application, not statute quote.
+  — FRC/PTI confirmed: 47 Early Start FRCs serve all 58 counties (DDS);
+    CA PTIs are MATRIX, PHP, EPU, TASK by region (DREDF/CPIR). CHADD
+    confirmed as the national ADHD org.
+  [TBC: human click-through of linked sources before publish — the one
+   remaining verification step]
   Item ids below are write-once at publish (they ride wp_ctx — D3).
 */}
 
@@ -70,10 +105,11 @@ import PlainBox from '../../../components/PlainBox.astro';
 <CheckItem id="eval-two-tracks" title="Start both evaluation tracks — they run in parallel">
   A teacher's or caregiver's hunch is information, not a verdict — ask what they're seeing,
   then open both doors at once. The <b>school-district evaluation</b> decides eligibility for
-  school services: free, any suspected disability (ADHD included), available from age 3 even
-  before enrollment [TBC: verify Child Find mechanics] — the written request two steps down
-  starts it. The <b>clinical evaluation</b> produces the medical diagnosis insurance
-  requires. Different criteria, and neither substitutes for the other [TBC: verify + cite].
+  school services: free, any suspected disability (ADHD included), and districts must seek out
+  and evaluate resident children from age 3 even before they enroll
+  <span class="cite">Ed Code §56301</span> — the written request two steps down starts it. The
+  <b>clinical evaluation</b> produces the medical diagnosis insurance requires. Different
+  criteria, decided by different teams — and neither substitutes for the other.
   Under 3? Early Start is your first call — the Regional Center step below covers it.
 </CheckItem>
 
@@ -81,8 +117,9 @@ import PlainBox from '../../../components/PlainBox.astro';
   Start with your pediatrician and ask for a referral for a <b>diagnostic evaluation</b> —
   for autism, typically a <b>developmental-behavioral pediatrician, child neurologist, or
   child psychologist</b>, though your pediatrician may be able to make the diagnosis
-  themselves, which the American Academy of Pediatrics supports precisely because specialist
-  waitlists run long [TBC: verify AAP framing]. The waitlist is the bottleneck, so take the
+  themselves — the American Academy of Pediatrics says the diagnosis is "well within the
+  scope of practice" of a primary care pediatrician, precisely because specialist waitlists
+  run long. The waitlist is the bottleneck, so take the
   earliest slot anywhere reasonable — the written report is what the insurance step below
   runs on.
 </CheckItem>
@@ -91,12 +128,14 @@ import PlainBox from '../../../components/PlainBox.astro';
 
 <CheckItem id="rc-intake-call" title="Call your Regional Center and ask for an intake appointment">
   The evaluation is free, regardless of your income — that's the Lanterman Act
-  <span class="cite">WIC §4500</span>. If your child is under 3, Early Start requires an
-  eligibility decision within <b>45 days</b>; at 3 and older, within <b>120 days</b> of intake
+  <span class="cite">WIC §4500</span>. If your child is under 3, Early Start must complete the
+  evaluation and initial family service plan within <b>45 days</b> of the referral
+  <span class="cite">17 CCR §52086</span>; at 3 and older, intake starts within 15 working
+  days and any needed assessment is due within <b>120 days</b> of intake
   <span class="cite">WIC §4643</span>. This one call opens the path to respite and Medi-Cal.
   One honest fit note: Regional Centers serve autism, intellectual disability, cerebral
-  palsy, epilepsy, and closely related conditions — <b>ADHD alone usually doesn't qualify</b>
-  [TBC: verify], and that's fine: the school and insurance doors below are open to every
+  palsy, epilepsy, and closely related conditions — <b>ADHD alone usually doesn't qualify</b>,
+  and that's fine: the school and insurance doors below are open to every
   diagnosis. Not sure which of the 21 centers is yours?
   <a class="link" href="/tools/regional-center-finder/">Find your Regional Center →</a>
 </CheckItem>
@@ -115,7 +154,7 @@ import PlainBox from '../../../components/PlainBox.astro';
   insurer and ask what services and therapies your plan covers for your child's diagnosis,
   and what needs pre-authorization. Useful backstop: for autism, California's <b>SB 946</b>
   requires most fully-insured plans to cover <b>prescribed behavioral health treatment</b>
-  [TBC: verify scope] (self-funded ERISA plans are exempt — ask which kind yours is), and
+  (self-funded ERISA plans are exempt — ask which kind yours is), and
   every plan owes you a straight answer for any diagnosis. Whatever they say no to, get in
   writing: written denials can be appealed, all the way to an Independent Medical Review.
 </CheckItem>
@@ -136,13 +175,12 @@ import PlainBox from '../../../components/PlainBox.astro';
 </CheckItem>
 
 <CheckItem id="find-your-people" title="Find the parents six months ahead of you">
-  Every California county has a <b>Family Resource Center</b> and a federally funded
-  <b>Parent Training and Information Center</b> staffed largely by parents who've walked this
-  road — free, in multiple languages [TBC: verify which orgs serve which counties before
-  naming them]. Ask for a parent group for your child's diagnosis; diagnosis-specific
-  communities (local autism groups, CHADD for ADHD [TBC: verify]) are where the practical
-  knowledge lives. One conversation with a parent six months ahead of you is worth a week of
-  searching.
+  Every California county is served by a <b>Family Resource Center</b> (47 of them cover all
+  58 counties) and by a federally funded <b>Parent Training and Information Center</b> —
+  both staffed largely by parents who've walked this road, free, in multiple languages. Ask
+  for a parent group for your child's diagnosis; diagnosis-specific communities (local autism
+  groups, CHADD for ADHD) are where the practical knowledge lives. One conversation with a
+  parent six months ahead of you is worth a week of searching.
 </CheckItem>
 
 <CheckItem id="support-network" title="Build your own support network — on purpose">
