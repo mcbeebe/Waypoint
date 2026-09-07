@@ -23,7 +23,7 @@ import {
   signUpWithEmail,
   requestPasswordReset,
 } from '@/lib/auth';
-import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
+import { brand, fonts, spacing, radii } from '@/lib/theme';
 
 /**
  * Google Sign-In gate. Web goes through Supabase OAuth and needs only the
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: fonts.sizes.sm,
-    color: colors.error,
+    color: brand.urgent,
     textAlign: 'center',
     lineHeight: 18,
   },
