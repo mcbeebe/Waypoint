@@ -8,6 +8,7 @@
  * both tiers lives here so the pricing page and every gate agree.
  */
 import type { Entitlement, SponsorType } from '@/types/database';
+import { localDayISO } from '@/lib/dateOnly';
 
 export interface ResolvedEntitlement {
   isPremium: boolean;
@@ -27,7 +28,9 @@ const SPONSOR_LABELS: Record<Exclude<SponsorType, 'self'>, string> = {
 type Row = Pick<Entitlement, 'sponsor_type' | 'status' | 'period_start' | 'period_end'>;
 
 export function resolveEntitlement(rows: Row[], now = new Date()): ResolvedEntitlement {
-  const today = now.toISOString().slice(0, 10);
+  // period_start/period_end are Postgres `date` columns; compare against the
+  // family's local day, not the UTC day (which flips at 5pm PDT).
+  const today = localDayISO(now);
   const live = rows.filter(
     (r) =>
       r.status === 'active' &&

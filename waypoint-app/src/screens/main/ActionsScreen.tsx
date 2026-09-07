@@ -43,6 +43,7 @@ import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
 import { brand, fonts, spacing, radii } from '@/lib/theme';
 import { isNewlyAdded, formatAddedOn, newBadgeLabel } from '@/lib/actionFreshness';
+import { parseLocalDay } from '@/lib/dateOnly';
 import StatusControl from '@/components/StatusControl';
 import PriorityControl from '@/components/PriorityControl';
 import ActionFilterSheet from '@/components/ActionFilterSheet';
@@ -1067,7 +1068,10 @@ function reverseHint(locale: ActionLocale): string {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
+  // due_date is a Postgres `date` — parse as the local day, or the label
+  // prints one day early in California (see lib/dateOnly.ts).
+  const d = parseLocalDay(dateStr);
+  if (!d) return dateStr;
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 

@@ -36,6 +36,7 @@ import ActionFormModal, { type ActionFormValues } from '@/components/ActionFormM
 import DateInput from '@/components/DateInput';
 import { getCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
 import { actionUrl, withWaypointLink } from '@/lib/appLinks';
+import { parseLocalDay } from '@/lib/dateOnly';
 import { useActionNotes } from '@/hooks/useActionNotes';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useContacts } from '@/hooks/useContacts';
@@ -988,7 +989,11 @@ function formatNoteDate(dateStr: string): string {
 }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
+  // due_date and follow_up_date are Postgres `date` values — parse as the
+  // local day or the label prints one day early in California; created_at
+  // and completed_at are timestamps, which parseLocalDay passes through.
+  const d = parseLocalDay(dateStr);
+  if (!d) return dateStr;
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
