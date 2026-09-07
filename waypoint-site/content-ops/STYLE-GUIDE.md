@@ -27,7 +27,25 @@ Every piece follows the same three-beat arc:
 - We never promise outcomes. We promise the process and the parent's rights within it.
 - No legalese cosplay: "ask for," not "request that"; "the law says," not "pursuant to."
 
-### 1.1 Three worked examples
+### 1.1 Approach-agnostic on therapies (owner decision, Sept 7 2026)
+
+Waypoint does not promote or recommend any specific therapy or intervention
+approach — **ABA included**. We are philosophically and approach agnostic. The
+framing is always the parent's two questions:
+
+1. **What does your child's doctor (or evaluating clinician) recommend?**
+2. **What services and therapies does your insurance cover?**
+
+A therapy name may appear only where it is *factually necessary* — e.g.,
+describing what a statute mandates plans to cover — and then as description,
+never endorsement ("SB 946 requires most fully-insured plans to cover
+prescribed behavioral health treatment", not "get ABA covered"). Never rank
+approaches, never imply one is standard of care, and never frame a therapy as
+the goal of an insurance fight — coverage of *what the clinician prescribed*
+is the goal. This applies to guides, answers, letters, hub/marketing cards,
+CTAs, and AI-drafted copy alike.
+
+### 1.2 Three worked examples
 
 > Day counts below are tagged `[TBC]` on purpose — the examples model how drafts look **before** verification (pipeline §2.5). Verified values replace the tags during founder edit.
 

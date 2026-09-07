@@ -269,7 +269,7 @@ entries:
     priority: P1
     status: planned
     piece_no: 8
-    serp_notes: "(slug provisional) Decision tree; also embedded in piece 8 guide. tool_completed passes outcome node id per D3."
+    serp_notes: "(slug provisional — reconsider the -aba suffix per STYLE-GUIDE §1.1 approach-agnostic rule) Decision tree; also embedded in piece 8 guide. tool_completed passes outcome node id per D3."
 
   # ---------------------------------------------------------------
   # Template letters (12) — EN first, ES twins queued via translationKey
