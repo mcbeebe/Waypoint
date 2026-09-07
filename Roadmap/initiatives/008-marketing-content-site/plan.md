@@ -146,6 +146,23 @@ chase at two weeks).
 | 2026-09-06 | #209 | 20 RC draft stubs — the D11 county spine AUTHORED (plan correction: the Entity Matrix has one RC row, nothing to convert); counties [TBC] pending DDS verification; finder county map complete in preview |
 | 2026-09-06 | #210 | SEO/CI tranche: Pagefind search (+/search/, search_used), RSS (published-only), axe-core CI gate (checklist row 8 — fails on serious/critical; its first run caught and fixed 24 real WCAG issues: handoff/draft-banner contrast, underlines for in-text links, .soon states), content scaffolder (`npm run new`, enforces no-row-no-draft). The D9 /accessibility/ statement still waits on the manual keyboard/VoiceOver pass (human step) |
 
+| 2026-09-07 | #221 | Founder approval recorded on the three wedge pages (status→founder_edit) + fact-check pass across all 29 drafts: 45-day Early Start clock re-attributed to 17 CCR §52086 (was WIC §4643), NOA appeal windows updated to the 2023 rule (60d / 30d aid-paid-pending, WIC §4710.5), IHSS 195/283 + SOC 873 framing fixed, sources[] receipts added |
+
+**Owner decision (2026-09-07) — publish gate for the first three pages.**
+Asked directly how the D2 review gate should apply to the founder-approved,
+fact-checked wedge pages now that the apex is live, the owner chose:
+**"Publish, I'm the reviewer"** — the review block on `/start/autism/`,
+`/letters/iep-evaluation-request/`, and `/guides/benefits/` is signed
+`Mike Beebe, Founder` (versionReviewed daab5050). This narrows, for these
+three pages, what the review block attests: founder review + snippet-level
+source verification (receipts in sources[]), not an outside credentialed
+expert. An expert sign-off remains wanted and replaces the founder block
+when it lands. Two companion decisions: the **Spanish letter text does not
+render** until the credited bilingual reviewer signs (LetterBlock
+esReady={false} shows an "en revisión" notice), and the **2026 SSI
+constants stay null** until the owner click-throughs the SSA/CDSS links
+("numbers confirmed" in chat populates calculator + SSI page together).
+
 **Recorded deviation (2026-09-06):** the two launch tools are framework-free
 Astro `<script>` islands over pure tested modules, not Preact components as
 the Phase 1 card sketched — two forms with a result panel don't earn a

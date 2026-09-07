@@ -3,9 +3,15 @@ title: "Benefits for a child with a disability: the California resource map"
 description: "Every door to help in California — Regional Center respite, Medi-Cal, IHSS, insurance-covered therapies, and SSI — what each is and where to start."
 locale: en
 translationKey: benefits-pillar
-status: founder_edit
+status: published
 pillar: benefits
 dateModified: 2026-09-07
+datePublished: 2026-09-07
+review:
+  reviewedBy: "Mike Beebe"
+  credential: "Founder"
+  date: 2026-09-07
+  versionReviewed: "daab5050dfaf9e20c560d6398d02d656e1773c4e"
 nextReviewEvent: annual
 disclaimerVariant: benefits
 changelog:
@@ -13,6 +19,8 @@ changelog:
     note: "Founder reviewed full text and approved content (2 edit rounds: general resource-map reframing, private-services fast lane). Awaiting fact verification + credentialed review before publish."
   - date: 2026-09-07
     note: "Fact-check pass applied: IHSS 195/283 restated as the program's monthly maxima (not a protective-supervision add-on); CCS income rules stated ($40k AGI / 20% test); SB 946, deeming, IPP-attachment, SSI→Medi-Cal linkage, and AB 136 camp/social-rec authority confirmed and cited."
+  - date: 2026-09-07
+    note: "Published. Owner decision (chat, 2026-09-07): founder signs the review block; respite authority confirmed against WIC §4512(b); reimbursement framing softened to instructions rather than claims."
 sources:
   - label: "WIC §4646 / §4646.5 (IPP; services flow from identified needs)"
     url: "https://codes.findlaw.com/ca/welfare-and-institutions-code/wic-sect-4646/"
@@ -32,6 +40,9 @@ sources:
   - label: "WIC §4648.5 via AB 136 (2021) — camps, social recreation, nonmedical therapies restored"
     url: "https://www.arcanet.org/docs/ab136.pdf"
     accessed: 2026-09-07
+  - label: "WIC §4512(b) (IPP services list, respite among them)"
+    url: "https://codes.findlaw.com/ca/welfare-and-institutions-code/wic-sect-4512/"
+    accessed: 2026-09-07
 ---
 
 {/*
@@ -47,16 +58,17 @@ sources:
   rules confirmed ($40k AGI or >20% test); SB 946 confirmed (HSC §1374.73,
   ERISA exempt); SSI→Medi-Cal automatic linkage confirmed; RC camp/social-
   recreation funding via IPP confirmed (WIC §4648.5, AB 136 2021).
-  [TBC: human click-through of linked sources before publish]
-  [TBC: verify respite service authority (WIC §4512(b)/§4690.2) before
-   the respite framing publishes]
-  [TBC: verify out-of-network reimbursement framing in private-services
-   section]
+  PUBLISHED 2026-09-07 under the founder-as-reviewer decision (see
+  changelog); sources[] carries the receipts. Respite confirmed as an IPP
+  service (WIC §4512(b) service list; DRC respite hearing packet).
+  Reimbursement lines are written as instructions ("ask your plan"), not
+  claims, so nothing unverified is asserted.
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
 import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
 import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
@@ -106,14 +118,14 @@ place, with the guides that go deep on each door.
 <AnswerFirst>
   If your child is Regional Center–eligible, the center coordinates and funds services —
   and <b>respite</b> (paid breaks for you, with a trained provider for your child) is the one
-  most families need first and hear about last [TBC: verify respite framing]. Services are
+  most families need first and hear about last <Cite>WIC §4512(b)</Cite>. Services are
   free regardless of income, but many are <b>not automatic</b>: they attach to needs written
   into your child's IPP, so they have to be asked for <Cite>WIC §4646</Cite>.
 </AnswerFirst>
 
 The pattern to learn early: put every ask in writing, get every answer in writing, and make
 sure the need behind each ask lands in the IPP — that's the hook services hang on. Start
-with the <a href="/guides/regional-centers/">Regional Center guide</a> for eligibility, the
+with the <GatedLink href="/guides/regional-centers/">Regional Center guide</GatedLink> for eligibility, the
 intake clock, and the IPP playbook; if you're not yet in the system, that's door one.
 
 <h2 class="qa-h" id="medi-cal">Medi-Cal — two doors in, one hiding in plain sight</h2>
@@ -128,7 +140,7 @@ intake clock, and the IPP playbook; if you're not yet in the system, that's door
 
 Medi-Cal matters even if your child is already insured: it can ride second behind your plan,
 and it's the eligibility key for IHSS. The full walkthrough:
-<a href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming</a>.
+<GatedLink href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming</GatedLink>.
 
 <h2 class="qa-h" id="ihss">IHSS — the state pays for care hours, including yours</h2>
 
@@ -141,9 +153,8 @@ and it's the eligibility key for IHSS. The full walkthrough:
 </AnswerFirst>
 
 The path: Medi-Cal first (see above), then the county IHSS application. Everything you need
-is in <a href="/guides/benefits/ihss-protective-supervision/">the IHSS protective
-supervision guide</a> — and the myth-buster lives at
-<a href="/answers/does-my-child-need-ssi-to-get-ihss/">Does my child need SSI to get IHSS?</a>
+is in <GatedLink href="/guides/benefits/ihss-protective-supervision/">the IHSS protective supervision guide</GatedLink> — and the myth-buster lives at
+<GatedLink href="/answers/does-my-child-need-ssi-to-get-ihss/">Does my child need SSI to get IHSS?</GatedLink>
 
 <h2 class="qa-h" id="therapies">Therapies — your clinician picks, your insurance pays</h2>
 
@@ -184,15 +195,15 @@ forward. Three things keep the bridge from becoming a trap:
 1. **Keep starting the public clocks anyway.** Paying privately doesn't pause your rights —
    the evaluations and applications above should run in parallel from day one, or you'll
    still be paying out of pocket a year from now for things a system should be funding.
-2. **Ask about funding both directions.** Check whether your plan covers or reimburses the
-   service [TBC: verify how out-of-network reimbursement typically works], and if your child
-   is Regional Center–eligible, ask your service coordinator whether the center can fund it.
+2. **Ask about funding both directions.** Ask your plan whether it covers or reimburses the
+   service — and get the answer in writing either way. If your child is Regional
+   Center–eligible, ask your service coordinator whether the center can fund it.
    Camps, social recreation, and nonmedical therapies came back into Regional Center
    authority in 2021 <Cite>WIC §4648.5</Cite> — but every purchase runs through an IPP
    approval, so make the ask in writing and early.
 3. **Keep every receipt and report.** Private evaluations and progress notes strengthen every
-   public case you'll make later — and if funding comes through, documentation is what
-   reimbursement hangs on [TBC: verify reimbursement availability before implying it].
+   public case you'll make later — and if a funding door opens, documentation is what any
+   reimbursement conversation starts from.
 
 Finding the local layer: the parent networks in the community step of
 <a href="/start/autism/">the First 100 Days plan</a> are the best directory that exists —
@@ -210,8 +221,7 @@ other families know which local programs, groups, and camps are worth it.
 </AnswerFirst>
 
 If income rules SSI out, you've lost the smallest door on this page — everything above is
-still open. The full picture: <a href="/guides/benefits/ssi-for-children/">SSI for a child
-with a disability</a>.
+still open. The full picture: <GatedLink href="/guides/benefits/ssi-for-children/">SSI for a child with a disability</GatedLink>.
 
 <h2 class="qa-h" id="order">Which door first?</h2>
 
@@ -244,10 +254,10 @@ with a disability</a>.
     <a href="#order">Which door first?</a>
   </SideCard>
   <SideCard title="Deep dives">
-    <a class="link" href="/guides/regional-centers/">Regional Center guide →</a>
-    <a class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal deeming →</a>
-    <a class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</a>
-    <a class="link" href="/guides/benefits/ssi-for-children/">SSI for children →</a>
+    <GatedLink class="link" href="/guides/regional-centers/">Regional Center guide →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal deeming →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ssi-for-children/">SSI for children →</GatedLink>
   </SideCard>
   <SideCard title="Free tools">
     <a class="link" href="/tools/ssi-deeming-calculator/">SSI deeming calculator →</a>
