@@ -159,9 +159,11 @@ source verification (receipts in sources[]), not an outside credentialed
 expert. An expert sign-off remains wanted and replaces the founder block
 when it lands. Two companion decisions: the **Spanish letter text does not
 render** until the credited bilingual reviewer signs (LetterBlock
-esReady={false} shows an "en revisión" notice), and the **2026 SSI
-constants stay null** until the owner click-throughs the SSA/CDSS links
-("numbers confirmed" in chat populates calculator + SSI page together).
+esReady={false} shows an "en revisión" notice), and — revised when the
+question was re-asked — the **2026 SSI constants populate now** from the
+snippet-level verification (FBR $994/$1,491, child allocation $497), so
+the deeming calculator computes live; the SSA/CDSS links stay in the
+constants file for anyone to re-verify.
 
 **Recorded deviation (2026-09-06):** the two launch tools are framework-free
 Astro `<script>` islands over pure tested modules, not Preact components as
