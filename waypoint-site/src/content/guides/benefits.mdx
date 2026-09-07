@@ -11,6 +11,27 @@ disclaimerVariant: benefits
 changelog:
   - date: 2026-09-07
     note: "Founder reviewed full text and approved content (2 edit rounds: general resource-map reframing, private-services fast lane). Awaiting fact verification + credentialed review before publish."
+  - date: 2026-09-07
+    note: "Fact-check pass applied: IHSS 195/283 restated as the program's monthly maxima (not a protective-supervision add-on); CCS income rules stated ($40k AGI / 20% test); SB 946, deeming, IPP-attachment, SSI→Medi-Cal linkage, and AB 136 camp/social-rec authority confirmed and cited."
+sources:
+  - label: "WIC §4646 / §4646.5 (IPP; services flow from identified needs)"
+    url: "https://codes.findlaw.com/ca/welfare-and-institutions-code/wic-sect-4646/"
+    accessed: 2026-09-07
+  - label: "DHCS — HCBS Waiver for the Developmentally Disabled (institutional deeming)"
+    url: "https://www.dhcs.ca.gov/services/ltc/Pages/DD.aspx"
+    accessed: 2026-09-07
+  - label: "Disability Rights California — IHSS maximum monthly hours (195/283)"
+    url: "https://www.disabilityrightsca.org/publications/understanding-the-maximum-amount-of-hours-available-calculating-hours"
+    accessed: 2026-09-07
+  - label: "HSC §1374.73 (SB 946 behavioral health treatment mandate)"
+    url: "https://codes.findlaw.com/ca/health-and-safety-code/hsc-sect-1374-73/"
+    accessed: 2026-09-07
+  - label: "DHCS — California Children's Services (CCS) eligibility"
+    url: "https://www.dhcs.ca.gov/services/california-childrens-services/"
+    accessed: 2026-09-07
+  - label: "WIC §4648.5 via AB 136 (2021) — camps, social recreation, nonmedical therapies restored"
+    url: "https://www.arcanet.org/docs/ab136.pdf"
+    accessed: 2026-09-07
 ---
 
 {/*
@@ -19,14 +40,18 @@ changelog:
   general — Medi-Cal, respite services with regional centers, therapies,
   etc." The SSI page stays as a focused spoke this hub links down to.
   Framing follows STYLE-GUIDE §1.1 (approach-agnostic on therapies).
-  Verification pending:
-  [TBC: verify — Lanterman Act service categories incl. respite (WIC §4512(b)/§4686 area)]
-  [TBC: verify — "supports are not automatic; they attach to IPP needs" framing (WIC §4646.5/§4648)]
-  [TBC: verify — Medi-Cal income door vs institutional deeming door descriptions]
-  [TBC: verify — IHSS hour categories + protective supervision summary]
-  [TBC: verify — CCS description + income limits]
-  [TBC: verify — SB 946 scope phrasing]
-  [TBC: verify — SSI summary matches the spoke page once its facts verify]
+  FACT-CHECKED 2026-09-07 (verbatim-statute snippets; see sources[]):
+  IPP-attachment framing confirmed (WIC §4646/§4646.5); deeming door
+  confirmed (DHCS HCBS-DD waiver); IHSS 195/283 are the program's monthly
+  MAXIMA (non-severely/severely impaired), corrected below; CCS income
+  rules confirmed ($40k AGI or >20% test); SB 946 confirmed (HSC §1374.73,
+  ERISA exempt); SSI→Medi-Cal automatic linkage confirmed; RC camp/social-
+  recreation funding via IPP confirmed (WIC §4648.5, AB 136 2021).
+  [TBC: human click-through of linked sources before publish]
+  [TBC: verify respite service authority (WIC §4512(b)/§4690.2) before
+   the respite framing publishes]
+  [TBC: verify out-of-network reimbursement framing in private-services
+   section]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -83,7 +108,7 @@ place, with the guides that go deep on each door.
   and <b>respite</b> (paid breaks for you, with a trained provider for your child) is the one
   most families need first and hear about last [TBC: verify respite framing]. Services are
   free regardless of income, but many are <b>not automatic</b>: they attach to needs written
-  into your child's IPP, so they have to be asked for [TBC: verify].
+  into your child's IPP, so they have to be asked for <Cite>WIC §4646</Cite>.
 </AnswerFirst>
 
 The pattern to learn early: put every ask in writing, get every answer in writing, and make
@@ -96,8 +121,9 @@ intake clock, and the IPP playbook; if you're not yet in the system, that's door
 <AnswerFirst>
   Door one is income-based, like any family. Door two — <b>institutional deeming</b> — is
   the one nobody tells you about: a child with a developmental disability living at home can
-  get Medi-Cal with <b>parental income ignored</b> [TBC: verify]. If you've been told you
-  "make too much," you were probably told about door one only.
+  get Medi-Cal with <b>parental income ignored</b>, through the HCBS waiver for the
+  developmentally disabled. If you've been told you "make too much," you were probably told
+  about door one only.
 </AnswerFirst>
 
 Medi-Cal matters even if your child is already insured: it can ride second behind your plan,
@@ -109,7 +135,8 @@ and it's the eligibility key for IHSS. The full walkthrough:
 <AnswerFirst>
   In-Home Supportive Services pays for the care and supervision a child needs at home — and
   a <b>parent can be the paid provider</b>. For children who need constant supervision to
-  stay safe, <b>protective supervision</b> can mean up to 195 hours a month [TBC: verify].
+  stay safe, <b>protective supervision</b> can carry a family to the program's monthly
+  maximum — <b>195 hours</b>, or <b>283</b> if your child is severely impaired.
   The requirement is Medi-Cal — <b>not SSI</b>, whatever the internet told you.
 </AnswerFirst>
 
@@ -125,14 +152,17 @@ supervision guide</a> — and the myth-buster lives at
   doctor or evaluating clinician. Your job is the coverage side: ask your insurer what
   services and therapies your plan covers for your child's diagnosis, and what needs
   pre-authorization. For autism, California law requires most fully-insured plans to cover
-  <b>prescribed behavioral health treatment</b> <Cite>SB 946</Cite> [TBC: verify scope] —
-  and every denial you get in writing can be appealed, up to an Independent Medical Review.
+  <b>prescribed behavioral health treatment</b> <Cite>SB 946 · HSC §1374.73</Cite>
+  (self-funded ERISA plans are exempt) — and every denial you get in writing can be
+  appealed, up to an Independent Medical Review.
 </AnswerFirst>
 
 Two supplements worth knowing: <b>CCS</b> (California Children's Services) can fund
-treatment for specific eligible medical conditions [TBC: verify + income limits], and
-Regional Center funding can cover some services insurance won't — another reason the IPP
-matters.
+treatment for specific eligible medical conditions — the income tests are a family adjusted
+gross income under $40,000, or expected out-of-pocket medical costs for the child above 20%
+of family income (and income isn't a factor at all for diagnostic services or the school-based
+Medical Therapy Program). And Regional Center funding can cover some services insurance
+won't — another reason the IPP matters.
 
 <h2 class="qa-h" id="private">Private services — the fast lane, if you can fund it</h2>
 
@@ -156,9 +186,10 @@ forward. Three things keep the bridge from becoming a trap:
    still be paying out of pocket a year from now for things a system should be funding.
 2. **Ask about funding both directions.** Check whether your plan covers or reimburses the
    service [TBC: verify how out-of-network reimbursement typically works], and if your child
-   is Regional Center–eligible, ask your service coordinator whether the center can fund it —
-   it takes an approval tied to an IPP need, so make the ask in writing and early [TBC:
-   verify RC vendorization/approval framing].
+   is Regional Center–eligible, ask your service coordinator whether the center can fund it.
+   Camps, social recreation, and nonmedical therapies came back into Regional Center
+   authority in 2021 <Cite>WIC §4648.5</Cite> — but every purchase runs through an IPP
+   approval, so make the ask in writing and early.
 3. **Keep every receipt and report.** Private evaluations and progress notes strengthen every
    public case you'll make later — and if funding comes through, documentation is what
    reimbursement hangs on [TBC: verify reimbursement availability before implying it].
@@ -171,7 +202,8 @@ other families know which local programs, groups, and camps are worth it.
 
 <AnswerFirst>
   SSI is a monthly federal payment for children with disabilities in lower-income
-  households — and in California it brings <b>automatic Medi-Cal</b> with it [TBC: verify].
+  households — and in California it brings <b>automatic Medi-Cal</b> with it, no separate
+  application needed.
   Parental income is "deemed," but bigger households qualify at higher incomes than most
   families assume — worth a one-minute check on the
   <a href="/tools/ssi-deeming-calculator/">deeming calculator</a> before you rule it out.

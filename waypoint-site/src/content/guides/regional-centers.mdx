@@ -5,21 +5,45 @@ locale: en
 translationKey: regional-centers-pillar
 status: draft
 pillar: regional-centers
-dateModified: 2026-09-06
+dateModified: 2026-09-07
 nextReviewEvent: annual
 disclaimerVariant: legal
+changelog:
+  - date: 2026-09-07
+    note: "Fact-check pass applied: appeal windows corrected to the post-March-2023 rule (60 days; 30 for aid paid pending, WIC §4710.5); Early Start 45-day clock re-attributed to 17 CCR §52086; WIC §4643 intake (15 working days) and 120-day assessment clocks stated precisely."
+sources:
+  - label: "WIC §4643 (intake within 15 working days; assessment within 120 days)"
+    url: "https://california.public.law/codes/welfare_and_institutions_code_section_4643"
+    accessed: 2026-09-07
+  - label: "17 CCR §52086 (Early Start 45-day timeline)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-07
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas)"
+    url: "https://law.justia.com/codes/california/code-wic/division-4-5/chapter-1-6/section-4512/"
+    accessed: 2026-09-07
+  - label: "WIC §4710.5 (60-day appeal; 30-day aid-paid-pending, effective 2023-03-01)"
+    url: "https://law.justia.com/codes/california/code-wic/division-4-5/chapter-7/article-3/section-4710-5/"
+    accessed: 2026-09-07
+  - label: "Disability Rights California — Regional Center Appeals Changes (2023)"
+    url: "https://www.disabilityrightsca.org/publications/regional-center-appeals-changes"
+    accessed: 2026-09-07
+  - label: "DDS — Family Fee Programs Ended (FCPP/AFPF repealed July 1, 2024)"
+    url: "https://www.dds.ca.gov/newsletter/family-fee-programs-ended/"
+    accessed: 2026-09-07
 ---
 
 {/*
   DRAFT — ported from the owner-approved prototype (PRs #195/#196/#198).
-  Source verification pending (network egress blocked source fetches in the
-  drafting session — founder edit resolves each [TBC] against the primary
-  source and populates sources[]):
-  [TBC: verify URL + claim — WIC §4500 et seq., leginfo.legislature.ca.gov]
-  [TBC: verify URL + claim — WIC §4512 "substantial disability", 3 of 7 life areas]
-  [TBC: verify URL + claim — WIC §4643 120-day / Early Start 45-day decision timelines]
-  [TBC: verify URL + claim — WIC §4646 IPP]
-  [TBC: verify NOA appeal windows — day counts deliberately NOT stated in this draft]
+  FACT-CHECKED 2026-09-07 (verbatim-statute snippets; see sources[]):
+  WIC §4512 (3-of-7, qualifying conditions) confirmed; WIC §4646 IPP
+  confirmed; WIC §4643 stated precisely (intake within 15 working days;
+  assessment within 120 days of intake; 60-day expedited track).
+  CORRECTED: Early Start 45-day clock is 17 CCR §52086, not §4643.
+  CORRECTED: appeal windows are 60 days from NOA receipt — 30 days for aid
+  paid pending — under WIC §4710.5, effective March 1, 2023.
+  Also: family fees (FCPP/AFPF) repealed effective July 1, 2024 — "free
+  regardless of income" is now unqualified.
+  [TBC: human click-through of linked sources before publish]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -91,18 +115,21 @@ fit a neat box.
 
 If your child is **under 3**, stop reading the fine print and call now. Early Start serves
 infants and toddlers with developmental delays or risk conditions using intentionally broader
-criteria than the over-3 standard, and the decision clock is faster — 45 days instead of 120
-<Cite>WIC §4643</Cite>. Some children who qualify for Early Start won't qualify at age 3, and
+criteria than the over-3 standard, and the clock is faster — evaluation, eligibility, and the
+initial family service plan are all due within 45 days of the referral
+<Cite>17 CCR §52086</Cite>. Some children who qualify for Early Start won't qualify at age 3, and
 that's okay: two-plus years of early intervention is worth having either way.
 
 <h2 class="qa-h" id="how-do-i-apply">How do I apply — and how long can it take?</h2>
 
 <AnswerFirst>
   Call your Regional Center's <b>intake line</b> and say: <i>"I'd like to request an intake and
-  assessment for my child for Regional Center eligibility."</i> Once intake begins, the center
-  must make an eligibility decision <b>within 120 days</b> — or <b>within 45 days</b> for a
-  child under 3 going through Early Start <Cite>WIC §4643</Cite>. You do not need a doctor's
-  referral, a lawyer, or a completed diagnosis to start.
+  assessment for my child for Regional Center eligibility."</i> The center must perform initial
+  intake <b>within 15 working days</b> of your request, and any needed assessment
+  <b>within 120 days of intake</b> — 60 days when delay would put your child at risk
+  <Cite>WIC §4643</Cite>. For a child under 3, Early Start moves faster: evaluation and the
+  initial family service plan within <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>.
+  You do not need a doctor's referral, a lawyer, or a completed diagnosis to start.
 </AnswerFirst>
 
 That phone call is the whole secret to starting. Use the words "intake and assessment" —
@@ -123,7 +150,7 @@ an honest picture of the hard days, not the best days.
     <tr><td>1. Intake call</td><td>You request intake and assessment; the center opens a file</td><td>Starts the decision clock <span class="cite">WIC §4643</span></td></tr>
     <tr><td>2. Records &amp; interviews</td><td>You share records; intake worker interviews you about your child's development</td><td>Typically the first few weeks [TBC: verify typical timing]</td></tr>
     <tr><td>3. Assessments</td><td>Center-funded evaluations (psychological, developmental, adaptive) at no cost to you</td><td>Inside the same decision window</td></tr>
-    <tr><td>4. Eligibility decision</td><td>Written decision: eligible, or a Notice of Action explaining a denial</td><td><b>120 days</b> from intake · <b>45 days</b> under age 3 (Early Start)</td></tr>
+    <tr><td>4. Eligibility decision</td><td>Written decision: eligible, or a Notice of Action explaining a denial</td><td><b>120 days</b> from intake <span class="cite">WIC §4643</span> · <b>45 days</b> from referral under age 3 <span class="cite">17 CCR §52086</span></td></tr>
     <tr><td>5. If eligible</td><td>Service coordinator assigned; first IPP meeting scheduled</td><td>IPP process begins <span class="cite">WIC §4646</span></td></tr>
   </table>
 </div>
@@ -170,10 +197,11 @@ review to ask for more.
 
 <AnswerFirst>
   A denial — of eligibility or of a specific service — must come as a written <b>Notice of
-  Action (NOA)</b> that explains the decision and your <b>appeal rights</b>. Appeal deadlines
-  are short and strict — on the order of 30 days, and sooner if you want services to continue
-  during the appeal [TBC: verify current appeal windows; state the dates printed on the NOA,
-  not from memory]. A "no" on the phone is not a decision. Ask for the NOA.
+  Action (NOA)</b> that explains the decision and your <b>appeal rights</b>. You have
+  <b>60 days</b> from receiving the NOA to appeal — but only <b>30 days</b> (and before the
+  change takes effect) if a service is being cut and you want it to <b>continue during the
+  appeal</b> <Cite>WIC §4710.5</Cite>. Check the dates printed on your own NOA either way. A
+  "no" on the phone is not a decision. Ask for the NOA.
 </AnswerFirst>
 
 That last point deserves repeating, because it's where many families get stuck: an informal
@@ -183,10 +211,10 @@ Notice of Action."* The NOA is what converts a shrug into something you can appe
 
 From the NOA, the path runs through an appeal to a **fair hearing** before an independent
 judge, usually with an optional informal meeting or mediation first — many disputes settle
-before a hearing ever happens. Read the deadlines printed on your own NOA carefully and
-calendar them the day it arrives: filing on time is what preserves your rights, and filing
-quickly can keep existing services in place while the appeal is decided [TBC: confirm the
-aid-paid-pending window before publish].
+before a hearing ever happens. Calendar the deadlines the day the NOA arrives: filing on
+time is what preserves your rights, and filing within 30 days — before the change takes
+effect — is what keeps existing services running unchanged while the appeal is decided
+("aid paid pending" <Cite>WIC §4710.5</Cite>).
 
 You don't have to do this alone, and you don't have to pay anyone. The **Office of Clients'
 Rights Advocacy (OCRA)** — part of **Disability Rights California** — provides free advocates
@@ -206,7 +234,7 @@ advocate. A no today is often a not-yet.
   <SideCard title="Quick facts">
     <dl>
       <dt>Regional Centers in CA</dt><dd>21 nonprofits, one per territory</dd>
-      <dt>Eligibility decision</dt><dd>120 days from intake · 45 days under age 3 <span class="cite">WIC §4643</span></dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 days from referral under 3 <span class="cite">17 CCR §52086</span></dd>
       <dt>Cost to your family</dt><dd>Free, at any income — it's the law <span class="cite">WIC §4500</span></dd>
     </dl>
   </SideCard>

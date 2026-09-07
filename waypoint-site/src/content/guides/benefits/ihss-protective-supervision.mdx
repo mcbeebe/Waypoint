@@ -8,14 +8,34 @@ pillar: benefits
 dateModified: 2026-09-06
 nextReviewEvent: ihss-wages-jan
 disclaimerVariant: benefits
+changelog:
+  - date: 2026-09-07
+    note: "Fact-check pass applied: 195/283 restated as total monthly IHSS maxima (non-severely vs. severely impaired); SOC 873 corrected to the general IHSS Health Care Certification; MPP §30-757.17 and the deeming description confirmed and cited."
+sources:
+  - label: "Disability Rights California — IHSS maximum monthly hours (195/283)"
+    url: "https://www.disabilityrightsca.org/publications/understanding-the-maximum-amount-of-hours-available-calculating-hours"
+    accessed: 2026-09-07
+  - label: "CDSS ACL 11-55 (protective supervision, MPP §30-757.17 criteria)"
+    url: "https://cdss.ca.gov/lettersnotices/entres/getinfo/acl/2011/11-55.pdf"
+    accessed: 2026-09-07
+  - label: "SOC 873 — IHSS Health Care Certification Form (San Luis Obispo County)"
+    url: "https://www.slocounty.ca.gov/departments/social-services/forms-documents/adult-services/ihss-forms/soc-873-health-care-certification-form"
+    accessed: 2026-09-07
+  - label: "DHCS — HCBS Waiver for the Developmentally Disabled (institutional deeming)"
+    url: "https://www.dhcs.ca.gov/services/ltc/Pages/DD.aspx"
+    accessed: 2026-09-07
 ---
 
 {/*
-  DRAFT — ported from the owner-approved prototype. Verification pending:
-  [TBC: verify URL + claim — MPP §30-757 (protective supervision), CDSS]
-  [TBC: verify 195 / 283 monthly hour caps and "severely impaired" definition]
-  [TBC: verify SOC 821 + SOC 873 form numbers and current versions]
-  [TBC: verify institutional deeming / HCBS waiver description with DHCS source]
+  DRAFT — ported from the owner-approved prototype.
+  FACT-CHECKED 2026-09-07 (see sources[]): MPP §30-757.17 confirmed as the
+  protective supervision rule; 195/283 confirmed as the recipient's TOTAL
+  maximum monthly IHSS hours (non-severely vs. severely impaired) — not a
+  PS add-on — framing corrected below. CORRECTED: SOC 873 is the general
+  IHSS Health Care Certification every applicant needs; SOC 821 is the
+  protective-supervision assessment the physician completes. Deeming /
+  HCBS-DD waiver description confirmed against DHCS.
+  [TBC: human click-through of linked sources before publish]
   [TBC: home-visit timing "~30–45 days" is a sample figure — verify or cut]
   nextReviewEvent=ihss-wages-jan: IHSS content is rechecked when January county
   wages move, even though this page states hour caps, not wages.
@@ -29,8 +49,9 @@ import PlainBox from '../../../components/PlainBox.astro';
 import SideCard from '../../../components/SideCard.astro';
 
 <PlainBox>
-  IHSS protective supervision can pay a parent for up to <b>195 hours a month</b> (283 if your
-  child is severely impaired) to keep a child safe who needs constant supervision. You do
+  IHSS protective supervision can pay a parent up to the program's monthly maximum —
+  <b>195 hours a month</b>, or <b>283</b> if your child is severely impaired — to keep a child
+  safe who needs constant supervision. You do
   <b> not</b> need to be low-income, and you do <b>not</b> need SSI. The key that opens the
   door is Medi-Cal — and a child with a developmental disability living at home can usually get
   Medi-Cal through <b>institutional deeming</b>, which ignores parental income.
@@ -45,7 +66,7 @@ import SideCard from '../../../components/SideCard.astro';
   Protective supervision is the part of In-Home Supportive Services (IHSS) that pays for
   someone — often you, the parent — to <b>observe a child who, because of a developmental
   disability, would put themselves in danger without it</b>. It is about the safety need, not
-  chores. The rule lives at <Cite>MPP §30-757</Cite>.
+  chores. The rule lives at <Cite>MPP §30-757.17</Cite>.
 </AnswerFirst>
 
 Think of it as the state recognizing a specific kind of work: the constant, eyes-on vigilance
@@ -68,7 +89,7 @@ is the category that recognizes round-the-clock watchfulness as a service in its
 <h2 class="qa-h" id="ssi-myth">Does my child need SSI to get IHSS?</h2>
 
 <AnswerFirst>
-  <b>No.</b> IHSS requires <b>Medi-Cal, not SSI</b>. Nothing in <Cite>MPP §30-757</Cite>
+  <b>No.</b> IHSS requires <b>Medi-Cal, not SSI</b>. Nothing in <Cite>MPP §30-757.17</Cite>
   requires an SSI award. A child with a developmental disability who lives at home can qualify
   for Medi-Cal through <b>institutional deeming</b> — an HCBS waiver rule that ignores parental
   income entirely.
@@ -89,11 +110,11 @@ IHSS?</a> — and if you are curious whether SSI is on the table anyway, run the
 <h2 class="qa-h" id="apply">How do I apply, step by step?</h2>
 
 <AnswerFirst>
-  You apply through your <b>county IHSS office</b>, then submit two forms: <b>SOC 821</b> (the
-  protective supervision assessment) and <b>SOC 873</b> (a health care certification signed by
-  your child's physician). A county social worker then visits your home to assess need and
-  awards hours — up to <b>195/month</b>, or <b>283/month</b> if your child is severely
-  impaired.
+  You apply through your <b>county IHSS office</b>, then submit two forms: <b>SOC 873</b> (the
+  IHSS health care certification every applicant needs, signed by your child's physician) and
+  <b>SOC 821</b> (the protective supervision assessment your child's physician completes). A
+  county social worker then visits your home to assess need and awards hours — up to the
+  monthly maximum of <b>195</b>, or <b>283</b> if your child is severely impaired.
 </AnswerFirst>
 
 <div class="table-wrap">
@@ -101,9 +122,9 @@ IHSS?</a> — and if you are curious whether SSI is on the table anyway, run the
     <tr><th>Step</th><th>What happens</th><th>Notes</th></tr>
     <tr><td>1. Confirm Medi-Cal</td><td>Your child needs active Medi-Cal. If parental income is the obstacle, ask about institutional deeming through the HCBS waiver — your Regional Center can help start it.</td><td>Parental income is ignored under deeming</td></tr>
     <tr><td>2. Apply to your county IHSS office</td><td>Call or submit an application to the IHSS office in your county. Say clearly that you are requesting <b>protective supervision</b>.</td><td>Use those exact words — it routes the case correctly</td></tr>
-    <tr><td>3. Submit SOC 821 + SOC 873</td><td>SOC 821 is the protective supervision assessment; SOC 873 is the health care certification your child's physician signs.</td><td><span class="cite">MPP §30-757</span></td></tr>
+    <tr><td>3. Submit SOC 873 + SOC 821</td><td>SOC 873 is the health care certification every IHSS applicant needs; SOC 821 is the protective supervision assessment — both go through your child's physician.</td><td><span class="cite">MPP §30-757.17</span></td></tr>
     <tr><td>4. Home assessment visit</td><td>A county social worker visits, observes your child, and asks about a typical day. Describe your hardest days honestly — not your best ones.</td><td>~30–45 days after applying [TBC: verify typical timing]</td></tr>
-    <tr><td>5. Hours awarded</td><td>You receive a written decision with the monthly hours granted and your appeal rights.</td><td>Up to 195 hrs/mo; 283 if severely impaired</td></tr>
+    <tr><td>5. Hours awarded</td><td>You receive a written decision with the monthly hours granted and your appeal rights.</td><td>Monthly maximum: 195 hrs; 283 if severely impaired</td></tr>
   </table>
 </div>
 

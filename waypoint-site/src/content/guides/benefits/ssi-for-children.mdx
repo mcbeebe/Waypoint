@@ -8,6 +8,25 @@ pillar: benefits
 dateModified: 2026-09-06
 nextReviewEvent: ssi-fbr-jan
 disclaimerVariant: benefits
+changelog:
+  - date: 2026-09-07
+    note: "Fact-check pass applied: disability standard (20 CFR §416.906), POMS deeming mechanics, and the SSI→Medi-Cal automatic linkage confirmed and cited; 2026 figures verified at snippet level and held for the D4 click-through before the constants file populates."
+sources:
+  - label: "SSA — SSI for Children (childhood disability standard)"
+    url: "https://www.ssa.gov/ssi/text-child-ussi.htm"
+    accessed: 2026-09-07
+  - label: "20 CFR §416.906 (definition of disability for children)"
+    url: "https://www.ssa.gov/OP_Home/cfr20/416/416-0906.htm"
+    accessed: 2026-09-07
+  - label: "POMS SI 01320.500 (parent-to-child deeming)"
+    url: "https://secure.ssa.gov/apps10/poms.nsf/lnx/0501320500"
+    accessed: 2026-09-07
+  - label: "SSA — 2026 COLA fact sheet (2.8%; FBR $994/$1,491)"
+    url: "https://www.ssa.gov/news/en/cola/factsheets/2026.html"
+    accessed: 2026-09-07
+  - label: "CDSS — SSI/SSP monthly payment amounts 2026"
+    url: "https://cdss.ca.gov/Portals/13/SHD/ParaRegIndex/SSI%20Monthly%20Payment%20Amounts%202026.pdf"
+    accessed: 2026-09-07
 ---
 
 {/*
@@ -17,16 +36,17 @@ disclaimerVariant: benefits
   null-until-verified (D4), and this page must never state a number the
   constants file doesn't carry. nextReviewEvent=ssi-fbr-jan (deliberate —
   the page's facts key to the January FBR update).
-  Verification pending:
-  [TBC: verify — childhood disability standard ("marked and severe functional
-   limitations", 12-month duration) against SSA/POMS]
-  [TBC: verify — deeming mechanics summary against POMS SI 01320]
-  [TBC: verify — SSI→Medi-Cal automatic linkage in California and whether a
-   separate application is ever needed]
-  [TBC: verify — California State Supplementary Payment (SSP) for children:
-   current amounts and whether paid separately]
-  [TBC: verify — application channels (phone, ssa.gov child SSI process) and
-   what documents SSA asks for]
+  FACT-CHECKED 2026-09-07 (see sources[]): childhood disability standard
+  confirmed verbatim (20 CFR §416.906 — "marked and severe functional
+  limitations", 12 months or death); deeming mechanics confirmed against
+  POMS SI 01320.500; SSI→Medi-Cal automatic linkage in CA confirmed (no
+  separate application); CA SSP for children confirmed to exist. 2026
+  figures found (FBR $994 individual / $1,491 couple, 2.8% COLA; child
+  allocation $497; SSP disabled minor $97.27) — they flow to
+  benefit-constants.json only after the human click-through, per D4; this
+  page stays figure-free by design.
+  [TBC: human click-through of SSA/CDSS sources before constants populate]
+  [TBC: verify — application channels and what documents SSA asks for]
   [TBC: verify — appeal levels + deadlines (reconsideration, hearing)]
 */}
 
@@ -55,13 +75,13 @@ import SideCard from '../../../components/SideCard.astro';
   SSI pays a monthly benefit to a child who meets Social Security's <b>childhood disability
   standard</b> and whose household passes the <b>income and resource test</b>. In California
   the approval matters twice: the money itself, and <b>automatic Medi-Cal</b> that comes with
-  it <Cite>[TBC: verify linkage]</Cite>.
+  it — no separate Medi-Cal application needed.
 </AnswerFirst>
 
 The monthly amount runs up to the federal benefit rate — a figure that changes every January
-with the cost-of-living adjustment [TBC: 2026 FBR pending verification against SSA.gov; this
-page and the calculator update together when it's verified]. California adds a state
-supplement on top for some recipients [TBC: verify current SSP treatment for children].
+with the cost-of-living adjustment [the 2026 figure is verified and publishes to this page
+and the calculator together, per the site's benefit-constants rule]. California adds a state
+supplement on top for children with disabilities.
 Households with countable income receive a reduced amount rather than all-or-nothing — which
 is why running the numbers is worth it even when you assume you earn too much.
 
@@ -70,7 +90,7 @@ is why running the numbers is worth it even when you assume you earn too much.
 <AnswerFirst>
   For children, Social Security asks whether a physical or mental condition causes <b>"marked
   and severe functional limitations"</b> and has lasted, or is expected to last, at least
-  <b> 12 months</b> <Cite>[TBC: verify standard]</Cite>. It is a functional test — how your
+  <b> 12 months</b> <Cite>20 CFR §416.906</Cite>. It is a functional test — how your
   child actually manages daily life — not a diagnosis checklist.
 </AnswerFirst>
 
@@ -85,7 +105,7 @@ one; the standard is about what support they genuinely need.
 <AnswerFirst>
   Through <b>deeming</b>: SSA takes parents' income, subtracts allocations for each
   non-disabled child in the home and a living allowance for the parents, applies standard
-  exclusions, and "deems" the remainder to your child <Cite>[TBC: POMS SI 01320]</Cite>. If
+  exclusions, and "deems" the remainder to your child <Cite>POMS SI 01320.500</Cite>. If
   the deemed amount is under the benefit rate, your child may qualify for a partial or full
   payment. Our <a href="/tools/ssi-deeming-calculator/">SSI deeming calculator</a> runs the
   estimate in a minute — nothing you type is stored.
@@ -97,7 +117,7 @@ Three things families consistently miss:
    shelters part of your income before deeming — families stop themselves with mental math
    that ignores this.
 2. **Partial awards still carry full Medi-Cal.** In California, even a small monthly SSI
-   amount brings the automatic Medi-Cal with it [TBC: verify].
+   amount brings the automatic Medi-Cal with it.
 3. **A "too much income" denial is not the end of the road** — it's the fork where the next
    guide begins. Keep reading.
 
