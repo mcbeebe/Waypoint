@@ -11,7 +11,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: null
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -39,6 +39,18 @@ disclaimerVariant: legal
   guess from the 2026-09-06 stub generation. It has NOT been checked.
   [TBC: verify the county list against the DDS listing — no evidence yet]
   CHALLENGER VERDICT: unverified / publish-nothing
+
+  ---- RE-VERIFIED 2026-09-07 (second pass; the first returned zero
+  sources after exhausting the session's WebSearch budget) ----
+  VERDICT: confirmed — 7 sources with quoted snippets.
+  Primary evidence:
+    "San Gabriel/Pomona Regional Center is part of a network of 21 regional
+    centers across California, dedicated to serving 30 cities within the El
+    Monte, Foothill, and Pomona areas within Los Angeles County... The
+    center extends services to infants and toddlers through an Early Start
+    program. The center began serving the region in 1986."
+    — https://sgprc.org/about-us/who-do-we-serve/
+  Counties confirmed: ['Los Angeles']
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -84,6 +96,49 @@ The appeal process is the same at all 21 regional centers, so the full walkthrou
 timelines, and what to say at each stage — lives in one place:
 
 <a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+
+<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+
+<AnswerFirst>
+  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
+  not enough to tell you which one is yours — <b>your address decides it</b>, and the
+  boundaries follow LA County health districts, not city lines.
+</AnswerFirst>
+
+Serves one county — Los Angeles — but only the eastern San Gabriel Valley and Pomona Valley
+portion of it. SGPRC is one of seven regional centers dividing LA County, and its catchment
+is defined by three DDS/LA County health districts: El Monte, Foothill, and Pomona. Within
+those districts it covers about 30 cities and communities: Altadena, Arcadia, Azusa, Baldwin
+Park, Charter Oak, City of Industry, Claremont, Covina, Diamond Bar, Duarte, El Monte,
+Glendora, Hacienda Heights, Irwindale, La Puente, La Verne, Monrovia, Pasadena (portions
+only), Pomona (portions only), Rowland Heights, San Dimas, Sierra Madre, South El Monte,
+Temple City (portions only), Valinda, Walnut, West Covina, and Whittier (portions only). Its
+office is at 75 Rancho Camino Drive, Pomona, CA 91766. Because several cities are split at
+the health-district / ZIP boundary rather than the city line, a family in Pasadena, Pomona,
+Temple City, or Whittier cannot rule SGPRC in or out by city name alone and should confirm
+by street address or ZIP.
+
+### Who this center does not serve
+
+Does NOT cover the rest of Los Angeles County outside the El Monte, Foothill, and Pomona
+health districts. Specifically, neighbouring catchments belong to other centers: the
+Alhambra, East Los Angeles, Northeast, and Whittier health districts — including Alhambra,
+East LA, and most of Whittier — are Eastern Los Angeles Regional Center (ELARC), whose
+Whittier district office serves that area; and the Central, Glendale, Hollywood-Wilshire,
+and Pasadena health districts — including the City of Pasadena proper and Glendale — are
+Frank D. Lanterman Regional Center. This is the sharpest ruling-out edge: SGPRC lists
+Altadena and part of Pasadena among its communities (Foothill health district), while the
+Pasadena health district itself is Lanterman's, so Pasadena addresses split between the two
+centers. Whittier likewise appears in SGPRC's community list only in part, with the Whittier
+health district assigned to ELARC. Central, South, and West LA, the San Fernando Valley, the
+Antelope Valley, the South Bay/Harbor area, and Long Beach are all served by other LA County
+regional centers, not SGPRC. (Caveat: no snippet gave an explicit ZIP-level exclusion list
+from SGPRC's own site — the exclusions above are inferred from the published health-district
+assignments of the adjacent centers, which are stated in the sources.)
+
+If your address sits near one of these boundaries, confirm your center before you call —
+being sent back to the start by the wrong center costs weeks
+[TBC: link the DDS county lookup once the URL is click-verified].
 
 </article>
 <aside>

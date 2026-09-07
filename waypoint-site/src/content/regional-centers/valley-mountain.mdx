@@ -15,7 +15,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: null
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -41,6 +41,23 @@ disclaimerVariant: legal
   guess from the 2026-09-06 stub generation. It has NOT been checked.
   [TBC: verify the county list against the DDS listing — no evidence yet]
   CHALLENGER VERDICT: unverified / publish-nothing
+
+  ---- RE-VERIFIED 2026-09-07 (second pass; the first returned zero
+  sources after exhausting the session's WebSearch budget) ----
+  VERDICT: confirmed — 6 sources with quoted snippets.
+  Primary evidence:
+    "Valley Mountain Regional Center (VMRC) is a non-profit organization
+    dedicated to supporting people with developmental disabilities and their
+    families. VMRC serves people who live in Amador, Calaveras, San Joaquin,
+    Stanislaus, and Tuolumne Counties. VMRC is one of 21 regional centers
+    that partner with the California Department of Developme"
+    — https://www.vmrc.net/who-do-we-serve/
+  Counties confirmed: ['Amador', 'Calaveras', 'San Joaquin', 'Stanislaus', 'Tuolumne']
+  MARIPOSA RESOLVED: it is CENTRAL VALLEY RC, not Valley Mountain.
+  VMRC's own About page enumerates exactly five counties and Mariposa
+  is not among them; DDS and cvrc.org both place it in CVRC. The two
+  repo files that said otherwise are the retired gas-mvp and a root
+  prototype — neither is a live surface.
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';

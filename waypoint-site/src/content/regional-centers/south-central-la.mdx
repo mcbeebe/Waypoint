@@ -11,7 +11,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: null
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -39,6 +39,15 @@ disclaimerVariant: legal
   guess from the 2026-09-06 stub generation. It has NOT been checked.
   [TBC: verify the county list against the DDS listing — no evidence yet]
   CHALLENGER VERDICT: unverified / publish-nothing
+
+  ---- RE-VERIFIED 2026-09-07 (second pass; the first returned zero
+  sources after exhausting the session's WebSearch budget) ----
+  VERDICT: confirmed — 7 sources with quoted snippets.
+  Primary evidence:
+    "SCLARC serves the health districts of Compton, San Antonio, South,
+    Southeast, and Southwest within the county of Los Angeles."
+    — https://www.phfewic.org/wp-content/uploads/2018/01/RegionalCenters.pdf
+  Counties confirmed: ['Los Angeles']
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -84,6 +93,43 @@ The appeal process is the same at all 21 regional centers, so the full walkthrou
 timelines, and what to say at each stage — lives in one place:
 
 <a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+
+<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+
+<AnswerFirst>
+  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
+  not enough to tell you which one is yours — <b>your address decides it</b>, and the
+  boundaries follow LA County health districts, not city lines.
+</AnswerFirst>
+
+Part of Los Angeles County only — one of seven regional centers dividing LA County, where
+catchment boundaries follow DDS health districts rather than county lines. SCLARC covers the
+Compton, San Antonio, South, Southeast and Southwest health districts. Geographically its
+area is bounded by Washington Blvd. on the north, La Cienega Blvd. on the west, and the
+eastern and southern boundaries of Downey, Paramount, Compton, Dominguez Hills and Carson.
+Cities served include Bell, Bell Gardens, Maywood, Paramount, Cudahy, Downey, Huntington
+Park, South Gate, Compton, Lynwood, Gardena, Vernon and Carson, plus the South Los Angeles
+area including the communities of Watts, Crenshaw, Hyde Park, Leimert Park, View Park,
+Baldwin Hills, Florence/Firestone and West Adams.
+
+### Who this center does not serve
+
+Does not cover the rest of Los Angeles County, which belongs to the other six LA-area
+regional centers. Ruling-out guide by neighbour: north of Washington Blvd. and
+central/downtown LA, Hollywood, Glendale, Pasadena → Frank D. Lanterman Regional Center
+(Central, Glendale, Hollywood-Wilshire, Pasadena health districts). West of La Cienega Blvd.
+— Inglewood, Santa Monica and the Westside → Westside Regional Center (Inglewood, Santa
+Monica-West health districts). South and southeast beyond Downey/Paramount/Compton/Carson —
+Long Beach, Torrance, Bellflower and the Harbor area → Harbor Regional Center (Bellflower,
+Harbor, Long Beach, Torrance health districts). East — East Los Angeles, Alhambra, Whittier,
+Northeast LA → Eastern Los Angeles Regional Center. Farther east — El Monte, Pomona, the
+Foothill area → San Gabriel/Pomona Regional Center. The northern portion of the county (San
+Fernando/Santa Clarita/Antelope Valley) → North Los Angeles County Regional Center. It also
+serves no county other than Los Angeles.
+
+If your address sits near one of these boundaries, confirm your center before you call —
+being sent back to the start by the wrong center costs weeks
+[TBC: link the DDS county lookup once the URL is click-verified].
 
 </article>
 <aside>
