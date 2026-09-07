@@ -57,6 +57,8 @@ export default function TimeCaptureScreen() {
       const result = await logTime({
         activityType: activity,
         minutes,
+        // TODO(dates): HELD FOR OWNER APPROVAL — this is the UTC-day bug (see localDate.ts), not an exemption. It sits in the money/staff lane, which CLAUDE.md stops at. Grep this marker for the worklist.
+        // eslint-disable-next-line no-restricted-syntax -- see TODO above
         occurredOn: new Date().toISOString().slice(0, 10),
         notes: notes.trim() || undefined,
       });

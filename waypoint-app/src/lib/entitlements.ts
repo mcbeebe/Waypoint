@@ -27,6 +27,8 @@ const SPONSOR_LABELS: Record<Exclude<SponsorType, 'self'>, string> = {
 type Row = Pick<Entitlement, 'sponsor_type' | 'status' | 'period_start' | 'period_end'>;
 
 export function resolveEntitlement(rows: Row[], now = new Date()): ResolvedEntitlement {
+  // TODO(dates): HELD FOR OWNER APPROVAL — this is the UTC-day bug (see localDate.ts), not an exemption. It sits in the money/staff lane, which CLAUDE.md stops at. Grep this marker for the worklist.
+  // eslint-disable-next-line no-restricted-syntax -- see TODO above
   const today = now.toISOString().slice(0, 10);
   const live = rows.filter(
     (r) =>

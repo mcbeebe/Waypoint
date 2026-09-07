@@ -246,7 +246,11 @@ export default function CalendarScreen() {
           occurrenceId: occ.occurrenceId,
           isVirtual: occ.isVirtual,
         };
-        const day = occ.start_time.split('T')[0];
+        // The LOCAL day this occurrence falls on. Slicing the UTC instant
+        // put a 6pm Thursday appointment under Friday for every family west
+        // of Greenwich — and the first pass at this fix changed only the
+        // lookup key below, leaving the two sides disagreeing.
+        const day = toLocalISODate(new Date(occ.start_time));
         if (!groups[day]) groups[day] = [];
         groups[day].push(display);
       }

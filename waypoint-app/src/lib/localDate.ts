@@ -50,6 +50,29 @@ export function todayLocalISO(now: Date = new Date()): string {
 }
 
 /**
+ * Parse a Postgres `date` (`YYYY-MM-DD`) as **local** midnight.
+ *
+ * THE OTHER HALF OF THE BUG. `toLocalISODate` handles Date -> string. This is
+ * string -> Date, and it is the direction the first sweep of this class MISSED
+ * entirely. A bare `new Date('2026-01-15')` is parsed as UTC midnight by spec,
+ * which is 4pm on the 14th in California — so anything that then reads local
+ * calendar fields off it is a day early across the whole of the Americas, not
+ * just the west coast. Verified: `new Date('2026-01-15')` renders "Jan 14" in
+ * both America/Los_Angeles and America/New_York.
+ *
+ * Passing a value with a time component through is deliberate: a `timestamptz`
+ * is an instant and already means one unambiguous moment.
+ *
+ * @param dateStr - `YYYY-MM-DD`, or a full ISO timestamp
+ * @returns a Date at local midnight of that calendar day
+ */
+export function parseLocalDate(dateStr: string): Date {
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+    ? new Date(`${dateStr}T00:00:00`)
+    : new Date(dateStr);
+}
+
+/**
  * Add calendar days to a `YYYY-MM-DD`, staying on the local calendar.
  *
  * Lives here rather than in `iepDeadlines.ts` because it is pure date math and
@@ -63,7 +86,7 @@ export function todayLocalISO(now: Date = new Date()): string {
  * @returns the resulting local calendar day
  */
 export function addDaysISO(dateStr: string, days: number): string {
-  const d = new Date(dateStr + 'T00:00:00');
+  const d = parseLocalDate(dateStr);
   d.setDate(d.getDate() + days);
   return toLocalISODate(d);
 }
@@ -76,7 +99,7 @@ export function addDaysISO(dateStr: string, days: number): string {
  * @returns the resulting local calendar day
  */
 export function addYearsISO(dateStr: string, years: number): string {
-  const d = new Date(dateStr + 'T00:00:00');
+  const d = parseLocalDate(dateStr);
   d.setFullYear(d.getFullYear() + years);
   return toLocalISODate(d);
 }

@@ -152,6 +152,8 @@ export function useBilling(): UseBillingReturn {
   const createInvoice: UseBillingReturn['createInvoice'] = useCallback(async (draft, meta) => {
     if (!orgId || draft.lines.length === 0) return false;
     try {
+      // TODO(dates): HELD FOR OWNER APPROVAL — this is the UTC-day bug (see localDate.ts), not an exemption. It sits in the money/staff lane, which CLAUDE.md stops at. Grep this marker for the worklist.
+      // eslint-disable-next-line no-restricted-syntax -- see TODO above
       const number = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random()
         .toString(36)
         .slice(2, 8)
@@ -166,6 +168,8 @@ export function useBilling(): UseBillingReturn {
           family_id: meta.familyId ?? null,
           case_id: meta.caseId ?? null,
           status: 'draft',
+          // TODO(dates): HELD FOR OWNER APPROVAL — this is the UTC-day bug (see localDate.ts), not an exemption. It sits in the money/staff lane, which CLAUDE.md stops at. Grep this marker for the worklist.
+          // eslint-disable-next-line no-restricted-syntax -- see TODO above
           issued_on: new Date().toISOString().slice(0, 10),
           total_cents: draft.totalCents,
         })
@@ -197,6 +201,8 @@ export function useBilling(): UseBillingReturn {
     const next = NEXT_STATUS[invoice.status];
     if (!next) return false;
     const patch: Partial<Invoice> = { status: next };
+    // TODO(dates): HELD FOR OWNER APPROVAL — this is the UTC-day bug (see localDate.ts), not an exemption. It sits in the money/staff lane, which CLAUDE.md stops at. Grep this marker for the worklist.
+    // eslint-disable-next-line no-restricted-syntax -- see TODO above
     if (next === 'paid') patch.paid_on = new Date().toISOString().slice(0, 10);
     const { error: e } = await supabase.from('invoices').update(patch).eq('id', invoice.id);
     if (e) {

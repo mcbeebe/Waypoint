@@ -429,6 +429,8 @@ export function useSdpCase(params: { caseId?: string; familyId?: string }): UseS
         .from('transition_extensions')
         .insert({
           case_id: sdpCase.id,
+          // TODO(dates): HELD FOR OWNER APPROVAL — this is the UTC-day bug (see localDate.ts), not an exemption. It sits in the money/staff lane, which CLAUDE.md stops at. Grep this marker for the worklist.
+          // eslint-disable-next-line no-restricted-syntax -- see TODO above
           requested_on: new Date().toISOString().slice(0, 10),
           additional_hours: additionalHours,
           notes: notes ?? null,
@@ -458,11 +460,15 @@ export function useSdpCase(params: { caseId?: string; familyId?: string }): UseS
             case_id: sdpCase.id,
             family_id: sdpCase.family_id,
             kind: b.kind,
+            // TODO(dates): HELD FOR OWNER APPROVAL — this is the UTC-day bug (see localDate.ts), not an exemption. It sits in the money/staff lane, which CLAUDE.md stops at. Grep this marker for the worklist.
+            // eslint-disable-next-line no-restricted-syntax -- see TODO above
             captured_on: captured.toISOString().slice(0, 10),
             services_in_place: b.servicesInPlace,
             unmet_needs: b.unmetNeeds,
             coordination_hours_per_week: b.coordinationHoursPerWeek,
             caregiver_strain: b.caregiverStrain,
+            // TODO(dates): HELD FOR OWNER APPROVAL — this is the UTC-day bug (see localDate.ts), not an exemption. It sits in the money/staff lane, which CLAUDE.md stops at. Grep this marker for the worklist.
+            // eslint-disable-next-line no-restricted-syntax -- see TODO above
             remeasure_due_on: b.kind === '12mo' ? null : remeasure.toISOString().slice(0, 10),
           },
           { onConflict: 'case_id,kind' }

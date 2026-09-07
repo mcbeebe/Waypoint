@@ -71,6 +71,7 @@ import {
   type SortDir,
 } from '@/lib/actionSort';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { parseLocalDate } from '@/lib/localDate';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -1067,7 +1068,11 @@ function reverseHint(locale: ActionLocale): string {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
+  // A `date` column parsed bare is UTC midnight, which renders as the day
+  // BEFORE across all of the Americas — so a card could read
+  // "Overdue: Jan 14" for an action due Jan 15, contradicting the overdue
+  // badge beside it, which was already computed on the local day.
+  const d = parseLocalDate(dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 

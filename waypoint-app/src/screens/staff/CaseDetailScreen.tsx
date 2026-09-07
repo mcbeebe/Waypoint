@@ -212,6 +212,8 @@ export default function CaseDetailScreen() {
                     if (!cents) return showToast('Enter a dollar amount', 'error');
                     const ok = await updateCase({
                       certified_budget_cents: cents,
+                      // TODO(dates): HELD FOR OWNER APPROVAL — this is the UTC-day bug (see localDate.ts), not an exemption. It sits in the money/staff lane, which CLAUDE.md stops at. Grep this marker for the worklist.
+                      // eslint-disable-next-line no-restricted-syntax -- see TODO above
                       budget_certified_on: new Date().toISOString().slice(0, 10),
                     });
                     showToast(ok ? 'Budget recorded' : 'Could not save', ok ? 'success' : 'error');

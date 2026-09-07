@@ -48,6 +48,7 @@ import { STATUS_META, metaHeading, statusLabel, type ActionLocale } from '@/lib/
 import { useI18n } from '@/i18n';
 import { formatAddedOn } from '@/lib/actionFreshness';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { parseLocalDate } from '@/lib/localDate';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -988,7 +989,11 @@ function formatNoteDate(dateStr: string): string {
 }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
+  // A `date` column parsed bare is UTC midnight, which renders as the day
+  // BEFORE across all of the Americas — so a card could read
+  // "Overdue: Jan 14" for an action due Jan 15, contradicting the overdue
+  // badge beside it, which was already computed on the local day.
+  const d = parseLocalDate(dateStr);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 

@@ -15,6 +15,7 @@ import { Platform, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Deadline } from '@/types/database';
 import { diffReminders, type ReminderSpec } from '@/lib/notificationPolicy';
+import { parseLocalDate } from '@/lib/localDate';
 
 const NOTIFICATION_IDS_KEY = 'waypoint_notification_ids';
 /** key → scheduled-notification id, for the policy-driven outbound loop
@@ -173,7 +174,10 @@ export function useNotifications(): UseNotificationsReturn {
     // Cancel any existing notifications for this deadline first
     await cancelDeadlineReminders(deadline.id);
 
-    const dueDate = new Date(deadline.due_date);
+    // `due_date` is a Postgres `date`. Parsed bare it is UTC midnight — 4pm
+    // the PREVIOUS day in California — so every reminder fired a day early
+    // and the same-day push said "due today" the day before it was due.
+    const dueDate = parseLocalDate(deadline.due_date);
     const now = new Date();
     const scheduledIds: string[] = [];
 
