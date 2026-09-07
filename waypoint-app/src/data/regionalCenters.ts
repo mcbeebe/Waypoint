@@ -1,7 +1,13 @@
 /**
  * California Regional Center directory, ZIP → RC mapping, and lookup helpers.
- * ZIP_TO_RC ~lines 786-803, ZIP_5_OVERRIDES + lookupRC ~lines 805-821).
-  *
+ *
+ * Originally ported from the Apps Script MVP's ZIP_TO_RC / lookupRC. That
+ * surface was retired and archived on 2026-09-07
+ * (Archive/Retired-Surfaces/gas-mvp/Index.html) and its tables are known to be
+ * WRONG — it routes the city of San Diego to Inland Regional Center and the
+ * entire north coast to North Bay. THIS FILE is authoritative; never port a
+ * value back from there or treat it as a second source.
+ *
  * NOTE ON ACCURACY (added after the Aug 2026 content audit): this file contains
  * dated legal figures and statutory timelines. It is NOT frozen — when a law,
  * rate, or deadline changes, UPDATE IT, and verify edits against current
@@ -155,7 +161,7 @@ export function rcByCode(code: string): RegionalCenter | null {
 
 /**
  * Match a ZIP code to its Regional Center.
- * Ported from the GAS lookupRC: 5-digit boundary overrides are checked first,
+ * Structure follows the archived GAS lookupRC: 5-digit boundary overrides first,
  * then the 3-digit prefix map. Returns null when no match.
  */
 export function lookupRC(zip: string): RegionalCenter | null {
