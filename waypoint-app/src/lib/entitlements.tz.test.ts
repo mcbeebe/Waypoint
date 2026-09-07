@@ -9,6 +9,12 @@ import type { SponsorType, EntitlementStatus } from '@/types/database';
  * West catches Premium dropped early (UTC flips ahead at 5pm PDT); east
  * catches Premium granted late on the start day and held past local
  * midnight at the end.
+ *
+ * The contract is asymmetric on purpose (see resolveEntitlement): a period
+ * ENDS on the family's local day, but a row counts as STARTED on either
+ * the local or the UTC day — the writers (stripe-webhook, the column's
+ * current_date default) stamp the UTC day, and a family that pays at
+ * 5:30pm PDT must not wait until midnight for Premium.
  */
 
 function row(overrides: Partial<{
@@ -51,9 +57,17 @@ describe('resolveEntitlement uses the local calendar day', () => {
     expect(r.isPremium).toBe(true);
   });
 
-  it('a grant starting tomorrow is not live late tonight', () => {
-    const lateNightBeforeStart = new Date(2026, 7, 31, 23, 0, 0);
-    const r = resolveEntitlement([row({ period_start: '2026-09-01' })], lateNightBeforeStart);
+  it('a subscription bought this evening is Premium immediately, even though the webhook stamps the UTC day', () => {
+    const eveningPurchase = new Date(2026, 8, 1, 17, 30, 0);
+    // What stripe-webhook writes for a purchase at this instant.
+    const stampedStart = eveningPurchase.toISOString().slice(0, 10);
+    const r = resolveEntitlement([row({ period_start: stampedStart })], eveningPurchase);
+    expect(r.isPremium).toBe(true);
+  });
+
+  it('a grant starting well in the future is not live tonight', () => {
+    const tonight = new Date(2026, 8, 1, 17, 30, 0);
+    const r = resolveEntitlement([row({ period_start: '2026-09-03' })], tonight);
     expect(r.isPremium).toBe(false);
   });
 });

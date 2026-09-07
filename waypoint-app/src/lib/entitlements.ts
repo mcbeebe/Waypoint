@@ -28,14 +28,27 @@ const SPONSOR_LABELS: Record<Exclude<SponsorType, 'self'>, string> = {
 type Row = Pick<Entitlement, 'sponsor_type' | 'status' | 'period_start' | 'period_end'>;
 
 export function resolveEntitlement(rows: Row[], now = new Date()): ResolvedEntitlement {
-  // period_start/period_end are Postgres `date` columns; compare against the
-  // family's local day, not the UTC day (which flips at 5pm PDT).
-  const today = localDayISO(now);
+  // period_start/period_end are Postgres `date` columns, and the two ends
+  // compare against different day-reckonings ON PURPOSE — both resolve
+  // doubt in the family's favor:
+  //   · ENDS against the family's local day: Premium runs through their own
+  //     calendar day and stops at their midnight, not at 5pm PDT when the
+  //     UTC day flips.
+  //   · STARTS against the LATER of the local and UTC day: the writers
+  //     (stripe-webhook, the column's current_date default) stamp the UTC
+  //     day, which after 5pm in California is tomorrow's date — a family
+  //     that just paid must not wait until local midnight for Premium.
+  // Server-side twin: the tier resolution in
+  // supabase/functions/ai-proxy/index.ts accepts UTC±1 day for the same
+  // reason — change one, change the other.
+  const localToday = localDayISO(now);
+  const utcToday = now.toISOString().slice(0, 10);
+  const startedBy = utcToday > localToday ? utcToday : localToday;
   const live = rows.filter(
     (r) =>
       r.status === 'active' &&
-      r.period_start <= today &&
-      (r.period_end === null || r.period_end >= today)
+      r.period_start <= startedBy &&
+      (r.period_end === null || r.period_end >= localToday)
   );
   if (live.length === 0) return { isPremium: false, sponsorType: null, sponsorLabel: null };
   // A sponsored grant labels the experience even when a self-sub also exists.

@@ -108,6 +108,9 @@ Deno.serve(async (req) => {
             sponsor_type: 'self',
             source: subscriptionId,
             status: 'active',
+            // The UTC day — after 5pm in California this is tomorrow's date.
+            // resolveEntitlement (src/lib/entitlements.ts) accepts a UTC-day
+            // start on purpose so an evening purchase is Premium immediately.
             period_start: new Date().toISOString().slice(0, 10),
             period_end: null,
           });
