@@ -154,6 +154,28 @@ describe('ZIP routing — regression fixtures', () => {
   });
 });
 
+describe('Phone numbers', () => {
+  /**
+   * Harbor RC shipped (310) 540-1711 until 2026-09-07 — a legacy line that
+   * survives only because third-party directories scrape each other (Yelp,
+   * ZoomInfo, LA County locator, 211LA). Searches scoped to harborrc.org and
+   * dds.ca.gov return (310) 543-0100 as the main line, and the corroborating
+   * fields have the current exchange too: fax 310-540-9538 is the old one,
+   * while Early Start intake 310-543-0102 and the Torrance receptionist
+   * 310-543-7993 share 543-xxxx. Pinned so a future "helpful" sync from an
+   * aggregator cannot quietly put the dead number back.
+   */
+  it('ships Harbor RC the current main line, not the legacy 540-1711', () => {
+    expect(rcByCode('HRC')?.phone).toBe('(310) 543-0100');
+  });
+
+  it('every center ships a plausibly-formatted 10-digit phone', () => {
+    for (const rc of RC_DATABASE) {
+      expect(rc.phone, rc.code).toMatch(/^\(\d{3}\) \d{3}-\d{4}$/);
+    }
+  });
+});
+
 describe('County routing', () => {
   it('assigns Mariposa to Central Valley RC (not Valley Mountain)', () => {
     expect(rcByCounty('Mariposa')?.code).toBe('CVRC');
