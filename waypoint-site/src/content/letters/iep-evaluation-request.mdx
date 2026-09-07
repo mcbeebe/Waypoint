@@ -13,9 +13,11 @@ disclaimerVariant: legal
 
 {/*
   DRAFT — letter #1 (fixed slug; letterId is the D3 letter_copied identity).
-  EN letter body ported from the prototype (which ports gas-mvp's polished
-  letter); ES text ships on this page via the toggle now, and the /es/ page
-  twin waits for Phase 2 routing (D12).
+  REVISED 2026-09-07 per founder edit: friendly, collaborative, less formal,
+  minimal legalese — per the escalation-ladder rule (first touch always
+  asks), while keeping the legally operative elements: a clear WRITTEN
+  request, "all areas of suspected disability", and one plain citation that
+  starts the 15-day clock. ES twin rewritten to match the same register.
   [TBC: verify — CA Ed Code §56321 15-calendar-day response + 60-day
    evaluation after signed consent; school-break pause rule]
   [TBC: verify — CA Ed Code §56344 (IEP meeting timeline)]
@@ -46,19 +48,19 @@ import LetterBlock from '../../components/LetterBlock.astro';
   <div slot="en">
     <p><span class="fill">[Date]</span></p>
     <p>Dear <span class="fill">[Principal's name]</span> and <span class="fill">[Special-education director's name]</span>,</p>
-    <p>I am the parent of <span class="fill">[Child's full name]</span> (date of birth <span class="fill">[DOB]</span>), a <span class="fill">[grade]</span> student at <span class="fill">[School name]</span>. I am writing to formally request a comprehensive special education evaluation of my child in <b>all areas of suspected disability</b>, including <span class="fill">[brief summary of your concerns — e.g., communication, social interaction, attention, sensory needs]</span>.</p>
-    <p>I understand that under California Education Code §56321, the district must respond to this written request with a proposed assessment plan within <b>15 calendar days</b>, and complete the evaluation within <b>60 days</b> of receiving my signed consent. Please treat this letter as the start of that timeline.</p>
-    <p>Kindly send your written response and the assessment plan to me at the contact information below. I consent to being contacted to schedule any meetings, and I am glad to share records or observations that would help your team.</p>
-    <p>Thank you for partnering with me in my child's education.</p>
+    <p>I'm the parent of <span class="fill">[Child's full name]</span> (born <span class="fill">[DOB]</span>), a <span class="fill">[grade]</span> student at <span class="fill">[School name]</span>. I'm reaching out because I've been seeing some things that worry me — especially around <span class="fill">[brief summary of your concerns — e.g., communication, social interaction, attention, sensory needs]</span> — and I'd like your team's help understanding what's going on.</p>
+    <p>So we can all work from the same information, I'd like to ask for a special education evaluation of <span class="fill">[Child's first name]</span> in <b>all areas of suspected disability</b>. Please treat this letter as my written request — I understand that starts a <b>15-calendar-day</b> window for the assessment plan, and <b>60 days</b> after I sign it for the evaluation (Ed Code §56321), so I wanted to get us going.</p>
+    <p>I'm glad to help however I can — records, notes from home, or a conversation. Please send the assessment plan and any questions to me at the contact information below.</p>
+    <p>Thank you for everything you do for <span class="fill">[Child's first name]</span>. I'm looking forward to working on this together.</p>
     <p>Sincerely,<br /><span class="fill">[Your full name]</span><br /><span class="fill">[Address · phone · email]</span></p>
   </div>
   <div slot="es">
     <p><span class="fill">[Fecha]</span></p>
     <p>Estimado/a <span class="fill">[Nombre del director/a]</span> y <span class="fill">[Nombre del director/a de educación especial]</span>:</p>
-    <p>Soy madre/padre de <span class="fill">[Nombre completo del niño/a]</span> (fecha de nacimiento: <span class="fill">[fecha]</span>), estudiante de <span class="fill">[grado]</span> en <span class="fill">[Nombre de la escuela]</span>. Por medio de la presente solicito formalmente una evaluación integral de educación especial para mi hijo/a en <b>todas las áreas de posible discapacidad</b>, incluyendo <span class="fill">[resumen breve de sus preocupaciones — p. ej., comunicación, interacción social, atención, necesidades sensoriales]</span>.</p>
-    <p>Entiendo que, conforme al Código de Educación de California §56321, el distrito debe responder a esta solicitud escrita con un plan de evaluación propuesto dentro de <b>15 días calendario</b>, y completar la evaluación dentro de <b>60 días</b> a partir de mi consentimiento firmado. Les pido que consideren esta carta como el inicio de ese plazo.</p>
-    <p>Por favor envíenme su respuesta por escrito, junto con el plan de evaluación, a los datos de contacto indicados abajo. Doy mi consentimiento para que me contacten para programar cualquier reunión, y con gusto compartiré expedientes u observaciones que puedan ayudar a su equipo.</p>
-    <p>Gracias por colaborar conmigo en la educación de mi hijo/a.</p>
+    <p>Soy madre/padre de <span class="fill">[Nombre completo del niño/a]</span> (nacido/a el <span class="fill">[fecha]</span>), estudiante de <span class="fill">[grado]</span> en <span class="fill">[Nombre de la escuela]</span>. Les escribo porque he notado algunas cosas que me preocupan — especialmente en cuanto a <span class="fill">[resumen breve de sus preocupaciones — p. ej., comunicación, interacción social, atención, necesidades sensoriales]</span> — y me gustaría contar con la ayuda de su equipo para entender qué está pasando.</p>
+    <p>Para que todos tengamos la misma información, quisiera pedir una evaluación de educación especial para <span class="fill">[nombre del niño/a]</span> en <b>todas las áreas de posible discapacidad</b>. Les pido que consideren esta carta como mi solicitud por escrito — entiendo que con ella empieza un plazo de <b>15 días calendario</b> para el plan de evaluación, y de <b>60 días</b> después de mi firma para completar la evaluación (Código de Educación §56321), así que quise ponernos en marcha.</p>
+    <p>Con gusto ayudo en lo que haga falta — expedientes, observaciones de casa, o una conversación. Por favor envíenme el plan de evaluación y cualquier pregunta a los datos de contacto de abajo.</p>
+    <p>Gracias por todo lo que hacen por <span class="fill">[nombre del niño/a]</span>. Me da gusto trabajar en esto juntos.</p>
     <p>Atentamente,<br /><span class="fill">[Su nombre completo]</span><br /><span class="fill">[Dirección · teléfono · correo electrónico]</span></p>
   </div>
 </LetterBlock>

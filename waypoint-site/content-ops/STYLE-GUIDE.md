@@ -26,6 +26,14 @@ Every piece follows the same three-beat arc:
 - Acronyms: spell out on first use with the acronym in parentheses, then acronym alone. Exception: IEP and SSI may stand alone after the summary box defines them.
 - We never promise outcomes. We promise the process and the parent's rights within it.
 - No legalese cosplay: "ask for," not "request that"; "the law says," not "pursuant to."
+- **Template letters sound like a warm, organized parent — not a paralegal**
+  (owner edit, Sept 7 2026, consistent with the escalation ladder: the first
+  touch always *asks*). Friendly and collaborative, slightly informal, direct
+  and clear. Keep the legally operative elements — it's a *written* request,
+  it names the scope, it cites the statute exactly once, plainly — and cut
+  everything that sounds like a filing ("formally request," "kindly,"
+  "per/pursuant to"). Firmness is for the follow-up letters up the ladder,
+  not the first ask.
 
 ### 1.1 Approach-agnostic on therapies (owner decision, Sept 7 2026)
 
