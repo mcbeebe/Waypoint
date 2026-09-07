@@ -20,6 +20,7 @@ import type {
   StaffMember,
 } from '@/types/database';
 import { deadlineFor } from '@/lib/requestClocks';
+import { localDayISO } from '@/lib/dateOnly';
 import type { RequestType } from '@/lib/requestClocks';
 import { transitionHoursStatus, canLogTransitionMinutes } from '@/lib/transitionHours';
 import { rankCaseload } from '@/lib/caseloadRanking';
@@ -429,7 +430,9 @@ export function useSdpCase(params: { caseId?: string; familyId?: string }): UseS
         .from('transition_extensions')
         .insert({
           case_id: sdpCase.id,
-          requested_on: new Date().toISOString().slice(0, 10),
+          // Local day, same as every other requested_on — the UTC slice is
+          // tomorrow every evening in California.
+          requested_on: localDayISO(new Date()),
           additional_hours: additionalHours,
           notes: notes ?? null,
         })

@@ -51,6 +51,7 @@ import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
 import { deadlineFor } from '@/lib/requestClocks';
+import { localDayISO } from '@/lib/dateOnly';
 import type { RequestDeadline } from '@/lib/requestClocks';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
@@ -349,7 +350,10 @@ export default function LettersScreen() {
         const created = await createRequest({
           request_type: track.requestType,
           title: trackTitle ?? track.title,
-          requested_on: new Date().toISOString().slice(0, 10),
+          // The family's local day, not the UTC one: after 5pm Pacific the
+          // UTC slice is tomorrow, which would start the statutory clock a
+          // day late and show a request dated a day the family hasn't lived.
+          requested_on: localDayISO(new Date()),
           child_id: primaryChild?.id ?? null,
           channel: 'email',
           notes: 'Sent via Waypoint Letters',
@@ -373,9 +377,9 @@ export default function LettersScreen() {
     ) {
       updateChild(primaryChild.id, { medi_cal_status: 'applied' }).catch(() => undefined);
     }
-    const deadline = track
-      ? deadlineFor(track.requestType, new Date().toISOString().slice(0, 10))
-      : null;
+    // Anchor the statutory clock on the family's local day — the UTC slice
+    // is tomorrow every evening in California, a due date the law never gave.
+    const deadline = track ? deadlineFor(track.requestType, localDayISO(new Date())) : null;
     setSentMoment({ next, deadline, tracked });
   }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId]);
 

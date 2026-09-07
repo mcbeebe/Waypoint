@@ -45,6 +45,7 @@ import {
   type EntityStandings,
 } from '@/lib/journeyActions';
 import { onPlanTitles } from '@/lib/planMembership';
+import { ageFromDob } from '@/lib/eligibility';
 import { useRequests } from '@/hooks/useRequests';
 import { MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
 import { useI18n } from '@/i18n';
@@ -52,16 +53,6 @@ import { Card } from '@/components/ui';
 import { Brandmark } from '@/components/Brandmark';
 import { useTextScale } from '@/lib/textSize';
 import { colors, brand, fonts, spacing, radii, semantic } from '@/lib/theme';
-
-function ageYears(dob: string | null): number {
-  if (!dob) return 0;
-  const birth = new Date(dob);
-  const now = new Date();
-  let years = now.getFullYear() - birth.getFullYear();
-  const m = now.getMonth() - birth.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) years--;
-  return Math.max(0, years);
-}
 
 export default function JourneyScreen() {
   const navigation = useNavigation();
@@ -95,7 +86,10 @@ export default function JourneyScreen() {
     () => getJourneyKeyForDiagnosis(diagnoses.map(d => d.name)),
     [diagnoses]
   );
-  const years = ageYears(primaryChild?.date_of_birth ?? null);
+  // ageFromDob reads the dob on the LOCAL calendar (a duplicate here used to
+  // parse it as UTC midnight — "You are here" jumped a phase a day early
+  // around birthdays in the Americas). Unknown dob pins the youngest phase.
+  const years = Math.max(0, ageFromDob(primaryChild?.date_of_birth) ?? 0);
   const currentPhase = getPhaseIndexForAge(years, journey);
 
   // Live standings so the map agrees with the Resource Stack: rows for

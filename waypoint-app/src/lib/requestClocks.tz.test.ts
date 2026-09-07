@@ -14,6 +14,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { deadlineFor } from './requestClocks';
+import { localDayISO } from './dateOnly';
 
 const NOW = new Date(2026, 7, 29, 9, 0, 0); // Aug 29 2026, local
 
@@ -54,5 +55,34 @@ describe('a statutory due date is the family’s calendar date', () => {
     const dl = deadlineFor('ipp_meeting', '2026-07-01', NOW)!;
     expect(dl.dueOn).toBe('2026-07-31');
     expect(dl.overdue).toBe(true);
+  });
+});
+
+describe('the send-day anchor (LettersScreen / Request Tracker founding row)', () => {
+  // Marking a letter sent anchors a statutory clock on TODAY. The screen used
+  // to slice the UTC string — which, after 5pm Pacific, is tomorrow: the row
+  // said the family asked on a day they hadn't lived yet, and the citation's
+  // due date arrived one day later than the law allows. The anchor must be
+  // the family's local calendar day.
+  const SENT_AT = new Date(2026, 8, 6, 18, 30); // Sep 6 2026, 6:30pm local
+
+  it('anchors on the local calendar day of the send, in any timezone', () => {
+    // In Los Angeles the UTC slice of this instant is 2026-09-07 — the
+    // regression this pins. In Ho Chi Minh City the two agree; the west
+    // project is the one this assertion bites in.
+    expect(localDayISO(SENT_AT)).toBe('2026-09-06');
+  });
+
+  it('gives the 30-day IPP clock its lawful due date from the send day', () => {
+    const dl = deadlineFor('ipp_meeting', localDayISO(SENT_AT), SENT_AT)!;
+    expect(dl.dueOn).toBe('2026-10-06');
+    expect(dl.daysRemaining).toBe(30);
+    expect(dl.overdue).toBe(false);
+  });
+
+  it('holds for the 15-day assessment-plan clock', () => {
+    const dl = deadlineFor('iep_evaluation', localDayISO(SENT_AT), SENT_AT)!;
+    expect(dl.dueOn).toBe('2026-09-21');
+    expect(dl.daysRemaining).toBe(15);
   });
 });
