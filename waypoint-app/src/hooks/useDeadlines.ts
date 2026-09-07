@@ -103,24 +103,11 @@ export function useDeadlines(options: UseDeadlinesOptions) {
     await updateDeadline(id, { status: 'completed' as DeadlineStatus });
   }, [updateDeadline]);
 
-  /** Auto-compute overdue statuses */
-  const refreshStatuses = useCallback(async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const overdue = deadlines.filter(
-      (d) => d.status !== 'completed' && d.due_date < today
-    );
-    for (const d of overdue) {
-      if (d.status !== 'overdue') {
-        await updateDeadline(d.id, { status: 'overdue' as DeadlineStatus });
-      }
-    }
-  }, [deadlines, updateDeadline]);
-
   const refetch = useCallback(async () => {
     setLoading(true);
     await fetchDeadlines();
     setLoading(false);
   }, [fetchDeadlines]);
 
-  return { deadlines, loading, error, createDeadline, updateDeadline, markComplete, refreshStatuses, refetch };
+  return { deadlines, loading, error, createDeadline, updateDeadline, markComplete, refetch };
 }

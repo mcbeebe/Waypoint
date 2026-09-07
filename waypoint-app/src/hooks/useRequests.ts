@@ -5,6 +5,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { localDayISO } from '@/lib/dateOnly';
 import type { RequestType } from '@/lib/requestClocks';
 
 export interface FamilyRequest {
@@ -101,7 +102,7 @@ export function useRequests(familyId: string | undefined) {
       const decided = status === 'granted' || status === 'denied';
       const patch: Record<string, unknown> = {
         status,
-        decided_on: decided ? new Date().toISOString().slice(0, 10) : null,
+        decided_on: decided ? localDayISO() : null,
         updated_at: new Date().toISOString(),
       };
       const { error: updateError } = await supabase

@@ -9,6 +9,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { localDayISO } from '@/lib/dateOnly';
 import type {
   Family,
   SdpCase,
@@ -429,7 +430,7 @@ export function useSdpCase(params: { caseId?: string; familyId?: string }): UseS
         .from('transition_extensions')
         .insert({
           case_id: sdpCase.id,
-          requested_on: new Date().toISOString().slice(0, 10),
+          requested_on: localDayISO(),
           additional_hours: additionalHours,
           notes: notes ?? null,
         })
@@ -458,12 +459,12 @@ export function useSdpCase(params: { caseId?: string; familyId?: string }): UseS
             case_id: sdpCase.id,
             family_id: sdpCase.family_id,
             kind: b.kind,
-            captured_on: captured.toISOString().slice(0, 10),
+            captured_on: localDayISO(captured),
             services_in_place: b.servicesInPlace,
             unmet_needs: b.unmetNeeds,
             coordination_hours_per_week: b.coordinationHoursPerWeek,
             caregiver_strain: b.caregiverStrain,
-            remeasure_due_on: b.kind === '12mo' ? null : remeasure.toISOString().slice(0, 10),
+            remeasure_due_on: b.kind === '12mo' ? null : localDayISO(remeasure),
           },
           { onConflict: 'case_id,kind' }
         )
