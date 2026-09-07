@@ -9,6 +9,7 @@ import { describe, it, expect } from 'vitest';
 import {
   RC_DATABASE,
   ZIP_TO_RC,
+  ZIP_5_OVERRIDES,
   lookupRC,
   rcByCode,
   rcByCounty,
@@ -72,8 +73,78 @@ describe('ZIP routing — regression fixtures', () => {
   });
 
   it('honors boundary-ZIP overrides before prefix rules', () => {
-    expect(lookupRC('93901')?.code).toBe('SARC'); // Salinas (933 prefix would say KRC)
+    expect(lookupRC('93901')?.code).toBe('SARC'); // Salinas — 939 prefix (comment previously misread this as 933)
     expect(lookupRC('95361')?.code).toBe('VMRC'); // Oakdale
+  });
+
+  // --- 2026-09-07: county-line misroutes found by the RC verification pass ---
+  // Each of these prefixes had been mapped to a single center, silently sending
+  // every family on the other side of the county line to the wrong agency.
+
+  it('routes Imperial County to San Diego RC, not Inland (the 922 straddle)', () => {
+    expect(lookupRC('92243')?.code).toBe('SDRC'); // El Centro — SDRC has an office here
+    expect(lookupRC('92231')?.code).toBe('SDRC'); // Calexico
+    expect(lookupRC('92227')?.code).toBe('SDRC'); // Brawley
+  });
+
+  it('still routes the Coachella Valley to Inland RC (the other half of 922)', () => {
+    expect(lookupRC('92201')?.code).toBe('IRC'); // Indio
+    expect(lookupRC('92262')?.code).toBe('IRC'); // Palm Springs
+  });
+
+  it('routes Merced County to Central Valley RC, not Valley Mountain (953)', () => {
+    expect(lookupRC('95340')?.code).toBe('CVRC'); // Merced
+    expect(lookupRC('95301')?.code).toBe('CVRC'); // Atwater
+  });
+
+  it('still routes Stanislaus to Valley Mountain (the other half of 953)', () => {
+    expect(lookupRC('95350')?.code).toBe('VMRC'); // Modesto
+    expect(lookupRC('95380')?.code).toBe('VMRC'); // Turlock
+  });
+
+  it('routes Humboldt and Del Norte to Redwood Coast, not North Bay (955)', () => {
+    expect(lookupRC('95501')?.code).toBe('RCRC'); // Eureka
+    expect(lookupRC('95521')?.code).toBe('RCRC'); // Arcata
+    expect(lookupRC('95531')?.code).toBe('RCRC'); // Crescent City — Del Norte
+  });
+
+  it('routes Mendocino and Lake to Redwood Coast, not North Bay (the 954 straddle)', () => {
+    expect(lookupRC('95482')?.code).toBe('RCRC'); // Ukiah
+    expect(lookupRC('95437')?.code).toBe('RCRC'); // Fort Bragg
+    expect(lookupRC('95453')?.code).toBe('RCRC'); // Lakeport — Lake County
+  });
+
+  it('still routes Sonoma to North Bay (the other half of 954)', () => {
+    expect(lookupRC('95401')?.code).toBe('NBRC'); // Santa Rosa
+    expect(lookupRC('95476')?.code).toBe('NBRC'); // Sonoma
+  });
+
+  it('falls back to the picker rather than guessing a straddling prefix', () => {
+    // A ZIP inside a removed prefix with no override must return null — the UI
+    // then asks for the county. Wrong-but-confident is the failure mode we are
+    // buying our way out of here.
+    expect(lookupRC('92259')).toBeNull(); // Ocotillo — Imperial, not overridden
+    expect(lookupRC('95374')).toBeNull(); // Stevinson — Merced, not overridden
+    expect(lookupRC('95412')).toBeNull(); // Annapolis — Sonoma, not overridden
+  });
+
+  it('every 5-digit override names a center that exists', () => {
+    const codes = new Set(RC_DATABASE.map((rc) => rc.code));
+    for (const [zip, code] of Object.entries(ZIP_5_OVERRIDES)) {
+      expect(codes.has(code), `${zip} -> ${code}`).toBe(true);
+      expect(zip).toMatch(/^\d{5}$/);
+    }
+  });
+
+  it('no 5-digit override contradicts its own 3-digit prefix silently', () => {
+    // An override whose prefix is still in ZIP_TO_RC and disagrees with it is a
+    // deliberate boundary exception; one whose prefix is absent is part of a
+    // straddle set. Either is fine — but the override must actually change the
+    // answer, or it is dead weight pretending to be a fix.
+    for (const [zip, code] of Object.entries(ZIP_5_OVERRIDES)) {
+      const prefixCode = ZIP_TO_RC[zip.slice(0, 3)];
+      if (prefixCode) expect(prefixCode).not.toBe(code);
+    }
   });
 
   it('returns null for invalid or unknown ZIPs', () => {

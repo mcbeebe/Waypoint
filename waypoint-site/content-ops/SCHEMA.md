@@ -216,9 +216,14 @@ The credentialed-review attestation. `null` until the reviewer signs off.
 
 ### `changelog` — array of `{ date, note }`, default `[]`
 
-- **Purpose:** Human-readable history of substantive changes, shown to readers.
-  Parents making decisions off this content deserve to know what changed and
-  when. Also the audit trail connecting re-reviews and refreshes.
+- **Purpose:** The audit trail connecting drafts, re-reviews and refreshes —
+  a maintenance record, kept in frontmatter and in git.
+- **NOT rendered on the page.** It used to be (an on-page "Change log" block),
+  and the owner removed it on 2026-09-07: it was noise for a parent trying to
+  read a letter, and it invited engineering shorthand into public copy — a
+  published page shipped the string `esReady=false` to readers before it came
+  out. Freshness is still visible to readers through `dateModified` and the
+  trust block. Write entries for the next maintainer, not for parents.
 - **Who fills:** Whoever makes the change (founder for edits, Claude for drafts
   it updates — founder confirms).
 - **When it changes:** Append-only. Every post-publish substantive edit gets an
@@ -282,7 +287,7 @@ has the strictest freshness machinery on the site.
 | `intakePhone` | string or `null`, default `null` | Intake line as it should be dialed. **Never drafted from memory or training data — the YMYL rule.** Stays `null` (or a bracketed `[TBC …]` note in pre-publish statuses) until verified against the RC's own site; must be a real verified value or `null` at publish. Founder/script verifies. |
 | `intakeUrl` | URL or `null`, default `null` | The RC's own intake/eligibility page. Must be a valid URL (schema-validated) — a `[TBC]` string fails the build here, so unverified means `null`. Founder verifies. |
 | `ddsListingUrl` | URL or `null`, default `null` | This RC's entry on the DDS website — the independent cross-check for the contact data. Founder verifies. |
-| `verifiedAsOf` | date, **required** | When the contact data (`rcName`, `counties`, `intakePhone`, `intakeUrl`, `ddsListingUrl`) was last actually verified. See [freshness tiers](#verifiedasof-freshness-tiers) — this field is CI-enforced. Founder (or a verification script) sets it, **only** after real verification, never as a drive-by bump. |
+| `verifiedAsOf` | date **or `null`** | When the contact data (`rcName`, `counties`, `intakePhone`, `intakeUrl`, `ddsListingUrl`) was last actually verified. **`null` means never verified** — the honest state for a stub whose data is still an authored guess. See [freshness tiers](#verifiedasof-freshness-tiers) — CI-enforced. Founder (or a verification script) sets a date **only** after real verification, never as a drive-by bump. A page cannot publish with `null` here: the schema rejects it, so an unverified center can never reach a family. |
 | `notAffiliated` | literal `true`, default `true` | Renders the "Waypoint is not affiliated with this Regional Center or with DDS" notice. The type is `z.literal(true)`: it cannot be set to `false` — attempting to fails the build. Exists so the disclaimer can never be silently dropped. Script/schema owns it; humans leave it alone. |
 
 ### `research`
@@ -348,6 +353,17 @@ ladder, its own `review` block (bilingual or ES-competent reviewer), and it
 ---
 
 ## `verifiedAsOf` freshness tiers (regional-centers only)
+
+> **Why the field is nullable (changed 2026-09-07).** It used to be a required
+> non-nullable date, so an unverified stub had no way to say so — it had to
+> carry *some* date. All 21 RC stubs were generated carrying the same
+> `2026-09-06`, and a verification pass later found four of them had never been
+> checked against any source at all. A required date field had quietly
+> manufactured twenty-one verification claims, and the freshness tiers below
+> were measuring the age of a fiction. `null` now says "never verified", and the
+> publish refinement blocks `null` from shipping — so honesty is free before
+> publish and the guarantee at publish is exactly as strong as before.
+
 
 Contact data goes stale silently — an RC changes its intake number and no
 build fails. `verifiedAsOf` plus a CI check is the countermeasure. The check

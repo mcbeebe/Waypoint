@@ -46,11 +46,15 @@ serve.
 
 Recorded here because they have no other home and keep resurfacing:
 
-- **gas-mvp: wire clasp, or declare it frozen-legacy?** It is labelled
-  "Active — Production" and serves real families, yet deploys by manual
-  copy-paste while a `.clasp.json` with a real `scriptId` has sat unused since
-  March 2026. Today a commit there is not a deploy, and the running code can
-  differ from what is in git with nothing to detect it. *Owner's call.*
+- ~~**gas-mvp: wire clasp, or declare it frozen-legacy?**~~ **RESOLVED
+  2026-09-07 — neither: retired and archived.** The owner confirmed the surface
+  no longer serves users, and it moved to
+  `Archive/Retired-Surfaces/gas-mvp/` with a `.SUPERSEDED.md` record. The
+  clasp question is moot; nothing there deploys. Worth keeping the lesson the
+  question was circling: it was labelled "Active — Production" in CLAUDE.md for
+  months after that stopped being true, which is how a later session came to
+  prepare a production patch for a dead surface. A stale status label is not
+  free.
 - **`pages.yml`: manual only, or repoint at `main`?** Its automatic trigger
   was `push: branches: [dev]`, and no `dev` branch exists — so every deploy of
   the `docs/` web MVP has in fact been a manual dispatch. The dead trigger was

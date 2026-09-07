@@ -3,7 +3,9 @@
  *
  *   1. The 26 curated "Lite" articles from
  *      Waypoint-Lite-KB-Articles-ENHANCED-AI-SCHEMA-Feb2026.json
- *   2. The Entity Navigation Matrix v9.4 embedded in gas-mvp/Code.gs
+ *   2. The Entity Navigation Matrix v9.4 embedded in the archived Apps Script
+ *      MVP (Archive/Retired-Surfaces/gas-mvp/Code.gs — the surface was retired
+ *      2026-09-07, but this KB content outlives it and is still the seed source)
  *      (seedEntityKB + seedJourneyKB: entity guides, diagnosis journeys,
  *      age timeline, equity analysis, resource directories) — extracted by
  *      executing those functions in Node with a stubbed Sheets API, so the
@@ -20,7 +22,7 @@ const vm = require('vm');
 
 const ROOT = path.resolve(__dirname, '../..');
 const KB_JSON = path.join(ROOT, 'Waypoint-Lite-KB-Articles-ENHANCED-AI-SCHEMA-Feb2026.json');
-const GAS_CODE = path.join(ROOT, 'gas-mvp/Code.gs');
+const GAS_CODE = path.join(ROOT, 'Archive/Retired-Surfaces/gas-mvp/Code.gs');
 const OUT_FILE = path.resolve(__dirname, '../supabase/seed/kb_seed.sql');
 
 // ─── 1. Lite KB articles (same parsing rules as scripts/ingest-kb.ts) ───────

@@ -12,7 +12,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -29,6 +29,24 @@ disclaimerVariant: legal
      re-attributed to 17 CCR §52086. [TBC: human click-through before publish]
   [TBC: local respite/POS rows removed until the data build-out lands —
    prototype marked them (sample); we don't ship sample figures.]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "Regional Center of the East Bay, 500 Davis Street, Suite 100, San
+    Leandro, CA 94577, telephone (510) 618-6100, website www.rceb.org,
+    serving Alameda and Contra Costa Counties."
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (510) 618-6122
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://rceb.org/enrollment-over-3/
+  WEBSITE (not published): https://rceb.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
