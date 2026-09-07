@@ -1067,7 +1067,11 @@ function reverseHint(locale: ActionLocale): string {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
+  // due_date is a Postgres `date`; 'T00:00:00' parses it as the LOCAL day, so
+  // the label names the same day the overdue badge computed. Bare new Date()
+  // reads UTC midnight — "Overdue: Jul 31" on a step due Aug 1 in California.
+  const d = new Date(dateStr + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return dateStr; // the raw string over "Invalid Date"
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
