@@ -37,16 +37,25 @@ export const RC_DATABASE: RegionalCenter[] = [
 ];
 
 /** 3-digit ZIP prefix → Regional Center code. */
-// NOTE: Los Angeles County prefixes ('900'-'918') and the Kern/LA-mixed '935'
-// are deliberately ABSENT: LA's 7 Regional Center catchments follow health
-// districts, not ZIP prefixes, so a prefix guess misroutes families. Those
-// ZIPs return null from lookupRC and the UI falls back to the county/area
-// picker. High-confidence city-level exceptions live in ZIP_5_OVERRIDES.
+// NOTE: prefixes that STRADDLE two Regional Center catchments are deliberately
+// ABSENT, because a prefix guess misroutes families — an absent prefix returns
+// null from lookupRC and the UI falls back to the county/area picker, which is
+// a worse experience but never a wrong answer. High-confidence city-level
+// exceptions live in ZIP_5_OVERRIDES.
+//
+// Absent on purpose:
+//   '900'-'918'  Los Angeles County — 7 catchments follow health districts.
+//   '935'        Kern / LA high desert mix.
+//   '922'        Riverside's Coachella Valley (IRC) + all of Imperial (SDRC).
+//   '953'        Merced (CVRC) + Stanislaus (VMRC).
+//   '954'        Sonoma (NBRC) + Mendocino and Lake (RCRC).
+// The last three were REMOVED 2026-09-07: each had been mapped to one center,
+// silently misrouting every family on the other side of the county line
+// (Imperial -> Inland, Merced -> Valley Mountain, Ukiah/Lakeport -> North Bay).
 export const ZIP_TO_RC: Record<string, string> = {
   '919': 'SDRC',
   '920': 'SDRC',
   '921': 'SDRC',
-  '922': 'IRC',
   '923': 'IRC',
   '924': 'IRC',
   '925': 'IRC',
@@ -75,9 +84,7 @@ export const ZIP_TO_RC: Record<string, string> = {
   '950': 'SARC',
   '951': 'SARC',
   '952': 'VMRC',
-  '953': 'VMRC',
-  '954': 'NBRC',
-  '955': 'NBRC',
+  '955': 'RCRC', // Humboldt + Del Norte — both Redwood Coast counties
   '956': 'ACRC',
   '957': 'ACRC',
   '958': 'ACRC',
@@ -88,26 +95,53 @@ export const ZIP_TO_RC: Record<string, string> = {
   '963': 'FNRC',
 };
 
-/** 5-digit boundary-ZIP overrides, checked before the 3-digit prefix map. */
+/**
+ * 5-digit boundary-ZIP overrides, checked BEFORE the 3-digit prefix map.
+ *
+ * Every entry here must actually change the answer — an override whose own
+ * prefix already yields the same center is dead weight that reads like a fix.
+ * Twelve such no-ops were removed on 2026-09-07 (Kern 932xx and Salinas/Gilroy
+ * 939xx/950xx entries that merely restated their prefix); a test now fails the
+ * build if another is added.
+ */
 export const ZIP_5_OVERRIDES: Record<string, string> = {
-  '93205': 'KRC',
-  '93225': 'KRC',
-  '93240': 'KRC',
-  '93252': 'KRC',
-  '93901': 'SARC',
-  '93905': 'SARC',
-  '93906': 'SARC',
-  '93907': 'SARC',
-  '93908': 'SARC',
-  '95020': 'SARC',
-  '95023': 'SARC',
-  '95024': 'SARC',
   '95361': 'VMRC',
   '95363': 'VMRC',
   // Antelope Valley (LA County high desert) — North LA County RC
   '93534': 'NLACRC', '93535': 'NLACRC', '93536': 'NLACRC',
   '93543': 'NLACRC', '93544': 'NLACRC', '93550': 'NLACRC',
   '93551': 'NLACRC', '93552': 'NLACRC', '93553': 'NLACRC', '93591': 'NLACRC',
+  // --- Imperial County (SDRC) inside the mixed '922' prefix ---
+  // SDRC serves San Diego AND Imperial, and runs an Imperial Valley office in
+  // El Centro. '922' previously sent all of these to Inland, ~180k residents.
+  '92227': 'SDRC', '92231': 'SDRC', '92233': 'SDRC', '92243': 'SDRC',
+  '92249': 'SDRC', '92250': 'SDRC', '92251': 'SDRC', '92257': 'SDRC',
+  '92273': 'SDRC', '92281': 'SDRC', '92283': 'SDRC',
+  // --- Riverside's Coachella Valley (IRC) inside the same '922' prefix ---
+  '92201': 'IRC', '92203': 'IRC', '92210': 'IRC', '92211': 'IRC',
+  '92220': 'IRC', '92223': 'IRC', '92225': 'IRC', '92234': 'IRC',
+  '92236': 'IRC', '92240': 'IRC', '92253': 'IRC', '92260': 'IRC',
+  '92262': 'IRC', '92264': 'IRC', '92270': 'IRC', '92276': 'IRC',
+  // --- Merced County (CVRC) inside the mixed '953' prefix ---
+  '95301': 'CVRC', '95315': 'CVRC', '95322': 'CVRC', '95324': 'CVRC',
+  '95333': 'CVRC', '95334': 'CVRC', '95340': 'CVRC', '95341': 'CVRC',
+  '95348': 'CVRC', '95388': 'CVRC',
+  // --- Stanislaus County (VMRC) inside the same '953' prefix ---
+  '95350': 'VMRC', '95351': 'VMRC', '95354': 'VMRC', '95355': 'VMRC',
+  '95356': 'VMRC', '95358': 'VMRC', '95380': 'VMRC', '95382': 'VMRC',
+  '95307': 'VMRC', '95316': 'VMRC', '95326': 'VMRC', '95328': 'VMRC',
+  '95367': 'VMRC', '95386': 'VMRC',
+  // --- Mendocino + Lake (RCRC) inside the mixed '954' prefix ---
+  '95482': 'RCRC', '95437': 'RCRC', '95460': 'RCRC', '95490': 'RCRC',
+  '95470': 'RCRC', '95454': 'RCRC', '95453': 'RCRC', '95422': 'RCRC',
+  '95451': 'RCRC', '95457': 'RCRC', '95458': 'RCRC', '95461': 'RCRC',
+  '95485': 'RCRC',
+  // --- Sonoma County (NBRC) inside the same '954' prefix ---
+  '95401': 'NBRC', '95403': 'NBRC', '95404': 'NBRC', '95405': 'NBRC',
+  '95407': 'NBRC', '95409': 'NBRC', '95425': 'NBRC', '95436': 'NBRC',
+  '95439': 'NBRC', '95441': 'NBRC', '95442': 'NBRC', '95446': 'NBRC',
+  '95448': 'NBRC', '95452': 'NBRC', '95472': 'NBRC', '95476': 'NBRC',
+  '95492': 'NBRC',
   // East Kern County — Kern RC (has a Ridgecrest office)
   '93501': 'KRC', '93505': 'KRC', '93516': 'KRC', '93518': 'KRC',
   '93519': 'KRC', '93531': 'KRC', '93555': 'KRC', '93556': 'KRC',
