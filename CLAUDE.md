@@ -40,12 +40,14 @@ WayPoint/
 │   ├── content-ops/            # keyword map + validator, pipeline SOP, style guide
 │   └── docs/                   # analytics taxonomy (D3), redirect map, launch checklist
 │
-├── gas-mvp/                    # Google Apps Script MVP — still serving users
+├── gas-mvp/                    # RETIRED (owner, 2026-09-07) — the Google Apps
+│                               #   Script MVP is no longer used and is NOT
+│                               #   maintained. Do not fix, update, or port
+│                               #   anything here; do not treat its data as
+│                               #   authoritative. Kept for history only.
 │   ├── Code.gs                 # Backend: AI engine, user mgmt, sheet ops (~3200 lines)
 │   ├── Index.html              # Frontend: SPA with chat UI (~4800 lines)
-│   └── .clasp.json             # Exists since Mar 2026 but is NOT used — deploys
-│                               #   are still manual copy-paste. See the open
-│                               #   question in docs/initiatives/README.md
+│   └── .clasp.json             # Never used — deploys were manual copy-paste
 │
 ├── docs/                       # ⚠️ NOT documentation — this is the deployed
 │                               #   web MVP published to GitHub Pages (pages.yml)
@@ -65,7 +67,15 @@ that material is under `Archive/`.
 
 ## Tech Stack
 
-### gas-mvp (Active — Production)
+### gas-mvp (RETIRED 2026-09-07 — not maintained)
+
+The owner retired this surface: it no longer serves users and needs no
+maintenance or updates. **Do not spend work here** — no bug fixes, no
+dependency bumps, no porting. It is also not a source of truth: a
+2026-09-07 audit found its ZIP router sent the city of San Diego to Inland
+Regional Center and Long Beach to San Gabriel/Pomona, so treat any data it
+carries as suspect rather than as corroboration for the same value
+elsewhere. The description below is historical.
 - **Runtime:** Google Apps Script (V8 engine, server-side JavaScript)
 - **Frontend:** Single HTML file with inline CSS/JS (served via `HtmlService`)
 - **Backend data:** Google Sheets (tabs: Users, ActionLog, Sessions, KnowledgeBase, Prompts, InteractionLog, DraftLog, ChatSessions)
@@ -177,8 +187,9 @@ firms up on the escalation ladder. Pinned by tests in `homeTriage.test.ts`.
 
 ## Environment Variables
 
-### gas-mvp
-- `ANTHROPIC_API_KEY` — stored in Script Properties (PropertiesService), never in code
+### gas-mvp (retired)
+- `ANTHROPIC_API_KEY` — was stored in Script Properties (PropertiesService).
+  The surface is retired; if that key is still live, it is worth revoking.
 
 ### waypoint-app
 - `EXPO_PUBLIC_SUPABASE_URL` — Supabase project URL
@@ -262,10 +273,10 @@ deployed Pages site.)
 
 ## Development Notes
 
-- The `gas-mvp/Code.gs` and `Index.html` files are large (~3200 and ~4800 lines respectively). When editing, show only changed sections with 3 lines of context.
+- `gas-mvp/` is retired and unmaintained (see above) — it should not need editing at all. If a task genuinely requires it, note that `Code.gs` and `Index.html` are ~3200 and ~4800 lines, so show only changed sections with 3 lines of context.
 - Standalone `.jsx` and `.js` files in the root are **prototypes** — they were used for design exploration and may be referenced but aren't deployed.
 - Business documents (`.docx`, `.xlsx`, `.pptx`) are tracked in git for version control. They contain product strategy, financials, and project plans.
-- The Entity Navigation Matrix (in `gas-mvp/Waypoint-Entity-Navigation-Matrix-v9_4.xlsx` and documented in `WayPoint-Dev-Session-EntityKB-v9.4.txt`) is the core knowledge base powering the AI engine.
+- The Entity Navigation Matrix (`gas-mvp/Waypoint-Entity-Navigation-Matrix-v9_4.xlsx`, documented in `WayPoint-Dev-Session-EntityKB-v9.4.txt`) is the knowledge base the retired MVP's AI engine ran on. It survives its host as a content SOURCE — the marketing site's Regional Center pages were seeded from it — but the file lives inside a retired directory, so treat it as reference material to be verified, never as verified data. Its one Regional Center row is why the 21 RC county lists had to be authored rather than converted.
 
 ## waypoint-site (marketing site — waypointchild.com)
 
