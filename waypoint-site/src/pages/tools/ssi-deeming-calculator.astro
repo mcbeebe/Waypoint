@@ -11,7 +11,6 @@
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
-import DraftBanner from '../../components/DraftBanner.astro';
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
 import NoticeBox from '../../components/NoticeBox.astro';
@@ -34,7 +33,6 @@ const saveProps = JSON.stringify({
 <BaseLayout
   title="SSI deeming calculator for California families — Waypoint"
   description="Estimate whether your child could qualify for SSI while living at home: a quick parent-to-child deeming estimate, free, private, and stored nowhere."
-  noindex={true}
   pillar="benefits"
 >
   <PageHero
@@ -44,7 +42,6 @@ const saveProps = JSON.stringify({
   />
   <div class="section">
     <div class="container">
-      <DraftBanner status="draft" />
       <div class="cols">
         <div class="tool-panel">
           <div class="field">

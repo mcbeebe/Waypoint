@@ -2,32 +2,30 @@
   "_meta": {
     "purpose": "Single source of truth for every benefit dollar figure the site displays or computes with (Decision D4). Page prose, MDX components, and stateless tools all import from this file — no benefit figure is ever hard-coded elsewhere.",
     "rule": "every consumer of a benefit figure imports THIS file",
-    "updated": "2026-09-06",
+    "updated": "2026-09-07",
     "conventions": "Current-year entries carry value:null until verified against sourceUrl (verifiedAsOf set on verification). Entries prefixed _2025_ are known prior-year reference figures for context and test fixtures — never display them as current. Refresh events and SOPs live in content-ops/refresh-calendar.yaml (ssa-cola-oct, ssi-fbr-jan, ihss-wages-jan)."
   },
-
   "ssi_fbr_individual": {
-    "value": null,
+    "value": 994,
     "year": 2026,
     "sourceUrl": "https://www.ssa.gov/oact/cola/SSI.html",
-    "verifiedAsOf": null,
-    "note": "SSI federal benefit rate, individual, monthly. VERIFY against SSA before calculator launch."
+    "verifiedAsOf": "2026-09-07",
+    "note": "SSI federal benefit rate, individual, monthly, 2026. Verified 2026-09-07 from verbatim SSA snippets (2.8% COLA, announced 2025-10-24); owner decision in chat 2026-09-07 accepted snippet-level verification and populated these. Cross-source: https://www.ssa.gov/news/en/cola/factsheets/2026.html"
   },
   "ssi_fbr_couple": {
-    "value": null,
+    "value": 1491,
     "year": 2026,
     "sourceUrl": "https://www.ssa.gov/oact/cola/SSI.html",
-    "verifiedAsOf": null,
-    "note": "SSI federal benefit rate, eligible couple, monthly. VERIFY against SSA before calculator launch."
+    "verifiedAsOf": "2026-09-07",
+    "note": "SSI federal benefit rate, eligible couple, monthly, 2026. Verified 2026-09-07 from verbatim SSA snippets (2.8% COLA, announced 2025-10-24); owner decision in chat 2026-09-07 accepted snippet-level verification and populated these. Cross-source: https://www.ssa.gov/news/en/cola/factsheets/2026.html"
   },
   "ssi_child_allocation": {
-    "value": null,
+    "value": 497,
     "year": 2026,
     "sourceUrl": "https://www.ssa.gov/oact/cola/SSI.html",
-    "verifiedAsOf": null,
-    "note": "Deeming allocation per ineligible child in the household (equals couple FBR minus individual FBR). VERIFY against SSA before calculator launch."
+    "verifiedAsOf": "2026-09-07",
+    "note": "Deeming allocation per ineligible child (couple FBR 1491 minus individual FBR 994). Verified 2026-09-07 from verbatim SSA snippets (2.8% COLA, announced 2025-10-24); owner decision in chat 2026-09-07 accepted snippet-level verification and populated these. Cross-source: https://www.ssa.gov/news/en/cola/factsheets/2026.html Also stated for 2026 in POMS-based WIPA materials (vcu-ntdc.org 2026 parent-to-child deeming)."
   },
-
   "_2025_ssi_fbr_individual": {
     "value": 967,
     "year": 2025,
@@ -49,22 +47,20 @@
     "verifiedAsOf": null,
     "note": "Known 2025 figure (1450 - 967) — reference and test fixtures only, never display as current. Re-verify against sourceUrl before citing on any published page."
   },
-
   "ssi_general_exclusion": {
     "value": 20,
     "year": 2026,
     "sourceUrl": "https://www.ecfr.gov/current/title-20/chapter-III/part-416/subpart-K",
-    "verifiedAsOf": null,
-    "note": "SSI $20 general income exclusion (20 CFR 416.1124(c)(12) / 416.1112(c)(4)). Statutory, not year-keyed — [TBC] verify once against eCFR during the founder edit that verifies the FBRs; the calculator cannot run before that pass anyway (FBRs ship null)."
+    "verifiedAsOf": "2026-09-07",
+    "note": "SSI $20 general income exclusion (20 CFR 416.1112(c)(4)). Statutory, not year-keyed. Confirmed in the 2026-09-07 fact-check against POMS SI 01320.500 deeming mechanics; owner decision accepted snippet-level verification."
   },
   "ssi_earned_exclusion": {
     "value": 65,
     "year": 2026,
     "sourceUrl": "https://www.ecfr.gov/current/title-20/chapter-III/part-416/subpart-K",
-    "verifiedAsOf": null,
-    "note": "SSI $65 earned income exclusion (20 CFR 416.1112(c)(5)). Statutory, not year-keyed — [TBC] verify once, same pass as above."
+    "verifiedAsOf": "2026-09-07",
+    "note": "SSI $65 earned income exclusion, plus one-half of the remainder (20 CFR 416.1112(c)(5)). Confirmed in the 2026-09-07 fact-check against POMS SI 01320.500; owner decision accepted snippet-level verification."
   },
-
   "ihss_wage_table": {
     "value": null,
     "year": 2026,

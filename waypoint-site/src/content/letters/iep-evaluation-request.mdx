@@ -1,12 +1,18 @@
 ---
 title: "Request an IEP evaluation: the letter that starts the clock"
-description: "A ready-to-send letter (English and Spanish) requesting a special education evaluation — and the 15-calendar-day clock it starts under Ed Code §56321."
+description: "A ready-to-send letter requesting a special education evaluation — and the 15-calendar-day clock it starts under Ed Code §56321. Spanish version coming soon."
 locale: en
 translationKey: letter-iep-evaluation-request
-status: founder_edit
+status: published
 pillar: iep
 letterId: iep-evaluation-request
 dateModified: 2026-09-07
+datePublished: 2026-09-07
+review:
+  reviewedBy: "Mike Beebe"
+  credential: "Founder"
+  date: 2026-09-07
+  versionReviewed: "daab5050dfaf9e20c560d6398d02d656e1773c4e"
 nextReviewEvent: annual
 disclaimerVariant: legal
 changelog:
@@ -14,6 +20,8 @@ changelog:
     note: "Founder reviewed full text and approved content (2 edit rounds: warm collaborative register, Regional Center parallel-evaluation section). Awaiting fact verification + credentialed review before publish; ES text additionally awaits the bilingual reviewer."
   - date: 2026-09-07
     note: "Fact-check pass applied: §56321/§56344/§56043 timelines confirmed and cited; Regional Center clocks corrected (45-day Early Start clock is 17 CCR §52086, not WIC §4643)."
+  - date: 2026-09-07
+    note: "Published, English only. Owner decision (chat, 2026-09-07): founder signs the review block; the Spanish letter renders an 'en revisión' notice until the credited bilingual reviewer signs (esReady=false)."
 sources:
   - label: "CA Ed Code §56321 (15-day assessment plan; vacation pause)"
     url: "https://california.public.law/codes/ca_educ_code_section_56321"
@@ -26,6 +34,9 @@ sources:
     accessed: 2026-09-07
   - label: "17 CCR §52086 (Early Start 45-day timeline)"
     url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-07
+  - label: "WIC §4642 (anyone believed to have a developmental disability is eligible for intake)"
+    url: "https://codes.findlaw.com/ca/welfare-and-institutions-code/wic-sect-4642/"
     accessed: 2026-09-07
 ---
 
@@ -42,13 +53,17 @@ sources:
   45-day Early Start clock is 17 CCR §52086 (referral → evaluation + IFSP),
   not WIC §4643; §4643 governs 3+ intake (15 working days) and assessment
   (120 days from intake).
-  [TBC: human click-through of linked sources before publish]
-  [TBC: ES letter text needs the credited bilingual reviewer before publish]
+  PUBLISHED 2026-09-07 (EN only) under the founder-as-reviewer decision —
+  see changelog; sources[] carries the receipts.
+  HELD: the ES letter text below stays in this file for the reviewer but
+  does NOT render — LetterBlock esReady={false} shows an "en revisión"
+  notice instead. Flip esReady when the credited bilingual reviewer signs.
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
 import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
 import LetterBlock from '../../components/LetterBlock.astro';
 
@@ -67,7 +82,7 @@ import LetterBlock from '../../components/LetterBlock.astro';
   your signed consent <span class="cite">Ed Code §56321 · §56344</span>
 </DeadlineCallout>
 
-<LetterBlock letterId="iep-evaluation-request">
+<LetterBlock letterId="iep-evaluation-request" esReady={false}>
   <div slot="en">
     <p><span class="fill">[Date]</span></p>
     <p>Dear <span class="fill">[Principal's name]</span> and <span class="fill">[Special-education director's name]</span>,</p>
@@ -107,8 +122,9 @@ well. The two clocks run in parallel, neither waits for the other, and the Regio
 door is where respite and Medi-Cal help live.
 
 1. **Call your Regional Center's intake line** and say: *"I'd like to request an intake and
-   assessment for my child."* Those words are the formal trigger — no doctor's referral or
-   completed diagnosis needed to start [TBC: verify no-referral framing against WIC §4642].
+   assessment for my child."* Those words are the formal trigger — anyone believed to have a
+   developmental disability is eligible for intake, no doctor's referral or completed
+   diagnosis needed to start <Cite>WIC §4642</Cite>.
 2. **Write down the date of your call, and ask them to confirm it in writing.** For age 3 and
    up, intake starts within 15 working days and any needed assessment is due within
    **120 days** of intake <Cite>WIC §4643</Cite>. Under 3, Early Start must complete the
@@ -116,7 +132,7 @@ door is where respite and Medi-Cal help live.
    <Cite>17 CCR §52086</Cite>.
 3. **Not sure which of the 21 centers is yours?** The
    <a href="/tools/regional-center-finder/">Regional Center finder</a> answers in seconds —
-   and the <a href="/guides/regional-centers/">Regional Center guide</a> has the whole
+   and the <GatedLink href="/guides/regional-centers/">Regional Center guide</GatedLink> has the whole
    playbook, from intake through the IPP meeting.
 
 <HandoffCTA

@@ -66,7 +66,7 @@ entries:
     url: "/guides/benefits/"
     pillar: benefits
     priority: P0
-    status: drafting
+    status: published
     piece_no: null
     serp_notes: "Hub page; links pieces 2, 3, 5 and the SSI calculator."
 
@@ -121,7 +121,7 @@ entries:
     url: "/start/autism/"
     pillar: start
     priority: P0
-    status: drafting
+    status: published
     piece_no: 1
     serp_notes: "Flagship. Timeline format; heavy internal linking to pieces 2-8."
 
@@ -283,7 +283,7 @@ entries:
     url: "/letters/iep-evaluation-request/"
     pillar: iep
     priority: P0
-    status: drafting
+    status: published
     piece_no: 4
     serp_notes: "Fixed slug (letterId contract). Ships with piece 4; letter_copied event per D3."
 
