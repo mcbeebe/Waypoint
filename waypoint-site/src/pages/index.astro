@@ -36,8 +36,10 @@ const pillars = [
   {
     title: 'Money & benefits',
     body: 'Medi-Cal regardless of income, IHSS protective supervision, SSI for children, CCS.',
-    href: '/guides/benefits/ihss-protective-supervision/',
-    label: 'Start here →',
+    // Point at the published hub, not a still-draft spoke: gating the card on
+    // a spoke left the hub itself unreachable from every nav surface.
+    href: '/guides/benefits/',
+    label: 'See every door →',
   },
   {
     title: 'Insurance & therapies',

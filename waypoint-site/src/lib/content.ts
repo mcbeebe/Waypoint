@@ -71,6 +71,29 @@ export async function visibleContentUrls(): Promise<Set<string>> {
 }
 
 /**
+ * Every content URL that exists in the repo, published or not — the
+ * denominator `visibleContentUrls()` is a subset of. GatedLink validates
+ * against this so a typo'd href fails the build instead of rendering as a
+ * permanent "coming soon" placeholder the link checker cannot see.
+ */
+export async function allContentUrls(): Promise<Set<string>> {
+  const urls = new Set<string>();
+  for (const entry of await getCollection('guides')) {
+    urls.add(guideUrl(entry));
+  }
+  for (const entry of await getCollection('answers')) {
+    urls.add(`/answers/${entry.id.replace(/\.mdx?$/, '')}/`);
+  }
+  for (const entry of await getCollection('letters')) {
+    urls.add(`/letters/${entry.id.replace(/\.mdx?$/, '')}/`);
+  }
+  for (const entry of await getCollection('regionalCenters')) {
+    urls.add(`/regional-centers/${entry.data.rcId}/`);
+  }
+  return urls;
+}
+
+/**
  * Guides route mapping: entries under `start/` render at /start/<rest>/
  * (the by-diagnosis checklists — keyword map rows /start/...); everything
  * else renders at /guides/<id>/.

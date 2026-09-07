@@ -19,10 +19,17 @@
  *      parent, couple FBR for two). What remains is deemed to the child.
  *   4. Estimated SSI = individual FBR − deemed amount, floored at $0.
  *
- * [TBC: cross-check this simplification and the three test scenarios
- * against POMS SI 01320.500 worked examples during founder edit — the
- * real rules have more moving parts (child's own income, in-kind support,
- * state supplement) and the page must keep saying so.]
+ * Step order cross-checked against POMS SI 01320.500 (2026-09-07): the
+ * exclusions and the halving come BEFORE the parental living allowance.
+ * The page prose stated the reverse until that review — a ~$500/mo
+ * discrepancy against this function — so if you edit either, edit both:
+ * /tools/ssi-deeming-calculator/ describes exactly these steps.
+ *
+ * Still deliberately simplified, and the page says so in the NoticeBox
+ * beside every result: the child's own income, in-kind support and
+ * maintenance, income-type distinctions, and California's state
+ * supplement are all out of scope. This is an estimate, never a benefits
+ * determination.
  */
 
 export interface DeemingConstants {

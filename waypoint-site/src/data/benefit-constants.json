@@ -67,5 +67,19 @@
     "sourceUrl": "https://www.cdss.ca.gov/inforesources/county-ihss-wage-rates",
     "verifiedAsOf": null,
     "note": "IHSS provider wages vary by county (58 counties) and change on different dates; the site links out to the CDSS table rather than mirroring it. [TBC] Confirm this CDSS URL still resolves before first use. If we ever embed per-county rates, they go here keyed by county with their own verifiedAsOf."
+  },
+  "ccs_income_ceiling": {
+    "value": 40000,
+    "year": 2026,
+    "sourceUrl": "https://www.dhcs.ca.gov/services/california-childrens-services/",
+    "verifiedAsOf": "2026-09-07",
+    "note": "CCS financial eligibility: family adjusted gross income ceiling (annual, state tax form). Verified 2026-09-07 against DHCS + county CCS eligibility pages. D4: this page's prose interpolates these rather than hard-coding them, so a threshold change lands in one place."
+  },
+  "ccs_cost_share_percent": {
+    "value": 20,
+    "year": 2026,
+    "sourceUrl": "https://www.dhcs.ca.gov/services/california-childrens-services/",
+    "verifiedAsOf": "2026-09-07",
+    "note": "CCS alternative test: expected out-of-pocket medical costs for the child exceeding this percentage of family income. Percentage, not dollars. Verified 2026-09-07 against DHCS + county CCS eligibility pages. D4: this page's prose interpolates these rather than hard-coding them, so a threshold change lands in one place."
   }
 }
