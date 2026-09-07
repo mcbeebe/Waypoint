@@ -11,7 +11,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -28,6 +28,26 @@ disclaimerVariant: legal
   [TBC: add ddsListingUrl once verified]
   [TBC: per-center narrative — local intake quirks, board meeting info,
    nearby centers — replaces the generic body below]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "The Regional Center of Orange County (RCOC) has an Executive Director
+    named Larry Landauer, phone number 714-796-5100, and fax 714-796-5200.
+    The address is 1525 North Tustin Avenue, Santa Ana, CA 92705, and it
+    serves Orange County. The Early Start Intake phone number is
+    714-796-5354 with email intake@rcocdd.com."
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (714) 796-5354
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://www.rcocdd.com/client-services/intake/
+  WEBSITE (not published): https://www.rcocdd.com/
+  CHALLENGER VERDICT: unverified / publish-counties-only
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';

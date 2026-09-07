@@ -20,7 +20,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -37,6 +37,27 @@ disclaimerVariant: legal
   [TBC: add ddsListingUrl once verified]
   [TBC: per-center narrative — local intake quirks, board meeting info,
    nearby centers — replaces the generic body below]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "Alta California Regional Center. Address: 2241 Harvard Street, Suite
+    100, Sacramento, CA 95815. Telephone: (916) 978-6400. Website:
+    www.altaregional.org. Counties Served: Alpine, Colusa, El Dorado,
+    Nevada, Placer, Sacramento, Sierra, Sutter, Yolo, and Yuba counties.
+    Field offices are located in Grass Valley, Placerville, Roseville, South
+    Lake Tahoe, Truckee, Woodland, and Yuba City."
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    916-978-6317
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://www.altaregional.org/post/applying-services-and-intake-process-0
+  WEBSITE (not published): https://www.altaregional.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';

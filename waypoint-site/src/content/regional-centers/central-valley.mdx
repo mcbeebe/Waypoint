@@ -16,7 +16,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -33,6 +33,25 @@ disclaimerVariant: legal
   [TBC: add ddsListingUrl once verified]
   [TBC: per-center narrative — local intake quirks, board meeting info,
    nearby centers — replaces the generic body below]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "Central Valley Regional Center. Address: 4615 North Marty, Fresno, CA
+    93722-4186. Counties Served: Fresno, Kings, Madera, Mariposa, Merced,
+    and Tulare counties. Early Start Intake: Fresno: 559-276-4300 | Visalia:
+    559-738-2200 | Merced: 209-723-4245 | IntakeReferrals@cvrc.org"
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (559) 276-4300
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://www.cvrc.org/eligibility/
+  WEBSITE (not published): https://www.cvrc.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';

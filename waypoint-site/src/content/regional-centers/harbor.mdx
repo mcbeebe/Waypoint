@@ -11,7 +11,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -30,6 +30,27 @@ disclaimerVariant: legal
    nearby centers — replaces the generic body below]
   [TBC: verify this center's LA service area / ZIP coverage — seven centers
    divide Los Angeles County by neighborhood]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "The Harbor Regional Center is located at 21231 Hawthorne Boulevard in
+    Torrance, CA 90503 and serves the health districts of Bellflower,
+    Harbor, Long Beach, and Torrance within the city of Los Angeles. ...
+    Telephone: (310) 540-1711, Website: www.harborrc.org ... in Los Angeles
+    County, the catchment area boundaries for regional centers are organized
+    by health districts rather than by county. So whil"
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (310) 540-1711
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://www.harborrc.org/contact-us-intakeeligibility
+  WEBSITE (not published): https://www.harborrc.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -75,6 +96,33 @@ The appeal process is the same at all 21 regional centers, so the full walkthrou
 timelines, and what to say at each stage — lives in one place:
 
 <a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+
+<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+
+<AnswerFirst>
+  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
+  not enough to tell you which one is yours — <b>your address decides it</b>, and the
+  boundaries follow LA County health districts and ZIP codes.
+</AnswerFirst>
+
+Harbor Regional Center serves the South Bay, Harbor, Long Beach, and southeast corner of Los
+Angeles County — NOT the whole county. DDS and the center define its catchment by four LA
+County health districts: Bellflower, Harbor, Long Beach, and Torrance. Communities named in
+official/verified sources include: - South Bay / beach cities: Torrance, Manhattan Beach,
+Hermosa Beach, Redondo Beach, Gardena, Carson - Palos Verdes Peninsula cities (incl. Rancho
+Palos Verdes) - Harbor area: Harbor City, San Pedro, Wilmington - Long Beach area: Long
+Beach - Southeast LA County: Bellflower, Lakewood, Artesia, Cerritos, Hawaiian Gardens,
+Norwalk - Santa Catalina Island It does NOT serve central/downtown LA (Frank D. Lanterman
+RC), the San Fernando/Santa Clarita/Antelope Valleys (North Los Angeles County RC), Santa
+Monica/Culver City/Inglewood/Westside (Westside RC), East LA/Whittier (Eastern LA RC), El
+Monte/Pomona/Foothill (San Gabriel/Pomona RC), or Compton/South/Southeast LA health
+districts (South Central LA RC). Eligibility turns on the family's home address/ZIP, not on
+the county. Lomita and Signal Hill sit geographically inside this footprint but I could not
+confirm them in a quotable official snippet — treat as unverified.
+
+If you live near one of these boundaries, confirm your center with the state's own lookup
+before you call — being sent back to start by the wrong center costs weeks
+[TBC: link the DDS lookup once the URL is click-verified].
 
 </article>
 <aside>

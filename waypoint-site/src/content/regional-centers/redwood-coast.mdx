@@ -14,7 +14,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -31,6 +31,27 @@ disclaimerVariant: legal
   [TBC: add ddsListingUrl once verified]
   [TBC: per-center narrative — local intake quirks, board meeting info,
    nearby centers — replaces the generic body below]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "Redwood Coast Regional Center ... 525 2nd Street, Suite 300, Eureka, CA
+    95501 ... (707) 445-0893 ... www.redwoodcoastrc.org ... Counties Served:
+    Del Norte, Humboldt, Lake, and Mendocino Counties ... Executive Director
+    Jonathan Padilla (jpadilla@redwoodcoastrc.org)"
+    — https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (707) 445-0893 ext. 309 — Del Norte & Humboldt intake referral line
+    (ext. 308 Spanish); (707) 462-3832 ext. 259 — Lake & Mendocino intake
+    referral line (ext. 258 Spanish)
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://redwoodcoastrc.org/for-clients/apply-for-services/
+  WEBSITE (not published): https://redwoodcoastrc.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';

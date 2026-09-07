@@ -11,7 +11,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -30,6 +30,24 @@ disclaimerVariant: legal
    nearby centers — replaces the generic body below]
   [TBC: verify this center's LA service area / ZIP coverage — seven centers
    divide Los Angeles County by neighborhood]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "The Frank D. Lanterman Regional Center serves the health districts of
+    Central, Glendale, Hollywood-Wilshire, and Pasadena within the county of
+    Los Angeles."
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (213) 252-8610
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://lanterman.org/getting-started/
+  WEBSITE (not published): https://lanterman.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -75,6 +93,27 @@ The appeal process is the same at all 21 regional centers, so the full walkthrou
 timelines, and what to say at each stage — lives in one place:
 
 <a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+
+<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+
+<AnswerFirst>
+  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
+  not enough to tell you which one is yours — <b>your address decides it</b>, and the
+  boundaries follow LA County health districts and ZIP codes.
+</AnswerFirst>
+
+Central Los Angeles and the Hollywood/Wilshire corridor, plus the Glendale, Burbank, La
+Cañada Flintridge, La Crescenta, Eagle Rock and Pasadena area — the four LA County health
+districts of Central, Glendale, Hollywood-Wilshire, and Pasadena. It is one of the smallest
+LA-area catchments geographically: it does NOT cover the San Fernando or Antelope Valleys
+(North Los Angeles County RC), the Westside or South Bay (Westside RC / Harbor RC), South LA
+(South Central LA RC), East LA (Eastern LA RC), or the San Gabriel Valley beyond Pasadena/La
+Cañada (San Gabriel/Pomona RC). Boundaries are set by ZIP code, so families near the edges
+should confirm with the DDS lookup at dds.ca.gov/rc.
+
+If you live near one of these boundaries, confirm your center with the state's own lookup
+before you call — being sent back to start by the wrong center costs weeks
+[TBC: link the DDS lookup once the URL is click-verified].
 
 </article>
 <aside>

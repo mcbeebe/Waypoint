@@ -11,7 +11,7 @@ counties:
 intakePhone: null
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -30,6 +30,24 @@ disclaimerVariant: legal
    nearby centers — replaces the generic body below]
   [TBC: verify this center's LA service area / ZIP coverage — seven centers
    divide Los Angeles County by neighborhood]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "North Los Angeles County Regional Center ... serves Northern Los
+    Angeles county, including San Fernando and Antelope [Valleys] ... Phone:
+    (818) 778-1900; Website: nlacrc.org"
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (818) 778-1900
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://www.nlacrc.org/consumers-families/early-start/eligibility/
+  WEBSITE (not published): https://www.nlacrc.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -75,6 +93,30 @@ The appeal process is the same at all 21 regional centers, so the full walkthrou
 timelines, and what to say at each stage — lives in one place:
 
 <a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+
+<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+
+<AnswerFirst>
+  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
+  not enough to tell you which one is yours — <b>your address decides it</b>, and the
+  boundaries follow LA County health districts and ZIP codes.
+</AnswerFirst>
+
+Northern Los Angeles County — the San Fernando Valley, the Santa Clarita Valley, and the
+Antelope Valley. Inside the City of Los Angeles that is the East Valley, San Fernando, and
+West Valley Health Districts (the Van Nuys / North Hollywood / Sylmar / Chatsworth / Canoga
+Park side of the county). Beyond the city limits it extends north through the Santa Clarita
+Valley and up into the Antelope Valley. NLACRC runs three offices matching those three
+valleys: a main office in Van Nuys (15400 Sherman Way, Ste. 170) — older official listings
+still show 9200 Oakdale Ave., Chatsworth — a Santa Clarita Valley office (23560 Magic
+Mountain Pkwy), and an Antelope Valley office in Lancaster. It does NOT serve Burbank,
+Glendale, La Canada-Flintridge, La Crescenta, or Pasadena; those are Frank D. Lanterman
+Regional Center. Nor the Westside, South Bay, Harbor, San Gabriel Valley, Pomona, East LA,
+or South Central — each has its own center.
+
+If you live near one of these boundaries, confirm your center with the state's own lookup
+before you call — being sent back to start by the wrong center costs weeks
+[TBC: link the DDS lookup once the URL is click-verified].
 
 </article>
 <aside>
