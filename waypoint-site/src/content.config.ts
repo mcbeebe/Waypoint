@@ -147,6 +147,12 @@ const regionalCenters = defineCollection({
       rcId: z.enum(RC_IDS),
       rcName: z.string(),
       counties: z.array(z.string()).min(1),
+      /**
+       * The center's MAIN line, not a dedicated intake queue (owner policy,
+       * 2026-09-07): a main line is always answered and can transfer, an
+       * intake line can be voicemail or age-gated. Verified against two
+       * sources before it is ever set — null until then.
+       */
       intakePhone: z.string().nullable().default(null),
       intakeUrl: z.string().url().nullable().default(null),
       ddsListingUrl: z.string().url().nullable().default(null),

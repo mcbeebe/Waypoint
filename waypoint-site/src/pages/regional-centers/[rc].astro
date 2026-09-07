@@ -50,6 +50,22 @@ const pillarCrumb = urls.has('/guides/regional-centers/')
   slug={`regional-centers/${d.rcId}`}
   pillar="regional-centers"
 >
+  {
+    /* The phone renders from frontmatter, never re-typed into the MDX body:
+       one source, so a corrected number cannot survive in prose. Policy
+       (owner, 2026-09-07): publish the MAIN line, not a dedicated intake
+       queue — a main line is always answered and can transfer, while an
+       intake line may be voicemail or age-gated and wrong for the caller. */
+    d.intakePhone && (
+      <p class="rc-call">
+        <b>Call {d.rcName}:</b>{' '}
+        <a href={`tel:${d.intakePhone.replace(/[^\d]/g, '')}`}>{d.intakePhone}</a>
+        <span class="rc-call-note">
+          Main line — ask for “intake and assessment.” They can transfer you.
+        </span>
+      </p>
+    )
+  }
   <NoticeBox slot="notice">
     Waypoint is an independent guide — not affiliated with {d.rcName}, DDS, or any government
     agency.{' '}
@@ -57,3 +73,16 @@ const pillarCrumb = urls.has('/guides/regional-centers/')
   </NoticeBox>
   <Content />
 </ArticleLayout>
+
+<style>
+  .rc-call {
+    margin: 0 0 18px;
+    font-size: 1.05rem;
+  }
+  .rc-call-note {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--color-ink-soft);
+    margin-top: 2px;
+  }
+</style>

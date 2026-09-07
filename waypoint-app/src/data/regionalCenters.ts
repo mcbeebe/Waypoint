@@ -34,7 +34,7 @@ export const RC_DATABASE: RegionalCenter[] = [
   { code: 'NLACRC', name: 'North LA County Regional Center', phone: '(818) 778-1900', website: 'nlacrc.org', counties: ['Los Angeles (north)'] },
   { code: 'WRC', name: 'Westside Regional Center', phone: '(310) 258-4000', website: 'westsiderc.org', counties: ['Los Angeles (west)'] },
   { code: 'FRC', name: 'Frank D. Lanterman Regional Center', phone: '(213) 383-1300', website: 'lanterman.org', counties: ['Los Angeles (northeast)'] },
-  { code: 'HRC', name: 'Harbor Regional Center', phone: '(310) 540-1711', website: 'harborrc.org', counties: ['Los Angeles (south bay)'] },
+  { code: 'HRC', name: 'Harbor Regional Center', phone: '(310) 543-0100', website: 'harborrc.org', counties: ['Los Angeles (south bay)'] },
   { code: 'SGPRC', name: 'San Gabriel/Pomona Regional Center', phone: '(909) 620-7722', website: 'sgprc.org', counties: ['Los Angeles (San Gabriel Valley)'] },
   { code: 'IRC', name: 'Inland Regional Center', phone: '(909) 890-3000', website: 'inlandrc.org', counties: ['Riverside', 'San Bernardino'] },
   { code: 'SDRC', name: 'San Diego Regional Center', phone: '(858) 576-2996', website: 'sdrc.org', counties: ['San Diego', 'Imperial'] },
