@@ -8,7 +8,7 @@
 
 ## Documents to assemble
 
-- [ ] Legal entity formed (CA corporation w/ benefit election — see incorporation task) + EIN
+- [ ] Legal entity formed + EIN — **see [`Entity-Formation-Plan-Sep2026.md`](Entity-Formation-Plan-Sep2026.md)**, which supersedes the bare "CA corporation w/ benefit election" line that stood here. Note: California has **no benefit LLC** (Corp. Code § 14600 applies only to corporations); DDS **does** accept an LLC as a vendor entity type (DS 1891). Target: entity + EIN by ~Oct 15, 2026, which is also the binding constraint on the Jan 5, 2027 NIH grant cycle.
 - [ ] DS 1890 (Vendor Application)
 - [ ] DS 1891 (Applicant/Vendor Disclosure Statement)
 - [ ] Qualifications & Agreement form, Conflict of Interest form, BAA/HIPAA form, HCBS Provider Agreement (RC-specific — get RCEB's current set at the intake call)
@@ -21,7 +21,7 @@
 
 ## Sequence
 
-1. Incorporate + EIN (parallel: UEI/SAM if pursuing grants)
+1. Incorporate + EIN (parallel: UEI/SAM if pursuing grants — the full registration chain and its 4–6 week lead time is in [`Grant-Pipeline-Sep2026.md`](Grant-Pipeline-Sep2026.md) §5)
 2. RCEB vendorization unit intake call — confirm the 099 application route (classic packet, per the SDP Provider-Directory exclusion) and current forms; ask DDS questions #2/#3/#6 in the same conversation
 3. Draft program design (reuse Enclosure A language; keep scope tightly to transition supports)
 4. Assemble and submit the packet directly to RCEB; track status in-app (PRD D1: vendor packet status is a first-class record)
