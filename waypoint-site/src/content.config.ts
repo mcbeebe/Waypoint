@@ -150,11 +150,27 @@ const regionalCenters = defineCollection({
       intakePhone: z.string().nullable().default(null),
       intakeUrl: z.string().url().nullable().default(null),
       ddsListingUrl: z.string().url().nullable().default(null),
-      /** Contact data must be re-verified; CI warns >120d, blocks edits >180d. */
-      verifiedAsOf: z.coerce.date(),
+      /**
+       * When the contact data was last ACTUALLY verified; CI warns >120d,
+       * blocks edits >180d. `null` means never verified — the honest state
+       * for a stub whose county list is still an authored guess.
+       *
+       * It was non-nullable until 2026-09-07, which meant an unverified stub
+       * had to carry some date anyway: all 21 were generated with the same
+       * 2026-09-06, and four turned out never to have been checked against
+       * any source. A required date field manufactured twenty-one
+       * verification claims. Publishing with null is still refused below,
+       * so nothing unverified can reach a family.
+       */
+      verifiedAsOf: z.coerce.date().nullable().default(null),
       notAffiliated: z.literal(true).default(true),
     })
-    .refine(requireReviewWhenPublished, REVIEW_MSG),
+    .refine(requireReviewWhenPublished, REVIEW_MSG)
+    .refine((data) => data.status !== 'published' || data.verifiedAsOf !== null, {
+      message:
+        "status 'published' requires a real verifiedAsOf date — an unverified Regional Center page must not ship (D11)",
+      path: ['verifiedAsOf'],
+    }),
 });
 
 const research = defineCollection({

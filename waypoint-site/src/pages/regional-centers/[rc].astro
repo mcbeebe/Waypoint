@@ -20,7 +20,12 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
-const verified = d.verifiedAsOf.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+// null = never verified. Only a published page is guaranteed a real date
+// (the schema refuses to publish without one), so drafts must render an
+// honest absence rather than a manufactured month.
+const verified = d.verifiedAsOf
+  ? d.verifiedAsOf.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+  : null;
 // The pillar-guide crumb only links when that page exists in this build —
 // an out-of-order publish must not 404 the breadcrumb (adversary A6).
 const urls = await visibleContentUrls();
@@ -47,7 +52,8 @@ const pillarCrumb = urls.has('/guides/regional-centers/')
 >
   <NoticeBox slot="notice">
     Waypoint is an independent guide — not affiliated with {d.rcName}, DDS, or any government
-    agency. Contacts verified as of {verified}.
+    agency.{' '}
+    {verified ? `Contacts verified as of ${verified}.` : 'Contact details for this center are not yet verified — check them against the center\'s own site before you call.'}
   </NoticeBox>
   <Content />
 </ArticleLayout>
