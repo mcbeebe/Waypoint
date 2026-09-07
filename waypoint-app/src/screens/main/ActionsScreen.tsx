@@ -43,6 +43,7 @@ import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
 import { brand, fonts, spacing, radii } from '@/lib/theme';
 import { isNewlyAdded, formatAddedOn, newBadgeLabel } from '@/lib/actionFreshness';
+import { parseDateLocal } from '@/lib/dateOnly';
 import StatusControl from '@/components/StatusControl';
 import PriorityControl from '@/components/PriorityControl';
 import ActionFilterSheet from '@/components/ActionFilterSheet';
@@ -1066,9 +1067,11 @@ function reverseHint(locale: ActionLocale): string {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+// `due_date` is a Postgres `date`. Parsed naively it is UTC midnight, so this
+// label read "Jul 31" west of Greenwich while the badge beside it — computed
+// on the local day — correctly called Aug 1 overdue.
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return parseDateLocal(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
