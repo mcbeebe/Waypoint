@@ -10,6 +10,23 @@ const baseAppt = (over: Partial<RecurringSource> = {}): RecurringSource => ({
   ...over,
 });
 
+/**
+ * ISO instant at these LOCAL wall-clock components (month is 1-based).
+ * Expansion reads the local calendar — day-of-month, occurrence-id date
+ * keys, the until-date's local midnight — so any fixture those tests touch
+ * must be built in local time: a UTC-fixed instant lands on a different
+ * local day depending on the runner's ambient timezone.
+ */
+const localISO = (y: number, m: number, d: number, h = 0, min = 0) =>
+  new Date(y, m - 1, d, h, min).toISOString();
+
+/** The occurrence's LOCAL calendar day, for TZ-proof day assertions. */
+const localDayOf = (iso: string) => {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
 describe('expandOccurrences', () => {
   it('returns a non-recurring appointment only when in range', () => {
     const inRange = expandOccurrences(baseAppt(), '2026-08-02T00:00:00Z', '2026-08-08T23:59:59Z');
@@ -50,8 +67,15 @@ describe('expandOccurrences', () => {
   });
 
   it('respects recurrence_until (inclusive)', () => {
+    // Local-time fixture: the until date closes at LOCAL 23:59:59, so a
+    // UTC-fixed 16:00Z start slipped past it east of UTC+8.
     const occ = expandOccurrences(
-      baseAppt({ recurrence: 'weekly', recurrence_until: '2026-08-17' }),
+      baseAppt({
+        start_time: localISO(2026, 8, 3, 16, 0),
+        end_time: localISO(2026, 8, 3, 17, 0),
+        recurrence: 'weekly',
+        recurrence_until: '2026-08-17',
+      }),
       '2026-08-01T00:00:00Z',
       '2026-09-30T23:59:59Z'
     );
@@ -59,21 +83,27 @@ describe('expandOccurrences', () => {
   });
 
   it('monthly keeps day-of-month and skips short months', () => {
+    // "Day-of-month" means the LOCAL calendar day, so both the fixture and
+    // the asserted days are read in local time — the UTC-fixed 18:00Z start
+    // was already Feb 1 local east of UTC+6, and recurred on the 1st.
     const jan31 = baseAppt({
-      start_time: '2026-01-31T18:00:00.000Z',
+      start_time: localISO(2026, 1, 31, 18, 0),
       end_time: null,
       recurrence: 'monthly',
     });
     const occ = expandOccurrences(jan31, '2026-01-01T00:00:00Z', '2026-04-30T23:59:59Z');
-    const days = occ.map((o) => o.start_time.slice(0, 10));
-    expect(days).toContain('2026-01-31');
-    expect(days).toContain('2026-03-31');
-    expect(days.some((d) => d.startsWith('2026-02'))).toBe(false); // no Feb 31
+    const days = occ.map((o) => localDayOf(o.start_time));
+    expect(days).toEqual(['2026-01-31', '2026-03-31']); // no Feb — there is no Feb 31
   });
 
   it('virtual occurrences get date-suffixed ids; the base keeps its own', () => {
+    // Local-time fixture: the id suffix is the occurrence's LOCAL date.
     const occ = expandOccurrences(
-      baseAppt({ recurrence: 'weekly' }),
+      baseAppt({
+        start_time: localISO(2026, 8, 3, 16, 0),
+        end_time: localISO(2026, 8, 3, 17, 0),
+        recurrence: 'weekly',
+      }),
       '2026-08-02T00:00:00Z',
       '2026-08-15T23:59:59Z'
     );

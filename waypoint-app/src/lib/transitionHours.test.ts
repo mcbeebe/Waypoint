@@ -49,13 +49,16 @@ describe('transitionHoursStatus', () => {
   });
 
   it('forecasts the cap-hit date from the recent burn rate', () => {
-    // 14h in the last 28 days → 0.5h/day; 20h used → 20h remaining → ~40 days
+    // 14h in the last 28 days → 0.5h/day; 20h used → 20h remaining → 40 days
+    // after Aug 23 = Oct 2, local. forecastCapDate serializes LOCAL midnight
+    // through toISOString(), so build the expected string the same way — a
+    // hard-coded '2026-10-02' reads as the prior UTC day east of UTC.
     const s = transitionHoursStatus(
       [ev(6 * 60, '2026-07-01'), ev(14 * 60, '2026-08-10')],
       [],
       NOW
     );
-    expect(s.forecastCapDate).toBe('2026-10-02');
+    expect(s.forecastCapDate).toBe(new Date(2026, 9, 2).toISOString().slice(0, 10));
   });
 
   it('no recent burn → no forecast, honestly', () => {
