@@ -9,6 +9,10 @@ import Cite from '../components/Cite.astro';
 import EmpathyCallout from '../components/EmpathyCallout.astro';
 import HandoffCTA from '../components/HandoffCTA.astro';
 import InlineDisclaimer from '../components/InlineDisclaimer.astro';
+
+// Hidden per Mike (2026-09-06) until reviewer recruiting is further along —
+// flip to true to restore the review-board and editorial-policy sections.
+const SHOW_TRUST_SECTIONS = false;
 ---
 
 <BaseLayout
@@ -21,6 +25,7 @@ import InlineDisclaimer from '../components/InlineDisclaimer.astro';
     lede="You're making decisions about your child's services based on what you read here. So every page names its author and its reviewer, cites the statute behind every claim, carries a change log on every dollar figure, and corrects its mistakes in public. If a page can't meet that bar, it doesn't go up."
   />
 
+  {SHOW_TRUST_SECTIONS && (
   <div class="section">
     <div class="container">
       <span class="eyebrow">The review board</span>
@@ -100,6 +105,7 @@ import InlineDisclaimer from '../components/InlineDisclaimer.astro';
       </article>
     </div>
   </div>
+  )}
 
   <div class="section on-cream">
     <div class="container narrow">
