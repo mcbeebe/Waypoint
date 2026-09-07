@@ -8,7 +8,6 @@
  * both tiers lives here so the pricing page and every gate agree.
  */
 import type { Entitlement, SponsorType } from '@/types/database';
-import { localDayISO } from '@/lib/dateOnly';
 
 export interface ResolvedEntitlement {
   isPremium: boolean;
@@ -28,9 +27,14 @@ const SPONSOR_LABELS: Record<Exclude<SponsorType, 'self'>, string> = {
 type Row = Pick<Entitlement, 'sponsor_type' | 'status' | 'period_start' | 'period_end'>;
 
 export function resolveEntitlement(rows: Row[], now = new Date()): ResolvedEntitlement {
-  // The family's own calendar day: `period_start`/`period_end` are Postgres
-  // dates, and the UTC slice would end a grant at 5pm Pacific on its last day.
-  const today = localDayISO(now);
+  // Deliberately the UTC day, NOT localDayISO: `period_start`/`period_end`
+  // are stamped with the server's UTC day by stripe-webhook, and ai-proxy
+  // enforces against the UTC day too. The reader stays on the writer's
+  // calendar — a family who subscribes in a California evening (already
+  // "tomorrow" in UTC) is Premium the moment the webhook lands, on every
+  // device. Pinned by entitlements.tz.test.ts; move all three together or
+  // none.
+  const today = now.toISOString().slice(0, 10);
   const live = rows.filter(
     (r) =>
       r.status === 'active' &&
