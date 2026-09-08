@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyErrorMessage } from '@/lib/netRetry';
+import { DEFAULT_REMINDER_DAYS } from '@/lib/deadlineReminders';
 import type { Deadline, DeadlineType, DeadlineStatus } from '@/types/database';
 
 interface UseDeadlinesOptions {
@@ -66,7 +67,7 @@ export function useDeadlines(options: UseDeadlinesOptions) {
           deadline_type: data.deadline_type,
           due_date: data.due_date,
           child_id: data.child_id ?? null,
-          reminder_days: data.reminder_days ?? [30, 14, 7, 1],
+          reminder_days: data.reminder_days ?? [...DEFAULT_REMINDER_DAYS],
           notes: data.notes ?? null,
         })
         .select()

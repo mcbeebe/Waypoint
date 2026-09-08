@@ -17,22 +17,33 @@
  * naive parse and the correct one agree.
  *
  * Pure: no expo, no react-native, and no ambient clock — `now` is passed in.
- * Runs in the `logic` suite and is pinned in BOTH timezone suites by
- * `deadlineReminders.tz.test.ts`.
+ * Pinned in BOTH timezone suites by `deadlineReminders.tz.test.ts`, which is
+ * where its coverage lives; the `logic` project excludes `*.tz.test.ts`.
  */
 import { parseDateLocal } from '@/lib/dateOnly';
 
-/** Lead times used when a row carries no `reminder_days` of its own. */
-export const DEFAULT_REMINDER_DAYS = [30, 14, 7, 1];
-
-/** Local civil hour the lead-time reminders fire at. */
-export const AHEAD_FIRE_HOUR = 9;
+/**
+ * Lead times used when a row carries no `reminder_days` of its own. The
+ * database column has the same default (`001_schema_v1.sql`), so a row can
+ * arrive here already carrying these.
+ */
+export const DEFAULT_REMINDER_DAYS: readonly number[] = [30, 14, 7, 1];
 
 /**
- * Local civil hour the due-day push fires at — deliberately an hour earlier
- * than the lead-time reminders, so on a morning that carries both the family
- * reads "this is due today" first.
+ * Local civil hours the two kinds of push fire at.
+ *
+ * These belong to the stored-Deadline scheduler only. `notificationPolicy`
+ * has its own `FIRE_HOUR` for the request clocks and plan actions, and the two
+ * are independent on purpose — the subsystems notify different rows. Changing
+ * one does NOT change the other; the names are similar and the values happen
+ * to coincide today, which is exactly how a future edit gets this wrong.
+ *
+ * The hours differ from each other only because they always have. The one
+ * input that puts both on a single morning is a `reminder_days` entry of `0`,
+ * which is storable (`integer[]`, no CHECK) and renders as "Due in 0 days" —
+ * pre-existing, preserved deliberately here, and worth fixing on its own.
  */
+export const AHEAD_FIRE_HOUR = 9;
 export const DUE_DAY_FIRE_HOUR = 8;
 
 /** One push to schedule: when it fires, and the words the family reads. */
@@ -53,7 +64,7 @@ export interface DeadlineTriggerInput {
   /** A Postgres `date` (`2026-10-01`) — a calendar day, with no zone. */
   dueDate: string;
   /** The row's lead times; empty or absent falls back to the defaults. */
-  reminderDays?: number[] | null;
+  reminderDays?: readonly number[] | null;
   /** The moment scheduling happens. Only strictly-future triggers survive. */
   now: Date;
 }

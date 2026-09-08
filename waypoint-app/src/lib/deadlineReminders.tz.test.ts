@@ -18,12 +18,17 @@
  * written with `setUTCHours` passes the day checks and fails these.
  */
 import { describe, it, expect } from 'vitest';
-import {
-  deadlineTriggers,
-  DEFAULT_REMINDER_DAYS,
-  AHEAD_FIRE_HOUR,
-  DUE_DAY_FIRE_HOUR,
-} from './deadlineReminders';
+import { deadlineTriggers, DEFAULT_REMINDER_DAYS } from './deadlineReminders';
+
+/**
+ * Fire hours are asserted as LITERAL 9 and 8, never as the module's own
+ * exported constants. Comparing the constant against itself is circular: it
+ * passes whatever the constant is changed to, so moving the "Due Today" push
+ * to 20:00 — after every agency has closed, on the last day a family can act
+ * — would stay green. These literals are the spec.
+ */
+const AHEAD_HOUR = 9;
+const DUE_HOUR = 8;
 
 /** A deadline the family reads as "October 1, 2026". */
 const DUE = '2026-10-01';
@@ -44,7 +49,7 @@ describe('the due-day push lands on the day the row names', () => {
       .find((t) => t.kind === 'due');
 
     expect(due).toBeDefined();
-    expect(landsOn(due!.fireAt)).toEqual([2026, 9, 1, DUE_DAY_FIRE_HOUR]);
+    expect(landsOn(due!.fireAt)).toEqual([2026, 9, 1, DUE_HOUR]);
   });
 
   it('still reaches the family when scheduling happens the day before', () => {
@@ -61,7 +66,7 @@ describe('the due-day push lands on the day the row names', () => {
 
     expect(specs).toHaveLength(1);
     expect(specs[0].kind).toBe('due');
-    expect(landsOn(specs[0].fireAt)).toEqual([2026, 9, 1, DUE_DAY_FIRE_HOUR]);
+    expect(landsOn(specs[0].fireAt)).toEqual([2026, 9, 1, DUE_HOUR]);
   });
 });
 
@@ -73,26 +78,40 @@ describe('lead-time reminders', () => {
     expect(ahead.map((t) => t.daysBefore)).toEqual(DEFAULT_REMINDER_DAYS);
     // 30 · 14 · 7 · 1 days before Oct 1 2026 = Sep 1 · Sep 17 · Sep 24 · Sep 30.
     expect(ahead.map((t) => landsOn(t.fireAt))).toEqual([
-      [2026, 8, 1, AHEAD_FIRE_HOUR],
-      [2026, 8, 17, AHEAD_FIRE_HOUR],
-      [2026, 8, 24, AHEAD_FIRE_HOUR],
-      [2026, 8, 30, AHEAD_FIRE_HOUR],
+      [2026, 8, 1, AHEAD_HOUR],
+      [2026, 8, 17, AHEAD_HOUR],
+      [2026, 8, 24, AHEAD_HOUR],
+      [2026, 8, 30, AHEAD_HOUR],
     ]);
   });
 
-  it("holds 9am local across a DST change it spans", () => {
-    // 30 days before Nov 10 is Oct 11 — the far side of the US DST change on
-    // Nov 1. The reminder is still 9am as the family reads a clock, which is
-    // what local-calendar arithmetic gives and fixed-offset arithmetic does
-    // not. In the east project there is no DST and the same assertion holds.
-    const specs = deadlineTriggers({
+  it('counts back in whole local days across spring-forward, not in fixed hours', () => {
+    // The DST direction that actually discriminates. Counting back 30×24h from
+    // Mar 20 crosses the spring-forward change on Mar 8, and the lost hour
+    // lands the reminder on Feb 17 in California — a day early, the exact
+    // class this file exists to catch. Counting back in CALENDAR days gives
+    // Feb 18 in both zones.
+    //
+    // Fall-back (counting back from November) is NOT a substitute: the gained
+    // hour leaves the day correct and the trailing setHours erases the
+    // evidence, so a broken implementation passes it in both zones.
+    const spring = deadlineTriggers({
+      title: 'Annual review',
+      dueDate: '2026-03-20',
+      reminderDays: [30],
+      now: new Date(2026, 0, 1, 9, 0),
+    });
+    expect(landsOn(spring[0].fireAt)).toEqual([2026, 1, 18, AHEAD_HOUR]);
+
+    // And the other direction still holds: 30 days before Nov 10 is Oct 11,
+    // the far side of fall-back, still 9am as the family reads a clock.
+    const fall = deadlineTriggers({
       title: 'Annual review',
       dueDate: '2026-11-10',
       reminderDays: [30],
       now: EARLY,
     });
-
-    expect(landsOn(specs[0].fireAt)).toEqual([2026, 9, 11, AHEAD_FIRE_HOUR]);
+    expect(landsOn(fall[0].fireAt)).toEqual([2026, 9, 11, AHEAD_HOUR]);
   });
 
   it("uses the row's own lead times when it has them", () => {
@@ -104,7 +123,7 @@ describe('lead-time reminders', () => {
     });
 
     expect(specs.map((t) => t.daysBefore)).toEqual([3, 0]);
-    expect(landsOn(specs[0].fireAt)).toEqual([2026, 8, 28, AHEAD_FIRE_HOUR]);
+    expect(landsOn(specs[0].fireAt)).toEqual([2026, 8, 28, AHEAD_HOUR]);
   });
 
   it('falls back to the defaults when the row lists none', () => {
@@ -128,15 +147,29 @@ describe('what never gets scheduled', () => {
     expect(specs.map((t) => t.daysBefore)).toEqual([7, 1, 0]);
   });
 
-  it('drops a trigger falling exactly on now — a phone cannot fire into the past', () => {
+  it('drops a lead-time trigger falling exactly on now — a phone cannot fire into the past', () => {
     const specs = deadlineTriggers({
       title: 'IEP paperwork',
       dueDate: DUE,
       reminderDays: [1],
-      now: new Date(2026, 8, 30, AHEAD_FIRE_HOUR, 0, 0, 0),
+      now: new Date(2026, 8, 30, AHEAD_HOUR, 0, 0, 0),
     });
 
     expect(specs.map((t) => t.kind)).toEqual(['due']);
+  });
+
+  it('drops the due-day push too when it falls exactly on now', () => {
+    // The same boundary on the other guard. Pinned separately because this is
+    // the push the family relies on most, and the two comparators are written
+    // out independently — one can be loosened without touching the other.
+    const specs = deadlineTriggers({
+      title: 'IEP paperwork',
+      dueDate: DUE,
+      reminderDays: [1],
+      now: new Date(2026, 9, 1, DUE_HOUR, 0, 0, 0),
+    });
+
+    expect(specs).toEqual([]);
   });
 
   it('yields nothing at all once the whole deadline is behind the family', () => {
