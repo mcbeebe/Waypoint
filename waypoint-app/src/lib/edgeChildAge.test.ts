@@ -10,19 +10,18 @@
  *
  * That is wrong under every clock on Earth, so it belongs in the plain
  * `logic` project rather than a tz suite. The timezone half is pinned
- * separately in `childAge.tz.test.ts`.
+ * separately in `edgeChildAge.tz.test.ts`.
  *
- * This file is the first test in the repo to assert on Edge Function code.
- * It lives in `src/` rather than beside its subject on purpose: everything
- * under `supabase/functions/` is uploaded by `supabase functions deploy`,
- * and a `.test.ts` importing `vitest` in that tree is a deploy-time hazard
- * nothing in CI could catch — there is no Deno in this repo's toolchain to
- * check it with. Reaching across the boundary from here costs one relative
- * import and risks nothing.
+ * Placed in `src/`, following `replyPush.mirror.test.ts` and
+ * `gmailMime.test.ts`, which already reach across this boundary the same way.
+ * Everything under `supabase/functions/` is uploaded by `supabase functions
+ * deploy`, so a `.test.ts` importing `vitest` in that tree is a deploy-time
+ * hazard nothing here could catch — there is no Deno in this toolchain.
+ * Reaching across from this side costs one relative import and risks nothing.
  *
- * A side benefit: because this file imports it, `childAge.ts` is pulled into
- * the TypeScript program and typechecked, which `tsconfig.json`'s
- * `exclude: ["supabase/functions"]` otherwise prevents.
+ * Side benefit, shared with those two: importing `childAge.ts` pulls it into
+ * the TypeScript program, so it is typechecked despite `tsconfig.json`'s
+ * `exclude: ["supabase/functions"]`.
  */
 import { describe, it, expect } from 'vitest';
 import { ageFromDob } from '../../supabase/functions/_shared/childAge';
@@ -105,6 +104,15 @@ describe('parity with the app-side twin (src/lib/eligibility.ts)', () => {
     new Date(2026, 5, 5, 12, 0),
     new Date(2026, 5, 20, 23, 30), // last minutes of a birthday
     new Date(2026, 11, 31, 23, 59),
+    // Adjacent to the awkward birthdays above. Without these the leap-day and
+    // 31 December entries only ever hit the "some other month" branch, and a
+    // `now.getDate() < Math.min(birth.getDate(), 28)` regression passed the
+    // entire suite in both timezones.
+    new Date(2026, 1, 27, 12, 0), // 27 Feb — before a 29 Feb birthday
+    new Date(2026, 1, 28, 23, 30), // 28 Feb — the day it lands on in a non-leap year
+    new Date(2026, 2, 1, 0, 30), // 1 Mar — just after
+    new Date(2026, 11, 29, 12, 0), // 29 Dec — before a 31 Dec birthday
+    new Date(2026, 11, 30, 23, 30), // 30 Dec — the day before
   ];
 
   it('agrees with the app on every combination', () => {

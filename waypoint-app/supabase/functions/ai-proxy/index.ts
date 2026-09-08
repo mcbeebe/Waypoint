@@ -423,12 +423,14 @@ serve(async (req: Request) => {
           .order('is_primary', { ascending: false });
         const child = children?.[0];
         // Age gates the advice that comes back (Early Start 0–3, Part B at 3,
-        // Lanterman to 22), so it is read on the family's calendar and counts
-        // the day of the month. See _shared/childAge.ts for what the inline
-        // version got wrong. Null covers a missing OR unparsable date, which
-        // the old inline code rendered as "NaN years old".
+        // Lanterman to 22), and the inline version counted a year older from
+        // the 1st of the birth month — see _shared/childAge.ts, which also
+        // records the day-boundary case this does NOT fix (the clock is this
+        // server's, not the family's). Negative means a mistyped future DOB;
+        // null means missing or unparsable, which the old code rendered into
+        // the prompt as "NaN years old".
         const childYears = ageFromDob(child?.date_of_birth);
-        if (childYears !== null) {
+        if (childYears !== null && childYears >= 0) {
           childInfo = `The parent has a child who is ${childYears} years old.`;
         }
         if (child) {
@@ -1050,10 +1052,10 @@ ${extractedText}`;
         .order('is_primary', { ascending: false });
       const child = children?.[0];
       // Second copy of the same derivation — see the note at the first call
-      // site. Both now read the family's calendar and count the day.
+      // site. Both count the day of the month; neither knows the family's zone.
       let childAge = '';
       const childAgeYears = ageFromDob(child?.date_of_birth);
-      if (childAgeYears !== null) {
+      if (childAgeYears !== null && childAgeYears >= 0) {
         childAge = `${childAgeYears} years old`;
       }
       let diagnosis = '';

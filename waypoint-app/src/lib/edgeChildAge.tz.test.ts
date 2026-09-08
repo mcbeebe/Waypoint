@@ -55,8 +55,11 @@ describe('a child’s age is read on the family’s calendar', () => {
 
   it('a 1st-of-the-month birthday keeps its month', () => {
     // Parsed as UTC, '2023-07-01' is 30 June west of Greenwich, moving the
-    // birthday into the previous month.
-    const now = new Date(2026, 5, 15, 20, 0); // 15 June 2026, evening
+    // birthday into the previous month. `now` has to be 30 June for that to
+    // show: on any earlier June day the child is "before the birthday"
+    // either way, and the assertion cannot fail. On the 30th the naive parse
+    // says the birthday has arrived and returns 3; it has not, and is 2.
+    const now = new Date(2026, 5, 30, 20, 0); // 30 June 2026, evening
     expect(ageFromDob('2023-07-01', now)).toBe(expectedAge(2023, 7, 1, now));
     expect(ageFromDob('2023-07-01', now)).toBe(2);
   });
