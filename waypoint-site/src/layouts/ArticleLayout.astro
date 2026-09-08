@@ -12,7 +12,6 @@ import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import DraftBanner from '../components/DraftBanner.astro';
 import TrustBlock from '../components/TrustBlock.astro';
-import ChangelogBox from '../components/ChangelogBox.astro';
 import InlineDisclaimer from '../components/InlineDisclaimer.astro';
 import CrisisBanner from '../components/CrisisBanner.astro';
 import { articleJsonLd } from '../lib/jsonld';
@@ -31,7 +30,6 @@ interface Props {
   review: { reviewedBy: string; credential: string; date: Date; versionReviewed: string } | null;
   datePublished: Date | null;
   dateModified: Date;
-  changelog: { date: Date; note: string }[];
   disclaimerVariant: 'legal' | 'benefits' | 'medical' | 'none';
   noindex: boolean;
   /** Page slug (path without slashes) + pillar for the read_complete beacon. */
@@ -53,7 +51,6 @@ const {
   review,
   datePublished,
   dateModified,
-  changelog,
   disclaimerVariant,
   noindex,
   slug,
@@ -102,7 +99,6 @@ const jsonLd = !isDraft
       >
         <slot />
       </div>
-      <ChangelogBox entries={changelog} />
       {crisis && <CrisisBanner emphasized />}
       <slot name="handoff" />
       <InlineDisclaimer variant={disclaimerVariant} />

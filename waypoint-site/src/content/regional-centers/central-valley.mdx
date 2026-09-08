@@ -13,10 +13,10 @@ counties:
   - Mariposa
   - Merced
   - Tulare
-intakePhone: null
+intakePhone: "(559) 276-4300"
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -33,6 +33,34 @@ disclaimerVariant: legal
   [TBC: add ddsListingUrl once verified]
   [TBC: per-center narrative — local intake quirks, board meeting info,
    nearby centers — replaces the generic body below]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "Central Valley Regional Center. Address: 4615 North Marty, Fresno, CA
+    93722-4186. Counties Served: Fresno, Kings, Madera, Mariposa, Merced,
+    and Tulare counties. Early Start Intake: Fresno: 559-276-4300 | Visalia:
+    559-738-2200 | Merced: 209-723-4245 | IntakeReferrals@cvrc.org"
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (559) 276-4300
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://www.cvrc.org/eligibility/
+  WEBSITE (not published): https://www.cvrc.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
+
+  ---- MAIN NUMBER VERIFIED 2026-09-07 ----
+  (559) 276-4300 — published per the owner's policy (2026-09-07): publish the
+  MAIN line, not a dedicated intake queue. A main line is always answered
+  and can transfer; an intake line can be voicemail, or age-gated and
+  wrong for the caller.
+  Two sources agree: DDS listing and the center's own site. (confidence: high)
+    DDS: https://www.dds.ca.gov/rc/listings/
+    Own: https://www.cvrc.org/contact-us/
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -47,8 +75,9 @@ import SideCard from '../../components/SideCard.astro';
   Central Valley Regional Center serves families in <b>Fresno, Kings, Madera, Mariposa, Merced, and Tulare counties</b> — one of California's
   <b> 21 regional centers</b> providing services under the Lanterman Act
   <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you an eligibility decision within <b>120 days</b> — or <b>45 days</b> if your child is
-  under 3 and coming through Early Start <Cite>WIC §4643</Cite>. Write down the date of your
+  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
+  or, under 3, a completed Early Start evaluation and initial family service plan within
+  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
   first contact. The clock starts then.
 </AnswerFirst>
 
@@ -64,8 +93,9 @@ limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
 2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
    Missing pieces should not delay your request.
 3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The decision is due within 120 days of intake — 45 under age 3
-   <Cite>WIC §4643</Cite>. Calendar it the day you first call.
+4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
+   under 3, Early Start completes everything within 45 days of the referral
+   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
 5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
    <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
    your appeal rights.
@@ -82,8 +112,7 @@ timelines, and what to say at each stage — lives in one place:
   <SideCard title="At a glance">
     <dl>
       <dt>Counties</dt><dd>Fresno · Kings · Madera · Mariposa · Merced · Tulare</dd>
-      <dt>Intake</dt><dd>[TBC: verify channels]</dd>
-      <dt>Eligibility clock</dt><dd>120 days · 45 under 3</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
     </dl>
   </SideCard>
   <SideCard title="Not your Regional Center?">

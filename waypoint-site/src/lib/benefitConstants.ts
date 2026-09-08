@@ -49,3 +49,28 @@ export function currentDeemingConstants(): (DeemingConstants & { year: number })
 export function ssiSourceUrl(): string {
   return entry('ssi_fbr_individual').sourceUrl;
 }
+
+/**
+ * CCS (California Children's Services) financial-eligibility figures, formatted
+ * for prose. D4: content pages interpolate these instead of hard-coding a
+ * dollar amount, so a threshold change lands in the constants file only.
+ * Throws rather than rendering a blank if a figure is ever unset — a benefits
+ * page must never show a family an empty income limit.
+ */
+function requiredValue(key: string): number {
+  const v = entry(key).value;
+  if (v == null) {
+    throw new Error(`benefit-constants: "${key}" is null; no page may render an empty benefit figure.`);
+  }
+  return v;
+}
+
+/** CCS family adjusted-gross-income ceiling, formatted (e.g. "$40,000"). */
+export function ccsIncomeCeiling(): string {
+  return '$' + requiredValue('ccs_income_ceiling').toLocaleString('en-US');
+}
+
+/** CCS out-of-pocket cost-share threshold as a bare number (a percentage). */
+export function ccsCostSharePercent(): number {
+  return requiredValue('ccs_cost_share_percent');
+}

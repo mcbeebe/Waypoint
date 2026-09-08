@@ -28,7 +28,6 @@
 
 import type { Action, ActionPriority } from '@/types/database';
 import { PRIORITY_RANK } from '@/lib/actionMeta';
-import { parseLocalDay } from '@/lib/dateOnly';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -106,8 +105,14 @@ export const NO_FILTERS: ActionFilters = { priorities: [], due: 'any', created: 
  * undated rather than silently "overdue since 1970".
  */
 function localDayOf(dateStr: string | null | undefined): number | null {
-  const d = parseLocalDay(dateStr);
-  if (d === null) return null;
+  if (!dateStr) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr.trim());
+  if (m) {
+    const t = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).getTime();
+    return Number.isNaN(t) ? null : t;
+  }
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return null;
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 

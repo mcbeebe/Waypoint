@@ -24,10 +24,12 @@ export default defineConfig({
       : [
           sitemap({
             // Keep noindexed surfaces out of the sitemap: the 404 page, and
-            // the tool pages while they carry noindex pending expert review —
-            // remove the /tools/ exclusion in the same PR that flips their
-            // noindex off. Anchored to the site origin, not substrings.
-            filter: (page) => page !== `${SITE}/404/` && !page.startsWith(`${SITE}/tools/`),
+            // the RC finder while it carries noindex pending county-spine
+            // verification. The deeming calculator's noindex came off with
+            // the verified 2026 constants (2026-09-07), so it's listed —
+            // this filter must keep tracking each tool's noindex state.
+            filter: (page) =>
+              page !== `${SITE}/404/` && page !== `${SITE}/tools/regional-center-finder/`,
           }),
         ]),
   ],

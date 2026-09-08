@@ -40,18 +40,18 @@ WayPoint/
 │   ├── content-ops/            # keyword map + validator, pipeline SOP, style guide
 │   └── docs/                   # analytics taxonomy (D3), redirect map, launch checklist
 │
-├── gas-mvp/                    # Google Apps Script MVP — still serving users
-│   ├── Code.gs                 # Backend: AI engine, user mgmt, sheet ops (~3200 lines)
-│   ├── Index.html              # Frontend: SPA with chat UI (~4800 lines)
-│   └── .clasp.json             # Exists since Mar 2026 but is NOT used — deploys
-│                               #   are still manual copy-paste. See the open
-│                               #   question in docs/initiatives/README.md
-│
 ├── docs/                       # ⚠️ NOT documentation — this is the deployed
 │                               #   web MVP published to GitHub Pages (pages.yml)
 ├── Roadmap/                    # Plans, analyses, and design-canvas mockups
 ├── Operations/                 # Vendorization packet, DDS letters, business docs
 ├── Archive/                    # Superseded material, in typed buckets
+│   └── Retired-Surfaces/       # gas-mvp/ lives here since 2026-09-07 — the
+│                               #   Google Apps Script MVP, archived by owner
+│                               #   decision. See gas-mvp.SUPERSEDED.md. Do not
+│                               #   fix, update, or port anything in it, and do
+│                               #   NOT treat its data as corroboration: its ZIP
+│                               #   router misroutes San Diego, Long Beach and
+│                               #   the whole north coast.
 ├── Financial Models/  ·  IEP INTAKE/  ·  Apple App Store Readiness/  ·  WayPoint 2.0/
 │
 ├── ROADMAP.md                  # ← THE PLAN OF RECORD (v2.0, supersedes v1.1 §3–8)
@@ -59,13 +59,22 @@ WayPoint/
 └── *.docx / *.xlsx             # Business documents (see the markdown-first rule below)
 ```
 
-There is **no nested `gas-mvp/.git`** — it was removed in March 2026. There is
+There is **no nested `.git`** inside the archived gas-mvp — it was removed in
+March 2026. There is
 no `Undivided Customer Journey/` or `WayPoint-Enterprise-Planning/` directory;
 that material is under `Archive/`.
 
 ## Tech Stack
 
-### gas-mvp (Active — Production)
+### gas-mvp (ARCHIVED 2026-09-07 — `Archive/Retired-Surfaces/gas-mvp/`)
+
+The owner retired and archived this surface: it no longer serves users and needs no
+maintenance or updates. **Do not spend work here** — no bug fixes, no
+dependency bumps, no porting. It is also not a source of truth: a
+2026-09-07 audit found its ZIP router sent the city of San Diego to Inland
+Regional Center and Long Beach to San Gabriel/Pomona, so treat any data it
+carries as suspect rather than as corroboration for the same value
+elsewhere. The description below is historical.
 - **Runtime:** Google Apps Script (V8 engine, server-side JavaScript)
 - **Frontend:** Single HTML file with inline CSS/JS (served via `HtmlService`)
 - **Backend data:** Google Sheets (tabs: Users, ActionLog, Sessions, KnowledgeBase, Prompts, InteractionLog, DraftLog, ChatSessions)
@@ -177,8 +186,9 @@ firms up on the escalation ladder. Pinned by tests in `homeTriage.test.ts`.
 
 ## Environment Variables
 
-### gas-mvp
-- `ANTHROPIC_API_KEY` — stored in Script Properties (PropertiesService), never in code
+### gas-mvp (retired)
+- `ANTHROPIC_API_KEY` — was stored in Script Properties (PropertiesService).
+  The surface is retired; if that key is still live, it is worth revoking.
 
 ### waypoint-app
 - `EXPO_PUBLIC_SUPABASE_URL` — Supabase project URL
@@ -262,10 +272,10 @@ deployed Pages site.)
 
 ## Development Notes
 
-- The `gas-mvp/Code.gs` and `Index.html` files are large (~3200 and ~4800 lines respectively). When editing, show only changed sections with 3 lines of context.
+- `Archive/Retired-Surfaces/gas-mvp/` is archived and unmaintained (see above) — it should not need editing at all. If a task genuinely requires it, note that `Code.gs` and `Index.html` are ~3200 and ~4800 lines, so show only changed sections with 3 lines of context.
 - Standalone `.jsx` and `.js` files in the root are **prototypes** — they were used for design exploration and may be referenced but aren't deployed.
 - Business documents (`.docx`, `.xlsx`, `.pptx`) are tracked in git for version control. They contain product strategy, financials, and project plans.
-- The Entity Navigation Matrix (in `gas-mvp/Waypoint-Entity-Navigation-Matrix-v9_4.xlsx` and documented in `WayPoint-Dev-Session-EntityKB-v9.4.txt`) is the core knowledge base powering the AI engine.
+- The Entity Navigation Matrix (`Archive/Retired-Surfaces/gas-mvp/Waypoint-Entity-Navigation-Matrix-v9_4.xlsx`, documented in `WayPoint-Dev-Session-EntityKB-v9.4.txt`) is the knowledge base the retired MVP's AI engine ran on. It survives its host as a content SOURCE — the marketing site's Regional Center pages were seeded from it — but the file lives inside a retired directory, so treat it as reference material to be verified, never as verified data. Its one Regional Center row is why the 21 RC county lists had to be authored rather than converted.
 
 ## waypoint-site (marketing site — waypointchild.com)
 

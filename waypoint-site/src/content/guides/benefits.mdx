@@ -1,0 +1,279 @@
+---
+title: "Benefits for a child with a disability: the California resource map"
+description: "Every door to help in California — Regional Center respite, Medi-Cal, IHSS, insurance-covered therapies, and SSI — what each is and where to start."
+locale: en
+translationKey: benefits-pillar
+status: published
+pillar: benefits
+dateModified: 2026-09-07
+datePublished: 2026-09-07
+review:
+  reviewedBy: "Mike Beebe"
+  credential: "Founder"
+  date: 2026-09-07
+  versionReviewed: "daab5050dfaf9e20c560d6398d02d656e1773c4e"
+nextReviewEvent: annual
+disclaimerVariant: benefits
+changelog:
+  - date: 2026-09-07
+    note: "Rewritten as a map of every resource door, not just SSI, and a section added on private services and what they cost you in money versus waiting."
+  - date: 2026-09-07
+    note: "Figures checked against their sources. Corrected: 195 and 283 hours are IHSS's monthly maximums, not extra hours added on top of other care. CCS income limits, the SB 946 coverage mandate, and the Medi-Cal deeming rules are confirmed and cited below."
+  - date: 2026-09-07
+    note: "Published. Reviewed by Waypoint's founder against the sources listed below. An outside credentialed review is still planned, and will be credited here when it happens."
+sources:
+  - label: "WIC §4646 / §4646.5 (IPP; services flow from identified needs)"
+    url: "https://codes.findlaw.com/ca/welfare-and-institutions-code/wic-sect-4646/"
+    accessed: 2026-09-07
+  - label: "DHCS — HCBS Waiver for the Developmentally Disabled (institutional deeming)"
+    url: "https://www.dhcs.ca.gov/services/ltc/Pages/DD.aspx"
+    accessed: 2026-09-07
+  - label: "Disability Rights California — IHSS maximum monthly hours (195/283)"
+    url: "https://www.disabilityrightsca.org/publications/understanding-the-maximum-amount-of-hours-available-calculating-hours"
+    accessed: 2026-09-07
+  - label: "HSC §1374.73 (SB 946 behavioral health treatment mandate)"
+    url: "https://codes.findlaw.com/ca/health-and-safety-code/hsc-sect-1374-73/"
+    accessed: 2026-09-07
+  - label: "DHCS — California Children's Services (CCS) eligibility"
+    url: "https://www.dhcs.ca.gov/services/california-childrens-services/"
+    accessed: 2026-09-07
+  - label: "WIC §4648.5 via AB 136 (2021) — camps, social recreation, nonmedical therapies restored"
+    url: "https://www.arcanet.org/docs/ab136.pdf"
+    accessed: 2026-09-07
+  - label: "WIC §4512(b) (IPP services list, respite among them)"
+    url: "https://codes.findlaw.com/ca/welfare-and-institutions-code/wic-sect-4512/"
+    accessed: 2026-09-07
+---
+
+{/*
+  DRAFT — the benefits PILLAR HUB (keyword row /guides/benefits/), created
+  2026-09-07 per founder direction: "make this about accessing resources in
+  general — Medi-Cal, respite services with regional centers, therapies,
+  etc." The SSI page stays as a focused spoke this hub links down to.
+  Framing follows STYLE-GUIDE §1.1 (approach-agnostic on therapies).
+  FACT-CHECKED 2026-09-07 (verbatim-statute snippets; see sources[]):
+  IPP-attachment framing confirmed (WIC §4646/§4646.5); deeming door
+  confirmed (DHCS HCBS-DD waiver); IHSS 195/283 are the program's monthly
+  MAXIMA (non-severely/severely impaired), corrected below; CCS income
+  rules confirmed ($40k AGI or >20% test); SB 946 confirmed (HSC §1374.73,
+  ERISA exempt); SSI→Medi-Cal automatic linkage confirmed; RC camp/social-
+  recreation funding via IPP confirmed (WIC §4648.5, AB 136 2021).
+  PUBLISHED 2026-09-07 under the founder-as-reviewer decision (see
+  changelog); sources[] carries the receipts. Respite confirmed as an IPP
+  service (WIC §4512(b) service list; DRC respite hearing packet).
+  Reimbursement lines are written as instructions ("ask your plan"), not
+  claims, so nothing unverified is asserted.
+*/}
+
+import AnswerFirst from '../../components/AnswerFirst.astro';
+import Cite from '../../components/Cite.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
+import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
+import SideCard from '../../components/SideCard.astro';
+import { ccsIncomeCeiling, ccsCostSharePercent } from '../../lib/benefitConstants';
+
+<PlainBox>
+  California has more help for your child than any one office will ever tell you about —
+  Regional Center services like respite, Medi-Cal, IHSS, therapies through your insurance,
+  and SSI. Each has its own door, its own rules, and its own myths. This page is the map:
+  what each resource is, who it's really for, and which door to knock on first. Most of them
+  do <b>not</b> depend on how much you earn.
+</PlainBox>
+
+<div class="cols">
+<article class="prose">
+
+Nobody hands you this list. You find out about respite from another parent in a waiting
+room, about deeming from a Facebook group at midnight, about IHSS a year later than you
+could have. That drip-feed is the system's biggest failure — so here is the whole map in one
+place, with the guides that go deep on each door.
+
+<h2 class="qa-h" id="the-map">The doors, at a glance</h2>
+
+<AnswerFirst>
+  Five systems fund help for a California child with a disability: your <b>Regional
+  Center</b> (services and respite, no income test), <b>Medi-Cal</b> (health coverage — with
+  a door that ignores parental income), <b>IHSS</b> (paid in-home care hours), <b>your health
+  insurance</b> (therapies your child's clinician prescribes), and <b>SSI</b> (a monthly
+  payment, income-tested). They run independently — being told no at one door says nothing
+  about the other four. And alongside them runs a sixth lane, <b>private services</b>, where
+  you trade money for speed.
+</AnswerFirst>
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Resource</th><th>What it is</th><th>Income test?</th></tr>
+    <tr><td><b>Regional Center services</b></td><td>Respite, behavioral and other services, case management under the Lanterman Act <span class="cite">WIC §4500 et seq.</span></td><td>No — eligibility is about the disability</td></tr>
+    <tr><td><b>Medi-Cal</b></td><td>Health coverage; the key that opens IHSS</td><td>Two doors — one ignores parental income entirely</td></tr>
+    <tr><td><b>IHSS</b></td><td>Paid hours for in-home care and supervision — a parent can be the provider</td><td>Needs Medi-Cal, not low income per se</td></tr>
+    <tr><td><b>Insurance-covered therapies</b></td><td>Whatever your child's clinician prescribes — coverage is the fight, not the therapy choice</td><td>No — it's your existing plan</td></tr>
+    <tr><td><b>Private services</b></td><td>Local OT, playgroups, adaptive sports, specialized camps — paid directly; the fast lane</td><td>Your budget is the test — but access is nearly immediate</td></tr>
+    <tr><td><b>SSI</b></td><td>Monthly federal payment (+ automatic Medi-Cal in CA)</td><td>Yes — parental income is "deemed"</td></tr>
+  </table>
+</div>
+
+<h2 class="qa-h" id="regional-center">Regional Center services — including respite</h2>
+
+<AnswerFirst>
+  If your child is Regional Center–eligible, the center coordinates and funds services —
+  <b>respite</b> among them: paid breaks for you, with a trained provider for your child
+  <Cite>WIC §4512(b)</Cite>. In our experience it is the support families need soonest and
+  hear about last. Services carry <b>no income test and no family fee</b> — California's
+  family cost participation and annual family program fees were repealed effective July 1,
+  2024 <Cite>DDS</Cite> — but many are <b>not automatic</b>: they attach to needs written
+  into your child's IPP, so they have to be asked for <Cite>WIC §4646</Cite>.
+</AnswerFirst>
+
+The pattern to learn early: put every ask in writing, get every answer in writing, and make
+sure the need behind each ask lands in the IPP — that's the hook services hang on. Start
+with the <GatedLink href="/guides/regional-centers/">Regional Center guide</GatedLink> for eligibility, the
+intake clock, and the IPP playbook; if you're not yet in the system, that's door one.
+
+<h2 class="qa-h" id="medi-cal">Medi-Cal — two doors in, one hiding in plain sight</h2>
+
+<AnswerFirst>
+  Door one is income-based, like any family. Door two — <b>institutional deeming</b> — is
+  the one nobody tells you about: a child with a developmental disability living at home can
+  get Medi-Cal with <b>parental income ignored</b>, through the HCBS waiver for the
+  developmentally disabled. If you've been told you "make too much," you were probably told
+  about door one only.
+</AnswerFirst>
+
+Medi-Cal matters even if your child is already insured: it can ride second behind your plan,
+and it's the eligibility key for IHSS. The full walkthrough:
+<GatedLink href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming</GatedLink>.
+
+<h2 class="qa-h" id="ihss">IHSS — the state pays for care hours, including yours</h2>
+
+<AnswerFirst>
+  In-Home Supportive Services pays for the care and supervision a child needs at home — and
+  a <b>parent can be the paid provider</b>. For children who need constant supervision to
+  stay safe, <b>protective supervision</b> can carry a family to the program's monthly
+  maximum — <b>195 hours</b>, or <b>283</b> if your child is severely impaired.
+  The requirement is Medi-Cal — <b>not SSI</b>, whatever the internet told you.
+</AnswerFirst>
+
+The path: Medi-Cal first (see above), then the county IHSS application. Everything you need
+is in <GatedLink href="/guides/benefits/ihss-protective-supervision/">the IHSS protective supervision guide</GatedLink> — and the myth-buster lives at
+<GatedLink href="/answers/does-my-child-need-ssi-to-get-ihss/">Does my child need SSI to get IHSS?</GatedLink>
+
+<h2 class="qa-h" id="therapies">Therapies — your clinician picks, your insurance pays</h2>
+
+<AnswerFirst>
+  Waypoint doesn't recommend therapies — that's a conversation between you and your child's
+  doctor or evaluating clinician. Your job is the coverage side: ask your insurer what
+  services and therapies your plan covers for your child's diagnosis, and what needs
+  pre-authorization. For autism, California law requires most fully-insured plans to cover
+  <b>prescribed behavioral health treatment</b> <Cite>SB 946 · HSC §1374.73</Cite>
+  (self-funded ERISA plans are exempt) — and every denial you get in writing can be
+  appealed, up to an Independent Medical Review.
+</AnswerFirst>
+
+Two supplements worth knowing: <b>CCS</b> (California Children's Services) can fund
+treatment for specific eligible medical conditions — the income tests are a family adjusted
+gross income under {ccsIncomeCeiling()}, or expected out-of-pocket medical costs for the
+child above {ccsCostSharePercent()}% of family income (and income isn't a factor at all for
+diagnostic services or the school-based Medical Therapy Program). And Regional Center funding
+can cover some services insurance won't — another reason the IPP matters.
+
+<h2 class="qa-h" id="private">Private services — the fast lane, if you can fund it</h2>
+
+<AnswerFirst>
+  Alongside the funded systems there's a whole local layer you can simply <b>buy</b>:
+  occupational therapy, developmental playgroups (DIR-style and others — whatever your
+  child's clinician points you toward), social-skills groups, adaptive sports, and
+  specialized or adaptive camps. Insurance <b>may or may not</b> cover them, and Regional
+  Center funding <b>requires approvals</b> through the IPP process — but the upside is speed:
+  <b>access is almost immediate</b> if you have the resources, while the public clocks run.
+</AnswerFirst>
+
+That speed is the honest trade. Every funded door on this page has a waitlist, an
+assessment, or an approval attached; the private layer mostly has a phone call and a
+calendar. Families who can afford it often use private services as the <b>bridge</b> — start
+something now, while the school evaluation, RC intake, and insurance authorizations grind
+forward. Three things keep the bridge from becoming a trap:
+
+1. **Keep starting the public clocks anyway.** Paying privately doesn't pause your rights —
+   the evaluations and applications above should run in parallel from day one, or you'll
+   still be paying out of pocket a year from now for things a system should be funding.
+2. **Ask about funding both directions.** Ask your plan whether it covers or reimburses the
+   service — and get the answer in writing either way. If your child is Regional
+   Center–eligible, ask your service coordinator whether the center can fund it.
+   Camps, social recreation, and nonmedical therapies came back into Regional Center
+   authority in 2021 <Cite>WIC §4648.5</Cite> — but every purchase runs through an IPP
+   approval, so make the ask in writing and early.
+3. **Keep every receipt and report.** Private evaluations and progress notes strengthen every
+   public case you'll make later — and if a funding door opens, documentation is what any
+   reimbursement conversation starts from.
+
+Finding the local layer: the parent networks in the community step of
+<a href="/start/autism/">the First 100 Days plan</a> are the best directory that exists —
+other families know which local programs, groups, and camps are worth it.
+
+<h2 class="qa-h" id="ssi">SSI — the income-tested one</h2>
+
+<AnswerFirst>
+  SSI is a monthly federal payment for children with disabilities in lower-income
+  households — and in California it brings <b>automatic Medi-Cal</b> with it, no separate
+  application needed.
+  Parental income is "deemed," but bigger households qualify at higher incomes than most
+  families assume — worth a one-minute check on the
+  <a href="/tools/ssi-deeming-calculator/">deeming calculator</a> before you rule it out.
+</AnswerFirst>
+
+If income rules SSI out, you've lost the smallest door on this page — everything above is
+still open. The full picture: <GatedLink href="/guides/benefits/ssi-for-children/">SSI for a child with a disability</GatedLink>.
+
+<h2 class="qa-h" id="order">Which door first?</h2>
+
+<AnswerFirst>
+  For most families: <b>Regional Center intake first</b> (it's the front door to respite AND
+  the helper for Medi-Cal deeming), <b>Medi-Cal second</b>, <b>IHSS third</b> — while the
+  therapy-coverage conversation with your insurer runs in parallel from day one, and private
+  services bridge the waitlists if the budget allows. SSI whenever the calculator says it's
+  worth the paperwork. School services run on their own track — see
+  <a href="/start/autism/">the First 100 Days plan</a> for the whole sequence.
+</AnswerFirst>
+
+<EmpathyCallout label="Why this matters">
+  Every door on this page exists because families before you fought for it. Walking through
+  them isn't taking a handout — it's using the map those families drew. And the version of
+  you six months from now, the one who knows all five doors? Another parent in a waiting
+  room is going to be very glad to meet them.
+</EmpathyCallout>
+
+</article>
+<aside>
+  <SideCard title="On this page" toc>
+    <a href="#the-map">The doors, at a glance</a>
+    <a href="#regional-center">Regional Center + respite</a>
+    <a href="#medi-cal">Medi-Cal's two doors</a>
+    <a href="#ihss">IHSS care hours</a>
+    <a href="#therapies">Therapies & insurance</a>
+    <a href="#private">Private services — the fast lane</a>
+    <a href="#ssi">SSI</a>
+    <a href="#order">Which door first?</a>
+  </SideCard>
+  <SideCard title="Deep dives">
+    <GatedLink class="link" href="/guides/regional-centers/">Regional Center guide →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal deeming →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ssi-for-children/">SSI for children →</GatedLink>
+  </SideCard>
+  <SideCard title="Free tools">
+    <a class="link" href="/tools/ssi-deeming-calculator/">SSI deeming calculator →</a>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+</aside>
+</div>
+
+<HandoffCTA
+  heading="Get your family's version of this map"
+  body="Waypoint checks all five doors against your child's situation and builds the plan — which to knock on first, what to say, and every deadline tracked. Free, English or Spanish."
+  action="Map my child's resources →"
+  slug="guides/benefits"
+  cta="guide-footer"
+  pillar="benefits"
+/>

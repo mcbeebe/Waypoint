@@ -3,23 +3,63 @@ title: "Regional Centers & the Lanterman Act: a California parent's guide"
 description: "How California's 21 Regional Centers work: eligibility, the 120-day intake clock, the IPP meeting, and what to do when the answer is no."
 locale: en
 translationKey: regional-centers-pillar
-status: draft
+status: published
 pillar: regional-centers
-dateModified: 2026-09-06
+dateModified: 2026-09-07
+datePublished: 2026-09-07
+review:
+  reviewedBy: "Mike Beebe"
+  credential: "Founder"
+  date: 2026-09-07
+  versionReviewed: "99733cf"
 nextReviewEvent: annual
 disclaimerVariant: legal
+changelog:
+  - date: 2026-09-07
+    note: "Every deadline on this page checked against its source. Corrected: you have 60 days to appeal a Notice of Action — 30 if you need services to continue while you appeal (the rule changed in March 2023). The Early Start 45-day clock comes from 17 CCR §52086, and the Regional Center intake and assessment clocks are stated exactly as WIC §4643 words them."
+  - date: 2026-09-07
+    note: "Published. Reviewed by Waypoint's founder against the sources listed below, and tightened so each point lands once."
+sources:
+  - label: "WIC §4643 (intake within 15 working days; assessment within 120 days)"
+    url: "https://california.public.law/codes/welfare_and_institutions_code_section_4643"
+    accessed: 2026-09-07
+  - label: "17 CCR §52086 (Early Start 45-day timeline)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-07
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas)"
+    url: "https://law.justia.com/codes/california/code-wic/division-4-5/chapter-1-6/section-4512/"
+    accessed: 2026-09-07
+  - label: "WIC §4710.5 (60-day appeal; 30-day aid-paid-pending, effective 2023-03-01)"
+    url: "https://law.justia.com/codes/california/code-wic/division-4-5/chapter-7/article-3/section-4710-5/"
+    accessed: 2026-09-07
+  - label: "Disability Rights California — Regional Center Appeals Changes (2023)"
+    url: "https://www.disabilityrightsca.org/publications/regional-center-appeals-changes"
+    accessed: 2026-09-07
+  - label: "DDS — Family Fee Programs Ended (FCPP/AFPF repealed July 1, 2024)"
+    url: "https://www.dds.ca.gov/newsletter/family-fee-programs-ended/"
+    accessed: 2026-09-07
 ---
 
 {/*
   DRAFT — ported from the owner-approved prototype (PRs #195/#196/#198).
-  Source verification pending (network egress blocked source fetches in the
-  drafting session — founder edit resolves each [TBC] against the primary
-  source and populates sources[]):
-  [TBC: verify URL + claim — WIC §4500 et seq., leginfo.legislature.ca.gov]
-  [TBC: verify URL + claim — WIC §4512 "substantial disability", 3 of 7 life areas]
-  [TBC: verify URL + claim — WIC §4643 120-day / Early Start 45-day decision timelines]
-  [TBC: verify URL + claim — WIC §4646 IPP]
-  [TBC: verify NOA appeal windows — day counts deliberately NOT stated in this draft]
+  FACT-CHECKED 2026-09-07 (verbatim-statute snippets; see sources[]):
+  WIC §4512 (3-of-7, qualifying conditions) confirmed; WIC §4646 IPP
+  confirmed; WIC §4643 stated precisely (intake within 15 working days;
+  assessment within 120 days of intake; 60-day expedited track).
+  CORRECTED: Early Start 45-day clock is 17 CCR §52086, not §4643.
+  CORRECTED: appeal windows are 60 days from NOA receipt — 30 days for aid
+  paid pending — under WIC §4710.5, effective March 1, 2023.
+  Also: family fees (FCPP/AFPF) repealed effective July 1, 2024 — "free
+  regardless of income" is now unqualified.
+  PUBLISHED 2026-09-07: owner reviewed the full text, asked for a tightening
+  pass, and approved. Same founder-as-reviewer decision as the first three
+  pages (initiative 008 decision record) — an outside credentialed review is
+  still wanted and replaces the founder block when it lands.
+  TIGHTENED in the same commit: the "free regardless of income" point landed
+  three times in the first screen and the qualifying conditions were listed
+  twice verbatim; each now lands once. The intake table's "typically the first
+  few weeks" cell carried an unverified timing claim and now says only what is
+  known.
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -27,6 +67,7 @@ import Cite from '../../components/Cite.astro';
 import EmpathyCallout from '../../components/EmpathyCallout.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
 import PlainBox from '../../components/PlainBox.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import SideCard from '../../components/SideCard.astro';
 
 <PlainBox>
@@ -54,16 +95,13 @@ coordinator — a person whose job is to know your child's case and connect you 
 a funder, it pays for or arranges services that aren't available through other systems:
 respite care, behavioral services, day programs, transportation, adaptive equipment, and more.
 
-The Lanterman Act is unusual in American disability law. It doesn't say the state *may* help
-your child — it establishes services as an entitlement for people who qualify. That's why
-there's no income test, no waitlist-by-design, and no "we ran out of funding this year" as a
-lawful answer. When you hear a parent say "the Regional Center is paying for that," this is
-the system they're talking about.
+The Lanterman Act is unusual in American disability law: it doesn't say the state *may* help
+your child, it establishes services as an entitlement for people who qualify. That's why "we
+ran out of funding this year" is not a lawful answer.
 
-Each of the 21 centers covers a specific geographic area. Which one serves you depends only on
-where you live — not where your child goes to school or gets medical care. If you're not sure
-which one is yours, our <a href="/tools/regional-center-finder/">Regional Center finder</a>
-will tell you in a few seconds.
+Which center is yours depends only on where you live — not where your child goes to school or
+gets medical care. Our <a href="/tools/regional-center-finder/">Regional Center finder</a>
+answers that in a few seconds.
 
 <h2 class="qa-h" id="is-my-child-eligible">Is my child eligible?</h2>
 
@@ -82,48 +120,47 @@ self-sufficiency. Your child doesn't need to struggle in all seven — significa
 three or more is the standard. For a young child, evaluators consider what's expected at that
 age, so "economic self-sufficiency" isn't held against a 4-year-old.
 
-The qualifying conditions are autism, intellectual disability, cerebral palsy, epilepsy, and
-"other conditions closely related to intellectual disability or requiring similar treatment."
-A diagnosis alone doesn't guarantee eligibility, and the absence of one of these exact labels
-doesn't automatically disqualify — the substantial-disability analysis is what matters. That
-fifth category exists precisely for children whose needs are real but whose diagnosis doesn't
-fit a neat box.
+There is also a fifth qualifying category — "other conditions closely related to intellectual
+disability or requiring similar treatment" — which exists precisely for children whose needs
+are real but whose diagnosis doesn't fit a neat box. A diagnosis alone doesn't guarantee
+eligibility, and lacking one of the named labels doesn't automatically disqualify: the
+substantial-disability analysis is what decides it.
 
 If your child is **under 3**, stop reading the fine print and call now. Early Start serves
 infants and toddlers with developmental delays or risk conditions using intentionally broader
-criteria than the over-3 standard, and the decision clock is faster — 45 days instead of 120
-<Cite>WIC §4643</Cite>. Some children who qualify for Early Start won't qualify at age 3, and
+criteria than the over-3 standard, and the clock is faster — evaluation, eligibility, and the
+initial family service plan are all due within 45 days of the referral
+<Cite>17 CCR §52086</Cite>. Some children who qualify for Early Start won't qualify at age 3, and
 that's okay: two-plus years of early intervention is worth having either way.
 
 <h2 class="qa-h" id="how-do-i-apply">How do I apply — and how long can it take?</h2>
 
 <AnswerFirst>
   Call your Regional Center's <b>intake line</b> and say: <i>"I'd like to request an intake and
-  assessment for my child for Regional Center eligibility."</i> Once intake begins, the center
-  must make an eligibility decision <b>within 120 days</b> — or <b>within 45 days</b> for a
-  child under 3 going through Early Start <Cite>WIC §4643</Cite>. You do not need a doctor's
-  referral, a lawyer, or a completed diagnosis to start.
+  assessment for my child for Regional Center eligibility."</i> The center must perform initial
+  intake <b>within 15 working days</b> of your request, and any needed assessment
+  <b>within 120 days of intake</b> — 60 days when delay would put your child at risk
+  <Cite>WIC §4643</Cite>. For a child under 3, Early Start moves faster: evaluation and the
+  initial family service plan within <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>.
+  You do not need a doctor's referral, a lawyer, or a completed diagnosis to start.
 </AnswerFirst>
 
-That phone call is the whole secret to starting. Use the words "intake and assessment" —
-they're the formal trigger. The intake worker will ask about your child's development, your
-concerns, and your address (to confirm you're in their catchment area). Ask them to confirm,
-in writing if possible, the date your intake request was received: that's the date the clock
-starts.
+The intake worker will ask about your child's development, your concerns, and your address.
+Ask them to confirm in writing the date your request was received — that is the date every
+clock below runs from.
 
-Gather what you have, but don't wait until your folder is perfect: any diagnostic reports or
-medical records, school or daycare notes, IEP or IFSP documents if they exist, and your own
-written list of what your child struggles with day to day. The Regional Center will do its own
-assessments — psychological, developmental, adaptive — at no cost to you. Your job is to paint
-an honest picture of the hard days, not the best days.
+Gather what you have, but don't wait for a perfect folder: diagnostic reports, school or
+daycare notes, any IEP or IFSP, and your own list of what your child struggles with day to
+day. The center does its own assessments at no cost to you. Your job is to describe the hard
+days honestly, not the best ones.
 
 <div class="table-wrap">
   <table class="data">
     <tr><th>Step</th><th>What happens</th><th>The clock</th></tr>
     <tr><td>1. Intake call</td><td>You request intake and assessment; the center opens a file</td><td>Starts the decision clock <span class="cite">WIC §4643</span></td></tr>
-    <tr><td>2. Records &amp; interviews</td><td>You share records; intake worker interviews you about your child's development</td><td>Typically the first few weeks [TBC: verify typical timing]</td></tr>
+    <tr><td>2. Records &amp; interviews</td><td>You share records; intake worker interviews you about your child's development</td><td>Early in the same window</td></tr>
     <tr><td>3. Assessments</td><td>Center-funded evaluations (psychological, developmental, adaptive) at no cost to you</td><td>Inside the same decision window</td></tr>
-    <tr><td>4. Eligibility decision</td><td>Written decision: eligible, or a Notice of Action explaining a denial</td><td><b>120 days</b> from intake · <b>45 days</b> under age 3 (Early Start)</td></tr>
+    <tr><td>4. Eligibility decision</td><td>Written decision: eligible, or a Notice of Action explaining a denial</td><td><b>120 days</b> from intake <span class="cite">WIC §4643</span> · <b>45 days</b> from referral under age 3 <span class="cite">17 CCR §52086</span></td></tr>
     <tr><td>5. If eligible</td><td>Service coordinator assigned; first IPP meeting scheduled</td><td>IPP process begins <span class="cite">WIC §4646</span></td></tr>
   </table>
 </div>
@@ -170,10 +207,11 @@ review to ask for more.
 
 <AnswerFirst>
   A denial — of eligibility or of a specific service — must come as a written <b>Notice of
-  Action (NOA)</b> that explains the decision and your <b>appeal rights</b>. Appeal deadlines
-  are short and strict — on the order of 30 days, and sooner if you want services to continue
-  during the appeal [TBC: verify current appeal windows; state the dates printed on the NOA,
-  not from memory]. A "no" on the phone is not a decision. Ask for the NOA.
+  Action (NOA)</b> that explains the decision and your <b>appeal rights</b>. You have
+  <b>60 days</b> from receiving the NOA to appeal — but only <b>30 days</b> (and before the
+  change takes effect) if a service is being cut and you want it to <b>continue during the
+  appeal</b> <Cite>WIC §4710.5</Cite>. Check the dates printed on your own NOA either way. A
+  "no" on the phone is not a decision. Ask for the NOA.
 </AnswerFirst>
 
 That last point deserves repeating, because it's where many families get stuck: an informal
@@ -183,10 +221,8 @@ Notice of Action."* The NOA is what converts a shrug into something you can appe
 
 From the NOA, the path runs through an appeal to a **fair hearing** before an independent
 judge, usually with an optional informal meeting or mediation first — many disputes settle
-before a hearing ever happens. Read the deadlines printed on your own NOA carefully and
-calendar them the day it arrives: filing on time is what preserves your rights, and filing
-quickly can keep existing services in place while the appeal is decided [TBC: confirm the
-aid-paid-pending window before publish].
+before a hearing ever happens. Calendar the deadlines the day the NOA arrives; the 30-day
+window above is the one that keeps services running while you argue.
 
 You don't have to do this alone, and you don't have to pay anyone. The **Office of Clients'
 Rights Advocacy (OCRA)** — part of **Disability Rights California** — provides free advocates
@@ -206,7 +242,7 @@ advocate. A no today is often a not-yet.
   <SideCard title="Quick facts">
     <dl>
       <dt>Regional Centers in CA</dt><dd>21 nonprofits, one per territory</dd>
-      <dt>Eligibility decision</dt><dd>120 days from intake · 45 days under age 3 <span class="cite">WIC §4643</span></dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 days from referral under 3 <span class="cite">17 CCR §52086</span></dd>
       <dt>Cost to your family</dt><dd>Free, at any income — it's the law <span class="cite">WIC §4500</span></dd>
     </dl>
   </SideCard>
@@ -214,7 +250,7 @@ advocate. A no today is often a not-yet.
     <p>Which of the 21 centers serves your address?</p>
     <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
     <p>In the East Bay?</p>
-    <a class="link" href="/regional-centers/east-bay/">RCEB parent guide →</a>
+    <GatedLink class="link" href="/regional-centers/east-bay/">RCEB parent guide →</GatedLink>
   </SideCard>
 </aside>
 </div>

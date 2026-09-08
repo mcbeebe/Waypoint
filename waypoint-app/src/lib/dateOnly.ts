@@ -1,35 +1,26 @@
 /**
- * Date-only helpers for Postgres `date` columns (no time, no zone).
+ * Reading Postgres date-only values on a calendar, not on an instant.
  *
- * A `date` column compared against `toISOString().slice(0, 10)` uses the
- * UTC day, which is tomorrow every evening in California — the wrong side
- * of the boundary for the families Waypoint serves. Compare `date` values
- * against the device's local calendar day instead.
+ * A Postgres `date` (`2026-08-01` — `period_start`, `due_date`,
+ * `date_of_birth`) names a calendar day with no instant and no zone. The
+ * trap on the write/compare side is `new Date().toISOString().slice(0, 10)`:
+ * that is "today" in UTC, which is TOMORROW every evening in California.
+ *
+ * Pure — no react-native, no I/O — so it lives in the `logic` vitest world,
+ * and is pinned in BOTH timezone suites by `dateOnly.tz.test.ts`.
+ *
+ * NOTE: PR #199 introduces this same module with `localDayISO` (identical
+ * behavior and signature) plus a `parseDateLocal` reader. Whichever lands
+ * first, the other's merge is a no-op on this function. Do not add a second
+ * date-only PARSER here — take #199's `parseDateLocal`.
  */
 
 /**
- * The local calendar day of `d` as `YYYY-MM-DD` — the string form Postgres
- * `date` columns arrive in, so the two compare lexicographically.
+ * `YYYY-MM-DD` of the day `d` falls on by the device's clock — the honest
+ * left-hand side when comparing against a Postgres `date` column.
  */
-export function localDayISO(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
-
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
-
-/**
- * Parse a stored date for display. A date-only string (`YYYY-MM-DD`, the
- * Postgres `date` wire format) becomes LOCAL midnight of that day —
- * `new Date('2026-08-01')` alone is UTC midnight, the previous evening in
- * California, so a label formatted from it prints one day early. Timestamps
- * parse as-is. Returns null for missing or unparsable input.
- */
-export function parseLocalDay(dateStr: string | null | undefined): Date | null {
-  if (!dateStr) return null;
-  const m = DATE_ONLY.exec(dateStr.trim());
-  const d = m
-    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
-    : new Date(dateStr);
-  return Number.isNaN(d.getTime()) ? null : d;
+export function localDayISO(d: Date = new Date()): string {
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
 }

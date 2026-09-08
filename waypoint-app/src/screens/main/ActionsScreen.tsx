@@ -43,7 +43,6 @@ import { useTextScale } from '@/lib/textSize';
 import type { Action, ActionStatus, ActionCategory, ActionPriority } from '@/types/database';
 import { brand, fonts, spacing, radii } from '@/lib/theme';
 import { isNewlyAdded, formatAddedOn, newBadgeLabel } from '@/lib/actionFreshness';
-import { parseLocalDay } from '@/lib/dateOnly';
 import StatusControl from '@/components/StatusControl';
 import PriorityControl from '@/components/PriorityControl';
 import ActionFilterSheet from '@/components/ActionFilterSheet';
@@ -1068,10 +1067,11 @@ function reverseHint(locale: ActionLocale): string {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr: string): string {
-  // due_date is a Postgres `date` — parse as the local day, or the label
-  // prints one day early in California (see lib/dateOnly.ts).
-  const d = parseLocalDay(dateStr);
-  if (!d) return dateStr;
+  // due_date is a Postgres `date`; 'T00:00:00' parses it as the LOCAL day, so
+  // the label names the same day the overdue badge computed. Bare new Date()
+  // reads UTC midnight — "Overdue: Jul 31" on a step due Aug 1 in California.
+  const d = new Date(dateStr + 'T00:00:00');
+  if (Number.isNaN(d.getTime())) return dateStr; // the raw string over "Invalid Date"
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 

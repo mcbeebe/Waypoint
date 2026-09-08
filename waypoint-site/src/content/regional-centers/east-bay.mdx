@@ -9,10 +9,10 @@ rcName: Regional Center of the East Bay
 counties:
   - Alameda
   - Contra Costa
-intakePhone: null
+intakePhone: "(510) 618-6100"
 intakeUrl: null
 ddsListingUrl: null
-verifiedAsOf: 2026-09-06
+verifiedAsOf: 2026-09-07
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
@@ -24,9 +24,38 @@ disclaimerVariant: legal
   (never trust the spreadsheet for contact data — plan rule).
   [TBC: verify — RCEB intake channels (phone/online form), rceb.org]
   [TBC: verify — county mapping against the DDS regional-center listing]
-  [TBC: verify — WIC §4500/4512/4643/4646 claims (shared with pillar guide)]
+  Statute claims fact-checked 2026-09-07 with the pillar guide: §4512/§4646
+     confirmed; §4643 clocks stated precisely; the 45-day Early Start clock
+     re-attributed to 17 CCR §52086. [TBC: human click-through before publish]
   [TBC: local respite/POS rows removed until the data build-out lands —
    prototype marked them (sample); we don't ship sample figures.]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "Regional Center of the East Bay, 500 Davis Street, Suite 100, San
+    Leandro, CA 94577, telephone (510) 618-6100, website www.rceb.org,
+    serving Alameda and Contra Costa Counties."
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (510) 618-6122
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://rceb.org/enrollment-over-3/
+  WEBSITE (not published): https://rceb.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
+
+  ---- MAIN NUMBER VERIFIED 2026-09-07 ----
+  (510) 618-6100 — published per the owner's policy (2026-09-07): publish the
+  MAIN line, not a dedicated intake queue. A main line is always answered
+  and can transfer; an intake line can be voicemail, or age-gated and
+  wrong for the caller.
+  Two sources agree: DDS listing and the center's own site. (confidence: high)
+    DDS: https://www.dds.ca.gov/rc/listings/ (and Attachment F, Regional Center Directory FY 25-27: https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf)
+    Own: https://rceb.org/about-us/contact-us/
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
@@ -41,8 +70,9 @@ import SideCard from '../../components/SideCard.astro';
   RCEB serves families in <b>Alameda and Contra Costa counties</b> — one of California's
   <b> 21 regional centers</b> providing services under the Lanterman Act
   <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, RCEB owes you
-  an eligibility decision within <b>120 days</b> — or <b>45 days</b> if your child is under 3
-  and coming through Early Start <Cite>WIC §4643</Cite>. Write down the date of your first
+  any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> — or, if
+  your child is under 3, a completed Early Start evaluation and initial family service
+  plan within <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your first
   contact. The clock starts then.
 </AnswerFirst>
 
@@ -60,8 +90,9 @@ disability," meaning significant functional limits in **3 or more of 7 life area
    preschool records, insurance card. Missing pieces should not delay your request.
 3. **Do the intake interview.** Describe a hard day, not your child's best day. Assessors need
    the real picture of functional limits.
-4. **Note the deadline.** The eligibility decision is due within 120 days of intake — 45 under
-   age 3 <Cite>WIC §4643</Cite>. Put it on your calendar the day you first call.
+4. **Note the deadline.** The assessment is due within 120 days of intake
+   <Cite>WIC §4643</Cite> — under age 3, Early Start completes everything within 45 days
+   of the referral <Cite>17 CCR §52086</Cite>. Put it on your calendar the day you first call.
 5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
    <Cite>WIC §4646</Cite>. If denied, you must receive a written **Notice of Action (NOA)**
    with your appeal rights.
@@ -104,8 +135,7 @@ routes, timelines, and what to say at each stage — in one place.
   <SideCard title="RCEB at a glance">
     <dl>
       <dt>Counties</dt><dd>Alameda · Contra Costa</dd>
-      <dt>Intake</dt><dd>[TBC: verify channels]</dd>
-      <dt>Eligibility clock</dt><dd>120 days · 45 under 3</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
       <dt>Board meetings</dt><dd>Public — you can comment</dd>
       <dt>Nearby</dt><dd>Golden Gate RC · San Andreas RC</dd>
     </dl>
