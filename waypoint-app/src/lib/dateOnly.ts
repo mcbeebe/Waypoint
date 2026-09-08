@@ -12,8 +12,32 @@
  * NOTE: PR #199 introduces this same module with `localDayISO` (identical
  * behavior and signature) plus a `parseDateLocal` reader. Whichever lands
  * first, the other's merge is a no-op on this function. Do not add a second
- * date-only PARSER here — take #199's `parseDateLocal`.
+ * date-only PARSER here — `parseDateLocal` below is #199's, copied verbatim
+ * (name, signature and semantics) so that merge stays a no-op too.
  */
+
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * Parse a value that may be a Postgres `date` OR a full timestamp.
+ *
+ * - `2026-08-01` → local midnight of exactly that day, on the family's own
+ *   calendar.
+ * - Anything else (`created_at`, an ISO timestamp) is a real instant, parsed
+ *   as-is; its calendar day is whatever the device's clock says.
+ *
+ * An unparsable STRING yields an Invalid Date (`getTime()` is NaN), same as
+ * `new Date(bad)`, so existing NaN guards keep working. The argument must
+ * actually be a string, though: null/undefined throw here (unlike
+ * `new Date(null)`), so callers null-guard first — a nullable column is the
+ * call site's decision to make (skip the row, render nothing, return null),
+ * not this parser's.
+ */
+export function parseDateLocal(value: string): Date {
+  const m = DATE_ONLY.exec(value.trim());
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return new Date(value);
+}
 
 /**
  * `YYYY-MM-DD` of the day `d` falls on by the device's clock — the honest
