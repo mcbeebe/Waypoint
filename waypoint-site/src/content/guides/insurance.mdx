@@ -1,0 +1,373 @@
+---
+title: "Insurance & SB 946: what your child's health plan must cover"
+seoTitle: "Insurance Coverage for Autism Therapy in California"
+description: "What California makes health plans cover for a child with a disability, why fully-insured vs. self-funded decides everything, and how to win an appeal."
+locale: en
+translationKey: insurance-pillar
+status: draft
+pillar: insurance
+dateModified: 2026-09-08
+nextReviewEvent: annual
+disclaimerVariant: medical
+changelog:
+  - date: 2026-09-08
+    note: "First draft of the insurance pillar hub. Every coverage rule, regulator, and appeal clock on this page is stated from the statute text read on leginfo the same day — including the 2021 parity standard, the 5-business-day and 72-hour utilization review clocks, the 30-day grievance rule, and the six-month Independent Medical Review window."
+sources:
+  - label: "HSC §1374.72 (mental health parity: medically necessary treatment of mental health conditions, same terms as other medical conditions; no short-term-only limits)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=1374.72."
+    accessed: 2026-09-08
+  - label: "HSC §1374.73 (SB 946: behavioral health treatment for pervasive developmental disorder or autism; network adequacy; no rediagnosis requirement from January 1, 2026)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=1374.73."
+    accessed: 2026-09-08
+  - label: "INS §10144.51 (the same behavioral health treatment mandate for health insurance policies regulated by CDI)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=INS&sectionNum=10144.51."
+    accessed: 2026-09-08
+  - label: "HSC §1341 (the Department of Managed Health Care and its charge over health care service plans)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=1341."
+    accessed: 2026-09-08
+  - label: "HSC §1367.01 (utilization review clocks: 5 business days routine, 72 hours urgent, 30 days retrospective)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=1367.01."
+    accessed: 2026-09-08
+  - label: "HSC §1368 (plan grievance system; you may take the grievance to the department after 30 days)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=1368."
+    accessed: 2026-09-08
+  - label: "HSC §1374.30 (Independent Medical Review: disputed health care service, 30-day grievance cap, six-month deadline, no fees)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=1374.30."
+    accessed: 2026-09-08
+  - label: "HSC §1374.34 (plan must implement an IMR decision; services authorized within five working days; $10,000-per-day penalty for delay)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=1374.34."
+    accessed: 2026-09-08
+  - label: "INS §10169 (the Independent Medical Review System at the California Department of Insurance)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=INS&sectionNum=10169."
+    accessed: 2026-09-08
+  - label: "WIC §4646.4 (regional center generic-resource rule; a medical service unavailable within 60 calendar days through insurance or Medi-Cal may be authorized for regional center funding)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646.4."
+    accessed: 2026-09-08
+  - label: "29 U.S.C. §1144 (ERISA preemption: supersedure, the insurance saving clause, and the deemer clause)"
+    url: "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title29-section1144&num=0&edition=prelim"
+    accessed: 2026-09-08
+---
+
+{/*
+  DRAFT — the insurance PILLAR HUB (keyword row /guides/insurance/,
+  "insurance coverage for autism therapy california"). Modelled on
+  guides/regional-centers.mdx: authority anchor, five question-shaped
+  sections, sidebar, one HandoffCTA. Links down to the SB 946 spoke.
+
+  Framing follows STYLE-GUIDE §1.1 (approach-agnostic on therapies): the
+  page is about coverage of what a clinician prescribed, never about which
+  therapy to choose.
+
+  FACT-CHECKED 2026-09-08 against leginfo and uscode.house.gov (full section
+  text pulled and read):
+  — HSC §1374.72(a)(1): plans issued, amended or renewed on or after
+    January 1, 2021 shall cover "medically necessary treatment of mental
+    health and substance use disorders, under the same terms and conditions
+    applied to other medical conditions". (a)(3)(A) defines medically
+    necessary. (a)(6): a plan "shall not limit benefits or coverage for
+    mental health and substance use disorders to short-term or acute
+    treatment."
+  — HSC §1374.73(a)(1): every plan contract with hospital, medical or
+    surgical coverage "shall also provide coverage for behavioral health
+    treatment for pervasive developmental disorder or autism", in the same
+    manner and subject to the same requirements as §1374.72.
+    (a)(3): does not affect Lanterman Act or Early Start entitlements.
+    (a)(4): does not reduce IEP obligations.
+    (b): plan must maintain an adequate network of qualified autism service
+    providers. (e): does not apply to Medi-Cal managed care contracts or to
+    specialized plans that don't deliver behavioral health.
+    (g): plans may still use prior authorization, utilization review,
+    network providers, copays and other cost sharing.
+  — INS §10144.51: the same mandate for CDI-regulated policies.
+  — HSC §1341(a): DMHC "has charge of the execution of the laws of this
+    state relating to health care service plans".
+  — HSC §1367.01(h)(1)-(2): prospective/concurrent decisions within five
+    business days of receipt of the information reasonably necessary;
+    retrospective within 30 days; urgent within 72 hours.
+  — HSC §1368(b)(1)(A): after completing the grievance process, or
+    participating in it for at least 30 days, you may take the grievance to
+    the department.
+  — HSC §1374.30(b),(j),(k),(l): "disputed health care service" definition;
+    IMR conditions; not required to stay in the plan's grievance process more
+    than 30 days (3 days expedited); apply within six months; "The enrollee
+    shall pay no application or processing fees of any kind."
+  — HSC §1374.34(a),(b): plan shall promptly implement; authorize within five
+    working days; not less than $10,000 per day penalty for each day the
+    decision is not implemented.
+  — INS §10169(b),(d),(j),(k),(l): the CDI twin, same 30-day, six-month and
+    no-fee rules.
+  — 29 U.S.C. §1144(a) supersedure; (b)(2)(A) saving clause; (b)(2)(B)
+    deemer clause ("Neither an employee benefit plan ... nor any trust
+    established under such a plan, shall be deemed to be an insurance
+    company or other insurer ... for purposes of any law of any State
+    purporting to regulate insurance companies, insurance contracts...").
+
+  [TBC: DMHC Help Center phone number and the CDI consumer hotline — the
+  agency pages returned 403 to automated fetches; get both from a human
+  click-through before founder edit, or keep linking the agency sites
+  without a number (current choice).]
+  [TBC: human click-through of every sources[] URL before founder edit.]
+  [TBC: /tools/sb-946-decision-tree/ (keyword-map row, P1) is not built yet
+  — no link to it from this page until the route exists.]
+*/}
+
+import AnswerFirst from '../../components/AnswerFirst.astro';
+import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
+import HandoffCTA from '../../components/HandoffCTA.astro';
+import NoticeBox from '../../components/NoticeBox.astro';
+import PlainBox from '../../components/PlainBox.astro';
+import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  California law makes most health plans cover the care a doctor says your child needs for a
+  mental health or developmental condition — on the same terms as any other medical condition.
+  But it only reaches plans California regulates. If your employer pays its own claims, federal
+  law controls instead, and the state rules don't apply. So the first question isn't "will they
+  cover it?" It's "what kind of plan do I have?" This page answers that, then shows you how to
+  appeal a no.
+</PlainBox>
+
+<div class="cols">
+<article class="prose">
+
+The denial letter is written to be read once and believed. It uses the phrase "not medically
+necessary" as if that settled something, and it never mentions that an independent doctor
+outside your insurance company can be asked to look at the same file — for free, on your
+request. Most parents never make that request. Families who do win often enough that the
+process exists at all.
+
+<h2 class="qa-h" id="what-must-be-covered">What does California make my health plan cover?</h2>
+
+<AnswerFirst>
+  Two rules stack. First, California's <b>parity</b> law: plans issued, amended, or renewed on
+  or after January 1, 2021 must cover <b>medically necessary treatment of mental health and
+  substance use disorders under the same terms and conditions applied to other medical
+  conditions</b> <Cite>HSC §1374.72</Cite>. Second, <b>SB 946</b>: plans that cover hospital,
+  medical, or surgical care must also cover <b>behavioral health treatment</b> for autism or
+  pervasive developmental disorder <Cite>HSC §1374.73</Cite>. Both apply only to plans
+  California regulates — see the next section.
+</AnswerFirst>
+
+"Medically necessary" is a coverage term, not a verdict on your child. In this statute it means
+care that addresses your child's specific needs, is consistent with generally accepted
+standards of care, and is clinically appropriate in type, frequency, extent, site, and duration
+<Cite>HSC §1374.72(a)(3)</Cite>. That definition is the ground you stand on in an appeal — and
+notice what it turns on: your child's clinician's judgment, not the insurer's budget.
+
+Two consequences of the parity rule that denial letters rarely mention:
+
+- A plan **may not limit** coverage for a mental health condition **to short-term or acute
+  treatment** <Cite>HSC §1374.72(a)(6)</Cite>. "We've covered enough months" is not, by itself,
+  a lawful reason.
+- The care has to sit under the same rules as everything else in the plan. If your child's
+  broken arm wouldn't face a visit cap, the same kind of cap on a mental health condition is
+  the thing parity exists to stop.
+
+<NoticeBox>
+  Coverage is not the same as choosing a therapy. Waypoint doesn't recommend any approach —
+  that conversation belongs to you and your child's clinician. Our job is the second question:
+  <b>what does your plan have to cover of what the clinician prescribed?</b>
+</NoticeBox>
+
+Two more limits worth knowing before you argue with anyone. These mandates don't reduce what
+your child is owed by other systems: they do not touch Regional Center or Early Start
+entitlements <Cite>HSC §1374.73(a)(3)</Cite>, and they do not reduce anything owed under an
+IEP <Cite>HSC §1374.73(a)(4)</Cite>. And they don't switch off the ordinary machinery of
+insurance — a plan may still use prior authorization, utilization review, network providers,
+copays, and other cost sharing <Cite>HSC §1374.73(g)</Cite>. The mandate says the benefit
+exists. It doesn't say nobody will make you fill out forms.
+
+<h2 class="qa-h" id="fully-insured-vs-self-funded">Is my plan fully insured or self-funded?</h2>
+
+<AnswerFirst>
+  This is the question that decides everything else. If your plan is <b>fully insured</b> —
+  your employer buys coverage from an insurance company that pays the claims — California's
+  mandates apply. If it's <b>self-funded</b> (also called self-insured), your employer pays
+  claims from its own money and federal <b>ERISA</b> law controls: state insurance mandates
+  don't reach it, because federal law says an employee benefit plan is not <b>"deemed to be an
+  insurance company"</b> for purposes of state insurance law <Cite>29 USC §1144(b)(2)(B)</Cite>.
+  Big employers are often self-funded, and the card in your wallet may look identical either
+  way.
+</AnswerFirst>
+
+Here's the mechanism in plain terms. ERISA supersedes state laws that "relate to" an employee
+benefit plan <Cite>29 USC §1144(a)</Cite>. States get one carve-out back: ERISA doesn't exempt
+anyone from state laws that regulate insurance <Cite>29 USC §1144(b)(2)(A)</Cite>. But then the
+"deemer" clause closes the loop — a self-funded employer plan isn't an insurance company, so
+laws regulating insurance companies don't land on it <Cite>29 USC §1144(b)(2)(B)</Cite>. A
+fully-insured plan is different: the state regulates the insurance company your employer bought
+from, and the mandate rides along.
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th scope="col">What to compare</th><th scope="col">Fully insured</th><th scope="col">Self-funded (ERISA)</th></tr>
+    <tr><td>Who actually pays your claims</td><td>An insurance company or health plan</td><td>Your employer, from its own funds</td></tr>
+    <tr><td>Do California mandates apply?</td><td>Yes <span class="cite">HSC §1374.73</span> / <span class="cite">INS §10144.51</span></td><td>No — federal ERISA controls <span class="cite">29 USC §1144(b)(2)(B)</span></td></tr>
+    <tr><td>Where an appeal ends up</td><td>State Independent Medical Review <span class="cite">HSC §1374.30</span></td><td>Your plan's internal appeal, then federal external review</td></tr>
+    <tr><td>Common signs</td><td>Small or mid-size employer; a plan bought on Covered California; an individual policy</td><td>Very large employer; plan documents call the insurer a "third-party administrator" or "claims administrator"</td></tr>
+  </table>
+</div>
+
+**How to find out for certain, in one phone call.** Ask your employer's HR or benefits contact
+this exact question:
+
+*"Is our health plan fully insured or self-funded? I need to know whether California's state
+insurance mandates apply to it."*
+
+HR answers this all the time; it is not an unusual or adversarial question. You can also read
+it off your plan documents: ask for the **Evidence of Coverage** or **Summary Plan
+Description**. A self-funded plan's documents usually name the insurer as an administrator
+rather than as the insurer, and often say the plan is governed by ERISA.
+
+Being self-funded is not the end of the road. Many self-funded employers choose to cover
+behavioral health treatment anyway — some voluntarily follow the state mandate, and federal
+mental health parity rules may still apply to the plan. Ask HR what the plan covers rather than
+assuming the answer, and remember that your Regional Center and your school district are
+separate doors with their own rules.
+
+<h2 class="qa-h" id="who-regulates">Who regulates my plan — DMHC or CDI?</h2>
+
+<AnswerFirst>
+  California splits this between two agencies. The <b>Department of Managed Health Care
+  (DMHC)</b> has charge of the laws governing <b>health care service plans</b> — the category
+  California licenses HMOs and many other plans under <Cite>HSC §1341</Cite>. The
+  <b>California Department of Insurance (CDI)</b> oversees <b>health insurance policies</b>
+  written under the Insurance Code <Cite>INS §10169</Cite>. The rules are near-identical twins;
+  what changes is where you send your appeal. Your plan documents name your regulator — that's
+  the fastest way to know.
+</AnswerFirst>
+
+The mandate is written twice, once in each code, which is why you may see two different
+citations for the same right: **HSC §1374.73** for a DMHC-regulated plan and **INS §10144.51**
+for a CDI-regulated policy. Both say the same thing about behavioral health treatment. Both run
+their own Independent Medical Review system with the same deadlines.
+
+Practically: check the back of your insurance card, then the grievance or complaint section of
+your **Evidence of Coverage** — that's where the department handling complaints is named
+[TBC: confirm the statutory notice requirement, likely HSC §1368.02, before stating this as a
+duty]. If you are still unsure after reading, file with whichever agency you think is right —
+they will route it if you're wrong, and being wrong costs you a few days, not your rights.
+
+<h2 class="qa-h" id="how-to-appeal">How do I appeal a denial?</h2>
+
+<AnswerFirst>
+  Three steps, and most families stop after one. <b>1. File a grievance</b> (your plan's
+  internal appeal). <b>2. After 30 days</b> — or 3 days if it's urgent — you don't have to stay
+  in that process any longer <Cite>HSC §1374.30(j)</Cite>. <b>3. Apply for an Independent
+  Medical Review (IMR)</b>: doctors outside your insurance company review the file. It costs
+  you <b>nothing</b> <Cite>HSC §1374.30(l)</Cite>, and if they say the care is medically
+  necessary the plan must authorize it <b>within five working days</b>
+  <Cite>HSC §1374.34</Cite>.
+</AnswerFirst>
+
+An IMR is available whenever a service was denied, modified, or delayed **in whole or in part
+because it was found not medically necessary** — the statute calls that a "disputed health care
+service" <Cite>HSC §1374.30(b)</Cite>. So the phrase in your denial letter that felt like a
+closed door is actually the phrase that opens this one.
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Step</th><th>What you do</th><th>The clock</th></tr>
+    <tr><td>0. The decision</td><td>Your plan denies, changes, or delays the care your child's clinician asked for</td><td>Routine decisions are due within <b>5 business days</b> of the plan receiving what it needs; <b>72 hours</b> when delay threatens your child's health <span class="cite">HSC §1367.01</span></td></tr>
+    <tr><td>1. Grievance</td><td>File your plan's internal appeal in writing. Attach the clinician's letter and the treatment plan.</td><td>You cannot be required to stay in it more than <b>30 days</b> — <b>3 days</b> if it qualifies as urgent <span class="cite">HSC §1374.30(j)</span></td></tr>
+    <tr><td>2. Independent Medical Review</td><td>Apply to your regulator (DMHC or CDI). Independent physicians review the record.</td><td>Apply <b>within six months</b> of the qualifying event <span class="cite">HSC §1374.30(k)</span> · <b>no fees of any kind</b> <span class="cite">HSC §1374.30(l)</span></td></tr>
+    <tr><td>3. The decision</td><td>If the reviewers find the care medically necessary, the plan implements it</td><td>Services authorized <b>within 5 working days</b> of the written decision <span class="cite">HSC §1374.34(a)</span></td></tr>
+  </table>
+</div>
+
+<DeadlineCallout>
+  You have <b>six months</b> from the qualifying event to apply for an Independent Medical
+  Review <span class="cite">HSC §1374.30(k)</span> — and you are never required to spend more
+  than <b>30 days</b> inside the plan's own grievance process first, or <b>3 days</b> in an
+  urgent case <span class="cite">HSC §1374.30(j)</span>. Both agencies' systems work the same
+  way <span class="cite">INS §10169</span>.
+</DeadlineCallout>
+
+What makes an appeal win is boring and specific: a letter from your child's treating clinician
+explaining why this care, at this amount, for this child, meets the medical necessity standard
+in the statute; the treatment plan with its measurable goals; and any record of what happened
+when the care was reduced or stopped. Write the amount you're asking for and the reason in the
+same paragraph. Attach, don't summarize.
+
+And the pressure runs both ways. A plan that drags its feet on implementing an IMR decision
+faces an administrative penalty of **at least $10,000 for each day** the decision goes
+unimplemented <Cite>HSC §1374.34(b)</Cite>. That is not a number you have to threaten anyone
+with. It is a number that explains why, once you win, things usually move.
+
+<h2 class="qa-h" id="how-it-fits">How does insurance fit with the Regional Center and school?</h2>
+
+<AnswerFirst>
+  They are <b>three separate systems</b>, and a no in one says nothing about the other two.
+  Your health plan covers what your child's clinician prescribes. Your <b>Regional Center</b>
+  funds services under the Lanterman Act. Your <b>school district</b> owes services in the IEP.
+  California's insurance mandate explicitly does not reduce Regional Center or Early Start
+  entitlements <Cite>HSC §1374.73(a)(3)</Cite>, and does not reduce IEP obligations
+  <Cite>HSC §1374.73(a)(4)</Cite>.
+</AnswerFirst>
+
+In practice they interact in one useful way. Regional Centers are expected to use generic
+resources — insurance and Medi-Cal — before they purchase a service themselves. But when a
+medical service in your child's plan **isn't available within 60 calendar days** through your
+insurance or Medi-Cal, the planning team can decide the Regional Center funds it
+<Cite>WIC §4646.4(a)(2)</Cite>. That's a sentence worth bringing to your next
+<GatedLink href="/guides/regional-centers/ipp-meeting-prep/">IPP meeting</GatedLink>, because a
+long insurance waitlist stops being a dead end and becomes a documented fact.
+
+One more boundary: Medi-Cal managed care plans are outside this particular mandate
+<Cite>HSC §1374.73(e)</Cite>. Medi-Cal covers children's behavioral health through its own
+rules, so if Medi-Cal is your child's coverage, the appeal path is different from the one on
+this page.
+
+<EmpathyCallout label="If you're holding a denial letter right now">
+  A denial is not a finding about your child. It is a paragraph produced by a process, and the
+  same law that let that process happen also built you an independent review with no fee and a
+  six-month window. You do not have to feel confident to file it. You only have to send the
+  clinician's letter, the treatment plan, and the form. Being tired is not the same as being
+  out of options.
+</EmpathyCallout>
+
+</article>
+<aside>
+  <SideCard title="On this page" toc>
+    <a href="#what-must-be-covered">What must my plan cover?</a>
+    <a href="#fully-insured-vs-self-funded">Fully insured or self-funded?</a>
+    <a href="#who-regulates">DMHC or CDI?</a>
+    <a href="#how-to-appeal">How do I appeal a denial?</a>
+    <a href="#how-it-fits">How it fits with RC and school</a>
+  </SideCard>
+  <SideCard title="Quick facts">
+    <dl>
+      <dt>Parity standard</dt><dd>Medically necessary mental health treatment, same terms as other medical care <span class="cite">HSC §1374.72</span></dd>
+      <dt>Behavioral health treatment</dt><dd>Covered by plans with medical coverage <span class="cite">HSC §1374.73</span> · <span class="cite">INS §10144.51</span></dd>
+      <dt>Independent Medical Review</dt><dd>Six months to apply · no fees <span class="cite">HSC §1374.30</span></dd>
+      <dt>Self-funded plans</dt><dd>Federal ERISA, not California law <span class="cite">29 USC §1144(b)(2)(B)</span></dd>
+    </dl>
+  </SideCard>
+  <SideCard title="Go deeper">
+    <p>The behavioral health treatment mandate in detail — what it covers, who it reaches, and how to document a request.</p>
+    <GatedLink class="link" href="/guides/insurance/sb-946-aba/">SB 946 &amp; behavioral health coverage →</GatedLink>
+  </SideCard>
+  <SideCard title="Other doors">
+    <p>Services your Regional Center funds — and how to get them written into the plan.</p>
+    <GatedLink class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</GatedLink>
+    <p>Every source of help in California, in one map.</p>
+    <GatedLink class="link" href="/guides/benefits/">Benefits: the resource map →</GatedLink>
+  </SideCard>
+  <SideCard title="Prepare the ask">
+    <p>Insurance waitlists are evidence at an IPP meeting. Here's how to use them.</p>
+    <GatedLink class="link" href="/guides/regional-centers/ipp-meeting-prep/">IPP meeting prep kit →</GatedLink>
+  </SideCard>
+</aside>
+</div>
+
+<HandoffCTA
+  heading="Turn this into your coverage plan"
+  body="Waypoint asks what kind of plan you have and what was denied, then builds your appeal steps, your document list, and your deadline tracker — free, in English or Spanish."
+  action="Build my plan →"
+  slug="guides/insurance"
+  cta="hub-footer"
+  pillar="insurance"
+/>

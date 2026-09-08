@@ -19,14 +19,46 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "WIC §4500 (Lanterman Developmental Disabilities Services Act — short title)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4500."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas; provisional eligibility, 2 of 5)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days where delay risks health, safety or development)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 (Early Start: evaluation, assessment and initial IFSP within 45 days of referral)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Body rewritten as a per-center field guide. Verified by WebFetch this pass:
+   - DDS listing (https://www.dds.ca.gov/rc/listings/): "Orange County";
+     address 1525 North Tustin Avenue, Santa Ana; main 714-796-5100;
+     Early Start intake 714-796-5354 / intake@rcocdd.com.
+   - DDS Attachment F, RC Directory FY 25-27
+     (https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf):
+     RCOC, Orange County, plus a named Cultural Specialist and a Language
+     Access & Cultural Competency (LACC) manager.
+   - rcocdd.com/client-services/intake/: age routing (birth–36 mo Early
+     Start; 3+ Lanterman; "Provisional Lanterman" for 3–4); provider
+     referral form; and RCOC's own line, quoted on the page: "Being
+     diagnosed with a developmental disability is not solely enough to
+     qualify."
+   - rcocdd.com/about-rcoc/contact-us/: two offices — Central (Santa Ana)
+     and West (Cypress) — plus a separate Intake department mailbox, and
+     an after-hours urgent (non-medical) route through the main line.
+   - Statutes: WIC §4643 and WIC §4512 re-verified on leginfo;
+     17 CCR §52086 via Cornell.
+  No street addresses or secondary phone numbers in prose — the template
+  renders the one verified main line from frontmatter.
+  [TBC: office hours and whether the West (Cypress) office takes walk-in
+   intake — not stated on the contact page fetched this pass]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -60,58 +92,192 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  If you live anywhere in Orange County, this is your Regional Center. It arranges and pays for
+  services for children with developmental disabilities — free, whatever your family earns.
+  Call the main line and ask for intake. A diagnosis on its own does not decide the answer;
+  what your child can and cannot do day to day is what decides it. Under 3, you get an answer
+  in 45 days. Age 3 and up, 120 days.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  Regional Center of Orange County serves families in <b>Orange County</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Regional Center of Orange County (RCOC) serves <b>all of Orange County</b> — one of the few
+  centers in California whose map matches a county line exactly, so there is no boundary
+  puzzle here. It is one of the state's <b>21 Regional Centers</b> under the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite>, and services are free at any income. Once intake begins, the
+  center owes you an assessment within <b>120 days</b> <Cite>WIC §4643</Cite> — or, under 3, a
+  completed evaluation and initial family service plan within <b>45 days of the referral</b>
+  <Cite>17 CCR §52086</Cite>.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="who">Is RCOC my Regional Center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+<AnswerFirst>
+  If your home address is in Orange County, yes. Anaheim, Santa Ana, Irvine, Huntington Beach,
+  Fullerton, Mission Viejo, San Clemente — the whole county, coast to canyon. The state's
+  directory lists RCOC's service area as simply "Orange County."
+</AnswerFirst>
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+That simplicity is worth appreciating, because just north of you Los Angeles County is carved
+among seven different centers along health-district lines and families there routinely call
+the wrong one. In Orange County the only question is where you live, not which neighborhood
+you live in. If you moved here recently and your child was already a client somewhere else,
+say so on the first call — transfers between centers are a normal, defined process, not a
+fresh application.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+RCOC runs two offices: a **Central office in Santa Ana** and a **West office in Cypress**. Ask
+which one will hold your child's file, and get your service coordinator's name and direct
+email in writing.
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<h2 class="qa-h" id="intake">How does intake actually start here?</h2>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<AnswerFirst>
+  Call the main line at the top of this page and say: <i>"I'd like to request intake and
+  assessment for my child."</i> They will route you by age. RCOC also runs a separate Intake and
+  Assessment unit, and a doctor can send a referral form on your behalf — but the family still
+  has to make contact, so do not wait on the pediatrician's office.
+</AnswerFirst>
+
+Say your child's age in the first sentence. It changes everything about which track you land
+on and how fast the answer is due.
+
+<DeadlineCallout>
+  <b>Birth to 36 months:</b> Early Start — evaluation, eligibility decision, and the initial
+  family service plan all due within <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>.
+  <b>Age 3 and older:</b> assessment due within <b>120 days of intake</b>, or <b>60 days</b>
+  where waiting would risk your child's health, safety, or development
+  <Cite>WIC §4643</Cite>.
+</DeadlineCallout>
+
+Ask the intake worker to confirm, in writing or by email, the date your request was received.
+That single sentence — "Can you email me confirming the date you received my request?" — is
+what turns a vague wait into an enforceable one.
+
+What to have ready: your child's date of birth, your address, any diagnostic reports,
+psychological or developmental evaluations, the most recent IEP or IFSP if there is one, and
+your own written list of what your child struggles with on an ordinary day. If your doctor is
+making the referral, RCOC has its own referral form for providers — ask them to send it and to
+copy you.
+
+<h2 class="qa-h" id="diagnosis-not-enough">My child has a diagnosis. Isn't that enough?</h2>
+
+<AnswerFirst>
+  No — and RCOC says so plainly on its own intake page: being diagnosed with a developmental
+  disability is not by itself enough to qualify. Eligibility turns on <b>function</b>:
+  significant limitations in <b>3 or more of 7</b> major life areas <Cite>WIC §4512</Cite>.
+</AnswerFirst>
+
+This is the single most common place Orange County families get blindsided. You arrive with a
+neuropsychologist's report naming autism or an intellectual disability, and the answer still
+comes back no — because the assessment did not find the functional limits the statute requires.
+
+The seven areas are self-care, receptive and expressive language, learning, mobility,
+self-direction, capacity for independent living, and economic self-sufficiency. Your child
+does not need to struggle in all seven. Three is the bar. And evaluators judge against what is
+expected at your child's age, so nobody is holding a 4-year-old's finances against them.
+
+The reverse trap is just as real: **not** having a named diagnosis does not disqualify you.
+The statute includes conditions closely related to intellectual disability or requiring similar
+treatment, which exists for exactly the child whose needs are obvious and whose paperwork is not.
+
+There is also a third door for young children that families rarely hear about. RCOC lists it as
+"Provisional Lanterman," for ages 3 and 4: a child can qualify with significant functional
+limitations in at least **2 of 5** areas — self-care, receptive and expressive language,
+learning, mobility, and self-direction. Provisional eligibility is time-limited. The center must
+reassess before your child turns 5, and the full three-of-seven standard applies from then on
+<Cite>WIC §4512</Cite>. Put that reassessment date in your calendar the day the provisional
+letter arrives.
+
+<EmpathyCallout label="If the report and the child don't match">
+  Every parent who has sat through an evaluation knows this feeling: your child performed. They
+  held it together for ninety minutes in a quiet room with a stranger and one toy, and the
+  report describes a child you have never met at 6pm on a Tuesday. That gap is not your
+  imagination, and it is not something you have to accept silently. Write down what the
+  evaluation did not see — the meltdown after, the two-hour bedtime, the food you cannot serve —
+  and hand it in as part of the record.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="local-vs-statewide">What's the same everywhere, and what's local?</h2>
+
+<AnswerFirst>
+  The law does not change at the county line. The eligibility standard, the 45- and 120-day
+  clocks, the right to a written Notice of Action, and the appeal process are identical at all
+  21 centers. What is local: offices, staffing, which providers exist near you, and how fast
+  the phone gets answered.
+</AnswerFirst>
+
+Keep that distinction in your pocket. If someone tells you a rule is "how RCOC does things,"
+check whether it is actually state law — because if it is, it is not negotiable in either
+direction, and if it is not, it can be asked about.
+
+Two things that genuinely are local and worth knowing: RCOC keeps a route through its main
+line for urgent, non-medical help outside business hours (for a medical or safety emergency,
+call 911). And the state's Regional Center directory lists a cultural specialist and a
+language-access manager at every center, RCOC included — ask for that person by role if you
+are not getting served in your own language.
+
+<h2 class="qa-h" id="appeal">What if RCOC says no?</h2>
+
+<AnswerFirst>
+  Make them put it in writing. A denial has to arrive as a <b>Notice of Action</b> explaining
+  the decision and your appeal rights. A "no" said on the phone starts no clock and cannot be
+  appealed — so the first move is always: <i>"Please send me that decision as a written Notice
+  of Action."</i>
+</AnswerFirst>
+
+Once the notice is in your hand, read the dates printed on it and calendar them the same day.
+The appeal path from there is state law, not an RCOC procedure, so it works the same as it
+would anywhere in California.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
+
+Free help exists and you should use it. The **Office of Clients' Rights Advocacy (OCRA)**,
+part of **Disability Rights California**, staffs advocates who handle Lanterman Act appeals for
+families at no cost. Bring them the notice, the reports, and your own written account. (Treat
+advocacy groups as help, not as the source of the rule — every deadline that binds anyone comes
+from the statute and from the dates on your own notice.)
+
+Denials get reversed. Not always, not automatically, but regularly — and almost always for
+parents who asked for the decision in writing instead of accepting it over the phone. You now
+know to do that.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Is RCOC my center?</a>
+    <a href="#intake">How intake starts</a>
+    <a href="#diagnosis-not-enough">Is a diagnosis enough?</a>
+    <a href="#local-vs-statewide">Local vs. statewide</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Orange</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Serves</dt><dd>All of Orange County</dd>
+      <dt>Offices</dt><dd>Santa Ana (Central) · Cypress (West)</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 days from referral under 3 <span class="cite">17 CCR §52086</span></dd>
+      <dt>Cost</dt><dd>Free, at any income</dd>
     </dl>
+  </SideCard>
+  <SideCard title="Just over the county line">
+    <GatedLink class="link" href="/regional-centers/harbor/">Harbor (Long Beach &amp; South Bay) →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/inland/">Inland (Riverside &amp; San Bernardino) →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/san-diego/">San Diego &amp; Imperial →</GatedLink>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Or start with the basics:</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>

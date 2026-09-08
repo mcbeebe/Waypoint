@@ -19,16 +19,69 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "ELARC — Apply for Services (Early Start vs. General Intake applications)"
+    url: "https://www.elarc.org/People-We-Serve/Apply-for-Services"
+    accessed: 2026-09-08
+  - label: "WIC §4642 (initial intake within 15 working days of the request)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days when delay creates risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 (IPP completed within 60 days of assessment; preferred-language rights)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 (60 days to request an informal meeting, mediation, or fair hearing)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "WIC §4715 (services continue during appeal if requested within 30 days)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4715."
+    accessed: 2026-09-08
+  - label: "DDS — What is Early Start? (45-day window; under-3 eligibility criteria)"
+    url: "https://www.dds.ca.gov/services/early-start/what-is-early-start/"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
   Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
   [TBC: verify this center's LA service area / ZIP coverage — seven centers
    divide Los Angeles County by neighborhood]
+
+  ---- PER-CENTER NARRATIVE WRITTEN 2026-09-08 ----
+  Local facts used, and where each came from:
+  - SERVICE AREA: the DDS regional-center listing, re-fetched 2026-09-08,
+    now describes ELARC's area as the HEALTH DISTRICTS of Alhambra, East
+    Los Angeles, Northeast, and Whittier within Los Angeles County. (The
+    2026-09-07 pass captured the older, vaguer DDS wording, "Eastern Los
+    Angeles County including the communities of Alhambra and Whittier.")
+    ELARC's own site does NOT publish the district list in text — its
+    People We Serve and Who We Are pages give only office addresses and
+    point to a "Service Area Map" image. So the page states the health
+    districts, attributes them to DDS, and tells families to confirm their
+    own address rather than trusting a district name they half-recognize.
+  - Offices: Alhambra (1000 South Fremont Ave., main) and a Whittier
+    satellite (13215 Penn St., Suite 410) — ELARC's own Apply for Services
+    and Who We Are pages, 2026-09-08. No addresses published in prose.
+  - Two applications by age, from ELARC's Apply for Services page: an
+    "Early Start Program application" for birth to 3 handled by the Early
+    Start Intake Department, and a "General Intake application" for 3 and
+    above handled by the Intake & Assessment Unit. ELARC's direct intake
+    numbers are DELIBERATELY NOT PUBLISHED — owner policy is main line only.
+  - Site translation offered in English, Spanish, Simplified Chinese,
+    Vietnamese, and Korean (ELARC site chrome, 2026-09-08).
+  - Statutes verified verbatim on leginfo 2026-09-08: §4642, §4643, §4512,
+    §4646 (IPP within 60 days of assessment completion + preferred-language
+    duty), §4710.5 (60 days), §4715 (30 days for aid paid pending).
+  - 45-day Early Start window: DDS "What is Early Start?", 2026-09-08.
+  [TBC: ELARC's Service Area Map is an image, so no ZIP list could be read
+   from it. Get the ZIPs (or the district boundaries) from ELARC directly
+   before this page tells a family they are or are not in the area.]
+  [TBC: board meeting schedule — not found on the pages fetched.]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -63,85 +116,190 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Los Angeles County is split among seven regional centers, and your street address decides
+  which one is yours. Eastern Los Angeles Regional Center (ELARC) covers the eastern side —
+  the Alhambra, East Los Angeles, Northeast, and Whittier health districts. Services are free,
+  whatever you earn. To start, you fill out an application: one form for children under 3, a
+  different one for age 3 and up.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
-<AnswerFirst>
-  Eastern Los Angeles Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you) — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
-</AnswerFirst>
-
-<h2 class="qa-h" id="intake">How does intake work?</h2>
-
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
-
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
-
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
-
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
-
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
-
-<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+<h2 class="qa-h" id="who">Which Los Angeles families does ELARC serve?</h2>
 
 <AnswerFirst>
-  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
-  not enough to tell you which one is yours — <b>your address decides it</b>, and the
-  boundaries follow LA County health districts and ZIP codes.
+  ELARC serves part of <b>Los Angeles County</b> — the state lists its area as the
+  <b>health districts of Alhambra, East Los Angeles, Northeast, and Whittier</b>. Los Angeles
+  County is served by <b>seven</b> different regional centers, so being in the county is not
+  enough to tell you which one is yours. Your home address is.
 </AnswerFirst>
 
-The eastern and northeastern portions of Los Angeles County — the LA County health districts
-of Alhambra, East Los Angeles, Northeast, and Whittier. Cities and communities served:
-Alhambra, Arcadia, Boyle Heights, City Terrace, Commerce, East Los Angeles, East Pasadena,
-El Sereno, Eagle Rock/Highland Park, La Habra Heights, La Mirada, Lincoln Heights,
-Montebello, Monterey Park, Mount Washington, Pico Rivera, Rosemead, San Gabriel, San Marino,
-South Pasadena, Santa Fe Springs, Temple City, and Whittier. Several of these are split with
-a neighboring regional center — only part of Arcadia, Boyle Heights, East Pasadena, Eagle
-Rock/Highland Park, La Habra Heights, Mount Washington, Temple City, and Whittier falls
-inside ELARC's catchment. Two offices: main office in Alhambra, field/district office in
-Whittier. Do NOT confuse with the neighboring center covering the FARTHER-eastern San
-Gabriel Valley (El Monte, Monrovia, Pomona, Glendora) — that is a different regional center,
-even though it is also described by DDS as "Eastern - Los Angeles County."
+Health districts are county public-health boundaries, not city limits, and most families have
+never heard of them — which is exactly why this trips people up. A district name is not a
+compass direction, and it does not map cleanly onto the neighborhood name you use for your own
+block. Two families a few streets apart can belong to two different regional centers.
 
-If you live near one of these boundaries, confirm your center with the state's own lookup
-before you call — being sent back to start by the wrong center costs weeks.
+So do not guess from a district name you half-recognize. Check your address:
+
+<a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+
+[TBC: ELARC publishes its service area only as a map image, so we cannot list ZIP codes here.
+Confirm your address with ELARC directly before assuming you are outside the area.]
+
+<h2 class="qa-h" id="wrong-center">What if I called and I'm at the wrong center?</h2>
+
+<AnswerFirst>
+  Nothing is lost. Regional centers refer families to the correct territory, and being at the
+  wrong door does not restart your child's eligibility. But it does cost time, so it is worth
+  ten seconds of checking before you spend an hour on the phone.
+</AnswerFirst>
+
+If ELARC turns out not to be yours, the other centers serving Los Angeles County are San
+Gabriel/Pomona, Frank D. Lanterman, North Los Angeles County, South Central Los Angeles,
+Westside, and Harbor. Each has its own page here, with its own intake details:
+
+<GatedLink class="link" href="/regional-centers/san-gabriel-pomona/">San Gabriel/Pomona RC →</GatedLink>
+<GatedLink class="link" href="/regional-centers/lanterman/">Frank D. Lanterman RC →</GatedLink>
+
+<h2 class="qa-h" id="apply">How does intake start at ELARC?</h2>
+
+<AnswerFirst>
+  ELARC runs intake through a written <b>application</b>, and which one you fill out depends on
+  your child's age. Birth to 3 uses the <b>Early Start Program application</b>, handled by
+  ELARC's Early Start Intake Department. Age 3 and above uses the <b>General Intake
+  application</b>, handled by the Intake &amp; Assessment Unit. Two different forms, two
+  different teams, two different legal clocks.
+</AnswerFirst>
+
+You do not need a diagnosis, a doctor's referral, or a lawyer to submit either one. For children
+3 and older, eligibility turns on **substantial disability** — significant functional limits in
+**3 or more** major life areas, from a disability that began before age 18 <Cite>WIC §4512</Cite>.
+Under 3, Early Start uses broader criteria: a measured developmental delay, an established risk
+condition, or a combination of high-risk factors.
+
+1. **Get the right application** from ELARC's apply page, and note the date you submit it. That
+   date starts every clock below.
+2. **Attach what you already have** — pediatrician notes, any evaluation or diagnostic report,
+   an IEP or IFSP, preschool observations. Do not hold the application back waiting for a
+   missing document.
+3. **Write your own account of a hard day.** One page, concrete, unpolished. It is often the
+   most useful document in the file, because it describes function, which is what the law
+   measures.
+4. **Ask for every decision in writing.** Eligible means moving to the Individual Program Plan
+   (IPP) <Cite>WIC §4646</Cite>. Not eligible means you are owed a written **Notice of Action**
+   stating the reason and your appeal rights.
+
+<a class="link" href="https://www.elarc.org/People-We-Serve/Apply-for-Services">ELARC: Apply for Services →</a>
+
+<DeadlineCallout>
+  <b>Initial intake: 15 working days</b> from your request <Cite>WIC §4642</Cite>.
+  <b>Assessment: 120 days</b> from intake — <b>60 days</b> where delay would put your child at
+  risk <Cite>WIC §4643</Cite>. <b>Under 3: 45 days</b> from referral for evaluation and the
+  first plan. <b>IPP: 60 days</b> after the assessment is complete <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+<h2 class="qa-h" id="offices">Where is ELARC, and what language will this happen in?</h2>
+
+<AnswerFirst>
+  ELARC's main office is in <b>Alhambra</b>, with a satellite office in <b>Whittier</b>. And the
+  whole process — meetings, planning, the written plan itself — must happen in
+  <b>your preferred language</b>. That is a legal duty on the regional center
+  <Cite>WIC §4646</Cite>, not a courtesy you have to earn.
+</AnswerFirst>
+
+ELARC publishes its site in English, Spanish, Simplified Chinese, Vietnamese, and Korean. If
+your language is not on that list, ask anyway — the statutory duty is to your preferred
+language, not to a menu. Say it at the moment you submit the application, so the interpreter is
+scheduled rather than improvised.
+
+And please do not let your bilingual older child interpret a meeting about their sibling's
+disability. Families do it constantly because it feels easier than asking. It is not their job,
+and the law never asked it of them.
+
+<h2 class="qa-h" id="same-vs-local">What is the same everywhere, and what is local?</h2>
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Same at every regional center</th><th>Local to ELARC</th></tr>
+    <tr><td>The 3-of-7 substantial disability standard <span class="cite">WIC §4512</span></td><td>A service area drawn by health district, not city — check your address</td></tr>
+    <tr><td>The intake, assessment, and IPP clocks <span class="cite">WIC §4642</span> <span class="cite">WIC §4643</span> <span class="cite">WIC §4646</span></td><td>Two written applications, split by age, handled by two different units</td></tr>
+    <tr><td>A denial must arrive as a written Notice of Action</td><td>Two offices: Alhambra (main) and a Whittier satellite</td></tr>
+    <tr><td>Your right to the whole process in your preferred language <span class="cite">WIC §4646</span></td><td>[TBC: ELARC purchase-of-service and respite patterns — DDS publishes this data annually, broken out by age and ethnicity; we do not ship sample figures]</td></tr>
+  </table>
+</div>
+
+That last row matters more in LA County than almost anywhere else. DDS publishes per-person
+purchase-of-service spending for every regional center, and the differences between groups
+inside a single center have driven real policy fights. When our data build-out lands, those
+public figures go here — because walking into an IPP meeting with your own center's published
+numbers changes the conversation.
+
+<h2 class="qa-h" id="appeal">What if ELARC says no?</h2>
+
+<AnswerFirst>
+  Ask for the written <b>Notice of Action</b>. A "no" over the phone or in a hallway is not a
+  decision and starts no clock. From the day you receive the notice, you have <b>60 days</b> to
+  request an informal meeting, mediation, or a fair hearing <Cite>WIC §4710.5</Cite>. If a
+  service your child already receives is being cut and you want it to keep running during the
+  appeal, that request has to be in within <b>30 days</b> of receiving the notice
+  <Cite>WIC §4715</Cite>.
+</AnswerFirst>
+
+Write both dates on the notice the day it arrives. Then get free help — the **Office of Clients'
+Rights Advocacy (OCRA)**, part of **Disability Rights California**, has advocates who handle
+Lanterman Act appeals for families at no cost, including in Spanish.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Which LA families ELARC serves</a>
+    <a href="#wrong-center">If it's the wrong center</a>
+    <a href="#apply">How intake starts</a>
+    <a href="#offices">Offices and language</a>
+    <a href="#same-vs-local">Same everywhere vs local</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Los Angeles</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Area</dt><dd>Alhambra · East Los Angeles · Northeast · Whittier health districts</dd>
+      <dt>Offices</dt><dd>Alhambra (main) · Whittier (satellite)</dd>
+      <dt>To start</dt><dd>Early Start application (0–3) or General Intake application (3+)</dd>
+      <dt>Clocks</dt><dd>15 working days to intake · 120 days to assessment · 45 days under 3</dd>
     </dl>
   </SideCard>
   <SideCard title="Not your Regional Center?">
-    <p>California has 21. Enter your county and we'll point you to the right one.</p>
+    <p>Seven centers divide Los Angeles County. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  </SideCard>
+  <SideCard title="Once you're eligible">
+    <p>Regional Center eligibility opens doors elsewhere — including Medi-Cal without a parental income test.</p>
+    <GatedLink class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</GatedLink>
+  </SideCard>
+  <SideCard title="Start with the basics">
+    <p>How the Lanterman Act works, what happens at the IPP meeting, and what to do when the answer is no.</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>
+
+<EmpathyCallout label="About the form">
+  An application is a strange thing to hand a parent who is worried about their child. It asks
+  you to write down, in boxes, the things you have been trying not to say out loud. Write them
+  anyway, plainly, on your hardest-day terms. You are not describing a failure. You are giving a
+  stranger the information they need in order to help — which is a thing only you can do.
+</EmpathyCallout>
 
 <HandoffCTA
   heading="Getting ready for intake?"

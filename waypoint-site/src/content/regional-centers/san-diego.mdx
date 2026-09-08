@@ -20,14 +20,35 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "San Diego Regional Center — Apply (age routing, initial contact form)"
+    url: "https://www.sdrc.org/apply"
+    accessed: 2026-09-08
+  - label: "San Diego Regional Center — Contact (office locations)"
+    url: "https://www.sdrc.org/contact"
+    accessed: 2026-09-08
+  - label: "WIC §4642 — initial intake within 15 working days of the request"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 — assessment within 120 days of intake (60 when delay poses risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 — substantial disability (3 of 7 areas); provisional eligibility under age 5"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 — IPP completed within 60 days of the assessment"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 — 60 days to request a fair hearing after a Notice of Action"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 — Early Start evaluation within 45 days of referral"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -54,62 +75,196 @@ sources:
   Two sources agree: DDS listing and the center's own site. (confidence: high)
     DDS: https://www.dds.ca.gov/rc/listings/
     Own: https://www.sdrc.org/contact
+
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Per-center body written. Verified this pass against primary sources:
+    - COUNTIES re-confirmed directly from the DDS listing this pass:
+      "Imperial and San Diego counties" (the 2026-09-07 pass recorded only a
+      page title, so this closes that gap).
+    - DDS lists one address: 4355 Ruffin Road, Suite 200, San Diego 92123.
+      SDRC's own contact page lists SEVEN offices: San Diego (Ruffin Rd),
+      San Marcos (North County), La Mesa (East County), National City
+      (South Bay), El Centro (Imperial Valley, 3095 N. Imperial Ave),
+      San Diego/Avenue of Science (North Inland), Chula Vista (South
+      Inland) — https://www.sdrc.org/contact
+    - Intake is AGE-routed, not county-routed: under 3 goes to the Early
+      Start intake contact; 3 and older to the standard intake contact, with
+      an online "Initial Contact Form" offered in multiple languages via the
+      center's forms provider — https://www.sdrc.org/apply
+    - Statutes re-verified on leginfo this pass: §4642, §4643, §4512, §4646,
+      §4710.5; 17 CCR §52086 re-read.
+  Phone numbers for the individual branch offices and the age-routed intake
+  contacts are deliberately NOT retyped into prose (STYLE-GUIDE §7) — the
+  body links to sdrc.org/apply and sdrc.org/contact instead, so a changed
+  number cannot rot here.
+  [TBC: which SDRC office a family is assigned to — whether it is by ZIP,
+   by school district, or by choice. The contact page names the offices by
+   region but does not publish the assignment rule.]
+  [TBC: whether the El Centro office runs its own intake interviews or
+   whether Imperial County families are interviewed by San Diego staff]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  San Diego Regional Center covers two counties: San Diego and Imperial. It coordinates and pays
+  for services for children with developmental disabilities, free, at any family income. Here,
+  the first question is not your county — it is your child's age. Under 3 and 3-and-older go
+  through different front doors.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  San Diego Regional Center serves families in <b>Imperial and San Diego counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  San Diego Regional Center (SDRC) serves <b>San Diego and Imperial counties</b> — one of
+  California's <b>21 regional centers</b> operating under the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite>, free to your family at any income. Unlike most centers, SDRC
+  routes intake <b>by your child's age</b>, not by where you live: <b>under 3</b> goes to Early
+  Start intake, <b>3 and older</b> to standard intake, each with its own phone number and email
+  address. For age 3 and up you can also start with an <b>online initial contact form</b>.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="is-this-my-center">Is San Diego Regional Center mine?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+If you live in **San Diego county or Imperial county**, yes — those two counties are SDRC's
+whole territory, and no other center covers them. Everything north and east of that belongs to
+someone else: Riverside and San Bernardino to
+<GatedLink href="/regional-centers/inland/">Inland Regional Center</GatedLink>, Orange county to
+the <GatedLink href="/regional-centers/orange-county/">Regional Center of Orange County</GatedLink>.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+Two counties is a tidy sentence that hides a lot of desert. Imperial county sits about two hours
+east of the coast, over the mountains, and it is the part of SDRC's territory where "just come
+in" costs a family the most. SDRC does run an office in **El Centro** — if you are in Imperial
+county, ask for that office by name rather than accepting an appointment in San Diego.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+<a class="link" href="/tools/regional-center-finder/">Not sure which center is yours? →</a>
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<h2 class="qa-h" id="how-intake-starts">How does intake start here — and what makes SDRC different?</h2>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<AnswerFirst>
+  Age decides your door. For a child <b>under 3</b>, you contact SDRC's <b>Early Start</b> intake
+  team. For a child <b>3 or older</b>, you contact standard intake — or submit SDRC's online
+  <b>Initial Contact Form</b>, which is offered in several languages. Intake then reviews what
+  you sent and contacts you to schedule the interview.
+</AnswerFirst>
+
+Both routes are on one page, with the current numbers and email addresses:
+
+<a class="link" href="https://www.sdrc.org/apply">San Diego Regional Center — Apply →</a>
+
+Two things worth doing on that page. First, **use the form if you cannot take a daytime call** —
+a submission at 10pm starts the same legal clock a phone call does, and it leaves you a
+timestamp. Second, **note the language options**. A form completed in the language you actually
+think in produces a better description of your child than one you translate on the fly.
+
+SDRC also has more offices than DDS's listing shows. The state directory lists the Ruffin Road
+headquarters; the center's own contact page lists offices across the county and in Imperial
+Valley:
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Area</th><th>Office city</th></tr>
+    <tr><td>Central</td><td>San Diego (Ruffin Road — headquarters)</td></tr>
+    <tr><td>North County</td><td>San Marcos</td></tr>
+    <tr><td>North Inland</td><td>San Diego (Avenue of Science)</td></tr>
+    <tr><td>East County</td><td>La Mesa</td></tr>
+    <tr><td>South Bay</td><td>National City</td></tr>
+    <tr><td>South Inland</td><td>Chula Vista</td></tr>
+    <tr><td>Imperial Valley</td><td>El Centro</td></tr>
+  </table>
+</div>
+
+<a class="link" href="https://www.sdrc.org/contact">San Diego Regional Center — office addresses →</a>
+
+<h2 class="qa-h" id="the-clocks">What is SDRC on the clock for?</h2>
+
+<DeadlineCallout>
+  <b>15 working days</b> from your request to initial intake <Cite>WIC §4642</Cite>.
+  <b>120 days</b> from intake to a completed assessment — <b>60 days</b> where delay would risk
+  your child's health, safety, or development <Cite>WIC §4643</Cite>. Under 3: <b>45 days</b>
+  from referral for the Early Start evaluation and assessment <Cite>17 CCR §52086</Cite>. Then
+  <b>60 days</b> from the completed assessment to the written plan <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+These are statewide clocks, and they run from **the date you asked**, not the date a file was
+opened. Write that date down the moment you call or submit the form. It is the single most
+useful thing in your folder later.
+
+<h2 class="qa-h" id="what-to-have-ready">What should I have ready?</h2>
+
+Bring what exists, not what you wish existed. A diagnosis is helpful and **not required** to
+start — SDRC does its own assessments at no cost to you.
+
+- Any evaluation you already have: developmental, speech, occupational therapy, psychological
+- Pediatrician notes, referrals, or screening results
+- Preschool, daycare, or school records; an IEP or IFSP if there is one
+- Your written description of a **hard day**, with specifics: how many words, how many hours of
+  sleep, how many people it takes to manage a bath
+
+For a child **3 or older**, eligibility turns on a "substantial disability" — significant
+functional limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>. For a child **under
+5**, there is a second route worth naming out loud: **provisional eligibility**, which needs
+significant limits in **at least 2** of those areas instead of 3 <Cite>WIC §4512</Cite>. If a
+worker says your 3-year-old is close but not there, ask whether provisional eligibility was
+considered.
+
+<EmpathyCallout label="If you're in Imperial County">
+  The drive to San Diego is not a detail — it is a workday, gas, and a child in a car seat over
+  a mountain pass. You are allowed to say that. Ask for the El Centro office, ask whether the
+  intake interview can happen by phone or video, and ask it before the first appointment is set,
+  not after you have already made the drive once.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="if-they-say-no">What if San Diego Regional Center says no?</h2>
+
+A denial must arrive as a written **Notice of Action**. A "we don't fund that" over the phone is
+not a decision and starts no clock — ask for the written notice. From it you have **60 days** to
+request a hearing <Cite>WIC §4710.5</Cite>. Read the dates printed on your own notice and
+calendar them the day it lands.
+
+You can get free help. The **Office of Clients' Rights Advocacy (OCRA)**, part of **Disability
+Rights California**, provides advocates who handle regional center appeals statewide, including
+San Diego and Imperial counties.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial →</GatedLink>
+
+You picked the right door for your child's age, dated the request, and know what a real decision
+has to look like. That is the part most families learn the slow way.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#is-this-my-center">Is this my center?</a>
+    <a href="#how-intake-starts">How intake starts</a>
+    <a href="#the-clocks">The deadlines</a>
+    <a href="#what-to-have-ready">What to have ready</a>
+    <a href="#if-they-say-no">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Imperial · San Diego</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Counties</dt><dd>San Diego · Imperial</dd>
+      <dt>Offices</dt><dd>San Diego (2) · San Marcos · La Mesa · National City · Chula Vista · El Centro</dd>
+      <dt>Intake routing</dt><dd>By age: under 3 (Early Start) vs. 3 and older</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 from referral under 3 <span class="cite">17 CCR §52086</span></dd>
     </dl>
   </SideCard>
-  <SideCard title="Not your Regional Center?">
-    <p>California has 21. Enter your county and we'll point you to the right one.</p>
-    <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  <SideCard title="Nearby centers">
+    <GatedLink class="link" href="/regional-centers/inland/">Inland RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/orange-county/">RC of Orange County →</GatedLink>
+    <p>Not sure which is yours?</p>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+  <SideCard title="The full guide">
+    <p>Eligibility, the IPP meeting, and appeals in depth:</p>
+    <a class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</a>
   </SideCard>
 </aside>
 </div>

@@ -1,0 +1,482 @@
+---
+title: "The night before your IPP meeting: a preparation kit"
+seoTitle: "How to Prepare for an IPP Meeting: California Checklist"
+description: "What an IPP must legally contain, how to write goals the Regional Center can fund, word-for-word scripts for asking, and a checklist to work the night before."
+locale: en
+translationKey: ipp-meeting-prep
+status: draft
+pillar: regional-centers
+dateModified: 2026-09-08
+nextReviewEvent: annual
+disclaimerVariant: legal
+changelog:
+  - date: 2026-09-08
+    note: "First draft. Launch piece 7. Every IPP mechanic on this page is stated from the text of WIC §4646 and §4646.5 read on leginfo the same day — including the 60-day plan deadline, the 15-day second meeting, the signed list of agreed-upon services, the remote-meeting right, and the 30-day/7-day review-on-request clocks."
+sources:
+  - label: "WIC §4646 (IPP developed jointly; 60 days from completion of assessment; signed list of agreed-upon services; 15-day second meeting; remote and in-person meeting rights; preferred language)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4646.5 (what the planning process must include: assessments, measurable goals and time-limited objectives, schedule of type and amount of services, start dates, periodic review; 30-day/7-day review on request)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646.5."
+    accessed: 2026-09-08
+  - label: "WIC §4646.4 (internal process; generic resources; IPP team may find a medical service unavailable within 60 calendar days through insurance or Medi-Cal and authorize regional center funding)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646.4."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 (60 days from notification to request an informal meeting, mediation, or fair hearing; department's appeal request form; staff must help you fill it out)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; the service list an IPP draws from)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+---
+
+{/*
+  DRAFT — launch piece 7, keyword row /guides/regional-centers/ipp-meeting-prep/
+  ("how to prepare for an ipp meeting"). The competitive bet is FORMAT, not
+  facts: the incumbent ranks a generic explainer, so this page is built to be
+  worked the night before — scripts you can read aloud and a checklist block.
+
+  FACT-CHECKED 2026-09-08 against leginfo (full section text pulled and read,
+  not summarized from memory):
+  — WIC §4646(c): "These plans shall be completed within 60 days of the
+    completion of the assessment." Also: at intake the RC must give you the
+    address and phone numbers of the state council and the protection and
+    advocacy agency.
+  — WIC §4646(d): plans "prepared jointly by the planning team"; decisions
+    on goals, objectives and services are "made by agreement between the
+    regional center representative and the consumer or ... the parents".
+  — WIC §4646(f)(1): a meeting SHALL be held by remote electronic
+    communications if the parent requests it. (f)(2)(A): if there has been no
+    in-person IPP meeting/visit in the previous 12 months, the RC shall hold
+    one at a location and time convenient for and reflecting the parent's
+    preference.
+  — WIC §4646(g): at the conclusion of the meeting the RC's authorized
+    representative provides, in writing or electronically, a list of the
+    agreed-upon services and supports with projected start date if known,
+    frequency, duration and provider, and SIGNS it at that time. Parent may
+    elect to delay receipt 15 days pending final agreement.
+  — WIC §4646(h): no final agreement at the meeting → a subsequent meeting
+    "shall be convened within 15 days".
+  — WIC §4646(i): parent may sign and mark disagreement with parts; partial
+    disagreement does not block the agreed parts; written notice of appeal
+    rights is owed (§§4701, 4710).
+  — WIC §4646(j): RC shall communicate in the preferred language throughout
+    the planning process, provide copies in that language, and document the
+    preferred language in the IPP.
+  — WIC §4646.5(a)(1),(2),(5),(8) and (b): assessments in natural
+    environments where possible; goals plus "specific, time-limited
+    objectives ... stated in terms that allow measurement of progress";
+    a schedule of the TYPE AND AMOUNT of services with the responsible
+    provider and an approximate scheduled start date; periodic review
+    schedule; review "no less often than once every three years", and on
+    parent request within 30 days — 7 days where health and safety or
+    keeping the child at home requires it.
+  — WIC §4646.4(a)(2)(B): the IPP team may determine a medical service in the
+    IPP is not available within 60 calendar days through private insurance or
+    Medi-Cal, and it is then authorized for regional center purchase.
+  — WIC §4710.5(a)-(c): 60 days from notification to request an informal
+    meeting, mediation and/or a fair hearing; the request goes on the
+    department's appeal request form; an RC employee who learns of a request
+    must provide the form and help you complete it.
+
+  [TBC: the appeal spoke /guides/regional-centers/appeal-denial/ is being
+  drafted in parallel (piece 6). It is linked here with GatedLink, which
+  fails the build until that file exists — this page must land in the same
+  batch as piece 6.]
+  [TBC: human click-through of every sources[] URL before founder edit.]
+  [TBC: consider a companion /letters/ipp-request/ template for the
+  "ask in writing before the meeting" step — no keyword-map row yet.]
+*/}
+
+import AnswerFirst from '../../../components/AnswerFirst.astro';
+import CheckItem from '../../../components/CheckItem.astro';
+import Cite from '../../../components/Cite.astro';
+import DeadlineCallout from '../../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../../components/EmpathyCallout.astro';
+import GatedLink from '../../../components/GatedLink.astro';
+import HandoffCTA from '../../../components/HandoffCTA.astro';
+import PhaseLabel from '../../../components/PhaseLabel.astro';
+import PlainBox from '../../../components/PlainBox.astro';
+import SideCard from '../../../components/SideCard.astro';
+
+<PlainBox>
+  The IPP is the written plan that decides what your Regional Center pays for. Services hang
+  on goals, so the goals you bring in writing become the services you get. The law says the
+  plan is built <b>by agreement</b> between you and the Regional Center — you are not there to
+  be told the answer. Before you leave the meeting, you should walk out with a written, signed
+  list of what was agreed to. If something is refused, ask for it in writing.
+</PlainBox>
+
+<div class="cols">
+<article class="prose">
+
+Your meeting is tomorrow, or next week, and you have a knot in your stomach about it. That
+knot is not a sign you're unprepared — it's a sign you understand the stakes. Here is
+everything that meeting actually is, what the law requires it to produce, and the exact words
+that work in the room. Work the checklist at the bottom tonight and you will walk in with
+more preparation than most people at the table.
+
+<h2 class="qa-h" id="what-is-an-ipp">What is an IPP, and what must it contain?</h2>
+
+<AnswerFirst>
+  The <b>Individual Program Plan (IPP)</b> is the written plan the Regional Center builds with
+  you, and it is what every funded service attaches to <Cite>WIC §4646</Cite>. It must be
+  <b>prepared jointly by the planning team</b>, with decisions about goals and services
+  <b>made by agreement</b> between the Regional Center and you — not announced to you. By law
+  the plan must contain <b>measurable goals and time-limited objectives</b>, plus a
+  <b>schedule of the type and amount of services</b>, who provides each one, and an
+  approximate start date <Cite>WIC §4646.5</Cite>.
+</AnswerFirst>
+
+That last requirement is the one to hold onto. The statute does not let the plan say "speech
+services as needed." It calls for the type *and the amount* of each service, the provider
+responsible for it, and roughly when it starts <Cite>WIC §4646.5</Cite>. If a draft plan comes
+back vague, vagueness is not the Regional Center's style — it's a gap in what the law asks the
+plan to say, and you can ask for the number.
+
+Here is what the planning process has to include, in the order the statute lists it:
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>The law requires</th><th>What that means at your table</th></tr>
+    <tr><td>Assessments of your child's goals, strengths, preferences, and barriers — and, for a child, a look at the family unit as a whole <span class="cite">WIC §4646.5(a)(1)</span></td><td>Your description of a normal Tuesday is evidence. Assessments are to be done in natural settings where possible.</td></tr>
+    <tr><td>A statement of goals, plus <b>specific, time-limited objectives</b> "stated in terms that allow measurement of progress" <span class="cite">WIC §4646.5(a)(2)</span></td><td>Fuzzy goals produce fuzzy services. Bring goals already written this way.</td></tr>
+    <tr><td>A schedule of the <b>type and amount</b> of services and supports, who provides each, and the approximate start date <span class="cite">WIC §4646.5(a)(5)</span></td><td>Hours per week and a start date belong in the plan, not in someone's inbox.</td></tr>
+    <tr><td>A schedule of regular review to check that services were actually delivered <span class="cite">WIC §4646.5(a)(8)</span></td><td>The plan includes its own follow-up. Put the review date in your calendar.</td></tr>
+    <tr><td>A written or electronic <b>list of the agreed-upon services</b>, signed by the Regional Center at the end of the meeting <span class="cite">WIC §4646(g)</span></td><td>This is your receipt. Do not leave without it.</td></tr>
+  </table>
+</div>
+
+Three rights most parents are never told about, all in the same section. You can ask for the
+meeting to be held **by remote electronic communications**, and the Regional Center must hold
+it that way if you request it <Cite>WIC §4646(f)(1)</Cite>. If there has been no in-person
+meeting or visit in the past 12 months, the center must hold one **at a time and place
+convenient for you**, reflecting your preference <Cite>WIC §4646(f)(2)</Cite>. And the whole
+planning process — the meeting, the copies of the plan, the list of services — happens **in
+your preferred language**, with your preferred language written into the IPP itself
+<Cite>WIC §4646(j)</Cite>. You do not have to bring your own interpreter, and you should not
+have to use your older child as one.
+
+<DeadlineCallout>
+  After your child is found eligible and the assessment is done, the IPP must be
+  <b>completed within 60 days of the completion of the assessment</b> <span class="cite">WIC
+  §4646(c)</span>. Separately, once the plan exists, you can ask for a review any time — the
+  Regional Center must review it <b>within 30 days</b> of your request, or <b>within 7 days</b>
+  if your child's health and safety or staying in your home depends on it
+  <span class="cite">WIC §4646.5(b)</span>. You never have to wait for the annual meeting to
+  ask.
+</DeadlineCallout>
+
+<h2 class="qa-h" id="write-goals">How do I write goals the Regional Center can fund?</h2>
+
+<AnswerFirst>
+  Write goals in the form the statute already asks for: a plain-English goal, then a
+  <b>specific, time-limited objective you could measure</b> <Cite>WIC §4646.5(a)(2)</Cite>.
+  Then, under each one, name the support that gets your child there. Services attach to
+  written goals — so a need that never becomes a goal has nothing to hang on. Bring the whole
+  thing on <b>one page</b> and hand a copy to everyone at the table at the start.
+</AnswerFirst>
+
+The mechanic parents learn too late: the Regional Center does not fund services in the
+abstract. It funds services that carry out goals written in the plan. So the drafting work you
+do at your kitchen table the night before is the highest-leverage hour in the whole process.
+
+Use three columns and keep it to a page:
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Goal (what life looks like in a year)</th><th>Objective (measurable, with a date)</th><th>Support that gets us there</th></tr>
+    <tr><td>Ana asks for what she wants instead of melting down</td><td>By June, Ana uses 3-word phrases or her device to request in 4 out of 5 daily opportunities</td><td>Speech services; a communication device evaluation; parent coaching</td></tr>
+    <tr><td>Our family can get through a week without running on empty</td><td>Starting next month, a trained provider covers 20 hours a month so we sleep and our other child gets a Saturday</td><td>Respite hours <span class="cite">WIC §4512(b)</span></td></tr>
+    <tr><td>Marcus gets to school safely and on time</td><td>By the start of the next term, Marcus travels to his program 5 days a week with support</td><td>Transportation, named provider, start date <span class="cite">WIC §4646.5(a)(5)</span></td></tr>
+  </table>
+</div>
+
+Two drafting habits that change outcomes. **Write the hard days, not the good ones.** The plan
+is built on your child's needs as described, and the version of your child a stranger sees for
+90 minutes on a good morning is not the version you live with. **Put a number on everything.**
+"More respite" is a wish; "20 hours a month, starting in October" is an objective someone can
+schedule, fund, and be held to.
+
+<EmpathyCallout label="If writing this feels like betrayal">
+  Listing everything your child struggles with, in writing, for strangers, can feel like you're
+  filing a complaint about a person you love more than anything. It isn't. You are describing
+  the size of the gap between the world as it is built and the child you have, so that someone
+  is required to help close it. Write the hardest week you had this year. You are not
+  disloyal — you are being accurate on purpose, which is much harder.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="scripts-asking">What do I actually say to ask for a service?</h2>
+
+<AnswerFirst>
+  Ask in three moves: name the <b>need</b>, name the <b>goal it serves</b>, then name the
+  <b>service and the amount</b>. Ask for the goal to be written into the plan even if funding
+  is still being discussed — the goal is the hook the service hangs on. Then ask for the
+  service, the amount, the provider, and the start date to be in the plan, which is what
+  <Cite>WIC §4646.5(a)(5)</Cite> requires it to say.
+</AnswerFirst>
+
+Say it out loud once before you go. These are meant to be read almost word for word.
+
+**To open the meeting:**
+
+*"Before we start, I've written down my goals for Ana this year and what I think it takes to
+get there. Here's a copy for everyone. Can we use it as our agenda?"*
+
+**To ask for a service:**
+
+*"Ana can't tell us what she needs yet, and that's where most of our hard days start. So my
+goal is that she can request things in 3-word phrases or on a device by June. To get there I'm
+asking for speech services twice a week and a communication device evaluation. Can we write
+that goal into the IPP, with the service, the amount, and a start date?"*
+
+**To get respite on the table without apologizing for it:**
+
+*"I'm asking for 20 hours of respite a month. It's not a luxury — it's what keeps Ana at home
+with us. Can we add a goal about our family sustaining care at home, and put respite hours
+under it?"*
+
+**When someone says a decision has to wait:**
+
+*"That's fine. Can we write the goal in today anyway, and note that the service under it is
+still being decided? I'd rather not lose the goal while we wait."*
+
+**Before anyone stands up — the most important thirty seconds of the meeting:**
+
+*"Can I get the written list of what we agreed to today before we finish, with the start dates
+and the providers?"*
+
+You are entitled to ask for exactly that. At the conclusion of an IPP meeting, the Regional
+Center's authorized representative must give you — on paper or electronically — a **list of
+the agreed-upon services and supports**, with the projected start date if known, the frequency
+and duration, and the provider, and must **sign it at that time** <Cite>WIC §4646(g)</Cite>.
+That signed list is the difference between an agreement and a memory.
+
+<h2 class="qa-h" id="scripts-no">What do I say when they say "we don't fund that"?</h2>
+
+<AnswerFirst>
+  Don't argue and don't agree. Ask <b>three questions</b>: what is the reason, is it written
+  anywhere, and will you put it in writing as a <b>Notice of Action</b>? An informal "we don't
+  fund that" is not a decision and starts no clock. Also ask the generic-resource question —
+  if a medical service in the plan <b>isn't available within 60 calendar days</b> through your
+  insurance or Medi-Cal, the planning team can decide the Regional Center funds it
+  <Cite>WIC §4646.4(a)(2)</Cite>.
+</AnswerFirst>
+
+"We don't fund that" usually means one of four very different things, and your next sentence
+depends on which:
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>What they may mean</th><th>What to say</th></tr>
+    <tr><td>"Your insurance or Medi-Cal covers it" (the generic-resource rule)</td><td><i>"I've asked. Can we document that it isn't available within 60 calendar days through my plan? My understanding is the team can authorize it then."</i> <span class="cite">WIC §4646.4(a)(2)</span></td></tr>
+    <tr><td>"It's the school's job"</td><td><i>"The school covers school hours. This is a need at home, outside the school day. Can we address that need here?"</i></td></tr>
+    <tr><td>"It's not in our purchase-of-service policy"</td><td><i>"Can you send me the policy section you're relying on? And can we still record my request and your answer in the plan?"</i></td></tr>
+    <tr><td>"There's no funding this year"</td><td><i>"I understand the budget is hard. My child's services under the Lanterman Act aren't a budget question, though. Can I have that answer as a written Notice of Action?"</i></td></tr>
+  </table>
+</div>
+
+Then, whatever the reason, use the sentence that converts a shrug into something you can act
+on:
+
+*"I hear you. Please send me that decision as a written Notice of Action so I can look at my
+options."*
+
+Say it kindly. Most service coordinators are not your adversary — they are carrying 70 other
+families and an internal policy nobody explained to them either. But say it every time,
+because the written notice is what turns a hallway conversation into a decision with a clock
+and an appeal attached.
+
+One more thing you can do without any conflict at all: if the meeting ends without agreement,
+you don't have to sign in defeat and you don't have to storm out. **A second meeting must be
+convened within 15 days** when a final agreement can't be reached <Cite>WIC §4646(h)</Cite>.
+Ask for it before you leave.
+
+<h2 class="qa-h" id="if-refused">What if something is refused?</h2>
+
+<AnswerFirst>
+  Get the <b>Notice of Action (NOA)</b> — the written decision. You can also <b>sign the IPP
+  and mark your disagreement</b> with the parts you don't accept: the services you did agree on
+  still start, and your disagreement is on the record <Cite>WIC §4646(i)</Cite>. From the NOA,
+  you have <b>60 days from notification</b> to ask for an informal meeting, mediation, or a
+  fair hearing <Cite>WIC §4710.5</Cite>. Denials get reversed regularly.
+</AnswerFirst>
+
+Signing with a noted disagreement is the move most parents don't know exists. Disagreeing with
+specific parts of the plan does not stop the parts you agreed on from being implemented, and
+if you don't agree in whole or in part, the Regional Center owes you **written notice of your
+appeal rights** <Cite>WIC §4646(i)</Cite>. So you never have to choose between accepting
+everything and delaying the services your child needs now.
+
+<DeadlineCallout>
+  <b>60 days from notification</b> of the decision to file for an informal meeting, mediation,
+  or a fair hearing <span class="cite">WIC §4710.5(a)</span>. A different, shorter clock
+  applies if you want a service to keep running while you appeal — check the dates printed on
+  your own notice, and see the appeal guide below.
+</DeadlineCallout>
+
+The request goes on the state's appeal request form, and here is a detail worth knowing: if
+you ask any Regional Center employee to appeal in some other way, that employee is required to
+give you the form and to **help you fill it out** if you want help <Cite>WIC §4710.5(c)</Cite>.
+Asking for help with the form is not a favor you're begging for.
+
+Our full walkthrough of that path — reading the NOA, the deadlines, the informal meeting,
+mediation, and the fair hearing — is in
+<GatedLink href="/guides/regional-centers/appeal-denial/">how to appeal a Regional Center denial</GatedLink>.
+Free help exists too: the **Office of Clients' Rights Advocacy (OCRA)**, part of Disability
+Rights California, represents families in Regional Center appeals at no cost. At intake, your
+Regional Center was required to give you the address and phone number of the state council and
+the protection and advocacy agency <Cite>WIC §4646(c)</Cite> — if that never happened, ask for
+it now.
+
+<h2 class="qa-h" id="checklist">The night-before checklist</h2>
+
+<AnswerFirst>
+  Work these in order. Everything above the meeting takes about an hour at your kitchen table;
+  everything below it takes five minutes in the room. Print this page, or check the boxes here
+  and carry them into your Waypoint plan.
+</AnswerFirst>
+
+<PhaseLabel>Two weeks out · Set the meeting up to work</PhaseLabel>
+
+<CheckItem id="ipp-confirm-logistics" title="Confirm the date, and ask for the format you actually need">
+  You can require the meeting be held <b>by remote electronic communications</b>
+  <span class="cite">WIC §4646(f)(1)</span>, and if there's been no in-person meeting or visit
+  in the last 12 months you can require an in-person one at a time and place convenient for you
+  <span class="cite">WIC §4646(f)(2)</span>. Ask in the same email that confirms the date.
+</CheckItem>
+
+<CheckItem id="ipp-language-access" title="Ask for your preferred language in writing">
+  The Regional Center must run the planning process — the meeting and the documents — in your
+  preferred language, and must write that language into the IPP
+  <span class="cite">WIC §4646(j)</span>. Ask now, not on the day, so an interpreter is booked.
+</CheckItem>
+
+<CheckItem id="ipp-request-draft" title="Ask for the draft plan and any assessments in advance">
+  Ask your service coordinator to email you the current IPP and any assessment reports the team
+  will rely on. Reading them cold in the meeting is how good asks get lost.
+</CheckItem>
+
+<CheckItem id="ipp-invite-someone" title="Decide who comes with you">
+  You can bring anyone: your partner, a friend, a relative who takes notes, or a free advocate
+  from OCRA. Two people hear twice as much, and one of them can watch the clock while the other
+  talks.
+</CheckItem>
+
+<PhaseLabel>The night before · One hour at the kitchen table</PhaseLabel>
+
+<CheckItem id="ipp-write-goals" title="Write your one-page goals sheet">
+  Three columns: goal, measurable objective with a date, and the support that gets you there —
+  the shape <span class="cite">WIC §4646.5(a)(2)</span> asks for. Keep it to one page and print
+  a copy for everyone at the table.
+</CheckItem>
+
+<CheckItem id="ipp-hard-week" title="Write down your hardest week, honestly">
+  Specific beats general every time: the elopement out the front door, the 3am wakings, the
+  meltdown at pickup, the number of times you left work early last month. This is the evidence
+  behind every number you're about to ask for.
+</CheckItem>
+
+<CheckItem id="ipp-name-amounts" title="Put a number on every ask">
+  Hours per week or per month, and a start date. The plan is required to state the type
+  <b>and amount</b> of each service and roughly when it begins
+  <span class="cite">WIC §4646.5(a)(5)</span> — so bring the numbers you want it to state.
+</CheckItem>
+
+<CheckItem id="ipp-gather-records" title="Gather the paper — but don't wait for a perfect folder">
+  Recent evaluations, doctor's notes, the current IEP or IFSP, any denial letters from
+  insurance, and your supervision or incident log if you keep one. Bring what you have.
+</CheckItem>
+
+<PhaseLabel>In the room · Five minutes that decide the year</PhaseLabel>
+
+<CheckItem id="ipp-hand-out-sheet" title="Hand out your goals sheet in the first two minutes">
+  It sets the agenda, and it creates a record that these asks were made on this date. Say:
+  <i>"Can we use this as our agenda?"</i>
+</CheckItem>
+
+<CheckItem id="ipp-ask-and-name-amount" title="Make each ask as need → goal → service and amount">
+  Say the need, say the goal it serves, then name the service, the amount, the provider, and
+  the start date you want written down. Decisions are made <b>by agreement</b> between you and
+  the Regional Center <span class="cite">WIC §4646(d)</span> — you are a decision-maker at that
+  table, not an audience.
+</CheckItem>
+
+<CheckItem id="ipp-noa-on-refusal" title="If anything is refused, ask for it in writing">
+  <i>"Please send me that decision as a written Notice of Action."</i> An informal no starts no
+  clock; the NOA starts your 60 days <span class="cite">WIC §4710.5(a)</span>.
+</CheckItem>
+
+<CheckItem id="ipp-get-signed-list" title="Do not leave without the signed list of agreed-upon services">
+  At the conclusion of the meeting the Regional Center must give you, in writing or
+  electronically, the list of agreed-upon services with start dates, frequency, duration, and
+  provider — signed by their representative right then
+  <span class="cite">WIC §4646(g)</span>. If no agreement was reached, ask for the second
+  meeting, which must be convened within 15 days <span class="cite">WIC §4646(h)</span>.
+</CheckItem>
+
+<CheckItem id="ipp-calendar-followups" title="Calendar the start dates and the review date before you forget">
+  Every start date on that list is a promise with a date attached. Put each one in your phone,
+  plus the plan's own review date <span class="cite">WIC §4646.5(a)(8)</span>. When a start
+  date passes with nothing happening, email your coordinator that week.
+</CheckItem>
+
+<CheckItem id="ipp-followup-email" title="Send a short thank-you email that repeats what was agreed">
+  Two sentences: thank them, and list what was agreed with the dates. It's gracious, and it's a
+  second written record that costs you three minutes.
+</CheckItem>
+
+</article>
+<aside>
+  <SideCard title="On this page" toc>
+    <a href="#what-is-an-ipp">What is an IPP?</a>
+    <a href="#write-goals">How do I write goals?</a>
+    <a href="#scripts-asking">What do I say to ask?</a>
+    <a href="#scripts-no">When they say "we don't fund that"</a>
+    <a href="#if-refused">What if something is refused?</a>
+    <a href="#checklist">The night-before checklist</a>
+  </SideCard>
+  <SideCard title="Quick facts">
+    <dl>
+      <dt>IPP due</dt><dd>Within 60 days of the completion of the assessment <span class="cite">WIC §4646(c)</span></dd>
+      <dt>No agreement at the meeting</dt><dd>A second meeting within 15 days <span class="cite">WIC §4646(h)</span></dd>
+      <dt>Review on your request</dt><dd>Within 30 days — 7 days if health and safety require it <span class="cite">WIC §4646.5(b)</span></dd>
+      <dt>To appeal a decision</dt><dd>60 days from notification <span class="cite">WIC §4710.5(a)</span></dd>
+    </dl>
+  </SideCard>
+  <SideCard title="Start here">
+    <p>New to the Regional Center system, or not sure your child is eligible yet?</p>
+    <GatedLink class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</GatedLink>
+    <p>Not sure which of the 21 centers is yours?</p>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+  <SideCard title="If the answer is no">
+    <p>The written Notice of Action, the deadlines, and how a fair hearing actually goes.</p>
+    <GatedLink class="link" href="/guides/regional-centers/appeal-denial/">Appealing a denial →</GatedLink>
+  </SideCard>
+  <SideCard title="Related guides">
+    <p>Paid hours for the supervision you already do, every day.</p>
+    <GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</GatedLink>
+    <p>What your health plan has to cover, separately from the Regional Center.</p>
+    <GatedLink class="link" href="/guides/insurance/">Insurance &amp; SB 946 →</GatedLink>
+  </SideCard>
+</aside>
+</div>
+
+<EmpathyCallout label="After the meeting">
+  However it went, notice what you just did. You read a statute, you wrote goals in the form
+  the law asks for, you asked for specific services with numbers attached, and you asked for
+  the answer in writing. That is exactly what a good advocate does, and you did it for your own
+  child while running the rest of your life. Whatever is still unresolved is a next step, not a
+  verdict. You did this.
+</EmpathyCallout>
+
+<HandoffCTA
+  heading="Turn this checklist into your plan"
+  body="Waypoint asks a few questions about your child, then builds your goals sheet, your IPP asks, and a tracker for every start date you agreed to — free, in English or Spanish."
+  action="Build my plan →"
+  slug="guides/regional-centers/ipp-meeting-prep"
+  cta="checklist"
+  pillar="regional-centers"
+  checklist
+/>

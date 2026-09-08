@@ -1,0 +1,475 @@
+---
+title: "School & IEPs: a California parent's guide to special education"
+seoTitle: "IEP help for parents in California: the whole process"
+description: "How special education works in California: who qualifies, the 15- and 60-day clocks, what an IEP must contain, and what to do when you disagree with the school."
+locale: en
+translationKey: iep-pillar
+status: draft
+pillar: iep
+dateModified: 2026-09-08
+nextReviewEvent: annual
+disclaimerVariant: legal
+changelog:
+  - date: 2026-09-08
+    note: "First draft of the School & IEPs pillar hub. Every clock on the page checked against leginfo or eCFR before it was written; the assessment-plan and IEP-meeting deadlines are stated to match the published request letter exactly (15 calendar days, 60 days from signed consent)."
+sources:
+  - label: "CA Ed Code §56301 (child find; procedural safeguards on referral or parent request)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56301."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56026 (definition of 'individuals with exceptional needs'; exclusions)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56026."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56043 (master timeline list: 15-day plan, 60-day IEP, 30-day parent-requested meeting, 5-day records)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56043."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56321 (assessment plan within 15 days; school-vacation pause; 15 days for the parent to decide)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56321."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56320 (assess in all areas related to the suspected disability; no single measure)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56320."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56344 (60 days from written consent to the IEP meeting; end-of-year exception)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56344."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56341.1 (what the IEP team must consider; special factors; parent participation)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56341.1."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56345 (required contents of an IEP)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56345."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56346 (consent to initial services; partial consent is implemented)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56346."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56329 (independent educational assessment at public expense)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56329."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56500.4 (prior written notice — what it must say)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56500.4."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56500.3 (mediation is voluntary; not a prerequisite to due process)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56500.3."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56501 (when a parent may file for a due process hearing)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56501."
+    accessed: 2026-09-08
+  - label: "34 CFR §300.8 (IDEA definition of a child with a disability; the two-part test)"
+    url: "https://www.ecfr.gov/current/title-34/section-300.8"
+    accessed: 2026-09-08
+  - label: "34 CFR §300.301 (initial evaluations; either a parent or the agency may request one; 60 days from consent)"
+    url: "https://www.ecfr.gov/current/title-34/section-300.301"
+    accessed: 2026-09-08
+  - label: "34 CFR §104.3 (Section 504 — impairment substantially limiting a major life activity)"
+    url: "https://www.ecfr.gov/current/title-34/section-104.3"
+    accessed: 2026-09-08
+  - label: "34 CFR §104.33 (Section 504 — free appropriate public education in public schools)"
+    url: "https://www.ecfr.gov/current/title-34/section-104.33"
+    accessed: 2026-09-08
+---
+
+{/*
+  DRAFT — the School & IEPs PILLAR HUB (keyword row /guides/iep/, primary
+  "iep help for parents california"). Authority anchor for the IEP cluster;
+  links down to piece 4 (/guides/iep/request-evaluation/) and piece 10
+  (/guides/iep/dispute-ladder/), both drafted in parallel — hence GatedLink
+  on both, which also fails the build if either slug is ever mistyped.
+
+  FACT-CHECKED 2026-09-08 against primary sources (verbatim snippets pulled
+  from leginfo and the eCFR renderer; see sources[]):
+  - §56321 + §56043(a) BOTH read "15 calendar days" from the referral, not
+    counting calendar days between regular sessions/terms or school vacation
+    in excess of five schooldays. No discrepancy with the published letter
+    /letters/iep-evaluation-request/, which says 15 calendar days. Confirmed.
+  - §56344(a) confirmed: 60 days from receipt of the parent's WRITTEN CONSENT
+    for assessment (same vacation carve-out), plus the end-of-year exception
+    (referral 30 days or fewer before the year ends → IEP within 30 days after
+    the next regular school year starts) and the 30-day initial-IEP meeting
+    after a determination of need (citing 34 CFR §300.323(c)(1)).
+  - §56321 also confirmed: parent gets AT LEAST 15 days to decide on the plan;
+    a referral 10 days or fewer before year-end pushes the plan to 10 days
+    after the next school year starts; no IEP results from the assessment
+    without parent consent.
+  - §56320(f) "all areas related to the suspected disability" confirmed
+    verbatim, with the enumerated areas; §56320(e) single-measure ban
+    confirmed; §56320(a)/(b) native-language and trained-personnel confirmed.
+  - §56026 confirmed incl. the (e) exclusions (limited English proficiency,
+    lack of instruction in reading or math, temporary physical disabilities,
+    social maladjustment, environmental/economic factors).
+  - 34 CFR §300.8(a)(1) two-part test confirmed verbatim, and (a)(2) — a
+    child who needs ONLY a related service is not IDEA-eligible.
+    NOTE: the page deliberately does NOT say "13 categories" — §300.8(a)(1)
+    names twelve terms and the popular count of 13 comes from splitting
+    deafness out of "hearing impairment" in the (c) subdefinitions. We list
+    what the regulation lists.
+  - 34 CFR §300.301(b)/(c) confirmed: either a parent or the public agency
+    may initiate a request for an initial evaluation; 60 days from consent.
+  - §56043(l) confirmed: parent-requested IEP review meeting within 30
+    calendar days of the written request (per §56343.5). §56043(n): records
+    within five business days. §56043(d)/(j)/(k): annual review, triennial
+    reassessment, not more than annually absent agreement.
+  - §56345(a) IEP contents confirmed; §56341.1(a)/(b)/(f) confirmed;
+    §56346(a)/(b)/(e) confirmed incl. partial consent being implemented;
+    §56329(b)/(c) IEE confirmed; §56500.4 PWN contents confirmed;
+    §56500.3 confirmed (mediation voluntary; attorneys barred from the
+    prehearing mediation conference); §56501(a) grounds confirmed.
+
+  LANGUAGE: 34 CFR Part 104 uses "handicapped person" throughout. That term
+  is banned in Waypoint prose (STYLE-GUIDE §4), so Section 504 is described
+  in current language and the chip points readers at the regulation itself.
+
+  [TBC: human click-through of every sources[] URL before publish. The eCFR
+  HTML pages bot-block automated fetches from this environment — the federal
+  text above was read through the eCFR content renderer API, and the
+  canonical /current/title-34/section-NNN.NN URLs in sources[] still need a
+  human to open them once.]
+  [TBC: confirm §56043(k) reassessment cadence wording (not more than once a
+  year unless the parent and LEA agree; at least once every three years)
+  against the section text — read via summary, not verbatim snippet.]
+  [TBC: §56501 — the two-year filing limit and "stay put" are widely
+  understood to live in §56505; not verified here, so this page states
+  neither. The dispute-ladder spoke owns them.]
+*/}
+
+import AnswerFirst from '../../components/AnswerFirst.astro';
+import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
+import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
+import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  An IEP — Individualized Education Program — is a legal contract between you and your school
+  district about what your child gets at school. It starts with a written request for an
+  evaluation, and the law puts the clock on the district, not on you: 15 calendar days to send
+  you a plan, then 60 days from the day you sign it to test your child and hold the meeting.
+  You are a full member of the team that writes the plan. If you disagree with it, you have a
+  ladder of options — and the first rung is just asking, in writing.
+</PlainBox>
+
+<div class="cols">
+<article class="prose">
+
+Nobody teaches you this system before you need it. You walk into a room with six school staff, a
+stack of scores, and a document written in acronyms, and you are expected to be an equal partner
+in it by 8:45am. This page is the whole map — what an IEP is, who qualifies, the sequence and its
+deadlines, what you can insist on, and what happens when the answer is no.
+
+Two pages go deeper, and most parents need them in this order: how to
+<GatedLink href="/guides/iep/request-evaluation/">request an IEP evaluation</GatedLink> (the
+step that starts everything), and what to do when you
+<GatedLink href="/guides/iep/dispute-ladder/">disagree with the school</GatedLink>. If you are
+ready to send the request today, the letter is written for you at
+<GatedLink href="/letters/iep-evaluation-request/">Request an IEP evaluation</GatedLink>.
+
+<h2 class="qa-h" id="what-is-an-iep">What is an IEP — and how is it different from a 504 plan?</h2>
+
+<AnswerFirst>
+  An <b>IEP</b> is a written, legally binding plan for a child who needs <b>specially designed
+  instruction</b> — the school changes <i>what and how</i> it teaches, and owes measurable goals,
+  named services, and progress reports <Cite>Ed Code §56345</Cite>. A <b>504 plan</b> is for a
+  child whose disability substantially limits a major life activity but who does <b>not</b> need
+  special education — it delivers <b>accommodations</b> that change the conditions of learning,
+  not the instruction itself <Cite>34 CFR §104.33</Cite>. An IEP carries far more procedure,
+  far more paperwork, and far stronger enforcement.
+</AnswerFirst>
+
+The plainest way to hold the difference: a 504 plan changes the *road* — extra time, preferential
+seating, a quiet room for tests, a health plan for diabetes care. An IEP changes the *car* — a
+speech therapist twice a week, a reading program built for dyslexia, a one-to-one aide, goals
+written for your child and measured on a schedule.
+
+Section 504 is a civil rights law. It covers any student with a physical or mental impairment
+that substantially limits one or more major life activities — the regulation names functions
+like caring for oneself, walking, seeing, hearing, speaking, breathing, learning, and working
+<Cite>34 CFR §104.3</Cite> — and it requires public schools to provide a free appropriate public
+education to those students regardless of the nature or severity of the disability
+<Cite>34 CFR §104.33</Cite>. That is a wide net, and it catches many children who are not
+IDEA-eligible.
+
+IDEA — the Individuals with Disabilities Education Act — is narrower and richer. The trade is
+real: a 504 plan is faster and lighter to obtain; an IEP gives you evaluation rights, a defined
+team, prior written notice, and a dispute process with a judge at the end of it. Families
+sometimes start with a 504 and move to an IEP as needs become clearer — a normal path, not a
+failure of the first plan.
+
+One caution worth saying out loud: "let's just do a 504" is sometimes offered as a shortcut when
+a parent has asked for an evaluation. It is not a substitute for one. You can accept a 504 plan
+*and* keep your evaluation request running — the two are not a fork in the road.
+
+<h2 class="qa-h" id="who-qualifies">Who qualifies for an IEP in California?</h2>
+
+<AnswerFirst>
+  Eligibility is a <b>two-part test</b>, and both halves must be true. First, an evaluation must
+  show your child has a disability in one of the categories federal law names. Second, your child
+  must — <i>by reason of that disability</i> — <b>need special education and related services</b>
+  <Cite>34 CFR §300.8</Cite>. California states the same test in its own words: the IEP team
+  identifies the child as a child with a disability whose impairment requires instruction and
+  services that <b>cannot be provided with modification of the regular school program</b>
+  <Cite>Ed Code §56026</Cite>.
+</AnswerFirst>
+
+The federal categories, as the regulation lists them, are: intellectual disability; hearing
+impairment, including deafness; speech or language impairment; visual impairment, including
+blindness; emotional disturbance; orthopedic impairment; autism; traumatic brain injury; other
+health impairment; specific learning disability; deaf-blindness; and multiple disabilities
+<Cite>34 CFR §300.8</Cite>. "Other health impairment" is broader than it sounds and is the
+category through which many children with ADHD, epilepsy, or chronic medical conditions qualify.
+
+Now the half that surprises people. A diagnosis is not eligibility. A child can have a clear
+medical diagnosis and still not qualify, if the school can meet their needs without specially
+designed instruction. And a child can qualify without a tidy diagnosis, because the school's
+evaluation — not a doctor's letter — is what decides it. Federal law is explicit that a child who
+has one of those conditions but needs **only a related service**, and not special education, is
+not eligible under IDEA <Cite>34 CFR §300.8</Cite>. That child may well be a 504 student.
+
+California also lists what may **not** be the primary reason for eligibility: limited English
+proficiency, a lack of instruction in reading or mathematics, temporary physical disabilities,
+social maladjustment, or environmental and economic factors <Cite>Ed Code §56026</Cite>. This
+matters in both directions. It stops a district from labelling an English learner as disabled —
+and it also means "he's just behind because of the pandemic" is not, by itself, a lawful basis to
+refuse to evaluate a child whose difficulties look disability-related.
+
+If your child is **under 3**, school is not your first door — Early Start through your Regional
+Center is, and it runs on a much faster clock. The
+<GatedLink href="/guides/regional-centers/">Regional Center guide</GatedLink> has that path, and
+the two systems are worth starting in parallel: the school owes your child an education, the
+Regional Center funds things school never will.
+
+<h2 class="qa-h" id="the-sequence">How does the IEP process work, start to finish?</h2>
+
+<AnswerFirst>
+  Five steps, three of them on legal clocks. You make a <b>written request</b>. The district has
+  <b>15 calendar days</b> to send you an assessment plan <Cite>Ed Code §56321</Cite>. You have at
+  least <b>15 days</b> to review and sign it <Cite>Ed Code §56321</Cite>. From the day the
+  district receives your signed consent, it has <b>60 days</b> to complete the assessments,
+  decide eligibility, and hold the IEP meeting <Cite>Ed Code §56344</Cite>. Then services start.
+</AnswerFirst>
+
+<DeadlineCallout>
+  Assessment plan within <b>15 calendar days</b> of your written request · at least <b>15 days</b>
+  for you to decide · <b>60 days</b> from your signed consent to the IEP meeting. School breaks
+  longer than 5 schooldays pause both clocks.
+  <span class="cite">Ed Code §56321 · §56043 · §56344</span>
+</DeadlineCallout>
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Step</th><th>What happens</th><th>The clock</th></tr>
+    <tr><td>1. Your written request</td><td>You ask, in writing, for an evaluation in all areas of suspected disability. Email counts. The date it is <i>received</i> is the date that matters.</td><td>Starts everything <span class="cite">Ed Code §56321</span></td></tr>
+    <tr><td>2. Assessment plan arrives</td><td>A form listing each area to be tested and by whom, plus your rights. Read the scope before you sign.</td><td><b>15 calendar days</b> from the request <span class="cite">Ed Code §56043</span></td></tr>
+    <tr><td>3. You consent</td><td>You sign, or ask in writing for areas to be added first. Nothing is tested until you sign.</td><td>You get <b>at least 15 days</b> to decide <span class="cite">Ed Code §56321</span></td></tr>
+    <tr><td>4. Assessments</td><td>School psychologists, speech pathologists, and other specialists test and observe your child, at no cost to you, in every area related to the suspected disability.</td><td>Inside the 60-day window <span class="cite">Ed Code §56320</span></td></tr>
+    <tr><td>5. Eligibility + IEP meeting</td><td>The team reviews results, decides eligibility, and — if your child is eligible — writes the IEP at that same meeting.</td><td><b>60 days</b> from your signed consent <span class="cite">Ed Code §56344</span></td></tr>
+  </table>
+</div>
+
+Three details in that table do most of the work, and they are the ones districts most often
+gloss over.
+
+**The clocks are calendar days, with one carve-out.** The 15-day and 60-day windows do not count
+days between regular school sessions or terms, or school vacations longer than five schooldays —
+and when a vacation ends, the clock picks up again on the day regular schooldays reconvene
+<Cite>Ed Code §56321</Cite> <Cite>Ed Code §56344</Cite>. A winter break pauses your clock; a
+three-day weekend does not.
+
+**End of the school year has its own rules.** If your referral lands 10 days or fewer before the
+regular school year ends, the assessment plan is due within 10 days after the next school year
+starts <Cite>Ed Code §56321</Cite>. If the referral comes 30 days or fewer before the year ends,
+the IEP is due within 30 days after the next school year starts <Cite>Ed Code §56344</Cite>. This
+is why a request sent in early May and a request sent in late May can land months apart.
+
+**The 60 days runs from your signature, not from your request.** Every day an unsigned assessment
+plan sits on your kitchen table is a day the evaluation clock has not started. Sign it promptly —
+after you have checked the scope.
+
+<h2 class="qa-h" id="what-you-can-insist-on">What can I insist on as a parent?</h2>
+
+<AnswerFirst>
+  More than most parents are told. You can insist that your child be assessed in <b>all areas
+  related to the suspected disability</b> <Cite>Ed Code §56320</Cite>; that <b>no single test</b>
+  decides eligibility <Cite>Ed Code §56320</Cite>; that the team <b>consider your concerns</b>
+  <Cite>Ed Code §56341.1</Cite>; that any refusal come to you as <b>prior written notice</b>
+  explaining why <Cite>Ed Code §56500.4</Cite>; and that your child's records be handed over
+  <b>within five business days</b> of your request <Cite>Ed Code §56043</Cite>.
+</AnswerFirst>
+
+Here is the working list. None of these are favors.
+
+1. **A full-scope evaluation.** The law requires assessment in all areas related to the suspected
+   disability, and names them: health and development, vision, hearing, motor abilities, language
+   function, general intelligence, academic performance, communicative status, self-help,
+   orientation and mobility, career and vocational abilities and interests, and social and
+   emotional status <Cite>Ed Code §56320</Cite>. If a concern you raised is missing from the
+   assessment plan, ask in writing for it to be added **before** you sign.
+2. **Fair testing.** Assessments must be given in the language and form most likely to yield
+   accurate information about what your child knows and can do, must not be racially, culturally,
+   or sexually discriminatory, and must be administered by trained personnel
+   <Cite>Ed Code §56320</Cite>.
+3. **Your concerns on the record.** The IEP team is required to consider your child's strengths,
+   the results of the most recent assessment, and *your concerns for enhancing your child's
+   education* <Cite>Ed Code §56341.1</Cite>. You have the right to attend, to bring anyone you
+   choose, and to present information yourself or through a representative
+   <Cite>Ed Code §56341.1</Cite>. Hand your written concerns to the team at the start of the
+   meeting and ask that they be attached to the IEP.
+4. **Special factors addressed.** If your child's behavior impedes their learning or others', the
+   team must consider positive behavioral interventions and supports. It must also consider
+   communication needs, braille for a child who is blind or visually impaired, and whether
+   assistive technology is required <Cite>Ed Code §56341.1</Cite>.
+5. **A real IEP document.** It must contain present levels of academic achievement and functional
+   performance; measurable annual goals; how progress will be measured and when it will be
+   reported to you; the specific services and supplementary aids, based on peer-reviewed research
+   to the extent practicable; an explanation of any time your child will not be with
+   non-disabled peers; testing accommodations; and the projected start date, frequency, location,
+   and duration of every service <Cite>Ed Code §56345</Cite>. "Speech, as needed" is not a
+   service. "30 minutes, twice weekly, in a small group, beginning September 15" is.
+6. **A meeting when you ask for one.** You do not have to wait for the annual review. A meeting
+   requested in writing to review the IEP must be held within **30 calendar days** of the
+   district receiving your request <Cite>Ed Code §56043</Cite>.
+7. **The paperwork.** Records within five business days of your request
+   <Cite>Ed Code §56043</Cite>, and a copy of your rights and procedural safeguards at least once
+   a school year and whenever an initial referral or parent request for assessment happens
+   <Cite>Ed Code §56301</Cite>.
+8. **An answer in writing.** Whenever the district proposes or refuses to change your child's
+   identification, assessment, placement, or education, it owes you prior written notice — a
+   document that describes the action, explains *why*, lists every assessment or report it relied
+   on, and names the other options the team considered and why they were rejected
+   <Cite>Ed Code §56500.4</Cite>. This single document turns "we don't do that here" into
+   something you can appeal.
+
+Two more that come up constantly. **Consent is yours to give in pieces:** if you agree with parts
+of a proposed program but not all of it, the parts you consent to are implemented, so a
+disagreement over one service does not hold the rest hostage <Cite>Ed Code §56346</Cite>. And if
+you **disagree with the district's assessment**, you can ask for an independent educational
+assessment at public expense — and the district must either pay for it or file for a due process
+hearing to prove its own assessment was appropriate <Cite>Ed Code §56329</Cite>. It cannot simply
+decline.
+
+<EmpathyCallout label="Before your first IEP meeting">
+  You will be outnumbered in that room. That is a fact of the format, not a verdict on your
+  standing — you are one member of a team, and the only one who has known this child their whole
+  life. Bring your concerns on one page. Bring someone who can take notes while you listen. And
+  remember the sentence that resets any meeting that has gone sideways: <i>"Can you put that in
+  writing for me?"</i>
+</EmpathyCallout>
+
+<h2 class="qa-h" id="after-the-iep">What happens after the IEP is written?</h2>
+
+<AnswerFirst>
+  Services begin as soon as possible after the meeting, and the plan gets checked on a schedule:
+  the IEP is reviewed <b>at least once a year</b>, and your child is <b>reassessed at least every
+  three years</b> — and not more than once a year unless you and the district agree
+  <Cite>Ed Code §56043</Cite>. Progress toward each goal must be reported to you on the schedule
+  written into the IEP itself <Cite>Ed Code §56345</Cite>.
+</AnswerFirst>
+
+Treat the annual review as the audit it is, not a formality. Before it, read last year's goals and
+ask one question of each: did this get measured, and did my child move? A goal with no progress
+data is easy to fix, because the law already requires the reporting — you are asking for something
+owed, not something new.
+
+The initial IEP also needs your informed consent before special education services begin
+<Cite>Ed Code §56346</Cite>. Read it before you sign. The version discussed in the meeting and
+the version that arrives in the mail are usually the same; "usually" is why you read it.
+
+<h2 class="qa-h" id="disagree">What if I disagree with the school?</h2>
+
+<AnswerFirst>
+  You have a ladder, and you climb it one rung at a time: <b>ask in writing</b> → <b>request an
+  IEP meeting</b> (owed within 30 calendar days <Cite>Ed Code §56043</Cite>) → <b>mediation</b>,
+  which is voluntary and is <i>not</i> a prerequisite to anything else
+  <Cite>Ed Code §56500.3</Cite> → a <b>compliance complaint</b> → a <b>due process hearing</b>
+  before an administrative law judge <Cite>Ed Code §56501</Cite>. Most disagreements end on the
+  first or second rung.
+</AnswerFirst>
+
+The ladder exists because escalation is expensive — in time, in energy, and in the relationship
+with the people who see your child every day. Starting at the top is rarely the fastest route to a
+service. But knowing the top rung is there changes how the bottom rungs go. A few anchors to carry
+with you:
+
+- **Get the refusal in writing.** A "no" in a meeting starts nothing. Prior written notice does
+  <Cite>Ed Code §56500.4</Cite>. Ask for it by name.
+- **Mediation is voluntary and lawyer-free.** California's mediation-only conference is not a
+  prerequisite to a due process hearing, and attorneys and paid legal advocates may not attend it
+  <Cite>Ed Code §56500.3</Cite>. That keeps it a conversation, which is often exactly what is
+  needed.
+- **Due process is available on the things that matter most:** a proposal or a refusal to change
+  your child's identification, assessment, placement, or free appropriate public education
+  <Cite>Ed Code §56501</Cite>.
+- **Disagree with the testing? Ask for an independent evaluation** at public expense
+  <Cite>Ed Code §56329</Cite> — often the single highest-leverage move a parent can make, because
+  it changes the evidence rather than arguing about it.
+
+The full ladder, with the deadlines and the exact words for each rung, lives at
+<GatedLink href="/guides/iep/dispute-ladder/">Disagreeing with the school: your options in
+order</GatedLink>. Free help is available and you never have to pay for it: every California
+county is served by a federally funded parent training and information center, and Disability
+Rights California takes special education cases.
+
+<h2 class="qa-h" id="start-here">Where should I start today?</h2>
+
+<AnswerFirst>
+  If your child has never been evaluated: send the written request this week — that one email
+  starts every clock on this page. If your child already has an IEP and something is wrong: put
+  the concern in writing and ask for an IEP meeting, which the district owes you within
+  <b>30 calendar days</b> <Cite>Ed Code §56043</Cite>.
+</AnswerFirst>
+
+Districts have a standing duty to find and evaluate children with disabilities who live in their
+area — "child find" <Cite>Ed Code §56301</Cite>. You are not asking for an exception. You are
+asking them to do a job the law already assigned them, on a schedule the law already set.
+
+- <GatedLink href="/guides/iep/request-evaluation/">How to request an IEP evaluation in California</GatedLink> — the process, the clocks, and what to do when the district stalls.
+- <GatedLink href="/letters/iep-evaluation-request/">The request letter</GatedLink> — ready to send, in your words, with the citation that starts the 15-day clock.
+- <GatedLink href="/guides/iep/dispute-ladder/">When you disagree with the school</GatedLink> — the five rungs, in order.
+- <GatedLink href="/guides/regional-centers/">The Regional Center guide</GatedLink> — the other free evaluation door, and the one that funds respite. Run it in parallel.
+
+</article>
+<aside>
+  <SideCard title="On this page" toc>
+    <a href="#what-is-an-iep">IEP vs. 504 plan</a>
+    <a href="#who-qualifies">Who qualifies?</a>
+    <a href="#the-sequence">The process, start to finish</a>
+    <a href="#what-you-can-insist-on">What you can insist on</a>
+    <a href="#after-the-iep">After the IEP is written</a>
+    <a href="#disagree">If you disagree</a>
+    <a href="#start-here">Where to start today</a>
+  </SideCard>
+  <SideCard title="The clocks">
+    <dl>
+      <dt>Assessment plan</dt><dd>15 calendar days from your written request <span class="cite">Ed Code §56321</span></dd>
+      <dt>Your decision time</dt><dd>At least 15 days <span class="cite">Ed Code §56321</span></dd>
+      <dt>Evaluation + IEP meeting</dt><dd>60 days from your signed consent <span class="cite">Ed Code §56344</span></dd>
+      <dt>Meeting you request</dt><dd>30 calendar days <span class="cite">Ed Code §56043</span></dd>
+      <dt>School records</dt><dd>5 business days <span class="cite">Ed Code §56043</span></dd>
+    </dl>
+  </SideCard>
+  <SideCard title="Deep dives">
+    <GatedLink class="link" href="/guides/iep/request-evaluation/">Request an evaluation →</GatedLink>
+    <GatedLink class="link" href="/guides/iep/dispute-ladder/">When you disagree →</GatedLink>
+    <GatedLink class="link" href="/letters/iep-evaluation-request/">Free request letter →</GatedLink>
+  </SideCard>
+  <SideCard title="The other door">
+    <p>School is one of two free evaluation systems. The Regional Center is the other — and it funds respite, which school never will.</p>
+    <GatedLink class="link" href="/guides/regional-centers/">Regional Center guide →</GatedLink>
+    <a class="link" href="/tools/regional-center-finder/">Find yours in seconds →</a>
+  </SideCard>
+</aside>
+</div>
+
+<EmpathyCallout label="Why this matters">
+  The parents who get the most out of this system are not the loudest ones or the ones with
+  lawyers. They are the ones who put things in writing, keep the dates, and ask one more question
+  than the meeting expected. You just read the clocks, the rights, and the ladder — which is more
+  than most people in your child's next IEP meeting will have read this year. You did this.
+</EmpathyCallout>
+
+<HandoffCTA
+  heading="Turn this into your child's school plan"
+  body="Waypoint drafts your evaluation request, calendars the 15- and 60-day deadlines, and prepares your one-page concerns list before the meeting. Free, English or Spanish."
+  action="Build my school plan →"
+  slug="guides/iep"
+  cta="guide-footer"
+  pillar="iep"
+/>

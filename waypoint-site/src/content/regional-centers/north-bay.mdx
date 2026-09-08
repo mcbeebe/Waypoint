@@ -21,14 +21,47 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "WIC §4500 (Lanterman Developmental Disabilities Services Act — short title)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4500."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas; provisional eligibility, 2 of 5)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days where delay risks health, safety or development)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 (Early Start: evaluation, assessment and initial IFSP within 45 days of referral)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Body rewritten as a per-center field guide. Verified by WebFetch this pass:
+   - DDS listing (https://www.dds.ca.gov/rc/listings/): "Napa, Solano, and
+     Sonoma counties"; address 610 Airpark Road, Napa; main 707-256-1182;
+     Early Start intake 707-256-1181 / Eireferrals@nbrc.net.
+   - DDS Attachment F, RC Directory FY 25-27
+     (https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf):
+     same three counties, same Napa address, plus a named cultural
+     specialist and LACC specialist.
+   - Statutes: WIC §4643 and WIC §4512 re-verified on leginfo;
+     17 CCR §52086 via Cornell.
+  nbrc.net returned HTTP 403 to automated fetch on every path tried, so
+  nothing from the center's own site is asserted in the body.
+  PHONE DISCREPANCY, unresolved and therefore not in prose: the DDS listings
+  page gives 707-256-1182 (what frontmatter publishes) while DDS Attachment F
+  gives (707) 256-1100. The template renders only the frontmatter number.
+  OFFICE: the 2026-09-07 verification pass recorded a DDS-quoted additional
+  office at 520 Mendocino Ave, Santa Rosa; today's fetch of the listings page
+  did not return it. The body therefore says only that NBRC's main office is
+  in Napa and tells families to ask which office holds their file.
+  [TBC: NBRC's current office list — whether the Santa Rosa office is still
+   open and whether Solano County families are served from Napa or elsewhere;
+   and NBRC's own application route (intake referral coordinator vs online
+   form). nbrc.net blocks automated fetch — needs a human click-through.]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -61,58 +94,194 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  North Bay Regional Center covers three counties: Napa, Solano, and Sonoma. If you live in any
+  of them, this is your Regional Center. It arranges and pays for services for children with
+  developmental disabilities, free, at any income. Its main office is in Napa, so ask on your
+  first call which office will handle your child's file. Under 3, you get an answer in 45 days.
+  Age 3 and up, 120 days.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  North Bay Regional Center serves families in <b>Napa, Solano, and Sonoma counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  North Bay Regional Center (NBRC) serves <b>Napa, Solano, and Sonoma counties</b> — whole
+  counties, no neighbourhood boundaries to work out. It is one of California's <b>21 Regional
+  Centers</b> under the Lanterman Act <Cite>WIC §4500 et seq.</Cite>, free to your family at any
+  income. Its main office is in <b>Napa</b>. Once intake begins, an assessment is due within
+  <b>120 days</b> <Cite>WIC §4643</Cite>; under 3, evaluation and the initial family service plan
+  are due within <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="who">Is North Bay my Regional Center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+<AnswerFirst>
+  If your home address is in Napa, Solano, or Sonoma County, yes. Santa Rosa, Petaluma,
+  Rohnert Park, Sonoma, Napa, American Canyon, Vallejo, Benicia, Fairfield, Suisun City,
+  Vacaville, Dixon, Rio Vista — all NBRC.
+</AnswerFirst>
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+Three counties that do not really behave like one region. Sonoma County looks north and west;
+Napa is its own valley; Solano County sits along the I-80 corridor, where plenty of families are
+closer to Sacramento or the East Bay than to a Napa office. Your Regional Center is decided by
+where you live, though — not by where you work, where your child goes to school, or which
+hospital you use.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+Two nearby centers get confused with this one all the time. **Marin County is not NBRC** — it
+belongs to Golden Gate Regional Center. **Mendocino and Lake counties are not NBRC** either —
+they belong to Redwood Coast. If you have moved recently across one of those lines, say so on
+the first call: a transfer between centers is a defined process, not a fresh application.
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<h2 class="qa-h" id="intake">How does intake actually start here?</h2>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<AnswerFirst>
+  Call the main line at the top of this page and ask for intake and assessment. Say your child's
+  age in the first sentence, and say which county you live in. The state's directory also lists a
+  separate Early Start referral contact for children under 3.
+</AnswerFirst>
+
+Expect a real conversation, not a form. Intake here involves an interview about your child's
+development, and at some stage a face-to-face meeting with your child. That is normal and it is
+how the assessment gets built — but it is also the part that generates travel, so ask early where
+it will happen.
+
+Three questions to ask on the first call, and write down the answers with the date:
+
+1. **Which office will hold my child's file, and who is my service coordinator?**
+2. **What is the date you received my request?** (Ask for it by email. This is the date every
+   clock below runs from.)
+3. **Where will the assessment take place, and can any of it happen closer to home?**
+
+<DeadlineCallout>
+  <b>Under 3:</b> evaluation, eligibility, and the initial family service plan are due within
+  <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>. <b>Age 3 and older:</b> assessment
+  due within <b>120 days of intake</b>, or <b>60 days</b> where a delay would risk your child's
+  health, safety, or development <Cite>WIC §4643</Cite>.
+</DeadlineCallout>
+
+What to gather: your child's date of birth, your address, any medical or psychological reports,
+the most recent IEP or IFSP, preschool or daycare observations, and your own written list of what
+an ordinary hard day looks like. A missing report is not a reason to postpone — NBRC funds its
+own assessments at no cost to you, and there is no charge for assessment or for service
+coordination.
+
+One small piece of housekeeping that pays for itself: photograph every report and letter and keep
+the images somewhere you can reach from your phone. Paperwork goes missing, folders get left
+behind in a move, and a lost document should never be the reason a clock restarts.
+
+[TBC: NBRC's own application route — whether there is an online form or an intake referral
+coordinator who mails a packet, and the current office list for Sonoma and Solano county
+families. The center's website blocks automated checking, so this page does not publish details
+it cannot verify.]
+
+<EmpathyCallout label="The call you have been putting off">
+  Somebody — a preschool teacher, a grandmother, the pediatrician at the 18-month visit — said the
+  words out loud, and you have been carrying them around ever since. Making this call is not
+  agreeing with them. It is asking for an evaluation, from an agency whose job is to help, under a
+  law that already says your child is entitled to what they need. You can find out and still
+  decide, afterwards, what you think.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="eligible">Who qualifies?</h2>
+
+<AnswerFirst>
+  A diagnosis is not required to start. At 3 and older, eligibility means a developmental
+  disability beginning before age 18 with significant functional limits in <b>3 or more of 7</b>
+  life areas <Cite>WIC §4512</Cite>. Under 3, Early Start uses broader delay-or-risk criteria.
+  Ages 3 and 4 can also qualify <b>provisionally</b> on <b>2 of 5</b> areas.
+</AnswerFirst>
+
+The seven areas are self-care, receptive and expressive language, learning, mobility,
+self-direction, capacity for independent living, and economic self-sufficiency — judged against
+what is expected at your child's age.
+
+Provisional eligibility is the door most families never hear about: for a 3- or 4-year-old, a
+disability that is not solely physical and causes significant limits in at least two of five of
+those areas can qualify. It is temporary — the center must reassess before your child turns 5,
+and the full three-of-seven standard applies from then <Cite>WIC §4512</Cite>.
+
+<h2 class="qa-h" id="local-vs-statewide">What's the same everywhere, and what's local?</h2>
+
+<AnswerFirst>
+  Statewide and non-negotiable: the eligibility standard, the 45- and 120-day clocks, the right to
+  a written Notice of Action, and the appeal route. Local: which office you deal with, how far you
+  travel, which providers exist in your county, and who your coordinator is.
+</AnswerFirst>
+
+That distinction is your best defence against a sentence that starts "well, up here we…". If the
+rule is state law, no center can bend it in either direction. If it is local practice, it is a
+practice, and practices can be questioned.
+
+Provider supply genuinely does vary across these three counties, and a thin local market is a real
+constraint. It is not, however, a lawful reason to leave a needed service out of your child's plan.
+If a service is agreed and nobody nearby will deliver it, put that in writing and ask what the
+center intends to do about it.
+
+The state's Regional Center directory lists a cultural specialist and a language-access specialist
+at every center, NBRC included — a role worth asking for by name if language is making this harder
+than it should be.
+
+<h2 class="qa-h" id="appeal">What if North Bay says no?</h2>
+
+<AnswerFirst>
+  Ask for it in writing. A denial has to arrive as a <b>Notice of Action</b> setting out the
+  decision and your appeal rights. A no delivered on the phone starts no clock and cannot be
+  appealed by anyone.
+</AnswerFirst>
+
+Say it plainly: *"Please send me that decision as a written Notice of Action."* Then read the dates
+printed on the notice and calendar them the day it arrives. Everything after that is California
+procedure, identical at all 21 centers.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
+
+Free help is available and worth using early. The **Office of Clients' Rights Advocacy (OCRA)**,
+part of **Disability Rights California**, staffs advocates who handle Lanterman Act appeals for
+families at no charge. (Treat them as help, not as the source of the rule — the deadlines that bind
+come from the statute and from the dates on your own notice.)
+
+You worked out which of three counties you are in, asked for your date in writing, and learned the
+standard before anyone quoted it at you. Most families learn all this the slow way. You did not.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Is NBRC my center?</a>
+    <a href="#intake">How intake starts</a>
+    <a href="#eligible">Who qualifies</a>
+    <a href="#local-vs-statewide">Local vs. statewide</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Napa · Solano · Sonoma</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Serves</dt><dd>Napa · Solano · Sonoma counties</dd>
+      <dt>Main office</dt><dd>Napa</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 days from referral under 3 <span class="cite">17 CCR §52086</span></dd>
+      <dt>Cost</dt><dd>Free, at any income</dd>
     </dl>
+  </SideCard>
+  <SideCard title="Just over the county line">
+    <p>Marin County?</p>
+    <GatedLink class="link" href="/regional-centers/golden-gate/">Golden Gate RC →</GatedLink>
+    <p>Mendocino or Lake County?</p>
+    <GatedLink class="link" href="/regional-centers/redwood-coast/">Redwood Coast RC →</GatedLink>
+    <p>Heading east or south?</p>
+    <GatedLink class="link" href="/regional-centers/alta-california/">Alta California (Sacramento) →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/east-bay/">Regional Center of the East Bay →</GatedLink>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Or start with the basics:</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>

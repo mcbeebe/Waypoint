@@ -22,14 +22,35 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "Redwood Coast Regional Center — Apply for Services (county intake routing)"
+    url: "https://redwoodcoastrc.org/for-clients/apply-for-services/"
+    accessed: 2026-09-08
+  - label: "Redwood Coast Regional Center — Contact Us (office locations)"
+    url: "https://redwoodcoastrc.org/contact-us/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 — initial intake within 15 working days of the request"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 — assessment within 120 days of intake (60 when delay poses risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 — substantial disability (3 of 7 areas); provisional eligibility under age 5"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 — IPP completed within 60 days of the assessment"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 — 60 days to request a fair hearing after a Notice of Action"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 — Early Start evaluation within 45 days of referral"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -60,62 +81,201 @@ sources:
   Two sources agree: DDS listing and the center's own site. (confidence: high)
     DDS: https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf
     Own: https://redwoodcoastrc.org/contact-us/
+
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Per-center body written. Verified this pass against primary sources:
+    - Six offices (Ukiah corporate, Crescent City, Eureka, Lakeport,
+      Clearlake, Fort Bragg) — redwoodcoastrc.org/contact-us/
+    - Intake routes by county AND by age; over-3 uses a recorded referral
+      line with English and Spanish extensions; the center then MAILS an
+      intake inquiry packet, available in English, Spanish, Hmong,
+      Simplified Chinese and Traditional Chinese — redwoodcoastrc.org
+      /for-clients/apply-for-services/. The center's own page states the
+      intake process "can take up to 120 days" once the initial interview
+      is scheduled.
+    - Statutes re-verified on leginfo this pass: §4642 (15 working days),
+      §4643 (120/60), §4512 (3-of-7; provisional under 5, 2-of-7),
+      §4646 (IPP within 60 days of assessment completion), §4710.5 (60
+      days to request a hearing). 17 CCR §52086 re-read (45 days from
+      referral for the initial evaluation and assessment).
+    - Neighboring centers by county, from the DDS listing: Far Northern
+      (Trinity, Tehama, Glenn, Shasta, Siskiyou…), North Bay (Sonoma,
+      Napa, Solano), Alta California (Colusa, Yolo…).
+  NOTE FOR THE HUMAN — PHONE MISMATCH: frontmatter intakePhone is
+  (707) 462-3832, which is the UKIAH corporate office (Lake/Mendocino side).
+  The block above records (707) 445-0893 (Eureka) as the "main number
+  verified". Both are real RCRC lines from the center's own contact page;
+  they serve opposite ends of a ~330-mile territory. Body prose therefore
+  routes by county to the center's own contact page rather than retyping
+  numbers (STYLE-GUIDE §7). Pick one deliberately before publish.
+  [TBC: confirm which of the six offices RCRC wants used as the single
+   published main line, and whether phone or video intake interviews are
+   offered in place of a drive to a branch office]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Redwood Coast Regional Center is the one regional center for California's far north coast —
+  Del Norte, Humboldt, Mendocino, and Lake counties. It pays for and coordinates services for
+  children with developmental disabilities, free, at any family income. Which office you deal
+  with depends on your county. Start by calling; the paperwork comes to you in the mail.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  Redwood Coast Regional Center serves families in <b>Del Norte, Humboldt, Lake, and Mendocino counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Redwood Coast Regional Center (RCRC) serves <b>Del Norte, Humboldt, Mendocino, and Lake
+  counties</b> — one of California's <b>21 regional centers</b> funded under the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite> to coordinate services for people with developmental
+  disabilities, regardless of your income. Intake here is routed <b>by your county and your
+  child's age</b>, and RCRC runs offices in <b>Ukiah, Eureka, Crescent City, Lakeport,
+  Clearlake, and Fort Bragg</b> so that most families are not driving the length of the
+  territory.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="is-this-my-center">Is Redwood Coast my regional center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+If you live in **Del Norte, Humboldt, Mendocino, or Lake county**, yes. Those four counties are
+RCRC's entire territory, and nobody else covers them. Unlike Los Angeles — where seven centers
+carve up one county by neighborhood — the north coast boundary is simply the county line.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+Just over that line, it changes. Trinity, Shasta, Siskiyou, Tehama, and Glenn counties belong
+to <GatedLink href="/regional-centers/far-northern/">Far Northern Regional Center</GatedLink>.
+Sonoma, Napa, and Solano belong to
+<GatedLink href="/regional-centers/north-bay/">North Bay Regional Center</GatedLink>. Colusa and
+Yolo belong to Alta California. If you moved recently, or you live in one county and your child
+attends school in another, the rule is your **home address**, not the school. Our
+<a class="link" href="/tools/regional-center-finder/">Regional Center finder</a> settles it in
+a few seconds.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+<h2 class="qa-h" id="how-intake-starts">How does intake actually start here?</h2>
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<AnswerFirst>
+  RCRC splits the front door two ways: <b>by county</b> and <b>by your child's age</b>. For a
+  child <b>under 3</b>, you call your county's Early Start intake department directly. For
+  <b>3 and older</b>, you leave a message on your county's recorded referral line — there are
+  separate extensions for <b>English and Spanish</b> — and RCRC then <b>mails you an intake
+  inquiry packet</b> to complete and send back.
+</AnswerFirst>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+That mailed packet is the part that surprises people. It means the clock does not depend on you
+reaching a human on the first try, but it does mean **your mailing address has to be right and
+the envelope has to come back**. Two practical moves: when you leave the referral message, say
+your address slowly and twice, and write down the date you called. And when the packet arrives,
+photograph every page before you mail it. Rural mail goes missing, and a photo is proof of what
+you sent and when.
+
+The packet is available in **English, Spanish, Hmong, Simplified Chinese, and Traditional
+Chinese**. If your family reads a different language, ask for interpretation at the intake
+interview — you are entitled to be understood, not just addressed.
+
+RCRC's own apply-for-services page walks through both routes and lists the county numbers and
+extensions:
+
+<a class="link" href="https://redwoodcoastrc.org/for-clients/apply-for-services/">Redwood Coast — Apply for Services →</a>
+
+<h2 class="qa-h" id="the-clocks">What deadlines is RCRC actually on?</h2>
+
+<DeadlineCallout>
+  <b>15 working days</b> from your request to initial intake <Cite>WIC §4642</Cite>.
+  <b>120 days</b> from intake to a completed assessment — <b>60 days</b> if delay would put
+  your child's health, safety, or development at risk <Cite>WIC §4643</Cite>. Under age 3:
+  <b>45 days</b> from referral for the Early Start evaluation and assessment
+  <Cite>17 CCR §52086</Cite>. Then <b>60 days</b> from the completed assessment to your child's
+  first written plan <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+RCRC's own site tells families the intake process "can take up to 120 days" once the initial
+interview is scheduled. That matches the statute, and it is worth reading carefully: 120 days is
+the **outer limit**, not the schedule. If your child is at risk of losing a placement, or is
+regressing while you wait, say so in writing and ask for the 60-day track by name
+<Cite>WIC §4643</Cite>.
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Your county</th><th>RCRC office(s)</th><th>What to expect</th></tr>
+    <tr><td>Del Norte</td><td>Crescent City</td><td>Farthest north; the Eureka office is roughly 80 miles down US‑101</td></tr>
+    <tr><td>Humboldt</td><td>Eureka</td><td>The largest north-county office</td></tr>
+    <tr><td>Mendocino</td><td>Ukiah (corporate), Fort Bragg</td><td>Coast and inland are split — ask which office holds your file</td></tr>
+    <tr><td>Lake</td><td>Lakeport, Clearlake</td><td>Two offices around the lake</td></tr>
+  </table>
+</div>
+
+<EmpathyCallout label="If the distance is the problem">
+  Up here, "just come in for the meeting" can mean a two-hour drive each way on a two-lane road,
+  in winter, with a child who does not travel well. That is a real barrier, and it is fair to
+  say so out loud. Ask directly: can this interview happen by phone or video? Can we meet at the
+  office closest to me instead of the one that opened my file? A no is possible. Not asking
+  guarantees the drive.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="whats-the-same">What is the same everywhere — and what is local?</h2>
+
+**The same at all 21 centers:** who qualifies, the clocks above, and your appeal rights.
+Eligibility at 3 and older turns on a developmental disability that began before 18 and is a
+"substantial disability" — significant functional limits in **3 or more of 7 life areas**
+<Cite>WIC §4512</Cite>. A child **under 5** can also be found *provisionally* eligible on a
+lower bar: significant limits in **at least 2** of those areas <Cite>WIC §4512</Cite>. A
+diagnosis is not required to start.
+
+**Local to RCRC:** which office answers, the county-and-age routing, the mailed packet, the
+languages the packet comes in, and how far you travel. None of that changes what your child is
+entitled to. It only changes the logistics you plan around.
+
+<h2 class="qa-h" id="if-they-say-no">What if Redwood Coast says no?</h2>
+
+<AnswerFirst>
+  A denial has to arrive as a written <b>Notice of Action</b>. A phone call saying "she probably
+  won't qualify" is not a decision and starts no clock — ask for it in writing. From the written
+  notice you have <b>60 days</b> to request a hearing <Cite>WIC §4710.5</Cite>. Check the dates
+  printed on your own notice, and calendar them the day it arrives.
+</AnswerFirst>
+
+You do not have to do this alone or pay anyone. The **Office of Clients' Rights Advocacy
+(OCRA)**, part of **Disability Rights California**, provides free advocates who handle regional
+center appeals statewide, including the north coast. Denials get reversed regularly.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial →</GatedLink>
+
+You made the call, wrote down the date, and know which clock you are on. That is more than most
+families have on day one.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#is-this-my-center">Is this my center?</a>
+    <a href="#how-intake-starts">How intake starts here</a>
+    <a href="#the-clocks">The deadlines</a>
+    <a href="#whats-the-same">Same vs. local</a>
+    <a href="#if-they-say-no">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Del Norte · Humboldt · Lake · Mendocino</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Counties</dt><dd>Del Norte · Humboldt · Mendocino · Lake</dd>
+      <dt>Offices</dt><dd>Ukiah · Eureka · Crescent City · Lakeport · Clearlake · Fort Bragg</dd>
+      <dt>Intake routing</dt><dd>By county, then by age (under 3 vs. 3+)</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 from referral under 3 <span class="cite">17 CCR §52086</span></dd>
     </dl>
   </SideCard>
-  <SideCard title="Not your Regional Center?">
-    <p>California has 21. Enter your county and we'll point you to the right one.</p>
-    <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  <SideCard title="Nearby centers">
+    <p>Just over the county line:</p>
+    <GatedLink class="link" href="/regional-centers/far-northern/">Far Northern RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/north-bay/">North Bay RC →</GatedLink>
+    <p>Not sure which is yours?</p>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+  <SideCard title="The full guide">
+    <p>Eligibility, the IPP meeting, and appeals in depth:</p>
+    <a class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</a>
   </SideCard>
 </aside>
 </div>

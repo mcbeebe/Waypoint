@@ -28,14 +28,66 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "Alta California Regional Center — Offices (office-to-county assignments)"
+    url: "https://www.altaregional.org/offices"
+    accessed: 2026-09-08
+  - label: "WIC §4642 (initial intake within 15 working days of the request)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days when delay creates risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 (IPP completed within 60 days of assessment; preferred-language rights)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 (60 days to request an informal meeting, mediation, or fair hearing)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "WIC §4715 (services continue during appeal if requested within 30 days)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4715."
+    accessed: 2026-09-08
+  - label: "DDS — What is Early Start? (45-day window; under-3 eligibility criteria)"
+    url: "https://www.dds.ca.gov/services/early-start/what-is-early-start/"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
   Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
+
+  ---- PER-CENTER NARRATIVE WRITTEN 2026-09-08 ----
+  Local facts used, and where each came from:
+  - Counties: DDS listing, re-fetched 2026-09-08. Unchanged.
+  - Eight offices and the counties each covers: the center's own offices
+    page, https://www.altaregional.org/offices, fetched 2026-09-08.
+    Note the DDS listing now gives ACRC's main address as 4151 E Commerce
+    Way, Suite 100, Sacramento (the 2241 Harvard Street address quoted in
+    the 2026-09-07 pass is stale). No street addresses are published in
+    prose, so nothing on the page depends on that.
+  - Statutes verified verbatim against leginfo on 2026-09-08:
+    §4642 "Initial intake shall be performed within 15 working days
+    following request for assistance."
+    §4643 "the assessment shall be performed within 120 days following
+    initial intake" and the 60-day expedited clause.
+    §4512 substantial disability = "significant functional limitations in
+    three or more" major life activity areas.
+    §4646 "These plans shall be completed within 60 days of the completion
+    of the assessment" and the preferred-language duty.
+    §4710.5 60 days to request an informal meeting, mediation, or fair
+    hearing. §4715 services continue during appeal when the request is
+    made within 30 days of receiving the notice.
+  - 45-day Early Start window: DDS "What is Early Start?", fetched
+    2026-09-08. The 17 CCR §52086 chip is carried over from the pillar
+    guide; the official CCR host refuses automated fetches.
+  [TBC: ACRC's offices page assigns Nevada, Placer and Sierra counties to
+   more than one office — confirm how ACRC splits those (by ZIP? by school
+   district?) so the table can say which office a family actually gets.]
+  [TBC: board meeting schedule — not published on any page fetched; leave
+   out rather than guess.]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -70,61 +122,193 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Alta California Regional Center is a state-funded nonprofit that arranges and pays for
+  disability services in ten counties, from the Sacramento Valley up to the Nevada state line.
+  It is free, whatever you earn. Call the main line at the top of this page and ask for intake
+  and assessment. Say your child's age first — under 3 runs on a faster clock than 3 and over.
+  Then write down the date you called.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
+<h2 class="qa-h" id="who">Who does Alta California Regional Center serve?</h2>
+
 <AnswerFirst>
-  Alta California Regional Center serves families in <b>Alpine, Colusa, El Dorado, Nevada, Placer, Sacramento, Sierra, Sutter, Yolo, and Yuba counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Alta California serves families living in <b>Alpine, Colusa, El Dorado, Nevada, Placer,
+  Sacramento, Sierra, Sutter, Yolo, and Yuba counties</b> — ten of California's 58, and one of
+  the 21 regional center territories created by the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite> Which center is yours depends on <b>where your child lives</b>,
+  not where they go to school or see a doctor. Services are provided regardless of your income.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+It is a wide territory, and that shapes the experience more than anything else on this page.
+Alta California covers a state capital, its suburbs, farm counties on the valley floor, Gold
+Country foothills, and mountain counties that run to the Nevada border. A family in midtown
+Sacramento and a family outside Markleeville are entitled to exactly the same things under the
+same law — but they will not have the same drive, the same local providers, or the same office.
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+If you are not sure this is your center, check before you spend an afternoon on the phone. Our
+<a href="/tools/regional-center-finder/">Regional Center finder</a> answers it from your county
+in a few seconds.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+<h2 class="qa-h" id="offices">Which Alta California office will I actually deal with?</h2>
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+<AnswerFirst>
+  Alta California runs <b>eight offices</b> and assigns them by county, so most of your contact
+  will be with a local office rather than the Sacramento headquarters. The main line at the top
+  of this page can tell you which one holds your case and transfer you.
+</AnswerFirst>
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+This is the single most useful local fact about this center, and it is published on Alta
+California's own offices page:
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Office</th><th>Counties it covers</th></tr>
+    <tr><td>Sacramento (main)</td><td>Sacramento</td></tr>
+    <tr><td>Roseville</td><td>Placer</td></tr>
+    <tr><td>Grass Valley</td><td>Nevada, Sierra, northern Placer</td></tr>
+    <tr><td>Truckee</td><td>Sierra, Nevada, Placer</td></tr>
+    <tr><td>Placerville</td><td>El Dorado</td></tr>
+    <tr><td>South Lake Tahoe</td><td>Alpine, eastern El Dorado</td></tr>
+    <tr><td>Woodland</td><td>Yolo</td></tr>
+    <tr><td>Yuba City</td><td>Sutter, Yuba, Colusa</td></tr>
+  </table>
+</div>
+
+Notice the overlaps: Placer, Nevada, and Sierra each appear under more than one office. If you
+live in one of those three counties, ask on your first call which office your case is assigned
+to, and get the name of the person you spoke with. [TBC: how Alta California splits Placer,
+Nevada, and Sierra between offices — by ZIP, by school district, or by caseload.] It is a
+small question that saves you from telling your child's story twice.
+
+<h2 class="qa-h" id="intake">How does intake start here?</h2>
+
+<AnswerFirst>
+  Call the main line above and say: <i>"I'd like to request an intake and assessment for my
+  child."</i> Then say your child's age. Alta California's applicant pages route families down
+  two tracks — <b>Early Start</b> for children 3 and under, and standard Lanterman intake for
+  <b>3 and over</b> — and the deadlines are different, so the age is the first thing the intake
+  worker needs.
+</AnswerFirst>
+
+You do not need a diagnosis, a doctor's referral, or a lawyer to start. Eligibility for
+children 3 and older turns on **substantial disability**, which the law defines as significant
+functional limits in **3 or more** major life areas <Cite>WIC §4512</Cite>. Under 3, Early
+Start uses broader criteria — a measured delay, an established risk condition, or a combination
+of high-risk factors is enough, and no label is required.
+
+1. **Make the call, and record the date.** The date of your request is the date every clock
+   below runs from. Ask the intake worker to confirm it in writing or by email.
+2. **Bring what you already have.** Pediatrician notes, any evaluation reports, an IEP or
+   preschool observation, a list in your own words of what a hard day looks like. Do not wait
+   for a complete folder — a missing document is not a reason to delay your request.
+3. **Describe the hard days.** Assessors are measuring function, not effort. The morning that
+   fell apart is more informative than the afternoon that went well.
+4. **Get the decision in writing.** If your child is eligible, planning moves to the Individual
+   Program Plan (IPP) <Cite>WIC §4646</Cite>. If not, you are owed a written **Notice of
+   Action** stating the reason and your appeal rights.
+
+<DeadlineCallout>
+  <b>Initial intake: 15 working days</b> from your request <Cite>WIC §4642</Cite>.
+  <b>Assessment: 120 days</b> from intake — <b>60 days</b> when a delay would put your child at
+  risk <Cite>WIC §4643</Cite>. <b>Under 3: 45 days</b> from referral for evaluation and the
+  first plan. <b>IPP: 60 days</b> after the assessment is finished <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+<h2 class="qa-h" id="same-vs-local">What is the same everywhere, and what is local?</h2>
+
+<AnswerFirst>
+  The law is identical at all 21 centers: the same eligibility standard, the same clocks, the
+  same appeal rights, the same zero cost to your family. What varies is <b>logistics and
+  local supply</b> — which office you get, how far you drive, and which providers actually have
+  openings near you.
+</AnswerFirst>
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Same at every regional center</th><th>Local to Alta California</th></tr>
+    <tr><td>The 3-of-7 substantial disability standard <span class="cite">WIC §4512</span></td><td>Which of eight offices your case sits in</td></tr>
+    <tr><td>The intake, assessment, and IPP clocks <span class="cite">WIC §4642</span> <span class="cite">WIC §4643</span> <span class="cite">WIC §4646</span></td><td>Travel time — Alpine and Sierra families are a long way from Sacramento</td></tr>
+    <tr><td>A denial must arrive as a written Notice of Action</td><td>Which vendors and providers have openings in your county</td></tr>
+    <tr><td>Your right to have the process conducted in your preferred language <span class="cite">WIC §4646</span></td><td>[TBC: local respite and purchase-of-service patterns — DDS publishes this data annually; we do not ship sample figures]</td></tr>
+  </table>
+</div>
+
+One right on that list is worth saying plainly, because families rarely hear it offered: the
+planning process must be conducted in your preferred language, and the plan itself must be
+given to you in it <Cite>WIC §4646</Cite>. You do not have to bring your own interpreter, and
+you do not have to make your bilingual older child do it. Ask at intake.
+
+<h2 class="qa-h" id="appeal">What if Alta California says no?</h2>
+
+<AnswerFirst>
+  A no is a step in the process, not the end of it. Ask for the written <b>Notice of Action</b> —
+  a "no" over the phone is not a decision and starts no clock. From the notice, you have
+  <b>60 days</b> to ask for an informal meeting, mediation, or a fair hearing
+  <Cite>WIC §4710.5</Cite>. If services your child already receives are being cut and you want
+  them to keep running while you appeal, that request has to go in within <b>30 days</b> of
+  receiving the notice <Cite>WIC §4715</Cite>.
+</AnswerFirst>
+
+Calendar both dates the day the notice lands on your kitchen table. Then get help — it is free,
+and you are not expected to do this alone. The **Office of Clients' Rights Advocacy (OCRA)**,
+run by **Disability Rights California**, provides advocates who handle Lanterman Act appeals for
+families at no cost. Ask for them by name.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Who Alta California serves</a>
+    <a href="#offices">Which office is mine?</a>
+    <a href="#intake">How intake starts</a>
+    <a href="#same-vs-local">Same everywhere vs local</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
       <dt>Counties</dt><dd>Alpine · Colusa · El Dorado · Nevada · Placer · Sacramento · Sierra · Sutter · Yolo · Yuba</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Offices</dt><dd>8, assigned by county</dd>
+      <dt>Clocks</dt><dd>15 working days to intake · 120 days to assessment · 45 days under 3 · 60 days to the IPP</dd>
+      <dt>Cost to you</dt><dd>Free, at any income</dd>
     </dl>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Neighboring territories:</p>
+    <GatedLink class="link" href="/regional-centers/far-northern/">Far Northern RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/valley-mountain/">Valley Mountain RC →</GatedLink>
+  </SideCard>
+  <SideCard title="Once you're eligible">
+    <p>Regional Center eligibility opens doors elsewhere — including Medi-Cal without a parental income test.</p>
+    <GatedLink class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</GatedLink>
+  </SideCard>
+  <SideCard title="Start with the basics">
+    <p>How the Lanterman Act works, what the IPP meeting is for, and what to do when the answer is no.</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>
+
+<EmpathyCallout label="Before you call">
+  Ten counties, eight offices, four statutes, and a phone tree — and you are the one holding all
+  of it, probably at the end of a long day. Here is the part worth remembering: none of it is a
+  test you can fail. The call is ten minutes, the worker's job is to open a file, and the clocks
+  start the moment you ask. You already did the hard part, which was noticing.
+</EmpathyCallout>
 
 <HandoffCTA
   heading="Getting ready for intake?"

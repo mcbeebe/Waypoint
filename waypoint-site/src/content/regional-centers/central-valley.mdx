@@ -24,14 +24,66 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "Central Valley Regional Center — Eligibility (referral routes, offices, languages)"
+    url: "https://www.cvrc.org/eligibility/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 (initial intake within 15 working days of the request)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days when delay creates risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 (IPP completed within 60 days of assessment; preferred-language rights)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 (60 days to request an informal meeting, mediation, or fair hearing)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "WIC §4715 (services continue during appeal if requested within 30 days)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4715."
+    accessed: 2026-09-08
+  - label: "DDS — What is Early Start? (45-day window; under-3 eligibility criteria)"
+    url: "https://www.dds.ca.gov/services/early-start/what-is-early-start/"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
   Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
+
+  ---- PER-CENTER NARRATIVE WRITTEN 2026-09-08 ----
+  Local facts used, and where each came from (cvrc.org/eligibility/ and
+  cvrc.org/early-start/, both fetched 2026-09-08):
+  - Referral routes, verbatim: "Referrals can be made online, by phone, fax
+    or mail. We also welcome referrals in person at one of our offices."
+  - Three offices: Fresno (4615 N. Marty Ave.), Visalia (5441 W. Cypress
+    Ave.), Merced (3172 M Street). No street addresses published in prose.
+  - Intake email IntakeReferrals@cvrc.org — corroborated by the DDS
+    listing as well as CVRC's own page, so it is safe to print.
+  - CVRC's own words on the interview: "An interview is scheduled with the
+    individual and/or family within 15 working days" — which matches the
+    statewide duty in WIC §4642, verified verbatim on leginfo.
+  - Language list on the eligibility page: English, Spanish, Hmong, Korean,
+    Simplified Chinese, Traditional Chinese, Tagalog, Vietnamese, Arabic,
+    Armenian, Farsi, Russian.
+  - Early Start referral source, verbatim: "Anyone can make a referral,
+    including parents, medical care providers, neighbors, family members,
+    foster parents, and day care providers."
+  - Statutes verified verbatim on leginfo 2026-09-08: §4642, §4643, §4512,
+    §4646 (IPP within 60 days of assessment completion + preferred-language
+    duty), §4710.5 (60 days), §4715 (30 days for aid paid pending).
+  - 45-day Early Start window: DDS "What is Early Start?", 2026-09-08.
+  DELIBERATELY NOT PUBLISHED: the per-office intake phone numbers CVRC
+  lists (Fresno/Visalia/Merced). Owner policy is main line only; the page
+  describes the routing and links out instead.
+  [TBC: CVRC publishes three offices but no county-to-office map — confirm
+   which office covers Kings, Madera, Mariposa and Tulare so the page can
+   tell a family where their case will sit.]
+  [TBC: board meeting schedule — not found on the pages fetched.]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -64,61 +116,193 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Central Valley Regional Center arranges and pays for disability services in six counties in
+  the San Joaquin Valley and the Sierra foothills. It is free, whatever you earn, and you do not
+  need a diagnosis to start.
+  CVRC takes referrals five ways — online, phone, fax, mail, or in person at an office — and
+  anyone can make one, including you. Once you ask, the law gives them 15 working days to sit
+  down with you.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
+<h2 class="qa-h" id="who">Who does Central Valley Regional Center serve?</h2>
+
 <AnswerFirst>
-  Central Valley Regional Center serves families in <b>Fresno, Kings, Madera, Mariposa, Merced, and Tulare counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  CVRC serves families living in <b>Fresno, Kings, Madera, Mariposa, Merced, and Tulare
+  counties</b> — one of the 21 regional center territories created by the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite> Services are provided regardless of your income, and you do not
+  need a completed diagnosis to start. Your home address decides which center is yours.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+That is a big, mostly agricultural stretch of the state — Fresno and Visalia at one end,
+Mariposa's mountain communities at the other — and it is one of the most linguistically diverse
+territories in California. That matters more here than the map does, and we come back to it
+below.
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+Not sure CVRC is your center? Our
+<a href="/tools/regional-center-finder/">Regional Center finder</a> answers it from your county
+in a few seconds.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+<h2 class="qa-h" id="how-to-refer">How do I make a referral to CVRC?</h2>
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+<AnswerFirst>
+  More ways than most centers offer. CVRC's own eligibility page says referrals "can be made
+  online, by phone, fax or mail," and that it welcomes referrals <b>in person at one of our
+  offices</b>. There is also an intake email — <b>IntakeReferrals@cvrc.org</b> — listed both by
+  CVRC and by the state's own regional center directory.
+</AnswerFirst>
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+Pick whichever one you will actually finish tonight. A referral by email at 11pm counts exactly
+as much as one made by phone at 10am, and it has the advantage of time-stamping itself.
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+You also do not have to be the one who makes it. For children under 3, CVRC says plainly that
+"anyone can make a referral, including parents, medical care providers, neighbors, family
+members, foster parents, and day care providers." If your pediatrician offered to send one, let
+them — and then send your own anyway, so there is no chance of it sitting in someone else's
+inbox.
+
+<a class="link" href="https://www.cvrc.org/eligibility/">CVRC's eligibility and referral page →</a>
+
+<h2 class="qa-h" id="offices">Which CVRC office will I deal with?</h2>
+
+<AnswerFirst>
+  CVRC runs <b>three offices — Fresno, Visalia, and Merced</b>. Fresno is the headquarters; all
+  three take intake, and all three handle Early Start referrals for children under 3. Call the
+  main line at the top of this page if you are not sure which one covers you.
+</AnswerFirst>
+
+[TBC: CVRC publishes the three office locations but not a county-to-office map, so we will not
+guess which office covers Kings, Madera, Mariposa, or Tulare — ask on your first call, and
+write down the answer along with the name of the person who gave it to you.]
+
+CVRC lists separate intake numbers for each office. We deliberately publish only the main line
+at the top of this page: a main line is always answered and can transfer you, while a direct
+intake line can be voicemail — or the wrong one for your child's age. If you would rather dial
+your local office directly, take the number from CVRC's own contact page, not from a search
+result.
+
+<h2 class="qa-h" id="intake">What happens after I refer — and how fast?</h2>
+
+<AnswerFirst>
+  CVRC schedules an interview with you, gathers records, arranges any evaluations it needs, and
+  sends the file to a multidisciplinary team for the eligibility decision. Its own page states
+  the interview happens <b>"within 15 working days"</b> — which is not a courtesy, it is the
+  deadline California law puts on every regional center <Cite>WIC §4642</Cite>.
+</AnswerFirst>
+
+For children 3 and older, the standard is **substantial disability**: significant functional
+limits in **3 or more** major life areas, from a disability that began before age 18
+<Cite>WIC §4512</Cite>. Under 3, Early Start is broader — a measured delay, an established risk
+condition, or a combination of high-risk factors, with no diagnosis required.
+
+Bring what you have and do not wait for a perfect folder: pediatrician notes, any evaluation or
+diagnostic report, an IEP or preschool observation, and your own written list of what a hard day
+looks like. When you describe your child, describe the hard days. Assessors are measuring
+function, not parenting.
+
+<DeadlineCallout>
+  <b>Interview / initial intake: 15 working days</b> from your request <Cite>WIC §4642</Cite>.
+  <b>Assessment: 120 days</b> from intake — <b>60 days</b> if delay would put your child at risk
+  <Cite>WIC §4643</Cite>. <b>Under 3: 45 days</b> from referral to evaluation and the first
+  plan. <b>IPP: 60 days</b> after the assessment is complete <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+<h2 class="qa-h" id="language">Can I do all of this in my own language?</h2>
+
+<AnswerFirst>
+  Yes — and it is a right, not a favor. California law requires the regional center to
+  communicate with you <b>in your preferred language</b> and to give you the plan itself in that
+  language <Cite>WIC §4646</Cite>. CVRC publishes its family guides in <b>twelve languages</b>,
+  including Hmong, Armenian, Farsi, and both written forms of Chinese.
+</AnswerFirst>
+
+The full list on CVRC's eligibility page is English, Spanish, Hmong, Korean, Simplified Chinese,
+Traditional Chinese, Tagalog, Vietnamese, Arabic, Armenian, Farsi, and Russian. Ask for an
+interpreter when you make the referral, not when you arrive — it is easier to schedule than to
+improvise. And do not let a bilingual older child interpret a meeting about their sibling's
+disability. That is not their job, and the law does not ask it of them.
+
+<h2 class="qa-h" id="same-vs-local">What is the same everywhere, and what is local?</h2>
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Same at every regional center</th><th>Local to CVRC</th></tr>
+    <tr><td>The 3-of-7 substantial disability standard <span class="cite">WIC §4512</span></td><td>Five referral routes, including in person at an office</td></tr>
+    <tr><td>The intake, assessment, and IPP clocks <span class="cite">WIC §4642</span> <span class="cite">WIC §4643</span> <span class="cite">WIC §4646</span></td><td>Three offices — Fresno, Visalia, Merced — each taking intake</td></tr>
+    <tr><td>A denial must arrive as a written Notice of Action</td><td>Family materials published in twelve languages</td></tr>
+    <tr><td>Free to your family at any income</td><td>[TBC: local provider supply and purchase-of-service patterns — DDS publishes this annually; we do not ship sample figures]</td></tr>
+  </table>
+</div>
+
+<h2 class="qa-h" id="appeal">What if CVRC says no?</h2>
+
+<AnswerFirst>
+  Ask for the written <b>Notice of Action</b>. A "no" said on the phone is not a decision and
+  starts no clock. From the date you receive the notice you have <b>60 days</b> to request an
+  informal meeting, mediation, or a fair hearing <Cite>WIC §4710.5</Cite>. If a service your
+  child already gets is being cut and you want it to continue while you appeal, that request
+  must go in within <b>30 days</b> of receiving the notice <Cite>WIC §4715</Cite>.
+</AnswerFirst>
+
+Write both dates on the notice itself the day it arrives. Then get free help: the **Office of
+Clients' Rights Advocacy (OCRA)**, run by **Disability Rights California**, has advocates who
+handle Lanterman Act appeals for families at no cost, in multiple languages.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Who CVRC serves</a>
+    <a href="#how-to-refer">Making a referral</a>
+    <a href="#offices">Which office is mine?</a>
+    <a href="#intake">What happens, and how fast</a>
+    <a href="#language">In my own language</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
       <dt>Counties</dt><dd>Fresno · Kings · Madera · Mariposa · Merced · Tulare</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Offices</dt><dd>Fresno · Visalia · Merced</dd>
+      <dt>Referral routes</dt><dd>Online · phone · fax · mail · in person · IntakeReferrals@cvrc.org</dd>
+      <dt>Clocks</dt><dd>15 working days to intake · 120 days to assessment · 45 days under 3</dd>
     </dl>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Neighboring territories:</p>
+    <GatedLink class="link" href="/regional-centers/kern/">Kern RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/valley-mountain/">Valley Mountain RC →</GatedLink>
+  </SideCard>
+  <SideCard title="Once you're eligible">
+    <p>Regional Center eligibility opens doors elsewhere — including Medi-Cal without a parental income test.</p>
+    <GatedLink class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</GatedLink>
+  </SideCard>
+  <SideCard title="Start with the basics">
+    <p>How the Lanterman Act works, what happens at the IPP meeting, and what to do when the answer is no.</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>
+
+<EmpathyCallout label="One small thing that helps">
+  Send the referral tonight, in whatever form is easiest — the online form, an email, a
+  voicemail. You do not need the reports, the right words, or a diagnosis. You need a date on
+  the record. Everything on this page runs from that date, and it is the one piece of this
+  system you fully control.
+</EmpathyCallout>
 
 <HandoffCTA
   heading="Getting ready for intake?"
