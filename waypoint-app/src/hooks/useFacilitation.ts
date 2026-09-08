@@ -9,7 +9,6 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { localDayISO } from '@/lib/dateOnly';
 import type {
   Family,
   SdpCase,
@@ -21,6 +20,7 @@ import type {
   StaffMember,
 } from '@/types/database';
 import { deadlineFor } from '@/lib/requestClocks';
+import { localDayISO } from '@/lib/dateOnly';
 import type { RequestType } from '@/lib/requestClocks';
 import { transitionHoursStatus, canLogTransitionMinutes } from '@/lib/transitionHours';
 import { rankCaseload } from '@/lib/caseloadRanking';
@@ -430,7 +430,9 @@ export function useSdpCase(params: { caseId?: string; familyId?: string }): UseS
         .from('transition_extensions')
         .insert({
           case_id: sdpCase.id,
-          requested_on: localDayISO(),
+          // Local day, same as every other requested_on — the UTC slice is
+          // tomorrow every evening in California.
+          requested_on: localDayISO(new Date()),
           additional_hours: additionalHours,
           notes: notes ?? null,
         })
@@ -464,6 +466,9 @@ export function useSdpCase(params: { caseId?: string; familyId?: string }): UseS
             unmet_needs: b.unmetNeeds,
             coordination_hours_per_week: b.coordinationHoursPerWeek,
             caregiver_strain: b.caregiverStrain,
+            // `remeasure` is built by setMonth on a LOCAL date, so slicing it
+            // as UTC moved the due date a day in either direction depending on
+            // the zone. Read it on the same calendar it was built on.
             remeasure_due_on: b.kind === '12mo' ? null : localDayISO(remeasure),
           },
           { onConflict: 'case_id,kind' }
