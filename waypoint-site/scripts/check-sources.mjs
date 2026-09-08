@@ -28,6 +28,24 @@ const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 const TIMEOUT_MS = 20000;
 
+/**
+ * Hosts that serve readers fine but refuse automated clients (403/203 to a
+ * scripted fetch, regardless of UA). A hit here is reported as BOT-BLOCKED,
+ * not DEAD: calling a working citation dead every week trains everyone to
+ * ignore this report, which is worse than not running it. Verify these by
+ * hand when they change; keep the list short.
+ */
+const BOT_BLOCKED = [/(^|\.)publications\.aap\.org$/, /(^|\.)doi\.org$/, /(^|\.)pubmed\.ncbi\.nlm\.nih\.gov$/];
+
+const isBotBlocked = (url) => {
+  try {
+    const { hostname } = new URL(url);
+    return BOT_BLOCKED.some((re) => re.test(hostname));
+  } catch {
+    return false;
+  }
+};
+
 function mdxFiles(dir) {
   const out = [];
   for (const name of readdirSync(dir)) {
@@ -93,6 +111,7 @@ if (byUrl.size === 0) {
 }
 
 const dead = [];
+const blocked = [];
 const urls = [...byUrl.keys()];
 const CONCURRENCY = 6;
 let cursor = 0;
@@ -102,11 +121,16 @@ await Promise.all(
     while (cursor < urls.length) {
       const url = urls[cursor++];
       const { ok, status } = await probe(url);
-      if (!ok) dead.push({ url, status, files: [...byUrl.get(url)] });
+      if (!ok) {
+        (isBotBlocked(url) ? blocked : dead).push({ url, status, files: [...byUrl.get(url)] });
+      }
     }
   }),
 );
 
+for (const b of blocked) {
+  console.warn(`BOT-BLOCKED (${b.status}, reachable for readers): ${b.url}`);
+}
 for (const d of dead) {
   console.error(`DEAD (${d.status}): ${d.url}`);
   for (const f of d.files) console.error(`        cited by ${f}`);
@@ -118,5 +142,6 @@ if (dead.length && STRICT) {
 }
 
 console.log(
-  `${dead.length ? 'WARN' : 'PASS'}: citation sources — ${byUrl.size} unique URL(s) checked, ${dead.length} unreachable.`,
+  `${dead.length ? 'WARN' : 'PASS'}: citation sources — ${byUrl.size} unique URL(s) checked, ` +
+    `${dead.length} unreachable, ${blocked.length} bot-blocked but reader-reachable.`,
 );
