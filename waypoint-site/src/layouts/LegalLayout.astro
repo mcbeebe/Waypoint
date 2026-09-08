@@ -1,0 +1,66 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  dateModified: Date;
+  lastLegalReview: Date | null;
+}
+const { title, description, dateModified, lastLegalReview } = Astro.props;
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<BaseLayout title={`${title} — Waypoint`} description={description}>
+  <div class="page-band">
+    <div class="container">
+      <h1>{title}</h1>
+      <p class="meta">
+        Last updated {fmt(dateModified)}
+        {lastLegalReview ? ` · Reviewed by counsel ${fmt(lastLegalReview)}` : ' · Pending review by outside counsel'}
+      </p>
+    </div>
+  </div>
+  <div class="container">
+    <article class="prose">
+      <slot />
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-band {
+    background: var(--color-cream);
+    border-bottom: 1px solid var(--color-border);
+    padding: 40px 0 30px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    margin: 0 0 6px;
+  }
+  .meta {
+    color: var(--color-ink-faint);
+    font-size: 0.85rem;
+    margin: 0;
+  }
+  .prose {
+    max-width: 72ch;
+    padding: 34px 0 40px;
+  }
+  .prose :global(h2) {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.35rem;
+    margin: 28px 0 8px;
+  }
+  .prose :global(p) {
+    margin: 0 0 13px;
+  }
+  .prose :global(ul) {
+    margin: 0 0 15px;
+    padding-left: 22px;
+  }
+</style>

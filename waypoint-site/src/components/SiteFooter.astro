@@ -1,0 +1,129 @@
+---
+/**
+ * Footer at prototype parity: Learn / Do / Trust columns. Content-backed
+ * links render only when their target exists in this build (same gating as
+ * the header). Crisis line + non-affiliation + YMYL disclaimer stay in the
+ * bottom bar site-wide (launch checklist rows 1–3).
+ */
+import Brandmark from './Brandmark.astro';
+import { visibleContentUrls } from '../lib/content';
+
+const urls = await visibleContentUrls();
+const gate = (links: { label: string; href: string; gated?: boolean }[]) =>
+  links.filter((l) => !l.gated || urls.has(l.href));
+
+const learn = gate([
+  { label: 'Guides', href: '/guides/' },
+  { label: 'Start here', href: '/start/autism/', gated: true },
+  { label: 'Benefits', href: '/guides/benefits/', gated: true },
+  { label: 'Answers', href: '/answers/does-my-child-need-ssi-to-get-ihss/', gated: true },
+  { label: 'Regional Centers', href: '/guides/regional-centers/', gated: true },
+]);
+const doLinks = gate([
+  { label: 'SSI calculator', href: '/tools/ssi-deeming-calculator/' },
+  { label: 'RC finder', href: '/tools/regional-center-finder/' },
+  { label: 'Template letters', href: '/letters/iep-evaluation-request/', gated: true },
+  { label: 'Pricing', href: '/pricing/' },
+]);
+const trust = [
+  { label: 'About', href: '/about/' },
+  { label: 'Privacy', href: '/privacy/' },
+  { label: 'Terms', href: '/terms/' },
+  { label: 'Disclaimer', href: '/disclaimer/' },
+];
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="foot-grid">
+      <div class="brand">
+        <span class="mark"><Brandmark size={26} tone="light" /><span class="word">WAYPOINT</span></span>
+        <p>Your child's unexpected journey. Every step, mapped. Built with ❤️ by a parent in Oakland, CA.</p>
+      </div>
+      <nav aria-label="Learn">
+        <b>Learn</b>
+        {learn.map((l) => <a href={l.href}>{l.label}</a>)}
+      </nav>
+      <nav aria-label="Do">
+        <b>Do</b>
+        {doLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+      </nav>
+      <nav aria-label="Trust">
+        <b>Trust</b>
+        {trust.map((l) => <a href={l.href}>{l.label}</a>)}
+      </nav>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Waypoint · Informational only — not legal, medical, or benefits advice.</span>
+      <span>Not affiliated with DDS, any Regional Center, CDE, DHCS, or SSA.</span>
+      <span>Feeling overwhelmed? Call or text <b>988</b> — the Suicide &amp; Crisis Lifeline (para español, oprima 2).</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-ink);
+    color: #a7b8b0;
+    margin-top: 64px;
+    font-size: 0.85rem;
+  }
+  .foot-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 26px;
+    padding-top: 40px;
+    padding-bottom: 34px;
+  }
+  @media (max-width: 800px) {
+    .foot-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .brand p {
+    max-width: 34ch;
+    margin: 10px 0 0;
+    font-size: 0.82rem;
+  }
+  .mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+  }
+  .word {
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: #ffffff;
+    font-size: 15px;
+  }
+  nav b {
+    display: block;
+    color: #e2eee7;
+    margin-bottom: 8px;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  nav a {
+    display: block;
+    color: #a7b8b0;
+    text-decoration: none;
+    padding: 2px 0;
+  }
+  nav a:hover {
+    color: #ffffff;
+  }
+  .foot-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    margin-top: 0;
+    padding-top: 16px;
+    padding-bottom: 26px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    font-size: 0.76rem;
+  }
+  .foot-bottom b {
+    color: #e2eee7;
+  }
+</style>

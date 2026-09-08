@@ -1,0 +1,163 @@
+---
+title: "Harbor Regional Center: a parent's field guide"
+description: "How intake works at Harbor Regional Center — the eligibility clocks, what to bring, and how to appeal a Notice of Action, in plain language."
+locale: en
+translationKey: rc-harbor
+status: draft
+rcId: harbor
+rcName: Harbor Regional Center
+counties:
+  - Los Angeles
+intakePhone: "(310) 543-0100"
+intakeUrl: null
+ddsListingUrl: null
+verifiedAsOf: 2026-09-07
+dateModified: 2026-09-06
+nextReviewEvent: rc-pos-annual
+disclaimerVariant: legal
+---
+
+{/*
+  DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
+  per-center data, so the county mapping here was authored, not converted).
+  Enrichment checklist before this page can advance past draft:
+  [TBC: verify the county list against the DDS regional-center listing —
+   the counties above are drafted from general knowledge, NOT verified]
+  [TBC: verify + add intake channels, intakePhone, intakeUrl from the
+   center's own site; never from a spreadsheet]
+  [TBC: add ddsListingUrl once verified]
+  [TBC: per-center narrative — local intake quirks, board meeting info,
+   nearby centers — replaces the generic body below]
+  [TBC: verify this center's LA service area / ZIP coverage — seven centers
+   divide Los Angeles County by neighborhood]
+
+  ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
+  independent challenger per center, statewide coverage audit) ----
+  COUNTIES: VERIFIED against the DDS regional-center listing. Quote:
+    "The Harbor Regional Center is located at 21231 Hawthorne Boulevard in
+    Torrance, CA 90503 and serves the health districts of Bellflower,
+    Harbor, Long Beach, and Torrance within the city of Los Angeles. ...
+    Telephone: (310) 540-1711, Website: www.harborrc.org ... in Los Angeles
+    County, the catchment area boundaries for regional centers are organized
+    by health districts rather than by county. So whil"
+    — https://www.dds.ca.gov/rc/listings/
+  The county array above matches DDS exactly (countiesMatchRepo=True).
+  CANDIDATE INTAKE PHONE (NOT PUBLISHED — intakePhone stays null):
+    (310) 540-1711
+  The independent challenger could NOT corroborate it from a second
+  source (egress blocked), so it is recorded here for a human
+  click-through, never rendered. Publishing an uncorroborated intake
+  number would send a parent in crisis to a dead line.
+  CANDIDATE INTAKE URL (not published): https://www.harborrc.org/contact-us-intakeeligibility
+  WEBSITE (not published): https://www.harborrc.org/
+  CHALLENGER VERDICT: unverified / publish-counties-only
+
+  ---- MAIN NUMBER VERIFIED 2026-09-07 ----
+  (310) 543-0100 — published per the owner's policy (2026-09-07): publish the
+  MAIN line, not a dedicated intake queue. A main line is always answered
+  and can transfer; an intake line can be voicemail, or age-gated and
+  wrong for the caller.
+  Two sources agree: DDS listing and the center's own site. (confidence: medium)
+    DDS: https://www.dds.ca.gov/rc/listings/
+    Own: https://www.harborrc.org/who-we-are/contact-us/
+  CORRECTED: the app shipped (310) 540-1711, a legacy line that lives on
+  only in third-party directories that scrape each other. Searches scoped
+  to harborrc.org and dds.ca.gov return 543-0100; the 543-xxxx exchange
+  also carries Early Start intake (543-0102) and reception (543-7993),
+  while 540-xxxx survives on the fax. App corrected in the same commit.
+*/}
+
+import AnswerFirst from '../../components/AnswerFirst.astro';
+import Cite from '../../components/Cite.astro';
+import HandoffCTA from '../../components/HandoffCTA.astro';
+import SideCard from '../../components/SideCard.astro';
+
+<div class="cols">
+<article class="prose">
+
+<AnswerFirst>
+  Harbor Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you [TBC: verify service area]) — one of California's
+  <b> 21 regional centers</b> providing services under the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
+  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
+  or, under 3, a completed Early Start evaluation and initial family service plan within
+  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
+  first contact. The clock starts then.
+</AnswerFirst>
+
+<h2 class="qa-h" id="intake">How does intake work?</h2>
+
+The intake process runs the same at every regional center [TBC: add this center's specific
+intake channels and contacts once verified]. A formal diagnosis helps but is **not required
+to start** — eligibility turns on "substantial disability," meaning significant functional
+limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+
+1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
+   45-day clock; 3 and over goes through standard Lanterman intake.
+2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
+   Missing pieces should not delay your request.
+3. **Do the intake interview.** Describe a hard day, not your child's best day.
+4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
+   under 3, Early Start completes everything within 45 days of the referral
+   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
+5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
+   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
+   your appeal rights.
+
+<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+
+The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
+timelines, and what to say at each stage — lives in one place:
+
+<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+
+<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+
+<AnswerFirst>
+  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
+  not enough to tell you which one is yours — <b>your address decides it</b>, and the
+  boundaries follow LA County health districts and ZIP codes.
+</AnswerFirst>
+
+Harbor Regional Center serves the South Bay, Harbor, Long Beach, and southeast corner of Los
+Angeles County — NOT the whole county. DDS and the center define its catchment by four LA
+County health districts: Bellflower, Harbor, Long Beach, and Torrance. Communities named in
+official/verified sources include: - South Bay / beach cities: Torrance, Manhattan Beach,
+Hermosa Beach, Redondo Beach, Gardena, Carson - Palos Verdes Peninsula cities (incl. Rancho
+Palos Verdes) - Harbor area: Harbor City, San Pedro, Wilmington - Long Beach area: Long
+Beach - Southeast LA County: Bellflower, Lakewood, Artesia, Cerritos, Hawaiian Gardens,
+Norwalk - Santa Catalina Island It does NOT serve central/downtown LA (Frank D. Lanterman
+RC), the San Fernando/Santa Clarita/Antelope Valleys (North Los Angeles County RC), Santa
+Monica/Culver City/Inglewood/Westside (Westside RC), East LA/Whittier (Eastern LA RC), El
+Monte/Pomona/Foothill (San Gabriel/Pomona RC), or Compton/South/Southeast LA health
+districts (South Central LA RC). Eligibility turns on the family's home address/ZIP, not on
+the county. Lomita and Signal Hill sit geographically inside this footprint but I could not
+confirm them in a quotable official snippet — treat as unverified.
+
+If you live near one of these boundaries, confirm your center with the state's own lookup
+before you call — being sent back to start by the wrong center costs weeks
+[TBC: link the DDS lookup once the URL is click-verified].
+
+</article>
+<aside>
+  <SideCard title="At a glance">
+    <dl>
+      <dt>Counties</dt><dd>Los Angeles</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+    </dl>
+  </SideCard>
+  <SideCard title="Not your Regional Center?">
+    <p>California has 21. Enter your county and we'll point you to the right one.</p>
+    <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  </SideCard>
+</aside>
+</div>
+
+<HandoffCTA
+  heading="Getting ready for intake?"
+  body="Ask Waypoint's AI anything about your situation — free, 24/7, English and Spanish, with statute citations. No email gate."
+  action="Ask Waypoint free →"
+  slug="regional-centers/harbor"
+  cta="rc-footer"
+  pillar="regional-centers"
+/>

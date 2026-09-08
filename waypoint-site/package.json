@@ -1,0 +1,42 @@
+{
+  "name": "waypoint-site",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/pagefind-index.mjs",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check",
+    "test": "vitest run",
+    "new": "node scripts/new-content.mjs",
+    "build:drafts": "WAYPOINT_SHOW_DRAFTS=1 astro build && node scripts/pagefind-index.mjs",
+    "axe": "npm run build:drafts && node scripts/axe-scan.mjs",
+    "gates": "astro check && vitest run && node scripts/check-tbc.mjs && npm run build:drafts && node scripts/check-internal-links.mjs && node scripts/axe-scan.mjs && npm run build && node scripts/check-internal-links.mjs && node scripts/axe-scan.mjs --production && node scripts/check-sitemap-noindex.mjs && node scripts/validate-keyword-map.mjs",
+    "refresh-due": "node scripts/refresh-due.mjs"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^8.0.0",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.1",
+    "tailwindcss": "^4.3.3"
+  },
+  "allowScripts": {
+    "esbuild": true
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@axe-core/playwright": "^4.13.0",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^5.4.1",
+    "pagefind": "1.5.2",
+    "playwright": "^1.63.0",
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.7"
+  }
+}

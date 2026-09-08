@@ -1,6 +1,6 @@
 /**
  * Shared types for the California navigation data layer (roadmap Phase 1).
- * The data itself is transcribed from the GAS MVP (gas-mvp/Index.html) and
+ * The data itself is transcribed from the GAS MVP (Archive/Retired-Surfaces/gas-mvp/Index.html) and
  * root prototypes — content is authored domain knowledge, keep it verbatim.
  */
 

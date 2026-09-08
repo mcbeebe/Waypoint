@@ -1071,7 +1071,9 @@ function reverseHint(locale: ActionLocale): string {
 // label read "Jul 31" west of Greenwich while the badge beside it — computed
 // on the local day — correctly called Aug 1 overdue.
 function formatDate(dateStr: string): string {
-  return parseDateLocal(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const d = parseDateLocal(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr; // the raw string over "Invalid Date"
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 // ─── Styles ─────────────────────────────────────────────────────────────────

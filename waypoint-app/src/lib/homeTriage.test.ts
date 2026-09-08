@@ -67,7 +67,10 @@ describe('the ladder is a published, stable order', () => {
     });
     const r = triageHome(base({
       requests: [overdue], communications: [origin, reply],
-      drafts: [{ id: 'd1', templateKey: 'rc_request', subject: 'Respite request', body: 'Dear…', savedAt: '2026-08-27T20:00:00Z' }],
+      // LOCAL components, 27h before NOW — safely inside the 48h resume
+      // window in any ambient timezone (the UTC-fixed instant sat at exactly
+      // 48–49h west of UTC−10, and the resume card vanished).
+      drafts: [{ id: 'd1', templateKey: 'rc_request', subject: 'Respite request', body: 'Dear…', savedAt: new Date(2026, 7, 28, 6, 0, 0).toISOString() }],
     }));
     expect(r.queue.map((i) => i.cls)).toEqual(['resume', 'overdue', 'reply', 'opportunity']);
     expect(r.item?.cls).toBe('resume');
@@ -115,9 +118,13 @@ describe('never assert without evidence', () => {
 describe('provenance, not praise', () => {
   it('no kicker ever says WAYPOINT NOTICED, and each names its class', () => {
     const overdue = req({ requested_on: '2026-07-01' });
+    // Built from LOCAL components, 26h before NOW: relativeDay counts whole
+    // 24h days against the local-parsed NOW, so a UTC-fixed instant here read
+    // "today" whenever the suite ran east of UTC.
+    const receivedYesterday = new Date(2026, 7, 28, 7, 0, 0).toISOString();
     const reply = comm({
       direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'Lilia Talavera <l@rceb.org>',
-      sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
+      sent_at: receivedYesterday, occurred_at: receivedYesterday,
     });
     const r = triageHome(base({
       requests: [overdue], communications: [reply],

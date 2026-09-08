@@ -1,0 +1,88 @@
+---
+/**
+ * Regional Center field guides (regionalCenters collection — the D11 data
+ * spine). The not-affiliated notice + contact verification date render from
+ * frontmatter on every page (compliance components spec).
+ */
+import { render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import NoticeBox from '../../components/NoticeBox.astro';
+import { visibleContentUrls, visibleEntries } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const centers = await visibleEntries('regionalCenters');
+  return centers.map((entry) => ({
+    params: { rc: entry.data.rcId },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+// null = never verified. Only a published page is guaranteed a real date
+// (the schema refuses to publish without one), so drafts must render an
+// honest absence rather than a manufactured month.
+const verified = d.verifiedAsOf
+  ? d.verifiedAsOf.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+  : null;
+// The pillar-guide crumb only links when that page exists in this build —
+// an out-of-order publish must not 404 the breadcrumb (adversary A6).
+const urls = await visibleContentUrls();
+const pillarCrumb = urls.has('/guides/regional-centers/')
+  ? { name: 'Regional Centers', href: '/guides/regional-centers/' }
+  : { name: 'Regional Centers' };
+---
+
+<ArticleLayout
+  title={d.title}
+  description={d.description}
+  heading={d.title}
+  crumbs={[pillarCrumb, { name: d.rcName }]}
+  locale={d.locale}
+  status={d.status}
+  author={d.author}
+  review={d.review}
+  datePublished={d.datePublished}
+  dateModified={d.dateModified}
+  disclaimerVariant={d.disclaimerVariant}
+  noindex={d.noindex}
+  slug={`regional-centers/${d.rcId}`}
+  pillar="regional-centers"
+>
+  {
+    /* The phone renders from frontmatter, never re-typed into the MDX body:
+       one source, so a corrected number cannot survive in prose. Policy
+       (owner, 2026-09-07): publish the MAIN line, not a dedicated intake
+       queue — a main line is always answered and can transfer, while an
+       intake line may be voicemail or age-gated and wrong for the caller. */
+    d.intakePhone && (
+      <p class="rc-call">
+        <b>Call {d.rcName}:</b>{' '}
+        <a href={`tel:${d.intakePhone.replace(/[^\d]/g, '')}`}>{d.intakePhone}</a>
+        <span class="rc-call-note">
+          Main line — ask for “intake and assessment.” They can transfer you.
+        </span>
+      </p>
+    )
+  }
+  <NoticeBox slot="notice">
+    Waypoint is an independent guide — not affiliated with {d.rcName}, DDS, or any government
+    agency.{' '}
+    {verified ? `Contacts verified as of ${verified}.` : 'Contact details for this center are not yet verified — check them against the center\'s own site before you call.'}
+  </NoticeBox>
+  <Content />
+</ArticleLayout>
+
+<style>
+  .rc-call {
+    margin: 0 0 18px;
+    font-size: 1.05rem;
+  }
+  .rc-call-note {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--color-ink-soft);
+    margin-top: 2px;
+  }
+</style>

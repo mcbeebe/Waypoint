@@ -124,6 +124,61 @@ describe('reaching the action plan from the Navigator', () => {
   });
 });
 
+describe('the parent is told they are talking to a machine', () => {
+  /**
+   * Before this change the whole chat path was AI-free to a reader: the header
+   * said "Waypoint Navigator", the greeting said "Hi! I'm your Waypoint
+   * Navigator", every entry point said "Ask Waypoint Navigator", and the only
+   * standing disclaimer said "Educational information only — not legal
+   * advice". Finishing the rename without adding disclosure would have removed
+   * the last signal rather than renamed anything.
+   *
+   * An adversary pass mutation-tested the first version of these and found
+   * three of four did not bite: one asserted the absence of a string that was
+   * never present, and two only re-checked en.ts's disclaimer through a 300ms
+   * jsdom render. What is left needs a render to be worth anything: the
+   * greeting is inline JSX, and the footnote has to survive every screen state.
+   */
+  it('discloses AI in the greeting, where a parent starts reading', () => {
+    render(<NavigatorScreen />);
+    // The name appears in both the header and the greeting, hence getAllByText.
+    expect(screen.getAllByText(/Waypoint Navigator/).length).toBeGreaterThan(0);
+
+    // Asserted by MEANING, not wording — the copy can be rewritten freely so
+    // long as it still says the thing. But it must be disclosed HERE, not just
+    // somewhere on screen: a plain body-text check passes on the footnote's
+    // own "AI-generated", so deleting "an AI" from the greeting slipped
+    // straight through it. Subtract the footnote, then look again.
+    const footnote = screen.getByText(/not legal advice/i).textContent ?? '';
+    const aboveTheFootnote = (document.body.textContent ?? '').replace(footnote, '');
+    expect(aboveTheFootnote).toMatch(/\bAI\b/);
+  });
+
+  it('keeps disclosing once the greeting is replaced by a transcript', () => {
+    // From the second message onward the greeting is gone and the standing
+    // footnote is the only thing carrying it.
+    h.messages = [answer()];
+    render(<NavigatorScreen />);
+    expect(screen.queryByText(/Hi! I'm your Waypoint Navigator/)).toBeNull();
+    const disclaimer = screen.getByText(/not legal advice/i);
+    expect(disclaimer.textContent).toMatch(/\bAI\b/);
+    expect(disclaimer.textContent).toContain('1-800-776-5746');
+  });
+
+  it('still discloses while an answer is streaming', () => {
+    // The state a parent is most likely to be reading in.
+    h.messages = [answer({ isStreaming: true, content: 'Ask your Regional Cent' })];
+    render(<NavigatorScreen />);
+    expect(screen.getByText(/not legal advice/i).textContent).toMatch(/\bAI\b/);
+  });
+
+  it('still discloses when the AI request failed', () => {
+    // The error path renders a fallback card; the footnote must survive it.
+    render(<NavigatorScreen />);
+    expect(screen.getByText(/not legal advice/i).textContent).toMatch(/\bAI\b/);
+  });
+});
+
 describe('emailing an answer', () => {
   it('opens the tracked sheet — recipient required, nothing logged yet', async () => {
     h.messages = [answer()];

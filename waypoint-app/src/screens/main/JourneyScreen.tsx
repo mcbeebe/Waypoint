@@ -630,9 +630,9 @@ export default function JourneyScreen() {
           style={styles.ctaSecondary}
           onPress={() => (navigation as any).navigate('Navigator')}
           accessibilityRole="button"
-          accessibilityLabel="Ask the AI Navigator"
+          accessibilityLabel="Ask Waypoint Navigator"
         >
-          <Text style={[styles.ctaSecondaryText, { fontSize: sz(15) }]}>🧭 Ask AI Navigator</Text>
+          <Text style={[styles.ctaSecondaryText, { fontSize: sz(15) }]}>🧭 Ask Waypoint Navigator</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

@@ -1,0 +1,29 @@
+---
+/**
+ * The inline YMYL disclaimer (compliance blocker: renders on every guide,
+ * answer, letter, and tool page — copy per docs/compliance-components.md).
+ */
+interface Props {
+  variant?: 'legal' | 'benefits' | 'medical' | 'none';
+}
+const { variant = 'legal' } = Astro.props;
+---
+
+{
+  variant !== 'none' && (
+    <div class="disclaimer">
+      Informational only — not legal, medical, or benefits advice. No
+      attorney–client relationship is formed. See our <a href="/disclaimer/">full disclaimer</a>.
+    </div>
+  )
+}
+
+<style>
+  .disclaimer {
+    font-size: 0.78rem;
+    color: var(--color-ink-faint);
+    border-top: 1px dashed var(--color-border);
+    padding-top: 12px;
+    margin-top: 26px;
+  }
+</style>

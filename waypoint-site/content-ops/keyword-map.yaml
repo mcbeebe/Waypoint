@@ -1,0 +1,694 @@
+# Waypoint keyword-to-URL map (maintained; content-ops owns this file)
+# ---------------------------------------------------------------------
+# One row per target URL. This is the routing table for what we write
+# and where it lives — NOT a place for volume numbers or invented stats.
+#
+# Fields per entry:
+#   primary_kw     — the one query the page must win (plausible parent phrasing)
+#   secondary_kws  — supporting phrasings the same page should cover
+#   intent         — info | tool | letter | local | comparison
+#   url            — canonical path, leading + trailing slash
+#   pillar         — regional-centers | iep | benefits | insurance | first-steps | start
+#                    (must match PILLARS in src/content.config.ts)
+#   priority       — P0 | P1 | P2
+#   status         — planned | drafting | published
+#                    ('published' here means live on site, i.e. it passed the
+#                    D2 status ladder: draft → founder_edit → in_review →
+#                    approved → published. Update this row when it ships.)
+#   piece_no       — production order for the first-10 launch pieces (else null)
+#   serp_notes     — free text: SERP observations, slug caveats, companions
+#
+# Rules:
+#   - primary_kw and url must each be unique across the file
+#     (enforced: node scripts/validate-keyword-map.mjs)
+#   - Regional-center slugs must match RC_IDS in src/content.config.ts exactly
+#   - No search-volume numbers in this file; if a claim needs data, it goes
+#     in the piece itself with a citation or a [TBC] placeholder
+#   - EN rows only for now; ES twins share the URL space under /es/ and will
+#     be added as rows when the translation queue opens
+
+entries:
+  # ---------------------------------------------------------------
+  # Pillar hubs (6)
+  # ---------------------------------------------------------------
+  - primary_kw: "california regional centers explained for parents"
+    secondary_kws:
+      - "what is a regional center"
+      - "regional center services for my child"
+      - "lanterman act services list"
+    intent: info
+    url: "/guides/regional-centers/"
+    pillar: regional-centers
+    priority: P0
+    status: drafting
+    piece_no: null
+    serp_notes: "Hub page; links every RC deep-dive + pieces 6, 7, 9."
+
+  - primary_kw: "iep help for parents california"
+    secondary_kws:
+      - "how does an iep work"
+      - "special education rights california"
+      - "iep process step by step for parents"
+    intent: info
+    url: "/guides/iep/"
+    pillar: iep
+    priority: P0
+    status: planned
+    piece_no: null
+    serp_notes: "Hub page; links pieces 4 and 10 plus IEP letters."
+
+  - primary_kw: "benefits for a child with disabilities in california"
+    secondary_kws:
+      - "medi-cal ihss and ssi for a disabled child"
+      - "government help for special needs child california"
+      - "what benefits can my disabled child get"
+    intent: info
+    url: "/guides/benefits/"
+    pillar: benefits
+    priority: P0
+    status: published
+    piece_no: null
+    serp_notes: "Hub page; links pieces 2, 3, 5 and the SSI calculator."
+
+  - primary_kw: "insurance coverage for autism therapy california"
+    secondary_kws:
+      - "will my health insurance cover aba"
+      - "california autism insurance mandate"
+      - "getting therapy covered by insurance for my child"
+    intent: info
+    url: "/guides/insurance/"
+    pillar: insurance
+    priority: P0
+    status: planned
+    piece_no: null
+    serp_notes: "Hub page; links piece 8 and the coverage decision tree."
+
+  - primary_kw: "child just diagnosed with a disability what do i do"
+    secondary_kws:
+      - "developmental delay what to do first"
+      - "first steps after my child's diagnosis"
+      - "where to get help for a newly diagnosed child california"
+    intent: info
+    url: "/guides/first-steps/"
+    pillar: first-steps
+    priority: P0
+    status: planned
+    piece_no: null
+    serp_notes: "Hub page; emotional-first entry point, feeds /start/."
+
+  - primary_kw: "step by step plan for disability services california"
+    secondary_kws:
+      - "where do i start with disability services for my child"
+      - "roadmap for parents of a child with a disability california"
+      - "checklist for getting my child services"
+    intent: info
+    url: "/start/"
+    pillar: start
+    priority: P0
+    status: planned
+    piece_no: null
+    serp_notes: "Start hub; primary app deep-link surface (wp_cta per D3)."
+
+  # ---------------------------------------------------------------
+  # First-10 launch pieces (P0, piece_no 1-10)
+  # ---------------------------------------------------------------
+  - primary_kw: "first 100 days after autism diagnosis california"
+    secondary_kws:
+      - "my child was just diagnosed with autism california"
+      - "what to do after an autism diagnosis"
+      - "autism diagnosis next steps for parents"
+    intent: info
+    url: "/start/autism/"
+    pillar: start
+    priority: P0
+    status: published
+    piece_no: 1
+    serp_notes: "Flagship. Timeline format; heavy internal linking to pieces 2-8."
+
+  - primary_kw: "ihss protective supervision"
+    secondary_kws:
+      - "protective supervision ihss autism"
+      - "how to get protective supervision hours for my child"
+      - "ihss protective supervision requirements california"
+    intent: info
+    url: "/guides/benefits/ihss-protective-supervision/"
+    pillar: benefits
+    priority: P0
+    status: drafting
+    piece_no: 2
+    serp_notes: "High-stakes YMYL; hour figures and rates are [TBC] until verified."
+
+  - primary_kw: "medi-cal institutional deeming"
+    secondary_kws:
+      - "institutional deeming waiver california"
+      - "medi-cal for disabled child when parents make too much"
+      - "hcbs waiver medi-cal for a child"
+    intent: info
+    url: "/guides/benefits/medi-cal-institutional-deeming/"
+    pillar: benefits
+    priority: P0
+    status: drafting
+    piece_no: 3
+    serp_notes: "Low-competition, high-value; explain waiver jargon in plain language."
+
+  - primary_kw: "how to request an iep evaluation in california"
+    secondary_kws:
+      - "ask the school to evaluate my child for special education"
+      - "special education assessment request california"
+      - "school assessment plan 15 days california"
+    intent: info
+    url: "/guides/iep/request-evaluation/"
+    pillar: iep
+    priority: P0
+    status: planned
+    piece_no: 4
+    serp_notes: "Ships with companion letter /letters/iep-evaluation-request/."
+
+  - primary_kw: "ssi for a child with a disability 2026"
+    secondary_kws:
+      - "child ssi income limits 2026"
+      - "how much ssi will my child get"
+      - "ssi deeming of parents income"
+    intent: info
+    url: "/guides/benefits/ssi-for-children/"
+    pillar: benefits
+    priority: P0
+    status: drafting
+    piece_no: 5
+    serp_notes: "Ships with /tools/ssi-deeming-calculator/. FBR figures refresh on ssi-fbr-jan; all dollar amounts [TBC] until verified."
+
+  - primary_kw: "regional center denied services how to appeal"
+    secondary_kws:
+      - "appeal regional center notice of action"
+      - "lanterman act fair hearing"
+      - "regional center said no what now"
+    intent: info
+    url: "/guides/regional-centers/appeal-denial/"
+    pillar: regional-centers
+    priority: P0
+    status: planned
+    piece_no: 6
+    serp_notes: "Deadline-driven; cite WIC appeal timelines precisely, [TBC] until reviewed. Companion letter /letters/noa-appeal/."
+
+  - primary_kw: "how to prepare for an ipp meeting"
+    secondary_kws:
+      - "ipp meeting checklist for parents"
+      - "what to ask for in an ipp"
+      - "regional center ipp goals examples"
+    intent: info
+    url: "/guides/regional-centers/ipp-meeting-prep/"
+    pillar: regional-centers
+    priority: P0
+    status: planned
+    piece_no: 7
+    serp_notes: "Printable checklist block; strong wp_ctx checklist deep-link candidate."
+
+  - primary_kw: "sb 946 aba insurance california"
+    secondary_kws:
+      - "does insurance have to cover aba in california"
+      - "aba through insurance vs regional center"
+      - "sb 946 self-funded plan exception"
+    intent: info
+    url: "/guides/insurance/sb-946-aba/"
+    pillar: insurance
+    priority: P0
+    status: planned
+    piece_no: 8
+    serp_notes: "Hosts the embedded coverage decision tree island (see /tools/ row)."
+
+  - primary_kw: "respite hours by regional center"
+    secondary_kws:
+      - "how many respite hours does the regional center give"
+      - "regional center respite care comparison"
+      - "is my regional center giving fewer respite hours"
+    intent: comparison
+    url: "/research/respite-hours-by-regional-center/"
+    pillar: regional-centers
+    priority: P0
+    status: planned
+    piece_no: 9
+    serp_notes: "Original-data table from public POS data; every figure sourced or [TBC]; refresh on rc-pos-annual."
+
+  - primary_kw: "disagree with the school about my child's iep"
+    secondary_kws:
+      - "iep dispute resolution options california"
+      - "due process vs compliance complaint california"
+      - "what to do when the school won't follow the iep"
+    intent: info
+    url: "/guides/iep/dispute-ladder/"
+    pillar: iep
+    priority: P0
+    status: planned
+    piece_no: 10
+    serp_notes: "Ladder format: informal → IEP meeting → mediation → complaint → due process."
+
+  # ---------------------------------------------------------------
+  # Tools (2) — stateless, client-side islands
+  # ---------------------------------------------------------------
+  - primary_kw: "ssi deeming calculator"
+    secondary_kws:
+      - "how much ssi will my child get calculator"
+      - "ssi parent income calculator for a disabled child"
+      - "child ssi estimator 2026"
+    intent: tool
+    url: "/tools/ssi-deeming-calculator/"
+    pillar: benefits
+    priority: P0
+    status: planned
+    piece_no: 5
+    serp_notes: "Companion to piece 5. Stateless client-side; results labeled as estimates; tool_id per D3 taxonomy."
+
+  - primary_kw: "does my insurance have to cover aba checker"
+    secondary_kws:
+      - "is my health plan covered by sb 946"
+      - "aba insurance coverage decision tree california"
+      - "self-funded plan aba coverage check"
+    intent: tool
+    url: "/tools/sb-946-decision-tree/"
+    pillar: insurance
+    priority: P1
+    status: planned
+    piece_no: 8
+    serp_notes: "(slug provisional — reconsider the -aba suffix per STYLE-GUIDE §1.1 approach-agnostic rule) Decision tree; also embedded in piece 8 guide. tool_completed passes outcome node id per D3."
+
+  # ---------------------------------------------------------------
+  # Template letters (12) — EN first, ES twins queued via translationKey
+  # ---------------------------------------------------------------
+  - primary_kw: "iep evaluation request letter template"
+    secondary_kws:
+      - "sample letter requesting an iep evaluation"
+      - "written request for special education testing"
+      - "carta para pedir evaluacion de educacion especial"
+    intent: letter
+    url: "/letters/iep-evaluation-request/"
+    pillar: iep
+    priority: P0
+    status: published
+    piece_no: 4
+    serp_notes: "Fixed slug (letterId contract). Ships with piece 4; letter_copied event per D3."
+
+  - primary_kw: "regional center intake request letter"
+    secondary_kws:
+      - "how to write to the regional center to ask for intake"
+      - "letter requesting regional center eligibility assessment"
+    intent: letter
+    url: "/letters/regional-center-intake-request/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "notice of action appeal letter regional center"
+    secondary_kws:
+      - "noa appeal letter template"
+      - "sample letter to appeal a regional center denial"
+    intent: letter
+    url: "/letters/noa-appeal/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "iep meeting request letter"
+    secondary_kws:
+      - "letter asking for an iep team meeting"
+      - "sample request for an iep meeting california"
+    intent: letter
+    url: "/letters/iep-meeting-request/"
+    pillar: iep
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "student records request letter"
+    secondary_kws:
+      - "request my child's school records template"
+      - "letter to get my child's cumulative file"
+    intent: letter
+    url: "/letters/student-records-request/"
+    pillar: iep
+    priority: P2
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "aba insurance denial appeal letter"
+    secondary_kws:
+      - "appeal letter for denied aba therapy"
+      - "sb 946 insurance appeal template"
+    intent: letter
+    url: "/letters/insurance-aba-appeal/"
+    pillar: insurance
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "ihss assessment request letter"
+    secondary_kws:
+      - "letter requesting an ihss evaluation for my child"
+      - "how to ask for an ihss assessment in writing"
+    intent: letter
+    url: "/letters/ihss-assessment-request/"
+    pillar: benefits
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "respite request letter regional center"
+    secondary_kws:
+      - "letter asking the regional center for respite hours"
+      - "template to request more respite hours"
+    intent: letter
+    url: "/letters/respite-request/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "iee request letter"
+    secondary_kws:
+      - "independent educational evaluation request template"
+      - "letter asking the school to pay for an outside evaluation"
+    intent: letter
+    url: "/letters/iee-request/"
+    pillar: iep
+    priority: P2
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "prior written notice request letter"
+    secondary_kws:
+      - "ask the school for prior written notice"
+      - "pwn request template idea"
+    intent: letter
+    url: "/letters/prior-written-notice-request/"
+    pillar: iep
+    priority: P2
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "letter to escalate a regional center service coordinator"
+    secondary_kws:
+      - "service coordinator not responding letter"
+      - "complaint letter about regional center case manager"
+    intent: letter
+    url: "/letters/service-coordinator-escalation/"
+    pillar: regional-centers
+    priority: P2
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  - primary_kw: "assessment plan follow up letter"
+    secondary_kws:
+      - "school has not sent the assessment plan letter"
+      - "15 day assessment plan follow up template"
+    intent: letter
+    url: "/letters/assessment-plan-follow-up/"
+    pillar: iep
+    priority: P2
+    status: planned
+    piece_no: null
+    serp_notes: "(slug provisional)"
+
+  # ---------------------------------------------------------------
+  # Regional center local pages (21) — slugs are the RC_IDS enum from
+  # src/content.config.ts, verbatim. Counties + intake contacts are
+  # [TBC] on every page until verifiedAsOf is set (D2 contract).
+  # ---------------------------------------------------------------
+  - primary_kw: "alta california regional center"
+    secondary_kws:
+      - "alta california regional center intake"
+      - "regional center sacramento"
+    intent: local
+    url: "/regional-centers/alta-california/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "central valley regional center"
+    secondary_kws:
+      - "central valley regional center intake"
+      - "regional center fresno"
+    intent: local
+    url: "/regional-centers/central-valley/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "regional center of the east bay"
+    secondary_kws:
+      - "east bay regional center intake"
+      - "regional center oakland"
+    intent: local
+    url: "/regional-centers/east-bay/"
+    pillar: regional-centers
+    priority: P1
+    status: drafting
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "eastern los angeles regional center"
+    secondary_kws:
+      - "eastern la regional center intake"
+      - "regional center east los angeles"
+    intent: local
+    url: "/regional-centers/eastern-la/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "far northern regional center"
+    secondary_kws:
+      - "far northern regional center intake"
+      - "regional center redding"
+    intent: local
+    url: "/regional-centers/far-northern/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "golden gate regional center"
+    secondary_kws:
+      - "golden gate regional center intake"
+      - "regional center san francisco"
+    intent: local
+    url: "/regional-centers/golden-gate/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "harbor regional center"
+    secondary_kws:
+      - "harbor regional center intake"
+      - "regional center torrance"
+    intent: local
+    url: "/regional-centers/harbor/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "inland regional center"
+    secondary_kws:
+      - "inland regional center intake"
+      - "regional center san bernardino riverside"
+    intent: local
+    url: "/regional-centers/inland/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "kern regional center"
+    secondary_kws:
+      - "kern regional center intake"
+      - "regional center bakersfield"
+    intent: local
+    url: "/regional-centers/kern/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "frank d lanterman regional center"
+    secondary_kws:
+      - "lanterman regional center intake"
+      - "regional center los angeles central"
+    intent: local
+    url: "/regional-centers/lanterman/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: "Disambiguate from the Lanterman Act itself on-page."
+
+  - primary_kw: "north bay regional center"
+    secondary_kws:
+      - "north bay regional center intake"
+      - "regional center napa solano sonoma"
+    intent: local
+    url: "/regional-centers/north-bay/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "north los angeles county regional center"
+    secondary_kws:
+      - "north la regional center intake"
+      - "regional center san fernando valley"
+    intent: local
+    url: "/regional-centers/north-la/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "regional center of orange county"
+    secondary_kws:
+      - "orange county regional center intake"
+      - "regional center santa ana"
+    intent: local
+    url: "/regional-centers/orange-county/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "redwood coast regional center"
+    secondary_kws:
+      - "redwood coast regional center intake"
+      - "regional center humboldt county"
+    intent: local
+    url: "/regional-centers/redwood-coast/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "san andreas regional center"
+    secondary_kws:
+      - "san andreas regional center intake"
+      - "regional center san jose santa clara county"
+    intent: local
+    url: "/regional-centers/san-andreas/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "san diego regional center"
+    secondary_kws:
+      - "san diego regional center intake"
+      - "regional center san diego county"
+    intent: local
+    url: "/regional-centers/san-diego/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "san gabriel pomona regional center"
+    secondary_kws:
+      - "san gabriel pomona regional center intake"
+      - "regional center pomona"
+    intent: local
+    url: "/regional-centers/san-gabriel-pomona/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "south central los angeles regional center"
+    secondary_kws:
+      - "south central la regional center intake"
+      - "regional center south los angeles"
+    intent: local
+    url: "/regional-centers/south-central-la/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "tri counties regional center"
+    secondary_kws:
+      - "tri counties regional center intake"
+      - "regional center santa barbara ventura san luis obispo"
+    intent: local
+    url: "/regional-centers/tri-counties/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "valley mountain regional center"
+    secondary_kws:
+      - "valley mountain regional center intake"
+      - "regional center stockton"
+    intent: local
+    url: "/regional-centers/valley-mountain/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  - primary_kw: "westside regional center"
+    secondary_kws:
+      - "westside regional center intake"
+      - "regional center culver city"
+    intent: local
+    url: "/regional-centers/westside/"
+    pillar: regional-centers
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: ""
+
+  # ---------------------------------------------------------------
+  # Answers (interim sources: KB / People-Also-Ask — chat mining waits
+  # on the privacy disclosure, see ANSWERS-PIPELINE.md)
+  # ---------------------------------------------------------------
+  - primary_kw: "does my child need ssi to get ihss"
+    secondary_kws:
+      - "ihss without ssi california"
+      - "can my child get ihss if we make too much money"
+      - "ihss medi-cal requirement child"
+    intent: info
+    url: "/answers/does-my-child-need-ssi-to-get-ihss/"
+    pillar: benefits
+    priority: P0
+    status: drafting
+    piece_no: null
+    serp_notes: "First /answers/ page (questionSource: kb). Companion to piece 2; shareable myth-debunk."

@@ -1,0 +1,154 @@
+---
+/**
+ * Regional Center finder — stateless, zero network. County routing derives
+ * from the regionalCenters collection at build (D11 data spine): the finder
+ * and the entity pages can never disagree, and coverage grows as verified
+ * entity pages land. No hand-typed county map, ever.
+ *
+ * noindex stays true until the tool's copy passes expert review.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import DraftBanner from '../../components/DraftBanner.astro';
+import AnswerFirst from '../../components/AnswerFirst.astro';
+import Cite from '../../components/Cite.astro';
+import NoticeBox from '../../components/NoticeBox.astro';
+import InlineDisclaimer from '../../components/InlineDisclaimer.astro';
+import { countyRoutes, regionalCenterRecords } from '../../lib/regionalCenters';
+
+const routes = await countyRoutes();
+const records = await regionalCenterRecords();
+const counties = [...new Set(routes.map((r) => r.county))];
+const covered = records.length;
+---
+
+<BaseLayout
+  title="Find your California Regional Center — Waypoint"
+  description="California has 21 Regional Centers, each serving specific counties. Pick your county to find the center that serves your family and how the intake clock works."
+  noindex={true}
+  pillar="regional-centers"
+>
+  <PageHero
+    eyebrow="Free tool · no email"
+    title="Find your Regional Center"
+    lede="California has 21 Regional Centers, each serving specific counties. Pick your county — we'll tell you who serves your family and how the intake clock works."
+  />
+  <div class="section">
+    <div class="container">
+      <DraftBanner status="draft" />
+      {
+        covered < 21 && (
+          <NoticeBox>
+            Coverage so far: {covered} of 21 Regional Centers, added as each center's contact
+            details are verified against official sources. If your county isn't listed yet, the
+            Department of Developmental Services (<a href="https://www.dds.ca.gov/">dds.ca.gov</a>)
+            lists all 21 centers.
+          </NoticeBox>
+        )
+      }
+      {
+        counties.length === 0 ? (
+          <div class="tool-panel">
+            {/* Zero verified centers in this build: no dead dropdown, no
+                button that silently does nothing (adversary finding A4). */}
+            <p style="margin:0 0 10px">
+              <strong>The finder comes online center by center.</strong> Each of the 21
+              Regional Centers is added here once its counties and contact details are verified
+              against official sources — none have completed verification yet.
+            </p>
+            <p style="margin:0">
+              Meanwhile, the Department of Developmental Services (
+              <a href="https://www.dds.ca.gov/">dds.ca.gov</a>) lists all 21 centers, and our
+              guides explain how intake works at any of them.
+            </p>
+          </div>
+        ) : (
+          <div class="cols">
+            <div class="tool-panel">
+              <div class="field">
+                <label for="f-county">Your county</label>
+                <select id="f-county">
+                  {counties.map((c) => (
+                    <option>{c}</option>
+                  ))}
+                </select>
+              </div>
+              <button class="btn" id="f-run" type="button">Find my Regional Center</button>
+              <div class="hint" style="margin-top:10px">
+                In Los Angeles County, seven Regional Centers divide the map by neighborhood —
+                pick your county and we'll show every center that serves it.
+              </div>
+            </div>
+            <div>
+              <div class="result-panel" aria-live="polite">
+                <span class="r-label">Your Regional Center</span>
+                <span class="r-big" id="f-result" style="font-size:1.5rem">
+                  Select your county
+                </span>
+                <p class="r-note" id="f-note">
+                  Every Regional Center must decide eligibility within <b>120 days</b> of
+                  intake — <b>45 days</b> for children under 3 through Early Start.
+                </p>
+                <div class="r-save" id="f-link" />
+              </div>
+            </div>
+          </div>
+        )
+      }
+      <article class="prose" style="margin-top:30px">
+        <AnswerFirst>
+          Regional Centers are 21 state-funded nonprofits that coordinate services for
+          Californians with developmental disabilities under the <b>Lanterman Act</b>. Services
+          are provided regardless of income — eligibility is about your child's disability, not
+          your paycheck. <Cite>WIC §4500 et seq.</Cite>
+        </AnswerFirst>
+        <InlineDisclaimer variant="legal" />
+      </article>
+    </div>
+  </div>
+
+  <script type="application/json" id="rc-routes" set:html={JSON.stringify(routes)} />
+</BaseLayout>
+
+<script>
+  interface CountyRoute {
+    county: string;
+    rcName: string;
+    url: string;
+  }
+  const dataEl = document.getElementById('rc-routes');
+  const btn = document.getElementById('f-run');
+  if (dataEl && btn) {
+    const routes = JSON.parse(dataEl.textContent ?? '[]') as CountyRoute[];
+    const TOOL = 'regional-center-finder';
+    const select = document.getElementById('f-county') as HTMLSelectElement;
+    let started = false;
+    select.addEventListener('input', () => {
+      if (started) return;
+      started = true;
+      window.plausible?.('tool_started', { props: { tool_id: TOOL, locale: 'en' } });
+    });
+
+    btn.addEventListener('click', () => {
+      const county = select.value;
+      const matches = routes.filter((r) => r.county === county);
+      const out = document.getElementById('f-result')!;
+      const note = document.getElementById('f-note')!;
+      const link = document.getElementById('f-link')!;
+      if (matches.length === 0) return;
+      if (matches.length === 1) {
+        const m = matches[0];
+        out.textContent = m.rcName;
+        note.innerHTML = `${m.rcName} serves ${county} County. Eligibility decision within <b>120 days</b> of intake — <b>45 days</b> under age 3.`;
+        link.innerHTML = `<a href="${m.url}">See intake steps &amp; appeal routes on the ${m.rcName} page →</a>`;
+      } else {
+        out.textContent = `${matches.length} centers serve ${county} County`;
+        note.innerHTML = 'Your neighborhood decides which one serves you:';
+        link.innerHTML = matches
+          .map((m) => `<a href="${m.url}" style="display:block;padding:2px 0">${m.rcName} →</a>`)
+          .join('');
+      }
+      window.plausible?.('tool_completed', { props: { tool_id: TOOL, locale: 'en' } });
+    });
+  }
+</script>

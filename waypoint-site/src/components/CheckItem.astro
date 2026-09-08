@@ -1,0 +1,37 @@
+---
+/**
+ * One step in a start-here checklist. The stable id rides the checklist
+ * deep-link ctx (D3) so the app can pre-check saved steps.
+ *
+ * A11y: the checkbox is a real <button role="checkbox"> labelled by the step
+ * title — never a role on the whole card, which would strip link semantics
+ * from anchors inside the step text (adversary finding A7). The card's
+ * click-anywhere convenience is wired by the start route's script.
+ */
+interface Props {
+  /** Stable, write-once item id — part of the wp_ctx contract. */
+  id: string;
+  title: string;
+}
+const { id, title } = Astro.props;
+---
+
+<div class="check-item" data-item-id={id}>
+  <button
+    class="box"
+    type="button"
+    role="checkbox"
+    aria-checked="false"
+    aria-labelledby={`${id}-title`}
+    data-check-toggle
+  ></button>
+  <div class="txt"><b id={`${id}-title`}>{title}</b><span><slot /></span></div>
+</div>
+
+<style>
+  button.box {
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+  }
+</style>

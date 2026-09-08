@@ -922,7 +922,7 @@ export default function ActionDetailScreen({
         {/* Source */}
         <View style={styles.sourceRow}>
           <Text style={styles.sourceText}>
-            Source: {action.source === 'ai_navigator' ? '🧭 AI Navigator' : action.source === 'system' ? '⚙️ System' : '✏️ Manual'}
+            Source: {action.source === 'ai_navigator' ? '🧭 Written by the Waypoint Navigator (AI)' : action.source === 'system' ? '⚙️ System' : '✏️ Manual'}
           </Text>
         </View>
       </ScrollView>
@@ -992,11 +992,9 @@ function formatNoteDate(dateStr: string): string {
 // parsed to the LOCAL day, or they render a day early west of Greenwich),
 // while `created_at`/`completed_at` are real instants. parseDateLocal branches.
 function formatDate(dateStr: string): string {
-  return parseDateLocal(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  const d = parseDateLocal(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr; // the raw string over "Invalid Date"
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 // ─── Styles ─────────────────────────────────────────────────────────────────

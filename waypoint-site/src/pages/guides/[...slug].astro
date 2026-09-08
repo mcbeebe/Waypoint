@@ -1,0 +1,59 @@
+---
+/**
+ * Guide pages from the guides collection (minus start/* checklists, which
+ * render at /start/ — see src/lib/content.ts). Only published entries build
+ * without the drafts flag.
+ */
+import { render } from 'astro:content';
+import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import { visibleEntries } from '../../lib/content';
+import type { Crumb } from '../../lib/jsonld';
+
+export async function getStaticPaths() {
+  const guides = await visibleEntries('guides');
+  return guides
+    .filter((entry) => !entry.id.startsWith('start/'))
+    .map((entry) => ({
+      params: { slug: entry.id.replace(/\.mdx?$/, '') },
+      props: { entry },
+    }));
+}
+
+const PILLAR_LABELS: Record<string, string> = {
+  'regional-centers': 'Regional Centers',
+  iep: 'School & IEPs',
+  benefits: 'Money & benefits',
+  insurance: 'Insurance & SB 946',
+  'first-steps': 'First steps 0–5',
+  start: 'Start here',
+};
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const id = entry.id.replace(/\.mdx?$/, '');
+const leaf = d.title.split(':')[0];
+
+const crumbs: Crumb[] = [{ name: 'Guides', href: '/guides/' }];
+if (id.includes('/')) crumbs.push({ name: PILLAR_LABELS[d.pillar] ?? d.pillar });
+crumbs.push({ name: leaf });
+---
+
+<ArticleLayout
+  title={d.title}
+  description={d.description}
+  heading={d.title}
+  crumbs={crumbs}
+  locale={d.locale}
+  status={d.status}
+  author={d.author}
+  review={d.review}
+  datePublished={d.datePublished}
+  dateModified={d.dateModified}
+  disclaimerVariant={d.disclaimerVariant}
+  noindex={d.noindex}
+  slug={`guides/${id}`}
+  pillar={d.pillar}
+>
+  <Content />
+</ArticleLayout>

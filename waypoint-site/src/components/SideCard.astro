@@ -1,0 +1,14 @@
+---
+/** Sidebar card (quick facts, on-this-page, related links). */
+interface Props {
+  title: string;
+  /** Adds the toc-side link styling for on-this-page lists. */
+  toc?: boolean;
+}
+const { title, toc = false } = Astro.props;
+---
+
+<div class:list={['side-card', { 'toc-side': toc }]}>
+  <b class="t">{title}</b>
+  <slot />
+</div>

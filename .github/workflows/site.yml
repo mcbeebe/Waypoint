@@ -1,0 +1,33 @@
+name: waypoint-site
+
+on:
+  pull_request:
+    paths:
+      - 'waypoint-site/**'
+      - '.github/workflows/site.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'waypoint-site/**'
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: waypoint-site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: waypoint-site/package-lock.json
+      - run: npm ci
+      # Browser for the axe accessibility gate (scripts/axe-scan.mjs).
+      - run: npx playwright install --with-deps chromium
+      - run: npm run gates
+
+  # Deploys are handled by Vercel's git integration (D14): the `waypoint-site`
+  # Vercel project (Root Directory: waypoint-site, framework Astro) builds
+  # per-PR previews and production-on-main automatically — no CI deploy job.

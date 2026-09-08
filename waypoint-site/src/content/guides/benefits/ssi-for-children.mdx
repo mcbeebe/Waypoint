@@ -1,0 +1,192 @@
+---
+title: "SSI for a child with a disability: the California parent's guide"
+description: "Whether your child can get SSI, how Social Security counts your income (deeming), what SSI unlocks in California, and how to apply — in plain language."
+locale: en
+translationKey: ssi-for-children
+status: draft
+pillar: benefits
+dateModified: 2026-09-06
+nextReviewEvent: ssi-fbr-jan
+disclaimerVariant: benefits
+changelog:
+  - date: 2026-09-07
+    note: "Fact-check pass applied: disability standard (20 CFR §416.906), POMS deeming mechanics, and the SSI→Medi-Cal automatic linkage confirmed and cited; 2026 figures verified at snippet level and held for the D4 click-through before the constants file populates."
+sources:
+  - label: "SSA — SSI for Children (childhood disability standard)"
+    url: "https://www.ssa.gov/ssi/text-child-ussi.htm"
+    accessed: 2026-09-07
+  - label: "20 CFR §416.906 (definition of disability for children)"
+    url: "https://www.ssa.gov/OP_Home/cfr20/416/416-0906.htm"
+    accessed: 2026-09-07
+  - label: "POMS SI 01320.500 (parent-to-child deeming)"
+    url: "https://secure.ssa.gov/apps10/poms.nsf/lnx/0501320500"
+    accessed: 2026-09-07
+  - label: "SSA — 2026 COLA fact sheet (2.8%; FBR $994/$1,491)"
+    url: "https://www.ssa.gov/news/en/cola/factsheets/2026.html"
+    accessed: 2026-09-07
+  - label: "CDSS — SSI/SSP monthly payment amounts 2026"
+    url: "https://cdss.ca.gov/Portals/13/SHD/ParaRegIndex/SSI%20Monthly%20Payment%20Amounts%202026.pdf"
+    accessed: 2026-09-07
+---
+
+{/*
+  DRAFT — piece #5 (keyword row /guides/benefits/ssi-for-children/). Ships
+  with /tools/ssi-deeming-calculator/. NO dollar figures appear in this draft
+  on purpose: the 2026 FBR entries in src/data/benefit-constants.json are
+  null-until-verified (D4), and this page must never state a number the
+  constants file doesn't carry. nextReviewEvent=ssi-fbr-jan (deliberate —
+  the page's facts key to the January FBR update).
+  FACT-CHECKED 2026-09-07 (see sources[]): childhood disability standard
+  confirmed verbatim (20 CFR §416.906 — "marked and severe functional
+  limitations", 12 months or death); deeming mechanics confirmed against
+  POMS SI 01320.500; SSI→Medi-Cal automatic linkage in CA confirmed (no
+  separate application); CA SSP for children confirmed to exist. 2026
+  figures verified and POPULATED in benefit-constants.json 2026-09-07
+  (FBR $994 individual / $1,491 couple, 2.8% COLA; child allocation $497)
+  under the owner decision accepting snippet-level verification — the
+  calculator computes live. This page stays figure-free by design (the
+  calculator carries the numbers).
+  [TBC: verify — application channels and what documents SSA asks for]
+  [TBC: verify — appeal levels + deadlines (reconsideration, hearing)]
+*/}
+
+import AnswerFirst from '../../../components/AnswerFirst.astro';
+import Cite from '../../../components/Cite.astro';
+import EmpathyCallout from '../../../components/EmpathyCallout.astro';
+import HandoffCTA from '../../../components/HandoffCTA.astro';
+import PlainBox from '../../../components/PlainBox.astro';
+import SideCard from '../../../components/SideCard.astro';
+
+<PlainBox>
+  SSI (Supplemental Security Income) is a monthly federal payment for children with
+  disabilities in lower-income households. Two things decide it: your child's
+  <b> disability</b>, and your family's <b>income</b> — Social Security counts part of what
+  parents earn using a formula called "deeming." In California, an SSI approval also brings
+  <b> Medi-Cal automatically</b>. And if income rules your child out, you have lost less than
+  you think — the biggest benefits don't require SSI at all.
+</PlainBox>
+
+<div class="cols">
+<article class="prose">
+
+<h2 class="qa-h" id="what-is-ssi">What is SSI — and what does it unlock?</h2>
+
+<AnswerFirst>
+  SSI pays a monthly benefit to a child who meets Social Security's <b>childhood disability
+  standard</b> and whose household passes the <b>income and resource test</b>. In California
+  the approval matters twice: the money itself, and <b>automatic Medi-Cal</b> that comes with
+  it — no separate Medi-Cal application needed.
+</AnswerFirst>
+
+The monthly amount runs up to the federal benefit rate — a figure that changes every January
+with the cost-of-living adjustment [the 2026 figure is verified and publishes to this page
+and the calculator together, per the site's benefit-constants rule]. California adds a state
+supplement on top for children with disabilities.
+Households with countable income receive a reduced amount rather than all-or-nothing — which
+is why running the numbers is worth it even when you assume you earn too much.
+
+<h2 class="qa-h" id="disability-standard">Does my child meet the disability standard?</h2>
+
+<AnswerFirst>
+  For children, Social Security asks whether a physical or mental condition causes <b>"marked
+  and severe functional limitations"</b> and has lasted, or is expected to last, at least
+  <b> 12 months</b> <Cite>20 CFR §416.906</Cite>. It is a functional test — how your
+  child actually manages daily life — not a diagnosis checklist.
+</AnswerFirst>
+
+What that means practically: two children with the same diagnosis can get different answers,
+because the question is limitation, not label. The evidence that carries the decision is the
+record you likely already have — evaluations, IEP or IFSP documents, therapy notes, and your
+own concrete account of hard days. Describe your child's hardest ordinary day, not their best
+one; the standard is about what support they genuinely need.
+
+<h2 class="qa-h" id="deeming">How does Social Security count our income?</h2>
+
+<AnswerFirst>
+  Through <b>deeming</b>: SSA takes parents' income, subtracts allocations for each
+  non-disabled child in the home and a living allowance for the parents, applies standard
+  exclusions, and "deems" the remainder to your child <Cite>POMS SI 01320.500</Cite>. If
+  the deemed amount is under the benefit rate, your child may qualify for a partial or full
+  payment. Our <a href="/tools/ssi-deeming-calculator/">SSI deeming calculator</a> runs the
+  estimate in a minute — nothing you type is stored.
+</AnswerFirst>
+
+Three things families consistently miss:
+
+1. **Bigger households qualify at higher incomes.** Every non-disabled sibling at home
+   shelters part of your income before deeming — families stop themselves with mental math
+   that ignores this.
+2. **Partial awards still carry full Medi-Cal.** In California, even a small monthly SSI
+   amount brings the automatic Medi-Cal with it.
+3. **A "too much income" denial is not the end of the road** — it's the fork where the next
+   guide begins. Keep reading.
+
+<h2 class="qa-h" id="how-to-apply">How do I apply?</h2>
+
+<AnswerFirst>
+  Start the application with Social Security — by phone or through SSA's child SSI process
+  online <Cite>[TBC: verify current channels]</Cite> — and gather the record while you wait
+  for the appointment: evaluations, school documents, provider lists, and your own written
+  description of a typical hard day.
+</AnswerFirst>
+
+The process typically involves an interview about household income and a separate disability
+review that requests records from your child's providers [TBC: verify current process
+details]. Answer the income questions precisely, sign the releases so records actually flow,
+and keep dated copies of everything you submit. If a decision goes against you, the notice
+states your appeal rights and deadlines — calendar them the day it arrives [TBC: verify
+appeal levels and windows before publish].
+
+<EmpathyCallout label="Why this matters">
+  Applying means writing your child's hardest moments down for a stranger, and that costs
+  something. Do it anyway, and do it honestly. The form isn't the truth about your child —
+  it's a key. Your child is the one teaching you what the good days look like.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="if-denied">If income rules SSI out, what's left?</h2>
+
+<AnswerFirst>
+  The two biggest supports for a child with a developmental disability at home <b>don't
+  require SSI</b>: Medi-Cal through
+  <a href="/guides/benefits/medi-cal-institutional-deeming/">institutional deeming</a> — which
+  ignores parental income entirely — and then
+  <a href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision</a>,
+  which requires Medi-Cal, not SSI.
+</AnswerFirst>
+
+That sequence — deeming, then IHSS — is the path most middle-income families actually walk,
+and it's closed to no one by a paycheck. The myth that SSI is the gate stops more families
+than any rule does; the short, shareable correction lives at
+<a href="/answers/does-my-child-need-ssi-to-get-ihss/">Does my child need SSI to get
+IHSS?</a> And Regional Center services were never income-tested in the first place — see the
+<a href="/guides/regional-centers/">Regional Center guide</a>.
+
+</article>
+<aside>
+  <SideCard title="On this page" toc>
+    <a href="#what-is-ssi">What SSI is and unlocks</a>
+    <a href="#disability-standard">The childhood disability standard</a>
+    <a href="#deeming">How your income is counted</a>
+    <a href="#how-to-apply">How to apply</a>
+    <a href="#if-denied">If income rules SSI out</a>
+  </SideCard>
+  <SideCard title="Run your numbers">
+    <p>A one-minute estimate of how deeming lands for your household — free, private, stored nowhere.</p>
+    <a class="link" href="/tools/ssi-deeming-calculator/">SSI deeming calculator →</a>
+  </SideCard>
+  <SideCard title="Related">
+    <a class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming →</a>
+    <a class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</a>
+    <a class="link" href="/answers/does-my-child-need-ssi-to-get-ihss/">Does my child need SSI to get IHSS? →</a>
+  </SideCard>
+</aside>
+</div>
+
+<HandoffCTA
+  heading="See every benefit your child may qualify for"
+  body="Waypoint checks SSI, Medi-Cal, IHSS, and Regional Center supports against your family's situation and builds the application plan — free, instant, English or Spanish."
+  action="Check my child's eligibility →"
+  slug="guides/benefits/ssi-for-children"
+  cta="guide-footer"
+  pillar="benefits"
+/>

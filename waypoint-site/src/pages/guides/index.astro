@@ -1,0 +1,188 @@
+---
+/**
+ * The guides hub ("The library") at prototype parity. Pillar cards and the
+ * answers strip link only to pages that exist in this build; everything else
+ * shows an honest publishing-soon state.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Cite from '../../components/Cite.astro';
+import HandoffCTA from '../../components/HandoffCTA.astro';
+import { visibleContentUrls, visibleEntries } from '../../lib/content';
+
+const urls = await visibleContentUrls();
+const has = (u: string) => urls.has(u);
+const answers = await visibleEntries('answers');
+---
+
+<BaseLayout
+  title="Free guides for California disability services — Waypoint"
+  description="Free plain-language guides to Regional Centers, IEPs, Medi-Cal, IHSS, SSI, and insurance for California families — statute-cited, expert-reviewed, no email gate."
+>
+  <div class="page-hero">
+    <div class="container">
+      <span class="eyebrow">The library</span>
+      <h1>Every system, mapped. Free, in plain language.</h1>
+      <p class="lede">
+        Six pillars cover every system your family will touch — Regional Centers, school, money,
+        insurance, and the first steps after a diagnosis. Every guide is written in plain
+        language and cites the actual statute. Reviewed, updated, and free. No email gate. No
+        paywall. Ever.
+      </p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container">
+      <span class="eyebrow">Six pillars</span>
+      <h2>Pick the system you're dealing with today</h2>
+      <p class="sub">
+        Each pillar is a hub of deep-dive guides, tools, and ready-to-send letters. Start
+        anywhere — they all connect.
+      </p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Regional Centers &amp; the Lanterman Act</h3>
+          <p>
+            How California's 21 Regional Centers work, what "substantial disability" means under
+            <Cite>WIC §4512</Cite>, the 120-day eligibility clock, building a strong IPP, and
+            what to do when a Notice of Action arrives.
+          </p>
+          {
+            has('/guides/regional-centers/') ? (
+              <a class="link" href="/guides/regional-centers/">
+                Start with the Regional Center guide →
+              </a>
+            ) : (
+              <span class="link soon">Publishing soon</span>
+            )
+          }
+        </div>
+        <div class="card">
+          <h3>School &amp; IEPs</h3>
+          <p>
+            Requesting a special education evaluation in writing — the district has
+            <b>15 calendar days</b> to respond with an assessment plan — plus the 60-day
+            evaluation timeline and how to walk into an IEP meeting prepared.
+          </p>
+          {
+            has('/letters/iep-evaluation-request/') ? (
+              <a class="link" href="/letters/iep-evaluation-request/">
+                Get the evaluation letter →
+              </a>
+            ) : (
+              <span class="link soon">Publishing soon</span>
+            )
+          }
+        </div>
+        <div class="card">
+          <h3>Money &amp; benefits</h3>
+          <p>
+            IHSS protective supervision (up to 195 hours a month), SSI for children, and Medi-Cal
+            institutional deeming — the path that can qualify your child at home while ignoring
+            parental income.
+          </p>
+          {
+            /* Gate on the HUB, then prefer the deepest published page. Gating a
+               card on a spoke stranded the published hub with zero inbound
+               links — an orphan page reachable only from the sitemap. */
+            has('/guides/benefits/ihss-protective-supervision/') ? (
+              <a class="link" href="/guides/benefits/ihss-protective-supervision/">
+                Read the IHSS protective supervision guide →
+              </a>
+            ) : has('/guides/benefits/') ? (
+              <a class="link" href="/guides/benefits/">
+                See every benefit your child may qualify for →
+              </a>
+            ) : (
+              <span class="link soon">Publishing soon</span>
+            )
+          }
+        </div>
+        <div class="card">
+          <h3>Insurance &amp; SB 946</h3>
+          <p>
+            California's coverage mandate for prescribed behavioral health treatment — which
+            plans it applies to, why self-funded ERISA plans are exempt, and the appeal path
+            from internal review to DMHC Independent Medical Review.
+          </p>
+          <span class="link soon">Publishing soon</span>
+        </div>
+        <div class="card">
+          <h3>First steps 0–5</h3>
+          <p>
+            Early Start — with a <b>45-day</b> eligibility decision for children under 3 — the
+            transition to preschool services at age 3, and the early moves that make everything
+            later easier.
+          </p>
+          {
+            has('/start/autism/') ? (
+              <a class="link" href="/start/autism/">
+                See the first-100-days plan →
+              </a>
+            ) : (
+              <span class="link soon">Publishing soon</span>
+            )
+          }
+        </div>
+        <div class="card">
+          <h3>Start here by diagnosis</h3>
+          <p>
+            One checklist that sequences all of the above for your child's diagnosis — Regional
+            Center intake, the school letter, benefits, insurance — starting with autism. More
+            diagnoses are on the roadmap.
+          </p>
+          {
+            has('/start/autism/') ? (
+              <a class="link" href="/start/autism/">
+                Start: autism →
+              </a>
+            ) : (
+              <span class="link soon">Publishing soon</span>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {
+    answers.length > 0 && (
+      <div class="section on-white">
+        <div class="container">
+          <span class="eyebrow">Answers</span>
+          <h2>Fresh answers, every week</h2>
+          <p class="sub">
+            Short, direct answers to the exact questions parents type at 2 a.m. Answer first,
+            citation attached.
+          </p>
+          <div class="grid-3">
+            {answers.map((a) => (
+              <div class="card">
+                <h3>{a.data.title}</h3>
+                <p>{a.data.description}</p>
+                <a class="link" href={`/answers/${a.id.replace(/\.mdx?$/, '')}/`}>
+                  Read the answer →
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  <div class="section">
+    <div class="container narrow">
+      <HandoffCTA
+        heading="Reading is step one. Doing is the app."
+        body="The Waypoint app turns these guides into your family's plan — deadlines tracked, letters drafted, next step always visible."
+        action="Create your free account →"
+        slug="guides"
+        cta="hub-footer"
+      />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+</style>

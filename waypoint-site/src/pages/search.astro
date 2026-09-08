@@ -1,0 +1,76 @@
+---
+/**
+ * Site search (Pagefind). The index is built by scripts/pagefind-index.mjs —
+ * only when the build contains at least one article body, so a production
+ * build with nothing published has no index and this page says so instead of
+ * mounting a dead search box. The stylesheet is injected on successful mount
+ * (no static <link>, so the internal-link gate never depends on the index
+ * existing, and no markup lands after </html>).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+---
+
+<BaseLayout
+  title="Search Waypoint — every guide, answer, and letter"
+  description="Search every Waypoint guide, answer, template letter, and Regional Center page — free, no email, nothing you type is stored."
+>
+  <PageHero
+    eyebrow="Search · free · nothing you type is stored"
+    title="Find the answer you need"
+    lede="Every guide, answer, template letter, and Regional Center page — searched in your browser. Nothing you type leaves this page."
+  />
+  <div class="section on-white">
+    <div class="container narrow">
+      <div id="search"></div>
+      <noscript>
+        <p>
+          Search needs JavaScript. Without it, start from the
+          <a href="/guides/">guides library</a> — every page is two clicks from there.
+        </p>
+      </noscript>
+    </div>
+  </div>
+
+  <script>
+    // Pagefind UI ships with the built site (same-origin; the CSP carries
+    // 'wasm-unsafe-eval' for its search core). When the index doesn't exist —
+    // dev server, or a build with nothing published yet — explain instead of
+    // showing a dead box.
+    async function mountSearch() {
+      const el = document.getElementById('search');
+      if (!el) return;
+      try {
+        // Built asset, resolved in the browser — never by vite or tsc.
+        // @ts-expect-error: no module declaration for the build-time asset.
+        const mod = await import(/* @vite-ignore */ '/pagefind/pagefind-ui.js');
+        const PagefindUI = (mod as { PagefindUI: new (opts: object) => unknown }).PagefindUI;
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = '/pagefind/pagefind-ui.css';
+        document.head.appendChild(css);
+        new PagefindUI({ element: '#search', showSubResults: true, showImages: false });
+        // search_used (D3, "query submitted"): fired once per pageview when a
+        // non-empty query settles (1.2s after the last keystroke).
+        let fired = false;
+        let timer: ReturnType<typeof setTimeout>;
+        el.addEventListener('input', (e) => {
+          if (fired) return;
+          clearTimeout(timer);
+          const value = (e.target as HTMLInputElement).value?.trim();
+          if (!value) return;
+          timer = setTimeout(() => {
+            if (fired) return;
+            fired = true;
+            window.plausible?.('search_used', { props: { locale: 'en' } });
+          }, 1200);
+        });
+      } catch {
+        el.innerHTML =
+          '<p>Search comes online with the first published guides. ' +
+          'Meanwhile, start from the <a href="/guides/">guides library</a> — every page is two clicks from there.</p>';
+      }
+    }
+    mountSearch();
+  </script>
+</BaseLayout>
