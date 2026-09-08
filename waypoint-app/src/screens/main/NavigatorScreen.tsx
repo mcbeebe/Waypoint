@@ -47,6 +47,7 @@ import { deriveActionTitle } from '@/lib/actionContent';
 import { useI18n } from '@/i18n';
 import LearnPanel from '@/components/LearnPanel';
 import { toFunnelLocale } from '@/lib/eligibility';
+import { parseDateLocal } from '@/lib/dateOnly';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
@@ -1180,7 +1181,9 @@ function SourceAttribution({
 
 /** Calculate age string from DOB */
 function getAgeString(dob: string): string {
-  const birth = new Date(dob);
+  // date_of_birth is a Postgres `date` — read it on the local calendar, or
+  // the age flips a day early west of Greenwich.
+  const birth = parseDateLocal(dob);
   const now = new Date();
   let years = now.getFullYear() - birth.getFullYear();
   let months = now.getMonth() - birth.getMonth();

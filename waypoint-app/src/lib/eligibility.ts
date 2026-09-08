@@ -14,6 +14,7 @@
  * wide release.
  */
 import type { RcStatus, IepStatus } from '@/types/database';
+import { parseDateLocal } from '@/lib/dateOnly';
 import { SSI_FBR_MONTHLY, SSI_YEAR } from '@/data/benefitFigures';
 
 export type EligibilityStatus = 'enrolled' | 'likely' | 'review' | 'later';
@@ -291,7 +292,9 @@ export function deriveEligibility(
 /** Age in whole years from an ISO date of birth; null when unknown. */
 export function ageFromDob(dob: string | null | undefined, now = new Date()): number | null {
   if (!dob) return null;
-  const birth = new Date(dob);
+  // date_of_birth is a Postgres `date`; parsed as UTC it reads a day early
+  // west of Greenwich, flipping the age the day BEFORE the actual birthday.
+  const birth = parseDateLocal(dob);
   if (Number.isNaN(birth.getTime())) return null;
   let years = now.getFullYear() - birth.getFullYear();
   const beforeBirthday =
