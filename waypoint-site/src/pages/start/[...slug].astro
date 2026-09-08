@@ -66,6 +66,8 @@ const crumbLd = !isDraft ? breadcrumbsJsonLd(crumbs) : null;
   locale={d.locale}
   noindex={d.noindex || isDraft}
   pillar={d.pillar}
+  ogSlug={Astro.url.pathname}
+  ogType="article"
 >
   <PageHero eyebrow="Worried, or just diagnosed · California" title={d.title} />
   <div class="section on-white">

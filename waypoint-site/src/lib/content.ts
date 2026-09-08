@@ -100,5 +100,8 @@ export async function allContentUrls(): Promise<Set<string>> {
  */
 export function guideUrl(entry: ReviewedEntry): string {
   const id = entry.id.replace(/\.mdx?$/, '');
+  // 'start' is the diagnosis-general entry point (start/index.mdx, whose
+  // `/index` Astro strips) and lives at /start/, not /guides/start/.
+  if (id === 'start') return '/start/';
   return id.startsWith('start/') ? `/${id}/` : `/guides/${id}/`;
 }
