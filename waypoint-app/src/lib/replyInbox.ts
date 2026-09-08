@@ -45,10 +45,15 @@ export function formatThreadForDraft(thread: Communication[]): string {
       const who =
         c.direction === 'incoming' ? `FROM ${c.contact ?? 'the agency'}` : 'FROM the parent';
       const at = when(c);
-      const parsed = new Date(at);
-      // A timestamptz always parses; if the column ever hands us something
-      // that does not, show what we were given rather than "NaN-NaN-NaN".
-      const day = Number.isNaN(parsed.getTime()) ? at.slice(0, 10) : localDayISO(parsed);
+      // A timestamptz always parses, and `occurred_at` is NOT NULL, so this
+      // guard is for data that should not exist. It still has to hold: the
+      // prompt asks the model to restate the dates it is given, and
+      // `new Date(null)` is the EPOCH rather than an Invalid Date — an
+      // unguarded parse would confidently tell the model "1969-12-31".
+      const parsed = new Date(at ?? '');
+      const day = Number.isNaN(parsed.getTime())
+        ? (at || 'undated').slice(0, 10)
+        : localDayISO(parsed);
       return `--- ${who} · ${day} ---\n${c.subject}\n\n${c.body ?? ''}`;
     })
     .join('\n\n');

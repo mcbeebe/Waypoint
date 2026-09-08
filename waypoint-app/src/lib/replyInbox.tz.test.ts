@@ -5,8 +5,12 @@
  *
  * The instants are built from LOCAL parts on purpose: that keeps the expected
  * day one fixed string in both suites while the UTC text underneath differs,
- * which is what the old `.slice(0, 10)` got wrong. The evening case fails it
- * west of Greenwich, the morning case east of it.
+ * which is what the old `.slice(0, 10)` got wrong. The late-evening case
+ * fails it west of Greenwich, the after-midnight case east of it.
+ *
+ * They sit 30 minutes from midnight rather than at 06:00/18:00 so the pair
+ * stays sensitive at ANY non-UTC offset; at 06:00/18:00 this file would go
+ * quietly decorative if the tz projects were ever repointed nearer Greenwich.
  */
 import { describe, it, expect } from 'vitest';
 import { formatThreadForDraft } from './replyInbox';
@@ -35,24 +39,24 @@ function comm(over: Partial<Communication>): Communication {
 }
 
 describe('formatThreadForDraft', () => {
-  it('dates an evening message on the day the parent sent it', () => {
-    // 6pm local is already tomorrow in UTC west of Greenwich, so the draft
+  it('dates a late-evening message on the day the parent sent it', () => {
+    // 23:30 local is already tomorrow in UTC west of Greenwich, so the draft
     // context told the model the parent wrote on the 2nd.
-    const evening = new Date(2026, 7, 1, 18, 0, 0).toISOString();
+    const evening = new Date(2026, 7, 1, 23, 30, 0).toISOString();
     const text = formatThreadForDraft([comm({ sent_at: evening })]);
     expect(text).toContain('· 2026-08-01 ---');
   });
 
-  it('dates an early-morning message on the day the parent sent it', () => {
-    // 6am local is still yesterday in UTC east of Greenwich — the same bug
+  it('dates an after-midnight message on the day the parent sent it', () => {
+    // 00:30 local is still yesterday in UTC east of Greenwich — the same bug
     // pointing the other way.
-    const morning = new Date(2026, 7, 1, 6, 0, 0).toISOString();
+    const morning = new Date(2026, 7, 1, 0, 30, 0).toISOString();
     const text = formatThreadForDraft([comm({ sent_at: morning })]);
     expect(text).toContain('· 2026-08-01 ---');
   });
 
   it('falls back to occurred_at when the message was never marked sent', () => {
-    const evening = new Date(2026, 7, 1, 21, 30, 0).toISOString();
+    const evening = new Date(2026, 7, 1, 23, 30, 0).toISOString();
     const text = formatThreadForDraft([comm({ sent_at: null, occurred_at: evening })]);
     expect(text).toContain('· 2026-08-01 ---');
   });
@@ -83,6 +87,19 @@ describe('formatThreadForDraft', () => {
     const text = formatThreadForDraft([comm({ sent_at: 'not-a-timestamp' })]);
     expect(text).toContain('· not-a-time ---');
     expect(text).not.toContain('NaN');
+  });
+
+  it('says "undated" rather than 1969 when both timestamps are missing', () => {
+    // `occurred_at` is NOT NULL, so this is data that should not exist — but
+    // `new Date(null)` is the EPOCH, not an Invalid Date, so an unguarded
+    // parse would state a confident wrong date in a prompt that asks the
+    // model to restate the dates it is given.
+    const text = formatThreadForDraft([
+      comm({ sent_at: null, occurred_at: null as unknown as string }),
+    ]);
+    expect(text).toContain('· undated ---');
+    expect(text).not.toContain('1969');
+    expect(text).not.toContain('1970');
   });
 
   it('is empty for an empty thread', () => {

@@ -6,23 +6,29 @@
  * The instants below are built from LOCAL parts on purpose. That keeps the
  * expected day one fixed string in both suites while the UTC text underneath
  * differs, which is exactly what the old `.split('T')[0]` got wrong: the
- * evening case fails it west of Greenwich, the morning case east of it.
+ * late-evening case fails it west of Greenwich, the after-midnight case east
+ * of it.
+ *
+ * They sit 30 minutes from midnight rather than at 06:00/18:00 so the pair
+ * stays sensitive at ANY non-UTC offset. At 06:00/18:00 they only disagree
+ * with the naive slice beyond ±6 hours, which would quietly turn this whole
+ * file decorative if the tz projects were ever repointed at, say, Berlin.
  */
 import { describe, it, expect } from 'vitest';
 import { fhirDisplayDay } from './fhirDate';
 
 describe('fhirDisplayDay', () => {
-  it('puts an evening instant on the day the family lived it', () => {
-    // 6pm local. West of Greenwich that is already tomorrow in UTC, so the
-    // naive split dated a 6pm-Pacific lab result to the following morning.
-    const evening = new Date(2026, 7, 1, 18, 0, 0);
+  it('puts a late-evening instant on the day the family lived it', () => {
+    // 23:30 local is already tomorrow in UTC anywhere west of Greenwich, so
+    // the naive split dated an evening lab result to the following morning.
+    const evening = new Date(2026, 7, 1, 23, 30, 0);
     expect(fhirDisplayDay(evening.toISOString())).toBe('2026-08-01');
   });
 
-  it('puts an early-morning instant on the day the family lived it', () => {
-    // 6am local. East of Greenwich that is still yesterday in UTC, so the
-    // naive split dated the same record a day early.
-    const morning = new Date(2026, 7, 1, 6, 0, 0);
+  it('puts an after-midnight instant on the day the family lived it', () => {
+    // 00:30 local is still yesterday in UTC anywhere east of it — the same
+    // bug pointing the other way.
+    const morning = new Date(2026, 7, 1, 0, 30, 0);
     expect(fhirDisplayDay(morning.toISOString())).toBe('2026-08-01');
   });
 
@@ -63,5 +69,21 @@ describe('fhirDisplayDay', () => {
 
   it('shows the raw string rather than NaN when a value will not parse', () => {
     expect(fhirDisplayDay('not-a-date')).toBe('not-a-date');
+  });
+
+  it('will not roll a nonexistent day forward into a date the record lacks', () => {
+    // `new Date('2026-02-30T10:00:00Z')` is March 2nd in V8. Showing a family
+    // a day their record does not mention is worse than showing the odd day
+    // it does — and it must agree with the bare `2026-02-30` form.
+    expect(fhirDisplayDay('2026-02-30T10:00:00Z')).toBe('2026-02-30');
+    expect(fhirDisplayDay('2026-02-30')).toBe('2026-02-30');
+    expect(fhirDisplayDay('2026-13-01T00:00:00Z')).toBe('2026-13-01');
+  });
+
+  it('falls back to the stated day when the time is unusable', () => {
+    // The day is real and the record states it plainly; only the clock part
+    // is junk. The old split showed the day here, and so should we.
+    expect(fhirDisplayDay('2026-08-01T25:00:00Z')).toBe('2026-08-01');
+    expect(fhirDisplayDay('2026-08-01T')).toBe('2026-08-01');
   });
 });
