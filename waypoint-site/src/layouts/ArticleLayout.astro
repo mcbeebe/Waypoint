@@ -81,6 +81,8 @@ const jsonLd = !isDraft
   locale={locale}
   noindex={noindex || isDraft}
   pillar={pillar}
+  ogSlug={Astro.url.pathname}
+  ogType="article"
 >
   <div class="section on-white">
     <div class:list={['container', { narrow }]}>
