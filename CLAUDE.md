@@ -113,11 +113,22 @@ elsewhere. The description below is historical.
 npx tsc --noEmit    # typecheck — CI gate
 npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
 npm test            # vitest, FOUR projects, 108 files (111 runs) / 1297 — CI gate
-npm run build:web   # expo export + postbuild — NOT run in CI
+npm run build:web   # expo export + postbuild — CI gate (prod bundle)
+npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
 ```
 
 ### Things that will bite you
 
+- **The production web export cannot see a bad import behind a platform
+  guard.** `expo export -p web` inlines `Platform.OS` to `"web"` and
+  dead-code-eliminates `if (Platform.OS !== 'web') { ... }` *before* Metro
+  collects dependencies, so a `require()` naming a path that does not exist
+  bundles perfectly clean. `--dev` skips that elimination and fails loudly.
+  Both run in CI for that reason; the dev one is the one with teeth. This is
+  not hypothetical — `react-native-url-polyfill/dist/polyfill` (the package has
+  no `dist/`) sat in `src/lib/supabase.ts` from the file's first commit to
+  PR #212, invisible to tsc, eslint, vitest AND the production bundle, and
+  broke only `expo start --web`.
 - **Migrations are applied BY HAND** in the Supabase SQL editor, in order.
   `scripts/build-pending-migrations.mjs` bundles a range into one transaction.
   Code that assumes an unapplied migration ships a silently broken feature —
