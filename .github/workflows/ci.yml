@@ -7,9 +7,17 @@ name: CI
 on:
   push:
     branches: [main]
-    paths: ['waypoint-app/**']
+    # The CI definition — this file AND its ci-guard.yml companion — is in the
+    # filter so a change to the gates themselves RUNS the gates. Without it, a
+    # PR editing only a workflow matched no path here, the job never started,
+    # and the only thing reporting `check` was the guard's four-second stub.
+    # "Merge on green" then merges on nothing at all.
+    #
+    # These two entries must stay mirrored in ci-guard.yml's `paths-ignore`,
+    # or both workflows run and two check runs share the `check` name.
+    paths: ['waypoint-app/**', '.github/workflows/ci.yml', '.github/workflows/ci-guard.yml']
   pull_request:
-    paths: ['waypoint-app/**']
+    paths: ['waypoint-app/**', '.github/workflows/ci.yml', '.github/workflows/ci-guard.yml']
 
 jobs:
   check:
@@ -35,6 +43,22 @@ jobs:
         run: npm run lint
       - name: Tests
         run: npm test
+      # The same suite again, west of Greenwich — where Waypoint's families
+      # live. Only the `tz`/`tz-west` projects pin a TZ of their own; `logic`
+      # and `ui` inherit the runner's, which is UTC, and UTC is the one zone
+      # where a UTC-midnight date parse looks correct. That blind spot shipped:
+      # PR #216 fixed a card reading "Overdue: Jul 31" on a step due Aug 1 in
+      # California — red on a developer's machine, green right here, for as
+      # long as it took someone to run the suite in Pacific time.
+      #
+      # This runs `npm test` whole rather than `--project logic --project ui`,
+      # so a project added later is covered by default instead of silently
+      # escaping the west run. Re-running the two `tz` projects is the price,
+      # and it is two files.
+      - name: Tests (America/Los_Angeles)
+        run: npm test
+        env:
+          TZ: America/Los_Angeles
       # Bundling gates. Neither tsc nor vitest resolves a module the way Metro
       # does, so a require() naming a path that does not exist passes all three
       # gates above and fails only when someone bundles. That is how
