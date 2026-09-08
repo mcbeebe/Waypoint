@@ -20,8 +20,8 @@
  *    `date` (`YYYY-MM-DD`, no zone). `new Date('2026-08-25')` parses that as
  *    UTC midnight, which is Aug 24 17:00 for a family in California — so a
  *    step due today reads as overdue. Everything here parses to LOCAL midnight
- *    instead. (The card's own inline `new Date(due) < new Date()` still has the
- *    old bug; it is not this module's to fix, and is called out in the PR.)
+ *    instead, and the display-side date labels follow the same rule through
+ *    `@/lib/dateOnly`.
  *
  * Pure — no react-native, no I/O — so it lives in the `logic` vitest project.
  */

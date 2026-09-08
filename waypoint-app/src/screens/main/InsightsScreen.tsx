@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily } from '@/hooks/useFamily';
 import { getInsightsForRC, getTrendingStrategies, type AggregateInsight } from '@/lib/analytics';
+import { parseDateLocal } from '@/lib/dateOnly';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 export default function InsightsScreen() {
@@ -70,7 +71,8 @@ export default function InsightsScreen() {
                     </View>
                     <Text style={styles.insightDimension}>{insight.dimension}</Text>
                     <Text style={styles.insightSample}>
-                      Based on {insight.sampleSize} families · Updated {new Date(insight.periodEnd).toLocaleDateString()}
+                      {/* period_end is a Postgres `date` — parse local or it shows a day early. */}
+                      Based on {insight.sampleSize} families · Updated {parseDateLocal(insight.periodEnd).toLocaleDateString()}
                     </Text>
                   </View>
                 ))}

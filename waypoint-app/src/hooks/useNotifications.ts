@@ -15,6 +15,7 @@ import { Platform, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Deadline } from '@/types/database';
 import { diffReminders, type ReminderSpec } from '@/lib/notificationPolicy';
+import { parseDateLocal } from '@/lib/dateOnly';
 
 const NOTIFICATION_IDS_KEY = 'waypoint_notification_ids';
 /** key → scheduled-notification id, for the policy-driven outbound loop
@@ -173,7 +174,9 @@ export function useNotifications(): UseNotificationsReturn {
     // Cancel any existing notifications for this deadline first
     await cancelDeadlineReminders(deadline.id);
 
-    const dueDate = new Date(deadline.due_date);
+    // `due_date` is a Postgres `date` — parse it on the LOCAL calendar or
+    // every reminder fires a day early for families west of Greenwich.
+    const dueDate = parseDateLocal(deadline.due_date);
     const now = new Date();
     const scheduledIds: string[] = [];
 
