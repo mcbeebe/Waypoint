@@ -16,6 +16,7 @@
 import type { RequestType } from '@/lib/requestClocks';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { MEDI_CAL_DEEMING_REQUEST_TITLE } from '@/lib/resourceStack';
+import { localDayISO } from '@/lib/dateOnly';
 
 export interface SentNext {
   /** The headline — earned, specific, never generic confetti. */
@@ -47,6 +48,28 @@ export function trackFor(
 ): SentNext['track'] {
   if (!next?.track) return null;
   return presetRequestId ? null : next.track;
+}
+
+/**
+ * The date a statutory clock runs from when a letter is marked sent.
+ *
+ * A send that JOINS a live request — the same ask re-sent from the catalog
+ * while the original is still open — does NOT restart that request's clock.
+ * The law counts from the original written ask, and the Request Tracker
+ * computes from the stored row; anchoring the celebration on today instead
+ * put a second, later statutory date on screen for one request, citation
+ * attached. Only a send that FOUNDS a request anchors on today — and "today"
+ * is the family's local calendar day, since the UTC day is already tomorrow
+ * every evening in California.
+ *
+ * @param joined the request this send joined, or null when it founds one
+ * @param now clock reading for the founding case (defaults to real now)
+ */
+export function clockAnchorFor(
+  joined: { requested_on: string } | null | undefined,
+  now: Date = new Date()
+): string {
+  return joined?.requested_on ?? localDayISO(now);
 }
 
 export function sentNextFor(

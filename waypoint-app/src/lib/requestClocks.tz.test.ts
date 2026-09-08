@@ -12,8 +12,9 @@
  * citation to it, so the app would be telling a family the law says something
  * it does not.
  */
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { deadlineFor, sendClock } from './requestClocks';
+import { describe, it, expect } from 'vitest';
+import { deadlineFor } from './requestClocks';
+import { clockAnchorFor } from './sentNext';
 
 const NOW = new Date(2026, 7, 29, 9, 0, 0); // Aug 29 2026, local
 
@@ -57,74 +58,52 @@ describe('a statutory due date is the family’s calendar date', () => {
   });
 });
 
-/**
- * `sendClock` is the day LettersScreen stamps on `family_requests.requested_on`
- * and starts the statutory window from. It used to be
- * `new Date().toISOString().slice(0, 10)` written inline in the screen, where
- * no suite could reach it.
- *
- * The clock is pinned rather than passed in — `sendClock` takes no date
- * argument at all, so these assertions exercise the real derivation. Two
- * instants, one per direction: 03:00 UTC is the previous evening in Los
- * Angeles (UTC day a day AHEAD of the family's), 18:00 UTC is the small hours
- * of the next day in Ho Chi Minh City (a day BEHIND). Each project catches one
- * and neither assertion names a sign.
- *
- * `expectedToday` re-derives the local day from Date components rather than
- * calling `localDayISO`, so this does not test the primitive against itself.
- */
-describe('sendClock', () => {
-  const INSTANTS: [string, string][] = [
-    ['03:00 UTC — an evening west of Greenwich', '2026-08-01T03:00:00.000Z'],
-    ['18:00 UTC — a small hour east of Greenwich', '2026-08-01T18:00:00.000Z'],
-  ];
+describe('the clock a send starts (LettersScreen “marked sent” moment)', () => {
+  // Marking a letter sent decides, in one step, what date the statutory clock
+  // runs from. Two ways to get that wrong, both of which put a citation on a
+  // date the law never gave:
+  //   1. Anchoring a FOUNDING send on the UTC day — after 5pm Pacific that is
+  //      tomorrow, so the due date lands a day late.
+  //   2. Anchoring a RE-SEND on today — the tracker still counts from the
+  //      original ask, so one request showed two statutory dates weeks apart.
+  // clockAnchorFor owns that decision, so both are pinned here.
+  const SENT_AT = new Date(2026, 8, 6, 18, 30); // Sep 6 2026, 6:30pm local
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  const pin = (instant: string) => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(instant));
-  };
-
-  const expectedToday = () => {
-    const n = new Date();
-    const pad = (v: number) => String(v).padStart(2, '0');
-    return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`;
-  };
-
-  it.each(INSTANTS)('stamps the family’s own calendar day at %s', (_label, instant) => {
-    pin(instant);
-    expect(sendClock().requestedOn).toBe(expectedToday());
-  });
-
-  it.each(INSTANTS)('starts a fresh clock from that same day at %s', (_label, instant) => {
-    pin(instant);
-    const clock = sendClock();
-    expect(clock.clockFrom).toBe(clock.requestedOn);
-  });
-
-  it.each(INSTANTS)('gives a new request the FULL statutory window at %s', (_label, instant) => {
-    pin(instant);
-    // End to end, exactly as the sent moment renders it: stamp, then cite.
-    const dl = deadlineFor('ipp_meeting', sendClock().requestedOn)!;
+  it('a founding send anchors on the family’s local day, not the UTC day', () => {
+    // In Los Angeles the UTC slice of this instant is already 2026-09-07 —
+    // that is the regression. In Ho Chi Minh City the two agree, so the
+    // tz-west project is the one this bites in.
+    expect(clockAnchorFor(null, SENT_AT)).toBe('2026-09-06');
+    const dl = deadlineFor('ipp_meeting', clockAnchorFor(null, SENT_AT), SENT_AT)!;
+    expect(dl.dueOn).toBe('2026-10-06');
     expect(dl.daysRemaining).toBe(30);
-    expect(dl.overdue).toBe(false);
   });
 
-  it.each(INSTANTS)('never restarts an open request’s clock at %s', (_label, instant) => {
-    pin(instant);
-    // Re-sending from the catalog onto a request opened weeks ago: the
-    // citation must count from the row that owns the clock, not from today.
-    const clock = sendClock('2026-07-02');
-    expect(clock.clockFrom).toBe('2026-07-02');
-    expect(clock.requestedOn).toBe(expectedToday());
-    expect(deadlineFor('ipp_meeting', clock.clockFrom)!.dueOn).toBe('2026-08-01');
+  it('a re-send does NOT restart the clock of the request it joins', () => {
+    // Asked Aug 1; re-sending the same open ask on Sep 6 keeps the Aug 1
+    // clock — which, by then, is long overdue. Anchoring on the send day
+    // instead showed a comfortable Oct 6 beside the tracker's Aug 31.
+    const joined = { requested_on: '2026-08-01' };
+    expect(clockAnchorFor(joined, SENT_AT)).toBe('2026-08-01');
+    const dl = deadlineFor('ipp_meeting', clockAnchorFor(joined, SENT_AT), SENT_AT)!;
+    expect(dl.dueOn).toBe('2026-08-31');
+    expect(dl.overdue).toBe(true);
   });
 
-  it('treats a missing existing date as opening the clock today', () => {
-    expect(sendClock(null).clockFrom).toBe(sendClock().requestedOn);
-    expect(sendClock(undefined).clockFrom).toBe(sendClock().requestedOn);
+  it('the celebration and the Request Tracker cite the same date, always', () => {
+    // The tracker computes from the stored row; the sent moment computes from
+    // the anchor. For every request either could be looking at, they agree.
+    for (const requested_on of ['2026-08-01', '2026-09-06', '2026-01-05']) {
+      const celebrated = deadlineFor('ipp_meeting', clockAnchorFor({ requested_on }, SENT_AT), SENT_AT);
+      const tracked = deadlineFor('ipp_meeting', requested_on, SENT_AT);
+      expect(celebrated?.dueOn).toBe(tracked?.dueOn);
+      expect(celebrated?.overdue).toBe(tracked?.overdue);
+    }
+  });
+
+  it('holds for the 15-day assessment-plan clock', () => {
+    const dl = deadlineFor('iep_evaluation', clockAnchorFor(null, SENT_AT), SENT_AT)!;
+    expect(dl.dueOn).toBe('2026-09-21');
+    expect(dl.daysRemaining).toBe(15);
   });
 });
