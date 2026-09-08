@@ -6,7 +6,7 @@ locale: en
 translationKey: start-first-100-days
 status: published
 pillar: start
-dateModified: 2026-09-07
+dateModified: 2026-09-08
 datePublished: 2026-09-07
 review:
   reviewedBy: "Mike Beebe"
@@ -16,6 +16,8 @@ review:
 nextReviewEvent: annual
 disclaimerVariant: medical
 changelog:
+  - date: 2026-09-08
+    note: "Corrected a citation. The deadline was right, the section was not: initial Regional Center intake within 15 working days comes from WIC §4642, not §4643. §4643 sets only the 120-day assessment clock. Nothing about what you should do changed."
   - date: 2026-09-07
     note: "Rewritten after four rounds of editing: added the evaluation step that comes before everything else, broadened the plan beyond autism, and made the therapy guidance approach-neutral."
   - date: 2026-09-07
@@ -35,7 +37,10 @@ sources:
   - label: "17 CCR §52086 (Early Start 45-day timeline)"
     url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
     accessed: 2026-09-07
-  - label: "WIC §4643 (regional center intake and assessment clocks)"
+  - label: "WIC §4642 (initial intake within 15 working days of the request)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake)"
     url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
     accessed: 2026-09-07
   - label: "WIC §4512 (developmental disability; substantial disability)"
@@ -70,8 +75,10 @@ sources:
     public school programs, who reside in the district").
   — CORRECTED: Early Start 45-day clock is 17 CCR §52086 (referral →
     evaluation + IFSP), implementing 34 CFR §303.310 — NOT WIC §4643.
-    §4643 is the 3+ track: intake within 15 working days, assessment
-    within 120 days of intake.
+    §4643 is the 3+ ASSESSMENT clock only (120 days from intake).
+  — CORRECTED 2026-09-08: the 15-working-day intake clock is WIC
+    §4642(a)(2), not §4643. §4643 contains no intake deadline. Re-verified
+    against leginfo directly. Numbers were right; the attribution was not.
   — Ed Code §56321 15-day assessment plan confirmed.
   — SB 946 confirmed (HSC §1374.73; sunset repealed by AB 796 (2016);
     self-funded ERISA plans exempt).
@@ -142,8 +149,9 @@ import PlainBox from '../../../components/PlainBox.astro';
   <span class="cite">WIC §4500</span>. If your child is under 3, Early Start must complete the
   evaluation and initial family service plan within <b>45 days</b> of the referral
   <span class="cite">17 CCR §52086</span>; at 3 and older, intake starts within 15 working
-  days and any needed assessment is due within <b>120 days</b> of intake
-  <span class="cite">WIC §4643</span>. This one call opens the path to respite and Medi-Cal.
+  days <span class="cite">WIC §4642</span> and any needed assessment is due within
+  <b>120 days</b> of intake <span class="cite">WIC §4643</span>. This one call opens the path
+  to respite and Medi-Cal.
   One honest fit note: Regional Centers serve autism, intellectual disability, cerebral
   palsy, epilepsy, and closely related conditions — <b>ADHD alone usually doesn't qualify</b>,
   and that's fine: the school and insurance doors below are open to every
