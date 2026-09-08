@@ -72,6 +72,13 @@ const review = z
 
 const seoBase = z.object({
   title: z.string().max(70),
+  /**
+   * Search-facing <title>, when the on-page H1 is deliberately emotional.
+   * The H1 always uses `title`; the title tag uses `seoTitle ?? title`.
+   * Keeps brand voice on the page and the target keyword in the SERP
+   * (STYLE-GUIDE; the pattern the SEO research found working in this niche).
+   */
+  seoTitle: z.string().max(70).optional(),
   description: z.string().min(40).max(160),
   locale: z.enum(['en', 'es']).default('en'),
   /** Joins en/es siblings for hreflang — set even before the twin exists. */
