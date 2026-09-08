@@ -101,7 +101,7 @@ staff who explain these exact systems to parents daily. Senior staff
 plain-language accuracy review and are underpaid — a per-item fee lands well.
 
 **We already have the org list:** PTI organization contacts live in
-`gas-mvp/Waypoint-Entity-Navigation-Matrix-v9_4.xlsx`, **PTI Coverage Map
+`Archive/Retired-Surfaces/gas-mvp/Waypoint-Entity-Navigation-Matrix-v9_4.xlsx`, **PTI Coverage Map
 sheet**. Start there instead of rebuilding the list. Verify each contact is
 current before emailing [TBC — the sheet's contacts have not been re-verified
 recently].

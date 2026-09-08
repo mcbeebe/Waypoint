@@ -1,6 +1,6 @@
 /**
  * Starter plan generator — TypeScript port of the GAS MVP's generateRichPlan
- * (gas-mvp/Index.html). Turns onboarding intake answers (diagnoses, age,
+ * (Archive/Retired-Surfaces/gas-mvp/Index.html). Turns onboarding intake answers (diagnoses, age,
  * Regional Center status, IEP status, insurance) into a personalized set of
  * starter actions, seeded into the Supabase `actions` table with
  * source: 'system' when onboarding completes.

@@ -22,7 +22,23 @@ import AxeBuilder from '@axe-core/playwright';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..');
-const dist = path.resolve(process.argv[2] ?? path.join(ROOT, 'dist'));
+const positional = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const dist = path.resolve(positional[0] ?? path.join(ROOT, 'dist'));
+
+// The scan runs twice in `npm run gates`, against two different builds:
+//
+//   drafts build  — every template has an exemplar, so REQUIRED is enforced.
+//   production build (--production) — only PUBLISHED content is built, so the
+//     draft-only exemplars are legitimately absent and REQUIRED is relaxed to
+//     REQUIRED_PUBLISHED.
+//
+// The production pass exists because components can render DIFFERENTLY in the
+// two builds. GatedLink renders a real <a> under the drafts flag and a
+// placeholder span in production; the production rendering therefore appeared
+// in no build any gate had ever scanned, and shipped a card of dead grey text
+// to a live page. Anything that branches on publish state must be scanned in
+// the build real families get.
+const PRODUCTION = process.argv.includes('--production');
 
 // One required exemplar per template: their absence means the drafts build
 // (or a template) broke, and absence must fail loudly, not skip silently.
@@ -43,6 +59,20 @@ const REQUIRED = [
   '/privacy/',
   '/404.html',
 ];
+
+// Routes that exist in EVERY build regardless of publish state — these must be
+// present in the production scan too, or the relaxation above would hide a
+// genuinely broken template.
+const ALWAYS_BUILT = new Set([
+  '/',
+  '/guides/',
+  '/tools/ssi-deeming-calculator/',
+  '/tools/regional-center-finder/',
+  '/pricing/',
+  '/about/',
+  '/privacy/',
+  '/404.html',
+]);
 
 const MIME = {
   '.html': 'text/html',
@@ -159,8 +189,23 @@ try {
 const failures = [];
 let warnings = 0;
 try {
-  for (const url of REQUIRED) {
-    if (!fileFor(url)) failures.push(`${url}: required template page missing from build (scan needs the drafts build)`);
+  // In production only published content exists; still demand the always-on
+  // routes plus every page that IS published, so a broken published template
+  // fails loudly here too.
+  const required = PRODUCTION
+    ? REQUIRED.filter((url) => ALWAYS_BUILT.has(url) || fileFor(url))
+    : REQUIRED;
+  for (const url of required) {
+    if (!fileFor(url)) {
+      failures.push(
+        `${url}: required template page missing from the ${PRODUCTION ? 'production' : 'drafts'} build`
+      );
+    }
+  }
+  if (PRODUCTION) {
+    for (const url of ALWAYS_BUILT) {
+      if (!fileFor(url)) failures.push(`${url}: always-on route missing from the production build`);
+    }
   }
 
   const context = await browser.newContext();

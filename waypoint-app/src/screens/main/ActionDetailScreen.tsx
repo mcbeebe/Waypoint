@@ -36,7 +36,6 @@ import ActionFormModal, { type ActionFormValues } from '@/components/ActionFormM
 import DateInput from '@/components/DateInput';
 import { getCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
 import { actionUrl, withWaypointLink } from '@/lib/appLinks';
-import { parseLocalDay } from '@/lib/dateOnly';
 import { useActionNotes } from '@/hooks/useActionNotes';
 import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useContacts } from '@/hooks/useContacts';
@@ -989,11 +988,15 @@ function formatNoteDate(dateStr: string): string {
 }
 
 function formatDate(dateStr: string): string {
-  // due_date and follow_up_date are Postgres `date` values — parse as the
-  // local day or the label prints one day early in California; created_at
-  // and completed_at are timestamps, which parseLocalDay passes through.
-  const d = parseLocalDay(dateStr);
-  if (!d) return dateStr;
+  // due_date and follow_up_date are Postgres `date` values: parse them as the
+  // LOCAL day so this screen names the same day as the card's overdue badge
+  // (bare new Date() reads UTC midnight — a day early west of UTC). The other
+  // callers pass full timestamps (created_at, completed_at), which keep
+  // instant semantics — appending 'T00:00:00' to those would be Invalid Date.
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(dateStr.trim())
+    ? new Date(dateStr.trim() + 'T00:00:00')
+    : new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr; // the raw string over "Invalid Date"
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 

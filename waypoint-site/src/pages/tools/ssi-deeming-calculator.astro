@@ -6,12 +6,15 @@
  * current-year figures are null-until-verified the tool renders a pending
  * state instead of computing with unverified numbers.
  *
- * noindex stays true until the tool's copy passes expert review (flip it in
- * the review PR — launch checklist tools row).
+ * Indexable since 2026-09-07: the 2026 constants verified and the owner
+ * signed off (initiative 008 decision record). The page copy has still had
+ * no OUTSIDE credentialed review — the on-page NoticeBox and the benefits
+ * disclaimer carry that, and the sitemap filter in astro.config.mjs lists
+ * this page only because its noindex is gone. Re-add both together if the
+ * tool ever goes back behind review.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
-import DraftBanner from '../../components/DraftBanner.astro';
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
 import NoticeBox from '../../components/NoticeBox.astro';
@@ -34,7 +37,6 @@ const saveProps = JSON.stringify({
 <BaseLayout
   title="SSI deeming calculator for California families — Waypoint"
   description="Estimate whether your child could qualify for SSI while living at home: a quick parent-to-child deeming estimate, free, private, and stored nowhere."
-  noindex={true}
   pillar="benefits"
 >
   <PageHero
@@ -44,7 +46,6 @@ const saveProps = JSON.stringify({
   />
   <div class="section">
     <div class="container">
-      <DraftBanner status="draft" />
       <div class="cols">
         <div class="tool-panel">
           <div class="field">
@@ -115,12 +116,15 @@ const saveProps = JSON.stringify({
       <article class="prose" style="margin-top:34px">
         <h2 class="qa-h">How the deeming math works</h2>
         <AnswerFirst>
-          Social Security starts with your income, subtracts a <b>living allocation for each
-          non-disabled child</b>, subtracts a <b>parental living allowance</b>, applies the
-          standard <b>$20 general and $65 earned-income exclusions</b>, halves the remaining
-          earned income, and "deems" what's left to your child. If the deemed amount is below
-          the federal benefit rate, your child may qualify for a partial or full benefit.
-          <Cite>SSA deeming rules</Cite>
+          Social Security works through your income in a set order: first it subtracts a
+          <b>living allocation for each non-disabled child</b> in the household, then the
+          standard <b>$20 general exclusion</b>, then the <b>$65 earned-income exclusion</b>
+          and <b>half of the earned income that remains</b>. Only then does it subtract the
+          <b>parental living allowance</b> — and whatever is left after that is "deemed" to
+          your child. If the deemed amount is below the federal benefit rate, your child may
+          qualify for a partial or full benefit. The order matters: the exclusions and the
+          halving come <b>before</b> the parental allowance, which is what the calculator
+          above does. <Cite>POMS SI 01320.500</Cite>
         </AnswerFirst>
         <p>
           <strong>Two things families miss:</strong> a child denied SSI for income can still get

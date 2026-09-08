@@ -19,8 +19,13 @@ root — **port it, don't redesign it**. The plan of record is
 
 ```bash
 npm run dev          # dev server (drafts visible; search index absent until a build)
-npm run gates        # check + tests + drafts build + link check + axe scan
-                     #   + production build + link check + keyword map — the CI gate
+npm run gates        # check + tests + [TBC] ratchet
+                     #   + drafts build     -> link check + axe scan
+                     #   + production build -> link check + axe scan --production
+                     #   + sitemap∩noindex + keyword map — the CI gate
+                     # BOTH builds are scanned on purpose: a component that branches on
+                     # publish state (GatedLink) renders differently in production, and a
+                     # drafts-only scan once certified a card that was dead text when live.
 npm test             # vitest (pure modules: deeming math, deep-link builder)
 npm run axe          # drafts build + axe scan of every page (fails on serious/critical;
                      #   fresh clones need `npx playwright install chromium` once)
@@ -43,9 +48,21 @@ is published + reviewed") true by construction.
 only, so PR previews show work-in-progress and production never does.
 
 The two `/tools/` pages are product surfaces, not collection content: they are
-always built but ship `noindex` + a draft banner until their copy passes
-expert review (flip both, plus the sitemap exclusion in `astro.config.mjs`,
-in the review PR).
+always built, and each carries `noindex` + a draft banner until its data and
+copy are signed off. The **SSI deeming calculator** cleared that on 2026-09-07
+(verified 2026 constants + owner sign-off) and is now indexed; the **Regional
+Center finder** still ships `noindex` pending county-spine verification. When
+a tool flips, three things move together — the `noindex`, the draft banner,
+and the exclusion in `astro.config.mjs`'s sitemap filter — and
+`scripts/check-sitemap-noindex.mjs` fails the build if they get out of step.
+
+**A published page may link to an unpublished one** via `GatedLink`: it renders
+a real link when the target exists in the build and honest "(in review — coming
+soon)" text when it does not, so the link appears by itself the moment the
+target publishes. It throws at build time on an href matching no content entry
+at all — the internal-link checker only sees `<a href>` in `dist`, so a typo
+would otherwise be an invisible permanent placeholder. Because its output
+differs between the two builds, it is the reason `gates` scans both.
 
 ## Layout of the code
 

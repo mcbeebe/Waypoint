@@ -27,12 +27,33 @@
       "permanent": true
     },
     {
+      "source": "/join/",
+      "destination": "https://app.waypointchild.com/join",
+      "permanent": true
+    },
+    {
+      "source": "/actions",
+      "destination": "https://app.waypointchild.com/actions",
+      "permanent": true
+    },
+    {
+      "source": "/actions/",
+      "destination": "https://app.waypointchild.com/actions",
+      "permanent": true
+    },
+    {
       "source": "/actions/:path*",
       "destination": "https://app.waypointchild.com/actions/:path*",
       "permanent": true
     },
     {
       "source": "/start",
+      "has": [{ "type": "host", "value": "www.waypointchild.com" }],
+      "destination": "https://app.waypointchild.com/start",
+      "permanent": true
+    },
+    {
+      "source": "/start/",
       "has": [{ "type": "host", "value": "www.waypointchild.com" }],
       "destination": "https://app.waypointchild.com/start",
       "permanent": true
@@ -50,9 +71,21 @@
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/:prefix(login|signup|auth|onboarding|home|chat)/",
       "has": [{ "type": "host", "value": "www.waypointchild.com" }],
-      "destination": "https://waypointchild.com/:path*",
+      "destination": "https://app.waypointchild.com/:prefix",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.waypointchild.com" }],
+      "destination": "https://waypointchild.com/",
+      "permanent": true
+    },
+    {
+      "source": "/:path(.+)",
+      "has": [{ "type": "host", "value": "www.waypointchild.com" }],
+      "destination": "https://waypointchild.com/:path",
       "permanent": true
     }
   ]

@@ -8,21 +8,31 @@ pillar: benefits
 dateModified: 2026-09-06
 nextReviewEvent: annual
 disclaimerVariant: benefits
+changelog:
+  - date: 2026-09-07
+    note: "Fact-check pass applied: waiver identified as the DHCS HCBS-DD Waiver; eligibility criteria stated per DHCS (RC client under 18 at home, family-income-ineligible, ≥1 funded RC service/year)."
+sources:
+  - label: "DHCS — HCBS Waiver for the Developmentally Disabled (institutional deeming)"
+    url: "https://www.dhcs.ca.gov/services/ltc/Pages/DD.aspx"
+    accessed: 2026-09-07
+  - label: "DHCS — HCBS for the Developmentally Disabled (program page)"
+    url: "https://www.dhcs.ca.gov/services/long-term-care-alternatives-home-and-community-based-service-options/home-and-community-based-services-for-the-developmentally-disabled/"
+    accessed: 2026-09-07
 ---
 
 {/*
   DRAFT — piece #3 (keyword row /guides/benefits/medi-cal-institutional-deeming/).
-  Verification pending (fetches blocked in drafting session — founder edit
-  resolves each [TBC] against the primary source and fills sources[]):
-  [TBC: verify — the HCBS DD Waiver name + authority (1915(c); 42 CFR) and
-   the DHCS page describing institutional deeming for it]
-  [TBC: verify — eligibility criteria as stated (RC consumer + level of care
-   + living at home); confirm whether Early Start-only children qualify]
-  [TBC: verify — application channel(s): county Medi-Cal office vs RC service
-   coordinator initiation; current form names]
-  [TBC: verify — child's own income/resources still counted; share-of-cost
-   treatment under the waiver]
-  [TBC: verify — appeal route for a Medi-Cal denial (state fair hearing, CDSS)]
+  FACT-CHECKED 2026-09-07 (see sources[]): the vehicle is the DHCS
+  HCBS Waiver for the Developmentally Disabled (HCBS-DD), administered with
+  DDS through the 21 regional centers. Confirmed criteria: Regional Center
+  client under 18, living at home with family, ineligible for Medi-Cal due
+  to family income, receiving at least one funded RC service per year;
+  parental income/resources disregarded, the child's own still counted.
+  [TBC: human click-through of linked sources before publish]
+  [TBC: confirm whether Early Start-only children qualify]
+  [TBC: verify county application mechanics / current form names]
+  [TBC: verify share-of-cost + secondary-coverage mechanics]
+  [TBC: verify appeal route for a Medi-Cal denial (state fair hearing, CDSS)]
 */}
 
 import AnswerFirst from '../../../components/AnswerFirst.astro';
@@ -50,7 +60,7 @@ import SideCard from '../../../components/SideCard.astro';
   Institutional deeming <b>turns that rule off</b>: under a Home and Community-Based Services
   (HCBS) waiver for people with developmental disabilities, your child is treated the way they
   would be if they lived in a medical facility — <b>only the child's own income and resources
-  count</b> — while they keep living at home with you <Cite>[TBC: waiver authority]</Cite>.
+  count</b> — while they keep living at home with you <Cite>DHCS HCBS-DD Waiver</Cite>.
 </AnswerFirst>
 
 The name is bureaucratic, so here is the plain version. Decades ago, a child who lived in an
@@ -67,9 +77,10 @@ version of coverage; it's Medi-Cal.
 <h2 class="qa-h" id="who-qualifies">Does my child qualify?</h2>
 
 <AnswerFirst>
-  The path runs through your <b>Regional Center</b>: the waiver serves children with
-  developmental disabilities who are Regional Center consumers, live at home, and meet the
-  waiver's level-of-care criteria <Cite>[TBC: verify criteria]</Cite>. The child's <b>own</b>
+  The path runs through your <b>Regional Center</b>: the waiver serves Regional Center
+  clients <b>under 18</b> who <b>live at home</b> with family, would otherwise be ineligible
+  for Medi-Cal <b>because of family income</b>, and receive <b>at least one Regional
+  Center–funded service a year</b> <Cite>DHCS HCBS-DD Waiver</Cite>. The child's <b>own</b>
   income and resources still count — but for most children that's little or nothing.
 </AnswerFirst>
 
@@ -79,10 +90,10 @@ through Regional Center intake yet, start there first: our
 <a href="/guides/regional-centers/">Regional Center guide</a> walks the eligibility rules and
 the decision clock, and the intake call is free regardless of income.
 
-Two honest caveats while this page is in review: the exact level-of-care criteria, and how the
-rule applies to children in Early Start only, are details your service coordinator can confirm
-for your situation [TBC: verify both before publish]. What no one disputes is the headline:
-parental income is not what decides this.
+One honest caveat while this page is in review: how the rule applies to children in Early
+Start only is a detail your service coordinator can confirm for your situation [TBC: confirm
+Early Start-only treatment before publish]. What no one disputes is the headline: parental
+income is not what decides this.
 
 <h2 class="qa-h" id="how-to-apply">How do I apply, step by step?</h2>
 

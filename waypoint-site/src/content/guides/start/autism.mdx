@@ -1,73 +1,175 @@
 ---
 title: "Take a breath. You are not behind."
-description: "Just got an autism diagnosis in California? Your first 100 days, in order — Regional Center, school, insurance — and why each step unlocks the next."
+description: "Worried something's off, or just got a diagnosis? Your first 100 days in California, in order — evaluation, Regional Center, school, insurance."
 locale: en
 translationKey: start-autism
-status: draft
+status: published
 pillar: start
-dateModified: 2026-09-06
+dateModified: 2026-09-07
+datePublished: 2026-09-07
+review:
+  reviewedBy: "Mike Beebe"
+  credential: "Founder"
+  date: 2026-09-07
+  versionReviewed: "daab5050dfaf9e20c560d6398d02d656e1773c4e"
 nextReviewEvent: annual
-disclaimerVariant: legal
+disclaimerVariant: medical
+changelog:
+  - date: 2026-09-07
+    note: "Rewritten after four rounds of editing: added the evaluation step that comes before everything else, broadened the plan beyond autism, and made the therapy guidance approach-neutral."
+  - date: 2026-09-07
+    note: "Every legal deadline on this page checked against its source. Corrected: the Early Start 45-day clock comes from 17 CCR §52086, and the Regional Center intake and assessment clocks are now stated exactly as WIC §4643 words them. Sources are listed below."
+  - date: 2026-09-07
+    note: "Published. Reviewed by Waypoint's founder against the sources listed below. An outside credentialed review is still planned, and will be credited here when it happens."
+sources:
+  - label: "Hyman, Levy & Myers, Identification, Evaluation, and Management of Children With ASD (AAP clinical report), Pediatrics 2020;145(1):e20193447"
+    url: "https://publications.aap.org/pediatrics/article/145/1/e20193447/36917/Identification-Evaluation-and-Management-of"
+    accessed: 2026-09-07
+  - label: "CA Ed Code §56321 (15-day assessment plan)"
+    url: "https://california.public.law/codes/ca_educ_code_section_56321"
+    accessed: 2026-09-07
+  - label: "CA Ed Code §56301 (Child Find)"
+    url: "https://law.justia.com/codes/california/2020/code-edc/title-2/division-4/part-30/chapter-4/article-1/section-56301/"
+    accessed: 2026-09-07
+  - label: "17 CCR §52086 (Early Start 45-day timeline)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-07
+  - label: "WIC §4643 (regional center intake and assessment clocks)"
+    url: "https://california.public.law/codes/welfare_and_institutions_code_section_4643"
+    accessed: 2026-09-07
+  - label: "WIC §4512 (developmental disability; substantial disability)"
+    url: "https://law.justia.com/codes/california/code-wic/division-4-5/chapter-1-6/section-4512/"
+    accessed: 2026-09-07
+  - label: "HSC §1374.73 (SB 946 behavioral health treatment mandate)"
+    url: "https://codes.findlaw.com/ca/health-and-safety-code/hsc-sect-1374-73/"
+    accessed: 2026-09-07
+  - label: "DDS Early Start Family Resource Centers (47 FRCs, all 58 counties)"
+    url: "https://www.dds.ca.gov/services/early-start/family-resource-center/"
+    accessed: 2026-09-07
 ---
 
 {/*
-  DRAFT — piece #1 (keyword row /start/autism/), ported from the prototype.
-  Verification pending:
-  [TBC: verify — WIC §4500 (services regardless of income)]
-  [TBC: verify — WIC §4643 45-day Early Start / 120-day decision clocks]
-  [TBC: verify — CA Ed Code §56321 15-calendar-day assessment plan response]
-  [TBC: verify — SB 946 scope + ERISA exemption phrasing]
-  [TBC: verify — WIC §4646 IPP]
-  [TBC: "Find your people" step needs real, verified parent-support resources
-   before publish — the prototype's "(sample resources)" placeholder was cut.]
-  Item ids below are write-once (they ride wp_ctx into the app — D3).
+  DRAFT — piece #1 (keyword row /start/autism/). REVISED 2026-09-07 per
+  founder feedback: (1) new Step 0 evaluation phase — school-district track
+  and clinical track run in parallel; (2) steps generalized beyond autism
+  (fit notes for ADHD; Regional Center eligibility stated honestly); (3) a
+  higher-support-needs step; (4) community/support-network steps expanded.
+  disclaimerVariant flipped legal→medical: the page now discusses
+  diagnostic evaluation.
+
+  FACT-CHECKED 2026-09-07 (research pass, verbatim-statute snippets from
+  the sources in sources[]; egress blocked direct fetches, so a human
+  click-through of the linked pages is the last verification step):
+  — AAP 2020 clinical report confirmed: Hyman/Levy/Myers, Pediatrics
+    2020;145(1):e20193447 — ASD diagnosis "well within the scope of
+    practice for a primary care pediatrician."
+  — Educational eligibility vs clinical diagnosis: separate parallel
+    determinations confirmed (CHOP CAR roadmap; CDE).
+  — Child Find confirmed: EC §56301 ("including children not enrolled in
+    public school programs, who reside in the district").
+  — CORRECTED: Early Start 45-day clock is 17 CCR §52086 (referral →
+    evaluation + IFSP), implementing 34 CFR §303.310 — NOT WIC §4643.
+    §4643 is the 3+ track: intake within 15 working days, assessment
+    within 120 days of intake.
+  — Ed Code §56321 15-day assessment plan confirmed.
+  — SB 946 confirmed (HSC §1374.73; sunset repealed by AB 796 (2016);
+    self-funded ERISA plans exempt).
+  — WIC §4512 3-of-7 + qualifying conditions confirmed; ADHD-alone
+    framing supported by 17 CCR §54000(c)(1) ("solely psychiatric"
+    excluded) — application, not statute quote.
+  — FRC/PTI confirmed: 47 Early Start FRCs serve all 58 counties (DDS);
+    CA PTIs are MATRIX, PHP, EPU, TASK by region (DREDF/CPIR). CHADD
+    confirmed as the national ADHD org.
+  PUBLISHED 2026-09-07 under the founder-as-reviewer decision (see
+  changelog); sources[] carries the receipts. Item ids below are now
+  write-once — the page is live, so never rename a CheckItem id (they ride
+  wp_ctx — D3).
 */}
 
 import CheckItem from '../../../components/CheckItem.astro';
 import EmpathyCallout from '../../../components/EmpathyCallout.astro';
+import GatedLink from '../../../components/GatedLink.astro';
 import HandoffCTA from '../../../components/HandoffCTA.astro';
 import PhaseLabel from '../../../components/PhaseLabel.astro';
 import PlainBox from '../../../components/PlainBox.astro';
 
 <p class="lede" style="margin-top:0">
-  This is often the hardest moment a family ever stands in — and there is a sequence that
-  works. Below are your first 100 days, in order, with why each step unlocks the next. You
-  don't have to do them all today. You just have to start one.
+  Maybe something feels a little off, or a caregiver or preschool teacher seems to be trying
+  to tell you something, or daycare isn't going well and nobody's saying why. Trust that
+  signal: <b>ask the people who spend their days with your child what they're noticing,
+  listen — and get an evaluation</b>. If the diagnosis has already landed, take a breath.
+  Either way, there's a sequence that works: your first 100 days, in order. Most of it
+  applies whatever the answer turns out to be — autism, ADHD, a speech delay, something
+  still unnamed. You just have to start one step.
 </p>
 
 <div class="progress-wrap">
-  <div class="lbl"><span>Your first 100 days</span><span id="start-progress-label">0 of 9 started</span></div>
+  <div class="lbl"><span>Your first 100 days</span><span id="start-progress-label">0 of 12 started</span></div>
   <div class="progress-track"><div class="progress-fill" id="start-progress-fill"></div></div>
 </div>
 
 <p style="font-size:.85rem;margin:6px 0 14px"><a href="#start-why">How Waypoint decided this order ↓</a></p>
 
+<PhaseLabel>Step 0 · Days 0–14 · Get the evaluations moving</PhaseLabel>
+
+<CheckItem id="eval-two-tracks" title="Start both evaluation tracks — they run in parallel">
+  A teacher's or caregiver's hunch is information, not a verdict — ask what they're seeing,
+  then open both doors at once. The <b>school-district evaluation</b> decides eligibility for
+  school services: free, any suspected disability (ADHD included), and districts must seek out
+  and evaluate resident children from age 3 even before they enroll
+  <span class="cite">Ed Code §56301</span> — the written request two steps down starts it. The
+  <b>clinical evaluation</b> produces the medical diagnosis insurance requires. Different
+  criteria, decided by different teams — and neither substitutes for the other.
+  Under 3? Early Start is your first call — the Regional Center step below covers it.
+</CheckItem>
+
+<CheckItem id="medical-eval-waitlist" title="Get on a clinical evaluation waitlist this week">
+  Start with your pediatrician and ask for a referral for a <b>diagnostic evaluation</b> —
+  for autism, typically a <b>developmental-behavioral pediatrician, child neurologist, or
+  child psychologist</b>, though your pediatrician may be able to make the diagnosis
+  themselves — the American Academy of Pediatrics says the diagnosis is "well within the
+  scope of practice" of a primary care pediatrician, precisely because specialist waitlists
+  run long. The waitlist is the bottleneck, so take the
+  earliest slot anywhere reasonable — the written report is what the insurance step below
+  runs on.
+</CheckItem>
+
 <PhaseLabel>Days 0–30 · Get in every line at once</PhaseLabel>
 
 <CheckItem id="rc-intake-call" title="Call your Regional Center and ask for an intake appointment">
   The evaluation is free, regardless of your income — that's the Lanterman Act
-  <span class="cite">WIC §4500</span>. If your child is under 3, Early Start requires an
-  eligibility decision within <b>45 days</b>; at 3 and older, within <b>120 days</b> of intake
+  <span class="cite">WIC §4500</span>. If your child is under 3, Early Start must complete the
+  evaluation and initial family service plan within <b>45 days</b> of the referral
+  <span class="cite">17 CCR §52086</span>; at 3 and older, intake starts within 15 working
+  days and any needed assessment is due within <b>120 days</b> of intake
   <span class="cite">WIC §4643</span>. This one call opens the path to respite and Medi-Cal.
-  Not sure which of the 21 centers is yours?
+  One honest fit note: Regional Centers serve autism, intellectual disability, cerebral
+  palsy, epilepsy, and closely related conditions — <b>ADHD alone usually doesn't qualify</b>,
+  and that's fine: the school and insurance doors below are open to every
+  diagnosis. Not sure which of the 21 centers is yours?
   <a class="link" href="/tools/regional-center-finder/">Find your Regional Center →</a>
 </CheckItem>
 
-<CheckItem id="school-eval-request" title="Request a school evaluation — in writing, today">
+<CheckItem id="school-eval-request" title="Request the school evaluation — in writing, today">
   The moment your district receives a written request, a <b>15-calendar-day</b> clock starts
   for them to respond with an assessment plan <span class="cite">CA Ed Code §56321</span>. A
-  phone call starts nothing; a letter starts everything. Use our ready-to-send version:
+  phone call starts nothing; a letter starts everything — and this works for any suspected
+  disability, ADHD included. Use our ready-to-send version:
   <a class="link" href="/letters/iep-evaluation-request/">IEP evaluation request letter →</a>
 </CheckItem>
 
-<CheckItem id="insurance-aba" title="Ask your insurer whether ABA is covered">
-  California's <b>SB 946</b> requires most fully-insured health plans to cover behavioral
-  health treatment, including ABA. (Self-funded ERISA plans are exempt — ask which kind yours
-  is.) If they say no, ask for the denial in writing: written denials can be appealed, all the
-  way to an Independent Medical Review.
+<CheckItem id="insurance-coverage" title="Ask two questions: what does your child's clinician recommend, and what will insurance cover?">
+  Waypoint doesn't push any particular therapy — your child's doctor or evaluating clinician
+  is the right source for <b>what</b> to pursue. Your job is the coverage side: call your
+  insurer and ask what services and therapies your plan covers for your child's diagnosis,
+  and what needs pre-authorization. Useful backstop: for autism, California's <b>SB 946</b>
+  requires most fully-insured plans to cover <b>prescribed behavioral health treatment</b>
+  (self-funded ERISA plans are exempt — ask which kind yours is), and
+  every plan owes you a straight answer for any diagnosis. Whatever they say no to, get in
+  writing: written denials can be appealed, all the way to an Independent Medical Review.
 </CheckItem>
 
-<PhaseLabel>Days 31–60 · Build the paper trail</PhaseLabel>
+<PhaseLabel>Days 31–60 · Build the paper trail — and your people</PhaseLabel>
 
 <CheckItem id="document-binder" title="Start a document binder">
   Every evaluation, letter, Notice of Action, and denial in one place, in date order. Systems
@@ -75,21 +177,44 @@ import PlainBox from '../../../components/PlainBox.astro';
   yes, and the stronger appeal when the answer is no.
 </CheckItem>
 
-<CheckItem id="medi-cal-deeming" title="Apply for Medi-Cal through institutional deeming">
+<CheckItem id="medi-cal-deeming" title="If your child has a developmental disability: apply for Medi-Cal through institutional deeming">
   A child with a developmental disability living at home can qualify for Medi-Cal with
   <b> parental income ignored</b>, via an HCBS waiver. Medi-Cal is the door to IHSS and more —
-  your Regional Center service coordinator can help you start the application.
+  your Regional Center service coordinator can help you start the application. (This runs
+  through Regional Center eligibility, so it applies to the same diagnoses as that door.)
 </CheckItem>
 
-<CheckItem id="find-your-people" title="Find your people">
-  Ask your Regional Center about parent support groups, and put your first respite request in
-  writing while you're at it. Parents six months ahead of you on this road are the best map
-  there is. [TBC: add verified parent-support resources before publish]
+<CheckItem id="find-your-people" title="Find the parents six months ahead of you">
+  Every California county is served by a <b>Family Resource Center</b> (47 of them cover all
+  58 counties) and by a federally funded <b>Parent Training and Information Center</b> —
+  both staffed largely by parents who've walked this road, free, in multiple languages. Ask
+  for a parent group for your child's diagnosis; diagnosis-specific communities (local autism
+  groups, CHADD for ADHD) are where the practical knowledge lives. One conversation with a
+  parent six months ahead of you is worth a week of searching.
+</CheckItem>
+
+<CheckItem id="support-network" title="Build your own support network — on purpose">
+  Brief one relative or friend properly — what the diagnosis means, what help looks like — so
+  you have one person who gets it. Put your first <b>respite request to the Regional Center
+  in writing</b> while you're at it. And check on yourself the way you'd check on a friend:
+  caregiver burnout is a predictable load, not a personal failing, and getting support early
+  is how you stay in this for the long haul.
+</CheckItem>
+
+<CheckItem id="higher-support-needs" title="If your child's needs are more significant: start the safety-and-support layer now">
+  For children with higher support needs — constant supervision, elopement, self-injury,
+  significant medical needs — three moves matter early: describe your <b>hardest days
+  honestly</b> in every evaluation (services follow documented need, not best days); ask about
+  <b>IHSS protective supervision</b> once Medi-Cal is in place — it can pay a parent for
+  supervision hours (<GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">the guide →</GatedLink>); and start a simple <b>safety log</b> of incidents — it becomes the evidence
+  for every hours assessment later. For milder presentations, skip this step without guilt —
+  the school and insurance tracks may be your whole first 100 days, and that's a complete
+  plan.
 </CheckItem>
 
 <PhaseLabel>Days 61–100 · First meetings, prepared</PhaseLabel>
 
-<CheckItem id="ipp-prep" title="Prepare for your first IPP meeting">
+<CheckItem id="ipp-prep" title="Prepare for your first IPP meeting (if Regional Center–eligible)">
   The Individual Program Plan <span class="cite">WIC §4646</span> is where Regional Center
   services actually get written down. Bring your goals in writing and ask for each one by
   name. If something is refused, request a written Notice of Action — that document is what
@@ -110,9 +235,12 @@ import PlainBox from '../../../components/PlainBox.astro';
 
 <PlainBox tag="Why this order">
   <span id="start-why"></span>
-  Every clock — Regional Center, school, insurance — runs independently, so days 0–30 start
-  them all in parallel. Days 31–60 build the paper trail those systems will ask for. Days
-  61–100 walk into the first meetings prepared. That is the whole ladder — nothing hidden.
+  Evaluations gate everything, so step 0 starts both tracks — educational and clinical — in
+  parallel, because they're separate doors that don't wait for each other. Days 0–30 get you
+  in every other line at once: every clock — Regional Center, school, insurance — runs
+  independently. Days 31–60 build the paper trail those systems will ask for, and the people
+  who'll carry you through them. Days 61–100 walk into the first meetings prepared. That is
+  the whole ladder — nothing hidden.
 </PlainBox>
 
 <div class="empathy" id="start-cheer" hidden>
