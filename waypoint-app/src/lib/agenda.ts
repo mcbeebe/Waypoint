@@ -9,6 +9,7 @@
  */
 
 import { PRIORITY_RANK as ACTION_PRIORITY_RANK } from '@/lib/actionMeta';
+import { localDayISO } from '@/lib/dateOnly';
 
 export interface AgendaAction {
   id: string;
@@ -100,13 +101,9 @@ const OPEN_STATUSES = new Set(['not_started', 'in_progress']);
 const PRIORITY_RANK: Record<string, number> = ACTION_PRIORITY_RANK;
 const WEEKDAY = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-function pad(n: number): string {
-  return String(n).padStart(2, '0');
-}
-
 /** Local-time YYYY-MM-DD — never UTC, or "today" drifts across timezones. */
 export function dayKey(d: Date): string {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  return localDayISO(d);
 }
 
 function addDays(d: Date, n: number): Date {

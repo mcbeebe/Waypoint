@@ -14,8 +14,8 @@
  * wide release.
  */
 import type { RcStatus, IepStatus } from '@/types/database';
-import { SSI_FBR_MONTHLY, SSI_YEAR } from '@/data/benefitFigures';
 import { parseDateLocal } from '@/lib/dateOnly';
+import { SSI_FBR_MONTHLY, SSI_YEAR } from '@/data/benefitFigures';
 
 export type EligibilityStatus = 'enrolled' | 'likely' | 'review' | 'later';
 export type FunnelLocale = 'en' | 'es' | 'vi';
@@ -296,9 +296,8 @@ export function deriveEligibility(
  */
 export function ageFromDob(dob: string | null | undefined, now = new Date()): number | null {
   if (!dob) return null;
-  // date_of_birth is a Postgres `date` — read it on the local calendar, or
-  // the age (and every phase/eligibility gate keyed on it) flips a day early
-  // west of Greenwich.
+  // date_of_birth is a Postgres `date`; parsed as UTC it reads a day early
+  // west of Greenwich, flipping the age the day BEFORE the actual birthday.
   const birth = parseDateLocal(dob);
   if (Number.isNaN(birth.getTime())) return null;
   let years = now.getFullYear() - birth.getFullYear();

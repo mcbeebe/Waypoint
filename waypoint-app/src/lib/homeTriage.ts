@@ -32,6 +32,7 @@ import { deadlineFor } from '@/lib/requestClocks';
 import { buildRequestCase, activeRequestForReply } from '@/lib/requestCase';
 import { findUnansweredReply } from '@/lib/replyInbox';
 import { deriveHomeInsight } from '@/lib/insights';
+import { localDayISO } from '@/lib/dateOnly';
 import { deriveStackInsight } from '@/lib/resourceStack';
 import type { BenefitStatus } from '@/types/database';
 
@@ -265,7 +266,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 /** Local calendar date — never a UTC slice, or "today" drifts by a day. */
 export function localDay(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return localDayISO(d);
 }
 
 function fmtDay(iso: string, locale: FunnelLocale): string {

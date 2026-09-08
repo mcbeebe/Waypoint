@@ -1,19 +1,21 @@
 /**
- * Reading Postgres date-only values on a calendar, not on an instant.
+ * Reading Postgres date-only values on the device's local calendar.
  *
- * A Postgres `date` (`2026-08-01` — `period_start`, `due_date`,
- * `date_of_birth`) names a calendar day with no instant and no zone. The
- * trap on the write/compare side is `new Date().toISOString().slice(0, 10)`:
- * that is "today" in UTC, which is TOMORROW every evening in California.
+ * A Postgres `date` (`2026-08-01` — `due_date`, `date_of_birth`,
+ * `requested_on`) names a calendar day with no instant and no zone.
+ * `new Date('2026-08-01')` parses it as UTC MIDNIGHT — 17:00 the previous
+ * evening for a family in California — so every naive parse displays,
+ * schedules, or compares the day before the one the row names. The inverse
+ * trap is `new Date().toISOString().slice(0, 10)`: that is "today" in UTC,
+ * which is tomorrow every evening in California.
+ *
+ * `actionSort`, `planView`, `homeTriage` and the other pure modules each
+ * guard their own domain already. This module is the shared rule for the
+ * call sites that were still parsing naively — the screens' date labels,
+ * deadline reminder scheduling, and age-from-DOB.
  *
  * Pure — no react-native, no I/O — so it lives in the `logic` vitest world,
  * and is pinned in BOTH timezone suites by `dateOnly.tz.test.ts`.
- *
- * NOTE: PR #199 introduces this same module with `localDayISO` (identical
- * behavior and signature) plus a `parseDateLocal` reader. Whichever lands
- * first, the other's merge is a no-op on this function. Do not add a second
- * date-only PARSER here — `parseDateLocal` below is #199's, copied verbatim
- * (name, signature and semantics) so that merge stays a no-op too.
  */
 
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
