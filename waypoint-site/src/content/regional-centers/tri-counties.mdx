@@ -21,14 +21,35 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "Tri-Counties Regional Center — Apply (age-routed application)"
+    url: "https://www.tri-counties.org/our-services/apply/"
+    accessed: 2026-09-08
+  - label: "Tri-Counties Regional Center — Contact Us (seven office locations)"
+    url: "https://www.tri-counties.org/contact-us/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 — initial intake within 15 working days of the request"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 — assessment within 120 days of intake (60 when delay poses risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 — substantial disability (3 of 7 areas); provisional eligibility under age 5"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 — IPP completed within 60 days of the assessment"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 — 60 days to request a fair hearing after a Notice of Action"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 — Early Start evaluation within 45 days of referral"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -52,62 +73,204 @@ sources:
   Two sources agree: DDS listing and the center's own site. (confidence: high)
     DDS: https://www.dds.ca.gov/rc/listings/
     Own: https://www.tri-counties.org/contact-us/
+
+  ---- NARRATIVE PASS 2026-09-08 — COUNTIES NOW ACTUALLY VERIFIED ----
+  The 2026-09-07 "VERIFIED" block above quotes a WebSearch budget error, not
+  DDS. That gap is closed this pass with a real fetch:
+    "Tri Counties Regional Center ... 520 East Montecito Street, Santa
+    Barbara, CA 93103-3278 ... San Luis Obispo, Santa Barbara, and Ventura
+    counties" — https://www.dds.ca.gov/rc/listings/ (fetched 2026-09-08)
+  The frontmatter county array matches DDS exactly. countiesMatchRepo=True.
+  Also verified this pass:
+    - SEVEN offices, from the center's own contact page: Santa Barbara (520
+      E. Montecito St — headquarters), Santa Maria, San Luis Obispo,
+      Atascadero, Ventura, Simi Valley, Fillmore. Business hours listed as
+      Monday-Friday 8:30 a.m.-5 p.m. — https://www.tri-counties.org/contact-us/
+      Branch phone numbers deliberately NOT retyped into prose
+      (STYLE-GUIDE §7); the body links to the contact page instead.
+    - The application flow is AGE-GATED at the very first question: the form
+      asks you to choose "The Person Seeking Services is Over Age 3" or
+      "...Under Age 3" before anything else, then connects you with an
+      Intake Coordinator — https://www.tri-counties.org/our-services/apply/
+    - Statutes re-verified on leginfo this pass: §4642, §4643, §4512, §4646,
+      §4710.5; 17 CCR §52086 re-read.
+    - Neighbors from the DDS listing: Kern RC (Inyo, Kern, Mono), San Andreas
+      RC (Monterey, San Benito, Santa Clara, Santa Cruz), and the LA-area
+      centers to the south-east.
+  [TBC: which TCRC office covers which cities — the contact page lists seven
+   offices but publishes no service-area map or city/ZIP assignment, so a
+   parent in, say, Lompoc or Ojai cannot tell from the site which office is
+   theirs]
+  [TBC: whether TCRC offers intake interviews by phone or video — the
+   distance from Paso Robles to Fillmore makes this the single most useful
+   unknown on this page]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Tri-Counties Regional Center covers San Luis Obispo, Santa Barbara, and Ventura counties — the
+  central coast, end to end. It coordinates and pays for services for children with
+  developmental disabilities, free, at any family income. There are seven offices, so before you
+  agree to a meeting, ask which one is closest to you.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  Tri-Counties Regional Center serves families in <b>San Luis Obispo, Santa Barbara, and Ventura counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Tri-Counties Regional Center (TCRC) serves <b>San Luis Obispo, Santa Barbara, and Ventura
+  counties</b> — one of California's <b>21 regional centers</b> under the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite>, free at any family income. Its territory runs roughly
+  <b>200 miles</b> of coast, so TCRC operates <b>seven offices</b>: Santa Barbara, Santa Maria,
+  San Luis Obispo, Atascadero, Ventura, Simi Valley, and Fillmore. Its application asks your
+  child's age first — <b>under 3</b> and <b>3 and older</b> follow different tracks.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="is-this-my-center">Is Tri-Counties my regional center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+If you live in **San Luis Obispo, Santa Barbara, or Ventura county**, yes. The boundary is the
+county line — clean, unlike Los Angeles County an hour to the south, where seven centers split
+one county by health district and a family's street address decides.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+Around the edges: Monterey and San Benito to the north belong to
+<GatedLink href="/regional-centers/san-andreas/">San Andreas Regional Center</GatedLink>; Kern,
+Inyo and Mono over the mountains belong to
+<GatedLink href="/regional-centers/kern/">Kern Regional Center</GatedLink>; the far side of the
+Ventura county line is Los Angeles County and a different center entirely. What decides your
+case is **where your child lives** — not the school district, not where the pediatrician is.
+Our <a class="link" href="/tools/regional-center-finder/">Regional Center finder</a> confirms it
+in seconds.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+<h2 class="qa-h" id="which-office">Which office should I be dealing with?</h2>
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<AnswerFirst>
+  TCRC runs <b>seven</b> offices, and that is the most useful local fact on this page. From Paso
+  Robles to Fillmore is several hours of driving. Before you accept an appointment, ask: <i>"Which
+  office is closest to me, and can my meetings happen there?"</i> Nobody will volunteer it.
+</AnswerFirst>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>County</th><th>TCRC offices</th></tr>
+    <tr><td>San Luis Obispo</td><td>San Luis Obispo · Atascadero</td></tr>
+    <tr><td>Santa Barbara</td><td>Santa Barbara (headquarters) · Santa Maria</td></tr>
+    <tr><td>Ventura</td><td>Ventura · Simi Valley · Fillmore</td></tr>
+  </table>
+</div>
+
+TCRC's offices keep standard weekday business hours, which is its own kind of barrier when you
+work a shift or farm schedule. Addresses and numbers for all seven are on the center's own page —
+worth bookmarking rather than copying, because branch numbers change:
+
+<a class="link" href="https://www.tri-counties.org/contact-us/">Tri-Counties — office locations →</a>
+
+<h2 class="qa-h" id="how-intake-starts">How does intake start here?</h2>
+
+The application asks one question before anything else: **is the person seeking services over
+age 3, or under age 3?** That single choice sets which track you are on and which clock runs.
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Your child's age</th><th>Track</th><th>The clock</th></tr>
+    <tr><td>Under 3</td><td>Early Start</td><td><b>45 days</b> from referral to the evaluation and assessment <span class="cite">17 CCR §52086</span></td></tr>
+    <tr><td>3 and older</td><td>Standard Lanterman intake</td><td><b>15 working days</b> to intake <span class="cite">WIC §4642</span>, then <b>120 days</b> to a completed assessment <span class="cite">WIC §4643</span></td></tr>
+  </table>
+</div>
+
+<a class="link" href="https://www.tri-counties.org/our-services/apply/">Tri-Counties — apply for services →</a>
+
+After you apply, TCRC connects you with an **Intake Coordinator**. Get that person's name, direct
+number, and email on the first contact, and write down the date you applied. On a territory this
+size, the coordinator is your single point of contact, and the date is what every deadline runs
+from.
+
+**What to bring** — what exists, not a perfect folder:
+
+- Pediatrician notes, referrals, developmental screening results
+- Any evaluation: speech, occupational therapy, psychological, hearing
+- Preschool or school records; an IEP or IFSP if there is one
+- Your own written description of a **hard day**, in specifics
+
+A diagnosis is helpful and **not required** to begin. TCRC funds its own assessments at no cost
+to you.
+
+<h2 class="qa-h" id="the-clocks">What are the deadlines, exactly?</h2>
+
+<DeadlineCallout>
+  <b>15 working days</b> from your request to initial intake <Cite>WIC §4642</Cite>.
+  <b>120 days</b> from intake to a completed assessment — <b>60 days</b> where delay would risk
+  your child's health, safety, or development <Cite>WIC §4643</Cite>. Under 3: <b>45 days</b>
+  from referral for the Early Start evaluation and assessment <Cite>17 CCR §52086</Cite>. Then
+  <b>60 days</b> from the completed assessment to the written plan <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+Those are statewide and they do not stretch for distance. A long drive is your logistics problem
+and TCRC's scheduling problem — it is not a lawful reason for the assessment to run past 120
+days. If a clock passes, write to your coordinator with the date you applied, the statute, and a
+request for a decision date.
+
+Eligibility at **3 and older**: a developmental disability that began before 18 and is a
+"substantial disability" — significant functional limits in **3 or more of 7 life areas**
+<Cite>WIC §4512</Cite>. Under **age 5**, ask about **provisional eligibility** by name — it
+needs limits in **at least 2** of those areas rather than 3 <Cite>WIC §4512</Cite>.
+
+<EmpathyCallout label="When the map is the problem">
+  Three counties on one page looks tidy. On the ground it is mountain passes, a two-lane
+  stretch of the 101, and an appointment that eats a workday. That is a real cost and you are
+  allowed to name it out loud: "the nearest office to me is X — can we meet there, or by video?"
+  Asking early is the difference between one drive and four.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="if-they-say-no">What if Tri-Counties says no?</h2>
+
+A denial must arrive as a written **Notice of Action** explaining the decision and your appeal
+rights. A phone call saying "that's not something we fund" is not a decision and starts no
+clock — ask for the written notice. From it you have **60 days** to request a hearing
+<Cite>WIC §4710.5</Cite>. Check the dates printed on your own notice.
+
+The **Office of Clients' Rights Advocacy (OCRA)**, part of **Disability Rights California**,
+provides free advocates who handle regional center appeals statewide. It costs nothing and it
+changes the room.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial →</GatedLink>
+
+You picked the right track for your child's age, found the office nearest you, and dated the
+request. On a coast this long, that is the whole game.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#is-this-my-center">Is this my center?</a>
+    <a href="#which-office">Which office is mine?</a>
+    <a href="#how-intake-starts">How intake starts</a>
+    <a href="#the-clocks">The deadlines</a>
+    <a href="#if-they-say-no">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
       <dt>Counties</dt><dd>San Luis Obispo · Santa Barbara · Ventura</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Offices</dt><dd>Santa Barbara · Santa Maria · San Luis Obispo · Atascadero · Ventura · Simi Valley · Fillmore</dd>
+      <dt>Application</dt><dd>Age-gated: under 3 vs. 3 and older</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 from referral under 3 <span class="cite">17 CCR §52086</span></dd>
     </dl>
   </SideCard>
-  <SideCard title="Not your Regional Center?">
-    <p>California has 21. Enter your county and we'll point you to the right one.</p>
-    <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  <SideCard title="Nearby centers">
+    <GatedLink class="link" href="/regional-centers/san-andreas/">San Andreas RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/kern/">Kern RC →</GatedLink>
+    <p>Not sure which is yours?</p>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+  <SideCard title="The full guide">
+    <p>Eligibility, the IPP meeting, and appeals in depth:</p>
+    <a class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</a>
   </SideCard>
 </aside>
 </div>

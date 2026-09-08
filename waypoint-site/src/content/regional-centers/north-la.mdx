@@ -19,16 +19,54 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "WIC §4500 (Lanterman Developmental Disabilities Services Act — short title)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4500."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas; provisional eligibility, 2 of 5)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days where delay risks health, safety or development)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 (Early Start: evaluation, assessment and initial IFSP within 45 days of referral)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
   Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
   [TBC: verify this center's LA service area / ZIP coverage — seven centers
    divide Los Angeles County by neighborhood]
+
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Body rewritten as a per-center field guide. Verified by WebFetch this pass:
+   - DDS listing (https://www.dds.ca.gov/rc/listings/): "The health districts
+     of East Valley, San Fernando, and West Valley within the city of Los
+     Angeles"; address 9200 Oakdale Avenue, Suite 100, Chatsworth; main
+     818-778-1900; Early Start intake earlystartintake@nlacrc.org.
+   - DDS Attachment F, RC Directory FY 25-27
+     (https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf):
+     "Northern Los Angeles County including San Fernando and Antelope
+     Valleys"; same Chatsworth address.
+   - nlacrc.org/consumers-families/early-start/eligibility/: service area
+     "the San Fernando, Santa Clarita, and Antelope Valleys"; Early Start
+     criteria (25% delay in one or more areas; high risk; established risk);
+     the routing instruction quoted in the body — "If the child is turning 3
+     within 45 days complete the over Lanterman Act Services Ages 3+
+     application"; applications in English, Spanish, Russian, Tagalog, Farsi
+     and Armenian; Chatsworth address.
+   - Statutes: WIC §4643 and WIC §4512 re-verified on leginfo;
+     17 CCR §52086 via Cornell (45 days from referral; interim IFSP where
+     exceptional circumstances documented).
+  ADDRESS CONFLICT, deliberately not resolved in prose: the earlier pass
+  recorded a Van Nuys main office (15400 Sherman Way) while both DDS sources
+  and nlacrc.org's own Early Start page still print 9200 Oakdale Ave,
+  Chatsworth. No street addresses in the body; the page tells families to
+  confirm the office before driving.
+  [TBC: current NLACRC office list and addresses — Van Nuys vs Chatsworth
+   main office, plus the Santa Clarita and Antelope Valley offices]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -60,81 +98,186 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  NLACRC is the Regional Center for the north end of Los Angeles County: the San Fernando
+  Valley, the Santa Clarita Valley, and the Antelope Valley. It pays for and arranges services
+  for children with developmental disabilities, free, at any income. One local rule matters a
+  lot: if your child turns 3 within the next 45 days, use the ages-3-and-up application, not
+  the Early Start one. Under 3, you get an answer in 45 days. Age 3 and up, 120 days.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  North Los Angeles County Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you) — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  North Los Angeles County Regional Center (NLACRC) covers <b>three valleys</b> — San Fernando,
+  Santa Clarita, and Antelope — which the state also describes as the <b>East Valley, San
+  Fernando, and West Valley</b> health districts plus northern LA County beyond the city limits.
+  It is one of California's <b>21 Regional Centers</b> under the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite>, free at any income. The clocks: <b>45 days</b> under 3
+  <Cite>17 CCR §52086</Cite>, <b>120 days</b> at 3 and older <Cite>WIC §4643</Cite>.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
-
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
-
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
-
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
-
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
-
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
-
-<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+<h2 class="qa-h" id="la-area">Is NLACRC my Regional Center?</h2>
 
 <AnswerFirst>
-  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
-  not enough to tell you which one is yours — <b>your address decides it</b>, and the
-  boundaries follow LA County health districts and ZIP codes.
+  If you live in the San Fernando Valley, the Santa Clarita Valley, or the Antelope Valley,
+  almost certainly yes. Seven centers split Los Angeles County along health-district lines, and
+  NLACRC holds the northern share — the largest of the seven by land area, running from the
+  Valley floor up past Lancaster and Palmdale.
 </AnswerFirst>
 
-Northern Los Angeles County — the San Fernando Valley, the Santa Clarita Valley, and the
-Antelope Valley. Inside the City of Los Angeles that is the East Valley, San Fernando, and
-West Valley Health Districts (the Van Nuys / North Hollywood / Sylmar / Chatsworth / Canoga
-Park side of the county). Beyond the city limits it extends north through the Santa Clarita
-Valley and up into the Antelope Valley. NLACRC runs three offices matching those three
-valleys: a main office in Van Nuys (15400 Sherman Way, Ste. 170) — older official listings
-still show 9200 Oakdale Ave., Chatsworth — a Santa Clarita Valley office (23560 Magic
-Mountain Pkwy), and an Antelope Valley office in Lancaster. It does NOT serve Burbank,
-Glendale, La Canada-Flintridge, La Crescenta, or Pasadena; those are Frank D. Lanterman
-Regional Center. Nor the Westside, South Bay, Harbor, San Gabriel Valley, Pomona, East LA,
-or South Central — each has its own center.
+In everyday names: Van Nuys, North Hollywood, Sylmar, Pacoima, Chatsworth, Canoga Park,
+Northridge, Reseda and the rest of the Valley; Santa Clarita, Newhall and Valencia; Lancaster
+and Palmdale in the high desert.
 
-If you live near one of these boundaries, confirm your center with the state's own lookup
-before you call — being sent back to start by the wrong center costs weeks.
+The confusing edge is the eastern one. **Burbank, Glendale, La Cañada Flintridge, La Crescenta
+and Pasadena are not NLACRC** — they belong to Frank D. Lanterman Regional Center, even though
+they look on a map like they should be Valley-adjacent. The Westside, South Bay, harbor
+communities, San Gabriel Valley, East LA and South Central all belong to other centers too.
+
+If you are anywhere near one of those lines, check the state's own lookup at
+[dds.ca.gov/rc](https://www.dds.ca.gov/rc/) before you spend a morning on the phone. Reaching
+the wrong center does not cost you any rights, but no clock starts until you reach the right one.
+
+<h2 class="qa-h" id="turning-three">My child turns 3 soon. Which application do I use?</h2>
+
+<AnswerFirst>
+  This is the one piece of NLACRC-specific routing every local parent should know. The center's
+  own Early Start page says it plainly: <b>if your child is turning 3 within 45 days, use the
+  ages-3-and-up Lanterman application instead of the Early Start one.</b>
+</AnswerFirst>
+
+The logic is arithmetic, not bureaucracy. Early Start is the program for children from birth to
+36 months, and the whole process — evaluation, eligibility, initial family service plan — is due
+within 45 days of the referral <Cite>17 CCR §52086</Cite>. If your child ages out mid-process,
+you would finish an Early Start determination for a child who is no longer an Early Start
+child, then start over.
+
+So count the days to the birthday before you pick a form. If it is more than 45, Early Start.
+If it is fewer, go straight to the over-3 track and the three-of-seven standard. If you are
+right at the line, call and ask — and ask them to note in your file which track you were told to
+use, and when.
+
+The same birthday matters later too. Some children who qualify for Early Start do not meet the
+adult-style standard at 3, and that transition catches families off guard. Two-plus years of
+early intervention is worth having either way, but do not assume eligibility carries across the
+birthday automatically.
+
+<h2 class="qa-h" id="intake">How does intake actually start here?</h2>
+
+<AnswerFirst>
+  Call the main line at the top of this page and say you want intake and assessment, or send the
+  application to the intake mailbox listed on the center's website. Say your child's age in the
+  first sentence — it decides everything about which track you land on.
+</AnswerFirst>
+
+For Early Start, NLACRC states the criteria on its own site: a **25% delay in one or more areas**
+of development (cognitive, physical, language, social-emotional, adaptive), or a high-risk
+profile from multiple risk factors, or an **established risk condition** — a diagnosed medical
+condition with a high probability of causing developmental delay. No formal diagnosis is
+required to make the referral.
+
+<DeadlineCallout>
+  <b>Under 3:</b> evaluation, eligibility, and the initial family service plan are due within
+  <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>. <b>Age 3 and older:</b> assessment
+  due within <b>120 days of intake</b>, or <b>60 days</b> where delay would risk your child's
+  health, safety, or development <Cite>WIC §4643</Cite>.
+</DeadlineCallout>
+
+Have ready: your child's date of birth, your address, any medical or developmental reports, an
+IEP or IFSP if one exists, preschool or daycare notes, and your own written list of what a hard
+day looks like. Do not wait for a missing report — the center funds its own assessments.
+
+NLACRC publishes applications in **English, Spanish, Russian, Tagalog, Farsi, and Armenian**,
+which tells you something true about who lives in these valleys. Ask for an interpreter at first
+contact rather than bringing a bilingual relative to translate for your own child's case.
+
+<EmpathyCallout label="The distance nobody warns you about">
+  Lancaster to the Valley floor is not a trip you make lightly with a dysregulated toddler in the
+  back seat, and the Antelope Valley families know it. Ask, on the first call, which office holds
+  your file, whether the assessment can happen closer to home, and whether any of it can be done
+  by video. It is a fair question and a common one. You are not being difficult by asking how far
+  you will have to drive.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="local-vs-statewide">What's the same everywhere, and what's local?</h2>
+
+<AnswerFirst>
+  The law is identical at all 21 centers: the same eligibility standard <Cite>WIC §4512</Cite>,
+  the same 45- and 120-day clocks, the same right to a written Notice of Action and an appeal.
+  Local means offices, staffing, providers, forms, and routing advice like the turning-3 rule
+  above.
+</AnswerFirst>
+
+NLACRC organizes itself by valley, with offices serving the San Fernando, Santa Clarita and
+Antelope Valley areas. Confirm the address before you drive: official state listings and the
+center's own pages have not always agreed on which office is the main one.
+[TBC: current NLACRC office list and addresses.]
+
+The state's Regional Center directory also lists a cultural specialist and language-access
+manager at every center, NLACRC included. That is a role to ask for by name if language or
+culture is making this harder than it should be.
+
+<h2 class="qa-h" id="appeal">What if NLACRC says no?</h2>
+
+<AnswerFirst>
+  A denial only counts when it is written. Ask for a <b>Notice of Action</b> — the document that
+  states the decision and your appeal rights. A no over the phone starts no clock and cannot be
+  appealed by anyone.
+</AnswerFirst>
+
+The words that work: *"Please send me that decision as a written Notice of Action."* Then read
+the dates on it and calendar them the day it arrives. What follows is state procedure, identical
+in Palmdale and in Eureka.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
+
+You do not have to pay for help. The **Office of Clients' Rights Advocacy (OCRA)**, part of
+**Disability Rights California**, provides free advocates who handle Lanterman Act appeals for
+families. (They are a resource, not the rule — the binding deadlines come from the statute and
+from the dates printed on your own notice.)
+
+You counted the days to a birthday, picked the right form, and asked for the decision in
+writing. That is exactly the kind of thing that decides these cases, and you did it before
+anyone told you to.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#la-area">Is NLACRC my center?</a>
+    <a href="#turning-three">Turning 3 soon?</a>
+    <a href="#intake">How intake starts</a>
+    <a href="#local-vs-statewide">Local vs. statewide</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Los Angeles</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Serves</dt><dd>San Fernando, Santa Clarita &amp; Antelope Valleys — northern LA County</dd>
+      <dt>Turning 3 within 45 days?</dt><dd>Use the ages-3-and-up application, not Early Start</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 days from referral under 3 <span class="cite">17 CCR §52086</span></dd>
+      <dt>Cost</dt><dd>Free, at any income</dd>
     </dl>
+  </SideCard>
+  <SideCard title="Neighboring LA centers">
+    <p>Burbank, Glendale, La Crescenta or Pasadena?</p>
+    <GatedLink class="link" href="/regional-centers/lanterman/">Frank D. Lanterman RC →</GatedLink>
+    <p>Further east or south:</p>
+    <GatedLink class="link" href="/regional-centers/san-gabriel-pomona/">San Gabriel / Pomona →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/westside/">Westside →</GatedLink>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Or start with the basics:</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>

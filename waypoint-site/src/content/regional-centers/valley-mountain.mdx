@@ -23,14 +23,35 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "Valley Mountain Regional Center — Eligibility (three doors, branch routing)"
+    url: "https://www.vmrc.net/individuals-families-served/eligibility/"
+    accessed: 2026-09-08
+  - label: "Valley Mountain Regional Center — Who Do We Serve"
+    url: "https://www.vmrc.net/who-do-we-serve/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 — initial intake within 15 working days of the request"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 — assessment within 120 days of intake (60 when delay poses risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 — substantial disability (3 of 7 areas); provisional eligibility under age 5"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 — IPP completed within 60 days of the assessment"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 — 60 days to request a fair hearing after a Notice of Action"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 — Early Start evaluation within 45 days of referral"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -65,62 +86,214 @@ sources:
   Two sources agree: DDS listing and the center's own site. (confidence: high)
     DDS: https://www.dds.ca.gov/rc/listings/
     Own: https://www.vmrc.net/about-us/contact/
+
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Per-center body written. Verified this pass:
+    - DDS listing re-fetched 2026-09-08: "Valley Mountain Regional Center ...
+      702 North Aurora Street, Stockton, CA 95202 ... Amador, Calaveras, San
+      Joaquin, Stanislaus, and Tuolumne counties." Mariposa's assignment to
+      Central Valley RC also re-confirmed in the same fetch ("Fresno, Kings,
+      Madera, Mariposa, Merced, and Tulare counties").
+    - THREE branch offices, county-routed for intake: Stockton (San Joaquin),
+      Modesto (Stanislaus), and the town of SAN ANDREAS (Amador, Calaveras,
+      Tuolumne) — https://www.vmrc.net/individuals-families-served/eligibility/
+      Branch intake numbers deliberately NOT retyped into prose
+      (STYLE-GUIDE §7); the body links to VMRC's eligibility page.
+      NAME COLLISION worth flagging to readers: VMRC's foothill branch sits
+      in the town of San Andreas, Calaveras County. San Andreas REGIONAL
+      CENTER is a different center entirely (Santa Clara/Santa Cruz/San
+      Benito/Monterey). Searching "San Andreas regional center" from the
+      foothills lands a parent on the wrong organization.
+    - VMRC's eligibility page presents THREE doors by name — "Early Start
+      (Birth to 3 Years)", "Provisional Eligibility (Birth to 5 Years)", and
+      "Lanterman Eligibility (3 Years and Older)". The statutory provisional
+      test was checked directly this pass: WIC §4512(a)(2)(A) — a child
+      "under five years of age", disability "not solely physical in nature",
+      significant functional limits in "at least two" of the seven areas;
+      §4512(a)(4) requires reassessment "at least 90 days before turning
+      five years of age".
+    - Statutes re-verified on leginfo this pass: §4642, §4643, §4512, §4646,
+      §4710.5; 17 CCR §52086 re-read.
+  [TBC: whether the San Andreas branch runs its own assessments or whether
+   foothill families are assessed out of Stockton or Modesto — this is the
+   difference between a 20-minute and a 90-minute drive from Sonora or
+   Jackson]
+  [TBC: VMRC office hours and whether intake interviews can be held by phone
+   or video for the three foothill counties]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import NoticeBox from '../../components/NoticeBox.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Valley Mountain Regional Center covers five counties — Stockton and Modesto in the valley, plus
+  Amador, Calaveras, and Tuolumne up in the foothills. It coordinates and pays for services for
+  children with developmental disabilities, free, at any income. It sorts families into three
+  doors by age, and one of those doors — for children under 5 — is one most parents are never
+  told about.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  Valley Mountain Regional Center serves families in <b>Amador, Calaveras, San Joaquin, Stanislaus, and Tuolumne counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Valley Mountain Regional Center (VMRC) serves <b>San Joaquin, Stanislaus, Amador, Calaveras,
+  and Tuolumne counties</b> — one of California's <b>21 regional centers</b> under the Lanterman
+  Act <Cite>WIC §4500 et seq.</Cite>, free at any family income. Intake is <b>routed by
+  county</b> to one of three branches: <b>Stockton</b> (San Joaquin), <b>Modesto</b>
+  (Stanislaus), and the town of <b>San Andreas</b> (Amador, Calaveras, Tuolumne). VMRC names
+  <b>three</b> eligibility doors, not two — Early Start, provisional eligibility under age 5, and
+  standard Lanterman eligibility at 3 and older.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="is-this-my-center">Is Valley Mountain my regional center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+If you live in **San Joaquin, Stanislaus, Amador, Calaveras, or Tuolumne county**, yes. The
+boundary is the county line, which makes this simpler than Los Angeles County, where seven
+centers divide one county by neighborhood.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+Two corrections worth making, because both send families to the wrong place:
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+- **Mariposa county is not VMRC.** It belongs to
+  <GatedLink href="/regional-centers/central-valley/">Central Valley Regional Center</GatedLink>,
+  along with Merced, Madera, Fresno, Kings, and Tulare. Older lists get this wrong.
+- **Sacramento and the counties north of Amador are not VMRC** either — those belong to
+  <GatedLink href="/regional-centers/alta-california/">Alta California Regional Center</GatedLink>.
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<NoticeBox>
+  <b>A confusing name collision.</b> VMRC's foothill branch is in the <b>town of San Andreas</b>,
+  in Calaveras County. <b>San Andreas Regional Center</b> is a completely different organization,
+  serving Santa Clara, Santa Cruz, San Benito, and Monterey counties on the coast. If you search
+  "San Andreas regional center" from Angels Camp or Sonora, you will land on the wrong one. Your
+  center is Valley Mountain.
+</NoticeBox>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<a class="link" href="/tools/regional-center-finder/">Check which center serves your address →</a>
+
+<h2 class="qa-h" id="three-doors">Which of VMRC's three doors is my child's?</h2>
+
+<AnswerFirst>
+  VMRC sorts by age into three tracks. <b>Under 3</b> is Early Start. <b>Under 5</b> can qualify
+  through <b>provisional eligibility</b>, which uses a lower bar. <b>3 and older</b> goes through
+  standard Lanterman eligibility. A child can move between them — provisional eligibility is
+  reassessed before age 5 <Cite>WIC §4512</Cite>.
+</AnswerFirst>
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Door</th><th>Age</th><th>What it takes</th></tr>
+    <tr><td>Early Start</td><td>Birth to 3</td><td>Developmental delay or an at-risk condition — broader criteria, no diagnosis required</td></tr>
+    <tr><td>Provisional eligibility</td><td>Under 5</td><td>A disability that is not solely physical, with significant functional limits in <b>at least 2</b> of the 7 life areas <span class="cite">WIC §4512</span></td></tr>
+    <tr><td>Lanterman eligibility</td><td>3 and older</td><td>A developmental disability beginning before age 18, with significant functional limits in <b>3 or more</b> of the 7 life areas <span class="cite">WIC §4512</span></td></tr>
+  </table>
+</div>
+
+The middle row is the one worth arguing for. Many parents of 3- and 4-year-olds are told their
+child is "close, but not three areas" and hear that as a final no. It is not: **provisional
+eligibility asks for two areas, not three**, and it exists precisely because a young child's
+picture is incomplete. A child found provisionally eligible is reassessed at least 90 days before
+turning 5 <Cite>WIC §4512</Cite> — so it buys real years of service, not a technicality.
+
+The seven life areas are self-care, receptive and expressive language, learning, mobility,
+self-direction, capacity for independent living, and economic self-sufficiency. A preschooler is
+measured against what is expected at that age.
+
+<a class="link" href="https://www.vmrc.net/individuals-families-served/eligibility/">Valley Mountain — eligibility and county intake contacts →</a>
+
+<h2 class="qa-h" id="how-intake-starts">How does intake start here?</h2>
+
+Call the branch for your county and ask for **intake and assessment**, saying your child's age
+first. VMRC publishes a separate intake number for each of its three branches, so calling the
+right one saves a transfer:
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Your county</th><th>VMRC branch</th></tr>
+    <tr><td>San Joaquin</td><td>Stockton</td></tr>
+    <tr><td>Stanislaus</td><td>Modesto</td></tr>
+    <tr><td>Amador · Calaveras · Tuolumne</td><td>San Andreas (Calaveras County)</td></tr>
+  </table>
+</div>
+
+Write down the date you call — that date starts every clock below. Then gather what you already
+have: pediatrician notes, any evaluation (speech, occupational therapy, psychological), school or
+preschool records, an IEP or IFSP if one exists, and your own written description of a **hard
+day**. A diagnosis helps but is **not required** to start, and VMRC funds its own assessments at
+no cost to you.
+
+<h2 class="qa-h" id="the-clocks">What deadlines is VMRC on?</h2>
+
+<DeadlineCallout>
+  <b>15 working days</b> from your request to initial intake <Cite>WIC §4642</Cite>.
+  <b>120 days</b> from intake to a completed assessment — <b>60 days</b> where delay would risk
+  your child's health, safety, or development <Cite>WIC §4643</Cite>. Under 3: <b>45 days</b>
+  from referral for the Early Start evaluation and assessment <Cite>17 CCR §52086</Cite>. Then
+  <b>60 days</b> from the completed assessment to the written plan <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+Those clocks are identical at all 21 centers, and they run from **your** request. What varies
+locally is who answers, how far you drive, and which providers have openings near you. None of
+that changes what your child is owed.
+
+<EmpathyCallout label="If you're up in the foothills">
+  Highway 49 in winter, a child who does not do well in the car, and an appointment ninety
+  minutes down the hill — that is a real reason families put the call off for months. Say it on
+  the first call: which meetings have to be in person, which can be by phone or video, and can
+  anything happen at the San Andreas branch instead of Stockton? The worst outcome of asking is
+  the drive you were already making.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="if-they-say-no">What if Valley Mountain says no?</h2>
+
+A denial must arrive as a written **Notice of Action** stating the decision and your appeal
+rights. An informal no on the phone is not a decision and starts no clock — ask for the written
+notice. From it, you have **60 days** to request a hearing <Cite>WIC §4710.5</Cite>; check the
+dates printed on your own notice and calendar them the day it comes.
+
+Before you appeal, ask one question in writing: **was provisional eligibility considered?** For a
+child under 5, that is the most common thing a denial letter skips.
+
+Free advocates handle these appeals. The **Office of Clients' Rights Advocacy (OCRA)**, part of
+**Disability Rights California**, works with families statewide.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial →</GatedLink>
+
+You know which branch is yours, which of the three doors fits your child, and what a real
+decision has to look like on paper. Most families spend a year learning that.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#is-this-my-center">Is this my center?</a>
+    <a href="#three-doors">The three doors</a>
+    <a href="#how-intake-starts">How intake starts</a>
+    <a href="#the-clocks">The deadlines</a>
+    <a href="#if-they-say-no">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Amador · Calaveras · San Joaquin · Stanislaus · Tuolumne</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Counties</dt><dd>San Joaquin · Stanislaus · Amador · Calaveras · Tuolumne</dd>
+      <dt>Branches</dt><dd>Stockton · Modesto · San Andreas</dd>
+      <dt>Eligibility doors</dt><dd>Early Start · provisional (under 5) · Lanterman (3+)</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 from referral under 3 <span class="cite">17 CCR §52086</span></dd>
     </dl>
   </SideCard>
-  <SideCard title="Not your Regional Center?">
-    <p>California has 21. Enter your county and we'll point you to the right one.</p>
-    <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  <SideCard title="Nearby centers">
+    <GatedLink class="link" href="/regional-centers/central-valley/">Central Valley RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/alta-california/">Alta California RC →</GatedLink>
+    <p>Mariposa County is Central Valley, not VMRC.</p>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+  <SideCard title="The full guide">
+    <p>Eligibility, the IPP meeting, and appeals in depth:</p>
+    <a class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</a>
   </SideCard>
 </aside>
 </div>

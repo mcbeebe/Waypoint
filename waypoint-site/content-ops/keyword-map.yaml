@@ -188,7 +188,7 @@ entries:
     url: "/guides/regional-centers/appeal-denial/"
     pillar: regional-centers
     priority: P0
-    status: planned
+    status: drafting
     piece_no: 6
     serp_notes: "Deadline-driven; cite WIC appeal timelines precisely, [TBC] until reviewed. Companion letter /letters/noa-appeal/."
 
@@ -240,7 +240,7 @@ entries:
     url: "/guides/iep/dispute-ladder/"
     pillar: iep
     priority: P0
-    status: planned
+    status: drafting
     piece_no: 10
     serp_notes: "Ladder format: informal → IEP meeting → mediation → complaint → due process."
 

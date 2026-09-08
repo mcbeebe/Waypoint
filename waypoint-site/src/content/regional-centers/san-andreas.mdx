@@ -22,14 +22,35 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "San Andreas Regional Center — Intake (county routing, interest form)"
+    url: "https://www.sanandreasregional.org/services/intake/"
+    accessed: 2026-09-08
+  - label: "San Andreas Regional Center — Contact Us (office locations)"
+    url: "https://www.sanandreasregional.org/contact-us/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 — initial intake within 15 working days of the request"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 — assessment within 120 days of intake (60 when delay poses risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 — substantial disability (3 of 7 areas); provisional eligibility under age 5"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 — IPP completed within 60 days of the assessment"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 — 60 days to request a fair hearing after a Notice of Action"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 — Early Start evaluation within 45 days of referral"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -58,62 +79,199 @@ sources:
   Two sources agree: DDS listing and the center's own site. (confidence: high)
     DDS: https://www.dds.ca.gov/rc/listings/
     Own: https://www.sanandreasregional.org/contact-us/
+
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Per-center body written. Verified this pass against primary sources:
+    - Three offices: San Jose (6203 San Ignacio Ave, Ste 200 — Santa Clara &
+      San Benito), Watsonville (1110 Main St — Santa Cruz), Salinas (1370 S.
+      Main St — Monterey) — sanandreasregional.org/contact-us/
+    - Intake is county-routed: Santa Clara (408) 374-9960; Santa Cruz and San
+      Benito (831) 900-3737; Monterey (831) 900-3636. For age 3+, SARC's
+      intake page offers an online "intake interest form" as an alternative
+      to phoning — sanandreasregional.org/services/intake/
+      NOTE the split: the contact page groups San Benito with the SAN JOSE
+      office, while the intake page routes San Benito's intake calls to the
+      (831) 900-3737 number shared with Santa Cruz. Body prose therefore
+      sends readers to SARC's own pages rather than asserting one mapping.
+    - Statutes re-verified on leginfo this pass: §4642, §4643, §4512, §4646,
+      §4710.5; 17 CCR §52086 re-read.
+    - Neighbors from the DDS listing: Central Valley RC (Fresno, Kings,
+      Madera, Mariposa, Merced, Tulare); Golden Gate and East Bay to the
+      north (county mapping not re-fetched this pass — linked as neighbors
+      without asserting their county lists).
+  [TBC: whether San Benito families are served day-to-day out of the San
+   Jose or the Salinas/Watsonville office — the center's contact page and
+   intake page group San Benito differently]
+  [TBC: which languages SARC provides intake interpretation in, and whether
+   the online interest form exists in Spanish]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  San Andreas Regional Center covers four counties from San Jose to the Salinas Valley. It
+  coordinates and pays for services for children with developmental disabilities, free, at any
+  income. Which phone number you call depends on your county. If your child is 3 or older, you
+  can also start the whole thing with an online form instead of a phone call.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  San Andreas Regional Center serves families in <b>Monterey, San Benito, Santa Clara, and Santa Cruz counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  San Andreas Regional Center (SARC) serves <b>Santa Clara, Santa Cruz, San Benito, and
+  Monterey counties</b> — one of California's <b>21 regional centers</b> operating under the
+  Lanterman Act <Cite>WIC §4500 et seq.</Cite>, free to your family at any income. SARC runs
+  offices in <b>San Jose, Watsonville, and Salinas</b>, and it <b>routes intake calls by
+  county</b>. For a child <b>3 or older</b>, SARC also accepts an <b>online intake interest
+  form</b> — useful if you cannot take a call during business hours.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="is-this-my-center">Is San Andreas my regional center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+If you live in **Santa Clara, Santa Cruz, San Benito, or Monterey county**, yes. SARC's boundary
+is the county line, not a neighborhood map, so there is nothing subtle to check — unlike Los
+Angeles, where seven centers split a single county.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+That said, SARC's four counties are four different worlds: Silicon Valley, the Santa Cruz
+coast, the Salinas Valley, and rural San Benito. The law is identical in all of them. The travel
+time, the office you walk into, and the local provider mix are not.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+Counties just outside SARC belong elsewhere — Merced and Madera to
+<GatedLink href="/regional-centers/central-valley/">Central Valley Regional Center</GatedLink>,
+and the counties north of Santa Clara to
+<GatedLink href="/regional-centers/east-bay/">Regional Center of the East Bay</GatedLink> and
+its neighbors. What decides it is **where your child lives**, not where they go to school or see
+a doctor. Our <a class="link" href="/tools/regional-center-finder/">Regional Center finder</a>
+confirms it.
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<h2 class="qa-h" id="which-office">Which SARC office is mine?</h2>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>County</th><th>Office</th><th>Note</th></tr>
+    <tr><td>Santa Clara</td><td>San Jose</td><td>SARC's headquarters and the number DDS lists as the main line</td></tr>
+    <tr><td>Santa Cruz</td><td>Watsonville</td><td>Serves the Santa Cruz side of the county line</td></tr>
+    <tr><td>Monterey</td><td>Salinas</td><td>Covers the Peninsula and the Salinas Valley</td></tr>
+    <tr><td>San Benito</td><td>Ask when you call</td><td>SARC groups San Benito with San Jose on its contact page, but routes San Benito <i>intake calls</i> to the Santa Cruz number. Confirm on the call which office holds your file.</td></tr>
+  </table>
+</div>
+
+That San Benito wrinkle is worth a sentence, because it is exactly the kind of thing that costs
+a family two weeks. If you are in Hollister or anywhere in San Benito county, ask on the first
+call: *"Which office will my child's case live in, and who is my intake worker?"* Write the
+answer down.
+
+<a class="link" href="https://www.sanandreasregional.org/services/intake/">San Andreas — Intake page and county numbers →</a>
+
+<h2 class="qa-h" id="how-intake-starts">How does intake start here?</h2>
+
+<AnswerFirst>
+  Two doors, depending on age. <b>Under 3</b> goes to Early Start, and you call your county's
+  intake number to make the referral. <b>3 and older</b> can either call that same county number
+  or submit SARC's <b>online intake interest form</b>. Either way, the request is what starts
+  the legal clock — so note the date you call or submit.
+</AnswerFirst>
+
+The online form matters more than it sounds. Parents working shifts in agriculture, food
+service, or care work often cannot make a call between 8 and 5, and "I'll do it tomorrow" turns
+into six weeks. A form submitted at 11pm starts the same clock a phone call does.
+
+Before the intake interview, gather what you already have — not a perfect folder:
+
+- Pediatrician notes and any developmental screening results
+- Any evaluation: speech, occupational therapy, psychological, audiology
+- School or preschool records, an IEP or an IFSP if one exists
+- Your own two-paragraph description of a **hard day** — what your child cannot do yet, how
+  often, and what it takes out of the household
+
+Missing pieces are not a reason to wait. SARC does its own assessments at no cost to you.
+
+<h2 class="qa-h" id="the-clocks">What are they on the hook for, and by when?</h2>
+
+<DeadlineCallout>
+  <b>15 working days</b> from your request to initial intake <Cite>WIC §4642</Cite>.
+  <b>120 days</b> from intake to a completed assessment — <b>60 days</b> where delay would risk
+  your child's health, safety, or development <Cite>WIC §4643</Cite>. Under 3: <b>45 days</b>
+  from referral for the Early Start evaluation and assessment <Cite>17 CCR §52086</Cite>. Then
+  <b>60 days</b> from the completed assessment to the written plan <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+Those clocks are statewide. They apply to SARC exactly as they apply to every other center, and
+they run from **your** request — not from when a worker gets around to opening the file. If a
+deadline passes, put it in writing: name the date you first contacted SARC, cite
+<Cite>WIC §4642</Cite> or <Cite>WIC §4643</Cite>, and ask for a decision date in reply.
+
+<h2 class="qa-h" id="eligibility">Who qualifies?</h2>
+
+For a child **3 or older**: a developmental disability that began before age 18 and is a
+"substantial disability" — significant functional limits in **3 or more of 7 life areas**
+(self-care, language, learning, mobility, self-direction, independent living, economic
+self-sufficiency) <Cite>WIC §4512</Cite>.
+
+For a child **under 5**, there is a second, lower door most parents never hear about:
+**provisional eligibility**, which requires significant functional limits in **at least 2** of
+those same areas rather than 3 <Cite>WIC §4512</Cite>. A child found provisionally eligible is
+reassessed before turning 5. If your 3- or 4-year-old was told they "just missed" the standard,
+ask specifically whether provisional eligibility was considered.
+
+<EmpathyCallout label="From a parent who's been there">
+  "I kept waiting until I had a diagnosis, because I thought that was the ticket. It isn't. The
+  regional center does its own assessment — my job was just to make the call and then describe
+  my kid honestly, on his hardest day, not his best one. The waiting I did on my own was the
+  only part nobody was on a clock for."
+</EmpathyCallout>
+
+<h2 class="qa-h" id="if-they-say-no">What if San Andreas says no?</h2>
+
+A denial must come as a written **Notice of Action**. A coordinator saying "we don't fund that"
+on the phone is not a decision and starts no clock — ask for it in writing. From the written
+notice you have **60 days** to request a hearing <Cite>WIC §4710.5</Cite>; check the dates
+printed on your own notice.
+
+Free help exists and you should use it. The **Office of Clients' Rights Advocacy (OCRA)**, part
+of **Disability Rights California**, has advocates who handle regional center appeals across the
+state. Bringing one costs nothing and changes how a meeting goes.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial →</GatedLink>
+
+You know which number is yours, what starts the clock, and what a real "no" has to look like in
+writing. That is the whole first move.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#is-this-my-center">Is this my center?</a>
+    <a href="#which-office">Which office is mine?</a>
+    <a href="#how-intake-starts">How intake starts</a>
+    <a href="#the-clocks">The deadlines</a>
+    <a href="#eligibility">Who qualifies</a>
+    <a href="#if-they-say-no">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Monterey · San Benito · Santa Clara · Santa Cruz</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Counties</dt><dd>Santa Clara · Santa Cruz · San Benito · Monterey</dd>
+      <dt>Offices</dt><dd>San Jose · Watsonville · Salinas</dd>
+      <dt>Intake routing</dt><dd>By county; online interest form for age 3+</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 from referral under 3 <span class="cite">17 CCR §52086</span></dd>
     </dl>
   </SideCard>
-  <SideCard title="Not your Regional Center?">
-    <p>California has 21. Enter your county and we'll point you to the right one.</p>
-    <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  <SideCard title="Nearby centers">
+    <GatedLink class="link" href="/regional-centers/central-valley/">Central Valley RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/east-bay/">East Bay RC →</GatedLink>
+    <p>Not sure which is yours?</p>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+  <SideCard title="The full guide">
+    <p>Eligibility, the IPP meeting, and appeals in depth:</p>
+    <a class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</a>
   </SideCard>
 </aside>
 </div>

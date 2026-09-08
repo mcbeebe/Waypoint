@@ -19,16 +19,32 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "South Central Los Angeles Regional Center — service area and offices"
+    url: "https://sclarc.org/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 — initial intake within 15 working days of the request"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 — assessment within 120 days of intake (60 when delay poses risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 — substantial disability (3 of 7 areas); provisional eligibility under age 5"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 — IPP completed within 60 days of the assessment"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 — 60 days to request a fair hearing after a Notice of Action"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 — Early Start evaluation within 45 days of referral"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
-  [TBC: verify this center's LA service area / ZIP coverage — seven centers
-   divide Los Angeles County by neighborhood]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -55,98 +71,203 @@ sources:
   Two sources agree: DDS listing and the center's own site. (confidence: high)
     DDS: https://www.dds.ca.gov/rc/listings/
     Own: https://sclarc.org
+
+  ---- NARRATIVE PASS 2026-09-08 (LA boundary resolved, PRIMARY source) ----
+  The 2026-09-07 health-district quote came from a third-party PDF
+  (phfewic.org), which §1.3 bars as a citation. Replaced this pass with the
+  same wording from DDS itself:
+    "The health districts of Compton, San Antonio, South, Southeast, and
+    Southwest within the county of Los Angeles."
+    — https://www.dds.ca.gov/rc/listings/ (fetched 2026-09-08)
+  The stub's [TBC: verify this center's LA service area / ZIP coverage] is
+  therefore closed at health-district level, though NOT at ZIP level.
+  Also verified this pass, from the center's own site (https://sclarc.org/):
+    - Service area in the words residents actually use: "South Los Angeles,
+      Watts, Leimert Park, Florence/Firestone, West Adams, and the cities of
+      Bell, Bell Gardens, Compton, Cudahy, Downey, Huntington Park, Lynwood,
+      Maywood, Vernon, South Gate, Gardena, and Paramount."
+    - TWO offices: Los Angeles, 2500 S. Western Avenue, CA 90018; South
+      Gate, 12226 Garfield Avenue, CA 90280. Both list (213) 744-7000.
+    - Applications start through an ONLINE intake form at intake.sclarc.org
+      (matches the frontmatter intakeUrl).
+    - The six other centers covering LA County, from the DDS listing:
+      Eastern LA, Frank D. Lanterman, Harbor (Bellflower, Harbor, Long
+      Beach, Torrance health districts), North LA County, San Gabriel/Pomona,
+      Westside (Inglewood, Santa Monica-West).
+    - Statutes re-verified on leginfo this pass: §4642, §4643, §4512, §4646,
+      §4710.5; 17 CCR §52086 re-read.
+  [TBC: a ZIP-level boundary list for the five health districts — the
+   Gardena / Torrance and Downey / Bellflower seams with Harbor RC are the
+   likeliest places a family lands at the wrong center, and neither DDS nor
+   SCLARC publishes ZIPs]
+  [TBC: whether the online intake form is available in Spanish, and whether
+   the South Gate office runs its own intake interviews]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Seven regional centers divide Los Angeles County. SCLARC is the one for South LA and the
+  southeast cities — Watts, Leimert Park, West Adams, Compton, Huntington Park, South Gate and
+  their neighbors. It coordinates and pays for services for children with developmental
+  disabilities, free, at any income. You can start the application online, any hour.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  South Central Los Angeles Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you) — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  South Central Los Angeles Regional Center (SCLARC) serves the <b>Compton, San Antonio, South,
+  Southeast, and Southwest health districts</b> of Los Angeles County, under the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite>, free at any family income. In plain geography, that is
+  <b>South Los Angeles, Watts, Leimert Park, Florence/Firestone, West Adams</b> and the cities of
+  <b>Bell, Bell Gardens, Compton, Cudahy, Downey, Gardena, Huntington Park, Lynwood, Maywood,
+  Paramount, South Gate, and Vernon</b>. SCLARC takes applications through an <b>online intake
+  form</b> as well as by phone.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="is-this-my-center">Is SCLARC my regional center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+In most of California, one county means one regional center. Los Angeles County is the exception:
+**seven** centers split it, and they split it along **health district** boundaries — an
+administrative map, not city limits and not school district lines.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+That is why "I live in Los Angeles" does not answer the question. The City of Los Angeles is
+carved up among several centers. What decides your case is which health district your **street
+address** falls in.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+SCLARC covers five of them: **Compton, San Antonio, South, Southeast, and Southwest**. If you
+live in Watts, Leimert Park, Florence/Firestone, West Adams, or the southeast cities listed
+above, that is SCLARC's territory.
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+Where it gets close, check carefully:
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+- **Gardena** sits near Harbor Regional Center's Torrance health district.
+- **Downey** and **Paramount** sit near Harbor's Bellflower health district.
+- North and west of the Southwest district, you cross into Westside and Frank D. Lanterman
+  territory.
 
-<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+Three ways to settle it, best first: use our
+<a class="link" href="/tools/regional-center-finder/">Regional Center finder</a> with your full
+address; check the state directory at
+<a class="link" href="https://www.dds.ca.gov/rc/listings/">DDS Regional Center listings</a>; or
+call SCLARC and read your street address out before anything else. Five minutes on the phone
+beats six weeks of intake at the wrong center.
+
+<h2 class="qa-h" id="how-intake-starts">How does intake start here?</h2>
 
 <AnswerFirst>
-  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
-  not enough to tell you which one is yours — <b>your address decides it</b>, and the
-  boundaries follow LA County health districts, not city lines.
+  SCLARC's front door is an <b>online application form</b> — you can complete it at any hour,
+  which matters if you cannot take a call between 8 and 5. You can also call the main line and
+  ask for <b>intake and assessment</b>. Say your child's age first: <b>under 3</b> routes to
+  Early Start and a faster clock, <b>3 and older</b> to standard Lanterman intake.
 </AnswerFirst>
 
-Part of Los Angeles County only — one of seven regional centers dividing LA County, where
-catchment boundaries follow DDS health districts rather than county lines. SCLARC covers the
-Compton, San Antonio, South, Southeast and Southwest health districts. Geographically its
-area is bounded by Washington Blvd. on the north, La Cienega Blvd. on the west, and the
-eastern and southern boundaries of Downey, Paramount, Compton, Dominguez Hills and Carson.
-Cities served include Bell, Bell Gardens, Maywood, Paramount, Cudahy, Downey, Huntington
-Park, South Gate, Compton, Lynwood, Gardena, Vernon and Carson, plus the South Los Angeles
-area including the communities of Watts, Crenshaw, Hyde Park, Leimert Park, View Park,
-Baldwin Hills, Florence/Firestone and West Adams.
+<a class="link" href="https://intake.sclarc.org/AppForm.aspx">SCLARC — start the online application →</a>
 
-### Who this center does not serve
+Whichever door you use, do one thing before you close the tab: **write down the date**. That date
+is when the legal clocks below start running, and it is the fact you will need most in three
+months.
 
-Does not cover the rest of Los Angeles County, which belongs to the other six LA-area
-regional centers. Ruling-out guide by neighbour: north of Washington Blvd. and
-central/downtown LA, Hollywood, Glendale, Pasadena → Frank D. Lanterman Regional Center
-(Central, Glendale, Hollywood-Wilshire, Pasadena health districts). West of La Cienega Blvd.
-— Inglewood, Santa Monica and the Westside → Westside Regional Center (Inglewood, Santa
-Monica-West health districts). South and southeast beyond Downey/Paramount/Compton/Carson —
-Long Beach, Torrance, Bellflower and the Harbor area → Harbor Regional Center (Bellflower,
-Harbor, Long Beach, Torrance health districts). East — East Los Angeles, Alhambra, Whittier,
-Northeast LA → Eastern Los Angeles Regional Center. Farther east — El Monte, Pomona, the
-Foothill area → San Gabriel/Pomona Regional Center. The northern portion of the county (San
-Fernando/Santa Clarita/Antelope Valley) → North Los Angeles County Regional Center. It also
-serves no county other than Los Angeles.
+SCLARC runs two offices — one on **South Western Avenue in Los Angeles** and one on **Garfield
+Avenue in South Gate**. If the southeast cities are your side of the territory, ask whether your
+meetings can happen at South Gate rather than crossing the county at rush hour.
 
-If your address sits near one of these boundaries, confirm your center before you call —
-being sent back to the start by the wrong center costs weeks.
+**What to have ready**, without waiting for a perfect folder:
+
+- Pediatrician notes, referrals, developmental screening results
+- Any evaluation — speech, occupational therapy, psychological, hearing
+- Preschool or school records, an IEP or IFSP if there is one
+- Your own written description of a **hard day**: what your child cannot do yet, how often, and
+  what it costs the household
+
+A diagnosis is helpful and **not required** to begin. SCLARC funds its own assessments at no cost
+to you.
+
+<h2 class="qa-h" id="the-clocks">What deadlines are they on?</h2>
+
+<DeadlineCallout>
+  <b>15 working days</b> from your request to initial intake <Cite>WIC §4642</Cite>.
+  <b>120 days</b> from intake to a completed assessment — <b>60 days</b> where delay would risk
+  your child's health, safety, or development <Cite>WIC §4643</Cite>. Under 3: <b>45 days</b>
+  from referral for the Early Start evaluation and assessment <Cite>17 CCR §52086</Cite>. Then
+  <b>60 days</b> from the completed assessment to the written plan <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+Those clocks are the same at all 21 centers and they run from **your** request. If one passes,
+say so in writing: name the date you applied, cite <Cite>WIC §4642</Cite> or
+<Cite>WIC §4643</Cite>, and ask for a decision date in reply. Nothing about that is rude. It is
+the deadline the law wrote for them.
+
+<h2 class="qa-h" id="eligibility">Who qualifies?</h2>
+
+At **3 and older**: a developmental disability that began before age 18 and is a "substantial
+disability" — significant functional limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+The seven are self-care, receptive and expressive language, learning, mobility, self-direction,
+capacity for independent living, and economic self-sufficiency. A young child is measured against
+what is expected at that age.
+
+Under **age 5**, ask about **provisional eligibility** by name: it needs significant limits in
+**at least 2** of those areas rather than 3, and it exists precisely for young children whose
+picture is not complete yet <Cite>WIC §4512</Cite>.
+
+<EmpathyCallout label="From a parent who's been there">
+  "I filled out the form at midnight after everyone was asleep, because that was the only quiet
+  I had. I almost didn't — it felt like admitting something. But the form doesn't decide
+  anything about your child. It just opens the door and puts a date on it. The date turned out
+  to be the most useful thing I had."
+</EmpathyCallout>
+
+<h2 class="qa-h" id="if-they-say-no">What if SCLARC says no?</h2>
+
+A denial has to come as a written **Notice of Action**. An informal no on the phone is not a
+decision and starts no clock — ask for the written notice every time. From it you have **60
+days** to request a hearing <Cite>WIC §4710.5</Cite>. Check the dates printed on your own notice
+and calendar them the day it arrives.
+
+Free help is available and worth using. The **Office of Clients' Rights Advocacy (OCRA)**, part
+of **Disability Rights California**, provides advocates who handle regional center appeals across
+Los Angeles County at no cost to you.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial →</GatedLink>
+
+You found your center on a map that hides itself, and you started the clock. That is the part
+nobody hands you.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#is-this-my-center">Is this my center?</a>
+    <a href="#how-intake-starts">How intake starts</a>
+    <a href="#the-clocks">The deadlines</a>
+    <a href="#eligibility">Who qualifies</a>
+    <a href="#if-they-say-no">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Los Angeles</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Health districts</dt><dd>Compton · San Antonio · South · Southeast · Southwest</dd>
+      <dt>Offices</dt><dd>Los Angeles (S. Western Ave) · South Gate (Garfield Ave)</dd>
+      <dt>Apply</dt><dd>Online form, 24/7 — or by phone</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 from referral under 3 <span class="cite">17 CCR §52086</span></dd>
     </dl>
   </SideCard>
-  <SideCard title="Not your Regional Center?">
-    <p>California has 21. Enter your county and we'll point you to the right one.</p>
-    <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  <SideCard title="The other LA centers">
+    <GatedLink class="link" href="/regional-centers/harbor/">Harbor RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/westside/">Westside RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/lanterman/">Frank D. Lanterman RC →</GatedLink>
+    <p>Check your address, not your city:</p>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+  <SideCard title="The full guide">
+    <p>Eligibility, the IPP meeting, and appeals in depth:</p>
+    <a class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</a>
   </SideCard>
 </aside>
 </div>

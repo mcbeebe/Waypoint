@@ -1,0 +1,390 @@
+---
+title: "How to request an IEP evaluation in California"
+description: "Ask your school district to evaluate your child for special education: the 15- and 60-day clocks it starts, and what to do when the district stalls."
+locale: en
+translationKey: iep-request-evaluation
+status: draft
+pillar: iep
+dateModified: 2026-09-08
+nextReviewEvent: annual
+disclaimerVariant: legal
+changelog:
+  - date: 2026-09-08
+    note: "First draft of launch piece 4 — the guide half. Written as the companion to the published letter at /letters/iep-evaluation-request/: this page carries the process, the clocks, and the stall playbook; the letter stays the artifact. Deadlines stated to match the letter exactly."
+sources:
+  - label: "CA Ed Code §56321 (assessment plan within 15 days; school-vacation pause; parent has at least 15 days to decide; no IEP without consent)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56321."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56043 (15 calendar days for the assessment plan; 60 days from consent; 5 business days for records)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56043."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56344 (60 days from written consent to the IEP meeting; end-of-year exception)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56344."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56320 (assess in all areas related to the suspected disability; no single measure; fair testing)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56320."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56301 (child find; procedural safeguards on initial referral or parent request for assessment)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56301."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56026 (who is an 'individual with exceptional needs')"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56026."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56500.4 (prior written notice — required when a district refuses to assess)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56500.4."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56501 (a refusal to initiate an assessment is a due process ground)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56501."
+    accessed: 2026-09-08
+  - label: "CA Ed Code §56329 (independent educational assessment at public expense)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56329."
+    accessed: 2026-09-08
+  - label: "34 CFR §300.301 (either a parent or the public agency may request an initial evaluation; 60 days from consent)"
+    url: "https://www.ecfr.gov/current/title-34/section-300.301"
+    accessed: 2026-09-08
+  - label: "34 CFR §300.8 (IDEA two-part eligibility test)"
+    url: "https://www.ecfr.gov/current/title-34/section-300.8"
+    accessed: 2026-09-08
+---
+
+{/*
+  DRAFT — launch piece 4, guide half (keyword row /guides/iep/request-evaluation/,
+  primary "how to request an iep evaluation in california").
+
+  COMPANION, NOT DUPLICATE: the letter at /letters/iep-evaluation-request/ is
+  PUBLISHED and owns the artifact — the sendable text, the EN/ES twins, and
+  the letter_copied event. This page deliberately does NOT restate the letter
+  body. It owns: who may ask and why, what the district owes and when, how to
+  read and scope the assessment plan, what the assessment itself looks like,
+  and the stall/refusal playbook. Every reference to the words themselves
+  hands the reader to the letter.
+
+  CONSISTENCY CHECK vs. the published letter (2026-09-08): the letter states
+  15 calendar days for the assessment plan (§56321) and 60 days from signed
+  consent for the evaluation and IEP meeting (§56344). Both re-verified here
+  against leginfo. §56043(a) reads "15 calendar days of referral for
+  assessment, not counting calendar days between the pupil's regular school
+  sessions or terms or calendar days of school vacation in excess of five
+  schooldays"; §56321 words the same rule and adds that the parent has at
+  least 15 days to decide on the plan. §56344(a) confirmed verbatim for the
+  60-day clock and the vacation recommencement rule. NO DISCREPANCY with the
+  letter — nothing to flag.
+
+  ALSO VERIFIED (verbatim snippets, see sources[]):
+  - §56321: referral 10 days or fewer before the end of the regular school
+    year → plan due within 10 days after the next school year starts; "no
+    individualized education program will result from the assessment without
+    the consent of the parent"; written parental agreement is the only way to
+    extend the 15 days.
+  - §56344(a): referral 30 days or fewer before year-end → IEP within 30 days
+    after the next regular school year starts; initial IEP meeting within 30
+    days of a determination that the pupil needs special education.
+  - §56320(f) "all areas related to the suspected disability" + the enumerated
+    areas; §56320(e) no single measure as sole criterion; §56320(a)/(b)
+    non-discriminatory, native-language, trained personnel.
+  - §56301(a) child find; §56301(d)(2)(A) safeguards copy "upon initial
+    referral or parental request for assessment".
+  - 34 CFR §300.301(b) "Either a parent of a child or a public agency may
+    initiate a request for an initial evaluation"; (c) 60 days from consent;
+    (d) the two exceptions.
+  - §56043(n) records within five business days.
+  - §56500.4 PWN contents; §56501(a)(2) refusal to initiate assessment;
+    §56329(b)/(c) IEE at public expense.
+
+  [TBC: human click-through of every sources[] URL before publish — the eCFR
+  HTML pages bot-block automated fetches from this environment; the federal
+  text was read through the eCFR content renderer API.]
+  [TBC: verify the current CDE special education compliance-complaint intake
+  page (URL + the stated response timeline) before this page names it as a
+  route. Named generically here on purpose — no URL, no day count asserted.]
+*/}
+
+import AnswerFirst from '../../../components/AnswerFirst.astro';
+import Cite from '../../../components/Cite.astro';
+import DeadlineCallout from '../../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../../components/EmpathyCallout.astro';
+import GatedLink from '../../../components/GatedLink.astro';
+import HandoffCTA from '../../../components/HandoffCTA.astro';
+import NoticeBox from '../../../components/NoticeBox.astro';
+import PlainBox from '../../../components/PlainBox.astro';
+import SideCard from '../../../components/SideCard.astro';
+
+<PlainBox>
+  You do not need a doctor's note, a diagnosis, or the school's permission to ask for a special
+  education evaluation. You need one written request. Once the district receives it, it has
+  15 calendar days to send you an assessment plan, and 60 days from the day you sign that plan
+  to test your child and hold the IEP meeting. Email the request to the principal and the
+  district's special education director, and keep a dated copy.
+</PlainBox>
+
+<div class="cols">
+<article class="prose">
+
+Take a breath. You are not behind, and you are not overstepping. Asking the school to look
+closely at your child is the single most ordinary thing a parent can do in this system — it is
+the step every IEP in California begins with, and the law is written to make it easy.
+
+This page is the process: who can ask, what the district owes you and when, how to read the
+assessment plan before you sign it, and what to do if the district goes quiet. **The letter
+itself is already written for you** at
+<GatedLink href="/letters/iep-evaluation-request/">Request an IEP evaluation</GatedLink> — copy
+it, fill in the blanks, send it, then come back here for what happens next.
+
+<h2 class="qa-h" id="who-can-ask">Who can ask for an evaluation — and do I need a diagnosis?</h2>
+
+<AnswerFirst>
+  <b>You can</b>, and you need nothing to do it. Federal law says plainly that either a parent or
+  the school district may start a request for an initial evaluation
+  <Cite>34 CFR §300.301</Cite>. No diagnosis, no doctor's referral, no teacher's blessing. A
+  suspicion that your child may have a disability affecting their education is enough — and the
+  district already has a standing legal duty to find and assess children like yours
+  <Cite>Ed Code §56301</Cite>.
+</AnswerFirst>
+
+That duty has a name: **child find**. California requires that all children with disabilities
+residing in the state be identified, located, and assessed <Cite>Ed Code §56301</Cite>. So when
+you send your request, you are not asking a district to do you a favor or to make an exception in
+your child's case. You are asking it to do something it is already obligated to do, on a schedule
+someone else already set.
+
+A few things parents are told that are not the law:
+
+- **"You need a diagnosis first."** No. The school's own evaluation is what determines
+  eligibility, and it works from a two-part test — a disability in one of the categories federal
+  law names, *and* a resulting need for special education <Cite>34 CFR §300.8</Cite>. A private
+  diagnosis is useful evidence. It is not a prerequisite.
+- **"Let's try interventions for a few more months first."** Support strategies and an evaluation
+  can run at the same time. A request to evaluate does not have to wait behind a tiering process.
+- **"Just come to a meeting and we'll talk about it."** A meeting is fine. It is not a substitute
+  for a written request, because only the written request starts a clock.
+
+<NoticeBox>
+  Put it in writing, and put a date on it. A phone call, a hallway conversation, or a comment at
+  a parent-teacher conference starts nothing. The 15-day clock runs from the district's
+  <b>receipt</b> of a written request <Cite>Ed Code §56321</Cite> — so email is your friend: it
+  timestamps itself.
+</NoticeBox>
+
+<h2 class="qa-h" id="how-to-send">How do I actually send it?</h2>
+
+<AnswerFirst>
+  Email the letter to <b>both</b> your school's principal and your district's <b>special
+  education director</b>, and keep the sent copy. Ask for the evaluation <b>in all areas of
+  suspected disability</b>, and name the specific things worrying you. That phrase is what sets
+  the scope of everything the district is about to do <Cite>Ed Code §56320</Cite>.
+</AnswerFirst>
+
+The letter does this work for you — it is deliberately warm, short, and collaborative, because the
+first ask should always be an ask. Get it at
+<GatedLink href="/letters/iep-evaluation-request/">Request an IEP evaluation</GatedLink>.
+
+Three practical notes the letter cannot carry for you:
+
+1. **Send it to two people.** A request that lands only in a teacher's inbox can sit there.
+   The principal and the special education director are the two addresses that reliably move it.
+2. **Write down what you see, not what you think it is.** "He is not reading words his classmates
+   read, and he cries before school three days a week" is more useful to an evaluator than a
+   diagnosis you are guessing at. Your observations set the scope; their tests fill it in.
+3. **Keep everything in one place** from today: the sent email, the assessment plan, every
+   report, and every note. You are starting a file you will use for years.
+
+<h2 class="qa-h" id="the-clocks">What happens next, and by when?</h2>
+
+<AnswerFirst>
+  <b>15 calendar days</b> from the district's receipt of your request, an assessment plan must
+  reach you <Cite>Ed Code §56043</Cite>. You then get <b>at least 15 days</b> to decide on it
+  <Cite>Ed Code §56321</Cite>. From the day the district receives your signed consent, it has
+  <b>60 days</b> to complete the assessments, decide eligibility, and hold the IEP meeting
+  <Cite>Ed Code §56344</Cite>. School breaks longer than five schooldays pause both clocks.
+</AnswerFirst>
+
+<DeadlineCallout>
+  Assessment plan within <b>15 calendar days</b> of your written request · at least <b>15 days</b>
+  for you to review and sign · <b>60 days</b> from your signed consent to the evaluation and IEP
+  meeting <span class="cite">Ed Code §56321 · §56043 · §56344</span>
+</DeadlineCallout>
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Day</th><th>What should happen</th><th>The rule</th></tr>
+    <tr><td>Day 0</td><td>The district <i>receives</i> your written request. Note this date — every clock below runs from it.</td><td><span class="cite">Ed Code §56321</span></td></tr>
+    <tr><td>By day 15</td><td>An assessment plan arrives: which areas will be tested, by whom, plus a copy of your procedural safeguards.</td><td>15 calendar days <span class="cite">Ed Code §56043</span></td></tr>
+    <tr><td>Days 15–30</td><td>You read the plan, ask in writing for anything missing, then sign. You are entitled to at least 15 days to decide.</td><td><span class="cite">Ed Code §56321</span></td></tr>
+    <tr><td>Consent day</td><td>The district receives your signature. <b>This</b> starts the 60-day clock — not your original request.</td><td><span class="cite">Ed Code §56344</span></td></tr>
+    <tr><td>Within 60 days</td><td>Assessments completed, eligibility decided, and the IEP meeting held.</td><td>60 days from consent <span class="cite">Ed Code §56344</span> · <span class="cite">34 CFR §300.301</span></td></tr>
+  </table>
+</div>
+
+**The two exceptions worth knowing before you hit send.** If your request arrives 10 days or fewer
+before the regular school year ends, the assessment plan is not due until 10 days after the next
+school year starts <Cite>Ed Code §56321</Cite>. And if the referral comes 30 days or fewer before
+the year ends, the IEP is due within 30 days after the next school year begins
+<Cite>Ed Code §56344</Cite>. A request sent the first week of May and one sent the last week of
+May can land a whole summer apart — so if you are near the end of the year, send it now rather
+than after the break.
+
+**The breaks pause the clock, but only the long ones.** Neither the 15-day nor the 60-day count
+includes days between regular school sessions or terms, or school vacations longer than five
+schooldays; when the break ends, the clock picks back up on the day regular schooldays reconvene
+<Cite>Ed Code §56321</Cite> <Cite>Ed Code §56344</Cite>. Winter break pauses your clock. A
+three-day weekend does not.
+
+**The only lawful way to extend the 15 days is your written agreement**
+<Cite>Ed Code §56321</Cite>. If someone asks you for more time, that is a request you may grant —
+in writing, with a new date attached — not an announcement.
+
+<h2 class="qa-h" id="assessment-plan">The assessment plan arrived. Should I just sign it?</h2>
+
+<AnswerFirst>
+  Read the scope first. The plan lists exactly which areas will be assessed, and the law requires
+  your child be assessed <b>in all areas related to the suspected disability</b> — including,
+  where relevant, health and development, vision, hearing, motor abilities, language function,
+  general intelligence, academic performance, communicative status, self-help, social and
+  emotional status, and more <Cite>Ed Code §56320</Cite>. If a concern you raised is missing, ask
+  in writing for it to be added <b>before</b> you sign.
+</AnswerFirst>
+
+This is the highest-leverage five minutes in the whole process, and it is the one most parents
+skip. What is not on the assessment plan does not get tested. What does not get tested does not
+appear in the eligibility decision or the IEP. A plan that covers academics but not the behavior
+you described, or speech but not sensory or motor needs, quietly narrows everything downstream.
+
+So: put your original letter beside the plan and check them line by line. If something is
+missing, reply in writing — plainly, and without drama — naming the concern and asking that it be
+added to the plan. Then sign the corrected version.
+
+Two more rights that live in the same statute. **No single test can decide it:** no one measure or
+assessment may be used as the sole criterion for eligibility or for determining your child's
+program <Cite>Ed Code §56320</Cite>. And **testing has to be fair:** assessments must be given in
+the language and form most likely to yield accurate information about what your child knows and
+can do, must not be racially, culturally, or sexually discriminatory, and must be administered by
+trained personnel <Cite>Ed Code §56320</Cite>. If your child's home language is not English, say
+so in writing now, not after the scores come back.
+
+Then sign promptly. Nothing is tested until you do — no IEP results from the assessment without
+your consent <Cite>Ed Code §56321</Cite> — and the 60-day clock does not begin until the district
+has your signature. Every day the plan sits unsigned is a day nobody is evaluating your child.
+
+<h2 class="qa-h" id="during">What actually happens during the assessment?</h2>
+
+<AnswerFirst>
+  School specialists — typically a school psychologist, and depending on the areas assessed a
+  speech-language pathologist, occupational therapist, or resource teacher — test and observe your
+  child during the school day, review records, and interview the adults who know them. It is free
+  to you. You are part of it: your input is evidence, not background.
+</AnswerFirst>
+
+Your job during these weeks is smaller than it feels, and it matters more than it looks:
+
+- **Write down the hard days.** A two-week log — what happened, when, how long it took to recover —
+  gives an evaluator the pattern you live and they cannot see in a testing room.
+- **Share what you already have.** Outside evaluations, therapy reports, doctor's notes,
+  old report cards. Send them in and ask that they be considered.
+- **Ask for your child's records.** You are entitled to inspect them, and the district owes them
+  within **five business days** of your request <Cite>Ed Code §56043</Cite>. Read the file before
+  the meeting, not during it.
+- **Ask for the reports in advance.** There is no rule that hands them to you before the meeting,
+  so ask — politely, in writing, about a week out. Reading 40 pages of scores cold, in a room of
+  strangers, is not a fair way to make decisions about your child.
+
+<h2 class="qa-h" id="stall">What if the district stalls, or says no?</h2>
+
+<AnswerFirst>
+  Missed deadlines are not something you have to accept quietly. On <b>day 16</b> with no
+  assessment plan, follow up in writing and name the date the district received your request
+  <Cite>Ed Code §56321</Cite>. If the district <b>refuses</b> to assess, it owes you <b>prior
+  written notice</b> explaining why and listing what it relied on <Cite>Ed Code §56500.4</Cite> —
+  and a refusal to initiate an assessment is one of the grounds you may take to a due process
+  hearing <Cite>Ed Code §56501</Cite>.
+</AnswerFirst>
+
+Work it in this order. Each rung costs more than the last, and most requests never get past the
+first two.
+
+1. **Day 16 — a written follow-up.** Short and factual: the date of your original request, the
+   fact that no assessment plan has arrived, and the 15-calendar-day rule
+   <Cite>Ed Code §56321</Cite>. Copy the special education director. Most silences end here,
+   because the deadline is real and staff know it.
+2. **Ask for the refusal in writing.** If someone tells you no — in a meeting, on the phone, in a
+   hallway — that has no legal weight and starts no clock. Say: *"Please send me prior written
+   notice of that decision."* The notice must describe the refusal, explain the reasoning, list
+   every record or report relied on, and name the other options the team considered and why they
+   were rejected <Cite>Ed Code §56500.4</Cite>. That document is what converts a shrug into
+   something reviewable.
+3. **Day 61 with no IEP meeting.** Follow up the same way, naming your consent date and the
+   60-day rule <Cite>Ed Code §56344</Cite>. Ask for a scheduled date in the reply.
+4. **Escalate.** If writing does not move it, the ladder continues: a state compliance complaint
+   about a missed timeline, mediation, or a due process filing. Which one fits depends on whether
+   your problem is a broken deadline or a disagreement about substance — that choice is the whole
+   subject of <GatedLink href="/guides/iep/dispute-ladder/">disagreeing with the school</GatedLink>.
+
+One more card in your hand for later: if the assessments come back and you **disagree with them**,
+you may ask for an independent educational assessment at public expense, and the district must
+either pay for it or file for a due process hearing to show its own assessment was appropriate
+<Cite>Ed Code §56329</Cite>. Keep that one in your pocket until you have read the reports.
+
+<h2 class="qa-h" id="parallel">Start the Regional Center clock at the same time</h2>
+
+<AnswerFirst>
+  School is one of <b>two</b> free evaluation doors, and they do not talk to each other. If your
+  child may have a developmental disability — or is under 3 — request a Regional Center intake and
+  assessment now, in parallel. Neither clock waits for the other, and the Regional Center door is
+  where respite and Medi-Cal help live.
+</AnswerFirst>
+
+Nothing about starting one weakens the other. The school evaluates for educational eligibility;
+the Regional Center evaluates for Lanterman Act eligibility, and funds a completely different set
+of services. Families who run both from day one are typically a year ahead of families who run
+them in sequence. The
+<GatedLink href="/guides/regional-centers/">Regional Center guide</GatedLink> has the intake
+script and the clocks, and the
+<a href="/tools/regional-center-finder/">Regional Center finder</a> tells you which of the 21
+centers serves your address.
+
+<EmpathyCallout label="Why this matters">
+  Sending this request can feel like an admission — that something is wrong, that you waited too
+  long, that you are about to become the difficult parent. It is none of those things. It is one
+  email that obliges an entire district to look carefully at your child and tell you, in writing,
+  what it sees. Whatever the answer turns out to be, you will know more about your child in
+  90 days than you do today. That is what you just set in motion. You did this.
+</EmpathyCallout>
+
+</article>
+<aside>
+  <SideCard title="On this page" toc>
+    <a href="#who-can-ask">Who can ask?</a>
+    <a href="#how-to-send">How to send it</a>
+    <a href="#the-clocks">What happens, and by when</a>
+    <a href="#assessment-plan">Should I sign the plan?</a>
+    <a href="#during">During the assessment</a>
+    <a href="#stall">If the district stalls</a>
+    <a href="#parallel">The other door</a>
+  </SideCard>
+  <SideCard title="The letter">
+    <p>Ready to send, in your words, with the citation that starts the 15-day clock.</p>
+    <GatedLink class="link" href="/letters/iep-evaluation-request/">Request an IEP evaluation →</GatedLink>
+  </SideCard>
+  <SideCard title="Your dates">
+    <dl>
+      <dt>Assessment plan</dt><dd>15 calendar days from receipt <span class="cite">Ed Code §56321</span></dd>
+      <dt>Your time to decide</dt><dd>At least 15 days <span class="cite">Ed Code §56321</span></dd>
+      <dt>Evaluation + IEP meeting</dt><dd>60 days from your signed consent <span class="cite">Ed Code §56344</span></dd>
+      <dt>School records</dt><dd>5 business days <span class="cite">Ed Code §56043</span></dd>
+    </dl>
+  </SideCard>
+  <SideCard title="Keep reading">
+    <GatedLink class="link" href="/guides/iep/">School &amp; IEPs: the full guide →</GatedLink>
+    <GatedLink class="link" href="/guides/iep/dispute-ladder/">When you disagree →</GatedLink>
+    <GatedLink class="link" href="/guides/regional-centers/">Regional Center guide →</GatedLink>
+  </SideCard>
+</aside>
+</div>
+
+<HandoffCTA
+  heading="Send it, then let Waypoint watch the clock"
+  body="Waypoint drafts the request in your name, calendars day 15 and day 60, and tells you exactly what to send if the district goes quiet. Free, English or Spanish."
+  action="Draft my request →"
+  slug="guides/iep/request-evaluation"
+  cta="guide-footer"
+  pillar="iep"
+/>

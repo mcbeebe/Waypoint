@@ -20,6 +20,33 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "RCEB — Am I Eligible? (the two intake doors, by age)"
+    url: "https://rceb.org/clients/am-i-eligible/"
+    accessed: 2026-09-08
+  - label: "RCEB — Contact Us (San Leandro and Concord offices)"
+    url: "https://rceb.org/about-us/contact-us/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 (initial intake within 15 working days of the request)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days when delay creates risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 (IPP completed within 60 days of assessment; preferred-language rights)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 (60 days to request an informal meeting, mediation, or fair hearing)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "WIC §4715 (services continue during appeal if requested within 30 days)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4715."
+    accessed: 2026-09-08
+  - label: "DDS — What is Early Start? (45-day window; under-3 eligibility criteria)"
+    url: "https://www.dds.ca.gov/services/early-start/what-is-early-start/"
+    accessed: 2026-09-08
 ---
 
 {/*
@@ -31,6 +58,34 @@ sources:
      re-attributed to 17 CCR §52086.
   [TBC: local respite/POS rows removed until the data build-out lands —
    prototype marked them (sample); we don't ship sample figures.]
+
+  ---- PER-CENTER NARRATIVE WRITTEN 2026-09-08 ----
+  Local facts used, and where each came from (rceb.org, fetched 2026-09-08):
+  - Two intake doors by age, from rceb.org/clients/am-i-eligible/: an Early
+    Start route (birth to 3) with its own phone line, email inbox and fax,
+    and a separate age-3-and-older route with its own line, inbox and fax.
+    Numbers and inboxes are DELIBERATELY NOT PUBLISHED here — owner policy
+    is main line only. The page describes the split and links out.
+  - Offices, from rceb.org/about-us/contact-us/: San Leandro (Creekside
+    Plaza, 500 Davis Street — Alameda County, main office) and Concord
+    (1320 Willow Pass Road — Contra Costa County). A third address listed
+    on that page, La Familia Counseling Services in Hayward, is a partner
+    organization rather than an RCEB office, so it is not described as one.
+  - Information packets published in Spanish, Korean, Simplified Chinese,
+    Traditional Chinese, Tagalog and Vietnamese; RCEB points to DDS for
+    additional languages.
+  - Statutes verified verbatim on leginfo 2026-09-08: §4642 ("Initial
+    intake shall be performed within 15 working days following request for
+    assistance"), §4643 (120 days; 60 expedited), §4512 (three or more),
+    §4646 (IPP "completed within 60 days of the completion of the
+    assessment" + preferred-language duty), §4710.5 (60 days), §4715
+    (30 days for services to continue during appeal).
+  - 45-day Early Start window: DDS "What is Early Start?", 2026-09-08.
+  [TBC: whether the Concord office takes intake directly, or whether all
+   Contra Costa intake is routed through the San Leandro intake lines —
+   the eligibility page lists only the San Leandro address.]
+  [TBC: board meeting schedule — the earlier draft's sidebar asserted
+   "Public — you can comment" with no source. Removed until verified.]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -62,91 +117,185 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Regional Center of the East Bay (RCEB) arranges and pays for disability services in Alameda
+  and Contra Costa counties. It is free, whatever you earn. The one thing to get right on your
+  first call: RCEB has <b>two separate intake doors</b> — one for children under 3, one for
+  age 3 and up. Knowing your child's age band before you dial saves you weeks.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
-<AnswerFirst>
-  RCEB serves families in <b>Alameda and Contra Costa counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, RCEB owes you
-  any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> — or, if
-  your child is under 3, a completed Early Start evaluation and initial family service
-  plan within <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your first
-  contact. The clock starts then.
-</AnswerFirst>
-
-<h2 class="qa-h" id="intake">How does intake work at RCEB?</h2>
-
-You can start by phone or online intake form. Either way, the process runs the same. A
-formal diagnosis helps but is **not required to start** — eligibility turns on "substantial
-disability," meaning significant functional limits in **3 or more of 7 life areas**
-<Cite>WIC §4512</Cite>.
-
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, any evaluations or diagnosis reports, IEP or
-   preschool records, insurance card. Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day. Assessors need
-   the real picture of functional limits.
-4. **Note the deadline.** The assessment is due within 120 days of intake
-   <Cite>WIC §4643</Cite> — under age 3, Early Start completes everything within 45 days
-   of the referral <Cite>17 CCR §52086</Cite>. Put it on your calendar the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>. If denied, you must receive a written **Notice of Action (NOA)**
-   with your appeal rights.
-
-<h2 class="qa-h" id="local">What do families report locally?</h2>
+<h2 class="qa-h" id="who">Who does RCEB serve?</h2>
 
 <AnswerFirst>
-  Regional centers vary — in first offers, in spending patterns, in how often families have to
-  push. Waypoint is building the local picture from the state's own published
-  purchase-of-service data so you can tell a normal offer from a lowball; those figures land on
-  this page once the data work ships. Until then: know that denials must arrive in writing,
-  and that the statewide rules below apply to RCEB like every other center.
+  RCEB serves families living in <b>Alameda and Contra Costa counties</b> — Oakland, Fremont,
+  Hayward, Berkeley, Concord, Richmond, and every community in between. It is one of the 21
+  regional center territories created by the Lanterman Act <Cite>WIC §4500 et seq.</Cite>
+  Services are provided regardless of your income, and your home address is what decides which
+  center is yours.
 </AnswerFirst>
+
+Two counties is a small territory by California standards, and it makes RCEB unusually
+navigable: one main office in Alameda County, one in Contra Costa County, and no ambiguity
+about which regional center you belong to if you live in the East Bay. If you live just over a
+county line — in Solano, Napa, San Joaquin, or across a bridge — you belong to a different
+center, so check first with our
+<a href="/tools/regional-center-finder/">Regional Center finder</a>.
+
+<h2 class="qa-h" id="two-doors">Which intake door is mine — Early Start or over 3?</h2>
+
+<AnswerFirst>
+  RCEB splits intake by age, and the two routes do not share a queue. <b>Birth to 3</b> goes to
+  the <b>Early Start intake line</b>, which has its own phone number, its own email inbox, and
+  its own fax. <b>Age 3 and older</b> goes to the <b>Intake Coordinator</b> for over-three
+  services, with a different number and inbox. Both routes also accept an online inquiry form.
+</AnswerFirst>
+
+This is the most practical local fact on this page. A message left on the wrong line does not
+usually bounce — it gets forwarded, eventually, and "eventually" is the enemy here. So before
+you call, know two things: your child's age today, and which door that puts you at.
+
+The current numbers, addresses, and inquiry form all live on RCEB's own eligibility page. We
+link rather than reprint them, because a number we copy today is a number that can be wrong
+next spring, and the main line at the top of this page will always transfer you.
+
+<a class="link" href="https://rceb.org/clients/am-i-eligible/">RCEB: Am I eligible? — both intake routes →</a>
+
+<h2 class="qa-h" id="intake">How does intake work, step by step?</h2>
+
+<AnswerFirst>
+  Say this: <i>"I'd like to request an intake and assessment for my child."</i> No diagnosis, no
+  doctor's referral, and no lawyer is required to start. For children 3 and older, eligibility
+  turns on <b>substantial disability</b> — significant functional limits in <b>3 or more</b>
+  major life areas, from a disability that began before age 18 <Cite>WIC §4512</Cite>. Under 3,
+  Early Start uses broader criteria and no label is needed.
+</AnswerFirst>
+
+1. **Contact the right intake route and record the date.** That date starts every clock below.
+   Ask for written confirmation of it — an email reply is enough.
+2. **Gather what you have.** Pediatrician notes, evaluation or diagnostic reports, an IEP or
+   IFSP, preschool or daycare observations, and your own written list of daily struggles. A
+   missing document is not a reason to wait.
+3. **Do the intake interview honestly.** Describe your hardest days, not your child's best
+   ones. Assessors are measuring function across those major life areas — self-care, language,
+   learning, mobility, self-direction, independent living, economic self-sufficiency.
+4. **Ask for the decision in writing.** If your child is found eligible, you move to the
+   Individual Program Plan (IPP), which the law says must be completed within 60 days of the
+   assessment being finished <Cite>WIC §4646</Cite>. If not, you are owed a written
+   **Notice of Action** with the reason and your appeal rights.
+
+<DeadlineCallout>
+  <b>Initial intake: 15 working days</b> from your request <Cite>WIC §4642</Cite>.
+  <b>Assessment: 120 days</b> from intake — <b>60 days</b> where delay would put your child at
+  risk <Cite>WIC §4643</Cite>. <b>Under 3: 45 days</b> from referral for evaluation and the
+  first plan. <b>IPP: 60 days</b> after the assessment is complete <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+<h2 class="qa-h" id="offices">Where will meetings actually happen?</h2>
+
+<AnswerFirst>
+  RCEB's main office is in <b>San Leandro</b> (Alameda County) and it runs a second office in
+  <b>Concord</b> (Contra Costa County). Which one you deal with generally follows which county
+  you live in. Ask at intake and write down the office and your coordinator's name.
+</AnswerFirst>
+
+[TBC: RCEB's eligibility page lists only the San Leandro address for intake, so it is unclear
+whether Contra Costa families do intake through Concord or through San Leandro — confirm before
+telling families where to show up.]
+
+Meetings are your meetings. You can bring anyone you like — a partner, a friend, a relative, an
+advocate — and you can ask for the meeting to be held in your preferred language. That last one
+is a legal duty, not a favor: the planning process must be conducted in your language, and the
+plan must be given to you in it <Cite>WIC §4646</Cite>. RCEB publishes its information packets
+in Spanish, Korean, Simplified and Traditional Chinese, Tagalog, and Vietnamese, and points
+families to the state for more.
+
+<h2 class="qa-h" id="same-vs-local">What is the same everywhere, and what is local?</h2>
 
 <div class="table-wrap">
   <table class="data">
-    <tr><th>Local signal</th><th>What it means for you</th></tr>
-    <tr><td><b>Respite baselines</b> (coming)</td><td>Comparing starting respite-hour offers across all 21 regional centers tells you whether a first offer is in the normal band — or worth pushing back on. This table populates from the DDS data build-out.</td></tr>
-    <tr><td><b>Purchase-of-service data</b> (coming)</td><td>DDS publishes per-capita purchase-of-service spending each year, and it varies by age and ethnicity. Bringing the public numbers to your IPP meeting changes the conversation.</td></tr>
-    <tr><td><b>If you're denied</b></td><td>Denials must arrive as a written Notice of Action (NOA) listing your appeal routes and deadlines. The full walkthrough lives in the Regional Center guide below.</td></tr>
+    <tr><th>Same at every regional center</th><th>Local to RCEB</th></tr>
+    <tr><td>The 3-of-7 substantial disability standard <span class="cite">WIC §4512</span></td><td>Two intake doors split by age, each with its own line, inbox, and fax</td></tr>
+    <tr><td>The intake, assessment, and IPP clocks <span class="cite">WIC §4642</span> <span class="cite">WIC §4643</span> <span class="cite">WIC §4646</span></td><td>Two offices — San Leandro and Concord — roughly along county lines</td></tr>
+    <tr><td>A denial must arrive as a written Notice of Action</td><td>Which East Bay providers and vendors have openings near you</td></tr>
+    <tr><td>Your right to the whole process in your preferred language <span class="cite">WIC §4646</span></td><td>[TBC: RCEB respite baselines and purchase-of-service patterns — DDS publishes this data annually; we do not ship sample figures]</td></tr>
   </table>
 </div>
 
-<h2 class="qa-h" id="rceb-appeal">How do I appeal an RCEB decision?</h2>
+Be careful with the word "local" when a coordinator uses it. "That's not something we fund
+here" is a statewide claim dressed as a local one, and the Lanterman Act does not let a center
+run out of an entitlement. If you hear it, ask for it in writing.
+
+<h2 class="qa-h" id="appeal">What if RCEB says no?</h2>
 
 <AnswerFirst>
-  Every denial or service reduction comes with a written <b>Notice of Action</b> — and the NOA
-  is your appeal ticket, not the end of the road. Deadlines are short, so act on the date
-  printed on the notice. Disagreements about the IPP itself also have a resolution path
-  <Cite>WIC §4646</Cite>.
+  Ask for the <b>Notice of Action</b> in writing — a "no" on the phone is not a decision and
+  starts no clock. From the day you receive that notice, you have <b>60 days</b> to request an
+  informal meeting, mediation, or a fair hearing <Cite>WIC §4710.5</Cite>. If a service your
+  child already receives is being reduced or stopped and you want it to continue during the
+  appeal, that request must be in within <b>30 days</b> of receiving the notice
+  <Cite>WIC §4715</Cite>.
 </AnswerFirst>
 
-The appeal process is the same at all 21 regional centers, so we keep the full walkthrough —
-routes, timelines, and what to say at each stage — in one place.
+Two dates, written on the notice itself, the day it arrives. Then call for free help: the
+**Office of Clients' Rights Advocacy (OCRA)**, part of **Disability Rights California**, staffs
+advocates who take Lanterman Act appeals for families at no charge.
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Who RCEB serves</a>
+    <a href="#two-doors">Which intake door is mine?</a>
+    <a href="#intake">Intake, step by step</a>
+    <a href="#offices">Where meetings happen</a>
+    <a href="#same-vs-local">Same everywhere vs local</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="RCEB at a glance">
     <dl>
       <dt>Counties</dt><dd>Alameda · Contra Costa</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
-      <dt>Board meetings</dt><dd>Public — you can comment</dd>
-      <dt>Nearby</dt><dd>Golden Gate RC · San Andreas RC</dd>
+      <dt>Offices</dt><dd>San Leandro (main) · Concord</dd>
+      <dt>Intake routes</dt><dd>Early Start (0–3) and over-3 — separate lines and inboxes</dd>
+      <dt>Clocks</dt><dd>15 working days to intake · 120 days to assessment · 45 days under 3 · 60 days to the IPP</dd>
     </dl>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Neighboring territories:</p>
+    <GatedLink class="link" href="/regional-centers/golden-gate/">Golden Gate RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/north-bay/">North Bay RC →</GatedLink>
+  </SideCard>
+  <SideCard title="Once you're eligible">
+    <p>Regional Center eligibility opens doors elsewhere — including Medi-Cal without a parental income test.</p>
+    <GatedLink class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</GatedLink>
+  </SideCard>
+  <SideCard title="Start with the basics">
+    <p>How the Lanterman Act works, what happens at the IPP meeting, and what to do when the answer is no.</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>
+
+<EmpathyCallout label="One call, two doors">
+  If you have already called once and heard nothing back, check something before you conclude
+  anything about yourself: which of the two intake routes did the message land in? Call the main
+  line, say your child's age in the first sentence, and ask to be put through to the right
+  intake. You are not starting over. You are correcting a routing problem — and you are the only
+  person in this system who was ever going to catch it.
+</EmpathyCallout>
 
 <HandoffCTA
   heading="Getting ready for RCEB intake?"

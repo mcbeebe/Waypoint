@@ -19,16 +19,32 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "San Gabriel/Pomona Regional Center — Who Do We Serve (30-city service area)"
+    url: "https://sgprc.org/about-us/who-do-we-serve/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 — initial intake within 15 working days of the request"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 — assessment within 120 days of intake (60 when delay poses risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 — substantial disability (3 of 7 areas); provisional eligibility under age 5"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 — IPP completed within 60 days of the assessment"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 — 60 days to request a fair hearing after a Notice of Action"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 — Early Start evaluation within 45 days of referral"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
-  [TBC: verify this center's LA service area / ZIP coverage — seven centers
-   divide Los Angeles County by neighborhood]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -58,104 +74,197 @@ sources:
   Two sources agree: DDS listing and the center's own site. (confidence: high)
     DDS: https://www.dds.ca.gov/wp-content/uploads/2023/08/ATTACHMENT-F_RC-Directory-FY-23-24.pdf
     Own: https://www.sgprc.org/about-us/contact-us/
+
+  ---- NARRATIVE PASS 2026-09-08 (LA boundary resolved) ----
+  The stub's [TBC: verify this center's LA service area / ZIP coverage] is
+  now answered, and the answer is the point of the page:
+    - DDS's own listing describes SGPRC narrowly — "The cities of El Monte,
+      Monrovia, Pomona, and Glendora within the county of Los Angeles"
+      (https://www.dds.ca.gov/rc/listings/, fetched 2026-09-08). Those four
+      names are LA COUNTY HEALTH DISTRICT names, not the whole city list.
+    - The center's own page enumerates 30 cities across the El Monte,
+      Foothill and Pomona areas: Altadena, Arcadia, Azusa, Baldwin Park,
+      Charter Oak, City of Industry, Claremont, Covina, Diamond Bar, Duarte,
+      El Monte, Glendora, Hacienda Heights, Irwindale, La Puente, La Verne,
+      Monrovia, Pasadena, Pomona, Rowland Heights, San Dimas, Sierra Madre,
+      South El Monte, Temple City, Valinda, Walnut, West Covina, Whittier
+      — https://sgprc.org/about-us/who-do-we-serve/
+    - CRITICAL for parents: that same page states portions of PASADENA,
+      POMONA, TEMPLE CITY and WHITTIER are SHARED with another regional
+      center along LA County Health District boundaries. So a city name does
+      not settle which center serves a family; the address does.
+    - Office: 75 Rancho Camino Drive, Pomona CA 91766 (DDS + own site).
+    - The six other centers covering LA County, from the DDS listing:
+      Eastern LA (Alhambra, East Los Angeles, Northeast, Whittier health
+      districts), Frank D. Lanterman (Central, Glendale, Hollywood-Wilshire,
+      Pasadena), Harbor (Bellflower, Harbor, Long Beach, Torrance), North LA
+      County (East Valley, San Fernando, West Valley), South Central LA
+      (Compton, San Antonio, South, Southeast, Southwest), Westside
+      (Inglewood, Santa Monica-West).
+    - Statutes re-verified on leginfo this pass: §4642, §4643, §4512, §4646,
+      §4710.5; 17 CCR §52086 re-read.
+  [TBC: SGPRC's published ZIP-code list or service-area map, if one exists —
+   the who-do-we-serve page names cities and health districts but no ZIPs,
+   which is what a parent on a split-city street actually needs]
+  [TBC: whether SGPRC runs any office other than the Pomona headquarters]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import NoticeBox from '../../components/NoticeBox.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Seven regional centers split Los Angeles County. San Gabriel/Pomona is the one for the San
+  Gabriel Valley and the Pomona Valley — about 30 cities, from Altadena and Pasadena east to
+  Claremont. Some cities are split down the middle between two centers, so your street address
+  decides, not your city name. Check before you call.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  San Gabriel/Pomona Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you) — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  San Gabriel/Pomona Regional Center (SG/PRC) serves about <b>30 cities</b> in the
+  <b>El Monte, Foothill, and Pomona</b> areas of <b>Los Angeles County</b>, under the Lanterman
+  Act <Cite>WIC §4500 et seq.</Cite>, free to your family at any income. Los Angeles County is
+  divided among <b>seven</b> regional centers along <b>health district</b> lines — not city
+  lines — so several cities in this area are <b>split between two centers</b>. Confirm your
+  address before you start, because starting at the wrong center costs weeks.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="is-this-my-center">Is San Gabriel/Pomona my regional center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+Everywhere else in California, the answer is a county. In Los Angeles it is a neighborhood — and
+the neighborhood boundaries are **Los Angeles County health districts**, an administrative map
+most residents have never seen and no street sign mentions.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+SG/PRC's own service area lists these cities:
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+Altadena · Arcadia · Azusa · Baldwin Park · Charter Oak · City of Industry · Claremont · Covina ·
+Diamond Bar · Duarte · El Monte · Glendora · Hacienda Heights · Irwindale · La Puente ·
+La Verne · Monrovia · Pasadena · Pomona · Rowland Heights · San Dimas · Sierra Madre ·
+South El Monte · Temple City · Valinda · Walnut · West Covina · Whittier
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<NoticeBox>
+  <b>Four of those cities are shared.</b> SG/PRC states that portions of <b>Pasadena, Pomona,
+  Temple City, and Whittier</b> fall to another regional center, because the health district
+  boundary runs through the city. If you live in one of those four, your city name is not the
+  answer — your address is.
+</NoticeBox>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+Two neighbors matter most here. **Pasadena** is a health district of its own, and Frank D.
+Lanterman Regional Center covers it — so a Pasadena family may belong to either center depending
+on the block. **Whittier** is likewise a health district covered by Eastern Los Angeles Regional
+Center. If your street sits near one of those seams, do not guess.
 
-<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+The reliable checks, in order:
+
+1. Our <a class="link" href="/tools/regional-center-finder/">Regional Center finder</a> — enter
+   your address, not just your city.
+2. The state's own directory: <a class="link" href="https://www.dds.ca.gov/rc/listings/">DDS Regional Center listings</a>.
+3. Call SG/PRC and read them your street address before anything else. If it is not their area,
+   they will tell you which center is — and that call takes five minutes, versus the six weeks
+   an intake at the wrong center can cost.
+
+<h2 class="qa-h" id="how-intake-starts">How does intake start here?</h2>
 
 <AnswerFirst>
-  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
-  not enough to tell you which one is yours — <b>your address decides it</b>, and the
-  boundaries follow LA County health districts, not city lines.
+  Call the main line and say plainly: <i>"I'd like to request an intake and assessment for my
+  child for Regional Center eligibility."</i> Say your child's age first — <b>under 3</b> routes
+  to Early Start on a faster clock, <b>3 and older</b> to standard Lanterman intake. SG/PRC also
+  publishes an admissions and assessment page describing the process.
 </AnswerFirst>
 
-Serves one county — Los Angeles — but only the eastern San Gabriel Valley and Pomona Valley
-portion of it. SGPRC is one of seven regional centers dividing LA County, and its catchment
-is defined by three DDS/LA County health districts: El Monte, Foothill, and Pomona. Within
-those districts it covers about 30 cities and communities: Altadena, Arcadia, Azusa, Baldwin
-Park, Charter Oak, City of Industry, Claremont, Covina, Diamond Bar, Duarte, El Monte,
-Glendora, Hacienda Heights, Irwindale, La Puente, La Verne, Monrovia, Pasadena (portions
-only), Pomona (portions only), Rowland Heights, San Dimas, Sierra Madre, South El Monte,
-Temple City (portions only), Valinda, Walnut, West Covina, and Whittier (portions only). Its
-office is at 75 Rancho Camino Drive, Pomona, CA 91766. Because several cities are split at
-the health-district / ZIP boundary rather than the city line, a family in Pasadena, Pomona,
-Temple City, or Whittier cannot rule SGPRC in or out by city name alone and should confirm
-by street address or ZIP.
+<a class="link" href="https://www.sgprc.org/individuals-and-families/admissions-assessment/">SG/PRC — Admissions &amp; Assessment →</a>
 
-### Who this center does not serve
+SG/PRC operates from a headquarters in **Pomona**. If you are on the Altadena or Sierra Madre end
+of the territory, that is a real drive across the valley — ask on the first call whether the
+intake interview can be done by phone or video, and whether any meetings happen closer to you.
 
-Does NOT cover the rest of Los Angeles County outside the El Monte, Foothill, and Pomona
-health districts. Specifically, neighbouring catchments belong to other centers: the
-Alhambra, East Los Angeles, Northeast, and Whittier health districts — including Alhambra,
-East LA, and most of Whittier — are Eastern Los Angeles Regional Center (ELARC), whose
-Whittier district office serves that area; and the Central, Glendale, Hollywood-Wilshire,
-and Pasadena health districts — including the City of Pasadena proper and Glendale — are
-Frank D. Lanterman Regional Center. This is the sharpest ruling-out edge: SGPRC lists
-Altadena and part of Pasadena among its communities (Foothill health district), while the
-Pasadena health district itself is Lanterman's, so Pasadena addresses split between the two
-centers. Whittier likewise appears in SGPRC's community list only in part, with the Whittier
-health district assigned to ELARC. Central, South, and West LA, the San Fernando Valley, the
-Antelope Valley, the South Bay/Harbor area, and Long Beach are all served by other LA County
-regional centers, not SGPRC. (Caveat: no snippet gave an explicit ZIP-level exclusion list
-from SGPRC's own site — the exclusions above are inferred from the published health-district
-assignments of the adjacent centers, which are stated in the sources.)
+What to have ready. Not a perfect folder — what exists:
 
-If your address sits near one of these boundaries, confirm your center before you call —
-being sent back to the start by the wrong center costs weeks.
+- Pediatrician notes, referrals, developmental screening results
+- Any evaluation: speech, occupational therapy, psychological, hearing
+- Preschool or school records, an IEP or IFSP if there is one
+- Your own written description of a **hard day** — specific, unflattering, honest
+
+A diagnosis helps but is not required to start. The center funds its own assessments at no cost
+to you.
+
+<h2 class="qa-h" id="the-clocks">What clocks are running?</h2>
+
+<DeadlineCallout>
+  <b>15 working days</b> from your request to initial intake <Cite>WIC §4642</Cite>.
+  <b>120 days</b> from intake to a completed assessment — <b>60 days</b> where delay would risk
+  your child's health, safety, or development <Cite>WIC §4643</Cite>. Under 3: <b>45 days</b>
+  from referral for the Early Start evaluation and assessment <Cite>17 CCR §52086</Cite>. Then
+  <b>60 days</b> from the completed assessment to the written plan <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+These are identical at all 21 centers. What is local is who picks up, where you drive, and which
+providers have openings nearby. Your child's rights do not shrink because a boundary line put you
+in one center rather than another.
+
+Eligibility at **3 and older** means a developmental disability that began before 18 and amounts
+to a "substantial disability" — significant functional limits in **3 or more of 7 life areas**
+<Cite>WIC §4512</Cite>. Under **age 5**, a child can also be found **provisionally eligible** on
+limits in **at least 2** of those areas <Cite>WIC §4512</Cite>. Ask about that by name if your
+preschooler is told they are close but not quite.
+
+<EmpathyCallout label="On the seven-center map">
+  Learning that your county has seven regional centers, and that you might be on the wrong side
+  of a health district line you have never heard of, is a genuinely absurd thing to discover at
+  11pm. It is not your failure to understand. It is an administrative map from another era, and
+  the fix is one phone call with your address in front of you.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="if-they-say-no">What if SG/PRC says no?</h2>
+
+A denial — of eligibility, or of a specific service — has to arrive as a written **Notice of
+Action**. An informal no on the phone is not a decision and starts no clock. Ask for it in
+writing, every time. From the written notice you have **60 days** to request a hearing
+<Cite>WIC §4710.5</Cite>; check the dates printed on your own notice.
+
+Free advocates exist. The **Office of Clients' Rights Advocacy (OCRA)**, part of **Disability
+Rights California**, handles regional center appeals for families statewide.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial →</GatedLink>
+
+You now know something that trips up half the families in this county: the boundary is a health
+district, not a city, and the address is the answer. Make the call with it in front of you.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#is-this-my-center">Is this my center?</a>
+    <a href="#how-intake-starts">How intake starts</a>
+    <a href="#the-clocks">The deadlines</a>
+    <a href="#if-they-say-no">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Los Angeles</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Area</dt><dd>~30 cities — El Monte, Foothill &amp; Pomona areas of LA County</dd>
+      <dt>Headquarters</dt><dd>Pomona</dd>
+      <dt>Split cities</dt><dd>Parts of Pasadena, Pomona, Temple City &amp; Whittier belong to another center</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 from referral under 3 <span class="cite">17 CCR §52086</span></dd>
     </dl>
   </SideCard>
-  <SideCard title="Not your Regional Center?">
-    <p>California has 21. Enter your county and we'll point you to the right one.</p>
-    <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  <SideCard title="The other LA centers">
+    <GatedLink class="link" href="/regional-centers/lanterman/">Frank D. Lanterman RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/eastern-la/">Eastern LA RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/north-la/">North LA County RC →</GatedLink>
+    <p>Check your address, not your city:</p>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+  <SideCard title="The full guide">
+    <p>Eligibility, the IPP meeting, and appeals in depth:</p>
+    <a class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</a>
   </SideCard>
 </aside>
 </div>

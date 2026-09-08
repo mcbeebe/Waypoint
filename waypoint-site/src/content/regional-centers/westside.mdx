@@ -19,16 +19,32 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "Westside Regional Center — Service Area (cities, ZIP codes, map)"
+    url: "https://westsiderc.org/who-we-are/service-area/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 — initial intake within 15 working days of the request"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 — assessment within 120 days of intake (60 when delay poses risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 — substantial disability (3 of 7 areas); provisional eligibility under age 5"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 — IPP completed within 60 days of the assessment"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 — 60 days to request a fair hearing after a Notice of Action"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 — Early Start evaluation within 45 days of referral"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
-  [TBC: verify this center's LA service area / ZIP coverage — seven centers
-   divide Los Angeles County by neighborhood]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -58,97 +74,197 @@ sources:
   Two sources agree: DDS listing and the center's own site. (confidence: high)
     DDS: https://www.dds.ca.gov/rc/listings/
     Own: https://westsiderc.org/contact-us/
+
+  ---- NARRATIVE PASS 2026-09-08 (LA boundary resolved, both sources) ----
+  The stub's [TBC: verify this center's LA service area / ZIP coverage] is
+  now CLOSED, including at ZIP level — WRC is the rare LA center that
+  publishes both a ZIP list and a map.
+    - DDS: "The health districts of Inglewood and Santa Monica-West within
+      the county of Los Angeles." Address listed: 777 S. Aviation Boulevard,
+      Suite 105, El Segundo, CA 90245 — https://www.dds.ca.gov/rc/listings/
+    - Own service-area page (fetched 2026-09-08): 21 cities — "Bel Air,
+      Beverly Hills, Calabasas, Culver City, El Segundo, Gardena, Hawthorne,
+      Inglewood, Lawndale, Lennox, Los Angeles, Malibu, Marina Del Rey, Mar
+      Vista, Pacific Palisades, Playa Del Rey, Santa Monica, Topanga Canyon,
+      Venice, Westchester, West Los Angeles" — plus 45 ZIP codes spanning
+      90003–91302, and a downloadable map. The page tells readers to "Use
+      the map below to make sure you reside within our service area."
+      Deliberately NOT reproducing the 45 ZIPs in prose: a stale ZIP list
+      here would be worse than a link to the live one.
+    - The six other centers covering LA County, from the DDS listing:
+      Eastern LA, Frank D. Lanterman (Central, Glendale, Hollywood-Wilshire,
+      Pasadena), Harbor (Bellflower, Harbor, Long Beach, Torrance), North LA
+      County, San Gabriel/Pomona, South Central LA (Compton, San Antonio,
+      South, Southeast, Southwest).
+      NOTE the overlap worth flagging to a parent: GARDENA appears on WRC's
+      own city list, and Gardena also sits beside Harbor RC's Torrance
+      health district and SCLARC's Southwest district — a genuine seam.
+    - Statutes re-verified on leginfo this pass: §4642, §4643, §4512, §4646,
+      §4710.5; 17 CCR §52086 re-read.
+  [TBC: whether WRC's intake page routes differently by age (Early Start vs
+   3+) — westsiderc.org/intake/ was not separately fetched this pass, so the
+   body sends readers to the page rather than describing its routing]
+  [TBC: confirm the El Segundo address is WRC's only office]
 */}
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import NoticeBox from '../../components/NoticeBox.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Seven regional centers divide Los Angeles County. Westside is the one for the coast and the
+  Westside — Santa Monica, Venice, Culver City, Inglewood, Hawthorne, Malibu and their
+  neighbors. It coordinates and pays for services for children with developmental disabilities,
+  free, at any income. Westside publishes a ZIP list and a map, so you can check your address in
+  a minute.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  Westside Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you) — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Westside Regional Center (WRC) serves the <b>Inglewood</b> and <b>Santa Monica-West</b> health
+  districts of Los Angeles County, under the Lanterman Act <Cite>WIC §4500 et seq.</Cite>, free
+  at any family income. That covers roughly <b>21 cities and neighborhoods</b> from Malibu and
+  Pacific Palisades down through Santa Monica, Venice, Culver City and West LA to Inglewood,
+  Hawthorne, Lawndale and El Segundo. WRC publishes <b>the ZIP codes it covers and a map</b> —
+  the fastest way in Los Angeles to know whether a center is yours.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="is-this-my-center">Is Westside my regional center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+Almost everywhere in California, your county names your regional center. Los Angeles County is
+split among **seven** of them, and the split follows **health districts** — an administrative map
+with no street signs. So "I live in Los Angeles" answers nothing: the City of Los Angeles is
+divided among several centers, and Westside holds only the coastal slice of it (Venice, Mar
+Vista, Westchester, West LA, Pacific Palisades, Bel Air, Playa del Rey).
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+Westside makes this easier than most. Its service-area page lists the cities **and** the ZIP
+codes it covers, with a downloadable map:
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+<a class="link" href="https://westsiderc.org/who-we-are/service-area/">Westside Regional Center — service area, ZIP list and map →</a>
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+Cities on Westside's own list: Bel Air · Beverly Hills · Calabasas · Culver City · El Segundo ·
+Gardena · Hawthorne · Inglewood · Lawndale · Lennox · Los Angeles · Malibu · Marina del Rey ·
+Mar Vista · Pacific Palisades · Playa del Rey · Santa Monica · Topanga Canyon · Venice ·
+Westchester · West Los Angeles
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<NoticeBox>
+  <b>Check the ZIP, not the city.</b> Some of these names sit on a seam. <b>Gardena</b>, for
+  example, is on Westside's list and also borders Harbor Regional Center's Torrance district and
+  South Central LA's Southwest district. A city name that appears on two centers' lists is not a
+  contradiction — the health district line runs through the city, and your ZIP or street address
+  decides.
+</NoticeBox>
 
-<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+If you are still unsure, three checks, best first: our
+<a class="link" href="/tools/regional-center-finder/">Regional Center finder</a>; the state's
+directory at <a class="link" href="https://www.dds.ca.gov/rc/listings/">DDS Regional Center listings</a>;
+or a call to WRC with your street address in front of you. If it is not their area, they will
+name the center that is — a five-minute call instead of a six-week detour.
+
+<h2 class="qa-h" id="how-intake-starts">How does intake start here?</h2>
 
 <AnswerFirst>
-  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
-  not enough to tell you which one is yours — <b>your address decides it</b>, and the
-  boundaries follow LA County health districts, not city lines.
+  Start at WRC's intake page or call the main line and say: <i>"I'd like to request an intake and
+  assessment for my child for Regional Center eligibility."</i> Lead with your child's age —
+  <b>under 3</b> routes to Early Start on a 45-day clock, <b>3 and older</b> to standard
+  Lanterman intake. Then write down the date you contacted them. That date starts every deadline
+  below.
 </AnswerFirst>
 
-Westside Regional Center serves only a portion of Los Angeles County — specifically the
-Inglewood and Santa Monica-West Health Districts. (In LA County, regional center catchment
-boundaries follow DDS health districts, not county lines; seven regional centers divide the
-county.) Communities named in WRC's own catchment listing include: Bel Air, Beverly Hills,
-Beverlywood, Calabasas, Century City, Culver City, El Segundo, Gardena, Hawthorne,
-Inglewood, Lawndale, Lennox, Los Angeles (westside portions), Malibu, Marina del Rey, Mar
-Vista, Pacific Palisades, Playa del Rey, Santa Monica, Topanga Canyon, Venice, Westchester,
-West Los Angeles, and Westwood.
+<a class="link" href="https://westsiderc.org/intake/">Westside Regional Center — Intake →</a>
 
-### Who this center does not serve
+WRC's office is in **El Segundo**, near the airport. From Malibu or Topanga that is a serious
+drive, especially at the hours schools let out. Ask on the first call whether the intake
+interview can happen by phone or video — the answer varies, and asking costs nothing.
 
-WRC does not cover the rest of Los Angeles County. Per the DDS health-district split
-evidenced in search results: the Bellflower, Harbor, Long Beach and Torrance health
-districts are served by Harbor Regional Center (so South Bay/Long Beach/Torrance-area
-families are not WRC), and the Central, Glendale, Hollywood-Wilshire and Pasadena health
-districts are served by Frank D. Lanterman Regional Center (so
-downtown/Hollywood/Glendale/Pasadena families are not WRC). WRC also serves no county other
-than Los Angeles. Caution: exact boundaries in edge cities are set by ZIP code — e.g.
-Gardena appears in WRC's own published catchment list even though it sits near Harbor RC
-territory — so borderline addresses should be checked against the DDS "Regional Center
-Lookup" or WRC's catchment map rather than by city name alone. (Assignments for other LA-
-County regional centers beyond Harbor and Lanterman were not seen in a snippet and are not
-asserted here.)
+**Bring what exists, not what you wish existed:**
 
-If your address sits near one of these boundaries, confirm your center before you call —
-being sent back to the start by the wrong center costs weeks.
+- Pediatrician notes, referrals, developmental screening results
+- Any evaluation — speech, occupational therapy, psychological, hearing
+- Preschool or school records; an IEP or IFSP if there is one
+- Your own written description of a **hard day**, in specifics rather than adjectives
+
+A diagnosis helps and is **not required** to start. The center funds its own assessments at no
+cost to you, so a missing report is not a reason to wait another month.
+
+<h2 class="qa-h" id="the-clocks">What is Westside on the clock for?</h2>
+
+<DeadlineCallout>
+  <b>15 working days</b> from your request to initial intake <Cite>WIC §4642</Cite>.
+  <b>120 days</b> from intake to a completed assessment — <b>60 days</b> where delay would risk
+  your child's health, safety, or development <Cite>WIC §4643</Cite>. Under 3: <b>45 days</b>
+  from referral for the Early Start evaluation and assessment <Cite>17 CCR §52086</Cite>. Then
+  <b>60 days</b> from the completed assessment to the written plan <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+Same at all 21 centers, and they run from **your** request rather than from whenever a file gets
+opened. If a clock passes, put it in writing — the date you contacted them, the statute, and a
+request for a decision date. Centers respond to parents who know the deadline.
+
+Eligibility at **3 and older** means a developmental disability that began before 18 and is a
+"substantial disability" — significant functional limits in **3 or more of 7 life areas**
+<Cite>WIC §4512</Cite>. Under **age 5**, ask about **provisional eligibility** by name: it needs
+limits in **at least 2** of those areas instead of 3 <Cite>WIC §4512</Cite>. Many parents of
+3- and 4-year-olds are never told that second door exists.
+
+<EmpathyCallout label="On the map problem">
+  Nobody grows up knowing what health district they live in. If you have already called one
+  center and been told you belong to another, you did not do anything wrong — you ran into a
+  boundary that the county drew for public health decades ago and never redrew for families. Get
+  the ZIP checked once, write down which center is yours, and you never have to think about it
+  again.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="if-they-say-no">What if Westside says no?</h2>
+
+A denial must arrive as a written **Notice of Action**. An informal no over the phone is not a
+decision and starts no clock — ask for it in writing, every time. From the written notice you
+have **60 days** to request a hearing <Cite>WIC §4710.5</Cite>. Read the dates on your own notice
+and calendar them the day it arrives.
+
+Help is free. The **Office of Clients' Rights Advocacy (OCRA)**, part of **Disability Rights
+California**, provides advocates who handle regional center appeals throughout Los Angeles
+County at no cost to families.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial →</GatedLink>
+
+You checked the ZIP instead of trusting the city name, and you dated the request. Those two
+habits carry you through the rest of this system.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#is-this-my-center">Is this my center?</a>
+    <a href="#how-intake-starts">How intake starts</a>
+    <a href="#the-clocks">The deadlines</a>
+    <a href="#if-they-say-no">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Los Angeles</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Health districts</dt><dd>Inglewood · Santa Monica-West</dd>
+      <dt>Office</dt><dd>El Segundo</dd>
+      <dt>Boundary check</dt><dd>WRC publishes its ZIP list and a map</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 from referral under 3 <span class="cite">17 CCR §52086</span></dd>
     </dl>
   </SideCard>
-  <SideCard title="Not your Regional Center?">
-    <p>California has 21. Enter your county and we'll point you to the right one.</p>
-    <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+  <SideCard title="The other LA centers">
+    <GatedLink class="link" href="/regional-centers/harbor/">Harbor RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/south-central-la/">South Central LA RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/lanterman/">Frank D. Lanterman RC →</GatedLink>
+    <p>Check your address, not your city:</p>
+    <a class="link" href="/tools/regional-center-finder/">Regional Center finder →</a>
+  </SideCard>
+  <SideCard title="The full guide">
+    <p>Eligibility, the IPP meeting, and appeals in depth:</p>
+    <a class="link" href="/guides/regional-centers/">Regional Centers &amp; the Lanterman Act →</a>
   </SideCard>
 </aside>
 </div>

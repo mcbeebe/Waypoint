@@ -19,16 +19,56 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "WIC §4500 (Lanterman Developmental Disabilities Services Act — short title)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4500."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas; provisional eligibility, 2 of 5)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days where delay risks health, safety or development)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 (Early Start: evaluation, assessment and initial IFSP within 45 days of referral)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
   Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
   [TBC: verify this center's LA service area / ZIP coverage — seven centers
    divide Los Angeles County by neighborhood]
+
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Body rewritten as a per-center field guide. Verified by WebFetch this pass:
+   - DDS listing (https://www.dds.ca.gov/rc/listings/): "The Harbor Regional
+     Center serves the health districts of Bellflower, Harbor, Long Beach,
+     and Torrance within the city of Los Angeles."
+   - DDS Attachment F, RC Directory FY 25-27
+     (https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf):
+     "Southern Los Angeles County including Bellflower, Harbor, Long Beach,
+     and Torrance". NOTE: that PDF still prints the legacy (310) 540-1711
+     main line; the listings page and harborrc.org both give 543-0100, which
+     is what frontmatter publishes.
+   - harborrc.org/services/who-is-eligible/: three age doors (Early Start
+     birth–36 mo, provisional, Lanterman 3+); materials in English, Spanish,
+     Korean, Chinese, Tagalog, Vietnamese, Khmer.
+   - harborrc.org/apply-for-services/: a real online application form; asks
+     residential ZIP to check the service area, accepts uploads to 30 MB,
+     and carries an assessment-consent authorization.
+   - harborrc.org/who-we-are/locations-hours/: Torrance campus and a Long
+     Beach office, both 8:30am–5pm Mon–Fri.
+   - Statutes re-verified on leginfo: WIC §4643 (120 days; 60 where delay
+     risks health/safety) and WIC §4512 (3-of-7; provisional eligibility on
+     2 of 5 areas for young children, reassessed before age 5).
+     17 CCR §52086 (45 days from referral; interim IFSP) via Cornell.
+  Street addresses are deliberately NOT in prose: DDS prints 21231 Hawthorne
+  Blvd and the center's own locations page prints 21309 — unresolved, and
+  addresses rot. Office CITIES only.
+  [TBC: full city list for the four health districts — Lomita, Signal Hill,
+   Catalina and the Palos Verdes cities could not be confirmed in a quotable
+   official snippet this pass]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -68,84 +108,195 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Harbor Regional Center is the Regional Center for the south end of Los Angeles County —
+  Torrance and the South Bay, the harbor communities, Long Beach, and the Bellflower area. It
+  arranges and pays for services for children with developmental disabilities. It is free, at
+  any income. You can start with a phone call or with a form on Harbor's own website. Once you
+  start, the answer is due in 45 days if your child is under 3, and 120 days if your child is 3
+  or older.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  Harbor Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you) — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Harbor Regional Center covers the <b>southern end of Los Angeles County</b> — not the whole
+  county. Seven Regional Centers divide LA between them, and the state describes Harbor's share
+  as the <b>Bellflower, Harbor, Long Beach, and Torrance health districts</b>. It is one of
+  California's <b>21 Regional Centers</b> under the Lanterman Act <Cite>WIC §4500 et seq.</Cite>,
+  and services are free to your family at any income. Once you start, the center owes you an
+  assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> — or, for a child under 3,
+  a completed evaluation and initial family service plan within <b>45 days</b> of the referral
+  <Cite>17 CCR §52086</Cite>.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
-
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
-
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
-
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
-
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
-
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
-
-<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+<h2 class="qa-h" id="la-area">Is Harbor my Regional Center?</h2>
 
 <AnswerFirst>
-  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
-  not enough to tell you which one is yours — <b>your address decides it</b>, and the
-  boundaries follow LA County health districts and ZIP codes.
+  Your <b>home address</b> decides, not your city name and not your county. Los Angeles County
+  is split among seven Regional Centers along <b>health district</b> lines, which are older and
+  stranger than city boundaries. Harbor holds the <b>Bellflower, Harbor, Long Beach, and
+  Torrance</b> districts.
 </AnswerFirst>
 
-Harbor Regional Center serves the South Bay, Harbor, Long Beach, and southeast corner of Los
-Angeles County — NOT the whole county. DDS and the center define its catchment by four LA
-County health districts: Bellflower, Harbor, Long Beach, and Torrance. Communities named in
-official/verified sources include: - South Bay / beach cities: Torrance, Manhattan Beach,
-Hermosa Beach, Redondo Beach, Gardena, Carson - Palos Verdes Peninsula cities (incl. Rancho
-Palos Verdes) - Harbor area: Harbor City, San Pedro, Wilmington - Long Beach area: Long
-Beach - Southeast LA County: Bellflower, Lakewood, Artesia, Cerritos, Hawaiian Gardens,
-Norwalk - Santa Catalina Island It does NOT serve central/downtown LA (Frank D. Lanterman
-RC), the San Fernando/Santa Clarita/Antelope Valleys (North Los Angeles County RC), Santa
-Monica/Culver City/Inglewood/Westside (Westside RC), East LA/Whittier (Eastern LA RC), El
-Monte/Pomona/Foothill (San Gabriel/Pomona RC), or Compton/South/Southeast LA health
-districts (South Central LA RC). Eligibility turns on the family's home address/ZIP, not on
-the county. Lomita and Signal Hill sit geographically inside this footprint but I could not
-confirm them in a quotable official snippet — treat as unverified.
+"I live in LA County" tells you almost nothing about which center is yours. The county was
+carved up decades ago using public health districts, so two houses on opposite sides of one
+street can belong to different centers. The state's own directory puts Harbor's share plainly:
+"Southern Los Angeles County including Bellflower, Harbor, Long Beach, and Torrance."
 
-If you live near one of these boundaries, confirm your center with the state's own lookup
-before you call — being sent back to start by the wrong center costs weeks.
+In everyday terms, that means the South Bay and the beach cities, the Palos Verdes Peninsula,
+the harbor communities on the San Pedro and Wilmington side, the city of Long Beach, and the
+southeast cities around Bellflower and Cerritos. It does **not** mean downtown or central Los
+Angeles, the Westside, the San Fernando or Antelope Valleys, the San Gabriel Valley, East LA,
+or the South Central districts — each of those has its own center. [TBC: confirm the full
+city-by-city list against Harbor's own service-area page; the four health districts above are
+what DDS itself publishes, and border cities like Lomita and Signal Hill could not be confirmed
+in an official snippet.]
+
+Two ways to settle it before you spend a morning on hold. Use the state's lookup at
+[dds.ca.gov/rc](https://www.dds.ca.gov/rc/), or start Harbor's own online application — it
+asks for your residential ZIP code up front precisely so it can check whether you are inside
+the catchment.
+
+<h2 class="qa-h" id="intake">How does intake actually start here?</h2>
+
+<AnswerFirst>
+  Two doors, and you can pick either. <b>Call the main line at the top of this page</b> and say
+  you want "intake and assessment," or <b>fill in Harbor's online application</b> on its
+  website. Whichever you use, the date of that first contact is the date your legal clock
+  starts — write it down.
+</AnswerFirst>
+
+Harbor is one of the LA-area centers with a genuine web application rather than a phone
+number and a hope. The form asks for your child's name and birth date, your residential ZIP,
+the languages you speak at home, and a short set of questions about your concerns — a
+different question set depending on whether your child is under 3 or 3 and older. You can
+attach documents (PDFs and Word files) rather than mailing copies. It also includes an
+authorization for the center to do the assessments it needs, which is the same consent you
+would sign in person.
+
+If your child is under 3, say so in your very first sentence. Under-3 referrals go to Early
+Start, which runs on a different and much faster clock.
+
+<DeadlineCallout>
+  <b>Under 3:</b> evaluation, eligibility, and the initial family service plan are all due
+  within <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>. <b>3 and older:</b> the
+  assessment is due within <b>120 days of intake</b> — <b>60 days</b> when waiting would risk
+  your child's health or safety <Cite>WIC §4643</Cite>. Calendar it the day you first call.
+</DeadlineCallout>
+
+Bring, or upload, whatever you already have: pediatrician notes, any evaluation, an IEP or
+IFSP, preschool or daycare observations, and your own plain list of what a hard day looks
+like. A missing report is not a reason to wait. The center does its own assessments at no cost
+to you.
+
+Harbor publishes parent materials in English, Spanish, Korean, Chinese, Tagalog, Vietnamese,
+and Khmer — a reflection of who actually lives in Long Beach and the South Bay. Ask for an
+interpreter at first contact if you want one; you do not have to bring a bilingual relative to
+translate for your own child's case.
+
+<h2 class="qa-h" id="three-doors">Which door does my child's age put us in?</h2>
+
+<AnswerFirst>
+  Three, and they have different standards. <b>Under 3</b> is Early Start, which uses broad
+  delay-or-risk criteria and needs no diagnosis. <b>Ages 3 and 4</b> can qualify
+  <b>provisionally</b> with significant limits in <b>2 of 5</b> life areas. <b>Age 3 and up</b>
+  is the full Lanterman standard: <b>3 or more of 7</b> life areas <Cite>WIC §4512</Cite>.
+</AnswerFirst>
+
+The provisional door is the one most families have never heard of, and Harbor names it
+directly on its eligibility page. For a young child, California allows eligibility based on a
+disability that is not solely physical and causes significant functional limitations in at
+least two of five areas — self-care, receptive and expressive language, learning, mobility,
+and self-direction. It is not permanent: the center must reassess before your child turns 5,
+and the full three-of-seven standard applies then <Cite>WIC §4512</Cite>. Put that date on your
+calendar the day provisional eligibility is granted, and use the years between to build the record.
+
+<EmpathyCallout label="A word about the intake interview">
+  You will be asked to describe your child, and the honest answer will feel disloyal. Describe
+  the hard day. Not the morning they surprised everyone — the afternoon you have not told your
+  own mother about. The evaluator is not grading your parenting or your child's worth; they are
+  matching a life to a legal standard written in blunt words like "self-care" and
+  "self-direction." Saying the hard part out loud is the work. It is not a betrayal.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="local-vs-statewide">What's the same everywhere, and what's local?</h2>
+
+<AnswerFirst>
+  The <b>law is identical</b> at all 21 centers — same eligibility standard, same clocks, same
+  appeal rights. What changes locally is <b>logistics</b>: which office holds your file, how
+  you make first contact, which languages are on hand, and which providers exist near you.
+</AnswerFirst>
+
+Do not let anyone tell you a rule is "how Harbor does it" when it is actually state law. The
+three-of-seven standard, the 120-day and 45-day clocks, the right to a written Notice of
+Action, and the right to appeal are the same in Torrance as they are in Redding.
+
+What is genuinely local: Harbor runs offices in **Torrance** and **Long Beach**, both open
+weekday business hours, so ask which one will hold your child's file and who your service
+coordinator is. The state's Regional Center directory also lists a **cultural specialist and
+language-access manager** at every center, Harbor included — a useful person to ask for if you
+are getting nowhere in your own language.
+
+<h2 class="qa-h" id="appeal">What if Harbor says no?</h2>
+
+<AnswerFirst>
+  A "no" only counts if it arrives as a written <b>Notice of Action</b>. An informal no on the
+  phone starts no clock and can be appealed by nobody — so ask for the written notice, then
+  appeal it. Free advocates who do this every week are available to you.
+</AnswerFirst>
+
+The appeal path is identical at all 21 centers, which is good news: you are not learning a
+Harbor-specific procedure, you are learning California's.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
+
+You do not have to do it alone or pay for help. The **Office of Clients' Rights Advocacy
+(OCRA)**, part of **Disability Rights California**, provides free advocates who handle
+Lanterman Act appeals for families. Ask for them before you write anything. (They are a
+resource, not the law — every deadline that matters comes from the statute and from the dates
+printed on your own notice.)
+
+You read the standard, you found the right center, and you started the clock on purpose. Most
+people never learn how any of this works. You just did.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#la-area">Is Harbor my center?</a>
+    <a href="#intake">How intake starts</a>
+    <a href="#three-doors">Doors by age</a>
+    <a href="#local-vs-statewide">Local vs. statewide</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Los Angeles</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Serves</dt><dd>Southern LA County — Bellflower, Harbor, Long Beach &amp; Torrance health districts</dd>
+      <dt>Offices</dt><dd>Torrance · Long Beach</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 days from referral under 3 <span class="cite">17 CCR §52086</span></dd>
+      <dt>Cost</dt><dd>Free, at any income</dd>
     </dl>
+  </SideCard>
+  <SideCard title="Neighboring LA centers">
+    <p>Seven centers split Los Angeles County. If Harbor sends you elsewhere:</p>
+    <GatedLink class="link" href="/regional-centers/south-central-la/">South Central LA →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/westside/">Westside →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/eastern-la/">Eastern LA →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/orange-county/">Orange County →</GatedLink>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Or start with the basics:</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>

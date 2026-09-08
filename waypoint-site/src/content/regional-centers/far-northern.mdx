@@ -27,14 +27,71 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "Far Northern Regional Center — Eligibility (service area, offices)"
+    url: "https://www.farnorthernrc.org/clients/eligibility/"
+    accessed: 2026-09-08
+  - label: "Far Northern Regional Center — Contact (Redding and Chico offices; intake routes)"
+    url: "https://www.farnorthernrc.org/contact/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 (initial intake within 15 working days of the request)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days when delay creates risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 (IPP completed within 60 days of assessment; preferred-language rights)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 (60 days to request an informal meeting, mediation, or fair hearing)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "WIC §4715 (services continue during appeal if requested within 30 days)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4715."
+    accessed: 2026-09-08
+  - label: "DDS — What is Early Start? (45-day window; under-3 eligibility criteria)"
+    url: "https://www.dds.ca.gov/services/early-start/what-is-early-start/"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
   Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
+
+  ---- PER-CENTER NARRATIVE WRITTEN 2026-09-08 ----
+  Local facts used, and where each came from (farnorthernrc.org, fetched
+  2026-09-08):
+  - Nine counties: the DDS listing and FNRC's own eligibility page agree
+    exactly (Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Siskiyou, Tehama,
+    Trinity).
+  - Two offices: Redding (1900 Churn Creek Rd Ste 114) and Chico (1377 E
+    Lassen Ave). FNRC's contact page says both offices serve the whole
+    nine-county region — it does NOT split counties between them. No street
+    addresses published in prose.
+  - Three intake routes on the contact page: an intake inquiry line, a fax
+    line, and an online "Submit an Intake request" form. The intake line
+    and fax numbers are DELIBERATELY NOT PUBLISHED — owner policy is main
+    line only; the page describes the routes and links out.
+  - Family guides published in English, Korean, Simplified Chinese,
+    Spanish, Tagalog, Traditional Chinese, Vietnamese.
+  - Statutes verified verbatim on leginfo 2026-09-08: §4642, §4643, §4512,
+    §4646 (IPP within 60 days of assessment completion + preferred-language
+    duty), §4710.5 (60 days), §4715 (30 days for aid paid pending).
+  - 45-day Early Start window: DDS "What is Early Start?", 2026-09-08.
+  NOT WRITTEN, deliberately: anything about drive times, home visits,
+  telehealth appointments, or how FNRC handles families hours from an
+  office. The eligibility and contact pages say nothing about it, and
+  inventing a travel accommodation would be worse than silence.
+  [TBC: does FNRC do home or remote intake interviews for families in
+   Modoc, Trinity, Siskiyou, Lassen and Plumas, where the nearest office
+   can be a long drive? This is THE local question on this page and it is
+   currently unanswerable from published sources — ask FNRC directly.]
+  [TBC: whether Redding or Chico is assigned by county, or whether case
+   assignment is by caseload — the contact page says both serve all nine.]
+  [TBC: board meeting schedule — not found on the pages fetched.]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -67,61 +124,191 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Far Northern Regional Center arranges and pays for disability services across nine counties in
+  the top of California, from the Sacramento Valley to the Oregon border. It is free, whatever
+  you earn. There are two offices — Redding and Chico — and you can start intake by phone, by
+  fax, or through an online request form. The clocks in California law are the same for you as
+  for a family in Los Angeles.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
+<h2 class="qa-h" id="who">Who does Far Northern Regional Center serve?</h2>
+
 <AnswerFirst>
-  Far Northern Regional Center serves families in <b>Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Siskiyou, Tehama, and Trinity counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Far Northern serves families in <b>Butte, Glenn, Lassen, Modoc, Plumas, Shasta, Siskiyou,
+  Tehama, and Trinity counties</b> — nine counties across the top of the state, and one of the 21
+  regional center territories created by the Lanterman Act <Cite>WIC §4500 et seq.</Cite> Services are
+  provided regardless of your income, and where you live is what decides which center is yours.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+The state's listing and Far Northern's own eligibility page name exactly the same nine counties,
+which is worth saying because county lists elsewhere sometimes disagree between sources. Here
+they do not.
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+What that map means in practice: this territory runs from Chico and Oroville up through Redding,
+out to Weaverville in the Coast Ranges, and across the northeast corner to Alturas and the
+Oregon line. Much of it is rural, and a good deal of it is mountain. The law that applies to
+your child is identical to the law in San Francisco. The driving is not.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+If you are near the southern edge — Colusa, Sutter, Yuba, or Sierra county — you may belong to
+a neighboring center instead. Check with our
+<a href="/tools/regional-center-finder/">Regional Center finder</a> before you call.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+<h2 class="qa-h" id="start">How do I start intake here?</h2>
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<AnswerFirst>
+  Far Northern offers <b>three ways in</b>: an intake inquiry line, a fax line, and an online
+  <b>"Submit an Intake request"</b> form on its website. Any of the three starts your child's
+  file. You do not need a diagnosis, a referral from a doctor, or a lawyer.
+</AnswerFirst>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+For a family two hours from the nearest office, the online form is the quietest of the three —
+it works at 11pm, it does not require you to explain yourself to a stranger while your child is
+awake, and it creates a time stamp you can point to later. Use whichever one you will actually
+finish tonight.
+
+Eligibility for children 3 and older turns on **substantial disability**: significant functional
+limits in **3 or more** major life areas, from a disability that began before age 18
+<Cite>WIC §4512</Cite>. For children under 3, Early Start uses broader criteria — a measured
+delay, an established risk condition, or a combination of high-risk factors — and no diagnosis
+is needed.
+
+<a class="link" href="https://www.farnorthernrc.org/clients/eligibility/">Far Northern: eligibility and how to request intake →</a>
+
+1. **Send the request, and write down the date.** Every clock below runs from it. Ask for
+   written confirmation — an email reply is enough.
+2. **Send what you already have.** Pediatrician notes, evaluations, an IEP or IFSP, preschool or
+   daycare observations, and your own written account of a hard day. Do not wait for a complete
+   file.
+3. **Ask, on that first contact, where the interview will happen.** This is the question that
+   matters most in a nine-county territory, and it is better asked at the start than discovered
+   later. [TBC: whether Far Northern offers home or remote intake interviews for outlying
+   counties — it is not stated on its published pages, so ask directly rather than assuming
+   either way.]
+4. **Get every decision in writing.** Eligible means moving on to the Individual Program Plan
+   (IPP) <Cite>WIC §4646</Cite>. Not eligible means you are owed a written **Notice of Action**
+   giving the reason and your appeal rights.
+
+<DeadlineCallout>
+  <b>Initial intake: 15 working days</b> from your request <Cite>WIC §4642</Cite>.
+  <b>Assessment: 120 days</b> from intake — <b>60 days</b> where delay would put your child at
+  risk <Cite>WIC §4643</Cite>. <b>Under 3: 45 days</b> from referral for evaluation and the
+  first plan. <b>IPP: 60 days</b> after the assessment is complete <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+Distance is not a legal excuse for missing any of those. If a deadline passes with no decision,
+say so in writing: name the date your request went in, cite <Cite>WIC §4643</Cite>, and ask for
+a date by which you will have a decision.
+
+<h2 class="qa-h" id="offices">Which office will I deal with?</h2>
+
+<AnswerFirst>
+  Far Northern runs offices in <b>Redding</b> (headquarters) and <b>Chico</b>. Its contact page
+  says both serve the whole nine-county region rather than splitting the counties between them,
+  so ask on your first call which one your case is assigned to — and get the name of your
+  service coordinator.
+</AnswerFirst>
+
+[TBC: whether Far Northern assigns cases to Redding or Chico by county or by caseload — the
+published pages do not say.]
+
+Two practical notes for a rural territory. First, write down every name and date; when the drive
+is long, most of your contact will be by phone, and phone contact leaves no paper trail unless
+you make one. A short email after each call — "Confirming what we discussed today" — is the
+cheapest documentation there is. Second, the process must be conducted in your preferred
+language and the plan given to you in it <Cite>WIC §4646</Cite>. Far Northern publishes its
+family guides in English, Spanish, Korean, Tagalog, Vietnamese, and both written forms of
+Chinese; if your language is not on the list, ask anyway, because the duty is to your language,
+not to a menu.
+
+<h2 class="qa-h" id="same-vs-local">What is the same everywhere, and what is local?</h2>
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Same at every regional center</th><th>Local to Far Northern</th></tr>
+    <tr><td>The 3-of-7 substantial disability standard <span class="cite">WIC §4512</span></td><td>Two offices covering nine counties</td></tr>
+    <tr><td>The intake, assessment, and IPP clocks <span class="cite">WIC §4642</span> <span class="cite">WIC §4643</span> <span class="cite">WIC §4646</span></td><td>Three ways to request intake, including an online form</td></tr>
+    <tr><td>A denial must arrive as a written Notice of Action</td><td>Travel — for outlying counties, the nearest office can be a long drive</td></tr>
+    <tr><td>Free to your family at any income</td><td>[TBC: which providers and vendors actually operate in your county, and Far Northern's purchase-of-service patterns — DDS publishes that data annually; we do not ship sample figures]</td></tr>
+  </table>
+</div>
+
+Provider supply is the honest difference in a rural territory. A service your child is entitled
+to still has to be delivered by someone within reach. That is a real constraint — and it is a
+reason to put your request in writing, not a reason to treat "there's nobody up here" as the end
+of it. If that is the answer you get, ask for it in writing, along with what the center proposes
+to do instead.
+
+<h2 class="qa-h" id="appeal">What if Far Northern says no?</h2>
+
+<AnswerFirst>
+  Ask for the written <b>Notice of Action</b> — a "no" said on the phone is not a decision and
+  starts no clock. From the day you receive the notice you have <b>60 days</b> to request an
+  informal meeting, mediation, or a fair hearing <Cite>WIC §4710.5</Cite>. If a service your
+  child already gets is being cut and you want it to keep running while you appeal, that request
+  must be in within <b>30 days</b> of receiving the notice <Cite>WIC §4715</Cite>.
+</AnswerFirst>
+
+Write both dates on the notice the day it arrives. Then get free help: the **Office of Clients'
+Rights Advocacy (OCRA)**, part of **Disability Rights California**, has advocates who handle
+Lanterman Act appeals for families at no cost — and they work by phone, which matters when the
+nearest office is a mountain pass away.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Who Far Northern serves</a>
+    <a href="#start">How to start intake</a>
+    <a href="#offices">Which office is mine?</a>
+    <a href="#same-vs-local">Same everywhere vs local</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
       <dt>Counties</dt><dd>Butte · Glenn · Lassen · Modoc · Plumas · Shasta · Siskiyou · Tehama · Trinity</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Offices</dt><dd>Redding (main) · Chico</dd>
+      <dt>Ways in</dt><dd>Intake inquiry line · fax · online intake request</dd>
+      <dt>Clocks</dt><dd>15 working days to intake · 120 days to assessment · 45 days under 3</dd>
     </dl>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Neighboring territories:</p>
+    <GatedLink class="link" href="/regional-centers/alta-california/">Alta California RC →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/redwood-coast/">Redwood Coast RC →</GatedLink>
+  </SideCard>
+  <SideCard title="Once you're eligible">
+    <p>Regional Center eligibility opens doors elsewhere — including Medi-Cal without a parental income test.</p>
+    <GatedLink class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</GatedLink>
+  </SideCard>
+  <SideCard title="Start with the basics">
+    <p>How the Lanterman Act works, what happens at the IPP meeting, and what to do when the answer is no.</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>
+
+<EmpathyCallout label="Distance is not disqualifying">
+  Living a long way from an office can make this system feel like it was built for somebody else.
+  It was not built for you — but it was written for you. The same statute covers a child in
+  Alturas and a child in Sacramento, and the clocks do not stretch to match the drive.
+  Send the request, keep the dates, and make them come to you. You have already done the part
+  nobody else could do.
+</EmpathyCallout>
 
 <HandoffCTA
   heading="Getting ready for intake?"

@@ -21,14 +21,46 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "WIC §4500 (Lanterman Developmental Disabilities Services Act — short title)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4500."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas; provisional eligibility, 2 of 5)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days where delay risks health, safety or development)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 (Early Start: evaluation, assessment and initial IFSP within 45 days of referral)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Body rewritten as a per-center field guide. Verified by WebFetch this pass:
+   - DDS listing (https://www.dds.ca.gov/rc/listings/): "Inyo, Kern, and Mono
+     Counties"; address 3200 North Sillect Avenue, Bakersfield; main
+     661-327-8531; Early Start intake 661-852-3220 / krc_referral@kernrc.org.
+   - DDS Attachment F, RC Directory FY 25-27
+     (https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf):
+     same three counties, same Bakersfield address, plus a named cultural
+     specialist / LACC manager.
+   - Statutes: WIC §4643 (120 days; 60 where delay risks health, safety or
+     development) and WIC §4512 re-verified on leginfo; 17 CCR §52086 via
+     Cornell — including the interim-IFSP provision where exceptional
+     circumstances are documented, which is the one that matters most for
+     Eastern Sierra families.
+  kernrc.org returned HTTP 403 to automated fetch on every path tried, so
+  NOTHING from the center's own site is asserted in the body. In particular
+  the outlying-office list (Ridgecrest, Bishop, Lamont, Delano, Tehachapi,
+  Taft) is NOT published here: an uncorroborated search snippet also gave a
+  Bakersfield street address that conflicts with the DDS one.
+  [TBC: KRC's current office list and which offices serve Inyo and Mono
+   counties; whether intake interviews and assessments can be done remotely
+   for Eastern Sierra families. kernrc.org blocks automated fetch — needs a
+   human click-through.]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -60,58 +92,202 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Kern Regional Center covers three counties: Kern, Inyo, and Mono. That means Bakersfield and
+  the southern valley, and also the Eastern Sierra towns on the far side of the mountains. It
+  arranges and pays for services for children with developmental disabilities, free, at any
+  income. If you live a long way from Bakersfield, ask at the first phone call how much of this
+  can happen near you. Under 3, you get an answer in 45 days. Age 3 and up, 120 days.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  Kern Regional Center serves families in <b>Inyo, Kern, and Mono counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Kern Regional Center serves <b>Inyo, Kern, and Mono counties</b> — one of California's
+  <b>21 Regional Centers</b> under the Lanterman Act <Cite>WIC §4500 et seq.</Cite>, free to your
+  family at any income. Its main office is in <b>Bakersfield</b>. Once intake begins, an
+  assessment is due within <b>120 days</b> <Cite>WIC §4643</Cite>; for a child under 3,
+  evaluation, eligibility, and the initial family service plan are all due within <b>45 days of
+  the referral</b> <Cite>17 CCR §52086</Cite>.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="who">Is Kern my Regional Center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+<AnswerFirst>
+  If you live in Kern County, Inyo County, or Mono County, yes — those three counties, whole. No
+  neighbourhood boundaries, no ZIP puzzles. Bakersfield, Delano, Ridgecrest, Tehachapi, Taft,
+  California City; and over the mountains, Bishop, Lone Pine, Independence, and Mammoth Lakes.
+</AnswerFirst>
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+This is an unusual service area and it is worth understanding, because it shapes everything about
+how intake feels. Kern County is a big southern-valley county. Inyo and Mono are something else
+entirely: long, thinly populated counties on the **eastern** side of the Sierra Nevada, where the
+nearest large town may be in another state's direction and the drive to Bakersfield crosses a
+mountain range.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+One center holds all of it. So the practical first question is not "is this my center" — it is
+"how much of this do I have to drive for?"
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<h2 class="qa-h" id="distance">I live in Inyo or Mono. Does that change anything?</h2>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<AnswerFirst>
+  It changes the logistics, not your rights. The eligibility standard and the legal clocks are
+  identical whether you live in Bakersfield or Bishop. What you should do differently is
+  <b>ask, on the first call</b>, which office serves your area, whether the intake interview can
+  be done by phone or video, and where the assessment will physically take place.
+</AnswerFirst>
+
+Ask those three questions and write down the answers with the date. Distance is a real
+constraint and the center knows it, but "we'll get out there when we can" is not a legal answer —
+the deadlines below do not extend because a family lives far from the office.
+
+There is one narrow exception worth knowing about, and only one. Under the Early Start
+regulation, if the 45 days cannot be met because of documented **exceptional family
+circumstances** or because a parent has not given consent, the coordinator must document that,
+complete the evaluations as soon as possible afterwards, and — for a child who is eligible —
+develop an **interim family service plan** and start the services agreed in it
+<Cite>17 CCR §52086</Cite>. That is a narrow escape hatch about *your* circumstances, not about
+the center's staffing or the driving distance. If someone reaches for it, ask what exceptional
+circumstance is being documented, and ask for the interim plan.
+
+[TBC: Kern Regional Center's current office list and which offices cover Inyo and Mono counties,
+and whether intake and assessment can be completed remotely for Eastern Sierra families. The
+center's website blocks automated checking, so this page does not publish an office list it
+cannot verify — call and ask.]
+
+<h2 class="qa-h" id="intake">How does intake actually start here?</h2>
+
+<AnswerFirst>
+  Call the main line at the top of this page and say: <i>"I'd like to request intake and
+  assessment for my child."</i> Give your child's age and the town you live in — both change how
+  the referral is routed. The state's directory also lists a dedicated Early Start referral
+  contact for children under 3.
+</AnswerFirst>
+
+Registration for an eligibility assessment starts with your first contact, and a phone call is
+the usual way in. Written contact works too, and has one advantage worth having: it is
+timestamped, so you never have to argue about when the clock started. Either way, ask the intake
+worker to confirm the received date in writing.
+
+<DeadlineCallout>
+  <b>Under 3:</b> evaluation, eligibility, and the initial family service plan are due within
+  <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>. <b>Age 3 and older:</b> assessment
+  due within <b>120 days of intake</b>, or <b>60 days</b> where a delay would risk your child's
+  health, safety, or development <Cite>WIC §4643</Cite>.
+</DeadlineCallout>
+
+Have ready: date of birth, your address, any medical or psychological reports, the most recent
+IEP or IFSP, school or preschool notes, and your own written list of what an ordinary hard day
+looks like. Do not hold the call waiting on a missing report — the center funds its own
+assessments at no cost to you.
+
+<EmpathyCallout label="For the parent four hours from the office">
+  In a small town, everybody already has an opinion about your child. The doctor is a two-hour
+  drive, the specialist is a plane ticket, and the last person you spoke to told you to wait and
+  see. Waiting and seeing is not the standard the law uses. A referral costs you one phone call
+  and commits you to nothing, and the clock it starts belongs to you — not to whoever is next in
+  the queue.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="eligible">Who qualifies?</h2>
+
+<AnswerFirst>
+  No diagnosis is needed to start. At 3 and older, eligibility means a developmental disability
+  beginning before age 18 with significant functional limits in <b>3 or more of 7</b> life areas
+  <Cite>WIC §4512</Cite>. Under 3, Early Start uses broader delay-or-risk criteria. Ages 3 and 4
+  can also qualify <b>provisionally</b> on <b>2 of 5</b> areas.
+</AnswerFirst>
+
+The seven areas are self-care, receptive and expressive language, learning, mobility,
+self-direction, capacity for independent living, and economic self-sufficiency, each measured
+against what is expected at your child's age. The statute also covers conditions closely related
+to intellectual disability or requiring similar treatment — a category that exists for children
+whose needs are obvious and whose paperwork is not.
+
+Provisional eligibility for 3- and 4-year-olds is temporary by design: the center must reassess
+before your child turns 5, and the full three-of-seven standard applies from then
+<Cite>WIC §4512</Cite>.
+
+<h2 class="qa-h" id="local-vs-statewide">What's the same everywhere, and what's local?</h2>
+
+<AnswerFirst>
+  Identical statewide: the eligibility standard, the 45- and 120-day clocks, the right to a
+  written Notice of Action, and the appeal process. Local at Kern: offices, travel, which
+  providers actually exist in your town, and how a service gets delivered when the nearest
+  provider is far away.
+</AnswerFirst>
+
+Rural service areas have a specific failure mode, and it is worth naming plainly. A center may
+agree your child needs something and then not be able to find anyone to deliver it. That is a
+real problem, but it is the center's problem to solve, not a lawful reason to leave the service
+out of the plan. If a needed service exists on paper and nowhere in your county, say so in
+writing and ask what the center will do about it — including out-of-area providers, telehealth,
+or paying a provider to travel.
+
+The state's Regional Center directory also lists a cultural specialist and a language-access
+manager at every center, Kern included. Ask for that role by name if you are not being served in
+your own language.
+
+<h2 class="qa-h" id="appeal">What if Kern says no?</h2>
+
+<AnswerFirst>
+  Ask for the decision in writing. A denial must arrive as a <b>Notice of Action</b> that explains
+  the decision and your appeal rights. A no said on the phone starts no clock and cannot be
+  appealed by anyone.
+</AnswerFirst>
+
+The sentence to use: *"Please send me that decision as a written Notice of Action."* Then read the
+dates printed on it and put them in your calendar the same day. What follows is California
+procedure — the same in Bishop as in San Diego.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
+
+Distance does not exclude you from free help. The **Office of Clients' Rights Advocacy (OCRA)**,
+part of **Disability Rights California**, provides advocates who take Lanterman Act appeals for
+families at no cost, and they work by phone. (They are a resource, not the rule — the deadlines
+that bind come from the statute and from the dates on your own notice.)
+
+You found out which center covers a county most maps forget, learned the standard your child will
+be measured against, and started a clock that now belongs to you. That is the hard part, and it
+is behind you.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Is Kern my center?</a>
+    <a href="#distance">Living in Inyo or Mono</a>
+    <a href="#intake">How intake starts</a>
+    <a href="#eligible">Who qualifies</a>
+    <a href="#local-vs-statewide">Local vs. statewide</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Inyo · Kern · Mono</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Serves</dt><dd>Inyo · Kern · Mono counties</dd>
+      <dt>Main office</dt><dd>Bakersfield</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 days from referral under 3 <span class="cite">17 CCR §52086</span></dd>
+      <dt>Cost</dt><dd>Free, at any income</dd>
     </dl>
+  </SideCard>
+  <SideCard title="Neighboring centers">
+    <GatedLink class="link" href="/regional-centers/central-valley/">Central Valley (Fresno &amp; south) →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/tri-counties/">Tri-Counties (Ventura, SB, SLO) →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/north-la/">North LA County →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/inland/">Inland (Riverside &amp; San Bernardino) →</GatedLink>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Or start with the basics:</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>

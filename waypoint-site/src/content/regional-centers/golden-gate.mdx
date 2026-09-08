@@ -21,14 +21,71 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "GGRC — Apply (Early Start and Lanterman intake forms; intake email)"
+    url: "https://www.ggrc.org/apply/"
+    accessed: 2026-09-08
+  - label: "GGRC — Our Offices (San Francisco, San Rafael, San Mateo)"
+    url: "https://www.ggrc.org/contact-us/our-offices/"
+    accessed: 2026-09-08
+  - label: "WIC §4642 (initial intake within 15 working days of the request)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days when delay creates risk)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4646 (IPP completed within 60 days of assessment; preferred-language rights)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646."
+    accessed: 2026-09-08
+  - label: "WIC §4710.5 (60 days to request an informal meeting, mediation, or fair hearing)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4710.5."
+    accessed: 2026-09-08
+  - label: "WIC §4715 (services continue during appeal if requested within 30 days)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4715."
+    accessed: 2026-09-08
+  - label: "DDS — What is Early Start? (45-day window; under-3 eligibility criteria)"
+    url: "https://www.dds.ca.gov/services/early-start/what-is-early-start/"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
   Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
+
+  ---- PER-CENTER NARRATIVE WRITTEN 2026-09-08 ----
+  Local facts used, and where each came from (ggrc.org, fetched 2026-09-08):
+  - One office per county, from ggrc.org/contact-us/our-offices/: San
+    Francisco (1355 Market St, main), San Rafael for Marin (4000 Civic
+    Center Dr), San Mateo (1900 S. Norfolk St). Each county office has its
+    own phone number. Those per-office numbers and the after-hours line are
+    DELIBERATELY NOT PUBLISHED in prose — owner policy is main line only,
+    and an after-hours number printed on a guide page is exactly the kind
+    of number that rots dangerously. The page describes the structure and
+    links to GGRC's offices page.
+  - Two application forms by age, from ggrc.org/apply/: "Download the Early
+    Start Form (Ages 0-36 Months)" and "Download the Lanterman Intake Form
+    (Ages 3+)".
+  - TIME-SENSITIVE, and the reason this page carries a date stamp in prose:
+    as of 2026-09-08 GGRC's apply page says, verbatim, "We are currently
+    fixing our new online application for services. While this is being
+    fixed, please download the appropriate referral form, fill it out and
+    email it to intake@ggrc.org". The page states this as of that date
+    rather than as a permanent fact.
+  - Language: "GGRC can also help you complete your application and intake
+    in your preferred language"; site translations offered in Spanish,
+    Simplified and Traditional Chinese, Tagalog, Russian, Vietnamese,
+    Arabic, Korean, Portuguese.
+  - Statutes verified verbatim on leginfo 2026-09-08: §4642, §4643, §4512,
+    §4646 (IPP within 60 days of assessment completion + preferred-language
+    duty), §4710.5 (60 days), §4715 (30 days for aid paid pending).
+  - 45-day Early Start window: DDS "What is Early Start?", 2026-09-08.
+  [TBC: re-check whether GGRC's online application is back, and whether
+   intake@ggrc.org is still the submission route — this is the fastest-
+   rotting fact on the page and should be verified before publish.]
+  [TBC: board meeting schedule — not found on the pages fetched.]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -61,61 +118,186 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Golden Gate Regional Center (GGRC) arranges and pays for disability services in Marin, San
+  Francisco, and San Mateo counties. It is free, whatever you earn. GGRC has one office per
+  county and starts intake from a form: one for children under 3, a different one for age 3 and
+  up. Fill in the right form, send it, and write down the date — the legal clocks start then.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
+<h2 class="qa-h" id="who">Who does Golden Gate Regional Center serve?</h2>
+
 <AnswerFirst>
-  Golden Gate Regional Center serves families in <b>Marin, San Francisco, and San Mateo counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  GGRC serves families living in <b>Marin, San Francisco, and San Mateo counties</b> — one of
+  the 21 regional center territories created by the Lanterman Act <Cite>WIC §4500 et seq.</Cite>
+  Services are provided regardless of your income. Where your family lives decides which center
+  is yours, not where your child goes to school or sees a doctor.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+It is a compact territory with a long shape: from northern Marin down through San Francisco and
+the length of the Peninsula to the San Mateo County line. Three counties, three very different
+housing and transit realities, one set of rules.
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+If you live in the East Bay, in Santa Clara County, or in Sonoma or Napa, a different center
+serves you. Check first with our
+<a href="/tools/regional-center-finder/">Regional Center finder</a> — it takes seconds and saves
+a phone call you did not need to make.
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+<h2 class="qa-h" id="apply">How do I apply to GGRC right now?</h2>
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+<AnswerFirst>
+  GGRC starts intake from a <b>downloadable referral form</b>, and which one you need depends on
+  your child's age: the <b>Early Start form</b> for ages 0–36 months, or the
+  <b>Lanterman Intake form</b> for ages 3 and up. As of <b>September 2026</b>, GGRC's apply page
+  says its new online application is being repaired and asks families to fill out the form and
+  email it to <b>intake@ggrc.org</b> in the meantime.
+</AnswerFirst>
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+We date-stamp that last sentence on purpose. A broken online form is a temporary state, and by
+the time you read this the online application may be back. Check GGRC's apply page before you
+assume either way — but do not let the uncertainty stop you. An emailed PDF starts your child's
+file exactly as well as a web form does, and it gives you something a web form often does not: a
+sent-items copy with a date on it.
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<a class="link" href="https://www.ggrc.org/apply/">GGRC: apply for services →</a>
+
+You do not need a diagnosis, a doctor's referral, or a lawyer to send either form. For children
+3 and older, eligibility turns on **substantial disability** — significant functional limits in
+**3 or more** major life areas, from a disability that began before age 18 <Cite>WIC §4512</Cite>.
+Under 3, Early Start is broader: a measured developmental delay, an established risk condition,
+or a combination of high-risk factors, with no label required.
+
+1. **Download the form that matches your child's age today.** If your child turns 3 soon, ask
+   GGRC which form to use rather than guessing — the two routes have different clocks.
+2. **Attach what you already have** — pediatrician notes, evaluation or diagnostic reports, an
+   IEP or IFSP, preschool observations. Send the form now and the rest later if you have to.
+3. **Write one page in your own words** describing a hard day, start to finish. It is often the
+   most useful document in the whole packet.
+4. **Keep the sent email.** That is your proof of the date, and every deadline below runs from
+   it.
+
+<DeadlineCallout>
+  <b>Initial intake: 15 working days</b> from your request <Cite>WIC §4642</Cite>.
+  <b>Assessment: 120 days</b> from intake — <b>60 days</b> where delay would put your child at
+  risk <Cite>WIC §4643</Cite>. <b>Under 3: 45 days</b> from referral for evaluation and the
+  first plan. <b>IPP: 60 days</b> after the assessment is complete <Cite>WIC §4646</Cite>.
+</DeadlineCallout>
+
+<h2 class="qa-h" id="offices">Which GGRC office is mine?</h2>
+
+<AnswerFirst>
+  GGRC runs <b>one office per county</b> — San Francisco (its main office), San Rafael for Marin
+  families, and San Mateo for the Peninsula — and each has its own direct phone number. Most of
+  your contact will be with your county's office rather than the headquarters.
+</AnswerFirst>
+
+That structure is a genuine convenience: you are not competing with two other counties for the
+same front desk. It also means the number you find in an old email or a search result may be a
+different county's office. When in doubt, call the main line at the top of this page, or take
+the current numbers from GGRC's own offices page — never from a third-party listing.
+
+<a class="link" href="https://www.ggrc.org/contact-us/our-offices/">GGRC office locations →</a>
+
+<h2 class="qa-h" id="language">Can I do this in my language?</h2>
+
+<AnswerFirst>
+  Yes, and it is a right rather than a favor. California law requires the regional center to
+  conduct the planning process in <b>your preferred language</b> and to give you the plan in it
+  <Cite>WIC §4646</Cite>. GGRC says directly that it can help you complete your application and
+  intake in your preferred language, and publishes its site in nine languages besides English.
+</AnswerFirst>
+
+Those are Spanish, Simplified and Traditional Chinese, Tagalog, Russian, Vietnamese, Arabic,
+Korean, and Portuguese. If yours is not among them, ask anyway — the statutory duty runs to your
+language, not to a published list. Ask at the moment you send the form, so an interpreter can be
+scheduled rather than improvised. And do not put a bilingual older child in the position of
+interpreting a meeting about their sibling's disability.
+
+<h2 class="qa-h" id="same-vs-local">What is the same everywhere, and what is local?</h2>
+
+<div class="table-wrap">
+  <table class="data">
+    <tr><th>Same at every regional center</th><th>Local to GGRC</th></tr>
+    <tr><td>The 3-of-7 substantial disability standard <span class="cite">WIC §4512</span></td><td>One office per county — San Francisco, San Rafael, San Mateo</td></tr>
+    <tr><td>The intake, assessment, and IPP clocks <span class="cite">WIC §4642</span> <span class="cite">WIC §4643</span> <span class="cite">WIC §4646</span></td><td>Intake starts from a downloadable form, split by age</td></tr>
+    <tr><td>A denial must arrive as a written Notice of Action</td><td>[TBC: whether the online application has been restored — verified broken as of September 2026]</td></tr>
+    <tr><td>Your right to the whole process in your preferred language <span class="cite">WIC §4646</span></td><td>[TBC: GGRC respite baselines and purchase-of-service patterns — DDS publishes this data annually; we do not ship sample figures]</td></tr>
+  </table>
+</div>
+
+One caution specific to an expensive region: cost of living is not a lawful reason to reduce a
+service, and neither is a center's budget. The Lanterman Act makes services an entitlement for
+people who qualify. If you hear a version of "we can't afford that here," ask for it in writing.
+
+<h2 class="qa-h" id="appeal">What if GGRC says no?</h2>
+
+<AnswerFirst>
+  Ask for the written <b>Notice of Action</b>. A "no" said in a meeting is not a decision and
+  starts no clock. From the day you receive the notice you have <b>60 days</b> to request an
+  informal meeting, mediation, or a fair hearing <Cite>WIC §4710.5</Cite>. If a service your
+  child already gets is being cut and you want it to continue while you appeal, that request has
+  to go in within <b>30 days</b> of receiving the notice <Cite>WIC §4715</Cite>.
+</AnswerFirst>
+
+Write both dates on the notice itself the day it arrives. Then get free help — the **Office of
+Clients' Rights Advocacy (OCRA)**, part of **Disability Rights California**, staffs advocates
+who handle Lanterman Act appeals for families at no cost.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Who GGRC serves</a>
+    <a href="#apply">How to apply right now</a>
+    <a href="#offices">Which office is mine?</a>
+    <a href="#language">In my language</a>
+    <a href="#same-vs-local">Same everywhere vs local</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
       <dt>Counties</dt><dd>Marin · San Francisco · San Mateo</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Offices</dt><dd>One per county — San Francisco (main), San Rafael, San Mateo</dd>
+      <dt>To start</dt><dd>Early Start form (0–36 months) or Lanterman Intake form (3+)</dd>
+      <dt>Clocks</dt><dd>15 working days to intake · 120 days to assessment · 45 days under 3</dd>
     </dl>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Neighboring territories:</p>
+    <GatedLink class="link" href="/regional-centers/east-bay/">Regional Center of the East Bay →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/north-bay/">North Bay RC →</GatedLink>
+  </SideCard>
+  <SideCard title="Once you're eligible">
+    <p>Regional Center eligibility opens doors elsewhere — including Medi-Cal without a parental income test.</p>
+    <GatedLink class="link" href="/guides/benefits/medi-cal-institutional-deeming/">Medi-Cal institutional deeming →</GatedLink>
+    <GatedLink class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</GatedLink>
+  </SideCard>
+  <SideCard title="Start with the basics">
+    <p>How the Lanterman Act works, what happens at the IPP meeting, and what to do when the answer is no.</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>
+
+<EmpathyCallout label="Send the form tonight">
+  A PDF you email at 11pm is not a lesser version of this process. It is the process. You do not
+  need the evaluations, the vocabulary, or a tidy explanation of what you have been noticing —
+  you need a date on the record, and one attachment. Everything on this page runs from that date,
+  and you are the only person who can put it there.
+</EmpathyCallout>
 
 <HandoffCTA
   heading="Getting ready for intake?"

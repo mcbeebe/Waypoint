@@ -19,16 +19,58 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "WIC §4500 (Lanterman Developmental Disabilities Services Act — short title)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4500."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas; provisional eligibility, 2 of 5)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days where delay risks health, safety or development)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 (Early Start: evaluation, assessment and initial IFSP within 45 days of referral)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
   Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
   [TBC: verify this center's LA service area / ZIP coverage — seven centers
    divide Los Angeles County by neighborhood]
+
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Body rewritten as a per-center field guide. Verified by WebFetch this pass:
+   - DDS listing (https://www.dds.ca.gov/rc/listings/): "Frank D. Lanterman
+     Regional Center serves the health districts of Central, Glendale,
+     Hollywood-Wilshire, and Pasadena within the county of Los Angeles."
+     Address 3303 Wilshire Blvd, Suite 700; main 213-383-1300; Early Start
+     intake 213-252-8610 / Referrals@lanterman.org.
+   - DDS Attachment F, RC Directory FY 25-27
+     (https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf):
+     "Central Los Angeles including Burbank, Glendale, Hollywood-Wilshire,
+     La Cañada-Flintridge, La Crescenta, and Pasadena" — this adds Burbank,
+     La Cañada-Flintridge and La Crescenta to the four health districts on
+     the listings page.
+   - lanterman.org/getting-started/: service area "the Glendale,
+     Hollywood/Wilshire, Central Los Angeles and Pasadena areas", with the
+     center's own instruction to verify at www.dds.ca.gov/RC; intake by
+     email or phone; "An intake coordinator will call you back within 24
+     hours"; what to include in a referral (name, phone, address,
+     applicant's name and birth date, reason for referral); parent guides in
+     English, Spanish, Korean, Simplified and Traditional Chinese, Tagalog,
+     Vietnamese.
+   - NOTE / honest nuance carried into the body: the center's page counts
+     both clocks "from the initial contact"; WIC §4643 counts 120 days from
+     INTAKE and 17 CCR §52086 counts 45 days from the REFERRAL. The page
+     tells parents to use the earlier date and get it confirmed in writing.
+   - Statutes: WIC §4643 and WIC §4512 re-verified on leginfo;
+     17 CCR §52086 via Cornell.
+  No street address or secondary numbers in prose; the template renders the
+  one verified main line from frontmatter.
+  [TBC: whether Lanterman's catchment is defined to families by ZIP list
+   anywhere on lanterman.org — the site points to the DDS lookup instead]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -60,78 +102,196 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Frank D. Lanterman Regional Center covers central Los Angeles — the Wilshire and Hollywood
+  corridor, Glendale, Burbank, and Pasadena. It is one of the smallest Regional Center areas in
+  the state, and one of seven that split LA County. It pays for and arranges services for
+  children with developmental disabilities, free, at any income. You can start by phone or by
+  email. Under 3, you get an answer in 45 days. Age 3 and up, 120 days.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  Frank D. Lanterman Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you) — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Frank D. Lanterman Regional Center holds a small, dense slice of <b>central Los Angeles
+  County</b> — the state describes it as the <b>Central, Glendale, Hollywood-Wilshire, and
+  Pasadena</b> health districts, and its directory adds <b>Burbank, La Cañada-Flintridge, and
+  La Crescenta</b>. It is one of California's <b>21 Regional Centers</b> under the Lanterman Act
+  <Cite>WIC §4500 et seq.</Cite>, and services are free at any income. Once you make contact,
+  the clocks are <b>45 days</b> for a child under 3 <Cite>17 CCR §52086</Cite> and <b>120 days</b>
+  for a child 3 or older <Cite>WIC §4643</Cite>.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+The center and California's disability-rights law share a name, which is a small comfort on a
+hard day: the Lanterman Act is the statute that makes services an entitlement rather than a
+favour, and "we ran out of money this year" is not a lawful answer anywhere in this state.
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
-
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
-
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
-
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
-
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
-
-<h2 class="qa-h" id="la-area">Which part of Los Angeles County does this center serve?</h2>
+<h2 class="qa-h" id="la-area">Is Lanterman my Regional Center?</h2>
 
 <AnswerFirst>
-  Seven regional centers divide Los Angeles County between them, so "I live in LA County" is
-  not enough to tell you which one is yours — <b>your address decides it</b>, and the
-  boundaries follow LA County health districts and ZIP codes.
+  Only your <b>home address</b> answers that. Seven centers divide Los Angeles County along
+  health-district lines, not city lines, and Lanterman's territory is one of the smallest.
+  Roughly: central LA, the Hollywood and Wilshire corridor, Glendale and Burbank, La Cañada
+  Flintridge and La Crescenta, and Pasadena.
 </AnswerFirst>
 
-Central Los Angeles and the Hollywood/Wilshire corridor, plus the Glendale, Burbank, La
-Cañada Flintridge, La Crescenta, Eagle Rock and Pasadena area — the four LA County health
-districts of Central, Glendale, Hollywood-Wilshire, and Pasadena. It is one of the smallest
-LA-area catchments geographically: it does NOT cover the San Fernando or Antelope Valleys
-(North Los Angeles County RC), the Westside or South Bay (Westside RC / Harbor RC), South LA
-(South Central LA RC), East LA (Eastern LA RC), or the San Gabriel Valley beyond Pasadena/La
-Cañada (San Gabriel/Pomona RC). Boundaries are set by ZIP code, so families near the edges
-should confirm with the DDS lookup at dds.ca.gov/rc.
+Two families a mile apart can belong to two different centers, because the map was drawn from
+public health districts that predate most of the neighbourhood names people actually use. The
+center itself does not publish a ZIP list on its getting-started page — it tells families to
+check the state's own lookup, which is the right advice and worth taking literally.
 
-If you live near one of these boundaries, confirm your center with the state's own lookup
-before you call — being sent back to start by the wrong center costs weeks.
+**Check first:** [dds.ca.gov/rc](https://www.dds.ca.gov/rc/). Calling the wrong center does not
+lose your rights, but it can cost you weeks you will not get back, and none of the clocks below
+start until you reach the center that actually serves your address.
+
+What Lanterman does **not** cover, in case you get sent onward: the San Fernando, Santa Clarita
+and Antelope Valleys, the Westside, the South Bay and harbor communities, South Los Angeles,
+East LA, and the San Gabriel Valley past Pasadena. Each of those belongs to another center.
+[TBC: confirm whether lanterman.org publishes a ZIP-level service-area list anywhere; the
+getting-started page points to the DDS lookup instead.]
+
+<h2 class="qa-h" id="intake">How does intake actually start here?</h2>
+
+<AnswerFirst>
+  Lanterman takes referrals two ways — <b>a phone call</b> to the main line at the top of this
+  page, or <b>an email to its referrals mailbox</b>, which is listed on the center's
+  getting-started page. Whichever you use, include your child's name and date of birth, your
+  address and phone number, and one or two sentences on why you are asking.
+</AnswerFirst>
+
+Email suits this center unusually well, and here is why it is worth doing even if you would
+rather call: an email is timestamped. You will have proof of the date you made contact without
+having to ask anyone for it. Keep the sent message.
+
+Lanterman's own getting-started page tells families to expect an intake coordinator to call
+back **within 24 hours**. Treat that as a helpful promise from the center — not as the law. The
+promises that bind are the statutory ones:
+
+<DeadlineCallout>
+  <b>Under 3:</b> evaluation, eligibility, and the initial family service plan are all due
+  within <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>. <b>Age 3 and older:</b>
+  assessment due within <b>120 days of intake</b>, or <b>60 days</b> when a delay would risk
+  your child's health, safety, or development <Cite>WIC §4643</Cite>.
+</DeadlineCallout>
+
+One honest wrinkle worth knowing here. Lanterman's page counts both clocks from "initial
+contact." The statute counts the 120 days from **intake**, and the Early Start regulation counts
+its 45 days from the **referral** <Cite>WIC §4643</Cite> <Cite>17 CCR §52086</Cite>. Those dates
+are usually days apart, occasionally weeks. So do two things: write down the date of your first
+contact, and ask the coordinator to confirm in writing the date intake opened. If the two
+differ, you will want both on paper before anyone starts counting.
+
+Bring what you have and no more: a pediatrician's note, any evaluation or report, an IEP or
+IFSP, preschool observations, and your own list of what a hard day looks like. Missing paperwork
+is not a reason to postpone the call — the center funds its own assessments at no cost to you.
+
+Parent materials are published in English, Spanish, Korean, Chinese (simplified and
+traditional), Tagalog, and Vietnamese. Ask for an interpreter at the first contact if you want
+one. You should not be translating for your own child's case.
+
+<EmpathyCallout label="On making the call at all">
+  For a lot of parents in this part of the city, the hard part is not the phone tree. It is that
+  picking up the phone feels like agreeing to something — a label, a file, a version of your
+  child's future you have not consented to. It is not that. It is a request for an evaluation,
+  from an agency whose actual job is to help, under a law that already says your child is
+  entitled to what they need. You can find out and still decide what to do with the answer.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="eligible">Who qualifies, and does my child need a diagnosis first?</h2>
+
+<AnswerFirst>
+  No diagnosis is required to start. For a child 3 or older, eligibility means a developmental
+  disability that began before age 18 and causes significant functional limits in <b>3 or more
+  of 7</b> life areas <Cite>WIC §4512</Cite>. Under 3, Early Start uses broader delay-or-risk
+  criteria. Ages 3 and 4 can also qualify <b>provisionally</b> on <b>2 of 5</b> areas.
+</AnswerFirst>
+
+The seven areas are self-care, receptive and expressive language, learning, mobility,
+self-direction, capacity for independent living, and economic self-sufficiency — judged against
+what is expected at your child's age.
+
+Provisional eligibility is the door most families never hear about: for a young child, a
+disability that is not solely physical and causes significant limits in at least two of five of
+those areas can qualify. It is temporary — the center must reassess before your child turns 5,
+and the full three-of-seven standard applies then <Cite>WIC §4512</Cite>. Calendar that
+reassessment the day the letter arrives.
+
+<h2 class="qa-h" id="local-vs-statewide">What's the same everywhere, and what's local?</h2>
+
+<AnswerFirst>
+  The law is identical at all 21 centers. Eligibility, the clocks, the written Notice of Action,
+  and the appeal route do not change between Pasadena and Bakersfield. What is local: the office
+  you visit, the coordinator you get, which providers exist nearby, and courtesies like the
+  24-hour callback.
+</AnswerFirst>
+
+That distinction is your best tool in a hard conversation. If a rule is state law, nobody at any
+center can waive it — for you or against you. If it is local practice, it is a practice, and
+practices can be asked about.
+
+Genuinely local at Lanterman: a single main office in the Wilshire corridor rather than a
+network of valley branches, and the state directory's listing of a cultural specialist and
+language-access manager on staff. Ask for that role by name if you are not being served in your
+own language.
+
+<h2 class="qa-h" id="appeal">What if Lanterman says no?</h2>
+
+<AnswerFirst>
+  Ask for it in writing. A denial must arrive as a <b>Notice of Action</b> that explains the
+  decision and your appeal rights. A no said over the phone is not a decision, starts no clock,
+  and cannot be appealed.
+</AnswerFirst>
+
+Say this, exactly: *"Please send me that decision as a written Notice of Action."* Then read the
+dates printed on the notice and put them in your calendar that day. From there the process is
+California's, not Lanterman's — the same at every center in the state.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
+
+Free help is real and close by. The **Office of Clients' Rights Advocacy (OCRA)**, part of
+**Disability Rights California**, staffs advocates who take Lanterman Act appeals for families at
+no charge. Bring them the notice and the reports. (They are a resource, not the rule — the
+deadlines that count come from the statute and from the dates on your own notice.)
+
+You learned a boundary map, a statutory standard, and the one sentence that turns a shrug into
+an appealable decision. That is not nothing. That is the part most families never get to.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#la-area">Is Lanterman my center?</a>
+    <a href="#intake">How intake starts</a>
+    <a href="#eligible">Who qualifies</a>
+    <a href="#local-vs-statewide">Local vs. statewide</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Los Angeles</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Serves</dt><dd>Central LA, Hollywood-Wilshire, Glendale, Burbank, La Cañada-Flintridge, La Crescenta, Pasadena</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 days from referral under 3 <span class="cite">17 CCR §52086</span></dd>
+      <dt>Cost</dt><dd>Free, at any income</dd>
     </dl>
+  </SideCard>
+  <SideCard title="Neighboring LA centers">
+    <p>Seven centers split Los Angeles County:</p>
+    <GatedLink class="link" href="/regional-centers/north-la/">North LA County (the valleys) →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/san-gabriel-pomona/">San Gabriel / Pomona →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/eastern-la/">Eastern LA →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/westside/">Westside →</GatedLink>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Or start with the basics:</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>

@@ -20,14 +20,46 @@ sources:
   - label: "California Department of Developmental Services — Regional Center Listings"
     url: "https://www.dds.ca.gov/rc/listings/"
     accessed: 2026-09-08
+  - label: "WIC §4500 (Lanterman Developmental Disabilities Services Act — short title)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4500."
+    accessed: 2026-09-08
+  - label: "WIC §4512 (developmental disability; substantial disability, 3 of 7 areas; provisional eligibility, 2 of 5)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4512."
+    accessed: 2026-09-08
+  - label: "WIC §4643 (assessment within 120 days of intake; 60 days where delay risks health, safety or development)"
+    url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643."
+    accessed: 2026-09-08
+  - label: "17 CCR §52086 (Early Start: evaluation, assessment and initial IFSP within 45 days of referral)"
+    url: "https://www.law.cornell.edu/regulations/california/17-CCR-52086"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
-  Enrichment checklist before this page can advance past draft:
-  [TBC: per-center narrative — local intake quirks, board meeting info,
-   nearby centers — replaces the generic body below]
+  ---- NARRATIVE PASS 2026-09-08 ----
+  Body rewritten as a per-center field guide. Verified by WebFetch this pass:
+   - DDS listing (https://www.dds.ca.gov/rc/listings/): "The Inland Regional
+     Center serves the counties of Riverside and San Bernardino"; address
+     1365 S. Waterman Avenue, San Bernardino; main 909-890-3000; and — the
+     load-bearing local fact in this page — SEPARATE Early Start intake
+     contacts by county: "Riverside County: (909) 890-4763 | San Bernardino
+     County: (909) 890-4711".
+   - DDS Attachment F, RC Directory FY 25-27
+     (https://www.dds.ca.gov/wp-content/uploads/2025/09/AttachmentF_RC_Directory_FY_25-27.pdf):
+     same two counties, same San Bernardino address, plus a named cultural
+     specialist and an LACC manager.
+   - Statutes: WIC §4643 and WIC §4512 re-verified on leginfo;
+     17 CCR §52086 via Cornell.
+  inlandrc.org returned HTTP 403 to automated fetch on every path tried
+  (/, /eligibility/), so NOTHING from the center's own site is asserted in
+  the body. The county-split intake fact comes from the DDS listing, which
+  did fetch. No phone numbers in prose — the template renders the one
+  verified main line from frontmatter.
+  [TBC: IRC's own application process — whether it is an online form or a
+   mailed/faxed/emailed intake packet, what records it asks for, and the
+   current office list for Riverside County. inlandrc.org blocks automated
+   fetch; needs a human click-through.]
 
   ---- VERIFICATION PASS 2026-09-07 (43-agent workflow: researcher +
   independent challenger per center, statewide coverage audit) ----
@@ -63,58 +95,183 @@ sources:
 
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
+import DeadlineCallout from '../../components/DeadlineCallout.astro';
+import EmpathyCallout from '../../components/EmpathyCallout.astro';
+import GatedLink from '../../components/GatedLink.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
+import PlainBox from '../../components/PlainBox.astro';
 import SideCard from '../../components/SideCard.astro';
+
+<PlainBox>
+  Inland Regional Center covers two whole counties — Riverside and San Bernardino. If you live
+  in either one, this is your Regional Center. It arranges and pays for services for children
+  with developmental disabilities, free, at any income. One thing to know before you call: for a
+  child under 3, the state lists a different Early Start intake contact for each county, so say
+  which county you live in right away. Under 3, you get an answer in 45 days. Age 3 and up, 120 days.
+</PlainBox>
 
 <div class="cols">
 <article class="prose">
 
 <AnswerFirst>
-  Inland Regional Center serves families in <b>Riverside and San Bernardino counties</b> — one of California's
-  <b> 21 regional centers</b> providing services under the Lanterman Act
-  <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
-  owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
-  or, under 3, a completed Early Start evaluation and initial family service plan within
-  <b>45 days</b> of the referral <Cite>17 CCR §52086</Cite>. Write down the date of your
-  first contact. The clock starts then.
+  Inland Regional Center (IRC) serves <b>all of Riverside County and all of San Bernardino
+  County</b> — no neighbourhood boundaries to decode, just two county lines. It is one of
+  California's <b>21 Regional Centers</b> under the Lanterman Act <Cite>WIC §4500 et seq.</Cite>,
+  and services are free to your family at any income. Once intake begins, an assessment is due
+  within <b>120 days</b> <Cite>WIC §4643</Cite> — or, for a child under 3, evaluation and the
+  initial family service plan within <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>.
 </AnswerFirst>
 
-<h2 class="qa-h" id="intake">How does intake work?</h2>
+<h2 class="qa-h" id="who">Is Inland my Regional Center?</h2>
 
-The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
-to start** — eligibility turns on "substantial disability," meaning significant functional
-limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
+<AnswerFirst>
+  If your home address is in Riverside County or San Bernardino County, yes. That covers
+  Riverside, San Bernardino, Ontario, Fontana, Rancho Cucamonga, Moreno Valley, Corona, Temecula,
+  Murrieta, Hesperia, Victorville, Palm Springs, and everything out to the desert.
+</AnswerFirst>
 
-1. **Contact intake and say your child's age.** Under 3 routes to Early Start and the faster
-   45-day clock; 3 and over goes through standard Lanterman intake.
-2. **Gather what you have** — pediatrician notes, evaluations, IEP or preschool records.
-   Missing pieces should not delay your request.
-3. **Do the intake interview.** Describe a hard day, not your child's best day.
-4. **Note the deadline.** The assessment is due within 120 days of intake <Cite>WIC §4643</Cite> —
-   under 3, Early Start completes everything within 45 days of the referral
-   <Cite>17 CCR §52086</Cite>. Calendar it the day you first call.
-5. **Get the decision in writing.** If eligible, planning moves to your child's IPP
-   <Cite>WIC §4646</Cite>; if denied, you must receive a written **Notice of Action** with
-   your appeal rights.
+There is no puzzle here of the kind LA County families face — no health districts, no
+ZIP-by-ZIP splits. But there is a different problem, and it is distance. These two counties
+together run from the edge of Los Angeles out toward the Nevada and Arizona state lines. A
+family in Blythe or Needles and a family in Chino are served by the same center and do not live
+in remotely the same world.
 
-<h2 class="qa-h" id="appeal">How do I appeal a decision here?</h2>
+So the practical question is not *which center* but *which office and which coordinator*. Ask on
+the first call: which office will hold my child's file, who is my service coordinator, and can
+assessments happen closer to home or by video? [TBC: current IRC office list for Riverside and
+San Bernardino counties — the center's site blocks automated checking, so this page does not
+publish addresses it cannot verify.]
 
-The appeal process is the same at all 21 regional centers, so the full walkthrough — routes,
-timelines, and what to say at each stage — lives in one place:
+<h2 class="qa-h" id="intake">How does intake actually start here?</h2>
 
-<a class="link" href="/guides/regional-centers/">Read the full Regional Center guide, including appeals →</a>
+<AnswerFirst>
+  Call the main line at the top of this page, say your child's age, and say which county you live
+  in. For a child under 3, the state's own directory lists a <b>separate Early Start intake
+  contact for Riverside County and for San Bernardino County</b> — so naming your county in the
+  first sentence gets you to the right queue instead of a transfer.
+</AnswerFirst>
+
+That county-by-county split is the single most useful local fact on this page. Most centers run
+one Early Start intake queue; Inland runs two, because it is covering two counties' worth of
+referral systems, school districts, and hospitals. If you call and get "that's not us," the fix
+is almost never that you have the wrong center — it is that you have the wrong county's desk.
+Ask to be transferred, and ask them to confirm the date your request was received either way.
+
+<DeadlineCallout>
+  <b>Under 3:</b> evaluation, eligibility, and the initial family service plan are all due within
+  <b>45 days of the referral</b> <Cite>17 CCR §52086</Cite>. <b>Age 3 and older:</b> assessment
+  due within <b>120 days of intake</b>, or <b>60 days</b> when a delay would risk your child's
+  health, safety, or development <Cite>WIC §4643</Cite>. Calendar it the day you first call.
+</DeadlineCallout>
+
+Have ready: your child's date of birth, your address and county, any diagnostic or psychological
+reports, the most recent IEP or IFSP, school or daycare notes, and a list in your own words of
+what your child struggles with on an ordinary day. Missing paperwork is not a reason to delay
+the call. The center pays for its own assessments.
+
+[TBC: whether IRC's application arrives as an online form or a packet returned by mail, fax or
+email, and exactly which records it asks over-3 applicants to attach — inlandrc.org blocks
+automated verification and this needs a human check before publish.]
+
+<EmpathyCallout label="If you have already called once and given up">
+  Two counties, a lot of families, and a phone system that was not designed by anyone who has
+  ever held a screaming toddler on their hip. If your first attempt ended in a voicemail you
+  never got a call back from, that was not a verdict on your child and it was not a hint to stop.
+  Try once more, and this time ask for one specific thing before you hang up: the date your
+  request was received, in writing. That one sentence changes a wait into a deadline.
+</EmpathyCallout>
+
+<h2 class="qa-h" id="eligible">Who qualifies?</h2>
+
+<AnswerFirst>
+  No diagnosis is required to ask. For a child 3 or older, eligibility means a developmental
+  disability beginning before age 18 that causes significant functional limits in <b>3 or more of
+  7</b> life areas <Cite>WIC §4512</Cite>. Under 3, Early Start uses broader delay-or-risk
+  criteria. Ages 3 and 4 can also qualify <b>provisionally</b> on <b>2 of 5</b> areas.
+</AnswerFirst>
+
+The seven areas: self-care, receptive and expressive language, learning, mobility,
+self-direction, capacity for independent living, and economic self-sufficiency — each judged
+against what is expected at your child's age. Autism, intellectual disability, cerebral palsy
+and epilepsy are named in the statute, along with conditions closely related to intellectual
+disability or requiring similar treatment.
+
+The provisional route matters for young children and is easy to miss: a disability that is not
+solely physical and causes significant limits in at least two of five areas — self-care,
+language, learning, mobility, self-direction — can qualify a 3- or 4-year-old. It is temporary.
+The center must reassess before your child turns 5, and the full three-of-seven standard applies
+from then <Cite>WIC §4512</Cite>. Put that date in your calendar the day the letter arrives, and
+use the years in between to build the record.
+
+<h2 class="qa-h" id="local-vs-statewide">What's the same everywhere, and what's local?</h2>
+
+<AnswerFirst>
+  The law does not change between counties. Eligibility, the 45- and 120-day clocks, the written
+  Notice of Action, and the appeal route are identical at all 21 centers. What is local at Inland:
+  the two-county intake split, which office holds your file, how far you have to travel, and which
+  providers exist near you.
+</AnswerFirst>
+
+Keep that line clear in your head, because in a service area this large you will hear a lot of
+"that's just how it works out here." Sometimes that is true — a rural corner of San Bernardino
+County genuinely has fewer vendored providers than Ontario does. But a shortage of providers is
+not a lawful reason to deny a service your child's plan calls for, and neither is a budget. If a
+service is in the plan and nobody will deliver it, that is a problem the center owns, not you.
+
+The state's Regional Center directory also lists a cultural specialist and a language-access
+manager at every center, Inland included — a useful role to ask for by name if you are not being
+served in your own language.
+
+<h2 class="qa-h" id="appeal">What if Inland says no?</h2>
+
+<AnswerFirst>
+  Get it in writing. A denial must come as a <b>Notice of Action</b> stating the decision and your
+  appeal rights. A no on the phone starts no clock and cannot be appealed — so ask, every time:
+  <i>"Please send me that decision as a written Notice of Action."</i>
+</AnswerFirst>
+
+Once the notice arrives, read the dates on it and calendar them that day. The appeal itself is
+California procedure, identical in Victorville and in San Francisco.
+
+<GatedLink class="link" href="/guides/regional-centers/appeal-denial/">How to appeal a Regional Center denial, step by step →</GatedLink>
+
+Free help exists. The **Office of Clients' Rights Advocacy (OCRA)**, part of **Disability Rights
+California**, staffs advocates who handle Lanterman Act appeals for families at no cost — worth
+contacting before you write anything. (They are a resource, not the rule; the deadlines that bind
+come from the statute and from the dates printed on your own notice.)
+
+You worked out which county desk you needed, asked for your date in writing, and learned the
+standard your child will actually be measured against. That is a good day's work in a system that
+does not make any of it obvious.
 
 </article>
 <aside>
+  <SideCard title="On this page" toc>
+    <a href="#who">Is Inland my center?</a>
+    <a href="#intake">How intake starts</a>
+    <a href="#eligible">Who qualifies</a>
+    <a href="#local-vs-statewide">Local vs. statewide</a>
+    <a href="#appeal">If they say no</a>
+  </SideCard>
   <SideCard title="At a glance">
     <dl>
-      <dt>Counties</dt><dd>Riverside · San Bernardino</dd>
-      <dt>Assessment clocks</dt><dd>120 days from intake · 45 from referral under 3</dd>
+      <dt>Serves</dt><dd>All of Riverside &amp; San Bernardino counties</dd>
+      <dt>Under 3?</dt><dd>Say your county — Early Start intake is split by county</dd>
+      <dt>Assessment clocks</dt><dd>120 days from intake <span class="cite">WIC §4643</span> · 45 days from referral under 3 <span class="cite">17 CCR §52086</span></dd>
+      <dt>Cost</dt><dd>Free, at any income</dd>
     </dl>
+  </SideCard>
+  <SideCard title="Neighboring centers">
+    <GatedLink class="link" href="/regional-centers/orange-county/">Orange County →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/san-gabriel-pomona/">San Gabriel / Pomona →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/san-diego/">San Diego &amp; Imperial →</GatedLink>
+    <GatedLink class="link" href="/regional-centers/kern/">Kern, Inyo &amp; Mono →</GatedLink>
   </SideCard>
   <SideCard title="Not your Regional Center?">
     <p>California has 21. Enter your county and we'll point you to the right one.</p>
     <a class="link" href="/tools/regional-center-finder/">Find your regional center →</a>
+    <p>Or start with the basics:</p>
+    <a class="link" href="/guides/regional-centers/">The Regional Center guide →</a>
   </SideCard>
 </aside>
 </div>
