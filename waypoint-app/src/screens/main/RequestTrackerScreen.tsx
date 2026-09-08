@@ -19,6 +19,7 @@ import { useFamily } from '@/hooks/useFamily';
 import { useRequests, type FamilyRequest } from '@/hooks/useRequests';
 import { useCommunications } from '@/hooks/useCommunications';
 import { buildRequestCase } from '@/lib/requestCase';
+import { localDayISO } from '@/lib/dateOnly';
 import {
   deadlineFor,
   REQUEST_LEVERS,
@@ -28,7 +29,6 @@ import {
 import DateInput from '@/components/DateInput';
 import { useToast } from '@/components/Toast';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
-import { localDayISO } from '@/lib/dateOnly';
 
 /** How the family asked — drives the case file's provenance line. */
 const CHANNEL_OPTIONS: Array<{ value: string; label: string }> = [
@@ -37,9 +37,6 @@ const CHANNEL_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'in_person', label: '🤝 In person' },
   { value: 'letter', label: '📄 Letter' },
 ];
-
-/** The LOCAL calendar date — toISOString() is UTC and shows "tomorrow" to evening users. */
-const localToday = (): string => localDayISO(new Date());
 
 const ADDABLE_TYPES: RequestType[] = [
   'service_request',
@@ -90,7 +87,7 @@ export default function RequestTrackerScreen() {
   const [adding, setAdding] = useState(false);
   const [newType, setNewType] = useState<RequestType>('service_request');
   const [newTitle, setNewTitle] = useState('');
-  const [newAskedOn, setNewAskedOn] = useState(localToday());
+  const [newAskedOn, setNewAskedOn] = useState(localDayISO());
   const [newChannel, setNewChannel] = useState('email');
 
   const casesById = React.useMemo(() => {
@@ -116,7 +113,7 @@ export default function RequestTrackerScreen() {
       showToast('Give the request a short name first.', 'info');
       return;
     }
-    const today = localToday();
+    const today = localDayISO();
     const askedOn = /^\d{4}-\d{2}-\d{2}$/.test(newAskedOn) ? newAskedOn : today;
     const created = await createRequest({
       request_type: newType,
@@ -319,7 +316,7 @@ export default function RequestTrackerScreen() {
                 </Pressable>
               ))}
             </View>
-            {newAskedOn < localToday() && (
+            {newAskedOn < localDayISO() && (
               <Text style={styles.backdateNote}>
                 Two clocks, both honest: their legal deadline runs from the day you asked; your
                 record shows it was logged today.
