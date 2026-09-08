@@ -12,7 +12,9 @@ import type { Crumb } from '../../lib/jsonld';
 export async function getStaticPaths() {
   const guides = await visibleEntries('guides');
   return guides
-    .filter((entry) => !entry.id.startsWith('start/'))
+    // The start tree owns /start/ (see src/pages/start/[...slug].astro).
+    // Astro strips `/index`, so the generic entry point has the bare id 'start'.
+    .filter((entry) => entry.id !== 'start' && !entry.id.startsWith('start/'))
     .map((entry) => ({
       params: { slug: entry.id.replace(/\.mdx?$/, '') },
       props: { entry },

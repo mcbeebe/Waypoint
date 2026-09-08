@@ -14,10 +14,10 @@ import { organizationJsonLd } from '../lib/jsonld';
 const urls = await visibleContentUrls();
 const has = (u: string) => urls.has(u);
 
-const heroHref = has('/start/autism/')
-  ? '/start/autism/'
+const heroHref = has('/start/')
+  ? '/start/'
   : appStartUrl({ slug: 'home', cta: 'hero' });
-const heroIsAppLink = !has('/start/autism/');
+const heroIsAppLink = !has('/start/');
 const heroProps = JSON.stringify({ slug: 'home', locale: 'en', cta_id: 'hero' });
 
 const pillars = [
@@ -51,7 +51,7 @@ const pillars = [
   {
     title: 'First steps (0–5)',
     body: 'Early Start, getting an evaluation without the year-long wait, and the turning-three transition.',
-    href: '/start/autism/',
+    href: '/start/',
     label: 'First 100 Days →',
   },
   {

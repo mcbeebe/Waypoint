@@ -46,6 +46,16 @@
       "permanent": true
     },
     {
+      "source": "/start/autism",
+      "destination": "/start/",
+      "permanent": true
+    },
+    {
+      "source": "/start/autism/",
+      "destination": "/start/",
+      "permanent": true
+    },
+    {
       "source": "/join",
       "destination": "https://app.waypointchild.com/join",
       "permanent": true

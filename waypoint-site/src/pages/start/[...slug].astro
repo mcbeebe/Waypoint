@@ -16,9 +16,19 @@ import type { Crumb } from '../../lib/jsonld';
 export async function getStaticPaths() {
   const guides = await visibleEntries('guides');
   return guides
-    .filter((entry) => entry.id.startsWith('start/'))
+    .filter((entry) => entry.id === 'start' || entry.id.startsWith('start/'))
     .map((entry) => ({
-      params: { slug: entry.id.replace(/^start\//, '').replace(/\.mdx?$/, '') },
+      // `start/index.mdx` is the generic entry point and owns /start/ itself;
+      // any other file under start/ becomes a diagnosis-specific spoke.
+      params: {
+        // 'start' (from start/index.mdx, whose `/index` Astro strips) is the
+        // diagnosis-general entry point and owns /start/ itself; anything
+        // deeper is a diagnosis-specific spoke.
+        slug:
+          entry.id === 'start'
+            ? undefined
+            : entry.id.replace(/^start\//, '').replace(/\.mdx?$/, ''),
+      },
       props: { entry },
     }));
 }

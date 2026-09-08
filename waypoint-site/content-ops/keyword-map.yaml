@@ -96,22 +96,24 @@ entries:
     piece_no: null
     serp_notes: "Hub page; emotional-first entry point, feeds /start/."
 
-  - primary_kw: "step by step plan for disability services california"
+  # ---------------------------------------------------------------
+  # First-10 launch pieces (P0, piece_no 1-10)
+  # ---------------------------------------------------------------
+  - primary_kw: "child just diagnosed with a disability california what to do"
     secondary_kws:
+      - "my child was just diagnosed what do i do california"
+      - "first 100 days after a diagnosis california"
       - "where do i start with disability services for my child"
+      - "step by step plan for disability services california"
       - "roadmap for parents of a child with a disability california"
-      - "checklist for getting my child services"
     intent: info
     url: "/start/"
     pillar: start
     priority: P0
-    status: planned
-    piece_no: null
-    serp_notes: "Start hub; primary app deep-link surface (wp_cta per D3)."
+    status: published
+    piece_no: 1
+    serp_notes: "Flagship, diagnosis-general (owner call 2026-09-08): the entry point for ANY diagnosis. Timeline format; heavy internal linking to pieces 2-8. Diagnosis-specific spokes (/start/autism/ etc.) are reserved below and link back here."
 
-  # ---------------------------------------------------------------
-  # First-10 launch pieces (P0, piece_no 1-10)
-  # ---------------------------------------------------------------
   - primary_kw: "first 100 days after autism diagnosis california"
     secondary_kws:
       - "my child was just diagnosed with autism california"
@@ -120,10 +122,10 @@ entries:
     intent: info
     url: "/start/autism/"
     pillar: start
-    priority: P0
-    status: published
-    piece_no: 1
-    serp_notes: "Flagship. Timeline format; heavy internal linking to pieces 2-8."
+    priority: P1
+    status: planned
+    piece_no: null
+    serp_notes: "Diagnosis-specific spoke, reserved 2026-09-08 when /start/ was generalized. Goes deeper than the general entry point (SB 946/ABA coverage, autism-specific evaluation path) and links back to /start/. Until it exists, /start/autism/ 301s to /start/."
 
   - primary_kw: "ihss protective supervision"
     secondary_kws:
