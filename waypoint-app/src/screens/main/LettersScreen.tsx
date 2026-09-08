@@ -51,6 +51,7 @@ import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
 import { deadlineFor } from '@/lib/requestClocks';
+import { localDayISO } from '@/lib/dateOnly';
 import type { RequestDeadline } from '@/lib/requestClocks';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
@@ -322,6 +323,12 @@ export default function LettersScreen() {
       showToast('Marked as sent — saved to your paper trail', 'success');
       return;
     }
+    // The day this letter went out, on the FAMILY's calendar. `requested_on`
+    // is a Postgres `date` and the statutory clock below counts from it, so
+    // the UTC slice this used to take started the escalation ladder a day
+    // late every evening after 17:00 Pacific. Read once, so the stamp and the
+    // deadline can't land on different days across the awaits below.
+    const sentOn = localDayISO();
     // Open the tracked request (once): the Request Tracker owns the clock
     // from here. An existing live row of the same title is not duplicated,
     // and a letter sent FROM a case never opens a second clock row.
@@ -349,7 +356,7 @@ export default function LettersScreen() {
         const created = await createRequest({
           request_type: track.requestType,
           title: trackTitle ?? track.title,
-          requested_on: new Date().toISOString().slice(0, 10),
+          requested_on: sentOn,
           child_id: primaryChild?.id ?? null,
           channel: 'email',
           notes: 'Sent via Waypoint Letters',
@@ -374,7 +381,7 @@ export default function LettersScreen() {
       updateChild(primaryChild.id, { medi_cal_status: 'applied' }).catch(() => undefined);
     }
     const deadline = track
-      ? deadlineFor(track.requestType, new Date().toISOString().slice(0, 10))
+      ? deadlineFor(track.requestType, sentOn)
       : null;
     setSentMoment({ next, deadline, tracked });
   }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId]);

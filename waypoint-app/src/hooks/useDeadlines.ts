@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyErrorMessage } from '@/lib/netRetry';
+import { newlyOverdue } from '@/lib/deadlineStatus';
 import type { Deadline, DeadlineType, DeadlineStatus } from '@/types/database';
 
 interface UseDeadlinesOptions {
@@ -103,16 +104,17 @@ export function useDeadlines(options: UseDeadlinesOptions) {
     await updateDeadline(id, { status: 'completed' as DeadlineStatus });
   }, [updateDeadline]);
 
-  /** Auto-compute overdue statuses */
+  /**
+   * Auto-compute overdue statuses.
+   *
+   * The day is the FAMILY's, never UTC's: this writes to the database, and
+   * `toISOString()` is already tomorrow every evening after 17:00 Pacific, so
+   * the UTC day stamped a deadline due today as overdue and left it that way.
+   * See `newlyOverdue` for what that stored status then costs.
+   */
   const refreshStatuses = useCallback(async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const overdue = deadlines.filter(
-      (d) => d.status !== 'completed' && d.due_date < today
-    );
-    for (const d of overdue) {
-      if (d.status !== 'overdue') {
-        await updateDeadline(d.id, { status: 'overdue' as DeadlineStatus });
-      }
+    for (const d of newlyOverdue(deadlines)) {
+      await updateDeadline(d.id, { status: 'overdue' as DeadlineStatus });
     }
   }, [deadlines, updateDeadline]);
 

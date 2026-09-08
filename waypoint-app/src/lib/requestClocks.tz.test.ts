@@ -12,8 +12,9 @@
  * citation to it, so the app would be telling a family the law says something
  * it does not.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { deadlineFor } from './requestClocks';
+import { localDayISO } from './dateOnly';
 
 const NOW = new Date(2026, 7, 29, 9, 0, 0); // Aug 29 2026, local
 
@@ -54,5 +55,58 @@ describe('a statutory due date is the family’s calendar date', () => {
     const dl = deadlineFor('ipp_meeting', '2026-07-01', NOW)!;
     expect(dl.dueOn).toBe('2026-07-31');
     expect(dl.overdue).toBe(true);
+  });
+});
+
+/**
+ * The composition LettersScreen performs the moment a family marks a letter
+ * sent: stamp `family_requests.requested_on` with today, then start the
+ * statutory clock from that same day. Both used to read
+ * `new Date().toISOString().slice(0, 10)` — the UTC day — so the escalation
+ * ladder that drives the collaborative → assertive → adversarial tone started
+ * on the wrong day, and `requestCase` measured silence from it afterwards.
+ *
+ * The clock is pinned rather than passed in: `localDayISO()` and
+ * `deadlineFor`'s own `now` default are exactly what the screen relies on, so
+ * a test that supplies both by hand would survive the very revert it exists
+ * to catch. Two instants, one per direction — 03:00 UTC is the previous
+ * evening in Los Angeles (UTC day a day AHEAD), 18:00 UTC is the small hours
+ * of the next day in Ho Chi Minh City (UTC day a day BEHIND) — so each
+ * project catches one and the assertions never name a sign.
+ */
+describe('a letter sent today starts the whole statutory window', () => {
+  const INSTANTS: [string, string][] = [
+    ['03:00 UTC — an evening west of Greenwich', '2026-08-01T03:00:00.000Z'],
+    ['18:00 UTC — a small hour east of Greenwich', '2026-08-01T18:00:00.000Z'],
+  ];
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /** `days` after today, by local calendar arithmetic — DST-proof. */
+  const localDaysFromToday = (days: number) => {
+    const n = new Date();
+    return localDayISO(new Date(n.getFullYear(), n.getMonth(), n.getDate() + days));
+  };
+
+  it.each(INSTANTS)('gives the full 30-day IPP window at %s', (_label, instant) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(instant));
+    // Exactly what LettersScreen now does: one local day, stamped on the
+    // request and handed to the clock.
+    const sentOn = localDayISO();
+    const dl = deadlineFor('ipp_meeting', sentOn)!;
+    expect(dl.dueOn).toBe(localDaysFromToday(30));
+    expect(dl.daysRemaining).toBe(30);
+    expect(dl.overdue).toBe(false);
+  });
+
+  it.each(INSTANTS)('gives the full 15-day assessment plan at %s', (_label, instant) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(instant));
+    const dl = deadlineFor('iep_evaluation', localDayISO())!;
+    expect(dl.dueOn).toBe(localDaysFromToday(15));
+    expect(dl.daysRemaining).toBe(15);
   });
 });
