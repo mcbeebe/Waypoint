@@ -289,7 +289,11 @@ export function deriveEligibility(
   return { cards, likelyCount };
 }
 
-/** Age in whole years from an ISO date of birth; null when unknown. */
+/**
+ * Age in whole years from an ISO date of birth, read on the LOCAL calendar;
+ * null when unknown or unparsable. Negative for a future date of birth —
+ * callers that gate on age should clamp if that matters to them.
+ */
 export function ageFromDob(dob: string | null | undefined, now = new Date()): number | null {
   // date_of_birth is a Postgres `date` — read it on the local calendar, or
   // the age (and every phase/eligibility gate keyed on it) flips a day early

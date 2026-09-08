@@ -461,12 +461,15 @@ export function useSdpCase(params: { caseId?: string; familyId?: string }): UseS
             case_id: sdpCase.id,
             family_id: sdpCase.family_id,
             kind: b.kind,
-            captured_on: captured.toISOString().slice(0, 10),
+            captured_on: localDayISO(captured),
             services_in_place: b.servicesInPlace,
             unmet_needs: b.unmetNeeds,
             coordination_hours_per_week: b.coordinationHoursPerWeek,
             caregiver_strain: b.caregiverStrain,
-            remeasure_due_on: b.kind === '12mo' ? null : remeasure.toISOString().slice(0, 10),
+            // `remeasure` is built by setMonth on a LOCAL date, so slicing it
+            // as UTC moved the due date a day in either direction depending on
+            // the zone. Read it on the same calendar it was built on.
+            remeasure_due_on: b.kind === '12mo' ? null : localDayISO(remeasure),
           },
           { onConflict: 'case_id,kind' }
         )
