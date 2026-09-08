@@ -19,7 +19,7 @@ const id = entry.id.replace(/\.mdx?$/, '');
 ---
 
 <ArticleLayout
-  title={d.title}
+  title={d.seoTitle ?? d.title}
   description={d.description}
   heading={d.title}
   crumbs={[{ name: 'Guides', href: '/guides/' }, { name: 'Letters' }, { name: d.title.split(':')[0] }]}

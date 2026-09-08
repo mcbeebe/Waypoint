@@ -51,7 +51,7 @@ const crumbLd = !isDraft ? breadcrumbsJsonLd(crumbs) : null;
 ---
 
 <BaseLayout
-  title={`${d.title} — Waypoint`}
+  title={`${d.seoTitle ?? d.title} — Waypoint`}
   description={d.description}
   locale={d.locale}
   noindex={d.noindex || isDraft}
