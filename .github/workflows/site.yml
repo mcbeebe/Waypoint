@@ -47,6 +47,39 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+  # Performance budget (launch-checklist row 24). Deliberately NOT part of
+  # `npm run gates` and deliberately non-blocking: Lighthouse moves several
+  # points run to run on a shared runner, so wiring it into the merge gate
+  # would buy flaky red X's, not speed. The numbers land in the job summary
+  # where a regression is visible, and `perf-baseline.json` in the repo is
+  # what they are compared against.
+  perf:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: waypoint-site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: waypoint-site/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Lighthouse budget (informational)
+        if: always()
+        run: |
+          {
+            echo '## Performance budget (mobile, throttled)'
+            echo '```'
+            node scripts/lighthouse-budget.mjs || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
   # Weekly: citation link-rot across every sources[] URL. Separate job so a
   # dead government link opens a signal, not a red X on someone's PR.
   citations:

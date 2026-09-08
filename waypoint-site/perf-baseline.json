@@ -1,0 +1,45 @@
+{
+  "recorded": "2026-09-08",
+  "templates": {
+    "home": {
+      "performance": 99,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "lcp": 2103,
+      "cls": 0,
+      "tbt": 0,
+      "transferKb": 208
+    },
+    "guide": {
+      "performance": 97,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "lcp": 2408,
+      "cls": 0,
+      "tbt": 0,
+      "transferKb": 216
+    },
+    "tool": {
+      "performance": 98,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "lcp": 2256,
+      "cls": 0,
+      "tbt": 0,
+      "transferKb": 206
+    },
+    "checklist": {
+      "performance": 97,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "lcp": 2409,
+      "cls": 0,
+      "tbt": 0,
+      "transferKb": 218
+    }
+  }
+}

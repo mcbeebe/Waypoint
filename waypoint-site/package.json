@@ -20,7 +20,10 @@
     "refresh-due": "node scripts/refresh-due.mjs",
     "check-language": "node scripts/check-language.mjs",
     "check-sources": "node scripts/check-sources.mjs",
-    "check-jsonld": "node scripts/validate-jsonld.mjs"
+    "check-jsonld": "node scripts/validate-jsonld.mjs",
+    "perf": "node scripts/lighthouse-budget.mjs",
+    "perf:update": "node scripts/lighthouse-budget.mjs --update",
+    "monitor": "node scripts/uptime-check.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.0",
@@ -40,6 +43,7 @@
     "@axe-core/playwright": "^4.13.0",
     "gray-matter": "^4.0.3",
     "js-yaml": "^5.4.1",
+    "lighthouse": "^13.4.1",
     "pagefind": "1.5.2",
     "playwright": "^1.63.0",
     "typescript": "^6.0.3",
