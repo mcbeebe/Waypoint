@@ -12,8 +12,11 @@ interface Props {
   /** Pillar of the current page — required on pillar content so the header
    * CTA can carry wp_pillar (D3: required on pillar content). */
   pillar?: string;
+  /** Content URL, so Seo can pick this page's build-time OG card. */
+  ogSlug?: string;
+  ogType?: 'website' | 'article';
 }
-const { title, description, locale = 'en', noindex = false, pillar } = Astro.props;
+const { title, description, locale = 'en', noindex = false, pillar, ogSlug, ogType } = Astro.props;
 ---
 
 <!doctype html>
@@ -36,7 +39,7 @@ const { title, description, locale = 'en', noindex = false, pillar } = Astro.pro
       type="font/woff2"
       crossorigin
     />
-    <Seo title={title} description={description} noindex={noindex} />
+    <Seo title={title} description={description} noindex={noindex} ogSlug={ogSlug} ogType={ogType} />
     {/* Plausible: cookieless analytics — events per docs/analytics-taxonomy.md
         (D3). Loaded only on production deploys so preview/branch QA traffic
         never pollutes the production data-domain (local non-Vercel builds

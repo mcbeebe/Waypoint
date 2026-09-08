@@ -26,6 +26,7 @@ import DiagnosisSelector from '@/components/DiagnosisSelector';
 import SelectGrid from '@/components/SelectGrid';
 import Button from '@/components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { applyFirstTouch } from '@/lib/attribution';
 import { supabase } from '@/lib/supabase';
 import { generateStarterPlan } from '@/lib/planGenerator';
 import { lookupRC, rcByCounty, ALL_COUNTIES } from '@/data/regionalCenters';
@@ -186,6 +187,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         .single();
 
       if (familyError) throw familyError;
+
+      // 1b. Stamp first-touch attribution, exactly once (D3). Deliberately
+      // fire-and-forget: attribution is telemetry, and a telemetry write
+      // must never cost a parent their onboarding.
+      void applyFirstTouch(family.id);
 
       // 2. Create child record
       const { data: child, error: childError } = await supabase

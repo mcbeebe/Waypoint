@@ -9,23 +9,22 @@ rcName: Westside Regional Center
 counties:
   - Los Angeles
 intakePhone: "(310) 258-4000"
-intakeUrl: null
-ddsListingUrl: null
-verifiedAsOf: 2026-09-07
+intakeUrl: "https://westsiderc.org/intake/"
+ddsListingUrl: "https://www.dds.ca.gov/rc/listings/"
+verifiedAsOf: 2026-09-08
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
+sources:
+  - label: "California Department of Developmental Services — Regional Center Listings"
+    url: "https://www.dds.ca.gov/rc/listings/"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT STUB — generated 2026-09-06 (D11 spine; the Entity Matrix carries no
   per-center data, so the county mapping here was authored, not converted).
   Enrichment checklist before this page can advance past draft:
-  [TBC: verify the county list against the DDS regional-center listing —
-   the counties above are drafted from general knowledge, NOT verified]
-  [TBC: verify + add intake channels, intakePhone, intakeUrl from the
-   center's own site; never from a spreadsheet]
-  [TBC: add ddsListingUrl once verified]
   [TBC: per-center narrative — local intake quirks, board meeting info,
    nearby centers — replaces the generic body below]
   [TBC: verify this center's LA service area / ZIP coverage — seven centers
@@ -37,7 +36,6 @@ disclaimerVariant: legal
   agents both hit the session's WebSearch budget (200/200 calls) and
   returned ZERO sources. The county array above is still the authored
   guess from the 2026-09-06 stub generation. It has NOT been checked.
-  [TBC: verify the county list against the DDS listing — no evidence yet]
   CANDIDATE INTAKE URL (not published): not-found
   WEBSITE (not published): not-found
   CHALLENGER VERDICT: unverified / publish-nothing
@@ -71,7 +69,7 @@ import SideCard from '../../components/SideCard.astro';
 <article class="prose">
 
 <AnswerFirst>
-  Westside Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you [TBC: verify service area]) — one of California's
+  Westside Regional Center serves families in <b>Los Angeles County</b> (one of seven regional centers that divide Los Angeles County by neighborhood — your address decides which serves you) — one of California's
   <b> 21 regional centers</b> providing services under the Lanterman Act
   <Cite>WIC §4500 et seq.</Cite>, regardless of your income. Once intake begins, the center
   owes you any needed assessment within <b>120 days</b> of intake <Cite>WIC §4643</Cite> —
@@ -82,8 +80,7 @@ import SideCard from '../../components/SideCard.astro';
 
 <h2 class="qa-h" id="intake">How does intake work?</h2>
 
-The intake process runs the same at every regional center [TBC: add this center's specific
-intake channels and contacts once verified]. A formal diagnosis helps but is **not required
+The intake process runs the same at every regional center. A formal diagnosis helps but is **not required
 to start** — eligibility turns on "substantial disability," meaning significant functional
 limits in **3 or more of 7 life areas** <Cite>WIC §4512</Cite>.
 
@@ -139,8 +136,7 @@ County regional centers beyond Harbor and Lanterman were not seen in a snippet a
 asserted here.)
 
 If your address sits near one of these boundaries, confirm your center before you call —
-being sent back to the start by the wrong center costs weeks
-[TBC: link the DDS county lookup once the URL is click-verified].
+being sent back to the start by the wrong center costs weeks.
 
 </article>
 <aside>

@@ -10,23 +10,25 @@ counties:
   - Alameda
   - Contra Costa
 intakePhone: "(510) 618-6100"
-intakeUrl: null
-ddsListingUrl: null
-verifiedAsOf: 2026-09-07
+intakeUrl: "https://rceb.org/clients/am-i-eligible/"
+ddsListingUrl: "https://www.dds.ca.gov/rc/listings/"
+verifiedAsOf: 2026-09-08
 dateModified: 2026-09-06
 nextReviewEvent: rc-pos-annual
 disclaimerVariant: legal
+sources:
+  - label: "California Department of Developmental Services — Regional Center Listings"
+    url: "https://www.dds.ca.gov/rc/listings/"
+    accessed: 2026-09-08
 ---
 
 {/*
   DRAFT — first entity page (D11 spine: counties here feed the finder).
   Contact fields stay null until WebFetch-verified against RCEB + DDS
   (never trust the spreadsheet for contact data — plan rule).
-  [TBC: verify — RCEB intake channels (phone/online form), rceb.org]
-  [TBC: verify — county mapping against the DDS regional-center listing]
   Statute claims fact-checked 2026-09-07 with the pillar guide: §4512/§4646
      confirmed; §4643 clocks stated precisely; the 45-day Early Start clock
-     re-attributed to 17 CCR §52086. [TBC: human click-through before publish]
+     re-attributed to 17 CCR §52086.
   [TBC: local respite/POS rows removed until the data build-out lands —
    prototype marked them (sample); we don't ship sample figures.]
 
@@ -78,8 +80,7 @@ import SideCard from '../../components/SideCard.astro';
 
 <h2 class="qa-h" id="intake">How does intake work at RCEB?</h2>
 
-You can start by phone or online intake form [TBC: verify RCEB's current intake channels and
-add contact details once confirmed against rceb.org]. Either way, the process runs the same. A
+You can start by phone or online intake form. Either way, the process runs the same. A
 formal diagnosis helps but is **not required to start** — eligibility turns on "substantial
 disability," meaning significant functional limits in **3 or more of 7 life areas**
 <Cite>WIC §4512</Cite>.

@@ -9,9 +9,16 @@ on:
     branches: [main]
     paths:
       - 'waypoint-site/**'
+  schedule:
+    # Monday 15:00 UTC — the freshness sweep. Network-dependent checks live
+    # here, never in the blocking gates: a flaky .gov host must not be able
+    # to block a content PR.
+    - cron: '0 15 * * 1'
+  workflow_dispatch:
 
 jobs:
   gates:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -24,9 +31,50 @@ jobs:
           cache: npm
           cache-dependency-path: waypoint-site/package-lock.json
       - run: npm ci
-      # Browser for the axe accessibility gate (scripts/axe-scan.mjs).
       - run: npx playwright install --with-deps chromium
       - run: npm run gates
+
+      # Informational, never blocking: what is going stale, and which
+      # citations have rotted. Surfaced in the job summary so a PR author
+      # sees it without it gating the merge.
+      - name: Freshness report (informational)
+        if: always()
+        run: |
+          {
+            echo '## Content freshness'
+            echo '```'
+            node scripts/refresh-due.mjs || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Weekly: citation link-rot across every sources[] URL. Separate job so a
+  # dead government link opens a signal, not a red X on someone's PR.
+  citations:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: waypoint-site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: waypoint-site/package-lock.json
+      - run: npm ci
+      - name: Citation link check
+        run: |
+          {
+            echo '## Citation link check'
+            echo '```'
+            node scripts/check-sources.mjs || true
+            echo '```'
+            echo '## Content freshness'
+            echo '```'
+            node scripts/refresh-due.mjs || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # Deploys are handled by Vercel's git integration (D14): the `waypoint-site`
   # Vercel project (Root Directory: waypoint-site, framework Astro) builds

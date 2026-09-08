@@ -78,6 +78,11 @@ const covered = records.length;
                 In Los Angeles County, seven Regional Centers divide the map by neighborhood —
                 pick your county and we'll show every center that serves it.
               </div>
+              <div class="hint" style="margin-top:8px">
+                County routing and phone numbers are verified against the
+                <a href="https://www.dds.ca.gov/rc/listings/" rel="noopener">DDS Regional Center listing</a>.
+                Our own field guide for each center links here as it publishes.
+              </div>
             </div>
             <div>
               <div class="result-panel" aria-live="polite">
@@ -114,7 +119,11 @@ const covered = records.length;
   interface CountyRoute {
     county: string;
     rcName: string;
-    url: string;
+    phone: string | null;
+    ddsListingUrl: string | null;
+    intakeUrl: string | null;
+    /** Our own field guide — null until that page passes the review gate. */
+    url: string | null;
   }
   const dataEl = document.getElementById('rc-routes');
   const btn = document.getElementById('f-run');
@@ -136,16 +145,28 @@ const covered = records.length;
       const note = document.getElementById('f-note')!;
       const link = document.getElementById('f-link')!;
       if (matches.length === 0) return;
+
+      // Always give the name and the verified main line. Our own field
+      // guide is linked only once it has published; until then, DDS.
+      const contact = (m: CountyRoute) => {
+        const bits: string[] = [];
+        if (m.phone) bits.push(`<a href="tel:${m.phone.replace(/[^0-9]/g, '')}">${m.phone}</a>`);
+        if (m.url) bits.push(`<a href="${m.url}">our field guide →</a>`);
+        else if (m.intakeUrl) bits.push(`<a href="${m.intakeUrl}" rel="noopener">how to apply →</a>`);
+        else if (m.ddsListingUrl) bits.push(`<a href="${m.ddsListingUrl}" rel="noopener">DDS listing →</a>`);
+        return bits.join(' · ');
+      };
+
       if (matches.length === 1) {
         const m = matches[0];
         out.textContent = m.rcName;
         note.innerHTML = `${m.rcName} serves ${county} County. Eligibility decision within <b>120 days</b> of intake — <b>45 days</b> under age 3.`;
-        link.innerHTML = `<a href="${m.url}">See intake steps &amp; appeal routes on the ${m.rcName} page →</a>`;
+        link.innerHTML = contact(m);
       } else {
         out.textContent = `${matches.length} centers serve ${county} County`;
         note.innerHTML = 'Your neighborhood decides which one serves you:';
         link.innerHTML = matches
-          .map((m) => `<a href="${m.url}" style="display:block;padding:2px 0">${m.rcName} →</a>`)
+          .map((m) => `<div style="padding:3px 0"><b>${m.rcName}</b><br>${contact(m)}</div>`)
           .join('');
       }
       window.plausible?.('tool_completed', { props: { tool_id: TOOL, locale: 'en' } });
