@@ -4,6 +4,7 @@
  * "unanswered" while no newer outgoing message exists on its thread.
  */
 import type { Communication } from '@/hooks/useCommunications';
+import { localDayISO } from '@/lib/dateOnly';
 
 export interface UnansweredReply {
   reply: Communication;
@@ -24,6 +25,33 @@ function nameOf(contact: string | null): string {
 
 function when(c: Communication): string {
   return c.sent_at ?? c.occurred_at;
+}
+
+/**
+ * The correspondence block Waypoint hands the model when it drafts a reply.
+ *
+ * Every entry is dated on the DEVICE's calendar. `sent_at` and `occurred_at`
+ * are both `timestamptz`, so taking the first ten characters dated a message
+ * the parent sent at 6pm Pacific to the following day — and the model then
+ * reasoned from that date, and sometimes repeated it, in a letter going to an
+ * agency where dates decide whether a request was timely.
+ *
+ * Lives here rather than in the modal so it is a pure function the timezone
+ * suites can actually pin; the component only renders the result.
+ */
+export function formatThreadForDraft(thread: Communication[]): string {
+  return thread
+    .map((c) => {
+      const who =
+        c.direction === 'incoming' ? `FROM ${c.contact ?? 'the agency'}` : 'FROM the parent';
+      const at = when(c);
+      const parsed = new Date(at);
+      // A timestamptz always parses; if the column ever hands us something
+      // that does not, show what we were given rather than "NaN-NaN-NaN".
+      const day = Number.isNaN(parsed.getTime()) ? at.slice(0, 10) : localDayISO(parsed);
+      return `--- ${who} · ${day} ---\n${c.subject}\n\n${c.body ?? ''}`;
+    })
+    .join('\n\n');
 }
 
 /** The newest incoming reply not yet answered on its thread, if any. */

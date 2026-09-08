@@ -27,6 +27,7 @@ import {
   type FHIRAllergy,
   type FHIRObservation,
 } from '@/lib/fhir';
+import { fhirDisplayDay } from '@/lib/fhirDate';
 import { useToast } from '@/components/Toast';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
@@ -161,15 +162,18 @@ export default function HealthRecordsScreen() {
                 {conditions.length === 0 ? (
                   <Text style={styles.emptyText}>No conditions found</Text>
                 ) : (
-                  conditions.map((c) => (
-                    <View key={c.id} style={styles.recordCard}>
-                      <Text style={styles.recordTitle}>{c.code.text}</Text>
-                      {c.code.coding?.[0]?.code && (
-                        <Text style={styles.recordCode}>ICD-10: {c.code.coding[0].code}</Text>
-                      )}
-                      {c.recordedDate && <Text style={styles.recordDate}>Recorded: {c.recordedDate.split('T')[0]}</Text>}
-                    </View>
-                  ))
+                  conditions.map((c) => {
+                    const recorded = fhirDisplayDay(c.recordedDate);
+                    return (
+                      <View key={c.id} style={styles.recordCard}>
+                        <Text style={styles.recordTitle}>{c.code.text}</Text>
+                        {c.code.coding?.[0]?.code && (
+                          <Text style={styles.recordCode}>ICD-10: {c.code.coding[0].code}</Text>
+                        )}
+                        {recorded && <Text style={styles.recordDate}>Recorded: {recorded}</Text>}
+                      </View>
+                    );
+                  })
                 )}
 
                 {/* Medications */}
@@ -219,7 +223,7 @@ export default function HealthRecordsScreen() {
                     <View key={l.id} style={styles.labCard}>
                       <View style={styles.labHeader}>
                         <Text style={styles.labName}>{l.code.text}</Text>
-                        <Text style={styles.labDate}>{l.effectiveDateTime?.split('T')[0] ?? ''}</Text>
+                        <Text style={styles.labDate}>{fhirDisplayDay(l.effectiveDateTime) ?? ''}</Text>
                       </View>
                       <View style={styles.labValueRow}>
                         <Text style={styles.labValue}>

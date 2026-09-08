@@ -16,6 +16,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import type { Communication } from '@/hooks/useCommunications';
+import { formatThreadForDraft } from '@/lib/replyInbox';
 import { draftGmailReply, gmailSend } from '@/lib/gmail';
 import { analyzeEmail, type EmailAnalysis } from '@/lib/letters';
 import { TONE_OPTIONS, type DraftTone } from '@/lib/lettersCatalog';
@@ -65,16 +66,7 @@ export default function GmailReplyModal({
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzedId, setAnalyzedId] = useState<string | null>(null);
 
-  const threadText = useMemo(
-    () =>
-      thread
-        .map(
-          (c) =>
-            `--- ${c.direction === 'incoming' ? `FROM ${c.contact ?? 'the agency'}` : 'FROM the parent'} · ${(c.sent_at ?? c.occurred_at).slice(0, 10)} ---\n${c.subject}\n\n${c.body ?? ''}`
-        )
-        .join('\n\n'),
-    [thread]
-  );
+  const threadText = useMemo(() => formatThreadForDraft(thread), [thread]);
   const lastIncoming = [...thread].reverse().find((c) => c.direction === 'incoming');
   const anchor = thread.find((c) => c.gmail_thread_id) ?? null;
   const parsedTo = emailOf(lastIncoming?.contact ?? null);
