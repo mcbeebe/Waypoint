@@ -5,6 +5,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { localDayISO } from '@/lib/dateOnly';
 import type {
   Invoice,
   SdpCase,
@@ -152,7 +153,7 @@ export function useBilling(): UseBillingReturn {
   const createInvoice: UseBillingReturn['createInvoice'] = useCallback(async (draft, meta) => {
     if (!orgId || draft.lines.length === 0) return false;
     try {
-      const number = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random()
+      const number = `INV-${localDayISO().replace(/-/g, '')}-${Math.random()
         .toString(36)
         .slice(2, 8)
         .toUpperCase()}`;
@@ -166,7 +167,7 @@ export function useBilling(): UseBillingReturn {
           family_id: meta.familyId ?? null,
           case_id: meta.caseId ?? null,
           status: 'draft',
-          issued_on: new Date().toISOString().slice(0, 10),
+          issued_on: localDayISO(),
           total_cents: draft.totalCents,
         })
         .select()
@@ -197,7 +198,7 @@ export function useBilling(): UseBillingReturn {
     const next = NEXT_STATUS[invoice.status];
     if (!next) return false;
     const patch: Partial<Invoice> = { status: next };
-    if (next === 'paid') patch.paid_on = new Date().toISOString().slice(0, 10);
+    if (next === 'paid') patch.paid_on = localDayISO();
     const { error: e } = await supabase.from('invoices').update(patch).eq('id', invoice.id);
     if (e) {
       setError(e.message);

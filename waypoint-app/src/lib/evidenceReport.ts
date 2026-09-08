@@ -5,6 +5,7 @@
  * carries its n; where a gate exists (3% funnel, ≤30h/family model) the
  * verdict is computed, not editorialized.
  */
+import { localDayISO } from '@/lib/dateOnly';
 import { FUNNEL_GATE, HOURS_PER_FAMILY_MODEL } from '@/lib/evidenceTargets';
 import { formatCents } from '@/lib/spendingPlan';
 
@@ -176,7 +177,7 @@ export function buildEvidenceReport(inputs: EvidenceInputs, now = new Date()): E
   }
 
   return {
-    generatedOn: now.toISOString().slice(0, 10),
+    generatedOn: localDayISO(now),
     pipelineValueCents,
     invoicedCents,
     paidCents,
