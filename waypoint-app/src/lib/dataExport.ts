@@ -8,6 +8,7 @@
 
 import { Platform, Share } from 'react-native';
 import { supabase } from './supabase';
+import { localDayISO } from './dateOnly';
 
 export interface ExportResult {
   ok: boolean;
@@ -89,7 +90,7 @@ export async function exportFamilyData(familyId: string): Promise<ExportResult> 
   try {
     const payload = await buildFamilyExport(familyId);
     const json = JSON.stringify(payload, null, 2);
-    const filename = `waypoint-export-${new Date().toISOString().split('T')[0]}.json`;
+    const filename = `waypoint-export-${localDayISO()}.json`;
 
     if (Platform.OS === 'web') {
       const blob = new Blob([json], { type: 'application/json' });

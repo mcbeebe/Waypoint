@@ -15,7 +15,7 @@ import { Platform, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Deadline } from '@/types/database';
 import { diffReminders, type ReminderSpec } from '@/lib/notificationPolicy';
-import { parseDateLocal } from '@/lib/dateOnly';
+import { deadlineTriggers } from '@/lib/deadlineReminders';
 
 const NOTIFICATION_IDS_KEY = 'waypoint_notification_ids';
 /** key → scheduled-notification id, for the policy-driven outbound loop
@@ -174,35 +174,26 @@ export function useNotifications(): UseNotificationsReturn {
     // Cancel any existing notifications for this deadline first
     await cancelDeadlineReminders(deadline.id);
 
-    // `due_date` is a Postgres `date` — parse it on the LOCAL calendar or
-    // every reminder fires a day early for families west of Greenwich.
-    const dueDate = parseDateLocal(deadline.due_date);
-    const now = new Date();
     const scheduledIds: string[] = [];
 
-    // Default reminder days if none specified: 30, 14, 7, 1 day(s) before
-    const reminderDays = deadline.reminder_days?.length > 0
-      ? deadline.reminder_days
-      : [30, 14, 7, 1];
+    // When each push fires, and the words it carries, are decided in
+    // `deadlineTriggers` — pure, and pinned in both timezone suites. This
+    // loop only hands the result to expo.
+    const specs = deadlineTriggers({
+      title: deadline.title,
+      dueDate: deadline.due_date,
+      reminderDays: deadline.reminder_days,
+      now: new Date(),
+    });
 
-    for (const daysBefore of reminderDays) {
-      const triggerDate = new Date(dueDate);
-      triggerDate.setDate(triggerDate.getDate() - daysBefore);
-      // Set to 9 AM local time
-      triggerDate.setHours(9, 0, 0, 0);
-
-      // Skip if trigger date is in the past
-      if (triggerDate <= now) continue;
-
+    for (const spec of specs) {
       try {
-        const daysLabel = daysBefore === 1 ? 'tomorrow' : `in ${daysBefore} days`;
-
         const id = await Notifications.scheduleNotificationAsync({
           content: {
-            title: `Deadline: ${deadline.title}`,
-            body: `Due ${daysLabel}. Tap to view your action plan.`,
+            title: spec.title,
+            body: spec.body,
             data: {
-              type: 'deadline_reminder',
+              type: spec.kind === 'due' ? 'deadline_due' : 'deadline_reminder',
               deadlineId: deadline.id,
               screen: 'Calendar',
             },
@@ -211,41 +202,16 @@ export function useNotifications(): UseNotificationsReturn {
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: triggerDate,
+            date: spec.fireAt,
           },
         });
 
         scheduledIds.push(id);
       } catch (err) {
-        console.warn(`[Notifications] Failed to schedule reminder for ${daysBefore}d before:`, err);
-      }
-    }
-
-    // Also schedule a same-day reminder at 8 AM
-    const sameDayTrigger = new Date(dueDate);
-    sameDayTrigger.setHours(8, 0, 0, 0);
-    if (sameDayTrigger > now) {
-      try {
-        const id = await Notifications.scheduleNotificationAsync({
-          content: {
-            title: `Due Today: ${deadline.title}`,
-            body: 'This deadline is due today. Take action now.',
-            data: {
-              type: 'deadline_due',
-              deadlineId: deadline.id,
-              screen: 'Calendar',
-            },
-            sound: true,
-            badge: 1,
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: sameDayTrigger,
-          },
-        });
-        scheduledIds.push(id);
-      } catch (err) {
-        console.warn('[Notifications] Failed to schedule same-day reminder:', err);
+        console.warn(
+          `[Notifications] Failed to schedule ${spec.kind} reminder (${spec.daysBefore}d before):`,
+          err,
+        );
       }
     }
 
