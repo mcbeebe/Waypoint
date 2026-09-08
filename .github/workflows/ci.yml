@@ -35,3 +35,26 @@ jobs:
         run: npm run lint
       - name: Tests
         run: npm test
+      # Bundling gates. Neither tsc nor vitest resolves a module the way Metro
+      # does, so a require() naming a path that does not exist passes all three
+      # gates above and fails only when someone bundles. That is how
+      # `react-native-url-polyfill/dist/polyfill` survived from the file's first
+      # commit (e3231ef) to PR #212 — see that PR for the full trace.
+      #
+      # The DEV export is the one that catches it, and the order matters:
+      # `expo export -p web` (production) inlines Platform.OS to "web" and
+      # dead-code-eliminates `if (Platform.OS !== 'web')` blocks BEFORE Metro
+      # collects dependencies, so a broken require inside a native-only guard
+      # bundles perfectly clean in production. Verified both ways: with the bad
+      # path restored, production exits 0 and dev exits 1. A production-only
+      # gate here would have been theater for the exact bug that motivated it.
+      #
+      # --clear because a warm Metro cache will happily serve a stale successful
+      # bundle for a tree that no longer resolves (observed locally while
+      # verifying this). CI is normally cold, so this is cheap insurance.
+      - name: Web bundle (dev — catches native-guarded bad imports)
+        run: npx expo export -p web --dev --clear --output-dir dist-dev
+      # And the production export, which validates what actually ships,
+      # including scripts/postbuild-web.js (PWA manifest + SW cache stamping).
+      - name: Web build (production)
+        run: npm run build:web
