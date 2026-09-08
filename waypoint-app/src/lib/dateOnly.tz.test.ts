@@ -51,4 +51,19 @@ describe('localDayISO', () => {
   it('zero-pads month and day', () => {
     expect(localDayISO(new Date(2026, 0, 5, 12, 0))).toBe('2026-01-05');
   });
+
+  it('holds at the year boundary in both directions', () => {
+    expect(localDayISO(new Date(2026, 0, 1, 0, 0, 0))).toBe('2026-01-01');
+    expect(localDayISO(new Date(2026, 11, 31, 23, 59, 0))).toBe('2026-12-31');
+  });
+
+  it('reads the evening of an expiry day as that day, not the UTC slice', () => {
+    // The entitlements boundary: a period_end of Sep 30 must still be Sep 30
+    // at 5pm local. UTC is already Oct 1 in the Americas by then and still
+    // Sep 30 east of Greenwich, so the UTC slice loses a family their Premium
+    // hours early in exactly one of the two suites.
+    const evening = new Date(2026, 8, 30, 17, 0, 0);
+    expect(localDayISO(evening)).toBe('2026-09-30');
+    expect(evening.toISOString().slice(0, 10) >= '2026-09-30').toBe(true);
+  });
 });
