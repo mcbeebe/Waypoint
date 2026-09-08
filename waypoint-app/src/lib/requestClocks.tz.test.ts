@@ -13,8 +13,7 @@
  * it does not.
  */
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { deadlineFor } from './requestClocks';
-import { localDayISO } from './dateOnly';
+import { deadlineFor, sendClock } from './requestClocks';
 
 const NOW = new Date(2026, 7, 29, 9, 0, 0); // Aug 29 2026, local
 
@@ -59,22 +58,22 @@ describe('a statutory due date is the family’s calendar date', () => {
 });
 
 /**
- * The composition LettersScreen performs the moment a family marks a letter
- * sent: stamp `family_requests.requested_on` with today, then start the
- * statutory clock from that same day. Both used to read
- * `new Date().toISOString().slice(0, 10)` — the UTC day — so the escalation
- * ladder that drives the collaborative → assertive → adversarial tone started
- * on the wrong day, and `requestCase` measured silence from it afterwards.
+ * `sendClock` is the day LettersScreen stamps on `family_requests.requested_on`
+ * and starts the statutory window from. It used to be
+ * `new Date().toISOString().slice(0, 10)` written inline in the screen, where
+ * no suite could reach it.
  *
- * The clock is pinned rather than passed in: `localDayISO()` and
- * `deadlineFor`'s own `now` default are exactly what the screen relies on, so
- * a test that supplies both by hand would survive the very revert it exists
- * to catch. Two instants, one per direction — 03:00 UTC is the previous
- * evening in Los Angeles (UTC day a day AHEAD), 18:00 UTC is the small hours
- * of the next day in Ho Chi Minh City (UTC day a day BEHIND) — so each
- * project catches one and the assertions never name a sign.
+ * The clock is pinned rather than passed in — `sendClock` takes no date
+ * argument at all, so these assertions exercise the real derivation. Two
+ * instants, one per direction: 03:00 UTC is the previous evening in Los
+ * Angeles (UTC day a day AHEAD of the family's), 18:00 UTC is the small hours
+ * of the next day in Ho Chi Minh City (a day BEHIND). Each project catches one
+ * and neither assertion names a sign.
+ *
+ * `expectedToday` re-derives the local day from Date components rather than
+ * calling `localDayISO`, so this does not test the primitive against itself.
  */
-describe('a letter sent today starts the whole statutory window', () => {
+describe('sendClock', () => {
   const INSTANTS: [string, string][] = [
     ['03:00 UTC — an evening west of Greenwich', '2026-08-01T03:00:00.000Z'],
     ['18:00 UTC — a small hour east of Greenwich', '2026-08-01T18:00:00.000Z'],
@@ -84,29 +83,48 @@ describe('a letter sent today starts the whole statutory window', () => {
     vi.useRealTimers();
   });
 
-  /** `days` after today, by local calendar arithmetic — DST-proof. */
-  const localDaysFromToday = (days: number) => {
-    const n = new Date();
-    return localDayISO(new Date(n.getFullYear(), n.getMonth(), n.getDate() + days));
-  };
-
-  it.each(INSTANTS)('gives the full 30-day IPP window at %s', (_label, instant) => {
+  const pin = (instant: string) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(instant));
-    // Exactly what LettersScreen now does: one local day, stamped on the
-    // request and handed to the clock.
-    const sentOn = localDayISO();
-    const dl = deadlineFor('ipp_meeting', sentOn)!;
-    expect(dl.dueOn).toBe(localDaysFromToday(30));
+  };
+
+  const expectedToday = () => {
+    const n = new Date();
+    const pad = (v: number) => String(v).padStart(2, '0');
+    return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`;
+  };
+
+  it.each(INSTANTS)('stamps the family’s own calendar day at %s', (_label, instant) => {
+    pin(instant);
+    expect(sendClock().requestedOn).toBe(expectedToday());
+  });
+
+  it.each(INSTANTS)('starts a fresh clock from that same day at %s', (_label, instant) => {
+    pin(instant);
+    const clock = sendClock();
+    expect(clock.clockFrom).toBe(clock.requestedOn);
+  });
+
+  it.each(INSTANTS)('gives a new request the FULL statutory window at %s', (_label, instant) => {
+    pin(instant);
+    // End to end, exactly as the sent moment renders it: stamp, then cite.
+    const dl = deadlineFor('ipp_meeting', sendClock().requestedOn)!;
     expect(dl.daysRemaining).toBe(30);
     expect(dl.overdue).toBe(false);
   });
 
-  it.each(INSTANTS)('gives the full 15-day assessment plan at %s', (_label, instant) => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date(instant));
-    const dl = deadlineFor('iep_evaluation', localDayISO())!;
-    expect(dl.dueOn).toBe(localDaysFromToday(15));
-    expect(dl.daysRemaining).toBe(15);
+  it.each(INSTANTS)('never restarts an open request’s clock at %s', (_label, instant) => {
+    pin(instant);
+    // Re-sending from the catalog onto a request opened weeks ago: the
+    // citation must count from the row that owns the clock, not from today.
+    const clock = sendClock('2026-07-02');
+    expect(clock.clockFrom).toBe('2026-07-02');
+    expect(clock.requestedOn).toBe(expectedToday());
+    expect(deadlineFor('ipp_meeting', clock.clockFrom)!.dueOn).toBe('2026-08-01');
+  });
+
+  it('treats a missing existing date as opening the clock today', () => {
+    expect(sendClock(null).clockFrom).toBe(sendClock().requestedOn);
+    expect(sendClock(undefined).clockFrom).toBe(sendClock().requestedOn);
   });
 });

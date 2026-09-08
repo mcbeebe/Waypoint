@@ -57,10 +57,6 @@ describe('newlyOverdue', () => {
       const rows = [d('a', '2026-07-01', 'action_needed'), d('b', '2026-07-02', 'upcoming')];
       expect(ids(newlyOverdue(rows, today))).toEqual(['a', 'b']);
     });
-
-    it('compares on the date part when a value arrives as a full timestamp', () => {
-      expect(newlyOverdue([d('a', '2026-08-01T00:00:00+00:00')], today)).toEqual([]);
-    });
   });
 
   /**

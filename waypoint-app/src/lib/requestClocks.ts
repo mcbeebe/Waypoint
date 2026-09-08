@@ -5,6 +5,8 @@
  * lever that creates pressure anyway.
  */
 
+import { localDayISO } from '@/lib/dateOnly';
+
 export type RequestType =
   | 'rc_intake'
   | 'rc_assessment'
@@ -51,6 +53,43 @@ const CLOCKS: Partial<Record<RequestType, RequestClock>> = {
     label: 'Assessment plan due within 15 calendar days',
   },
 };
+
+/**
+ * The two dates a "mark this letter sent" needs, read from one clock.
+ *
+ * `LettersScreen` used to derive both inline from
+ * `new Date().toISOString().slice(0, 10)` — the UTC day, already tomorrow
+ * every evening after 17:00 Pacific. That stamped `family_requests.requested_on`
+ * (a Postgres `date`) a day ahead and started the statutory window a day late,
+ * which is the day the whole collaborative → assertive → adversarial ladder
+ * counts from.
+ *
+ * It lives here rather than in the screen for a reason the repo has paid for
+ * before: a screen is a 1000-line component with no seam, so a date expression
+ * inside it is unreachable by any suite. This takes NO date argument on
+ * purpose — there is no parameter for a test to supply, so the tz suites
+ * cannot pass themselves and a caller cannot reintroduce the UTC slice.
+ */
+export interface SendClock {
+  /** Local day to stamp on a NEW request row. */
+  requestedOn: string;
+  /**
+   * The day the statutory clock actually runs from. When this send joins a
+   * request that is already open, that is the EXISTING row's date — the
+   * Request Tracker, the case file and Home all count from it, and the sent
+   * moment cites the same statute, so it must not quietly count from today.
+   */
+  clockFrom: string;
+}
+
+/**
+ * @param existingRequestedOn `requested_on` of the live request this send
+ *   joins, or null/undefined when the send opens the clock itself.
+ */
+export function sendClock(existingRequestedOn?: string | null): SendClock {
+  const today = localDayISO();
+  return { requestedOn: today, clockFrom: existingRequestedOn ?? today };
+}
 
 export interface RequestDeadline {
   dueOn: string; // ISO date
