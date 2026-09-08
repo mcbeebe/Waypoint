@@ -20,6 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 import { useFamily, useChildren } from '@/hooks/useFamily';
+import { localDayISO } from '@/lib/dateOnly';
 import { gmailStatus, gmailSend } from '@/lib/gmail';
 import { useToast } from '@/components/Toast';
 import AIConsentModal from '@/components/AIConsentModal';
@@ -349,7 +350,9 @@ export default function LettersScreen() {
         const created = await createRequest({
           request_type: track.requestType,
           title: trackTitle ?? track.title,
-          requested_on: new Date().toISOString().slice(0, 10),
+          // The family's local day: the UTC slice dated the ask "tomorrow"
+          // every evening, and deadlineFor anchored the statutory clock there.
+          requested_on: localDayISO(),
           child_id: primaryChild?.id ?? null,
           channel: 'email',
           notes: 'Sent via Waypoint Letters',
@@ -374,7 +377,7 @@ export default function LettersScreen() {
       updateChild(primaryChild.id, { medi_cal_status: 'applied' }).catch(() => undefined);
     }
     const deadline = track
-      ? deadlineFor(track.requestType, new Date().toISOString().slice(0, 10))
+      ? deadlineFor(track.requestType, localDayISO())
       : null;
     setSentMoment({ next, deadline, tracked });
   }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId]);
