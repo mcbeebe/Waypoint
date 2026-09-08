@@ -125,41 +125,47 @@ CTAs, and AI-drafted copy alike.
 
 ---
 
-## 4. Disability language — ⚠️ DECISION-PENDING
+## 4. Disability language — ✅ DECIDED
 
-> **Status:** OPEN. **Decider: Mike.** **REQUIRED-BEFORE: piece #8** — no more than seven pieces may reach founder edit before this section is resolved, because retrofitting language across published YMYL pages resets them to `in_review` and burns reviewer throughput.
+> **Ruling: per-community default.** **Decided by Mike, September 8, 2026.** Supersedes the DECISION-PENDING proposal that stood here. Applies to all new drafts immediately; published pages are updated opportunistically at their next edit, not retrofitted in a sweep (see "Applying this to existing content" below).
 
-### The question
+### The rule
 
-**Identity-first** ("autistic child," "disabled kids") vs. **person-first** ("child with autism," "children with disabilities"). Both are sincerely preferred by large parts of our audience; the choice signals whose framing we default to.
+**1. Identity-first for autism content.** "Autistic child," "autistic students," "autistic adults." The autistic self-advocacy community (ASAN and others) has documented this preference clearly, and Waypoint follows the community it is writing about.
 
-- **Identity-first** is strongly preferred by much of the autistic self-advocacy community (see ASAN's published position), which treats autism as identity, not affliction.
-- **Person-first** remains the norm in most clinical, educational, and government writing our readers will encounter (IEPs, Regional Center documents, Medi-Cal notices), and is preferred by many parents and by several disability communities outside autism.
-- Our primary reader is a **parent**, often newly diagnosed-adjacent, often searching in person-first terms — but our content should not teach them language the community their child belongs to finds othering.
+**2. Person-first everywhere else, by default.** "Child with Down syndrome," "child with cerebral palsy," "children with disabilities." This matches both the stated preference of those communities and the language of the IEPs, Notices of Action, and Medi-Cal letters our readers are holding while they read us.
 
-### The ABA wrinkle (matters most for SB 946 / insurance content)
+**3. Mirror-the-reader overrides both.** In tools, template letters, chat surfaces, and anywhere Waypoint responds to a parent's own words, use the construction the parent used. In anything addressed to an agency, keep the statutory term exactly — "developmental disability" under the Lanterman Act, "child with a disability" under IDEA, and similar are legal terms of art. Precision beats style inside a letter that has to work.
 
-SB 946 content explains a parent's right to insurance coverage of behavioral health treatment, which in practice centers on ABA. ABA is simultaneously (a) the therapy the law entitles families to and many parents are fighting to get covered, and (b) the subject of sustained criticism from many autistic adults. Waypoint's job on these pages is the **coverage right**, not therapy advocacy. Working constraints for SB 946 content regardless of the pending decision:
+**4. Banned regardless.** Never "special needs," "differently-abled," "handicapped," or cure/deficit framing ("recover," "fix," "combat autism," "suffers from"). "Disability" is not a bad word — use it.
+
+### Worked examples
+
+| Context | Write | Not |
+|---|---|---|
+| Autism guide body | "If your **autistic child** is under 3, Early Start requires a decision within 45 days." | "your child with autism" |
+| Down syndrome guide | "A **child with Down syndrome** qualifies from birth." | "a Down syndrome child" |
+| Cross-diagnosis page | "**Children with disabilities** in California have the right to…" | "disabled kids" (unless the page is disability-identity content) |
+| Template letter to a district | "…evaluation for my **child with a suspected disability**…" | identity-first phrasing that departs from IDEA's term |
+| Tool responding to input | Mirror what the parent typed | House default that contradicts them |
+
+### Why this way
+
+Both constructions are sincerely preferred by large parts of our audience, so a single site-wide rule would be wrong for someone either way. Deferring to each community's own documented preference is the only default that is defensible to all of them — and it is the same instinct the rest of this guide runs on: the reader's framing wins over ours.
+
+### The ABA constraint (unchanged, and independent of the above)
+
+SB 946 content explains a parent's right to insurance coverage of behavioral health treatment, which in practice centers on ABA. ABA is simultaneously the therapy the law entitles families to and the subject of sustained criticism from many autistic adults. Waypoint's job on those pages is the **coverage right**, not therapy advocacy:
 
 - Explain the legal entitlement precisely; do not editorialize ABA as either salvation or harm.
-- Avoid cure/deficit framing ("recover," "fix," "combat autism") everywhere, and be careful with "medically necessary" — use it as the statutory coverage term it is, with quotes or gloss where needed, not as a value judgment about the child.
-- Acknowledge, where naturally relevant, that autistic adults hold a range of views on ABA, and link parents to primary community sources rather than characterizing the debate ourselves.
+- Use "medically necessary" as the statutory coverage term it is — with a gloss where useful — never as a judgment about the child.
+- Where naturally relevant, note that autistic adults hold a range of views on ABA, and link parents to primary community sources rather than characterizing the debate ourselves.
 
-### Research inputs before deciding
+### Applying this to existing content
 
-- ASAN (Autistic Self Advocacy Network) — identity-first language explainer and related resources
-- NCDJ (National Center on Disability and Journalism) Disability Language Style Guide
-- How our own audience talks: keyword-map query phrasings, chat-mined question wording (`questionSource: chat-mined`), GSC queries
-- Peer sites' choices and any published community survey data on language preference [TBC: collect links into the decision memo]
+At the time of the ruling, no published or drafted page used either construction — the diagnosis pages were written to name the diagnosis ("an evaluation for autism") rather than to label the child, so nothing required a retrofit. That is a good pattern and remains available whenever a sentence reads awkwardly under the rule: **naming the diagnosis instead of labelling the child is always in-bounds.**
 
-### Recommended default (proposal awaiting Mike's decision)
-
-1. **Identity-first for autism-specific content** ("autistic child," "autistic students"), reflecting the documented preference of the autistic community.
-2. **Person-first elsewhere by default** ("child with Down syndrome," "children with disabilities"), matching the documents and agencies those readers navigate.
-3. **Mirror-the-reader rule** overrides both: in tools, template letters, and any surface that responds to a parent's own words, use the construction the parent used. In letters addressed to agencies, mirror the statutory/agency term where precision requires it (e.g., "developmental disability" under the Lanterman Act is a legal term of art — keep it).
-4. Never "special needs," "differently-abled," "handicapped," or euphemisms; "disability" is not a bad word. (This sub-rule is settled regardless of the main decision.)
-
-**On decision:** record the ruling and date here, remove the DECISION-PENDING banner, and add a line to the founder-edit voice checklist.
+Going forward: new drafts follow the rule at Stage 1. Existing pages are corrected at their next scheduled edit — the rule is not grounds for reopening a published page on its own, because a language-only churn costs reviewer throughput we do not have.
 
 ---
 

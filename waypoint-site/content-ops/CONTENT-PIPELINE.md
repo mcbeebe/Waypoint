@@ -80,9 +80,10 @@ Mike's pass. Flip status to `founder_edit` at start. In order:
 
 1. **Verify pass (the [TBC] hunt).** Open every `[TBC]` and every citation chip; check each against its primary source; replace placeholder with the verified value **and** confirm the `sources[]` entry (URL + `accessed` today). Anything that can't be verified today gets cut or rewritten to not need the fact — it does not go to review with a `[TBC]` intact.
 2. **Voice check** against STYLE-GUIDE §1: does the opening validate the feeling? Are steps concrete and citation-chipped? Does it close with earned pride, not a pep talk? Is anything fear-mongering? (Cut it.)
-3. **Reading level check** — grade 7–8 target (STYLE-GUIDE §2). Run the checker; fix the worst sentences, don't chase the score decimal.
-4. **Structure check** — summary box present and compliant, headings scannable, pillar + sibling links live, CTA params correct.
-5. **Trim.** The 2–4 hr timebox exists so the founder edit is an edit, not a rewrite. If it's turning into a rewrite, the draft inputs were bad — kick it back to Stage 1/2 with a note about what was missing.
+3. **Disability-language check** (STYLE-GUIDE §4, decided 2026-09-08): identity-first in autism content ("autistic child"), person-first elsewhere ("child with Down syndrome"), reader's own words mirrored in tools and letters, statutory terms kept exact inside anything addressed to an agency. No "special needs," "differently-abled," "handicapped," or cure framing.
+4. **Reading level check** — grade 7–8 target (STYLE-GUIDE §2). Run the checker; fix the worst sentences, don't chase the score decimal.
+5. **Structure check** — summary box present and compliant, headings scannable, pillar + sibling links live, CTA params correct.
+6. **Trim.** The 2–4 hr timebox exists so the founder edit is an edit, not a rewrite. If it's turning into a rewrite, the draft inputs were bad — kick it back to Stage 1/2 with a note about what was missing.
 
 Output: commit on the branch, `status: in_review`, and the review PR opened (next stage).
 
