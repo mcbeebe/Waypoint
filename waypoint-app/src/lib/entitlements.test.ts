@@ -65,6 +65,46 @@ describe('resolveEntitlement', () => {
   });
 });
 
+describe('the community waiver (060)', () => {
+  it('makes the family Premium with a label that never mentions poverty', () => {
+    const r = resolveEntitlement([row({ sponsor_type: 'community' })], NOW);
+    expect(r.isPremium).toBe(true);
+    expect(r.sponsorType).toBe('community');
+    expect(r.sponsorLabel).toBe(
+      'Waypoint is free for your family — nothing to pay, nothing to renew.'
+    );
+    // The banner is read in waiting rooms. It says what is true and nothing
+    // about why — a parent should never be outed by our own UI.
+    for (const word of ['hardship', 'poverty', 'low-income', 'SSI', 'free tier', 'assistance']) {
+      expect(r.sponsorLabel!.toLowerCase()).not.toContain(word.toLowerCase());
+    }
+  });
+
+  it('carries no end date, so it never produces a renewal prompt', () => {
+    // period_end null is the point: a re-ask is where we would lose them.
+    const r = resolveEntitlement([row({ sponsor_type: 'community', period_end: null })], NOW);
+    expect(r.isPremium).toBe(true);
+  });
+
+  it('loses the banner to a facilitation grant, deterministically in both orders', () => {
+    const rows = [row({ sponsor_type: 'community' }), row({ sponsor_type: 'facilitation' })];
+    expect(resolveEntitlement(rows, NOW).sponsorType).toBe('facilitation');
+    expect(resolveEntitlement([...rows].reverse(), NOW).sponsorType).toBe('facilitation');
+  });
+
+  it('is the floor a family lands on when the relationship-based grant ends', () => {
+    const r = resolveEntitlement(
+      [
+        row({ sponsor_type: 'facilitation', status: 'expired', period_end: '2026-08-01' }),
+        row({ sponsor_type: 'community' }),
+      ],
+      NOW
+    );
+    expect(r.isPremium).toBe(true);
+    expect(r.sponsorType).toBe('community');
+  });
+});
+
 describe('tier copy', () => {
   it('gate copy explains value and never reads as a dead end', () => {
     const c = gateCopy('IEP document analysis');

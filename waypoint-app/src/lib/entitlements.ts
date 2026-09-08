@@ -23,7 +23,20 @@ const SPONSOR_LABELS: Record<Exclude<SponsorType, 'self'>, string> = {
   district: 'Covered by your school district — you pay $0.',
   employer: 'Covered by your employer benefit — you pay $0.',
   licensee: 'Covered by your program — you pay $0.',
+  // Says nothing about poverty, hardship, or charity, and carries no end
+  // date to worry about. A parent glancing at this banner in a waiting room
+  // should learn only that they are covered.
+  community: 'Waypoint is free for your family — nothing to pay, nothing to renew.',
 };
+
+/** Which sponsor labels the experience when a family holds more than one grant. */
+const SPONSOR_PRECEDENCE: SponsorType[] = [
+  'facilitation',
+  'district',
+  'employer',
+  'licensee',
+  'community',
+];
 
 type Row = Pick<Entitlement, 'sponsor_type' | 'status' | 'period_start' | 'period_end'>;
 
@@ -52,7 +65,14 @@ export function resolveEntitlement(rows: Row[], now = new Date()): ResolvedEntit
   );
   if (live.length === 0) return { isPremium: false, sponsorType: null, sponsorLabel: null };
   // A sponsored grant labels the experience even when a self-sub also exists.
-  const sponsored = live.find((r) => r.sponsor_type !== 'self');
+  // Two sponsored grants can now co-exist — a facilitation client whose
+  // child is also on SSI holds both — so the winner is chosen by explicit
+  // precedence, not by whichever row the query happened to return first.
+  // Relationship-based grants win because they explain WHY and can end;
+  // the community waiver sits underneath as the floor nobody falls through.
+  const sponsored = live
+    .filter((r) => r.sponsor_type !== 'self')
+    .sort((a, b) => SPONSOR_PRECEDENCE.indexOf(a.sponsor_type) - SPONSOR_PRECEDENCE.indexOf(b.sponsor_type))[0];
   if (sponsored) {
     const st = sponsored.sponsor_type as Exclude<SponsorType, 'self'>;
     return { isPremium: true, sponsorType: st, sponsorLabel: SPONSOR_LABELS[st] };

@@ -925,7 +925,18 @@ export interface VendorPacket {
 
 // ─── Entitlements (042) ─────────────────────────────────────────────────────
 
-export type SponsorType = 'self' | 'facilitation' | 'district' | 'employer' | 'licensee';
+/**
+ * Who covers a Premium grant. `community` is a fee waiver funded by paying
+ * families (060) — auto-granted when a child's ssi_status is active, or on
+ * self-attestation. It never requires documentation.
+ */
+export type SponsorType =
+  | 'self'
+  | 'facilitation'
+  | 'district'
+  | 'employer'
+  | 'licensee'
+  | 'community';
 export type EntitlementStatus = 'active' | 'canceled' | 'expired';
 
 /** A live row grants Premium; no rows = free tier (PRD W-E: E2) */
