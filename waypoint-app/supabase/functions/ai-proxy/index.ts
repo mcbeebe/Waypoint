@@ -360,7 +360,16 @@ serve(async (req: Request) => {
       // A live entitlement row = Premium; none = free tier. Resolved
       // server-side so gates can't be bypassed by a modified client.
       if (PAYWALL_ENFORCED && family?.id) {
-        const today = new Date().toISOString().slice(0, 10);
+        // Must mirror the boundary contract in src/lib/entitlements.ts
+        // (resolveEntitlement): the client resolves period_start/period_end
+        // against the family's LOCAL day. This server doesn't know the
+        // family's zone, so it accepts any calendar day an honest device
+        // could be on (UTC±1) — generous by at most a day at a period
+        // boundary, never stricter than the Premium the family's screen
+        // shows. Change one side, change the other.
+        const nowMs = Date.now();
+        const dayBefore = new Date(nowMs - 86400000).toISOString().slice(0, 10);
+        const dayAfter = new Date(nowMs + 86400000).toISOString().slice(0, 10);
         const { data: grants } = await supabase
           .from('entitlements')
           .select('status, period_start, period_end')
@@ -368,7 +377,8 @@ serve(async (req: Request) => {
           .eq('status', 'active');
         isPremium = (grants ?? []).some(
           (g) =>
-            g.period_start <= today && (g.period_end === null || g.period_end >= today),
+            g.period_start <= dayAfter &&
+            (g.period_end === null || g.period_end >= dayBefore),
         );
       }
 

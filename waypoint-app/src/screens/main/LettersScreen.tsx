@@ -46,11 +46,12 @@ import {
 } from '@/hooks/useCommunications';
 import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
-import { sentNextFor, trackFor } from '@/lib/sentNext';
+import { sentNextFor, trackFor, clockAnchorFor } from '@/lib/sentNext';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
 import { deadlineFor } from '@/lib/requestClocks';
+import { localDayISO } from '@/lib/dateOnly';
 import type { RequestDeadline } from '@/lib/requestClocks';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
@@ -326,6 +327,14 @@ export default function LettersScreen() {
     // from here. An existing live row of the same title is not duplicated,
     // and a letter sent FROM a case never opens a second clock row.
     let tracked = false;
+    // The request this send belongs to — the live row it joined, or the one
+    // it founded. Its requested_on, not today, is what the statutory clock
+    // runs from (see clockAnchorFor). One clock reading for the whole
+    // handler, so the row written and the deadline shown cannot straddle
+    // local midnight and disagree by a day.
+    let joined: { requested_on: string } | null = null;
+    const sentAt = new Date();
+    const sentOn = localDayISO(sentAt);
     const track = trackFor(next, routeRequestId);
     // A template can serve several distinct asks (the IPP-need letter, one per
     // support), so the caller can override the constant template title to keep
@@ -342,14 +351,19 @@ export default function LettersScreen() {
       );
       if (existing) {
         tracked = true;
-        // Re-sending from the catalog: the letter still belongs to the live
-        // request's case thread. Best-effort, like the founding stamp.
+        // Re-sending from the catalog: the letter joins the live request's
+        // case thread — and its clock, which keeps running from the original
+        // ask. Best-effort, like the founding stamp.
+        joined = existing;
         attachCommunicationToRequest(id, existing.id);
       } else {
         const created = await createRequest({
           request_type: track.requestType,
           title: trackTitle ?? track.title,
-          requested_on: new Date().toISOString().slice(0, 10),
+          // The family's local day, not the UTC one: after 5pm Pacific the
+          // UTC slice is tomorrow, which would start the statutory clock a
+          // day late and show a request dated a day the family hasn't lived.
+          requested_on: sentOn,
           child_id: primaryChild?.id ?? null,
           channel: 'email',
           notes: 'Sent via Waypoint Letters',
@@ -360,7 +374,10 @@ export default function LettersScreen() {
         tracked = !!created;
         // The founding letter joins its own case thread (047) — the 045
         // communication_id link above stays as the pre-047 fallback.
-        if (created) attachCommunicationToRequest(id, created.id);
+        if (created) {
+          joined = created;
+          attachCommunicationToRequest(id, created.id);
+        }
       }
     }
     // Sending the deeming letter IS applying — reflect it on the Resource
@@ -373,8 +390,12 @@ export default function LettersScreen() {
     ) {
       updateChild(primaryChild.id, { medi_cal_status: 'applied' }).catch(() => undefined);
     }
+    // The deadline this celebration shows must be the SAME statutory date the
+    // Request Tracker shows for the same request: re-sending an open ask does
+    // not restart its clock, and a founding send anchors on the family's local
+    // day (the UTC slice is tomorrow every evening in California).
     const deadline = track
-      ? deadlineFor(track.requestType, new Date().toISOString().slice(0, 10))
+      ? deadlineFor(track.requestType, clockAnchorFor(joined, sentAt), sentAt)
       : null;
     setSentMoment({ next, deadline, tracked });
   }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId]);

@@ -28,6 +28,7 @@ import {
 import DateInput from '@/components/DateInput';
 import { useToast } from '@/components/Toast';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+import { localDayISO } from '@/lib/dateOnly';
 
 /** How the family asked — drives the case file's provenance line. */
 const CHANNEL_OPTIONS: Array<{ value: string; label: string }> = [
@@ -38,10 +39,7 @@ const CHANNEL_OPTIONS: Array<{ value: string; label: string }> = [
 ];
 
 /** The LOCAL calendar date — toISOString() is UTC and shows "tomorrow" to evening users. */
-function localToday(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+const localToday = (): string => localDayISO(new Date());
 
 const ADDABLE_TYPES: RequestType[] = [
   'service_request',
