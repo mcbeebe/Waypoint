@@ -7,7 +7,7 @@
 import { render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 import { visibleContentUrls, visibleEntries } from '../../lib/content';
-import type { Crumb } from '../../lib/jsonld';
+import { hubCrumb, type Crumb } from '../../lib/jsonld';
 
 export async function getStaticPaths() {
   const guides = await visibleEntries('guides');
@@ -38,13 +38,8 @@ const leaf = d.title.split(':')[0];
 
 const crumbs: Crumb[] = [{ name: 'Guides', href: '/guides/' }];
 if (id.includes('/')) {
-  // Link the pillar crumb only when its hub page exists in this build — an
-  // out-of-order publish must not 404 the breadcrumb (same rule as the
-  // pillarCrumb in regional-centers/[rc].astro, adversary A6).
-  const pillarHref = `/guides/${d.pillar}/`;
-  const pillarLabel = PILLAR_LABELS[d.pillar] ?? d.pillar;
   const urls = await visibleContentUrls();
-  crumbs.push(urls.has(pillarHref) ? { name: pillarLabel, href: pillarHref } : { name: pillarLabel });
+  crumbs.push(hubCrumb(PILLAR_LABELS[d.pillar] ?? d.pillar, `/guides/${d.pillar}/`, urls));
 }
 crumbs.push({ name: leaf });
 ---

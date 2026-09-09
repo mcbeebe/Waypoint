@@ -5,7 +5,22 @@
  * any crumb short of the last one either carries a link or is dropped.
  */
 import { describe, expect, it } from 'vitest';
-import { breadcrumbsJsonLd, type Crumb } from './jsonld';
+import { breadcrumbsJsonLd, hubCrumb, type Crumb } from './jsonld';
+
+describe('hubCrumb', () => {
+  it('links when the hub URL exists in the build', () => {
+    const urls = new Set(['/guides/regional-centers/']);
+    expect(hubCrumb('Regional Centers', '/guides/regional-centers/', urls)).toEqual({
+      name: 'Regional Centers',
+      href: '/guides/regional-centers/',
+    });
+  });
+
+  it('falls back to a plain label when the hub does not exist yet', () => {
+    const urls = new Set(['/guides/benefits/']);
+    expect(hubCrumb('Letters', '/letters/', urls)).toEqual({ name: 'Letters' });
+  });
+});
 
 describe('breadcrumbsJsonLd', () => {
   it('carries @context/@type and links every non-last crumb that has an href', () => {

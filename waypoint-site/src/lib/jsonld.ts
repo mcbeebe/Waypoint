@@ -61,6 +61,19 @@ export interface Crumb {
   href?: string;
 }
 
+/**
+ * A category-label crumb (a pillar, "Letters", …) that links only when its
+ * hub page exists in this build — an out-of-order publish must not 404 the
+ * breadcrumb (adversary A6). Without a hub it's still a valid crumb; a
+ * non-last one just gets dropped from the JSON-LD by breadcrumbsJsonLd
+ * below rather than shipping a dead "item". Shared so every call site's
+ * link-if-exists logic is the same, tested, code path instead of
+ * independently hand-rolled copies drifting apart.
+ */
+export function hubCrumb(name: string, href: string, urls: Set<string>): Crumb {
+  return urls.has(href) ? { name, href } : { name };
+}
+
 export function breadcrumbsJsonLd(crumbs: Crumb[]) {
   // `item` (a URL) is required on every ListItem except the last, which
   // stands for the current page and may omit it — Google's own example

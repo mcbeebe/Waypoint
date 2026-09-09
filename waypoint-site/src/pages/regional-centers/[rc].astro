@@ -8,6 +8,7 @@ import { render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 import NoticeBox from '../../components/NoticeBox.astro';
 import { visibleContentUrls, visibleEntries } from '../../lib/content';
+import { hubCrumb } from '../../lib/jsonld';
 
 export async function getStaticPaths() {
   const centers = await visibleEntries('regionalCenters');
@@ -26,12 +27,8 @@ const d = entry.data;
 const verified = d.verifiedAsOf
   ? d.verifiedAsOf.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
   : null;
-// The pillar-guide crumb only links when that page exists in this build —
-// an out-of-order publish must not 404 the breadcrumb (adversary A6).
 const urls = await visibleContentUrls();
-const pillarCrumb = urls.has('/guides/regional-centers/')
-  ? { name: 'Regional Centers', href: '/guides/regional-centers/' }
-  : { name: 'Regional Centers' };
+const pillarCrumb = hubCrumb('Regional Centers', '/guides/regional-centers/', urls);
 ---
 
 <ArticleLayout
