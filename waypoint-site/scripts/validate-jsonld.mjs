@@ -41,6 +41,35 @@ function htmlFiles(dir) {
   return out;
 }
 
+/**
+ * BreadcrumbList-specific rule: "item" (a URL) is required on every
+ * ListItem except the one at the highest position — that one stands for
+ * the current page and may omit it (Google's own example does). A middle
+ * item missing "item" is exactly the GSC "Missing field item" class that
+ * shipped silently on /letters/iep-evaluation-request/ (2026-09-08): the
+ * REQUIRED table above can't express a conditional field, so it's checked
+ * here instead.
+ */
+function checkBreadcrumbItems(node, file, errors) {
+  const items = Array.isArray(node.itemListElement) ? node.itemListElement : [];
+  const positions = items
+    .map((it) => (it && typeof it === 'object' ? it.position : undefined))
+    .filter((p) => typeof p === 'number');
+  const maxPosition = positions.length ? Math.max(...positions) : undefined;
+  for (const it of items) {
+    if (!it || typeof it !== 'object') continue;
+    const isLast = it.position === maxPosition;
+    const v = it.item;
+    const missing = v === undefined || v === null || v === '';
+    if (missing && !isLast) {
+      errors.push(
+        `${file}: BreadcrumbList ListItem at position ${it.position} is missing required field ` +
+          `"item" (only the last item in a breadcrumb trail may omit it)`,
+      );
+    }
+  }
+}
+
 /** Walk a node and every nested object, checking any that declares @type. */
 function checkNode(node, file, errors, seen) {
   if (Array.isArray(node)) {
@@ -60,6 +89,7 @@ function checkNode(node, file, errors, seen) {
         if (missing) errors.push(`${file}: ${type} is missing required field "${field}"`);
       }
     }
+    if (type === 'BreadcrumbList') checkBreadcrumbItems(node, file, errors);
   }
   for (const value of Object.values(node)) checkNode(value, file, errors, seen);
 }

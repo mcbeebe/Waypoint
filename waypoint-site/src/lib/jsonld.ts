@@ -61,11 +61,31 @@ export interface Crumb {
   href?: string;
 }
 
+/**
+ * A category-label crumb (a pillar, "Letters", …) that links only when its
+ * hub page exists in this build — an out-of-order publish must not 404 the
+ * breadcrumb (adversary A6). Without a hub it's still a valid crumb; a
+ * non-last one just gets dropped from the JSON-LD by breadcrumbsJsonLd
+ * below rather than shipping a dead "item". Shared so every call site's
+ * link-if-exists logic is the same, tested, code path instead of
+ * independently hand-rolled copies drifting apart.
+ */
+export function hubCrumb(name: string, href: string, urls: Set<string>): Crumb {
+  return urls.has(href) ? { name, href } : { name };
+}
+
 export function breadcrumbsJsonLd(crumbs: Crumb[]) {
+  // `item` (a URL) is required on every ListItem except the last, which
+  // stands for the current page and may omit it — Google's own example
+  // does this. A crumb earlier in the trail with no href would otherwise
+  // ship an invalid middle ListItem (GSC: missing field "item"), so drop
+  // it here rather than trust every caller to only omit href on the final
+  // crumb. Positions renumber sequentially over what's left.
+  const linkable = crumbs.filter((c, i) => c.href || i === crumbs.length - 1);
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: crumbs.map((c, i) => ({
+    itemListElement: linkable.map((c, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: c.name,

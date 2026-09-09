@@ -2,7 +2,8 @@
 /** Template-letter pages (letters collection) — narrow article layout. */
 import { render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
-import { visibleEntries } from '../../lib/content';
+import { visibleContentUrls, visibleEntries } from '../../lib/content';
+import { hubCrumb } from '../../lib/jsonld';
 
 export async function getStaticPaths() {
   const letters = await visibleEntries('letters');
@@ -16,13 +17,18 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
 const id = entry.id.replace(/\.mdx?$/, '');
+const urls = await visibleContentUrls();
 ---
 
 <ArticleLayout
   title={d.seoTitle ?? d.title}
   description={d.description}
   heading={d.title}
-  crumbs={[{ name: 'Guides', href: '/guides/' }, { name: 'Letters' }, { name: d.title.split(':')[0] }]}
+  crumbs={[
+    { name: 'Guides', href: '/guides/' },
+    hubCrumb('Letters', '/letters/', urls),
+    { name: d.title.split(':')[0] },
+  ]}
   locale={d.locale}
   status={d.status}
   author={d.author}

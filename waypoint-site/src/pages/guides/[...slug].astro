@@ -6,8 +6,8 @@
  */
 import { render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
-import { visibleEntries } from '../../lib/content';
-import type { Crumb } from '../../lib/jsonld';
+import { visibleContentUrls, visibleEntries } from '../../lib/content';
+import { hubCrumb, type Crumb } from '../../lib/jsonld';
 
 export async function getStaticPaths() {
   const guides = await visibleEntries('guides');
@@ -37,7 +37,10 @@ const id = entry.id.replace(/\.mdx?$/, '');
 const leaf = d.title.split(':')[0];
 
 const crumbs: Crumb[] = [{ name: 'Guides', href: '/guides/' }];
-if (id.includes('/')) crumbs.push({ name: PILLAR_LABELS[d.pillar] ?? d.pillar });
+if (id.includes('/')) {
+  const urls = await visibleContentUrls();
+  crumbs.push(hubCrumb(PILLAR_LABELS[d.pillar] ?? d.pillar, `/guides/${d.pillar}/`, urls));
+}
 crumbs.push({ name: leaf });
 ---
 
