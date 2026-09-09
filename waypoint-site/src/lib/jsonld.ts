@@ -62,10 +62,17 @@ export interface Crumb {
 }
 
 export function breadcrumbsJsonLd(crumbs: Crumb[]) {
+  // `item` (a URL) is required on every ListItem except the last, which
+  // stands for the current page and may omit it — Google's own example
+  // does this. A crumb earlier in the trail with no href would otherwise
+  // ship an invalid middle ListItem (GSC: missing field "item"), so drop
+  // it here rather than trust every caller to only omit href on the final
+  // crumb. Positions renumber sequentially over what's left.
+  const linkable = crumbs.filter((c, i) => c.href || i === crumbs.length - 1);
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: crumbs.map((c, i) => ({
+    itemListElement: linkable.map((c, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: c.name,
