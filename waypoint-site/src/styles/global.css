@@ -457,6 +457,18 @@ table.data tr:last-child td {
      (axe gate) — this is the nearest on-brand tint that passes. */
   color: #e2eee7;
 }
+.handoff-cta-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.handoff-note {
+  font-size: 0.76rem;
+  margin: 8px 0 0;
+  text-align: right;
+  /* Same #e2eee7 as .handoff span, for the same reason (WCAG AA on pine). */
+  color: #e2eee7;
+}
 .cols {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
