@@ -465,7 +465,16 @@ table.data tr:last-child td {
 }
 @media (max-width: 860px) {
   .cols {
-    grid-template-columns: 1fr;
+    /* Bare `1fr` (no minmax) was letting a grid item's intrinsic
+       min-content width win over the container on phone-width viewports —
+       CSS Grid's default `min-width: auto` on grid items lets a single
+       unbreakable run anywhere in the subtree force the whole track wide.
+       Reported live: an iPhone showing article text cut off at the right
+       edge while a sibling PlainBox in the same column rendered fine
+       (blocks already had a real width constraint of their own; plain
+       paragraphs inherited only the grid track's). minmax(0, 1fr) forces
+       min-width: 0 so the track actually respects the container instead. */
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .side-card {
