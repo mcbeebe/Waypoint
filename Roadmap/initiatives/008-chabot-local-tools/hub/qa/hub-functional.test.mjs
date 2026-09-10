@@ -130,15 +130,27 @@ const afterTip = await threadCount();
 if (afterTip === 6) pass(`tip posts immediately (${afterTip} threads)`);
 else fail('tip posts immediately', `expected 6, got ${afterTip}`);
 
-// --- 6. Resource modal from Directory page ---
+// --- 6. Resource modal from Directory page: lands in the Directory, NOT Discussions ---
+// (this used to be a real bug -- "+ Add a Provider" wrote into the generic
+// Discussions feed as a tip; it now writes into the structured `directory` array)
 await page.evaluate(() => window.switchPage('directory', null));
+const dirCountBefore = await page.$$eval('#directory-list .card', els => els.length);
 await page.click('#directory button:has-text("+ Add a Provider")');
 await page.fill('#resource-name', 'QA RESOURCE: East Bay Feeding Therapy');
 await page.fill('#resource-desc', 'Sliding scale, accepts Medi-Cal.');
-await page.click('#resource-modal button:has-text("Add Resource")');
-const afterResource = await threadCount();
-if (afterResource === 7) pass(`resource posts immediately (${afterResource} threads)`);
-else fail('resource posts immediately', `expected 7, got ${afterResource}`);
+await page.click('#resource-modal button:has-text("Add Provider")');
+const dirCountAfter = await page.$$eval('#directory-list .card', els => els.length);
+if (dirCountAfter === dirCountBefore + 1) pass(`new provider appears in Directory (${dirCountAfter} cards)`);
+else fail('new provider appears in Directory', `expected ${dirCountBefore + 1}, got ${dirCountAfter}`);
+
+const dirText = await page.$eval('#directory-list', el => el.innerText);
+if (/QA RESOURCE/.test(dirText)) pass('provider name renders in Directory');
+else fail('provider name renders in Directory', dirText.slice(0, 200));
+
+await page.evaluate(() => window.switchPage('discussions', null));
+const threadsAfterProvider = await threadCount();
+if (threadsAfterProvider === 6) pass('adding a provider does not leak into the Discussions feed');
+else fail('provider does not leak into Discussions', `expected 6 (unchanged), got ${threadsAfterProvider}`);
 
 // --- 7. Mod section hidden for parents ---
 const modHiddenForParent = await page.$eval('#mod-nav-section',
@@ -204,13 +216,27 @@ const emptyState = await page.$eval('#flagged-posts', el => el.innerText);
 if (/No flagged posts/.test(emptyState)) pass('empty state shows when queue is clear');
 else fail('empty state shows when queue is clear', emptyState.slice(0, 100));
 
-// --- 13. Toggle back to parent hides mod nav ---
-await page.click('.user-badge button');
+// --- 13. Role cycles mod -> admin -> parent (three states, not a toggle) ---
+await page.click('.user-badge button'); // mod -> admin
+const adminVisible = await page.$eval('#admin-nav-section',
+  el => getComputedStyle(el).display !== 'none');
+const modStillVisibleForAdmin = await page.$eval('#mod-nav-section',
+  el => getComputedStyle(el).display !== 'none');
+const adminLabel = await page.$eval('#current-user', el => el.textContent.trim());
+if (adminVisible) pass('admin nav visible in admin view'); else fail('admin nav visible in admin view');
+if (modStillVisibleForAdmin) pass('admin can still see mod nav (superset, not separate)');
+else fail('admin can still see mod nav');
+if (adminLabel === 'You: Admin') pass('user label updates to Admin'); else fail('user label updates to Admin', adminLabel);
+
+await page.click('.user-badge button'); // admin -> parent
 const modHiddenAgain = await page.$eval('#mod-nav-section',
+  el => getComputedStyle(el).display === 'none');
+const adminHiddenAgain = await page.$eval('#admin-nav-section',
   el => getComputedStyle(el).display === 'none');
 const backLabel = await page.$eval('#current-user', el => el.textContent.trim());
 const leftDashboard = await page.$eval('#mod-dashboard', el => !el.classList.contains('active'));
 if (modHiddenAgain) pass('mod nav re-hidden in parent view'); else fail('mod nav re-hidden');
+if (adminHiddenAgain) pass('admin nav re-hidden in parent view'); else fail('admin nav re-hidden');
 if (backLabel === 'You: Parent (Demo)') pass('user label reverts'); else fail('user label reverts', backLabel);
 if (leftDashboard) pass('leaves mod dashboard when switching back');
 else fail('leaves mod dashboard when switching back');

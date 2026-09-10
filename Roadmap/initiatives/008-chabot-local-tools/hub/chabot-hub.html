@@ -379,6 +379,52 @@
 
     .breadcrumb { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
 
+    /* Member-editable data: Contacts, Directory, Manage Team */
+    .editable-row { position: relative; }
+    .edit-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 5px;
+    }
+    .edit-btn:hover { background: var(--light); }
+    .directory-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .directory-card-body { flex: 1; min-width: 0; }
+
+    .admin-only { display: none; }
+    .admin-only.visible { display: block; }
+
+    .role-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+    .role-badge-admin { background: #EDE9FE; color: #5B21B6; }
+    .role-badge-mod { background: #E0E7FF; color: #3730A3; }
+
+    .team-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .team-row:last-child { border-bottom: none; }
+    .team-row-name { font-weight: 600; color: var(--navy); }
+
     .path-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 32px 0; }
     .accom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
@@ -541,10 +587,15 @@
       <div class="nav-link" onclick="switchPage('mod-dashboard', event)">Mod Dashboard <span id="mod-nav-count"></span></div>
     </div>
 
+    <div class="nav-section admin-only" id="admin-nav-section">
+      <div class="nav-section-title">Site Admin</div>
+      <div class="nav-link" onclick="switchPage('manage-team', event)">Manage Team</div>
+    </div>
+
     <div class="user-badge">
       <p><strong id="current-user">You: Parent (Demo)</strong></p>
-      <p style="font-size: 11px; margin-bottom: 8px;">Posts appear instantly — no waiting for approval. Anyone can flag a post that breaks guidelines.</p>
-      <button class="secondary" style="width: 100%; padding: 8px;" onclick="toggleUserRole()">Switch to Mod View</button>
+      <p style="font-size: 11px; margin-bottom: 8px;" id="role-hint">Posts appear instantly — no waiting for approval. Anyone can flag a post that breaks guidelines.</p>
+      <button class="secondary" style="width: 100%; padding: 8px;" onclick="cycleUserRole()" id="role-toggle-btn">Switch to Mod View</button>
     </div>
   </aside>
 
@@ -709,6 +760,15 @@
         </ul>
         <p style="margin-top: 12px; color: var(--muted); font-size: 13px;">This is a space for trust. We assume good intent and work together.</p>
       </div>
+
+      <div class="card">
+        <h3 style="margin-top: 0;">Three Promises From Parents Who've Been There</h3>
+        <ol style="margin-left: 20px;">
+          <li><strong>Ask in writing, every time.</strong> Writing keeps busy people organized, makes plans official, and keeps everyone's promises easy to keep — yours included.</li>
+          <li><strong>Lead with friendly.</strong> The teachers and specialists want your kid to succeed. Start every ask like you believe that, because it's true.</li>
+          <li><strong>Bring a buddy whenever you like.</strong> A friend, a fellow parent, or a free DREDF-trained advocate is welcome at any meeting.</li>
+        </ol>
+      </div>
     </div>
 
     <!-- NAVIGATOR PAGE -->
@@ -723,14 +783,14 @@
             <div class="collapsible-toggle">▼</div>
           </div>
           <div class="collapsible-content">
-            <p style="margin-bottom: 12px;"><strong>Use this path if:</strong> Your child hasn't been evaluated yet but you know something's different.</p>
-            <p style="margin-bottom: 12px;"><strong>What to do:</strong></p>
+            <p style="margin-bottom: 12px;">Maybe it's big feelings after school. Trouble sitting still, or making friends, or notes coming home.
+            You don't need a diagnosis to start — just curiosity, and a team. The school wants to figure this out with you.</p>
             <ol style="margin-left: 20px; margin-bottom: 12px;">
-              <li>Request an SST (Student Study Team meeting) with the school.</li>
-              <li>Bring observations: "My child struggles with transitions" or "Has trouble following multi-step directions."</li>
-              <li>Ask: "Is my child eligible for evaluation?"</li>
+              <li><strong>Start with the teacher.</strong> Ask the simplest question there is: "What are you seeing?" Teachers see 25 kids a day; their answer is gold.</li>
+              <li><strong>Ask for an SST.</strong> That's just a meeting — you, the teacher, and a few school folks comparing notes and trying ideas together. The front office can set one up.</li>
+              <li><strong>Or ask for free testing.</strong> The school can test how your child learns, for free, so everyone understands what helps. Just ask in writing (magic words below).</li>
             </ol>
-            <p><strong>Timeline:</strong> 1–2 weeks to SST; 60 days for evaluation if approved.</p>
+            <p><strong>The friendly secret:</strong> when you ask in writing, an official schedule begins — set by California law so nothing gets lost in a busy school year.</p>
           </div>
         </div>
 
@@ -740,14 +800,13 @@
             <div class="collapsible-toggle">▼</div>
           </div>
           <div class="collapsible-content">
-            <p style="margin-bottom: 12px;"><strong>Use this path if:</strong> Your child has a diagnosis (ADHD, autism, anxiety) but the school says they don't need support.</p>
-            <p style="margin-bottom: 12px;"><strong>What to do:</strong></p>
-            <ol style="margin-left: 20px; margin-bottom: 12px;">
-              <li>Request a 504 Plan meeting (faster than IEP, same accommodations).</li>
-              <li>Bring your child's diagnosis and specific examples: "At home, without accommodations, they melt down."</li>
-              <li>Ask for: small group testing, preferential seating, movement breaks, etc.</li>
-            </ol>
-            <p><strong>Timeline:</strong> 1–2 weeks.</p>
+            <p style="margin-bottom: 12px;">Doctors and schools run on different paperwork, so a diagnosis doesn't automatically flow into the classroom.
+            Bridging that gap is a conversation — and there are two menus to talk through together:</p>
+            <ul style="margin-left: 20px; margin-bottom: 12px;">
+              <li><strong>A 504 plan = the small-changes list.</strong> Sitting near the teacher, movement breaks, extra time — written down so every adult at school knows, even a substitute on day one.</li>
+              <li><strong>An IEP = the big plan.</strong> Actual extra teaching and services — small-group help, speech, OT — with written goals the whole team celebrates and updates every year.</li>
+            </ul>
+            <p><strong>Not sure which fits?</strong> Nobody expects you to be. Ask for the free testing (Path 1). The results help you and the school pick together.</p>
           </div>
         </div>
 
@@ -757,48 +816,57 @@
             <div class="collapsible-toggle">▼</div>
           </div>
           <div class="collapsible-content">
-            <p style="margin-bottom: 12px;"><strong>Use this path if:</strong> Your child has an IEP or 504, but it's not working.</p>
-            <p style="margin-bottom: 12px;"><strong>What to do:</strong></p>
+            <p style="margin-bottom: 12px;">Plans are living things. Kids grow, classrooms change, and what worked in fall might need adjusting by spring — that's normal, and it's what the team is for.</p>
             <ol style="margin-left: 20px; margin-bottom: 12px;">
-              <li>Request an IEP amendment or 504 revision meeting.</li>
-              <li>Bring data: "Since we added movement breaks, focus improved 30%."</li>
-              <li>Ask for specific changes with a deadline: "I'd like this in writing by Friday."</li>
+              <li><strong>Start with a friendly check-in.</strong> "Could we look at how the reading help is going? Here's what we're seeing at home." Most tune-ups happen right here.</li>
+              <li><strong>Gather the team any time.</strong> Not just at the once-a-year review — ask in writing, and the meeting lands on the calendar within 30 days.</li>
+              <li><strong>Before any meeting,</strong> ask for the reports and goals ahead of time, and bring one page of notes about what you see at home. You know your kid best.</li>
             </ol>
-            <p><strong>Timeline:</strong> 1–2 weeks.</p>
           </div>
         </div>
       </div>
 
       <h2>Decoder Ring</h2>
+      <p class="subtitle" style="margin-bottom: 12px;">Every field has its alphabet soup. Here's yours, translated.</p>
+      <div class="table-scroll">
       <table class="data-table">
-        <tr><th>Term</th><th>What It Means</th><th>Why It Matters</th></tr>
-        <tr><td><strong>IEP</strong></td><td>Individualized Education Program</td><td>Legal document. School pays for services. For students with disabilities under IDEA.</td></tr>
-        <tr><td><strong>504 Plan</strong></td><td>Section 504 of the Rehab Act</td><td>Legal document. Accommodations only (no services). Faster to set up than IEP.</td></tr>
-        <tr><td><strong>SST</strong></td><td>Student Study Team</td><td>First meeting if you suspect your child needs support.</td></tr>
-        <tr><td><strong>RSP</strong></td><td>Resource Specialist Program</td><td>Pull-out support; your child leaves class for 1:1 or small-group help.</td></tr>
-        <tr><td><strong>Evaluation</strong></td><td>Assessment by school psychologist</td><td>Required to determine IEP eligibility. Takes 60 days.</td></tr>
-        <tr><td><strong>OT</strong></td><td>Occupational Therapy</td><td>Helps with fine motor, sensory, daily living skills. Can be part of IEP.</td></tr>
+        <tr><th>Term</th><th>Stands for</th><th>What it actually means</th></tr>
+        <tr><td><strong>IEP</strong></td><td>Individualized Education Program</td><td>The big plan: extra teaching and services, with goals, in writing, that the whole team works toward together.</td></tr>
+        <tr><td><strong>504</strong></td><td>Section 504 (a 1973 civil-rights law)</td><td>The small-changes list: seating, breaks, extra time — written down so every adult knows, every day.</td></tr>
+        <tr><td><strong>SST</strong></td><td>Student Success Team</td><td>A no-pressure meeting where you and the school compare notes and try ideas. Often the first step.</td></tr>
+        <tr><td><strong>IDEA</strong></td><td>Individuals with Disabilities Education Act</td><td>The national promise behind all of this: every kid gets what they need to learn, for free.</td></tr>
+        <tr><td><strong>Evaluation</strong></td><td>(also "assessment")</td><td>Free testing by school specialists so everyone understands how your child learns and what helps.</td></tr>
+        <tr><td><strong>RSP</strong></td><td>Resource Specialist Program</td><td>The teacher whose whole job is giving kids extra help. Chabot has one — go say hi.</td></tr>
+        <tr><td><strong>OT</strong></td><td>Occupational Therapy</td><td>Help with hands and bodies: handwriting, scissors, staying comfortable and calm in a busy classroom.</td></tr>
+        <tr><td><strong>ESY</strong></td><td>Extended School Year</td><td>Summer learning for kids who lose skills over long breaks — part of some IEPs. Ask in spring.</td></tr>
       </table>
+      </div>
+
+      <h2>The Shared Schedule</h2>
+      <p class="subtitle" style="margin-bottom: 12px;">This is the part to remember. When you ask <strong>in writing</strong>, California sets a schedule everyone can count on — so you always know what happens next.</p>
+      <div class="card">
+        <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+          <p><strong style="color: var(--coral);">DAY 0</strong> — You send the magic words asking for testing.</p>
+          <p><strong style="color: var(--coral);">BY DAY 15</strong> — The school sends you a testing plan to sign.</p>
+          <p><strong style="color: var(--coral);">BY DAY 60</strong> — Testing is done, and the team meets to talk it through with you.</p>
+        </div>
+        <p style="margin-top: 12px;">And any time you already have a plan: a written request for a team meeting puts it on the calendar <strong>within 30 days.</strong></p>
+        <p style="margin-top: 12px; color: var(--muted); font-size: 12px;">The fine print: Cal. Ed. Code §§ 56321, 56344, 56343.5. School breaks longer than 5 days pause the schedule — so asks sent before winter break land sooner than asks sent after.</p>
+      </div>
 
       <h2>Magic Words (Copy & Paste)</h2>
-      <div class="card">
-        <h3 style="margin-top: 0;">To request an SST:</h3>
-        <p style="background: var(--yellow); padding: 12px; border-radius: 4px; font-size: 13px; font-family: monospace; margin: 12px 0;">
-          "I'd like to request an SST meeting. [Child's name] is struggling with [specific example: transitions / following directions / focusing in class]. I'd like to discuss whether an evaluation is appropriate."
-        </p>
+      <p class="subtitle" style="margin-bottom: 12px;">Email these to the principal. One sentence is genuinely enough — it gives the school exactly what it needs to get started.
+      Need a fuller script, or pushing back on something that isn't working? See <a onclick="switchPage('how-to-ask', event)">How to Ask</a> for the full template library.</p>
+      <div class="table-scroll">
+      <table class="data-table">
+        <tr><th>You'd like</th><th>Send this</th></tr>
+        <tr><td><strong>Free testing</strong></td><td style="font-family: monospace; font-size: 13px;">"I'm requesting a special education assessment for my child, [name], under IDEA. Please send me an assessment plan."</td></tr>
+        <tr><td><strong>A team meeting (IEP)</strong></td><td style="font-family: monospace; font-size: 13px;">"I'd like to request an IEP team meeting for [name] to talk about [topic]. What dates work for the team?"</td></tr>
+        <tr><td><strong>The small-changes list (504)</strong></td><td style="font-family: monospace; font-size: 13px;">"I'd like to talk about a 504 plan for [name]. Who should I meet with, and when?"</td></tr>
+        <tr><td><strong>Your kid's file</strong></td><td style="font-family: monospace; font-size: 13px;">"I'm requesting a complete copy of [name]'s student records, including all assessments. Thank you!"</td></tr>
+      </table>
       </div>
-      <div class="card">
-        <h3 style="margin-top: 0;">To request a 504 Plan:</h3>
-        <p style="background: var(--yellow); padding: 12px; border-radius: 4px; font-size: 13px; font-family: monospace; margin: 12px 0;">
-          "[Child's name] has been diagnosed with [ADHD / autism / anxiety]. We'd like to discuss a 504 Plan so [he/she/they] can access accommodations at school."
-        </p>
-      </div>
-      <div class="card">
-        <h3 style="margin-top: 0;">To ask for a change to an IEP:</h3>
-        <p style="background: var(--yellow); padding: 12px; border-radius: 4px; font-size: 13px; font-family: monospace; margin: 12px 0;">
-          "We'd like to request an IEP amendment meeting. Since [specific date], [change you've noticed]. We think [specific accommodation] would help. Can we meet to discuss?"
-        </p>
-      </div>
+      <p style="margin-top: 12px; color: var(--muted); font-size: 13px;"><strong>Two tiny habits that change everything:</strong> keep a copy of every email, and lead with kindness every time.</p>
     </div>
 
     <!-- RESOURCES PAGE -->
@@ -1070,101 +1138,12 @@
     <!-- DIRECTORY PAGE -->
     <div id="directory" class="page">
       <h1>Local Providers Directory</h1>
-      <p class="subtitle">Pediatricians, therapists, tutors, advocates, and support groups parents recommend.</p>
+      <p class="subtitle">Pediatricians, therapists, tutors, advocates, and support groups parents recommend. Any parent can edit an entry or add a new one.</p>
       <div style="margin-bottom: 20px;">
         <button onclick="openResourceModal()">+ Add a Provider</button>
       </div>
 
-      <h2>Occupational Therapists</h2>
-      <div class="card">
-        <div class="collapsible">
-          <div class="collapsible-header" onclick="toggleCollapsible(this)">
-            <span><strong>Emma's OT Services</strong> — Sensory & fine motor specialists</span>
-            <div class="collapsible-toggle">▼</div>
-          </div>
-          <div class="collapsible-content">
-            <p><strong>Contact:</strong> 510-555-0123 | emmasot@example.com</p>
-            <p><strong>Location:</strong> Oakland</p>
-            <p><strong>Insurance:</strong> Sliding scale, accepts Medi-Cal</p>
-            <p><strong>Parent says:</strong> "She worked with our daughter on sensory regulation. Very patient, gives homework parents can do at home."</p>
-          </div>
-        </div>
-      </div>
-
-      <h2>Speech & Language Therapists</h2>
-      <div class="card">
-        <div class="collapsible">
-          <div class="collapsible-header" onclick="toggleCollapsible(this)">
-            <span><strong>Bay Area Speech Services</strong> — Kids & teens</span>
-            <div class="collapsible-toggle">▼</div>
-          </div>
-          <div class="collapsible-content">
-            <p><strong>Contact:</strong> 510-555-0124 | info@bayspeech.com</p>
-            <p><strong>Location:</strong> Multiple East Bay locations</p>
-            <p><strong>Insurance:</strong> Many private plans, Medi-Cal, sliding scale</p>
-            <p><strong>Parent says:</strong> "They have a 6-month wait but it's worth it. Therapists communicate regularly with school."</p>
-          </div>
-        </div>
-      </div>
-
-      <h2>Behavioral Therapists & Coaches</h2>
-      <div class="card">
-        <div class="collapsible">
-          <div class="collapsible-header" onclick="toggleCollapsible(this)">
-            <span><strong>Oakland ADHD Coaching</strong> — Executive function & ADHD strategies</span>
-            <div class="collapsible-toggle">▼</div>
-          </div>
-          <div class="collapsible-content">
-            <p><strong>Contact:</strong> 510-555-0125 | adhd.coaching@example.com</p>
-            <p><strong>Location:</strong> Oakland</p>
-            <p><strong>Cost:</strong> $80–120/hr (sliding scale available)</p>
-            <p><strong>Parent says:</strong> "Not covered by insurance but SO helpful. Our son learned actual strategies for organizing homework."</p>
-          </div>
-        </div>
-      </div>
-
-      <h2>Educational Advocates & Attorneys</h2>
-      <div class="card">
-        <div class="collapsible">
-          <div class="collapsible-header" onclick="toggleCollapsible(this)">
-            <span><strong>Bay Area Disability Rights Advocates</strong></span>
-            <div class="collapsible-toggle">▼</div>
-          </div>
-          <div class="collapsible-content">
-            <p><strong>Contact:</strong> 510-555-0126 | info@badra.org</p>
-            <p><strong>Location:</strong> Oakland</p>
-            <p><strong>Cost:</strong> Free consultations; sliding scale for full advocacy</p>
-            <p><strong>What they do:</strong> Help families navigate IEP meetings, file complaints, negotiate with school</p>
-          </div>
-        </div>
-      </div>
-
-      <h2>Support Groups for Parents</h2>
-      <div class="card">
-        <div class="collapsible">
-          <div class="collapsible-header" onclick="toggleCollapsible(this)">
-            <span><strong>Chabot Autism Parent Group</strong></span>
-            <div class="collapsible-toggle">▼</div>
-          </div>
-          <div class="collapsible-content">
-            <p><strong>Meets:</strong> 2nd Tuesday of month, 7–8:30pm</p>
-            <p><strong>Location:</strong> Chabot Elementary library</p>
-            <p><strong>Cost:</strong> Free</p>
-            <p><strong>What it is:</strong> Parents sharing experiences, resources, venting (in a safe way).</p>
-          </div>
-        </div>
-        <div class="collapsible" style="margin-top: 12px;">
-          <div class="collapsible-header" onclick="toggleCollapsible(this)">
-            <span><strong>Oakland ADHD Support & Social</strong></span>
-            <div class="collapsible-toggle">▼</div>
-          </div>
-          <div class="collapsible-content">
-            <p><strong>Meets:</strong> Thursdays, 6–7pm (online)</p>
-            <p><strong>Cost:</strong> Free, donation-based</p>
-            <p><strong>What it is:</strong> Parents with ADHD kids meeting online to share strategies.</p>
-          </div>
-        </div>
-      </div>
+      <div id="directory-list"></div>
 
       <div class="highlight-box">
         <strong>Want to add to this list?</strong> Have you found a provider that helped? <a onclick="openResourceModal()">Share your recommendation</a>.
@@ -1174,45 +1153,58 @@
     <!-- CONTACTS PAGE -->
     <div id="contacts" class="page">
       <h1>Chabot & OUSD Contacts</h1>
-      <p class="subtitle">Who to call, when, and what they handle.</p>
+      <p class="subtitle">Who to call, when, and what they handle. Any parent can fix a wrong number or add someone missing — click Edit.</p>
 
-      <h2>Chabot Elementary</h2>
+      <h2>Your Chabot Crew</h2>
+      <p class="subtitle" style="margin-bottom: 12px;">These are the humans, and they're your partners from day one.</p>
+      <div style="margin-bottom: 12px;">
+        <button class="secondary" onclick="openContactModal('Chabot Elementary')" style="font-size: 12px; padding: 8px 14px;">+ Add Contact</button>
+      </div>
       <table class="data-table">
-        <tr><th>Role</th><th>Name / Title</th><th>When to Contact</th><th>Phone / Email</th></tr>
-        <tr><td><strong>Principal</strong></td><td>[Fill in]</td><td>Big issues, policies, general concerns</td><td>[Fill in]</td></tr>
-        <tr><td><strong>Special Ed Coordinator</strong></td><td>[Fill in]</td><td>IEP/504 meetings, evaluations, special ed questions</td><td>[Fill in]</td></tr>
-        <tr><td><strong>School Psychologist</strong></td><td>[Fill in]</td><td>Evaluations, behavioral concerns</td><td>[Fill in]</td></tr>
-        <tr><td><strong>Counselor / Social Worker</strong></td><td>[Fill in]</td><td>Emotional/behavioral support, crisis</td><td>[Fill in]</td></tr>
-        <tr><td><strong>504 Coordinator</strong></td><td>[Fill in]</td><td>504 Plans, accommodations</td><td>[Fill in]</td></tr>
-        <tr><td><strong>Main Office</strong></td><td>—</td><td>General questions, attendance</td><td>[Fill in]</td></tr>
+        <thead><tr><th>Role</th><th>Name</th><th>When to Contact</th><th>Phone / Email</th><th></th></tr></thead>
+        <tbody id="contacts-chabot-body"></tbody>
       </table>
 
       <h2>Oakland Unified School District (OUSD)</h2>
+      <div style="margin-bottom: 12px;">
+        <button class="secondary" onclick="openContactModal('OUSD')" style="font-size: 12px; padding: 8px 14px;">+ Add Contact</button>
+      </div>
       <table class="data-table">
-        <tr><th>Department / Line</th><th>What They Do</th><th>Phone / Email</th></tr>
-        <tr><td><strong>Special Education Department</strong></td><td>IEP questions, disputes, complaints</td><td>510-879-8000 ext. [fill in]</td></tr>
-        <tr><td><strong>Section 504 Office</strong></td><td>504 Plans, ADA accommodations</td><td>510-879-8000 ext. [fill in]</td></tr>
-        <tr><td><strong>Student Services / Counseling</strong></td><td>Mental health referrals, crisis support</td><td>510-879-8000 ext. [fill in]</td></tr>
+        <thead><tr><th>Department / Line</th><th>What They Do</th><th>Phone / Email</th><th></th></tr></thead>
+        <tbody id="contacts-ousd-body"></tbody>
       </table>
 
-      <h2>Outside Resources</h2>
+      <h2>The Wider World, Translated</h2>
+      <p class="subtitle" style="margin-bottom: 12px;">General California resources — not Chabot-specific, so these stay maintained by the hub admins rather than open editing.</p>
       <div class="card">
-        <h3 style="margin-top: 0;">Regional Center of the East Bay</h3>
-        <p><strong>For:</strong> Developmental disability services, assessments, care coordination</p>
-        <p><strong>Phone:</strong> 510-622-2571</p>
-        <p><strong>Website:</strong> rceb.org</p>
+        <h3 style="margin-top: 0;">OUSD Special Education</h3>
+        <p>The district office that supports every Oakland school's plans and testing.</p>
+        <p><strong>Website:</strong> <a href="https://www.ousd.org/specialeducation" target="_blank" rel="noopener">ousd.org/specialeducation</a></p>
       </div>
       <div class="card">
-        <h3 style="margin-top: 0;">California Department of Education — Complaints</h3>
-        <p><strong>For:</strong> Filing formal complaints if school isn't following IEP/504</p>
-        <p><strong>Phone:</strong> 916-445-0123</p>
-        <p><strong>Website:</strong> cde.ca.gov</p>
+        <h3 style="margin-top: 0;">CAC — Community Advisory Committee</h3>
+        <p>Oakland's parent group for special education. Real parents, real answers, and the district's special-ed leaders in the room, listening.</p>
+        <p><strong>Meets:</strong> 1st Monday of each month <em>(re-verify time/place before print)</em></p>
       </div>
       <div class="card">
-        <h3 style="margin-top: 0;">Bay Area Disability Rights Advocates</h3>
-        <p><strong>For:</strong> Free legal consultation, advocacy help</p>
-        <p><strong>Phone:</strong> 510-841-8645</p>
-        <p><strong>Website:</strong> badrights.org</p>
+        <h3 style="margin-top: 0;">RCEB — Regional Center of the East Bay</h3>
+        <p>A state-funded office that pays for help <em>outside</em> school: therapy, parent coaching, breaks for caregivers.
+        Autism qualifies; ADHD alone usually doesn't — but the phone call is free.</p>
+        <p><strong>Phone:</strong> 510-622-2571 · <strong>Website:</strong> <a href="https://www.rceb.org" target="_blank" rel="noopener">rceb.org</a></p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">DREDF</h3>
+        <p>A Berkeley nonprofit of parents and lawyers who teach families how school support works, free. Classes, guides, and a phone line for when you're stuck.</p>
+        <p><strong>Website:</strong> <a href="https://dredf.org" target="_blank" rel="noopener">dredf.org</a></p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Family Resource Navigators</h3>
+        <p>Alameda County parents (who've been there) helping families find services and untangle insurance and Medi-Cal.</p>
+        <p><strong>Website:</strong> <a href="https://www.familyresourcenavigators.org" target="_blank" rel="noopener">familyresourcenavigators.org</a></p>
+      </div>
+      <div class="highlight-box">
+        <strong>The insurance thing worth knowing:</strong> California law requires health plans — including Medi-Cal — to cover
+        autism behavioral therapy (ABA). If a plan says no, it's worth a second ask, and the resources above can help you make it. (SB 946)
       </div>
     </div>
 
@@ -1336,17 +1328,63 @@ Thank you,<br>
 
       <h2>Moderation Team</h2>
       <div class="card">
-        <h3 style="margin-top: 0;">Current Moderators</h3>
-        <ul style="margin-left: 20px;">
-          <li><strong>You</strong> (Lead mod)</li>
-          <li>Sarah P. (Mom of 2nd grader) — can clear flags/hide</li>
-          <li>Marcus T. (Dad of 4th grader) — can clear flags/hide</li>
-        </ul>
-        <p style="margin-top: 12px; color: var(--muted); font-size: 13px;">Mods only see flagged content — never a review queue for every post. Anyone can be invited as a mod.</p>
+        <h3 style="margin-top: 0;">Current Team</h3>
+        <div id="mod-team-list"></div>
+        <p style="margin-top: 12px; color: var(--muted); font-size: 13px;">Mods only see flagged content — never a review queue for every post.
+        Admins can add or remove team members on the <a onclick="switchPage('manage-team', event)">Manage Team</a> page.</p>
+      </div>
+    </div>
+
+    <!-- MANAGE TEAM (admin only) -->
+    <div id="manage-team" class="page">
+      <h1>Manage Team</h1>
+      <p class="subtitle">Admins and moderators for this hub. Any admin can add or remove people here — no code, no waiting on one person.</p>
+
+      <div style="margin-bottom: 20px;">
+        <button onclick="openTeamModal()">+ Add Team Member</button>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top: 0;">Admins</h3>
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Full privileges: manage the team, plus everything a moderator can do.</p>
+        <div id="admin-list"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top: 0;">Moderators</h3>
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Can clear flags and hide posts from the Mod Dashboard.</p>
+        <div id="mod-list"></div>
+      </div>
+
+      <div class="highlight-box">
+        <strong>Why this page exists:</strong> so this hub never depends on one person. Any admin can hand off, add a
+        co-admin, or step back — the site keeps running.
       </div>
     </div>
 
   </main>
+</div>
+
+<!-- TEAM MODAL -->
+<div id="team-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" id="team-modal-header">Add Team Member</div>
+    <div class="form-group">
+      <label>Name *</label>
+      <input type="text" id="team-name" placeholder="e.g., Jennifer, parent of 3rd grader" />
+    </div>
+    <div class="form-group">
+      <label>Role *</label>
+      <select id="team-role">
+        <option value="mod">Moderator — can clear flags, hide posts</option>
+        <option value="admin">Admin — full privileges, can manage the team</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="secondary" onclick="closeModal('team-modal')">Cancel</button>
+      <button onclick="submitTeamMember()">Save</button>
+    </div>
+  </div>
 </div>
 
 <!-- POST MODAL -->
@@ -1446,35 +1484,74 @@ Thank you,<br>
   </div>
 </div>
 
-<!-- RESOURCE MODAL -->
+<!-- RESOURCE / DIRECTORY MODAL (add or edit) -->
 <div id="resource-modal" class="modal">
   <div class="modal-content">
-    <div class="modal-header">Add a Resource / Provider</div>
+    <div class="modal-header" id="resource-modal-header">Add a Provider</div>
     <div class="form-group">
-      <label>Resource type *</label>
-      <select id="resource-type">
-        <option>Camp or activity</option>
-        <option>Therapist or provider</option>
-        <option>Support group</option>
-        <option>Document or template</option>
+      <label>Category *</label>
+      <select id="resource-category">
+        <option>Occupational Therapy</option>
+        <option>Speech & Language</option>
+        <option>Behavioral Therapy & Coaching</option>
+        <option>Advocates & Attorneys</option>
+        <option>Support Groups</option>
+        <option>Camp or Activity</option>
+        <option>Other</option>
       </select>
     </div>
     <div class="form-group">
-      <label>Name/Title *</label>
+      <label>Name / Title *</label>
       <input type="text" id="resource-name" placeholder="e.g., East Bay OT Services" />
     </div>
     <div class="form-group">
-      <label>Description</label>
-      <textarea id="resource-desc" placeholder="What makes this valuable?"></textarea>
+      <label>What makes this valuable?</label>
+      <textarea id="resource-desc" placeholder="What they do, what a parent should know"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Contact (phone / email)</label>
+      <input type="text" id="resource-contact" placeholder="e.g., 510-555-0123 | info@example.com" />
+    </div>
+    <div class="form-group">
+      <label>Location / Cost</label>
+      <input type="text" id="resource-location" placeholder="e.g., Oakland · sliding scale, accepts Medi-Cal" />
     </div>
     <div class="form-group">
       <label>Your name</label>
       <input type="text" id="resource-author" placeholder="e.g., Jennifer" />
     </div>
-    <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Your resource appears immediately — no waiting for approval.</p>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;" id="resource-modal-note">This appears immediately — no waiting for approval.</p>
     <div class="modal-footer">
       <button class="secondary" onclick="closeModal('resource-modal')">Cancel</button>
-      <button onclick="submitResource()">Add Resource</button>
+      <button onclick="submitResource()" id="resource-modal-submit">Add Provider</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL (add or edit) -->
+<div id="contact-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" id="contact-modal-header">Add Contact</div>
+    <div class="form-group">
+      <label id="contact-role-label">Role *</label>
+      <input type="text" id="contact-role" placeholder="e.g., Principal, or Special Education Department" />
+    </div>
+    <div class="form-group" id="contact-name-group">
+      <label>Name</label>
+      <input type="text" id="contact-name" placeholder="e.g., Jane Smith" />
+    </div>
+    <div class="form-group">
+      <label id="contact-when-label">When to contact</label>
+      <input type="text" id="contact-when" placeholder="e.g., IEP/504 meetings, evaluations" />
+    </div>
+    <div class="form-group">
+      <label>Phone / Email</label>
+      <input type="text" id="contact-phone" placeholder="e.g., 510-879-8000 or name@ousd.org" />
+    </div>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">This appears immediately — no waiting for approval.</p>
+    <div class="modal-footer">
+      <button class="secondary" onclick="closeModal('contact-modal')">Cancel</button>
+      <button onclick="submitContact()" id="contact-modal-submit">Add Contact</button>
     </div>
   </div>
 </div>
@@ -1606,6 +1683,45 @@ Thank you,<br>
     }
   ];
 
+  let nextContactId = 313; // seed ids run 301-307, 310-312 -- must start above the highest
+  let nextDirectoryId = 407; // seed ids run 401-406
+  let nextTeamId = 504; // seed ids run 501-503
+
+  // Chabot-specific staff + OUSD lines. Member-editable: any parent can fix
+  // a wrong number or add someone missing, right from the Contacts page.
+  let contacts = [
+    { id: 301, group: 'Chabot Elementary', role: 'Principal', name: '[Fill in]', when: 'Big issues, policies, general concerns', phone: '[Fill in]' },
+    { id: 302, group: 'Chabot Elementary', role: 'Special Ed Coordinator', name: '[Fill in]', when: 'IEP/504 meetings, evaluations, special ed questions', phone: '[Fill in]' },
+    { id: 303, group: 'Chabot Elementary', role: 'School Psychologist', name: '[Fill in]', when: 'Evaluations, behavioral concerns', phone: '[Fill in]' },
+    { id: 304, group: 'Chabot Elementary', role: 'Counselor / Social Worker', name: '[Fill in]', when: 'Emotional/behavioral support, crisis', phone: '[Fill in]' },
+    { id: 305, group: 'Chabot Elementary', role: '504 Coordinator', name: '[Fill in]', when: '504 Plans, accommodations', phone: '[Fill in]' },
+    { id: 306, group: 'Chabot Elementary', role: 'Main Office', name: '—', when: 'General questions, attendance', phone: '[Fill in]' },
+    { id: 307, group: 'Chabot Elementary', role: 'PTA Inclusion Contact', name: '[Fill in]', when: 'A fellow parent — informal questions, connecting you to others', phone: '[Fill in]' },
+    { id: 310, group: 'OUSD', role: 'Special Education Department', name: '', when: 'IEP questions, disputes, complaints', phone: '510-879-8000 ext. [fill in]' },
+    { id: 311, group: 'OUSD', role: 'Section 504 Office', name: '', when: '504 Plans, ADA accommodations', phone: '510-879-8000 ext. [fill in]' },
+    { id: 312, group: 'OUSD', role: 'Student Services / Counseling', name: '', when: 'Mental health referrals, crisis support', phone: '510-879-8000 ext. [fill in]' }
+  ];
+
+  // Providers, camps and support groups. Same open-edit model as the Discussions
+  // feed: live immediately, flaggable, no approval queue.
+  let directory = [
+    { id: 401, category: 'Occupational Therapy', name: "Emma's OT Services", blurb: 'Sensory & fine motor specialists. She worked with our daughter on sensory regulation — very patient, gives homework parents can do at home.', contact: '510-555-0123 | emmasot@example.com', location: 'Oakland · sliding scale, accepts Medi-Cal', flagged: false },
+    { id: 402, category: 'Speech & Language', name: 'Bay Area Speech Services', blurb: 'Kids & teens. They have a 6-month wait but it\'s worth it — therapists communicate regularly with school.', contact: '510-555-0124 | info@bayspeech.com', location: 'Multiple East Bay locations · many private plans, Medi-Cal, sliding scale', flagged: false },
+    { id: 403, category: 'Behavioral Therapy & Coaching', name: 'Oakland ADHD Coaching', blurb: 'Executive function & ADHD strategies. Not covered by insurance but SO helpful — our son learned actual strategies for organizing homework.', contact: '510-555-0125 | adhd.coaching@example.com', location: 'Oakland · $80–120/hr, sliding scale available', flagged: false },
+    { id: 404, category: 'Advocates & Attorneys', name: 'Bay Area Disability Rights Advocates', blurb: 'Help families navigate IEP meetings, file complaints, negotiate with school.', contact: '510-555-0126 | info@badra.org', location: 'Oakland · free consultations, sliding scale for full advocacy', flagged: false },
+    { id: 405, category: 'Support Groups', name: 'Chabot Autism Parent Group', blurb: 'Parents sharing experiences, resources, venting (in a safe way).', contact: '', location: 'Chabot Elementary library · free · 2nd Tuesday of month, 7–8:30pm', flagged: false },
+    { id: 406, category: 'Support Groups', name: 'Oakland ADHD Support & Social', blurb: 'Parents with ADHD kids meeting online to share strategies.', contact: '', location: 'Online · free, donation-based · Thursdays, 6–7pm', flagged: false }
+  ];
+
+  // Who can moderate and administer this hub. Editable only from the
+  // admin-only Manage Team page — this is what makes handoff possible
+  // without touching code.
+  let team = [
+    { id: 501, name: 'You', role: 'admin' },
+    { id: 502, name: 'Sarah P. (Mom of 2nd grader)', role: 'mod' },
+    { id: 503, name: 'Marcus T. (Dad of 4th grader)', role: 'mod' }
+  ];
+
   // Post bodies are rendered with innerHTML, so anything a parent typed is escaped first.
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g,
@@ -1623,6 +1739,9 @@ Thank you,<br>
     }
     document.querySelector('.main-content').scrollTop = 0;
     renderPosts();
+    renderContacts();
+    renderDirectory();
+    renderTeam();
   }
 
   function openPostModal() { closeDrawer(); document.getElementById('post-modal').classList.add('open'); }
@@ -1973,26 +2092,298 @@ Thank you,<br>
         </div>
       `;
     });
+    // Directory entries can be flagged too (self-promotion, wrong info) —
+    // they surface in the same flagged-content queue, not a second one.
+    const flaggedDirectory = directory.filter(d => d.flagged);
+    let flaggedDirHtml = '';
+    flaggedDirectory.forEach(d => {
+      flaggedDirHtml += `
+        <div class="card">
+          <div class="card-header">
+            <h3 style="margin: 0;">${esc(d.name)} <span class="tag tag-page">Directory</span></h3>
+            <span class="badge badge-flagged">${esc(d.flagReason || 'Flagged')}</span>
+          </div>
+          <p style="margin-bottom: 12px;">${esc(d.blurb)}</p>
+          <div class="mod-actions">
+            <button onclick="clearDirectoryFlag(${d.id})">✓ Clear Flag (Keep Entry)</button>
+            <button class="danger" onclick="removeDirectoryEntry(${d.id})">✕ Remove Entry</button>
+          </div>
+        </div>
+      `;
+    });
     const flaggedEl = document.getElementById('flagged-posts');
-    if (flaggedEl) flaggedEl.innerHTML = flaggedHtml || '<p style="color: var(--muted);">No flagged posts. Community is healthy!</p>';
+    if (flaggedEl) {
+      const combined = flaggedHtml + flaggedDirHtml;
+      flaggedEl.innerHTML = combined || '<p style="color: var(--muted);">No flagged posts. Community is healthy!</p>';
+    }
+    if (flaggedCountEl) flaggedCountEl.textContent = flagged.length + flaggedDirectory.length;
+    if (modNavCount) {
+      const total = flagged.length + flaggedDirectory.length;
+      modNavCount.textContent = total > 0 ? `(${total})` : '';
+    }
   }
 
-  function toggleUserRole() {
-    const modSection = document.getElementById('mod-nav-section');
-    if (currentUser === 'parent') {
-      currentUser = 'mod';
-      document.getElementById('current-user').textContent = 'You: Moderator';
-      modSection.classList.add('visible');
-      alert('Switched to Mod view. A "Moderation" section is now visible in your sidebar — it only shows flagged content.');
-    } else {
-      currentUser = 'parent';
-      document.getElementById('current-user').textContent = 'You: Parent (Demo)';
-      modSection.classList.remove('visible');
-      if (document.getElementById('mod-dashboard').classList.contains('active')) {
-        switchPage('home', null);
-      }
-      alert('Switched back to Parent view.');
+  /* ---------------- Contacts (member-editable) ---------------- */
+
+  function contactRowHtml(c) {
+    if (c.group === 'Chabot Elementary') {
+      return `<tr class="editable-row">
+        <td><strong>${esc(c.role)}</strong></td>
+        <td>${esc(c.name || '—')}</td>
+        <td>${esc(c.when)}</td>
+        <td>${esc(c.phone)}</td>
+        <td><button class="edit-btn" onclick="openContactModal('Chabot Elementary', ${c.id})">Edit</button></td>
+      </tr>`;
     }
+    return `<tr class="editable-row">
+      <td><strong>${esc(c.role)}</strong></td>
+      <td>${esc(c.when)}</td>
+      <td>${esc(c.phone)}</td>
+      <td><button class="edit-btn" onclick="openContactModal('OUSD', ${c.id})">Edit</button></td>
+    </tr>`;
+  }
+
+  function renderContacts() {
+    const chabotBody = document.getElementById('contacts-chabot-body');
+    if (chabotBody) chabotBody.innerHTML = contacts.filter(c => c.group === 'Chabot Elementary').map(contactRowHtml).join('');
+    const ousdBody = document.getElementById('contacts-ousd-body');
+    if (ousdBody) ousdBody.innerHTML = contacts.filter(c => c.group === 'OUSD').map(contactRowHtml).join('');
+  }
+
+  let editingContactId = null;
+
+  function openContactModal(group, editId) {
+    closeDrawer();
+    editingContactId = editId || null;
+    const isOusd = group === 'OUSD';
+    document.getElementById('contact-modal-header').textContent = editingContactId ? 'Edit Contact' : 'Add Contact';
+    document.getElementById('contact-modal-submit').textContent = editingContactId ? 'Save Changes' : 'Add Contact';
+    document.getElementById('contact-role-label').textContent = isOusd ? 'Department / Line *' : 'Role *';
+    document.getElementById('contact-when-label').textContent = isOusd ? 'What they do' : 'When to contact';
+    document.getElementById('contact-name-group').style.display = isOusd ? 'none' : 'block';
+
+    const existing = editingContactId ? contacts.find(c => c.id === editingContactId) : null;
+    document.getElementById('contact-role').value = existing ? existing.role : '';
+    document.getElementById('contact-name').value = existing ? existing.name : '';
+    document.getElementById('contact-when').value = existing ? existing.when : '';
+    document.getElementById('contact-phone').value = existing ? existing.phone : '';
+    document.getElementById('contact-modal').dataset.group = group;
+    document.getElementById('contact-modal').classList.add('open');
+  }
+
+  function submitContact() {
+    const group = document.getElementById('contact-modal').dataset.group;
+    const role = document.getElementById('contact-role').value.trim();
+    const name = document.getElementById('contact-name').value.trim();
+    const when = document.getElementById('contact-when').value.trim();
+    const phone = document.getElementById('contact-phone').value.trim();
+    if (!role) { alert('Please enter a role or department name.'); return; }
+
+    if (editingContactId) {
+      const c = contacts.find(x => x.id === editingContactId);
+      if (c) Object.assign(c, { role, name, when, phone });
+    } else {
+      contacts.push({ id: nextContactId++, group, role, name, when, phone });
+    }
+    closeModal('contact-modal');
+    renderContacts();
+    alert(editingContactId ? '✓ Contact updated.' : '✓ Contact added.');
+  }
+
+  /* ---------------- Directory (member-editable) ---------------- */
+
+  function directoryCardHtml(d) {
+    return `
+      <div class="card">
+        <div class="directory-card">
+          <div class="directory-card-body">
+            <div class="card-header" style="margin-bottom: 4px;">
+              <h3 style="margin: 0;">${esc(d.name)}</h3>
+              ${d.flagged ? '<span class="badge badge-flagged">Flagged</span>' : ''}
+            </div>
+            <p style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">${esc(d.category)}</p>
+            ${d.blurb ? `<p style="margin-bottom: 8px;">${esc(d.blurb)}</p>` : ''}
+            ${d.contact ? `<p style="font-size: 13px;"><strong>Contact:</strong> ${esc(d.contact)}</p>` : ''}
+            ${d.location ? `<p style="font-size: 13px;"><strong>Location/Cost:</strong> ${esc(d.location)}</p>` : ''}
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;">
+            <button class="edit-btn" onclick="openResourceModal(${d.id})">Edit</button>
+            <button class="edit-btn" onclick="flagDirectoryEntry(${d.id})"${d.flagged ? ' disabled' : ''}>Flag</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderDirectory() {
+    const el = document.getElementById('directory-list');
+    if (!el) return;
+    if (!directory.length) { el.innerHTML = '<p class="empty-state">No providers yet. Be the first to add one.</p>'; return; }
+    const categories = [...new Set(directory.map(d => d.category))];
+    el.innerHTML = categories.map(cat => `
+      <h2>${esc(cat)}</h2>
+      ${directory.filter(d => d.category === cat).map(directoryCardHtml).join('')}
+    `).join('');
+  }
+
+  function flagDirectoryEntry(id) {
+    const d = directory.find(x => x.id === id);
+    if (d && !d.flagged) {
+      d.flagged = true;
+      d.flagReason = 'Reported by community';
+      renderDirectory();
+      renderPosts();
+      alert('🚩 Flagged for moderator review.');
+    }
+  }
+
+  function clearDirectoryFlag(id) {
+    const d = directory.find(x => x.id === id);
+    if (d) { d.flagged = false; d.flagReason = null; }
+    renderDirectory();
+    renderPosts();
+    alert('✓ Flag cleared.');
+  }
+
+  function removeDirectoryEntry(id) {
+    directory = directory.filter(x => x.id !== id);
+    renderDirectory();
+    renderPosts();
+    alert('✕ Entry removed.');
+  }
+
+  let editingDirectoryId = null;
+
+  function openResourceModal(editId) {
+    closeDrawer();
+    editingDirectoryId = editId || null;
+    const existing = editingDirectoryId ? directory.find(d => d.id === editingDirectoryId) : null;
+    document.getElementById('resource-modal-header').textContent = editingDirectoryId ? 'Edit Provider' : 'Add a Provider';
+    document.getElementById('resource-modal-submit').textContent = editingDirectoryId ? 'Save Changes' : 'Add Provider';
+    document.getElementById('resource-category').value = existing ? existing.category : 'Occupational Therapy';
+    document.getElementById('resource-name').value = existing ? existing.name : '';
+    document.getElementById('resource-desc').value = existing ? existing.blurb : '';
+    document.getElementById('resource-contact').value = existing ? existing.contact : '';
+    document.getElementById('resource-location').value = existing ? existing.location : '';
+    document.getElementById('resource-author').value = '';
+    document.getElementById('resource-modal').classList.add('open');
+  }
+
+  function submitResource() {
+    const category = document.getElementById('resource-category').value;
+    const name = document.getElementById('resource-name').value.trim();
+    const blurb = document.getElementById('resource-desc').value.trim();
+    const contact = document.getElementById('resource-contact').value.trim();
+    const location = document.getElementById('resource-location').value.trim();
+
+    if (!name) { alert('Please enter a name.'); return; }
+
+    if (editingDirectoryId) {
+      const d = directory.find(x => x.id === editingDirectoryId);
+      if (d) Object.assign(d, { category, name, blurb, contact, location });
+    } else {
+      directory.push({ id: nextDirectoryId++, category, name, blurb, contact, location, flagged: false });
+    }
+
+    closeModal('resource-modal');
+    renderDirectory();
+    alert(editingDirectoryId ? '✓ Provider updated.' : '✓ Added! Your provider is live now.');
+  }
+
+  /* ---------------- Manage Team (admin only) ---------------- */
+
+  function teamRowHtml(m, showRemove) {
+    return `
+      <div class="team-row">
+        <span class="team-row-name">${esc(m.name)}</span>
+        ${showRemove ? `<button class="edit-btn" onclick="removeTeamMember(${m.id})">Remove</button>` : ''}
+      </div>`;
+  }
+
+  function renderTeam() {
+    const admins = team.filter(m => m.role === 'admin');
+    const mods = team.filter(m => m.role === 'mod');
+
+    const adminList = document.getElementById('admin-list');
+    if (adminList) adminList.innerHTML = admins.map(m => teamRowHtml(m, admins.length > 1)).join('')
+      || '<p class="empty-state">No admins.</p>';
+
+    const modList = document.getElementById('mod-list');
+    if (modList) modList.innerHTML = mods.map(m => teamRowHtml(m, true)).join('')
+      || '<p class="empty-state">No moderators yet.</p>';
+
+    const dashboardList = document.getElementById('mod-team-list');
+    if (dashboardList) {
+      dashboardList.innerHTML = team.map(m => `
+        <div class="team-row">
+          <span class="team-row-name">${esc(m.name)}</span>
+          <span class="role-badge role-badge-${m.role}">${m.role}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  function openTeamModal() {
+    closeDrawer();
+    document.getElementById('team-modal-header').textContent = 'Add Team Member';
+    document.getElementById('team-name').value = '';
+    document.getElementById('team-role').value = 'mod';
+    document.getElementById('team-modal').classList.add('open');
+  }
+
+  function submitTeamMember() {
+    const name = document.getElementById('team-name').value.trim();
+    const role = document.getElementById('team-role').value;
+    if (!name) { alert('Please enter a name.'); return; }
+    team.push({ id: nextTeamId++, name, role });
+    closeModal('team-modal');
+    renderTeam();
+    alert(`✓ ${name} added as ${role === 'admin' ? 'an admin' : 'a moderator'}.`);
+  }
+
+  function removeTeamMember(id) {
+    const admins = team.filter(m => m.role === 'admin');
+    const target = team.find(m => m.id === id);
+    if (target && target.role === 'admin' && admins.length <= 1) {
+      alert('At least one admin has to stay, so the hub is never orphaned. Add another admin first.');
+      return;
+    }
+    team = team.filter(m => m.id !== id);
+    renderTeam();
+    alert('Removed from the team.');
+  }
+
+  // Three roles: parent (default) -> mod -> admin -> parent. Admin sees
+  // everything mod sees, plus Manage Team. Cycling (not a raw toggle) is
+  // what makes all three views easy to demo from one button.
+  const ROLE_SEQUENCE = ['parent', 'mod', 'admin'];
+  const ROLE_LABEL = { parent: 'You: Parent (Demo)', mod: 'You: Moderator', admin: 'You: Admin' };
+  const ROLE_HINT = {
+    parent: 'Posts appear instantly — no waiting for approval. Anyone can flag a post that breaks guidelines.',
+    mod: 'Mod view: a "Moderation" section is visible in your sidebar — it only shows flagged content.',
+    admin: 'Admin view: you can also manage the team from "Site Admin" — add or remove admins and mods.'
+  };
+  const ROLE_BUTTON_LABEL = { parent: 'Switch to Mod View', mod: 'Switch to Admin View', admin: 'Switch to Parent View' };
+
+  function applyRoleVisibility() {
+    const modSection = document.getElementById('mod-nav-section');
+    const adminSection = document.getElementById('admin-nav-section');
+    modSection.classList.toggle('visible', currentUser === 'mod' || currentUser === 'admin');
+    adminSection.classList.toggle('visible', currentUser === 'admin');
+    document.getElementById('current-user').textContent = ROLE_LABEL[currentUser];
+    document.getElementById('role-hint').textContent = ROLE_HINT[currentUser];
+    document.getElementById('role-toggle-btn').textContent = ROLE_BUTTON_LABEL[currentUser];
+
+    // Demoting out of a role-gated page sends the viewer somewhere they can still see.
+    const onModPage = document.getElementById('mod-dashboard').classList.contains('active');
+    const onAdminPage = document.getElementById('manage-team').classList.contains('active');
+    if (onModPage && currentUser === 'parent') switchPage('home', null);
+    if (onAdminPage && currentUser !== 'admin') switchPage('home', null);
+  }
+
+  function cycleUserRole() {
+    const next = ROLE_SEQUENCE[(ROLE_SEQUENCE.indexOf(currentUser) + 1) % ROLE_SEQUENCE.length];
+    currentUser = next;
+    applyRoleVisibility();
   }
 
 
@@ -2282,6 +2673,10 @@ Thank you,<br>
   buildReferenceIndex();
 
   renderPosts();
+  renderContacts();
+  renderDirectory();
+  renderTeam();
+  applyRoleVisibility();
 
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
