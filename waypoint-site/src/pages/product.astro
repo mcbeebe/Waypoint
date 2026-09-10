@@ -1,0 +1,467 @@
+---
+/**
+ * The "why the app" page (D13 in the build plan: /product/ was reserved for
+ * this from Phase 0, never built until now). Explains what the app does and
+ * why it's worth paying for when every guide, tool, and letter on this site
+ * is free — the direct comparison a family asks before they sign up.
+ *
+ * Mocked up and approved as a Claude Design canvas before this file was
+ * written, per the owner's "plan & mock up first for new user-facing
+ * content" rule (CLAUDE.md). Hero copy and the "What do I do? -> Here's
+ * what to do next" framing are the owner's own elevator pitch, used near
+ * verbatim.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HandoffCTA from '../components/HandoffCTA.astro';
+import { appStartUrl } from '../lib/appLinks';
+
+const heroHref = appStartUrl({ slug: 'product', cta: 'product-hero' });
+const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'product-hero' });
+---
+
+<BaseLayout
+  title="What the Waypoint app does — and why it's not just another guide"
+  description="Waypoint is the GPS for navigating disability services: an AI-powered action plan, deadline tracking, and letter drafting for California families — grounded in the same laws as our free guides."
+  ogSlug="/product/"
+>
+  <div class="hero">
+    <div class="container">
+      <span class="eyebrow">The Waypoint app</span>
+      <h1>Waypoint is the GPS for navigating disability services.</h1>
+      <p class="lede">
+        When your child is diagnosed with autism, cerebral palsy, or another developmental
+        disability, you're handed a maze — Regional Centers, IEPs, Medi-Cal, SSI — and told to
+        figure it out yourself. Waypoint's AI gives California parents clear, personalized next
+        steps, grounded in the laws that protect their child's rights, from the Lanterman Act to
+        IDEA. Because families shouldn't need to become disability-law experts just to get their
+        child the support they're entitled to.
+      </p>
+      <div class="hero-actions">
+        <a
+          class="btn on-dark"
+          href={heroHref}
+          data-wp-event="app_signup_click"
+          data-wp-props={heroProps}
+        >
+          Start free →
+        </a>
+        <a class="btn ghost-dark" href="#inside">See what's inside</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="background:var(--color-paper);">
+    <div class="container">
+      <span class="eyebrow">The alternative is hours</span>
+      <h2 class="h">Without Waypoint, you're the one doing the searching.</h2>
+      <p class="sub">
+        Google, Reddit threads, Facebook groups, PDFs from three different agencies — piecing
+        together rules that change by county, hoping you didn't miss a deadline three weeks ago.
+        That's not a knock on you. That's the system. Waypoint is built to be the other way
+        around.
+      </p>
+      <div class="split-panel">
+        <div class="panel without">
+          <h3>Without it</h3>
+          <ul>
+            <li><span class="x">✕</span>Hours of searching before you even know what question to ask</li>
+            <li><span class="x">✕</span>Advice from a stranger's situation, a different county, a different year</li>
+            <li><span class="x">✕</span>You find out about a deadline after it's already passed</li>
+            <li><span class="x">✕</span>Nobody's watching your case but you</li>
+          </ul>
+        </div>
+        <div class="panel with">
+          <h3>With Waypoint</h3>
+          <ul>
+            <li><span class="ok">✓</span>The next step, before you have to ask for it</li>
+            <li><span class="ok">✓</span>Advice grounded in your child's age, diagnosis, and county</li>
+            <li><span class="ok">✓</span>A reminder before the clock runs out — and again if you don't act</li>
+            <li><span class="ok">✓</span>One quarterback for the whole case, not a library waiting to be searched</li>
+          </ul>
+        </div>
+      </div>
+      <p class="pull-quote">Waypoint turns <em>"What do I do?"</em> into <em>"Here's what to do next."</em></p>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container">
+      <span class="eyebrow">The honest comparison</span>
+      <h2 class="h">Why not just read the guides?</h2>
+      <p class="sub">
+        Good question — every guide on this site is free forever, and we mean that. Here's the
+        actual difference, one situation at a time.
+      </p>
+
+      <div class="compare-row">
+        <div class="compare-col guide"><span class="tag">A guide says</span><p>The assessment plan is due 15 calendar days after your written request.</p></div>
+        <div class="arrow" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+        <div class="compare-col app"><span class="tag">The app</span><p>Starts that clock the day you send the request, and alerts you three days before it runs out.</p></div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-col guide"><span class="tag">A guide gives you</span><p>A letter template you fill in yourself, print, and mail.</p></div>
+        <div class="arrow" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+        <div class="compare-col app"><span class="tag">The app</span><p>Drafts it filled in with your child's name, diagnosis, district, and the date — ready to send.</p></div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-col guide"><span class="tag">A guide explains</span><p>What a Notice of Action is, and that you have 60 days to appeal.</p></div>
+        <div class="arrow" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+        <div class="compare-col app"><span class="tag">The app</span><p>Stores yours, watches your specific 60-day window, and reminds you before it closes.</p></div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-col guide"><span class="tag">A search or a Facebook group</span><p>Answers a stranger's situation, from three years ago, in a different county.</p></div>
+        <div class="arrow" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+        <div class="compare-col app"><span class="tag">Waypoint's AI Navigator</span><p>Answers yours — in English or Spanish, cited to the same statutes as this site, at 2am if that's when you're up.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="inside" style="background:var(--color-paper);">
+    <div class="container">
+      <span class="eyebrow">What's actually inside</span>
+      <h2 class="h">Six things the app does that a page can't</h2>
+      <div class="grid-3 feature-grid">
+        <div class="card">
+          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+          <h3>AI Navigator</h3>
+          <p>Ask anything about your case, 24/7. Every answer cites the statute behind it — the same sourcing standard as this site.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></div>
+          <h3>Your action plan</h3>
+          <p>Built from your child's age, diagnosis, and county — not a generic checklist. Updated every time something changes.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+          <h3>Deadline tracking</h3>
+          <p>Every clock the law puts on your case — the 15-day, the 60-day, the 45-day — watched, with an alert before it runs out.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
+          <h3>Document vault</h3>
+          <p>Every NOA, IEP, and report, in one place — findable in seconds instead of a shoebox or a group chat thread.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></div>
+          <h3>Letter drafting</h3>
+          <p>Requests, appeals, and follow-ups — pre-filled with your case details and ready to send, not a blank template.</p>
+        </div>
+        <div class="card">
+          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6 6-6"></path><path d="M5 16h14"></path></svg></div>
+          <h3>Bilingual, always</h3>
+          <p>English and Spanish, full parity — not a translated afterthought bolted on after launch.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container">
+      <span class="eyebrow">How it starts</span>
+      <h2 class="h">Three steps, about five minutes</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="num">1</span>
+          <h3>Tell us about your child</h3>
+          <p>Age, diagnosis (if you have one), and county. No diagnosis required to begin.</p>
+        </div>
+        <div class="step">
+          <span class="num">2</span>
+          <h3>Get your action plan</h3>
+          <p>The exact next steps for your situation, in order — not the whole map, just your route through it.</p>
+        </div>
+        <div class="step">
+          <span class="num">3</span>
+          <h3>We track it with you</h3>
+          <p>Deadlines, documents, and letters, updated as your case moves and the law changes around you.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" style="background:var(--color-paper); padding-top:0;">
+    <div class="container">
+      <div class="trust-strip">
+        <span class="check" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </span>
+        <p>
+          The app isn't a paywalled black box. Every clock and every citation it uses is the same
+          one published, for free, in <a href="/guides/">the guides</a> — so you can always check
+          its work yourself.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="container narrow">
+      <HandoffCTA
+        heading="Free to start. Honest when you need more."
+        body="Limited AI access and every guide, free forever. Full tracking from $4.99/mo — first 3 months free, and always free if your child gets SSI or money's tight. See pricing →"
+        action="Start free →"
+        slug="product"
+        cta="product-footer"
+      />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .hero {
+    background: linear-gradient(165deg, #22303a 0%, #123f39 55%, #0f766e 135%);
+    color: #eef6f1;
+    padding: 76px 0 64px;
+  }
+  .hero .eyebrow {
+    color: #9fe8db;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(2rem, 4.5vw, 2.7rem);
+    line-height: 1.2;
+    color: #ffffff;
+    margin: 14px 0 18px;
+    max-width: 21ch;
+  }
+  .hero .lede {
+    font-size: 1.1rem;
+    color: #d3e7de;
+    max-width: 58ch;
+    margin: 0 0 30px;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .section .h {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.9rem;
+    margin: 8px 0 14px;
+  }
+
+  /* without / with */
+  .split-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 34px;
+  }
+  .panel {
+    border-radius: 16px;
+    padding: 26px 28px;
+  }
+  .panel h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.3rem;
+    margin: 0 0 16px;
+  }
+  .panel ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+  .panel li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.94rem;
+  }
+  .panel.without {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+  }
+  .panel.without h3 {
+    color: var(--color-ink-faint);
+  }
+  .panel.without .x {
+    color: #b7907a;
+    font-weight: 700;
+    flex: none;
+    margin-top: 1px;
+  }
+  .panel.with {
+    background: var(--color-pine);
+  }
+  .panel.with h3 {
+    color: #ffffff;
+  }
+  .panel.with li {
+    color: #eaf5f2;
+  }
+  .panel.with .ok {
+    color: #a9efe0;
+    font-weight: 700;
+    flex: none;
+    margin-top: 1px;
+  }
+  .pull-quote {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.7rem;
+    color: var(--color-ink);
+    text-align: center;
+    max-width: 26ch;
+    margin: 44px auto 0;
+    line-height: 1.35;
+  }
+  .pull-quote em {
+    font-style: normal;
+    color: var(--color-pine);
+  }
+
+  /* why not just guides */
+  .compare-row {
+    display: grid;
+    grid-template-columns: 1fr 28px 1fr;
+    gap: 0 18px;
+    align-items: center;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .compare-row:last-child {
+    border-bottom: none;
+  }
+  .compare-col {
+    padding: 4px 0;
+  }
+  .compare-col .tag {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .compare-col.guide .tag {
+    color: var(--color-ink-faint);
+  }
+  .compare-col.app .tag {
+    color: var(--color-sage-ink);
+  }
+  .compare-col p {
+    margin: 0;
+    color: var(--color-ink-soft);
+    font-size: 0.97rem;
+  }
+  .compare-col.app p {
+    color: var(--color-ink);
+  }
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border-strong);
+  }
+  @media (max-width: 720px) {
+    .compare-row {
+      grid-template-columns: 1fr;
+      gap: 10px 0;
+    }
+    .arrow {
+      transform: rotate(90deg);
+      justify-content: flex-start;
+      padding-left: 2px;
+    }
+  }
+
+  /* feature grid */
+  .feature-grid .icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--color-pine-tint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  /* how it works */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 30px;
+  }
+  .step {
+    position: relative;
+    padding-left: 46px;
+  }
+  .step .num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-pine);
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step h3 {
+    font-size: 1.05rem;
+    margin: 2px 0 6px;
+  }
+  .step p {
+    font-size: 0.92rem;
+    margin: 0;
+    color: var(--color-ink-soft);
+  }
+  @media (max-width: 800px) {
+    .steps {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* trust strip */
+  .trust-strip {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: var(--color-pine-tint);
+    border: 1px solid var(--color-pine-tint-pressed);
+    border-radius: 14px;
+    padding: 22px 26px;
+  }
+  .trust-strip .check {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--color-pine);
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .trust-strip p {
+    margin: 0;
+    color: var(--color-pine-deep);
+    font-size: 0.95rem;
+  }
+  .trust-strip a {
+    font-weight: 700;
+  }
+</style>

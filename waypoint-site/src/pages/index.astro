@@ -139,6 +139,11 @@ const pillars = [
     <div class="container">
       <span class="eyebrow">Why Waypoint</span>
       <h2>Other platforms tell you what to do. <span class="accent">We do it.</span></h2>
+      <p class="why-lead">
+        When your child is diagnosed, you're handed a maze — Regional Centers, IEPs, Medi-Cal,
+        SSI — and told to figure it out yourself. Waypoint turns hours of searching into one
+        clear next step.
+      </p>
       <div class="grid-2 compare">
         <div class="card generic">
           <h3>Generic advice</h3>
@@ -159,6 +164,10 @@ const pillars = [
         "I'm Mike, father of two boys in Oakland. When my son needed services, I spent hundreds
         of hours navigating the system. I built Waypoint so no family has to do it alone."
       </EmpathyCallout>
+      <div class="pull-row">
+        <p>Waypoint turns <em>"What do I do?"</em> into <em>"Here's what to do next."</em></p>
+        <a href="/product/">See everything the app does →</a>
+      </div>
     </div>
   </div>
 
@@ -264,5 +273,38 @@ const pillars = [
   }
   .card.waypoint h3 {
     color: var(--color-pine);
+  }
+  .why-lead {
+    font-size: 1.02rem;
+    color: var(--color-ink-soft);
+    max-width: 68ch;
+    margin: 0 0 4px;
+  }
+  .pull-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid var(--color-border);
+  }
+  .pull-row p {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--color-ink);
+    max-width: 34ch;
+  }
+  .pull-row p em {
+    font-style: normal;
+    color: var(--color-pine);
+  }
+  .pull-row a {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
   }
 </style>
