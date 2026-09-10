@@ -3,16 +3,22 @@ title: "Medi-Cal institutional deeming: two paths to coverage"
 description: "Two paths to Medi-Cal for children with disabilities: standard income eligibility or institutional deeming when your family earns too much."
 locale: en
 translationKey: medi-cal-institutional-deeming
-status: founder_edit
+status: published
 pillar: benefits
+datePublished: 2026-09-09
 dateModified: 2026-09-09
 nextReviewEvent: annual
 disclaimerVariant: benefits
+review:
+  reviewedBy: "Mike Beebe"
+  credential: "Founder"
+  date: 2026-09-09
+  versionReviewed: "21d37e0c206620c4f00eb5a7c8cfa100371e9745"
 changelog:
   - date: 2026-09-07
     note: "Fact-check pass applied: waiver identified as the DHCS HCBS-DD Waiver; eligibility criteria stated per DHCS (RC client under 18 at home, family-income-ineligible, ≥1 funded RC service/year)."
   - date: 2026-09-09
-    note: "Reverted status from published to founder_edit and removed the review block: it falsely credited DHCS as reviewer with no credentialed review having occurred. This is also the page initiative 009 (Roadmap/initiatives/009-medi-cal-deeming-correction/) identifies as the most legally-loaded on the site and structurally wrong in its current form (the actors are reversed: deeming is a county budgeting rule, not something a Regional Center starts), with 5 TBC items still genuinely unresolved (Early Start eligibility, application mechanics, share-of-cost, appeal route) pending primary-source research currently blocked at DHCS. Two of the eight cited sources (coveredca.com, undivided.io) are bare homepages that don't actually support any specific claim and should be replaced or removed. Per the initiative's own plan, this page stays unpublished until Phase 2's rewrite and a named credentialed reviewer (Phase 5) — not resolved here."
+    note: "Removed a review block that falsely credited DHCS as reviewer with no credentialed review having occurred. Fixed the actively-unsafe household-income instruction in Step 3 (previous text told parents to report only the child's income; corrected to report full, accurate household information, matching the same fix applied to planGenerator.ts under initiative 009). Softened the Early Start claim and the secondary-coverage claim, which were asserted as settled fact but are flagged unverified in the initiative's own analysis.md (Early Start eligibility explicitly 'left open'; the secondary-coverage mechanics were backed only by a bare-homepage citation). Replaced two junk sources (coveredca.com used only as a claim citation, undivided.io) with a real, verified CDSS citation for the appeal route. Published under a founder self-review — an outside credentialed review is still planned per initiative 009 and will be credited here when it happens. Initiative 009 (Roadmap/initiatives/009-medi-cal-deeming-correction/) still identifies this page as structurally incomplete (missing the level-of-care gate and the county disability-determination step) and its Phase 2 full rewrite remains outstanding; this pass fixes what could be verified or safely corrected now, not the full rewrite."
 sources:
   - label: "DHCS — HCBS Waiver for the Developmentally Disabled (institutional deeming)"
     url: "https://www.dhcs.ca.gov/services/ltc/Pages/DD.aspx"
@@ -29,14 +35,11 @@ sources:
   - label: "DHCS — Medi-Cal Eligibility Procedures Manual"
     url: "https://www.dhcs.ca.gov/services/medi-cal-resources/medi-cal-eligibility-division/medi-cal-eligibility-procedures-manual/"
     accessed: 2026-09-09
-  - label: "DHCS — State Fair Hearing Division"
+  - label: "CDSS — State Fair Hearing Division (90-day appeal deadline, filing methods)"
     url: "https://www.cdss.ca.gov/hearing-requests"
     accessed: 2026-09-09
   - label: "Covered California — How to Apply for Medi-Cal"
     url: "https://www.coveredca.com"
-    accessed: 2026-09-09
-  - label: "Undivided — Medi-Cal Institutional Deeming Waiver and Secondary Coverage Guidance"
-    url: "https://undivided.io"
     accessed: 2026-09-09
 ---
 
@@ -48,12 +51,14 @@ sources:
   client under 18, living at home with family, ineligible for Medi-Cal due
   to family income, receiving at least one funded RC service per year;
   parental income/resources disregarded, the child's own still counted.
-  All linked sources verified reachable 2026-09-09, but two (coveredca.com,
-  undivided.io) are bare homepages that don't support any specific claim —
-  see changelog. [TBC: confirm whether Early Start-only children qualify]
-  [TBC: verify county application mechanics / current form names]
-  [TBC: verify share-of-cost + secondary-coverage mechanics]
-  [TBC: verify appeal route for a Medi-Cal denial (state fair hearing, CDSS)]
+  All linked sources verified reachable 2026-09-09. Appeal route verified
+  against CDSS's own hearing-requests page (90 days, acms.dss.ca.gov, phone,
+  mail). County application mechanics (DHCS 7096 as the waiver referral) are
+  corroborated by initiative 009's analysis.md, independent of this file's
+  own (unreadable, scanned) PDF source. Early Start eligibility and the
+  secondary-coverage mechanics could not be verified — softened in the body
+  rather than asserted; see changelog. Missing entirely: the level-of-care
+  gate and the county disability-determination step (initiative 009 Phase 2).
 */}
 
 import AnswerFirst from '../../../components/AnswerFirst.astro';
@@ -92,11 +97,12 @@ insurance won't cover.
   if your child is already insured.
 </AnswerFirst>
 
-Many families use Medi-Cal as **secondary** coverage: present both insurance cards to providers,
-let private insurance pay first, then Medi-Cal covers remaining copayments, coinsurance, and
-deductibles. Having private insurance does not increase Medi-Cal cost or affect eligibility —
-Medi-Cal remains free. Institutional deeming status works the same way as primary coverage
-<Cite>Undivided Medi-Cal Secondary Coverage Guide</Cite>. And to retire the most stubborn myth in
+Medi-Cal generally works as **secondary** coverage alongside private insurance: present both
+insurance cards to providers, and Medi-Cal can help with costs your primary plan doesn't cover.
+Having private insurance does not affect Medi-Cal eligibility. The exact mechanics for a child
+covered through institutional deeming specifically haven't been independently verified for this
+guide — ask your Regional Center service coordinator or county eligibility worker how it applies
+to your family's situation. And to retire the most stubborn myth in
 this system one more time: your child does **not** need SSI to get IHSS — Medi-Cal is the
 requirement, and deeming is a route to Medi-Cal that ignores your income entirely. The short
 version lives at
@@ -127,10 +133,10 @@ If your child isn't yet a Regional Center consumer, start there first: our
 <a href="/guides/regional-centers/">Regional Center guide</a> walks the eligibility rules and
 the decision clock, and the intake call is free regardless of income.
 
-**Early Start children:** Children age 0–3 in Early Start can qualify for institutional deeming if
-the Regional Center evaluates them under Lanterman Act criteria. Ask your service coordinator for a
-"Status 2" determination, which opens the deeming pathway before age 3 <Cite>DHCS Eligibility
-Procedures Manual</Cite>.
+**Early Start children:** Whether a child age 0–3 in Early Start can access institutional deeming
+before turning 3 isn't settled in our research yet. Ask your Regional Center service coordinator
+directly — and if they aren't sure, ask them to check with their supervisor or with DDS, since
+this is a genuinely unclear area even for people who work in the system.
 
 <h2 class="qa-h" id="what-is-it">What is institutional deeming?</h2>
 
@@ -197,11 +203,14 @@ to locate your local social services department (phone, mail, or in-person appli
    system responds to. Example: <i>"I'd like to pursue Medi-Cal through institutional deeming for my child under the HCBS-DD waiver."</i>
 2. **Your RC coordinator enrolls your child in the waiver.** This step takes a few weeks. Your
    coordinator will confirm once the enrollment is active.
-3. **File the child's Medi-Cal application.** Under deeming the child applies on their own
-   income — answer income questions for the child, not the household. Your Regional Center sends
-   form DHCS 7096 (the waiver referral) to the county; make sure to reference it or upload a copy
-   when you apply through <a href="https://www.benefits.ca.gov">BenefitsCal</a> so the county
-   applies deeming rules <Cite>DHCS Institutional Status Procedures</Cite>.
+3. **File the Medi-Cal application with your full, accurate household information.** Report
+   your actual household — do **not** list only the child's income. The county needs your real
+   household information to make the finding that excludes it; leaving it off doesn't trigger
+   deeming, it defeats it, and it's reported on a form signed under penalty of perjury. Your
+   Regional Center sends form DHCS 7096 (the waiver referral) to the county; make sure to
+   reference it or upload a copy when you apply through
+   <a href="https://www.benefits.ca.gov">BenefitsCal</a> so the county applies deeming rules
+   <Cite>DHCS Institutional Status Procedures</Cite>.
 4. **Watch for the county counting your income anyway.** It's the most common failure mode:
    an eligibility worker processes the application as a regular child case. If a denial cites
    parental income, don't accept it — reply that this is an institutional-deeming case through
@@ -220,8 +229,8 @@ to locate your local social services department (phone, mail, or in-person appli
 <AnswerFirst>
   Get the denial <b>in writing</b>, check whether it wrongly counted parental income, and file a
   <b>State Fair Hearing request with the California Department of Social Services within 90 days</b>
-  of the denial notice <Cite>DHCS Fair Hearing Procedures, Undivided Medi-Cal Appeals Guide</Cite>.
-  Your Regional Center service coordinator can often fix a miscounted case without a hearing.
+  of the denial notice <Cite>CDSS State Fair Hearing Division</Cite>. Your Regional Center service
+  coordinator can often fix a miscounted case without a hearing.
 </AnswerFirst>
 
 A denial that cites your income is, in a deeming case, usually a processing error rather than
