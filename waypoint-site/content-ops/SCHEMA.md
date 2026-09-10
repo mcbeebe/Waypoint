@@ -43,8 +43,8 @@ pages derives from `translationKey` + `locale`, never from the filename.
 | `research` | `src/content/research/` | Original data/research publications | `datasetUrl`, `methodologyKey` |
 | `legal` | `src/content/legal/` | Privacy policy, terms, disclaimers | **Separate lighter schema** — see [Legal collection](#legal-collection-separate-schema) |
 
-All collections except `legal` share the base schema (`seoBase`) and the
-published-requires-review refine.
+All collections except `legal` share the base schema (`seoBase`). They no
+longer share a published-requires-review refine — see **D2-R** below.
 
 ---
 
@@ -64,26 +64,30 @@ preview builds.
 | `founder_edit` | Mike is actively editing: voice pass (validate the feeling → plain-language statute-cited steps → earned pride), resolving `[TBC]`s, grade 7–8 readability check. | Founder, when he picks up the draft | `[TBC]`s should be resolved or explicitly flagged for the reviewer here. |
 | `in_review` | Frozen and handed to the credentialed reviewer. | Founder, when the edit pass is done | Only reviewer-requested changes land. Note the commit SHA that was handed over — it becomes `review.versionReviewed`. If substantive changes are made after hand-off, the review restarts against the new SHA. |
 | `approved` | Reviewer signed off; the `review` block is filled in. Waiting for a publish slot. | Founder, after transcribing the reviewer's sign-off | The gap between `approved` and `published` exists because of the **cadence cap**: publish rate = reviewer throughput, counting *all* reviewed items (guides, answers, letters, RC pages, and each ES translation separately). |
-| `published` | Live on waypointchild.com. | Founder, at publish | **Build-enforced:** `published` with `review: null` fails `astro build` (see next section). Set `datePublished` in the same commit. No `[TBC]` may remain anywhere in the file. |
+| `published` | Live on waypointchild.com. | Founder, at publish | Set `datePublished` in the same commit. No `[TBC]` may remain anywhere in the file — resolve it or reword it into an honest, on-page disclosure of the gap (see below); the RC collection additionally still build-refuses `published` with `verifiedAsOf: null` (D11). |
 
 Demotion is allowed: if a published page's facts go stale or a reviewer
 withdraws sign-off, drop it back to `in_review` (it disappears from the site on
 the next deploy) and log why in `changelog`.
 
-### The published-requires-review refine (build-enforced)
+### D2-R: published-requires-review REMOVED (owner decision, 2026-09-09)
 
-`content.config.ts` attaches this refine to every YMYL collection (`guides`,
-`answers`, `letters`, `regionalCenters`, `research`):
+Until 2026-09-09, `content.config.ts` attached a refine to every YMYL
+collection (`guides`, `answers`, `letters`, `regionalCenters`, `research`)
+that build-failed any `published` page with `review: null`. **That refine has
+been removed, site-wide, by explicit owner decision** — see the decisions
+register and execution log in
+`Roadmap/initiatives/008-marketing-content-site/plan.md` for the record. A
+page may now reach `published` with no reviewer at all.
 
-> `status: 'published'` requires `review !== null`
-
-A page marked `published` with an empty review block does not deploy with a
-warning — **the build fails**, with the message
-`status 'published' requires a completed review block (D2 / trust contract)`
-pointing at the `review` field. This is deliberate: the trust contract is
-enforced by machinery, not memory. Do not work around it by stuffing
-placeholder text into the review block; the block is the reviewer's
-attestation.
+This does not relax the `[TBC]` rule (`scripts/check-tbc.mjs` still hard-fails
+`in_review`/`approved`/`published` content with a `[TBC]` marker) or the RC
+`verifiedAsOf` gate (D11, still build-enforced). It only removes the
+requirement that a credentialed human vouch for the content before it ships.
+Content published under this decision should say so honestly where a family
+would expect a byline, rather than imply a review happened — do not write a
+`review` block naming a person who did not actually review the page. Prefer
+leaving `review: null` over a fabricated or stand-in attestation.
 
 The `legal` collection is exempt from the ladder — see below.
 
