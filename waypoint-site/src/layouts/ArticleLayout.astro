@@ -2,8 +2,17 @@
 /**
  * Shared article template for guides, answers, letters, and regional-center
  * pages. The MDX body owns its column structure (cols/aside via components);
- * the layout owns the trust chrome: breadcrumbs, draft banner, trust block,
- * change log, disclaimer, JSON-LD, and the read_complete beacon.
+ * the layout owns the trust chrome: breadcrumbs, draft banner, change log,
+ * disclaimer, JSON-LD, and the read_complete beacon.
+ *
+ * D2-R (owner decision, 2026-09-09): the on-page author/reviewer byline
+ * (TrustBlock: "By X, parent-founder" / "Reviewed by Y" / "Updated") is
+ * REMOVED site-wide, in every state (draft, no review, or a real review
+ * block) — not just for the review-less pages published under D2-R. See
+ * Roadmap/initiatives/008-marketing-content-site/plan.md (D2-R). The
+ * `author`/`review` props still feed Article JSON-LD below (the invisible
+ * schema.org markup search engines read) — only the visible on-page block
+ * is gone.
  *
  * Article JSON-LD is emitted ONLY for published entries — datePublished and
  * reviewer fields must match frontmatter, never be invented (checklist row 7).
@@ -11,7 +20,6 @@
 import BaseLayout from './BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import DraftBanner from '../components/DraftBanner.astro';
-import TrustBlock from '../components/TrustBlock.astro';
 import InlineDisclaimer from '../components/InlineDisclaimer.astro';
 import CrisisBanner from '../components/CrisisBanner.astro';
 import { articleJsonLd } from '../lib/jsonld';
@@ -90,7 +98,6 @@ const jsonLd = !isDraft
       {isDraft && <DraftBanner status={status} />}
       <h1 class="h1-a">{heading}</h1>
       <slot name="notice" />
-      <TrustBlock author={author} review={review} dateModified={dateModified} />
       <slot name="summary" />
       <div
         id="article-root"
