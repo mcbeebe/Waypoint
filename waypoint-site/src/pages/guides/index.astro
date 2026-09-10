@@ -23,23 +23,40 @@ const answers = await visibleEntries('answers');
       <span class="eyebrow">The library</span>
       <h1>Every system, mapped. Free, in plain language.</h1>
       <p class="lede">
-        Six pillars cover every system your family will touch — Regional Centers, school, money,
-        insurance, and the first steps after a diagnosis. Every guide is written in plain
-        language and cites the actual statute. Reviewed, updated, and free. No email gate. No
-        paywall. Ever.
+        These guides cover every system your family will touch — Medi-Cal, Regional Centers,
+        school, money, insurance, and the first steps after a diagnosis. Every guide is written
+        in plain language and cites the actual statute. Reviewed, updated, and free. No email
+        gate. No paywall. Ever.
       </p>
     </div>
   </div>
 
   <div class="section">
     <div class="container">
-      <span class="eyebrow">Six pillars</span>
+      <span class="eyebrow">Start here</span>
       <h2>Pick the system you're dealing with today</h2>
       <p class="sub">
         Each pillar is a hub of deep-dive guides, tools, and ready-to-send letters. Start
         anywhere — they all connect.
       </p>
       <div class="grid-2">
+        <div class="card">
+          <h3>Medi-Cal institutional deeming</h3>
+          <p>
+            A path to Medi-Cal for a child with disabilities when your family earns too much for
+            standard income eligibility — parental income doesn't count once your child qualifies
+            through Regional Center or SSI-linked disability status.
+          </p>
+          {
+            has('/guides/benefits/medi-cal-institutional-deeming/') ? (
+              <a class="link" href="/guides/benefits/medi-cal-institutional-deeming/">
+                Read the Medi-Cal deeming guide →
+              </a>
+            ) : (
+              <span class="link soon">Publishing soon</span>
+            )
+          }
+        </div>
         <div class="card">
           <h3>Regional Centers &amp; the Lanterman Act</h3>
           <p>
