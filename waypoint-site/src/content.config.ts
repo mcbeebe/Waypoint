@@ -1,15 +1,26 @@
 /**
  * The content schema contract (Decision D2 in the build plan).
  *
- * This file IS the enforcement mechanism for the site's SEO and trust
- * contract: a page missing its description, translationKey, or review
- * metadata fails `astro build`. Content-ops owns the field semantics
- * (documented in content-ops/SCHEMA.md); engineering owns the wiring.
+ * This file IS the enforcement mechanism for the site's SEO contract: a page
+ * missing its description or translationKey fails `astro build`.
+ * Content-ops owns the field semantics (documented in
+ * content-ops/SCHEMA.md); engineering owns the wiring.
  *
  * Status ladder: draft → founder_edit → in_review → approved → published.
- * Nothing YMYL renders publicly unless status === 'published', and
- * status can only reach 'published' with a completed review block —
- * enforced by the refine below, not by convention.
+ * Nothing YMYL renders publicly unless status === 'published'.
+ *
+ * D2-R (owner decision, 2026-09-09): the published-requires-review-block
+ * refine that used to gate this — "status can only reach 'published' with a
+ * completed review block" — is REMOVED, site-wide, for every collection that
+ * had it (guides, answers, letters, regionalCenters, research). A page may
+ * now publish with `review: null`. This was a deliberate, explicit owner
+ * call made in a chat session on 2026-09-09 to unblock publishing 21
+ * Regional Center pages and 4 IEP/IPP guides that had no reviewer lined up;
+ * the request was to remove the reviewer attribution from those pages
+ * entirely rather than name a stand-in reviewer. See the decisions register
+ * and execution log in Roadmap/initiatives/008-marketing-content-site/plan.md
+ * (D2-R) for the full record — the D11 verifiedAsOf gate on regionalCenters
+ * is UNCHANGED and still refuses to publish an unverified RC page.
  */
 import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
@@ -105,46 +116,31 @@ const seoBase = z.object({
 });
 
 /**
- * Published YMYL pages must carry a completed review block AND a real
- * datePublished — Article JSON-LD must never have to invent one.
+ * D2-R (owner decision, 2026-09-09): published-requires-review removed.
+ * `datePublished` is still expected in practice for Article JSON-LD, but it
+ * is no longer build-enforced alongside `review` — see the file header.
  */
-const requireReviewWhenPublished = (data: {
-  status: string;
-  review: unknown;
-  datePublished: unknown;
-}) => data.status !== 'published' || (data.review !== null && data.datePublished !== null);
-const REVIEW_MSG = {
-  message:
-    "status 'published' requires a completed review block and datePublished (D2 / trust contract)",
-  path: ['review'],
-};
 
 const guides = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/guides' }),
-  schema: seoBase
-    .extend({ pillar: z.enum(PILLARS) })
-    .refine(requireReviewWhenPublished, REVIEW_MSG),
+  schema: seoBase.extend({ pillar: z.enum(PILLARS) }),
 });
 
 const answers = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/answers' }),
-  schema: seoBase
-    .extend({
-      pillar: z.enum(PILLARS),
-      /** Provenance of the question: how it entered the queue. */
-      questionSource: z.enum(['chat-mined', 'gsc', 'paa', 'kb', 'editorial']).default('editorial'),
-    })
-    .refine(requireReviewWhenPublished, REVIEW_MSG),
+  schema: seoBase.extend({
+    pillar: z.enum(PILLARS),
+    /** Provenance of the question: how it entered the queue. */
+    questionSource: z.enum(['chat-mined', 'gsc', 'paa', 'kb', 'editorial']).default('editorial'),
+  }),
 });
 
 const letters = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/letters' }),
-  schema: seoBase
-    .extend({
-      pillar: z.enum(PILLARS),
-      letterId: z.string(),
-    })
-    .refine(requireReviewWhenPublished, REVIEW_MSG),
+  schema: seoBase.extend({
+    pillar: z.enum(PILLARS),
+    letterId: z.string(),
+  }),
 });
 
 const regionalCenters = defineCollection({
@@ -178,7 +174,6 @@ const regionalCenters = defineCollection({
       verifiedAsOf: z.coerce.date().nullable().default(null),
       notAffiliated: z.literal(true).default(true),
     })
-    .refine(requireReviewWhenPublished, REVIEW_MSG)
     .refine((data) => data.status !== 'published' || data.verifiedAsOf !== null, {
       message:
         "status 'published' requires a real verifiedAsOf date — an unverified Regional Center page must not ship (D11)",
@@ -188,12 +183,10 @@ const regionalCenters = defineCollection({
 
 const research = defineCollection({
   loader: glob({ pattern: '**/*.mdx', base: './src/content/research' }),
-  schema: seoBase
-    .extend({
-      datasetUrl: z.string().nullable().default(null),
-      methodologyKey: z.string().nullable().default(null),
-    })
-    .refine(requireReviewWhenPublished, REVIEW_MSG),
+  schema: seoBase.extend({
+    datasetUrl: z.string().nullable().default(null),
+    methodologyKey: z.string().nullable().default(null),
+  }),
 });
 
 /** Legal pages: counsel-reviewed copy; lighter schema, same freshness discipline. */
