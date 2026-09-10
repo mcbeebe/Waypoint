@@ -5,11 +5,14 @@
  * and the entity pages can never disagree, and coverage grows as verified
  * entity pages land. No hand-typed county map, ever.
  *
- * noindex stays true until the tool's copy passes expert review.
+ * Published 2026-09-10: all 21 Regional Center entity pages are now
+ * `status: published` with verified county/phone/DDS-listing data (D2-R —
+ * routing data was never gated on the review ladder in the first place,
+ * see regionalCenters.ts; the field-guide `url` per record was the one
+ * field waiting on it, and now isn't). noindex/draft removed accordingly.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
-import DraftBanner from '../../components/DraftBanner.astro';
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
 import NoticeBox from '../../components/NoticeBox.astro';
@@ -25,7 +28,6 @@ const covered = records.length;
 <BaseLayout
   title="Find your California Regional Center — Waypoint"
   description="California has 21 Regional Centers, each serving specific counties. Pick your county to find the center that serves your family and how the intake clock works."
-  noindex={true}
   pillar="regional-centers"
 >
   <PageHero
@@ -35,7 +37,6 @@ const covered = records.length;
   />
   <div class="section">
     <div class="container">
-      <DraftBanner status="draft" />
       {
         covered < 21 && (
           <NoticeBox>
