@@ -49,7 +49,7 @@ describing what a statute mandates plans to cover — and then as description,
 never endorsement ("SB 946 requires most fully-insured plans to cover
 prescribed behavioral health treatment", not "get ABA covered"). Never rank
 approaches, never imply one is standard of care, and never frame a therapy as
-the goal of an insurance fight — coverage of *what the clinician prescribed*
+the goal of an insurance appeal — coverage of *what the clinician prescribed*
 is the goal. This applies to guides, answers, letters, hub/marketing cards,
 CTAs, and AI-drafted copy alike.
 

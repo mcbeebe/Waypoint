@@ -60,7 +60,7 @@ export const AGENCIES: Agency[] = [
     phone: '',
     website: '',
     what: 'CA law (SB 946) mandates ABA for autism. Plans must cover OT, speech, PT. Mental health parity applies.',
-    whyMatters: 'Insurance is first payer. ~60% of denials overturned on appeal. Always fight denials.',
+    whyMatters: 'Insurance is first payer. ~60% of denials overturned on appeal. Always push back on denials.',
     services: ['ABA therapy (mandated — SB 946)', 'OT, Speech, PT', 'Psychiatric services', 'DME'],
     rights: ['Appeal any denial', 'Independent Medical Review (DMHC/CDI)', 'Out-of-network if none available', 'Timely access: 15 business days'],
     watchOut: 'First requests frequently denied. This is common, NOT the end. Appeal immediately.',
@@ -87,7 +87,7 @@ export const AGENCIES: Agency[] = [
     whyMatters: 'One of few programs that pays parents for caregiving they already do.',
     services: ['Personal care', 'Domestic services', 'Protective supervision (up to 24hr)', 'Medical transport'],
     rights: ['Choose your provider (including parent)', 'Request reassessment anytime', 'Fair Hearing'],
-    watchOut: 'Document every task in a full 24-hour day. Fight for protective supervision.',
+    watchOut: 'Document every task in a full 24-hour day. Ask for more protective supervision hours.',
   },
   {
     key: 'medicaid',
