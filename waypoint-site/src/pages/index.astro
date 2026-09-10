@@ -88,6 +88,7 @@ const pillars = [
         }
         <a class="btn ghost-dark" href="/guides/">Browse free guides</a>
       </div>
+      <p class="cta-note">Free to start · no credit card</p>
       <div class="stat-row">
         <div class="stat"><b>23</b><span>agencies mapped</span></div>
         <div class="stat"><b>21</b><span>regional centers profiled</span></div>
@@ -144,6 +145,22 @@ const pillars = [
         SSI — and told to figure it out yourself. Waypoint turns hours of searching into one
         clear next step.
       </p>
+      <div class="split-panel">
+        <div class="panel without">
+          <h3>Without it</h3>
+          <ul>
+            <li><span class="x">✕</span>Hours of searching before you know what to ask</li>
+            <li><span class="x">✕</span>You find out about a deadline after it's passed</li>
+          </ul>
+        </div>
+        <div class="panel with">
+          <h3>With Waypoint</h3>
+          <ul>
+            <li><span class="ok">✓</span>The next step, before you have to ask for it</li>
+            <li><span class="ok">✓</span>A reminder before the clock runs out</li>
+          </ul>
+        </div>
+      </div>
       <div class="grid-2 compare">
         <div class="card generic">
           <h3>Generic advice</h3>
@@ -175,10 +192,11 @@ const pillars = [
     <div class="container narrow">
       <HandoffCTA
         heading="Three steps to clarity"
-        body="Tell us about your child · see what they qualify for · get your step-by-step plan. Free to start."
+        body="Tell us about your child · see what they qualify for · get your step-by-step plan."
         action="Get started free"
         slug="home"
         cta="home-footer"
+        note="Free to start · no credit card"
       />
     </div>
   </div>
@@ -217,6 +235,11 @@ const pillars = [
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+  }
+  .cta-note {
+    font-size: 0.78rem;
+    color: #9fc5b9;
+    margin: 10px 0 0;
   }
   .stat-row {
     display: flex;
@@ -279,6 +302,72 @@ const pillars = [
     color: var(--color-ink-soft);
     max-width: 68ch;
     margin: 0 0 4px;
+  }
+  .split-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 22px 0 28px;
+  }
+  .panel {
+    border-radius: 14px;
+    padding: 20px 22px;
+  }
+  .panel h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.08rem;
+    margin: 0 0 12px;
+  }
+  .panel ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .panel li {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    font-size: 0.9rem;
+  }
+  .panel.without {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+  }
+  .panel.without h3 {
+    color: var(--color-ink-faint);
+  }
+  .panel.without li {
+    color: var(--color-ink-soft);
+  }
+  .panel.without .x {
+    color: #b7907a;
+    font-weight: 700;
+    flex: none;
+    margin-top: 1px;
+  }
+  .panel.with {
+    background: var(--color-pine);
+  }
+  .panel.with h3 {
+    color: #ffffff;
+  }
+  .panel.with li {
+    color: #eaf5f2;
+  }
+  .panel.with .ok {
+    color: #a9efe0;
+    font-weight: 700;
+    flex: none;
+    margin-top: 1px;
+  }
+  @media (max-width: 800px) {
+    .split-panel {
+      grid-template-columns: 1fr;
+    }
   }
   .pull-row {
     display: flex;

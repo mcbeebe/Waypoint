@@ -17,8 +17,25 @@ interface Props {
   ctx?: WpCtx;
   /** Marks the link so the checklist script can refresh its wp_ctx. */
   checklist?: boolean;
+  /** Short friction-reducer under the button ("Free to start · no credit
+   * card") — conversion best practice is putting this next to the ask, not
+   * only in a trustband elsewhere on the page. Optional: most of this
+   * component's 40+ callers don't need it: it exists for the homepage's
+   * primary conversion CTAs. */
+  note?: string;
 }
-const { heading, body, action, slug, cta, pillar, locale = 'en', ctx, checklist = false } = Astro.props;
+const {
+  heading,
+  body,
+  action,
+  slug,
+  cta,
+  pillar,
+  locale = 'en',
+  ctx,
+  checklist = false,
+  note,
+} = Astro.props;
 const href = appStartUrl({ slug, cta, pillar, locale, ctx });
 const props = JSON.stringify({
   slug,
@@ -30,13 +47,16 @@ const props = JSON.stringify({
 
 <div class="handoff">
   <div><b>{heading}</b><span>{body}</span></div>
-  <a
-    class="btn on-dark"
-    href={href}
-    data-wp-event="app_signup_click"
-    data-wp-props={props}
-    data-checklist-cta={checklist || undefined}
-  >
-    {action}
-  </a>
+  <div class="handoff-cta-wrap">
+    <a
+      class="btn on-dark"
+      href={href}
+      data-wp-event="app_signup_click"
+      data-wp-props={props}
+      data-checklist-cta={checklist || undefined}
+    >
+      {action}
+    </a>
+    {note && <p class="handoff-note">{note}</p>}
+  </div>
 </div>
