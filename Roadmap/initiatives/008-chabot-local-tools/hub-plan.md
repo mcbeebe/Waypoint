@@ -106,16 +106,91 @@ flagging, the mod view, search ranking, the AI call path, responsive layout.
 and nothing is shared between viewers. This is the gap between the prototype
 and something 10–20 Chabot parents could actually use.
 
+## Decided: authentication and backend (Sep 10 2026)
+
+The owner asked for login so parent content can't be openly shared or
+scraped. That settled the backend question too, because **you cannot bolt
+real login onto a static HTML file** — whatever the page holds ships to the
+browser, so a JS password prompt is defeated by View Source. Real auth needs
+a server that withholds content from unauthenticated requests.
+
+Owner decisions:
+
+| Question | Decision |
+|---|---|
+| Who gets past login | **Any signed-in account** — no allowlist, no approval queue |
+| Public/private line | **Guides public, parent stories private** |
+
+**Platform: Firebase** (Auth + Firestore + Hosting), not Supabase.
+
+The deciding factor is operational, not technical. Supabase's free tier
+**pauses a project after 1 week of inactivity**; paused projects are
+restorable for 90 days, after which the data is only recoverable as a
+backup download ([Supabase docs](https://supabase.com/docs/guides/platform/free-project-pausing)).
+A school-year hub goes quiet every summer, which means a guaranteed annual
+outage a PTA volunteer would have no way to diagnose. Evidence this is not
+hypothetical: the `iepclarity` project in this same Supabase org currently
+reports `status: INACTIVE`. Escaping it costs $25/mo carried by someone for
+five years, which defeats the premise.
+
+Firebase's Spark (free) tier does not pause idle projects. **Caveat on
+sourcing:** the Supabase behavior is confirmed from Supabase's own docs; the
+Firebase behavior is confirmed only from secondary comparison sources
+(<https://supertokens.com/blog/firebase-pricing>,
+<https://blog.back4app.com/firebase-pricing/>) because
+`firebase.google.com` is blocked by this environment's network proxy.
+**Re-verify against Firebase's primary docs before building.**
+
+Also noted while verifying: Spark-plan projects have **no Cloud Storage
+bucket access** (calls return 402/403). Irrelevant now, but it would block
+file attachments (IEP templates, photos) if those are ever wanted.
+
+Firebase also fits the handoff story this initiative already assumes: it is
+owned by a Google account, the same institutional continuity the Chabot
+Google Group relies on.
+
+Rejected: **Apps Script + Sheets**, despite matching `gas-mvp`'s proven
+zero-maintenance pattern. Research this session found `Code.gs` uses **zero
+`LockService`** across 61 `SpreadsheetApp` call sites, so concurrent edits
+from multiple volunteers risk lost writes; `google.script.run` has no push
+channel, so "realtime" means polling; and the built UI would need a rewrite
+rather than a port.
+
+The full architecture — collections, security rules, the two-tier page
+split, and the migration path — is specified in the approved plan for this
+work. Not yet built.
+
+### What "any signed-in account" honestly buys
+
+It stops anonymous scraping, bulk crawlers and search-engine indexing,
+which is most of the realistic threat. It does **not** stop a determined
+person, who needs one throwaway account, and it never stops a signed-in
+member from copying what they read. The guideline about not posting
+identifying details of children remains the actual privacy protection; auth
+is a perimeter, not a vault. The schema should therefore carry an
+`approved` flag defaulting to true, so tightening the boundary later is a
+config change rather than a migration.
+
+### Still needs the owner before building
+
+- **Who owns the Firebase/Google account** holding this for five years.
+  That is the real handoff question, and it is a person-decision.
+- Whether email-link sign-in is wanted alongside Google, for parents
+  without a Google account.
+
 ## Open decisions
 
-1. **Public sharing vs AI search** — owner's call (see above).
-2. **Backend.** The artifact `db` capability would give real cross-viewer
-   persistence without standing up Supabase. Not started; not yet asked for.
-3. **Real content.** Provider names, phone numbers and the Chabot/OUSD contact
+1. **Public sharing vs AI search** — owner's call (see above). Note that
+   the auth decision above partly overtakes this: once the member view is
+   behind Firebase Auth on its own hosting, the Claude Artifact stops being
+   the delivery mechanism and its sharing setting stops mattering.
+2. **Real content.** Provider names, phone numbers and the Chabot/OUSD contact
    table are placeholders or `[Fill in]`. Nothing here has been fact-checked
    against a primary source, and it must be before any parent sees it.
-4. **Relationship to the Google Group.** Both exist; whether the hub replaces
+3. **Relationship to the Google Group.** Both exist; whether the hub replaces
    the group, or the group stays the email-native front door, is undecided.
+   The auth decision makes this sharper: if members sign in with Google
+   anyway, the Group could plausibly become the membership list.
 
 ## QA
 
