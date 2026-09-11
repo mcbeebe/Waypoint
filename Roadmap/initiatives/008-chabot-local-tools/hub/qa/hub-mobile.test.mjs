@@ -13,7 +13,8 @@ const pass = (n) => results.push({ ok: true, name: n });
 const fail = (n, d) => results.push({ ok: false, name: n, detail: d });
 
 const ALL_PAGES = ['home','search','navigator','discussions','my-posts','guidelines',
-  'resources','iep-guide','classroom','directory','contacts','wisdom','how-to-ask','mod-dashboard'];
+  'resources','iep-guide','classroom','directory','contacts','wisdom','how-to-ask',
+  'mod-dashboard','manage-team','manage-pages'];
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
 

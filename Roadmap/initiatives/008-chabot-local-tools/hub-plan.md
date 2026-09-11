@@ -100,11 +100,85 @@ redirects the AI.
 ## What is real and what is not
 
 **Real:** every screen, the posting flows, threading, replies, helpful votes,
-flagging, the mod view, search ranking, the AI call path, responsive layout.
+flagging, the mod view, search ranking, the AI call path, responsive layout,
+the admin/member permission model, member-editable Contacts and Directory,
+admin-only Manage Team, and admin-authored custom pages (see below).
 
 **Not real:** persistence. State lives in a JS array, so a refresh resets it
 and nothing is shared between viewers. This is the gap between the prototype
-and something 10–20 Chabot parents could actually use.
+and something 10–20 Chabot parents could actually use — and it's the reason
+the auth/backend decision below exists.
+
+## Admin/Member permission framework (Sep 10 2026)
+
+Built in response to the owner asking for a sustainability framework: someone
+other than the owner has to be able to run this hub, permanently, without
+asking a developer to edit code.
+
+Three roles, cycled by one button for demo purposes (`cycleUserRole()`):
+**parent** (default) → **mod** → **admin** → back to parent. Admin sees
+everything mod sees, plus a "Site Admin" nav section.
+
+- **Contacts and Directory are Member-editable, not admin-gated** — any
+  parent can fix a wrong phone number or add a provider, per the owner's
+  explicit instruction ("make contacts editable by Members; directory same").
+  Both converted from hardcoded markup to data arrays with edit-in-place
+  modals, matching the Discussions/Wisdom posting pattern already built.
+- **Manage Team is admin-only**: add or remove admins and mods, with a
+  guard against removing the last admin (the hub can never be orphaned).
+  The Mod Dashboard's roster card now reads from this live team array
+  instead of three hardcoded names.
+- Fixed a real bug while converting Directory: "+ Add a Provider" used to
+  write into the generic Discussions feed as a tip instead of into the
+  Directory.
+
+**A real bug QA caught, not just a hypothetical one:** the id counters for
+new contacts/directory entries/team members started at the same round
+number their seed data was built from (300/400/500), so the *second* item
+of each type collided with a seed record's id. Confirmed live — removing a
+test moderator silently deleted the seed admin "You" because they shared an
+id, since `removeTeamMember` filters by id and a collision deletes every
+record sharing it. Fixed by starting each counter above its highest seed id;
+a regression test now adds several of each type and asserts no id repeats.
+
+## Page Builder — admin-authored pages (Sep 11 2026)
+
+The remaining sustainability gap: even with Contacts and Directory
+member-editable, *which pages exist at all* — Essential Info, IEP
+Essentials, the whole sidebar structure — was still 100% hardcoded HTML.
+An admin parent could not add a page; that still required editing the
+source file.
+
+**Manage Pages** (admin-only) closes this. An admin picks a title, an
+optional subtitle, which sidebar section it lives in (an existing one, or
+types a new section name), and writes the body in a deliberately tiny
+markdown: blank-line paragraphs, `#`/`##` headings, `- ` bullets, `**bold**`
+— nothing else, by design; it's the smallest set of tools that covers how
+every existing page here is actually written. Publishing is immediate and
+shows up in the sidebar for every viewer right away; editing and deleting
+work the same way, in place.
+
+Security note, same shape as the injection-safety already tested elsewhere
+in this app: the body is escaped *before* the tiny markdown parser runs, so
+formatting operates on inert text and the output can only ever be the
+handful of tags the renderer itself writes (`h2`, `h3`, `p`, `ul`, `li`,
+`strong`) — never raw HTML a parent typed. Tested: an `<img onerror=...>` in
+a title and a `<script>` in a body both render as visible plain text, not
+as markup.
+
+**A real bug found while building this, not just while testing it:** the
+renderer that injects custom pages into the nav (`renderCustomPages()`)
+was wired into the same generic refresh chain as `renderContacts()` /
+`renderDirectory()` / `renderTeam()` inside `switchPage()`. Those three only
+refresh list *contents*; `renderCustomPages()` rebuilds the page `<div>`s
+themselves from scratch — so navigating *to* a custom page called
+`switchPage()`, which set `.active`, then immediately ran
+`renderCustomPages()` again as part of its own refresh chain, which
+recreated that same page's DOM node without the `.active` class it had just
+been given a moment earlier. The page you'd just clicked into silently
+failed to display. Fixed by only calling `renderCustomPages()` when page
+*data* actually changes (publish/edit/delete) and once at load, not on
+every navigation.
 
 ## Decided: authentication and backend (Sep 10 2026)
 
@@ -171,6 +245,25 @@ is a perimeter, not a vault. The schema should therefore carry an
 `approved` flag defaulting to true, so tightening the boundary later is a
 config change rather than a migration.
 
+### Correction: "Google" does not mean "integrates with the Google Group"
+
+Firebase Auth's Google sign-in and checking Google Group *membership* are
+unrelated capabilities that happen to share a vendor. Confirmed from
+Google's own docs: checking whether an account belongs to a group
+(`hasMember`) is a **Workspace Admin SDK** call, which only works for
+groups hosted in a paid, admin-managed **Workspace domain**
+(<https://developers.google.com/workspace/admin/directory/reference/rest/v1/members/hasMember>).
+The Chabot Google Group this initiative already created is a free consumer
+group at groups.google.com, not a Workspace domain — there is no free API
+to check membership in it.
+
+This retracts the speculative "Relationship to the Google Group" note
+below ("the Group could plausibly become the membership list") — that
+undersold the cost. Making it real would mean someone owning a paid
+Workspace domain and migrating the Group into it, reopening the ownership
+question this whole plan exists to settle. "Any signed-in account" (the
+decision already made) does not depend on this and is unaffected.
+
 ### Still needs the owner before building
 
 - **Who owns the Firebase/Google account** holding this for five years.
@@ -189,13 +282,14 @@ config change rather than a migration.
    against a primary source, and it must be before any parent sees it.
 3. **Relationship to the Google Group.** Both exist; whether the hub replaces
    the group, or the group stays the email-native front door, is undecided.
-   The auth decision makes this sharper: if members sign in with Google
-   anyway, the Group could plausibly become the membership list.
+   (An earlier version of this note speculated the Group could become the
+   membership list — retracted above: that needs a paid Workspace domain,
+   not the free consumer group already created.)
 
 ## QA
 
-180 automated browser checks across three suites — see `hub/qa/README.md`.
-Bugs these caught, all of which had shipped in an earlier build:
+276 automated browser checks across five suites — see `hub/qa/README.md`.
+Bugs these caught, most shipped in an earlier build and one caught mid-build:
 
 - a duplicate element id meant every reply was read from the wrong field
 - user content was interpolated unescaped (a posted `<script>` executed)
@@ -203,3 +297,8 @@ Bugs these caught, all of which had shipped in an earlier build:
 - on a phone the sidebar was `display: none`, so there was **no navigation at
   all**; a "no horizontal scroll" test had been passing precisely because of it
 - searching twice quickly let the cancelled first call blank the second's panel
+- id counters for new contacts/directory entries/team members collided with
+  seed data ids, so removing one record could silently delete an unrelated one
+- publishing a custom page and immediately clicking into it showed a blank
+  page, because the page-list renderer ran again inside the same navigation
+  and wiped the `.active` class it had just been given

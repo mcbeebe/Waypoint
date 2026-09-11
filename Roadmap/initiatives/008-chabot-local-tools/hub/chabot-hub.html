@@ -560,7 +560,7 @@
       <div class="nav-link" onclick="switchPage('navigator', event)">Navigator (Roadmap)</div>
     </div>
 
-    <div class="nav-section">
+    <div class="nav-section" data-section="Community">
       <div class="nav-section-title">Community</div>
       <div class="nav-link" onclick="switchPage('discussions', event)">Discussions <span class="nav-note">short</span></div>
       <div class="nav-link" onclick="switchPage('wisdom', event)">Wisdom <span class="nav-note">long-form</span></div>
@@ -568,7 +568,7 @@
       <div class="nav-link" onclick="switchPage('guidelines', event)">Community Guidelines</div>
     </div>
 
-    <div class="nav-section">
+    <div class="nav-section" data-section="Essential Info">
       <div class="nav-section-title">Essential Info</div>
       <div class="nav-link" onclick="switchPage('resources', event)">Key Resources</div>
       <div class="nav-link" onclick="switchPage('iep-guide', event)">IEP Essentials</div>
@@ -576,7 +576,7 @@
       <div class="nav-link" onclick="switchPage('how-to-ask', event)">How to Ask (Templates)</div>
     </div>
 
-    <div class="nav-section">
+    <div class="nav-section" data-section="Directory">
       <div class="nav-section-title">Directory</div>
       <div class="nav-link" onclick="switchPage('directory', event)">Local Providers</div>
       <div class="nav-link" onclick="switchPage('contacts', event)">School/District Contacts</div>
@@ -590,7 +590,9 @@
     <div class="nav-section admin-only" id="admin-nav-section">
       <div class="nav-section-title">Site Admin</div>
       <div class="nav-link" onclick="switchPage('manage-team', event)">Manage Team</div>
+      <div class="nav-link" onclick="switchPage('manage-pages', event)">Manage Pages</div>
     </div>
+    <div class="nav-section custom-nav-section" id="custom-nav-section" data-section="__custom__" style="display:none;"></div>
 
     <div class="user-badge">
       <p><strong id="current-user">You: Parent (Demo)</strong></p>
@@ -1362,7 +1364,70 @@ Thank you,<br>
       </div>
     </div>
 
+    <!-- MANAGE PAGES (admin only) -->
+    <div id="manage-pages" class="page">
+      <h1>Manage Pages</h1>
+      <p class="subtitle">Add a new reference page — like IEP Essentials or Key Resources — without touching code.
+      Published pages appear in the sidebar for every parent immediately.</p>
+
+      <div style="margin-bottom: 20px;">
+        <button onclick="openPageModal()">+ New Page</button>
+      </div>
+
+      <div id="custom-pages-admin-list"></div>
+
+      <div class="highlight-box">
+        <strong>Formatting cheatsheet:</strong> a blank line starts a new paragraph.
+        <code># </code> or <code>## </code> at the start of a line makes a heading.
+        <code>- </code> starts a bullet list. <code>**bold**</code> makes text bold.
+        Nothing else is supported — no links, no images, no tables — by design: it's the
+        smallest set of tools that covers how every existing page here is actually written.
+      </div>
+    </div>
+
+    <!-- Custom admin-authored pages render here, one .page div per page -->
+    <div id="custom-pages-container"></div>
+
   </main>
+</div>
+
+<!-- PAGE MODAL (add or edit) -->
+<div id="page-modal" class="modal">
+  <div class="modal-content" style="max-width: 700px;">
+    <div class="modal-header" id="page-modal-header">New Page</div>
+    <div class="form-group">
+      <label>Page title *</label>
+      <input type="text" id="page-title" placeholder="e.g., Summer Camps & ESY Guide" />
+    </div>
+    <div class="form-group">
+      <label>Subtitle</label>
+      <input type="text" id="page-subtitle" placeholder="One line under the title, like the other pages have" />
+    </div>
+    <div class="form-group">
+      <label>Where should it live in the sidebar? *</label>
+      <select id="page-section">
+        <option value="Essential Info">Essential Info</option>
+        <option value="Directory">Directory</option>
+        <option value="Community">Community</option>
+        <option value="__new__">Start a new section…</option>
+      </select>
+    </div>
+    <div class="form-group" id="page-new-section-group" style="display:none;">
+      <label>New section name *</label>
+      <input type="text" id="page-new-section" placeholder="e.g., Fifth Grade Transition" />
+    </div>
+    <div class="form-group">
+      <label>Page content *</label>
+      <textarea id="page-body" style="min-height: 260px; font-family: monospace; font-size: 12.5px;"
+        placeholder="## A heading&#10;&#10;A paragraph of plain text.&#10;&#10;- A bullet point&#10;- Another one, with **bold** for emphasis"></textarea>
+    </div>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 16px;">Publishes immediately —
+      every parent sees the new sidebar link right away.</p>
+    <div class="modal-footer">
+      <button class="secondary" onclick="closeModal('page-modal')">Cancel</button>
+      <button onclick="submitPage()" id="page-modal-submit">Publish Page</button>
+    </div>
+  </div>
 </div>
 
 <!-- TEAM MODAL -->
@@ -1722,6 +1787,11 @@ Thank you,<br>
     { id: 503, name: 'Marcus T. (Dad of 4th grader)', role: 'mod' }
   ];
 
+  let nextPageId = 900;
+  // Admin-authored reference pages. Empty by default -- this is a builder,
+  // not seed content. {id, title, subtitle, section, body (raw markdown-ish), created_by}
+  let customPages = [];
+
   // Post bodies are rendered with innerHTML, so anything a parent typed is escaped first.
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g,
@@ -1742,6 +1812,11 @@ Thank you,<br>
     renderContacts();
     renderDirectory();
     renderTeam();
+    // NOT renderCustomPages() here: unlike the four calls above (which only
+    // refresh list contents), it rebuilds the nav links and .page containers
+    // themselves -- doing that after switchPage() just set .active on a
+    // custom page would immediately wipe that class again. It only needs to
+    // run when page DATA changes (submitPage/deletePage) and once at init.
   }
 
   function openPostModal() { closeDrawer(); document.getElementById('post-modal').classList.add('open'); }
@@ -2322,6 +2397,183 @@ Thank you,<br>
     }
   }
 
+  /* ---------------- Manage Pages (admin only) ---------------- */
+
+  // Deliberately tiny markdown: headings, paragraphs, bullets, bold. Escaped
+  // FIRST, so formatting runs on inert text -- the output can only ever be
+  // the handful of tags this function itself writes, never raw user HTML.
+  function renderPageBody(raw) {
+    const lines = esc(raw).split('\n');
+    let html = '';
+    let inList = false;
+    const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+    const inline = (s) => s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+    for (const line of lines) {
+      if (/^### /.test(line)) { closeList(); html += `<h3>${inline(line.slice(4))}</h3>`; }
+      else if (/^## /.test(line)) { closeList(); html += `<h2>${inline(line.slice(3))}</h2>`; }
+      else if (/^# /.test(line)) { closeList(); html += `<h2>${inline(line.slice(2))}</h2>`; }
+      else if (/^- /.test(line)) {
+        if (!inList) { html += '<ul style="margin-left: 20px; margin-bottom: 12px;">'; inList = true; }
+        html += `<li>${inline(line.slice(2))}</li>`;
+      } else if (line.trim() === '') {
+        closeList();
+      } else {
+        closeList();
+        html += `<p style="margin-bottom: 12px;">${inline(line)}</p>`;
+      }
+    }
+    closeList();
+    return html;
+  }
+
+  function ensureCustomNavSection(name) {
+    // The three built-in sections already exist in markup; a brand-new
+    // section name gets one dynamically-created nav-section block.
+    const builtIn = ['Essential Info', 'Directory', 'Community'];
+    if (builtIn.includes(name)) return document.querySelector(`.nav-section[data-section="${CSS.escape(name)}"]`);
+
+    const custom = document.getElementById('custom-nav-section');
+    if (!custom.querySelector('.nav-section-title')) {
+      custom.innerHTML = `<div class="nav-section-title">${esc(name)}</div>`;
+      custom.style.display = 'block';
+    }
+    return custom;
+  }
+
+  function renderCustomPages() {
+    // Rebuild every custom nav-link + page body from scratch each time --
+    // simplest correct option for a handful of admin-authored pages.
+    document.querySelectorAll('.nav-link[data-custom-page]').forEach(el => el.remove());
+    const custom = document.getElementById('custom-nav-section');
+    custom.innerHTML = '';
+    custom.style.display = 'none';
+
+    const container = document.getElementById('custom-pages-container');
+    container.innerHTML = '';
+
+    customPages.forEach(pg => {
+      const target = ensureCustomNavSection(pg.section);
+      if (target) {
+        const link = document.createElement('div');
+        link.className = 'nav-link';
+        link.dataset.customPage = pg.id;
+        link.textContent = pg.title;
+        link.addEventListener('click', (evt) => switchPage('custom-' + pg.id, evt));
+        target.appendChild(link);
+      }
+
+      const pageDiv = document.createElement('div');
+      pageDiv.id = 'custom-' + pg.id;
+      pageDiv.className = 'page';
+      pageDiv.innerHTML = `
+        <h1>${esc(pg.title)}</h1>
+        ${pg.subtitle ? `<p class="subtitle">${esc(pg.subtitle)}</p>` : ''}
+        <div class="admin-only" style="margin-bottom: 20px;">
+          <button class="secondary" style="font-size: 12px; padding: 8px 14px;" onclick="openPageModal(${pg.id})">Edit Page</button>
+          <button class="secondary" style="font-size: 12px; padding: 8px 14px;" onclick="deletePage(${pg.id})">Delete Page</button>
+        </div>
+        ${renderPageBody(pg.body)}
+      `;
+      container.appendChild(pageDiv);
+    });
+
+    // Freshly-created nodes need the current role state applied once;
+    // applyRoleVisibility() is the one source of truth for this afterwards.
+    document.querySelectorAll('#custom-pages-container .admin-only')
+      .forEach(el => el.classList.toggle('visible', currentUser === 'admin'));
+
+    renderPagesAdminList();
+  }
+
+  function renderPagesAdminList() {
+    const el = document.getElementById('custom-pages-admin-list');
+    if (!el) return;
+    if (!customPages.length) {
+      el.innerHTML = '<p class="empty-state">No custom pages yet. The first one you publish appears in the sidebar immediately.</p>';
+      return;
+    }
+    el.innerHTML = customPages.map(pg => `
+      <div class="card">
+        <div class="card-header">
+          <h3 style="margin: 0;">${esc(pg.title)}</h3>
+          <span class="tag tag-page">${esc(pg.section)}</span>
+        </div>
+        ${pg.subtitle ? `<p style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">${esc(pg.subtitle)}</p>` : ''}
+        <div class="mod-actions">
+          <button onclick="openPageModal(${pg.id})">Edit</button>
+          <button class="danger" onclick="deletePage(${pg.id})">Delete</button>
+          <button class="secondary" onclick="switchPage('custom-${pg.id}', null)">View</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  let editingPageId = null;
+
+  function openPageModal(editId) {
+    closeDrawer();
+    editingPageId = editId || null;
+    const existing = editingPageId ? customPages.find(p => p.id === editingPageId) : null;
+
+    document.getElementById('page-modal-header').textContent = editingPageId ? 'Edit Page' : 'New Page';
+    document.getElementById('page-modal-submit').textContent = editingPageId ? 'Save Changes' : 'Publish Page';
+    document.getElementById('page-title').value = existing ? existing.title : '';
+    document.getElementById('page-subtitle').value = existing ? existing.subtitle : '';
+    document.getElementById('page-body').value = existing ? existing.body : '';
+
+    const sectionSelect = document.getElementById('page-section');
+    const newSectionGroup = document.getElementById('page-new-section-group');
+    const newSectionInput = document.getElementById('page-new-section');
+    const builtIn = ['Essential Info', 'Directory', 'Community'];
+    if (existing && !builtIn.includes(existing.section)) {
+      sectionSelect.value = '__new__';
+      newSectionGroup.style.display = 'block';
+      newSectionInput.value = existing.section;
+    } else {
+      sectionSelect.value = existing ? existing.section : 'Essential Info';
+      newSectionGroup.style.display = 'none';
+      newSectionInput.value = '';
+    }
+
+    document.getElementById('page-modal').classList.add('open');
+  }
+
+  document.getElementById('page-section').addEventListener('change', (e) => {
+    document.getElementById('page-new-section-group').style.display = e.target.value === '__new__' ? 'block' : 'none';
+  });
+
+  function submitPage() {
+    const title = document.getElementById('page-title').value.trim();
+    const subtitle = document.getElementById('page-subtitle').value.trim();
+    const body = document.getElementById('page-body').value.trim();
+    const sectionChoice = document.getElementById('page-section').value;
+    const newSectionName = document.getElementById('page-new-section').value.trim();
+    const section = sectionChoice === '__new__' ? newSectionName : sectionChoice;
+
+    if (!title) { alert('Please give the page a title.'); return; }
+    if (!body) { alert('Please add some content.'); return; }
+    if (sectionChoice === '__new__' && !newSectionName) { alert('Please name the new section.'); return; }
+
+    if (editingPageId) {
+      const pg = customPages.find(p => p.id === editingPageId);
+      if (pg) Object.assign(pg, { title, subtitle, body, section });
+    } else {
+      customPages.push({ id: nextPageId++, title, subtitle, body, section, created_by: 'You' });
+    }
+
+    closeModal('page-modal');
+    renderCustomPages();
+    alert(editingPageId ? '✓ Page updated.' : '✓ Page published — every parent sees it now.');
+  }
+
+  function deletePage(id) {
+    const wasActive = document.getElementById('custom-' + id)?.classList.contains('active');
+    customPages = customPages.filter(p => p.id !== id);
+    renderCustomPages();
+    if (wasActive) switchPage('manage-pages', null);
+  }
+
   function openTeamModal() {
     closeDrawer();
     document.getElementById('team-modal-header').textContent = 'Add Team Member';
@@ -2366,16 +2618,19 @@ Thank you,<br>
 
   function applyRoleVisibility() {
     const modSection = document.getElementById('mod-nav-section');
-    const adminSection = document.getElementById('admin-nav-section');
     modSection.classList.toggle('visible', currentUser === 'mod' || currentUser === 'admin');
-    adminSection.classList.toggle('visible', currentUser === 'admin');
+    // Generic: covers #admin-nav-section AND every admin-only control inside
+    // dynamically-rendered content (a custom page's Edit/Delete buttons),
+    // so switching role after a page has already rendered still updates it.
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('visible', currentUser === 'admin'));
     document.getElementById('current-user').textContent = ROLE_LABEL[currentUser];
     document.getElementById('role-hint').textContent = ROLE_HINT[currentUser];
     document.getElementById('role-toggle-btn').textContent = ROLE_BUTTON_LABEL[currentUser];
 
     // Demoting out of a role-gated page sends the viewer somewhere they can still see.
     const onModPage = document.getElementById('mod-dashboard').classList.contains('active');
-    const onAdminPage = document.getElementById('manage-team').classList.contains('active');
+    const onAdminPage = document.getElementById('manage-team').classList.contains('active')
+      || document.getElementById('manage-pages').classList.contains('active');
     if (onModPage && currentUser === 'parent') switchPage('home', null);
     if (onAdminPage && currentUser !== 'admin') switchPage('home', null);
   }
@@ -2676,6 +2931,7 @@ Thank you,<br>
   renderContacts();
   renderDirectory();
   renderTeam();
+  renderCustomPages();
   applyRoleVisibility();
 
   document.querySelectorAll('.modal').forEach(modal => {
