@@ -455,6 +455,11 @@ export default function NavigatorScreen() {
       params: {
         template: 'general',
         draftBody: subject ? `Subject: ${subject}\n\n${body}` : body,
+        // This answer has never been logged anywhere — without this,
+        // Letters assumes a draftBody hand-off means "already a paper-trail
+        // row" (true for its other two callers) and silently skips logging
+        // it on the first Save/Send.
+        draftBodyUnlogged: true,
       },
     });
   }, [navigation]);

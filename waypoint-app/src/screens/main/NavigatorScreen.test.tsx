@@ -188,7 +188,12 @@ describe('emailing an answer', () => {
     // so the tab has to be named and the target has to actually resolve.
     expect(resolvesFrom('Navigator', { screen: options.screen, tab })).toBe(true);
     expect(options.screen).toBe('Letters');
-    expect((options.params as { template?: string }).template).toBe('general');
+    const params = options.params as { template?: string; draftBodyUnlogged?: boolean };
+    expect(params.template).toBe('general');
+    // Letters otherwise assumes a draftBody hand-off is already a
+    // paper-trail row (true for its other two callers) — without this flag
+    // the first Save/Send on a chat answer silently writes nothing.
+    expect(params.draftBodyUnlogged).toBe(true);
   });
 
   it('drops the answer straight into the draft, skipping the template/tone form', () => {

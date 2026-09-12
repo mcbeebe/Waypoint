@@ -28,8 +28,15 @@
  * Pure — no react-native, no I/O.
  */
 
-/** A "Subject:" line, anywhere on its own line. */
-const SUBJECT_RE = /^[ \t]*Subject:[ \t]*(.+?)[ \t]*$/m;
+/**
+ * A "Subject:" line, anywhere on its own line. Case-insensitive to match
+ * `lib/letterAddress.extractSubject`'s own SUBJECT_LINE_RE — a model that
+ * writes "subject:" in lowercase used to fall through this function
+ * entirely (returning the answer unchanged, preamble included) while
+ * `letterAddress`'s parser would still have caught it, so the two
+ * functions disagreed on the exact same text.
+ */
+const SUBJECT_RE = /^[ \t]*Subject:[ \t]*(.+?)[ \t]*$/im;
 
 /**
  * How far in we will look. A Subject: line deep in a long answer is far more
