@@ -12,14 +12,16 @@
     body { margin: 0; background: #F5F1E9; font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #22303A; -webkit-font-smoothing: antialiased; }
     a { color: #0F766E; } a:hover { color: #115E56; }
     * { box-sizing: border-box; }
+    [role="button"] { -webkit-tap-highlight-color: transparent; }
+    [role="button"]:active { opacity: 0.85; }
   </style>
 </helmet>
 
-<div style="width: 390px; min-height: 990px; background: #F5F1E9; display: flex; flex-direction: column;">
+<div style="width: 390px; min-height: 1040px; background: #F5F1E9; display: flex; flex-direction: column;">
 
   <!-- kicker -->
   <div style="padding: 10px 20px 8px; background: #FFFFFF; border-bottom: 1px solid #EAE3D5;">
-    <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #0F766E;">OPTION B &middot; UNDER THE HOOD</div>
+    <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; color: #0F766E;">OPTION B &middot; UNDER THE HOOD &middot; interactive</div>
   </div>
 
   <!-- header -->
@@ -35,39 +37,42 @@
   <div style="padding: 6px 20px 4px; font-size: 13px; color: #55606B; line-height: 1.5;">
     Same four moves, every time &mdash; here&rsquo;s what you do, and what Waypoint is quietly doing for you.
   </div>
+  <div style="padding: 2px 20px 0; font-size: 11.5px; color: #0F766E; font-weight: 600;">
+    Tap a step to see what it triggers underneath.
+  </div>
 
   <!-- what you do -->
-  <div style="padding: 18px 20px 0;">
+  <div style="padding: 16px 20px 0;">
     <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.6px; color: #6D6555;">WHAT YOU DO</div>
   </div>
 
   <div style="padding: 12px 16px 0; display: flex; align-items: flex-start; justify-content: center; gap: 4px;">
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px;">
-      <div style="width: 52px; height: 52px; border-radius: 26px; background: #FFFFFF; border: 2px solid #0F766E; display: flex; align-items: center; justify-content: center; color: #0F766E; box-shadow: 0 2px 6px rgba(15,23,42,0.06);">
+    <div onClick="{{tell.pick}}" role="button" aria-label="Highlight the Tell mechanism" style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px; cursor: pointer;">
+      <div style="width: 52px; height: 52px; border-radius: 26px; background: {{tell.bg}}; border: 2px solid {{tell.border}}; box-shadow: {{tell.ring}}; display: flex; align-items: center; justify-content: center; color: {{tell.icon}};">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 4.6h14a1 1 0 0 1 1 1v6.8a1 1 0 0 1-1 1H8.6L4 17v-3.6H3a1 1 0 0 1-1-1V5.6a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
       </div>
-      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: #22303A;">TELL</div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: {{tell.label}};">TELL</div>
     </div>
     <div style="flex-shrink: 0; color: #C9BFA8; margin-top: 18px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px;">
-      <div style="width: 52px; height: 52px; border-radius: 26px; background: #FFFFFF; border: 2px solid #0F766E; display: flex; align-items: center; justify-content: center; color: #0F766E; box-shadow: 0 2px 6px rgba(15,23,42,0.06);">
+    <div onClick="{{plan.pick}}" role="button" aria-label="Highlight the Plan mechanism" style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px; cursor: pointer;">
+      <div style="width: 52px; height: 52px; border-radius: 26px; background: {{plan.bg}}; border: 2px solid {{plan.border}}; box-shadow: {{plan.ring}}; display: flex; align-items: center; justify-content: center; color: {{plan.icon}};">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="2.6" width="12" height="14.8" rx="1.6" stroke="currentColor" stroke-width="1.6"/><path d="M7 9.6l2 2 4-4.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: #22303A;">PLAN</div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: {{plan.label}};">PLAN</div>
     </div>
     <div style="flex-shrink: 0; color: #C9BFA8; margin-top: 18px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px;">
-      <div style="width: 52px; height: 52px; border-radius: 26px; background: #FFFFFF; border: 2px solid #0F766E; display: flex; align-items: center; justify-content: center; color: #0F766E; box-shadow: 0 2px 6px rgba(15,23,42,0.06);">
+    <div onClick="{{act.pick}}" role="button" aria-label="Highlight the Act mechanism" style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px; cursor: pointer;">
+      <div style="width: 52px; height: 52px; border-radius: 26px; background: {{act.bg}}; border: 2px solid {{act.border}}; box-shadow: {{act.ring}}; display: flex; align-items: center; justify-content: center; color: {{act.icon}};">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.5 2.5 2.8 8.7c-.62.26-.57 1.14.07 1.33l4.86 1.46 1.46 4.86c.19.64 1.07.69 1.33.07L17.5 2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.63 11.37 17.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </div>
-      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: #22303A;">ACT</div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: {{act.label}};">ACT</div>
     </div>
     <div style="flex-shrink: 0; color: #C9BFA8; margin-top: 18px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px;">
-      <div style="width: 52px; height: 52px; border-radius: 26px; background: #FFFFFF; border: 2px solid #0F766E; display: flex; align-items: center; justify-content: center; color: #0F766E; box-shadow: 0 2px 6px rgba(15,23,42,0.06);">
+    <div onClick="{{track.pick}}" role="button" aria-label="Highlight the Track mechanism" style="display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px; cursor: pointer;">
+      <div style="width: 52px; height: 52px; border-radius: 26px; background: {{track.bg}}; border: 2px solid {{track.border}}; box-shadow: {{track.ring}}; display: flex; align-items: center; justify-content: center; color: {{track.icon}};">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10.4" r="7.1" stroke="currentColor" stroke-width="1.6"/><path d="M10 6.4v4l3 1.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
-      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: #22303A;">TRACK</div>
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: {{track.label}};">TRACK</div>
     </div>
   </div>
 
@@ -76,32 +81,42 @@
     <div style="font-size: 12px; line-height: 1.4;">Loops back to Tell or Plan whenever something changes.</div>
   </div>
 
-  <!-- cutaway seam -->
-  <div style="position: relative; margin: 22px 0 0; height: 1px; border-top: 2px dashed #C9BFA8;">
-    <div style="position: absolute; left: 50%; top: 0; transform: translate(-50%,-50%); background: #F5F1E9; padding: 4px 14px; border: 1px solid #C9BFA8; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; color: #6D6555; white-space: nowrap;">UNDER THE HOOD &#9662;</div>
+  <!-- cutaway seam — tap to collapse / expand the engine panel -->
+  <div onClick="{{toggleHood}}" role="button" aria-label="Toggle under-the-hood details"
+       style="position: relative; margin: 22px 0 0; height: 1px; border-top: 2px dashed #C9BFA8; cursor: pointer;">
+    <div style="position: absolute; left: 50%; top: 0; transform: translate(-50%,-50%); background: #F5F1E9; padding: 4px 14px; border: 1px solid #C9BFA8; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; color: #6D6555; white-space: nowrap; min-height: 22px; display: flex; align-items: center; gap: 5px;">
+      UNDER THE HOOD
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="transform: rotate({{hoodChevron}}deg); transition: transform 0.15s ease;"><path d="M4 6l4 4 4-4" stroke="#6D6555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
   </div>
 
   <!-- engine panel -->
-  <div style="margin: 20px 20px 0; background: #22303A; border-radius: 16px; padding: 18px; display: flex; flex-direction: column;">
-    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.6px; color: rgba(255,255,255,0.6); margin-bottom: 4px;">WHAT WAYPOINT IS DOING</div>
+  <sc-if value="{{hoodOpen}}" hint-placeholder-val="{{true}}">
+    <div style="margin: 20px 20px 0; background: #22303A; border-radius: 16px; padding: 8px 18px 18px; display: flex; flex-direction: column;">
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.6px; color: rgba(255,255,255,0.6); padding: 10px 0 4px;">WHAT WAYPOINT IS DOING</div>
 
-    <div style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <div style="flex-shrink: 0; width: 46px; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; color: rgba(255,255,255,0.6); padding-top: 2px;">TELL</div>
-      <div style="font-size: 12.5px; color: rgba(255,255,255,0.92); line-height: 1.5;">Reads your child&rsquo;s profile &mdash; diagnosis, age, RC/IEP/insurance status &mdash; from onboarding.</div>
+      <div onClick="{{tell.pick}}" role="button" aria-label="Highlight the Tell step above"
+           style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 10px; margin: 0 -10px; border-radius: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); background: {{tell.rowBg}}; cursor: pointer;">
+        <div style="flex-shrink: 0; width: 46px; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; color: {{tell.rowLabel}}; padding-top: 2px;">TELL</div>
+        <div style="font-size: 12.5px; color: {{tell.rowText}}; line-height: 1.5;">Reads your child&rsquo;s profile &mdash; diagnosis, age, RC/IEP/insurance status &mdash; from onboarding.</div>
+      </div>
+      <div onClick="{{plan.pick}}" role="button" aria-label="Highlight the Plan step above"
+           style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 10px; margin: 0 -10px; border-radius: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); background: {{plan.rowBg}}; cursor: pointer;">
+        <div style="flex-shrink: 0; width: 46px; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; color: {{plan.rowLabel}}; padding-top: 2px;">PLAN</div>
+        <div style="font-size: 12.5px; color: {{plan.rowText}}; line-height: 1.5;">Matches your situation to California disability law &mdash; Lanterman Act, IDEA, Medi-Cal, SSI &mdash; with the citation attached.</div>
+      </div>
+      <div onClick="{{act.pick}}" role="button" aria-label="Highlight the Act step above"
+           style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 10px; margin: 0 -10px; border-radius: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); background: {{act.rowBg}}; cursor: pointer;">
+        <div style="flex-shrink: 0; width: 46px; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; color: {{act.rowLabel}}; padding-top: 2px;">ACT</div>
+        <div style="font-size: 12.5px; color: {{act.rowText}}; line-height: 1.5;">Drafts the letter and calibrates its tone &mdash; friendly first, firmer only if it has to be.</div>
+      </div>
+      <div onClick="{{track.pick}}" role="button" aria-label="Highlight the Track step above"
+           style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 10px; margin: 0 -10px; border-radius: 10px; background: {{track.rowBg}}; cursor: pointer;">
+        <div style="flex-shrink: 0; width: 46px; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; color: {{track.rowLabel}}; padding-top: 2px;">TRACK</div>
+        <div style="font-size: 12.5px; color: {{track.rowText}}; line-height: 1.5;">Starts the legal clock (like a 60-day IPP timeline) and watches it for you.</div>
+      </div>
     </div>
-    <div style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <div style="flex-shrink: 0; width: 46px; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; color: rgba(255,255,255,0.6); padding-top: 2px;">PLAN</div>
-      <div style="font-size: 12.5px; color: rgba(255,255,255,0.92); line-height: 1.5;">Matches your situation to California disability law &mdash; Lanterman Act, IDEA, Medi-Cal, SSI &mdash; with the citation attached.</div>
-    </div>
-    <div style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <div style="flex-shrink: 0; width: 46px; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; color: rgba(255,255,255,0.6); padding-top: 2px;">ACT</div>
-      <div style="font-size: 12.5px; color: rgba(255,255,255,0.92); line-height: 1.5;">Drafts the letter and calibrates its tone &mdash; friendly first, firmer only if it has to be.</div>
-    </div>
-    <div style="display: flex; gap: 12px; align-items: flex-start; padding: 12px 0;">
-      <div style="flex-shrink: 0; width: 46px; font-size: 10px; font-weight: 700; letter-spacing: 0.4px; color: rgba(255,255,255,0.6); padding-top: 2px;">TRACK</div>
-      <div style="font-size: 12.5px; color: rgba(255,255,255,0.92); line-height: 1.5;">Starts the legal clock (like a 60-day IPP timeline) and watches it for you.</div>
-    </div>
-  </div>
+  </sc-if>
 
   <!-- how best to use it -->
   <div style="padding: 20px 20px 2px;">
@@ -124,5 +139,41 @@
 
 </div>
 </x-dc>
+<script data-dc-script>
+class Component extends DCLogic {
+  state = { active: 'tell', hoodOpen: true };
+
+  select(stage) {
+    this.setState({ active: stage });
+  }
+
+  toggleHood() {
+    this.setState({ hoodOpen: !this.state.hoodOpen });
+  }
+
+  renderVals() {
+    const active = this.state.active;
+    const activeStyle = {
+      bg: '#0F766E', border: '#0F766E', icon: '#FFFFFF', label: '#0F766E', ring: '0 0 0 4px rgba(15,118,110,0.18)',
+      rowBg: 'rgba(255,255,255,0.08)', rowLabel: '#FFFFFF', rowText: 'rgba(255,255,255,0.98)'
+    };
+    const idleStyle = {
+      bg: '#FFFFFF', border: '#0F766E', icon: '#0F766E', label: '#22303A', ring: 'none',
+      rowBg: 'transparent', rowLabel: 'rgba(255,255,255,0.55)', rowText: 'rgba(255,255,255,0.72)'
+    };
+    const styleFor = (s) => (active === s ? activeStyle : idleStyle);
+
+    return {
+      tell: { ...styleFor('tell'), pick: () => this.select('tell') },
+      plan: { ...styleFor('plan'), pick: () => this.select('plan') },
+      act: { ...styleFor('act'), pick: () => this.select('act') },
+      track: { ...styleFor('track'), pick: () => this.select('track') },
+      hoodOpen: this.state.hoodOpen,
+      hoodChevron: this.state.hoodOpen ? 180 : 0,
+      toggleHood: () => this.toggleHood()
+    };
+  }
+}
+</script>
 </body>
 </html>

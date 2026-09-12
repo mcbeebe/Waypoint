@@ -101,11 +101,36 @@ persistent entry point (e.g. from Settings/Help, or a "?" near the Ask bar)
 so it's revisitable. Exact navigation wiring is a build-phase decision after
 the owner picks a direction — out of scope for this plan.
 
+## Update — Sep 12: A and B refined as interactive prototypes
+
+Owner is leaning toward **A** and **B** over C. Both were refined to:
+
+- Full alignment pass against the design canvas's own guidelines: fixed an
+  off-palette color slip in Option B's engine-panel labels (was inventing a
+  hex not in the warm brand set — now `rgba(255,255,255,0.6)`, matching
+  Option A), confirmed every tap target is >= 44px, kept icons as inline
+  stroke SVG throughout (no emoji/dingbats).
+- **Working interaction**, not just a static picture of one:
+  - **Option A** — tap any of the 4 ring nodes to select that stage (it
+    fills pine; the detail card below swaps to that stage's text and icon);
+    tap the center hub to advance to the *next* stage in sequence, which is
+    the diagram actually demonstrating the loop turning rather than just
+    depicting it; tap "UNDER THE HOOD" to collapse/expand that panel.
+  - **Option B** — tap a top "what you do" chip *or* its matching engine
+    row underneath; either one highlights both, which is the cutaway's
+    whole argument (this visible step causes that hidden mechanism) made
+    provable by touch instead of only implied by position; tap the dashed
+    seam to collapse/expand the engine panel.
+
+C stays as a static reference on the canvas (not deleted — kept per the
+"keep option identities stable" convention); Main.dc.html still mirrors it
+until a final pick is made.
+
 ## Next step
 
-Owner reviews the three options on the canvas and either picks one (as-is
-or with changes) or asks for a fourth direction. Build plan after that:
-a `HowItWorksScreen.tsx` (or similar) wired into `routeGraph.ts`, unit +
-snapshot tests, and — since this touches what the app tells a family about
-itself — a `/adversary` pass before merge, per the standing rule for
+Owner tries both interactive prototypes on the canvas and either picks one
+(as-is or with changes) or asks for further iteration. Build plan after
+that: a `HowItWorksScreen.tsx` (or similar) wired into `routeGraph.ts`, unit
++ snapshot tests, and — since this touches what the app tells a family
+about itself — a `/adversary` pass before merge, per the standing rule for
 anything a family sees.
