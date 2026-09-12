@@ -30,6 +30,7 @@ import ProvidersScreen from '@/screens/main/ProvidersScreen';
 import ServicesScreen from '@/screens/main/ServicesScreen';
 import InsuranceScreen from '@/screens/main/InsuranceScreen';
 import ProcessMapScreen from '@/screens/main/ProcessMapScreen';
+import HowWaypointWorksScreen from '@/screens/main/HowWaypointWorksScreen';
 import SdpJourneyScreen from '@/screens/main/SdpJourneyScreen';
 import EscalationLadderScreen from '@/screens/main/EscalationLadderScreen';
 import ResourceStackScreen from '@/screens/main/ResourceStackScreen';
@@ -303,6 +304,7 @@ interface ScreenSpec {
 const DESTINATION_SCREENS: Record<HomeDestination, ScreenSpec> = {
   Journey: { title: 'Journey Map', component: JourneyScreen },
   ProcessMap: { title: 'How the System Works', component: ProcessMapScreen },
+  HowWaypointWorks: { title: 'How Waypoint Works', component: HowWaypointWorksScreen },
   SdpJourney: { title: 'Self-Determination Journey', component: SdpJourneyScreen },
   EscalationLadder: { title: 'When Services Aren’t Working', component: EscalationLadderScreen },
   ResourceStack: { title: 'Resource Stack', component: ResourceStackScreen },
