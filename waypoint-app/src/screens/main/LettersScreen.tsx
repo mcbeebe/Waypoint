@@ -34,6 +34,7 @@ import {
 import { fillKnownBlanks, analyzeBlanks, sendReadiness, type LetterProfile } from '@/lib/draftBlanks';
 import { composeTarget, LONG_BODY_CHARS } from '@/lib/emailCompose';
 import { extractSubject, buildSubject, pickRecipient } from '@/lib/letterAddress';
+import type { AddressContact, RecipientMatch } from '@/lib/letterAddress';
 import { useContacts } from '@/hooks/useContacts';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -150,6 +151,7 @@ export default function LettersScreen() {
       setDraft(null);
       // New template → the previous draft's records note is no longer true.
       setFilledFromRecords([]);
+      setManualRecipient(null);
     }
     if (route.params?.question) {
       setQuestion(route.params.question);
@@ -176,6 +178,7 @@ export default function LettersScreen() {
     // filled for THIS text — clear any note left from a prior generated draft,
     // or it would assert a false provenance over someone else's letter.
     setFilledFromRecords([]);
+    setManualRecipient(null);
     loggedDraftRef.current = saved; // already in the log — don't duplicate it
   }, [route.params?.draftBody]);
   const [tone, setTone] = useState<DraftTone>('professional');
@@ -223,6 +226,7 @@ export default function LettersScreen() {
     // send confirmation so it can't linger over new, unsent text.
     setMarkedSent(false);
     setSentMoment(null);
+    setManualRecipient(null);
     // Persistent note above the draft instead of a vanishing toast — a parent
     // reviewing the letter later can still see what came from their records.
     setFilledFromRecords(filled);
@@ -421,6 +425,17 @@ export default function LettersScreen() {
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
     maxTouchPoints: typeof navigator !== 'undefined' ? navigator.maxTouchPoints : undefined,
   };
+  const emailableContacts = useMemo(() => contacts.filter((c) => !!c.email), [contacts]);
+  /**
+   * `pickRecipient` only finds someone when the draft greets them by name or
+   * a saved contact matches the template's organization — neither holds for
+   * a chat answer handed here with no template of its own ("Email This"
+   * routes any Navigator answer through this same screen, draft flow 2026-09).
+   * Without this, that answer would land with no in-app way to say who it's
+   * for at all. Cleared whenever the draft itself changes so a stale pick
+   * never survives onto different text.
+   */
+  const [manualRecipient, setManualRecipient] = useState<AddressContact | null>(null);
   /**
    * Address the draft before handing it to the mail app: the letter names
    * its own subject and greets its recipient by name, and Key Contacts
@@ -435,13 +450,17 @@ export default function LettersScreen() {
       childFirstName: primaryChild?.first_name,
       familyLastName: family?.parent_last_name,
     });
-    const recipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
+    const autoRecipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
+    const recipient: RecipientMatch =
+      autoRecipient.contact || !manualRecipient
+        ? autoRecipient
+        : { to: [manualRecipient.email!], contact: manualRecipient, reason: 'manual' };
     outgoingSubjectRef.current = subject;
     outgoingContactRef.current = recipient.contact?.name ?? null;
     outgoingOrgRef.current = (recipient.contact?.organization as CommunicationOrg | null) ?? null;
     return { subject, body, recipient };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, template, contacts, primaryChild?.first_name, family?.parent_last_name]);
+  }, [draft, template, contacts, manualRecipient, primaryChild?.first_name, family?.parent_last_name]);
 
   const target = outgoing
     ? composeTarget(
@@ -523,6 +542,7 @@ export default function LettersScreen() {
     setSentMoment(null);
     setDraft(null);
     setFilledFromRecords([]);
+    setManualRecipient(null);
     setTemplate(null);
     setQuestion('');
     setChatGuidance(null);
@@ -723,12 +743,40 @@ export default function LettersScreen() {
                   <Text style={styles.addressLabel}>To: </Text>
                   {outgoing.recipient.contact
                     ? `${outgoing.recipient.contact.name} (${outgoing.recipient.contact.email})`
-                    : 'no saved contact matched — add the address in your email app'}
+                    : 'Choose who this goes to, or add the address in your email app'}
                 </Text>
                 <Text style={styles.addressLine} numberOfLines={2}>
                   <Text style={styles.addressLabel}>Subject: </Text>
                   {outgoing.subject}
                 </Text>
+                {!outgoing.recipient.contact && emailableContacts.length > 0 && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.recipientChipRow}
+                  >
+                    {emailableContacts.slice(0, 6).map((c) => (
+                      <TouchableOpacity
+                        key={c.id}
+                        style={styles.recipientChip}
+                        onPress={() =>
+                          setManualRecipient({
+                            name: c.name,
+                            email: c.email,
+                            organization: c.organization,
+                            role: c.role,
+                          })
+                        }
+                        accessibilityRole="button"
+                        accessibilityLabel={`Send to ${c.name}`}
+                      >
+                        <Text style={styles.recipientChipText}>
+                          {c.name}{c.role ? ` · ${c.role}` : ''}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                )}
                 {!outgoing.recipient.contact && (
                   <TouchableOpacity
                     onPress={() => (navigation as any).navigate('Home', { screen: 'Profile' })}
@@ -736,7 +784,9 @@ export default function LettersScreen() {
                     accessibilityLabel="Save this recipient in Key Contacts"
                   >
                     <Text style={styles.addressHint}>
-                      Save them in Profile → Key Contacts and Waypoint will address the next one →
+                      {emailableContacts.length > 0
+                        ? 'Not who you need? Save a new contact in Profile → Key Contacts →'
+                        : 'Save them in Profile → Key Contacts and Waypoint will address the next one →'}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -1091,6 +1141,18 @@ const styles = StyleSheet.create({
   },
   addressLine: { fontSize: fonts.sizes.xs, color: colors.dark, lineHeight: 17 },
   addressLabel: { color: colors.mid, fontWeight: fonts.weights.semibold as '600' },
+  recipientChipRow: { flexDirection: 'row', gap: 6, paddingVertical: 6 },
+  recipientChip: {
+    backgroundColor: colors.light,
+    borderRadius: radii.full,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    minHeight: 30,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  recipientChipText: { fontSize: fonts.sizes.xs, color: colors.dark },
   addressHint: {
     fontSize: fonts.sizes.xs,
     color: colors.teal,

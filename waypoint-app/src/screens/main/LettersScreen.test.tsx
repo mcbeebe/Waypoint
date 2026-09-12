@@ -31,6 +31,7 @@ const h = vi.hoisted(() => ({
   ] as any[],
   createRequest: vi.fn(async (input: any) => ({ id: 'req2', ...input })),
   attach: vi.fn(async () => true),
+  contacts: [] as any[],
 }));
 
 vi.mock('@/hooks/useFamily', () => ({
@@ -47,7 +48,7 @@ vi.mock('@/hooks/useRequests', () => ({
   useRequests: () => ({ requests: h.requests, createRequest: h.createRequest }),
 }));
 
-vi.mock('@/hooks/useContacts', () => ({ useContacts: () => ({ contacts: [] }) }));
+vi.mock('@/hooks/useContacts', () => ({ useContacts: () => ({ contacts: h.contacts }) }));
 
 vi.mock('@/hooks/useCommunications', () => ({
   useCommunications: () => ({ communications: [], refetch: vi.fn() }),
@@ -88,6 +89,7 @@ beforeEach(() => {
   delete routeParams.requestId;
   h.createRequest.mockClear();
   h.attach.mockClear();
+  h.contacts = [];
 });
 
 afterEach(() => {
@@ -137,5 +139,51 @@ describe('the deadline the sent moment shows', () => {
     await waitFor(() => expect(h.createRequest).not.toHaveBeenCalled());
     // The case owns the clock — the celebration does not print a rival date.
     expect(screen.queryByText(/Their deadline/)).toBeNull();
+  });
+});
+
+/**
+ * "Email This" on a Navigator answer (see NavigatorScreen's handleEmailThis)
+ * lands here via the `template: 'general'` + `draftBody` hand-off, with no
+ * template of its own to match an organization and often no greeting for
+ * `pickRecipient` to read a name from — the one case this screen previously
+ * had no in-app way to address at all (owner report, 2026-09-12).
+ */
+describe('addressing a draft neither the greeting nor the template can match', () => {
+  beforeEach(() => {
+    routeParams.template = 'general';
+    routeParams.draftBody =
+      'Reauthorizations lapse quietly — put the end date on a calendar with reminders.';
+  });
+
+  it('offers saved contacts as chips instead of leaving the parent stuck', () => {
+    h.contacts = [
+      { id: 'k1', name: 'Keri Waller', email: 'keri@acrc.org', role: 'Case Manager', organization: 'regional_center' },
+      { id: 'k2', name: 'Carol Guggino', email: 'carol@school.org', role: 'Principal', organization: 'school' },
+    ];
+    render(<LettersScreen />);
+
+    expect(screen.getByText(/Choose who this goes to/i)).toBeTruthy();
+    expect(screen.getByLabelText('Send to Keri Waller')).toBeTruthy();
+    expect(screen.getByLabelText('Send to Carol Guggino')).toBeTruthy();
+  });
+
+  it('picking a chip addresses the letter and updates the paper-trail organization', () => {
+    h.contacts = [
+      { id: 'k1', name: 'Keri Waller', email: 'keri@acrc.org', role: 'Case Manager', organization: 'regional_center' },
+    ];
+    render(<LettersScreen />);
+
+    fireEvent.click(screen.getByLabelText('Send to Keri Waller'));
+
+    // The address box now names the real recipient — the template's own
+    // "other" org default no longer wins once someone is picked.
+    expect(screen.getByText(/Keri Waller \(keri@acrc\.org\)/)).toBeTruthy();
+    expect(screen.queryByText(/Choose who this goes to/i)).toBeNull();
+  });
+
+  it('with no saved contacts at all, still points the parent at Key Contacts', () => {
+    render(<LettersScreen />);
+    expect(screen.getByText(/Save them in Profile → Key Contacts/i)).toBeTruthy();
   });
 });
