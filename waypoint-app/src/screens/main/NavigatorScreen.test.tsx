@@ -8,9 +8,11 @@
  *    this stack is a silent no-op — a dead tap in production with the gates
  *    green. That failure mode has shipped twice in this repo.
  * 2. "Email this response" opens the SAME drafting screen as "Draft this
- *    letter" (Letters, via its draftBody hand-off) — one email-sending
- *    experience, not two that look like different products (owner report,
- *    2026-09-12).
+ *    letter" (owner report, 2026-09-12) — and routes by what the answer
+ *    actually IS. An answer containing an email is the draft; advice written
+ *    to the parent goes to the generator, because pasting it in produced a
+ *    page of coaching prose under "ready to send… it goes out under your
+ *    name", addressed to a case manager.
  */
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -175,6 +177,19 @@ describe('the parent is told they are talking to a machine', () => {
   });
 });
 
+/**
+ * The advice answer that shipped the defect (owner report, 2026-09-12,
+ * second round): every sentence is addressed to the PARENT. Pasted into the
+ * draft editor it read as a letter to a case manager under "ready to send".
+ */
+const ADVICE_ANSWER =
+  "The real work belongs to the provider's authorization coordinator, not you — " +
+  "but you're the one who notices if they miss the window. Ask your BCBA/OT office " +
+  'directly who handles re-auth submissions and when they plan to send the progress ' +
+  'report and updated treatment plan.\n\n' +
+  'What families commonly miss: renewals need *current* data showing continued ' +
+  'medical necessity.';
+
 describe('emailing an answer', () => {
   it('opens Letters — the same screen "Draft this letter" uses — not a separate sheet', () => {
     h.messages = [answer()];
@@ -188,27 +203,41 @@ describe('emailing an answer', () => {
     // so the tab has to be named and the target has to actually resolve.
     expect(resolvesFrom('Navigator', { screen: options.screen, tab })).toBe(true);
     expect(options.screen).toBe('Letters');
-    const params = options.params as { template?: string; draftBodyUnlogged?: boolean };
-    expect(params.template).toBe('general');
-    // Letters otherwise assumes a draftBody hand-off is already a
-    // paper-trail row (true for its other two callers) — without this flag
-    // the first Save/Send on a chat answer silently writes nothing.
-    expect(params.draftBodyUnlogged).toBe(true);
+    expect((options.params as { template?: string }).template).toBe('general');
   });
 
-  it('drops the answer straight into the draft, skipping the template/tone form', () => {
-    h.messages = [answer({ content: 'Ask your Regional Center for a speech assessment in writing.' })];
+  it('does NOT paste advice-to-the-parent in as a ready-to-send letter', () => {
+    h.messages = [answer({ content: ADVICE_ANSWER })];
     render(<NavigatorScreen />);
 
     fireEvent.click(screen.getByLabelText(/Email this response/i));
 
-    const [, options] = navigateCalls[0].args as [string, { params: { draftBody?: string } }];
-    expect(options.params.draftBody).toBe(
-      'Ask your Regional Center for a speech assessment in writing.'
-    );
+    const [, options] = navigateCalls[0].args as [
+      string,
+      { params: { draftBody?: string; question?: string; guidance?: string } },
+    ];
+    // The whole defect in one assertion: this text is not an email, so it
+    // must not arrive as one.
+    expect(options.params.draftBody).toBeUndefined();
+    // It goes to the generator instead, carrying the conversation.
+    expect(options.params.guidance).toContain('BCBA/OT office');
+    expect(options.params.question).toBeTruthy();
   });
 
-  it('carries a proposed email\'s own subject along, not the generic default', () => {
+  it('seeds the ask as a whole sentence, not a title cut off mid-clause', () => {
+    h.messages = [answer({ content: ADVICE_ANSWER })];
+    render(<NavigatorScreen />);
+
+    fireEvent.click(screen.getByLabelText(/Email this response/i));
+
+    const [, options] = navigateCalls[0].args as [string, { params: { question?: string } }];
+    // The 80-char list-title cap used to end this "...and when they…" in a
+    // box the parent is about to send from.
+    expect(options.params.question).toContain('updated treatment plan');
+    expect(options.params.question).not.toContain('…');
+  });
+
+  it('an answer that IS an email goes straight in, with its own subject', () => {
     h.messages = [
       answer({
         content:
@@ -219,12 +248,21 @@ describe('emailing an answer', () => {
 
     fireEvent.click(screen.getByLabelText(/Email this response/i));
 
-    const [, options] = navigateCalls[0].args as [string, { params: { draftBody?: string } }];
+    const [, options] = navigateCalls[0].args as [
+      string,
+      { params: { draftBody?: string; draftBodyUnlogged?: boolean; question?: string } },
+    ];
     // Reheaded so Letters' own extractSubject (a Subject: line that OPENS
     // the text) recovers it — the "here's the combined version" preamble
     // to the PARENT must not become the first thing the agency reads.
     expect(options.params.draftBody).toBe(
       'Subject: IEP Assessment Request\n\nHi Keri,\n\nPlease evaluate Teddy for speech services.'
     );
+    // Already written — regenerating it would throw the letter away.
+    expect(options.params.question).toBeUndefined();
+    // Letters otherwise assumes a draftBody hand-off is already a
+    // paper-trail row (true for its other two callers) — without this flag
+    // the first Save/Send on a chat answer silently writes nothing.
+    expect(options.params.draftBodyUnlogged).toBe(true);
   });
 });

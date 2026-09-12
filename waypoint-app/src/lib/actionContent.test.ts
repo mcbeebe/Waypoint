@@ -129,4 +129,19 @@ describe('deriveActionTitle', () => {
     );
     expect(deriveActionTitle({ content: '' })).toBe('Saved from your AI chat');
   });
+
+  /**
+   * The Letters hand-off ("Email This" on a chat answer) seeds its "what do
+   * you need?" box with this. At the 80-char list-title cap the real answer
+   * that prompted this landed there as "...and when they…" — a fragment, in
+   * a box the parent sends from.
+   */
+  it('honours a wider cap for callers that are not writing a list title', () => {
+    const ask =
+      'Ask your BCBA/OT office directly who handles re-auth submissions and when they plan to send the progress report and updated treatment plan';
+    expect(deriveActionTitle({ content: ask })).toContain('…');
+    const seeded = deriveActionTitle({ content: ask }, 200);
+    expect(seeded).toBe(ask);
+    expect(seeded).not.toContain('…');
+  });
 });
