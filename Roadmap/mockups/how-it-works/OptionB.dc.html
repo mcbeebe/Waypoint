@@ -81,10 +81,11 @@
     <div style="font-size: 12px; line-height: 1.4;">Loops back to Tell or Plan whenever something changes.</div>
   </div>
 
-  <!-- cutaway seam — tap to collapse / expand the engine panel -->
+  <!-- cutaway seam — tap to collapse / expand the engine panel (44px tap target) -->
   <div onClick="{{toggleHood}}" role="button" aria-label="Toggle under-the-hood details"
-       style="position: relative; margin: 22px 0 0; height: 1px; border-top: 2px dashed #C9BFA8; cursor: pointer;">
-    <div style="position: absolute; left: 50%; top: 0; transform: translate(-50%,-50%); background: #F5F1E9; padding: 4px 14px; border: 1px solid #C9BFA8; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; color: #6D6555; white-space: nowrap; min-height: 22px; display: flex; align-items: center; gap: 5px;">
+       style="position: relative; margin: 12px 0 0; min-height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+    <div style="position: absolute; left: 0; right: 0; top: 50%; border-top: 2px dashed #C9BFA8;"></div>
+    <div style="position: relative; background: #F5F1E9; padding: 4px 14px; border: 1px solid #C9BFA8; border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; color: #6D6555; white-space: nowrap; display: flex; align-items: center; gap: 5px;">
       UNDER THE HOOD
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="transform: rotate({{hoodChevron}}deg); transition: transform 0.15s ease;"><path d="M4 6l4 4 4-4" stroke="#6D6555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
