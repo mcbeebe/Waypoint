@@ -1,7 +1,7 @@
 # "How Waypoint Works" — visualization options (plan)
 
 **Date:** 2026-09-12
-**Status:** draft
+**Status:** adopted (built; pending owner review before merge)
 **Supersedes:** —
 **Superseded-by:** —
 
@@ -126,11 +126,45 @@ C stays as a static reference on the canvas (not deleted — kept per the
 "keep option identities stable" convention); Main.dc.html still mirrors it
 until a final pick is made.
 
+## Update — Sep 12: Option B built as a real screen
+
+Owner picked **Option B**. Built as `waypoint-app/src/screens/main/
+HowWaypointWorksScreen.tsx` — the same tap-to-highlight cutaway from the
+canvas (a step chip or its engine row selects both; the dashed seam
+collapses/expands the panel), trilingual (en/es/vi), Ionicons instead of
+the canvas's inline SVG (this app carries no `react-native-svg` — see
+`Brandmark.tsx`).
+
+**Naming collision caught by the linking test**: the route was first named
+`HowItWorks`, which collided with `ProcessMap`'s existing `how-it-works` URL
+(the *Regional Center/school* process map — a different screen entirely).
+Renamed to `HowWaypointWorks` / `how-waypoint-works` throughout, so the two
+"how it works" screens stay unambiguous at the code and URL level, not just
+in conversation.
+
+**Entry point**: Settings → Profile & Settings → Display & Accessibility,
+right below the existing "App tour" row (a *different*, older, unrelated
+tutorial — see the "not decided" flag below).
+
+**Gates, all green**: `tsc --noEmit`, `eslint`, `vitest` (all four projects,
+1292 + 178 tests, including a new 6-case UI test proving the bidirectional
+tap-link and the collapse toggle actually work, not just render), and both
+web export gates (`expo export -p web --dev` and the production
+`build:web`).
+
+**Still open**: the pre-existing `OnboardingTutorial.tsx` swipe-through (a
+different "how Waypoint works" — Navigator/Action Plan/Calendar/Letters,
+replayable from that same Settings screen) has not been touched or
+reconciled with this new screen. Two "how it works" entry points now exist
+in Settings; whether they coexist, merge, or one retires is an owner call,
+not made here.
+
+Per the standing rule for anything a family sees, this stops short of
+auto-merge: no PR was opened (session policy), and a `/adversary` pass is
+running before this is presented for owner review.
+
 ## Next step
 
-Owner tries both interactive prototypes on the canvas and either picks one
-(as-is or with changes) or asks for further iteration. Build plan after
-that: a `HowItWorksScreen.tsx` (or similar) wired into `routeGraph.ts`, unit
-+ snapshot tests, and — since this touches what the app tells a family
-about itself — a `/adversary` pass before merge, per the standing rule for
-anything a family sees.
+Owner reviews the adversary memo and the screen itself, then decides:
+ship as-is, request changes, or resolve the open `OnboardingTutorial`
+question above.
