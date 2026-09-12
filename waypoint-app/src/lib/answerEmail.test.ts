@@ -97,4 +97,17 @@ describe('guards', () => {
   it('tolerates leading whitespace on the subject line', () => {
     expect(extractProposedEmail('  Subject: Padded\n\nHi,\n\nBody.').subject).toBe('Padded');
   });
+
+  it('catches a lowercase "subject:" too — a model completion is not guaranteed to capitalize it', () => {
+    // Regression: this function used to be case-SENSITIVE while
+    // lib/letterAddress's own subject parser was not, so the two disagreed
+    // on the same text — this one silently kept the "here's the combined
+    // version" preamble and the literal "subject:" line in the body.
+    const { subject, body } = extractProposedEmail(
+      "Here's the combined version.\n\nsubject: IEP Assessment Request\n\nHi Keri,\n\nBody."
+    );
+    expect(subject).toBe('IEP Assessment Request');
+    expect(body).not.toContain("Here's the combined version");
+    expect(body.startsWith('Hi Keri,')).toBe(true);
+  });
 });

@@ -76,6 +76,15 @@ export type HomeStackParamList = {
         question?: string;
         guidance?: string;
         draftBody?: string;
+        /**
+         * `draftBody` defaults to meaning "this is already a row in the
+         * paper trail" (CommunicationLogScreen's "keep working on this
+         * draft", homeTriage's saved-draft resume — both hand back text
+         * that was logged when it was first drafted). Set this when that is
+         * NOT true — e.g. a Navigator chat answer, never logged before — or
+         * the first Save/Send silently no-ops instead of writing it.
+         */
+        draftBodyUnlogged?: boolean;
         /** Lever letters launched from a case stamp their log entry with it. */
         requestId?: string;
         /** The draft flow pre-sets the tone the parent chose in the questions. */

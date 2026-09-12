@@ -36,9 +36,7 @@ import type { NavigatorStackParamList } from '@/types/navigation';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { RC_DATABASE } from '@/data/regionalCenters';
-import TrackedEmailModal from '@/components/TrackedEmailModal';
 import { extractProposedEmail } from '@/lib/answerEmail';
-import { useContacts } from '@/hooks/useContacts';
 import AIConsentModal from '@/components/AIConsentModal';
 import ChatMetaCards from '@/components/ChatMetaCards';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
@@ -172,8 +170,6 @@ export default function NavigatorScreen() {
   const { createAction, actions, refetch: refetchActions } = useActions({
     familyId: family?.id ?? '',
   });
-  const { contacts } = useContacts(family?.id);
-  const emailableContacts = contacts.filter((c) => c.email);
   const { showToast } = useToast();
   const { t, locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
@@ -207,7 +203,6 @@ export default function NavigatorScreen() {
   const [savedStepKeys, setSavedStepKeys] = useState<Set<string>>(new Set());
   // Thumbs feedback already given, keyed by message id
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 'up' | 'down'>>({});
-  const [emailComposeMessage, setEmailComposeMessage] = useState<UIMessage | null>(null);
   // Chat history (wave 3 retention): list past sessions, tap to resume
   const [showHistory, setShowHistory] = useState(false);
   const [historySessions, setHistorySessions] = useState<
@@ -431,32 +426,43 @@ export default function NavigatorScreen() {
   );
 
   /**
-   * Email this answer — through the tracked process, not around it.
+   * Email this answer — through the same drafting screen as "Draft this
+   * letter", not a second, lighter-weight compose sheet of its own (owner
+   * report, 2026-09-12: the two felt like different products for what is
+   * the same job — sending something to someone).
    *
-   * This used to open a compose window and, in the same breath, write a
-   * `communications` row marked `sent` with no recipient and no Gmail thread
-   * id: a send recorded before anything was sent, that no reply could ever
-   * attach to. TrackedEmailModal runs the Letters process instead — draft row
-   * first, real Gmail send or a confirmed hand-off second.
+   * Letters' own `draftBody` hand-off (already used by the paper trail's
+   * "keep working on this draft" and by Home's saved-draft reopen) drops
+   * text straight into its editor, skipping the template/tone/question
+   * steps entirely — a chat answer is already written, not a blank form.
+   * That editor is also where the tracked send actually lives: draft row
+   * first, then a real Gmail send or a confirmed hand-off — the same
+   * process this button used to reach through a separate sheet.
+   *
+   * When the answer proposes an actual email — "Subject: …" followed by the
+   * letter — carry THAT subject along by re-heading the body with it, so
+   * Letters' own `extractSubject` (which only reads a Subject: line that
+   * OPENS the text) recovers it. Sending the whole answer verbatim meant the
+   * agency read "Here's the combined version — one email, two asks, same
+   * warm tone" first, under a subject that said nothing about the request
+   * (owner report, 2026-09-05) — `extractProposedEmail` is what already
+   * strips that preamble.
    */
   const handleEmailThis = useCallback((message: UIMessage) => {
-    setEmailComposeMessage(message);
-  }, []);
-
-  /**
-    * When the answer proposes an actual email — "Subject: …" followed by the
-    * letter — send THAT, under THAT subject. Sending the whole answer meant
-    * the agency read "Here's the combined version — one email, two asks, same
-    * warm tone" first, under a subject that said nothing about the request
-    * (owner report, 2026-09-05).
-    */
-   const proposed = useMemo(
-     () =>
-       extractProposedEmail(
-         emailComposeMessage ? stripInlineMarkdown(emailComposeMessage.content) : ''
-       ),
-     [emailComposeMessage]
-   );
+    const { subject, body } = extractProposedEmail(stripInlineMarkdown(message.content));
+    navigation.navigate('Home', {
+      screen: 'Letters',
+      params: {
+        template: 'general',
+        draftBody: subject ? `Subject: ${subject}\n\n${body}` : body,
+        // This answer has never been logged anywhere — without this,
+        // Letters assumes a draftBody hand-off means "already a paper-trail
+        // row" (true for its other two callers) and silently skips logging
+        // it on the first Save/Send.
+        draftBodyUnlogged: true,
+      },
+    });
+  }, [navigation]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -794,20 +800,6 @@ export default function NavigatorScreen() {
           </View>
         </View>
       </Modal>
-
-      {/* Email this answer — the shared, tracked send (paper trail + Gmail thread) */}
-      <TrackedEmailModal
-        visible={!!emailComposeMessage}
-        familyId={family?.id}
-        title="Email this answer"
-        defaultSubject={proposed.subject ?? 'Waypoint: Disability Services Guidance'}
-        body={proposed.body}
-        contacts={emailableContacts}
-        childId={primaryChild?.id ?? null}
-        templateKey="navigator_answer"
-        onClose={() => setEmailComposeMessage(null)}
-        onSent={() => setEmailComposeMessage(null)}
-      />
     </SafeAreaView>
   );
 }
