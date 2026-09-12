@@ -8,17 +8,22 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no, interactive-widget=resizes-content"
     />
     <!--
-      `interactive-widget=resizes-content` (WICG Virtual Keyboard API, Safari
-      17.4+ / Chrome 108+): without it, focusing a TextInput on a phone
-      browser shrinks the VISUAL viewport for the on-screen keyboard but
-      leaves the LAYOUT viewport (and this app's `height: 100%` / `#root`
-      flex column below) unchanged. The browser's own "scroll the focused
-      input into view" then scrolls that unchanged layout against a display
-      area it no longer matches, painting the old scroll position behind the
-      new one — the composer "jumps" and shows a ghosted double image of the
-      screen (reported 2026-09-12, screen: Navigator/Learn search bar). This
-      tells the browser to resize layout together with the keyboard instead,
-      so there is nothing stale left to paint behind.
+      THE ON-SCREEN KEYBOARD vs. THIS APP'S FIXED-HEIGHT SHELL.
+
+      Focusing a TextInput on a phone shrinks the VISUAL viewport to make
+      room for the keyboard, but leaves the LAYOUT viewport — and the
+      `height: 100%` / `#root` flex column below — at full height. The
+      browser then scrolls that too-tall layout to reveal the focused field,
+      against a display area it no longer matches, and the pre-focus paint
+      stays on screen behind the new one: the composer "jumps" and the screen
+      doubles (owner report, 2026-09-12, Navigator/Learn search bar).
+
+      `interactive-widget=resizes-content` is the declarative fix and Chromium
+      honours it (108+). WebKit does not — it was shipped and deployed here on
+      2026-09-12 and the jump was unchanged on iOS Safari — so the script at
+      the end of <body> does the same job by hand off `visualViewport`. The
+      meta key stays because where it IS supported the browser has already
+      resized, `visualViewport.height` matches, and the script no-ops.
     -->
     <title>%WEB_TITLE%</title>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
@@ -26,7 +31,10 @@
       /* These styles make the body full-height */
       html,
       body {
-        height: 100%;
+        /* --app-height is the space actually visible above the keyboard; it
+           falls back to 100% before the script runs and where there is no
+           visualViewport at all. */
+        height: var(--app-height, 100%);
       }
       /* These styles disable body scrolling if you are using <ScrollView> */
       body {
@@ -35,7 +43,7 @@
       /* These styles make the root element full-height */
       #root {
         display: flex;
-        height: 100%;
+        height: var(--app-height, 100%);
         flex: 1;
       }
     </style>
@@ -48,5 +56,33 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
+    <script>
+      /* Keyboard-aware app height — see the note in <head>.
+         Pins the shell to the space the browser can actually show, so there
+         is no taller layout for WebKit to scroll behind the keyboard. */
+      (function () {
+        var vv = window.visualViewport;
+        if (!vv) return;
+        var root = document.documentElement;
+        var pending = false;
+        function apply() {
+          pending = false;
+          root.style.setProperty('--app-height', vv.height + 'px');
+          /* body cannot scroll (overflow: hidden), so any document scroll
+             offset here is the browser's own reveal-the-input scroll — the
+             thing that leaves the stale paint. Put it back. */
+          if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0);
+        }
+        function schedule() {
+          if (pending) return;
+          pending = true;
+          window.requestAnimationFrame(apply);
+        }
+        vv.addEventListener('resize', schedule);
+        vv.addEventListener('scroll', schedule);
+        window.addEventListener('orientationchange', schedule);
+        apply();
+      })();
+    </script>
   </body>
 </html>

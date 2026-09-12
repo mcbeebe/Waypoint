@@ -108,6 +108,31 @@ const META_CATEGORY_TO_ACTION: Record<string, ActionCategory> = {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const asMessageUuid = (id: string): string | undefined => (UUID_RE.test(id) ? id : undefined);
 
+/**
+ * The conversation's substance, shaped for the Letters generator: the
+ * answer's prose plus its key cards, so the letter reflects what was
+ * actually discussed (attendees by role, deadlines, the specific situation)
+ * instead of a generic template fill.
+ *
+ * Shared by both routes out of a chat answer — the AI's own "Draft this
+ * letter" offer and the "Email This" button — because both are asking the
+ * generator the same thing: write the letter THIS conversation implies.
+ */
+function chatGuidanceFor(message: UIMessage): string {
+  const parts: string[] = [message.content.slice(0, 2200)];
+  const meta = message.meta;
+  if (meta?.context) parts.push(`Key context: ${meta.context}`);
+  if (meta?.rights) parts.push(`Relevant right: ${meta.rights}`);
+  if (meta?.watchOut) parts.push(`Watch out: ${meta.watchOut}`);
+  if (meta?.steps?.length) {
+    parts.push(
+      'Recommended steps:\n' +
+        meta.steps.map((s, i) => `${i + 1}. ${s.action}${s.who ? ` (${s.who})` : ''}`).join('\n')
+    );
+  }
+  return parts.join('\n\n').slice(0, 3500);
+}
+
 export default function NavigatorScreen() {
   const { family, updateFamily } = useFamily();
   const { children } = useChildren(family?.id);
@@ -363,25 +388,7 @@ export default function NavigatorScreen() {
       if (question) question = question[0].toUpperCase() + question.slice(1);
     }
 
-    // Carry the conversation's substance into the draft: the answer's prose
-    // plus its key cards, so the letter reflects what was actually discussed
-    // (attendees by role, deadlines, the specific situation) instead of a
-    // generic template fill.
-    let guidance: string | undefined;
-    if (message) {
-      const parts: string[] = [message.content.slice(0, 2200)];
-      const meta = message.meta;
-      if (meta?.context) parts.push(`Key context: ${meta.context}`);
-      if (meta?.rights) parts.push(`Relevant right: ${meta.rights}`);
-      if (meta?.watchOut) parts.push(`Watch out: ${meta.watchOut}`);
-      if (meta?.steps?.length) {
-        parts.push(
-          'Recommended steps:\n' +
-            meta.steps.map((s, i) => `${i + 1}. ${s.action}${s.who ? ` (${s.who})` : ''}`).join('\n')
-        );
-      }
-      guidance = parts.join('\n\n').slice(0, 3500);
-    }
+    const guidance = message ? chatGuidanceFor(message) : undefined;
 
     navigation.navigate('Home', {
       screen: 'Letters',
@@ -429,37 +436,55 @@ export default function NavigatorScreen() {
    * Email this answer — through the same drafting screen as "Draft this
    * letter", not a second, lighter-weight compose sheet of its own (owner
    * report, 2026-09-12: the two felt like different products for what is
-   * the same job — sending something to someone).
+   * the same job).
    *
-   * Letters' own `draftBody` hand-off (already used by the paper trail's
-   * "keep working on this draft" and by Home's saved-draft reopen) drops
-   * text straight into its editor, skipping the template/tone/question
-   * steps entirely — a chat answer is already written, not a blank form.
-   * That editor is also where the tracked send actually lives: draft row
-   * first, then a real Gmail send or a confirmed hand-off — the same
-   * process this button used to reach through a separate sheet.
+   * WHICH of the two things a chat answer is decides the route, and getting
+   * this wrong shipped a real defect (owner report, 2026-09-12, second
+   * round): most answers are advice written TO THE PARENT — "you're the one
+   * who notices if they miss the window", "what families commonly miss" —
+   * and pasting that verbatim into the draft editor put coaching prose under
+   * "Your draft — edit anything, then send", "it goes out under your name",
+   * and a green "no blanks left — ready to send", addressed to a case
+   * manager. It was never an email, and no amount of addressing made it one.
    *
-   * When the answer proposes an actual email — "Subject: …" followed by the
-   * letter — carry THAT subject along by re-heading the body with it, so
-   * Letters' own `extractSubject` (which only reads a Subject: line that
-   * OPENS the text) recovers it. Sending the whole answer verbatim meant the
-   * agency read "Here's the combined version — one email, two asks, same
-   * warm tone" first, under a subject that said nothing about the request
-   * (owner report, 2026-09-05) — `extractProposedEmail` is what already
-   * strips that preamble.
+   *   Answer already contains an email ("Subject:" + the letter under it) →
+   *   that IS the draft. Paste it, re-heading the body with the subject so
+   *   Letters' own `extractSubject` (which only reads a Subject: line that
+   *   OPENS the text) recovers it, and mark it unlogged so the first
+   *   Save/Send actually writes it to the paper trail.
+   *
+   *   Anything else → hand the substance to the Letters GENERATOR the same
+   *   way the AI's own draft offer does, with the ask seeded in the question
+   *   box. The parent lands one tap from a real letter instead of staring at
+   *   their own advice with a Send button under it.
    */
   const handleEmailThis = useCallback((message: UIMessage) => {
-    const { subject, body } = extractProposedEmail(stripInlineMarkdown(message.content));
+    const plain = stripInlineMarkdown(message.content);
+    const { subject, body } = extractProposedEmail(plain);
+
+    if (subject) {
+      navigation.navigate('Home', {
+        screen: 'Letters',
+        params: {
+          template: 'general',
+          draftBody: `Subject: ${subject}\n\n${body}`,
+          // Never logged anywhere yet — without this, Letters assumes a
+          // draftBody hand-off is already a paper-trail row (true for its
+          // other two callers) and silently skips writing it.
+          draftBodyUnlogged: true,
+        },
+      });
+      return;
+    }
+
     navigation.navigate('Home', {
       screen: 'Letters',
       params: {
         template: 'general',
-        draftBody: subject ? `Subject: ${subject}\n\n${body}` : body,
-        // This answer has never been logged anywhere — without this,
-        // Letters assumes a draftBody hand-off means "already a paper-trail
-        // row" (true for its other two callers) and silently skips logging
-        // it on the first Save/Send.
-        draftBodyUnlogged: true,
+        // The ask this answer implies, as a whole sentence — the 80-char
+        // list-title cap would land it in the question box mid-clause.
+        question: deriveActionTitle({ content: plain, steps: message.meta?.steps }, 200),
+        guidance: chatGuidanceFor(message),
       },
     });
   }, [navigation]);

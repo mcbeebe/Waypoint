@@ -245,10 +245,10 @@ function truncateWords(text: string, max = MAX_TITLE): string {
   return `${(lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut).replace(/[\s,;:.—–-]+$/, '')}…`;
 }
 
-function polish(text: string): string {
+function polish(text: string, maxChars = MAX_TITLE): string {
   const cleaned = tidyLine(text).replace(/[:;,]\s*$/, '').replace(/\.$/, '');
   if (!cleaned) return '';
-  return truncateWords(cleaned.charAt(0).toUpperCase() + cleaned.slice(1));
+  return truncateWords(cleaned.charAt(0).toUpperCase() + cleaned.slice(1), maxChars);
 }
 
 export interface TitleSource {
@@ -264,10 +264,15 @@ export interface TitleSource {
  * Best available title, in order of how task-like the source is:
  * the first structured step → the first instructional sentence →
  * the first real sentence → the question asked.
+ *
+ * `maxChars` widens the cap for callers that are not writing a list title.
+ * The Letters hand-off seeds its "what do you need?" box with this, and an
+ * 80-character title lands there cut mid-clause with an ellipsis — the ask
+ * has to read as a whole sentence when a parent is about to send it.
  */
-export function deriveActionTitle(source: TitleSource): string {
+export function deriveActionTitle(source: TitleSource, maxChars = MAX_TITLE): string {
   const firstStep = source.steps?.[0]?.action;
-  if (firstStep && firstStep.trim()) return polish(firstStep);
+  if (firstStep && firstStep.trim()) return polish(firstStep, maxChars);
 
   // Sentences, in order, with conversational openers removed
   const sentences = source.content
@@ -277,9 +282,9 @@ export function deriveActionTitle(source: TitleSource): string {
     .filter((s) => s.length > 3);
 
   const instruction = sentences.find((s) => ACTION_VERB_RE.test(s));
-  if (instruction) return polish(instruction);
+  if (instruction) return polish(instruction, maxChars);
 
-  if (sentences.length > 0) return polish(sentences[0]);
-  if (source.question?.trim()) return polish(source.question);
+  if (sentences.length > 0) return polish(sentences[0], maxChars);
+  if (source.question?.trim()) return polish(source.question, maxChars);
   return 'Saved from your AI chat';
 }
