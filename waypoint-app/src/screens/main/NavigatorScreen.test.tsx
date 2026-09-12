@@ -7,8 +7,10 @@
  *    walks to PARENTS, never siblings, so a `navigate('TrackerList')` from
  *    this stack is a silent no-op — a dead tap in production with the gates
  *    green. That failure mode has shipped twice in this repo.
- * 2. "Email this response" opens the TRACKED sheet, not the old one that
- *    logged a `sent` row the moment the compose window appeared.
+ * 2. "Email this response" opens the SAME drafting screen as "Draft this
+ *    letter" (Letters, via its draftBody hand-off) — one email-sending
+ *    experience, not two that look like different products (owner report,
+ *    2026-09-12).
  */
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -41,12 +43,6 @@ vi.mock('@/hooks/useChat', () => ({
 
 vi.mock('@/hooks/useActions', () => ({
   useActions: () => ({ actions: h.actions, createAction: vi.fn() }),
-}));
-
-vi.mock('@/hooks/useContacts', () => ({
-  useContacts: () => ({
-    contacts: [{ id: 'k1', name: 'Ana Diaz', email: 'ana@altaregional.org', role: 'Coordinator' }],
-  }),
 }));
 
 vi.mock('@/lib/supabase', () => ({
@@ -180,15 +176,55 @@ describe('the parent is told they are talking to a machine', () => {
 });
 
 describe('emailing an answer', () => {
-  it('opens the tracked sheet — recipient required, nothing logged yet', async () => {
+  it('opens Letters — the same screen "Draft this letter" uses — not a separate sheet', () => {
     h.messages = [answer()];
     render(<NavigatorScreen />);
 
     fireEvent.click(screen.getByLabelText(/Email this response/i));
-    // The tracked sheet, not the old fire-and-forget one: it asks who this is
-    // going to, and says what will happen to the paper trail.
-    expect(await screen.findByLabelText('Recipient email address')).toBeTruthy();
-    expect(screen.getByText(/saves to your paper trail once you confirm it went/i)).toBeTruthy();
-    expect(screen.getByLabelText('Send to Ana Diaz')).toBeTruthy();
+
+    expect(navigateCalls).toHaveLength(1);
+    const [tab, options] = navigateCalls[0].args as [string, { screen: string; params?: unknown }];
+    // Same rule as the action-plan tab: a navigate never reaches a sibling,
+    // so the tab has to be named and the target has to actually resolve.
+    expect(resolvesFrom('Navigator', { screen: options.screen, tab })).toBe(true);
+    expect(options.screen).toBe('Letters');
+    const params = options.params as { template?: string; draftBodyUnlogged?: boolean };
+    expect(params.template).toBe('general');
+    // Letters otherwise assumes a draftBody hand-off is already a
+    // paper-trail row (true for its other two callers) — without this flag
+    // the first Save/Send on a chat answer silently writes nothing.
+    expect(params.draftBodyUnlogged).toBe(true);
+  });
+
+  it('drops the answer straight into the draft, skipping the template/tone form', () => {
+    h.messages = [answer({ content: 'Ask your Regional Center for a speech assessment in writing.' })];
+    render(<NavigatorScreen />);
+
+    fireEvent.click(screen.getByLabelText(/Email this response/i));
+
+    const [, options] = navigateCalls[0].args as [string, { params: { draftBody?: string } }];
+    expect(options.params.draftBody).toBe(
+      'Ask your Regional Center for a speech assessment in writing.'
+    );
+  });
+
+  it('carries a proposed email\'s own subject along, not the generic default', () => {
+    h.messages = [
+      answer({
+        content:
+          'Here’s the combined version.\n\nSubject: IEP Assessment Request\n\nHi Keri,\n\nPlease evaluate Teddy for speech services.',
+      }),
+    ];
+    render(<NavigatorScreen />);
+
+    fireEvent.click(screen.getByLabelText(/Email this response/i));
+
+    const [, options] = navigateCalls[0].args as [string, { params: { draftBody?: string } }];
+    // Reheaded so Letters' own extractSubject (a Subject: line that OPENS
+    // the text) recovers it — the "here's the combined version" preamble
+    // to the PARENT must not become the first thing the agency reads.
+    expect(options.params.draftBody).toBe(
+      'Subject: IEP Assessment Request\n\nHi Keri,\n\nPlease evaluate Teddy for speech services.'
+    );
   });
 });
