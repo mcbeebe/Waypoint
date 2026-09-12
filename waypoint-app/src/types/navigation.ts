@@ -43,6 +43,8 @@ export type HomeStackParamList = {
   Journey: undefined;
   /** "You are here" — Regional Center system by default, or the school system */
   ProcessMap: { system?: 'rc' | 'school' } | undefined;
+  /** How the APP works (not the RC/school process, which is ProcessMap) — the Tell/Plan/Act/Track loop */
+  HowWaypointWorks: undefined;
   /** SDP enrollment stepper, steps 0–8 per DDS D-2026-SDP-002 */
   SdpJourney: undefined;
   /** RC escalation ladder — four rungs, collaborative first (depth plan) */

@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -84,6 +85,7 @@ const MEMORY_KIND_EMOJI: Record<MemoryKind, string> = {
 };
 
 export default function ProfileScreen() {
+  const navigation = useNavigation();
   const { family, updateFamily, loading: familyLoading } = useFamily();
   const { children, addChild, updateChild, deleteChild } = useChildren(family?.id);
   const { guard } = usePremiumGuard();
@@ -819,6 +821,20 @@ export default function ProfileScreen() {
               accessibilityLabel="Replay the app tour"
             >
               <Text style={styles.textSizePillText}>Replay</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>How Waypoint works</Text>
+              <Text style={styles.settingHint}>The Tell → Plan → Act → Track loop, and what happens behind the scenes.</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.textSizePill}
+              onPress={() => (navigation as any).navigate('HowWaypointWorks')}
+              accessibilityRole="button"
+              accessibilityLabel="See how Waypoint works"
+            >
+              <Text style={styles.textSizePillText}>View</Text>
             </TouchableOpacity>
           </View>
         </View>
