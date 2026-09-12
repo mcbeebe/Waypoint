@@ -160,11 +160,85 @@ in Settings; whether they coexist, merge, or one retires is an owner call,
 not made here.
 
 Per the standing rule for anything a family sees, this stops short of
-auto-merge: no PR was opened (session policy), and a `/adversary` pass is
-running before this is presented for owner review.
+auto-merge: no PR was opened (session policy), and a `/adversary` pass ran
+before this was presented for owner review — memo below.
+
+## Adversary review — Sep 12
+
+A fresh subagent (no context from this session's own reasoning) reviewed
+commit `06d10a9` cold, against the actual source it depends on, not just the
+diff.
+
+**What the change does.** Adds a new, self-contained "How Waypoint Works"
+screen and registers it end-to-end in the navigation graph; adds one entry
+point to it from Profile & Settings. Purely additive — no existing screen's
+behavior, route, or data model changes.
+
+**Where it focused.** The one `ProfileScreen.tsx` navigate call (the only
+wire connecting the new screen to the app); the three hand-written en/es/vi
+translation blocks; the four-file route registration (`routeGraph.ts` /
+`MainTabs.tsx` / `linking.ts` / `types/navigation.ts`); the two "how it
+works" rows now sitting stacked in Settings.
+
+**Findings, and what happened to each:**
+
+1. **Fixed.** `ProfileScreen.tsx`'s new `(navigation as any).navigate(
+   'HowWaypointWorks')` was untyped, defeating the exact compile-time
+   guarantee `routeGraph.ts` exists to provide (its own header comment: a
+   hand-copied version of this guard once "certified nine dead taps").
+   Three sibling screens (`InsuranceScreen.tsx`, `LettersScreen.tsx`,
+   `RequestCaseScreen.tsx`) already use the typed form —
+   `useNavigation<NativeStackNavigationProp<HomeStackParamList>>()` — so the
+   safer pattern was available and already established, not blocked by any
+   real typing limitation. Switched to it; `tsc --noEmit` now fails if
+   `HowWaypointWorks` is ever renamed or removed without updating this call
+   site, closing the silent-dead-tap failure mode the finding described.
+2. **Accepted, mitigated by (1) rather than a new test.** No test asserts
+   that tapping "View" in Settings actually calls `navigate(
+   'HowWaypointWorks')` — `ProfileScreen.tsx` has no test file at all, and
+   one would need to mock `useFamily`/`useChildren`/`useDiagnoses`/
+   `usePremiumGuard`/`useTextScale`/`useMemories`/Google auth/Supabase to
+   render it. The typed-navigation fix in (1) gives the same protection a
+   render test would target here (a renamed/removed route fails the build)
+   at far lower cost; a full `ProfileScreen.test.tsx` is a reasonable
+   follow-up but is its own, separably-scoped effort, not part of this
+   change.
+3. **Accepted risk, already flagged to the owner.** Two "how it works"
+   entries (the pre-existing App tour, and this new screen) now sit stacked
+   in Settings with no reconciliation. Confirmed real by the reviewer, and
+   already named as the open owner question above — not resolved here on
+   purpose.
+4. **Disputed.** Flagged as an "unexplained deviation" from `ActionsScreen`'s
+   `TouchableOpacity` precedent (cited in the commit message for its
+   `aria-pressed` pattern, not its component choice). `Pressable` is in fact
+   the established choice in this screen's closer siblings —
+   `EscalationLadderScreen.tsx` and `ResourceStackScreen.tsx`, the two most
+   directly comparable "explainer" screens — so no change made.
+
+No runtime-breaking defect was found beyond (1). The reviewer independently
+verified — by reading the actual dependency, not by inference — the
+same-stack navigation resolution, the URL non-collision, every theme token
+referenced, the i18n default-locale assumption, the "no react-native-svg" /
+"RN-web 0.19 drops accessibilityState→aria" claims from the commit message,
+and that no test-query name collides across the new screen's accessible
+labels. (It could not itself run `tsc`/`vitest` — its worktree's
+`node_modules` inherited the same stray personal-machine symlink noted
+above — so gate results were re-run by this session after fix (1), fresh,
+and are green: `tsc --noEmit`, `eslint`, and vitest `logic`+`ui`
+1292/1292.)
+
+**Assumptions and design decisions**, restated from the reviewer's read: Option B
+over A was a deliberate, owner-approved pick among three mocked directions,
+not a default — a reviewer could still prefer A's literal loop diagram for a
+family under stress, since B leads with the AI's mechanism over the
+family's own actions (a tradeoff the plan itself names above). Locale
+content is hand-duplicated per screen in a `Strings` record rather than
+centralized, matching how sibling screens (`EscalationLadderScreen.tsx`,
+`ResourceStackScreen.tsx`) already do it — consistent, not novel; translation
+*correctness* (as opposed to structural completeness, which the `Strings`
+type enforces) is unverified, same as its siblings.
 
 ## Next step
 
-Owner reviews the adversary memo and the screen itself, then decides:
-ship as-is, request changes, or resolve the open `OnboardingTutorial`
-question above.
+Owner reviews this memo and the screen itself, then decides: ship as-is,
+request changes, or resolve the open `OnboardingTutorial` question above.

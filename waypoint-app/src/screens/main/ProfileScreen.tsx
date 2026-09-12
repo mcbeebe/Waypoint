@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   View,
   Text,
@@ -43,6 +44,7 @@ import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
 import { usePremiumGuard } from '@/hooks/usePremiumGuard';
 import type { Child } from '@/types/database';
+import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 // ─── Options (same as onboarding) ────────────────────────────────────────────
@@ -85,7 +87,7 @@ const MEMORY_KIND_EMOJI: Record<MemoryKind, string> = {
 };
 
 export default function ProfileScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { family, updateFamily, loading: familyLoading } = useFamily();
   const { children, addChild, updateChild, deleteChild } = useChildren(family?.id);
   const { guard } = usePremiumGuard();
@@ -830,7 +832,7 @@ export default function ProfileScreen() {
             </View>
             <TouchableOpacity
               style={styles.textSizePill}
-              onPress={() => (navigation as any).navigate('HowWaypointWorks')}
+              onPress={() => navigation.navigate('HowWaypointWorks')}
               accessibilityRole="button"
               accessibilityLabel="See how Waypoint works"
             >
