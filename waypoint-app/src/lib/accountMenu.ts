@@ -31,6 +31,12 @@ export function accountMenuItems(locale: FunnelLocale = 'en'): AccountMenuItem[]
       screen: 'Profile',
     },
     {
+      key: 'howItWorks',
+      icon: 'sync-outline',
+      label: L('How Waypoint works', 'Cómo funciona Waypoint', 'Waypoint hoạt động như thế nào'),
+      screen: 'HowWaypointWorks',
+    },
+    {
       key: 'notifications',
       icon: 'notifications-outline',
       label: L('Notifications', 'Notificaciones', 'Thông báo'),
