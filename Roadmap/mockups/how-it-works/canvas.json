@@ -1,0 +1,39 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 1120, "title": "Recommended starting point (= Option C)" },
+    { "file": "OptionA.dc.html", "x": 490, "y": 0, "w": 390, "h": 1300, "title": "Option A · The Loop" },
+    { "file": "OptionB.dc.html", "x": 980, "y": 0, "w": 390, "h": 1030, "title": "Option B · Under the Hood" },
+    { "file": "OptionC.dc.html", "x": 1470, "y": 0, "w": 390, "h": 1120, "title": "Option C · The Route" }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": -440,
+      "y": 0,
+      "w": 400,
+      "text": "HOW WAYPOINT WORKS — three directions for a single screen that shows a family the process loop, a bit of how to use the app, and a bit of what's happening under the hood.\n\nThis is a NEW product-tour screen, separate from the existing \"How the System Works\" process map (which explains the Regional Center / IPP process, not the app itself).\n\nAll three keep the same four loop stages so they're a fair comparison: TELL (you describe your situation) → PLAN (Waypoint gives one next step, checked against CA law) → ACT (a friendly, drafted ask) → TRACK (Waypoint runs the clock, firms up tone if it has to) → loops back to TELL/PLAN as things change. Built from waypoint-app/src/lib/theme.ts's warm brand tokens and the real Brandmark (pin + route line)."
+    },
+    {
+      "id": "option-a",
+      "x": 490,
+      "y": -260,
+      "w": 390,
+      "text": "OPTION A · THE LOOP\n\nA literal circular cycle diagram — four stage nodes ringed around a center hub, with a stage-by-stage detail list underneath.\n\nMotivation: most direct answer to \"show me the loop\" — the shape does the explaining before you read a word.\nTradeoff: tallest of the three (a full ring + a full list), and the most implementation surface if built as a real component."
+    },
+    {
+      "id": "option-b",
+      "x": 980,
+      "y": -260,
+      "w": 390,
+      "text": "OPTION B · UNDER THE HOOD\n\nA cutaway: a top strip you do (Tell → Plan → Act → Track) sits over a dark \"engine\" panel showing what Waypoint is doing for each one.\n\nMotivation: most literal answer to \"what's happening under the hood\" — the mechanism is the centerpiece, not an afterthought.\nTradeoff: says less about the loop itself (repeat is one line, not a diagram) — leads with the AI's work over the family's."
+    },
+    {
+      "id": "option-c",
+      "x": 1470,
+      "y": -260,
+      "w": 390,
+      "text": "OPTION C · THE ROUTE — recommended starting point\n\nA winding route with four numbered waypoint pins, using the app's own pin-and-route mark (never a compass, per Brandmark.astro) — the loop is a round trip back to pin 1.\n\nMotivation: the only option that IS the brand (\"a GPS for the disability services journey\") rather than illustrating it generically; lightest under-the-hood treatment keeps it from feeling technical.\nTradeoff: the map reads best once — a returning user may want A's or B's denser recap faster than re-walking a route."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
