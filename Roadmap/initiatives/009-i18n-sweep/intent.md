@@ -1,7 +1,7 @@
 # 009 — i18n sweep: finish Spanish on the screens that already speak it
 
-**Date:** 2026-09-13 · **Status:** Open — building PR 1 (ProfileScreen), owner approval pending per the family-facing stop
-**Artifacts:** intent.md (this) → analysis.md (the audit) → PRs, one per screen cluster
+**Date:** 2026-09-13 · **Status:** Open — PR 1 (ProfileScreen + DiagnosisSelector + ContactsCard) built and adversary-reviewed; **awaiting owner approval** per the family-facing stop
+**Artifacts:** intent.md (this) → analysis.md (the audit) → pr1-review-memo.md → PRs, one per screen cluster
 **Serves:** `ROADMAP.md` Phase **7.1 — i18n sweep** ("English + Spanish. Move all screens onto the translation system") and **Gate 7** ("A Spanish-speaking parent uses the full app offline"). Locked decision row 5: *Languages — English + Spanish; vi kept in repo but unlisted.*
 
 ## Problem
