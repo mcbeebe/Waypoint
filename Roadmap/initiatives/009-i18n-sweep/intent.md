@@ -1,0 +1,54 @@
+# 009 — i18n sweep: finish Spanish on the screens that already speak it
+
+**Date:** 2026-09-13 · **Status:** Open — building PR 1 (ProfileScreen), owner approval pending per the family-facing stop
+**Artifacts:** intent.md (this) → analysis.md (the audit) → PRs, one per screen cluster
+**Serves:** `ROADMAP.md` Phase **7.1 — i18n sweep** ("English + Spanish. Move all screens onto the translation system") and **Gate 7** ("A Spanish-speaking parent uses the full app offline"). Locked decision row 5: *Languages — English + Spanish; vi kept in repo but unlisted.*
+
+## Problem
+
+Waypoint's Spanish is **much further along than any single file suggests, and stops in inconsistent places.** An audit (see `analysis.md`) found the app runs **three parallel translation systems**:
+
+1. **`src/i18n/` bundle** (`en.ts`/`es.ts`/`vi.ts`, ~140 keys, `TranslationStrings`-enforced) — fully translated, **but only 11 keys are consumed**, and parts of its `home` section are **stale** (`Your Action Plan`, `Quick Actions`, `View Actions` no longer render anywhere).
+2. **Domain layer** — 44 `es:` entries across **24 `src/lib/*.ts` modules**, parity-guarded by `localeParity.test.ts`. This is healthy and is the system of record for *content*.
+3. **Inline `Record<FunnelLocale, string>` tables** in **19 screens/components** (114 entries) — the pattern the rebuilt screens actually adopted.
+
+The consequence is not "the app is English." Fourteen main screens — Home, Tools, ProcessMap, ResourceStack, SdpJourney, EligibilityResult, AskForSupports, EscalationLadder, FundedOffer, HowWaypointWorks, NotificationSettings, Plan, SupportDetail, Article — render **zero hardcoded English**. The consequence is that Spanish **stops mid-app**: ~95 strings still render in English on eight screens that are otherwise localized, and **ProfileScreen — the screen that hosts the language picker — is the worst offender at 42.**
+
+A parent who switches Waypoint to Español and lands on Ajustes to confirm it worked is met by `Family Info`, `Your first name`, `Save Changes`, `Delete account & all data`. That is where trust in the translation breaks.
+
+## The one danger to design against
+
+**Changing what the app *says* while claiming to change only what language it says it in.**
+
+Every string here is family-facing copy. Under `CLAUDE.md` this sits behind the *"anything a family sees or that changes advice, tone, or legal framing"* stop, which the draft-flow auto-merge grant does **not** cover. Two specific failure modes:
+
+1. **Tone drift in translation.** The escalation rule (collaborative → assertive → adversarial) and the status-not-blame framing are **locked**. A Spanish string must never firm up the tone its English twin uses — no `exigir` where the English asks. `localeParity.test.ts` guards the *content* modules; it does not see screen chrome, so chrome translations need their own care.
+2. **Silent English fallback.** A missing locale must be a **compile error**, never a blank or an English leak. `Record<FunnelLocale, string>` gives that guarantee; a plain object or an `??  english` default does not. No `as` casts around locale maps.
+
+Third, a process danger: **inventing a fourth system.** This initiative does not build new i18n machinery. It uses the pattern the surrounding code already uses.
+
+## The shape (what we're building)
+
+**Close the residual English on screens that already hold `locale`** — finish the job, screen by screen, in the idiom already there.
+
+- **Pattern:** module-top `Record<FunnelLocale, string>` constants with a JSDoc line saying what the string is for, read via the `locale` the screen already pulls from `useI18n()`. Matches HomeScreen, the reference implementation.
+- **Order, by parent impact:** ProfileScreen (42) → ActionsScreen (14) + ActionDetailScreen (15) → NavigatorScreen (8) + LettersScreen (7) → EmailAnalyzer (4), Journey (3), RequestCase (2).
+- **Spanish is authored, not machine-passed.** `ROADMAP.md` §"Content design for stressed parents": *"Spanish is human-reviewed, not machine passthrough."* Usted-form throughout, matching the existing corpus (`Su cuenta`, `¿Tiene algo en mente?`).
+- **Vietnamese travels with it.** `Record<FunnelLocale, …>` makes vi non-optional. The ROADMAP calls vi "unlisted", but `ProfileScreen.tsx` ships it as a selectable option — so vi strings are load-bearing today. See the open decision below.
+- **Tests:** the `ui` vitest project renders each touched screen under `es` and asserts the English is gone. That suite exists precisely because the logic suite cannot see a rendered string.
+
+**Explicitly out of scope** (later PRs or other initiatives): the 29 screens with no i18n at all (onboarding, auth, legal, Providers/Insurance/Services/Expenses/Calendar/Documents); the 25 English-only `lettersCatalog.ts` templates; passing `locale` into the Navigator chat in `ai.ts`; consolidating the three systems; the marketing site's zero Spanish pages (reviewer-bound, initiative 008).
+
+## Open decisions for the owner
+
+1. **Vietnamese: unlisted or shipped?** `ROADMAP.md` row 5 and §7.1 both say vi stays *unlisted*, but `ProfileScreen.tsx:74-78` offers `Tiếng Việt` 🇻🇳 in the picker. Today a family can select the least-complete language. Either delist it or update the ROADMAP. **This initiative assumes shipped** and translates vi alongside es.
+2. **Three systems → one?** The `src/i18n/` bundle is 92% unused and partly stale, while the inline pattern won in practice. Retiring or repopulating the bundle is a real decision; this initiative deliberately **does not** make it, and follows the majority idiom instead.
+
+## Done when
+
+- The eight partially-localized screens render **zero hardcoded user-visible English**; a Spanish-speaking parent can go signup-free from Home → Ask → Plan → Letters → Ajustes without meeting English chrome.
+- Every new string is a `Record<FunnelLocale, string>` — a dropped locale fails `tsc`, not the parent.
+- `ui`-project render tests prove each touched screen is English-free under `es`.
+- All five gates green: `npx tsc --noEmit`, `npm run lint`, `npm test` (four projects), `npm run build:web`, and the `--dev` web export.
+- Tone and advice **unchanged** — the diff moves language, never meaning. `/adversary` memo in each PR.
+- ROADMAP 7.1 reflects reality, and the vi decision above is recorded either way.
