@@ -98,6 +98,32 @@ describe('splitDossierEvents — exact links vs thread inference', () => {
     expect(thread).toHaveLength(1);
     expect(thread[0].communication.direction).toBe('incoming');
   });
+
+  // The Case file button on RequestCaseScreen prints this same count. A parent
+  // who reads "Case file (2)" and opens a document headed "3 items" has been
+  // told two different numbers about their own evidence — so the button's
+  // source and the document's headline are pinned to each other here.
+  it('the core count the button shows is the count the document headlines', () => {
+    const { kase } = fullCase();
+    const count = splitDossierEvents(kase).core.length;
+    const text = buildRequestDossierText(kase, OPTS);
+    expect(text).toContain(`RECORD (${count} item${count === 1 ? '' : 's'}, oldest first)`);
+    expect(renderRequestDossierHtml(kase, OPTS)).toContain(
+      `The record (${count} item${count === 1 ? '' : 's'}, oldest first)`
+    );
+  });
+
+  it('singular and plural both hold, so "1 items" can never ship', () => {
+    const r = req({ communication_id: 'origin' });
+    const only = comm({ id: 'origin', subject: 'Requesting an IPP meeting' });
+    const kase = buildRequestCase(r, [only], 'en', NOW);
+    expect(splitDossierEvents(kase).core).toHaveLength(1);
+    expect(buildRequestDossierText(kase, OPTS)).toContain('RECORD (1 item, oldest first)');
+
+    const empty = buildRequestCase(req({}), [], 'en', NOW);
+    expect(splitDossierEvents(empty).core).toHaveLength(0);
+    expect(buildRequestDossierText(empty, OPTS)).toContain('RECORD (0 items, oldest first)');
+  });
 });
 
 describe('buildRequestDossierText', () => {

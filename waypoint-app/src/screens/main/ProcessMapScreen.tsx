@@ -30,6 +30,7 @@ import type { Action } from '@/types/database';
 import { useI18n } from '@/i18n';
 import { statusLabel, type ActionLocale } from '@/lib/actionMeta';
 import { useToast } from '@/components/Toast';
+import Citation from '@/components/Citation';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 /** Screen chrome in EN/ES. Vietnamese falls back to English for now. */
@@ -312,7 +313,9 @@ export default function ProcessMapScreen() {
                 <Text style={styles.clockChipText}>⏱ {stage.clock}</Text>
               </View>
             </View>
-            <Text style={styles.citation}>ⓘ {stage.citation}</Text>
+            <View style={styles.citationRow}>
+              <Citation citation={stage.citation} locale={funnelLocale} />
+            </View>
             {renderStageActions(stage)}
             {stage.key === 'ipp' && (
               child?.has_ipp ? (
@@ -407,7 +410,9 @@ export default function ProcessMapScreen() {
               <Text style={styles.clockChipText}>⏱ {sdpFork.clock}</Text>
             </View>
           </View>
-          <Text style={styles.citation}>ⓘ {sdpFork.citation}</Text>
+          <View style={styles.citationRow}>
+            <Citation citation={sdpFork.citation} locale={funnelLocale} />
+          </View>
           <ServiceLanesCompare locale={funnelLocale} title={S.lanesTitle} />
           {renderStageActions(sdpFork)}
           <Pressable
@@ -472,7 +477,9 @@ function ServiceLanesCompare({ locale, title }: { locale: FunnelLocale; title: s
       <View style={styles.laneMiddle}>
         <Text style={styles.laneMiddleText}>{middleLane}</Text>
       </View>
-      <Text style={styles.citation}>ⓘ {citation}</Text>
+      <View style={styles.citationRow}>
+        <Citation citation={citation} locale={locale} />
+      </View>
     </View>
   );
 }
@@ -626,7 +633,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   clockChipText: { color: semantic.warning, fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
-  citation: { marginTop: spacing.sm, fontSize: fonts.sizes.xs, color: colors.mid },
+  citationRow: { marginTop: spacing.sm },
   planLinks: { marginTop: spacing.md, gap: spacing.xs },
   planLinksLabel: {
     fontSize: fonts.sizes.xs,

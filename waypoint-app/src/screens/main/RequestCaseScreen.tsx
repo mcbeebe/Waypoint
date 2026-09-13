@@ -36,9 +36,10 @@ import {
   type ProvenanceTier,
 } from '@/lib/requestCase';
 import { REQUEST_TYPE_LABELS } from '@/lib/requestClocks';
-import { exportRequestDossier } from '@/lib/requestDossier';
+import { exportRequestDossier, splitDossierEvents } from '@/lib/requestDossier';
 import { gmailStatus } from '@/lib/gmail';
 import GmailReplyModal from '@/components/GmailReplyModal';
+import Citation from '@/components/Citation';
 import AddEntryModal, { KIND_CONFIG, ORG_LABELS } from '@/components/AddEntryModal';
 import { useToast } from '@/components/Toast';
 import { toFunnelLocale } from '@/lib/eligibility';
@@ -215,6 +216,13 @@ export default function RequestCaseScreen() {
     [request, communications, funnelLocale]
   );
 
+  // The number the button shows is the number the case file's own headline
+  // shows — same split, from the dossier module, never recomputed here.
+  const recordCount = useMemo(
+    () => (kase ? splitDossierEvents(kase).core.length : 0),
+    [kase]
+  );
+
   const openReply = useCallback(
     (reply: Communication) => {
       if (!reply.gmail_thread_id || !gmailConnected) {
@@ -282,9 +290,11 @@ export default function RequestCaseScreen() {
             >
               {deadline.overdue
                 ? `⚠ ${-deadline.daysRemaining} days past the legal deadline (${deadline.dueOn})`
-                : `⏱ Due ${deadline.dueOn} · ${deadline.daysRemaining} days left`}{' '}
-              · {deadline.citation}
+                : `⏱ Due ${deadline.dueOn} · ${deadline.daysRemaining} days left`}
             </Text>
+            <View style={styles.clockCitationRow}>
+              <Citation citation={deadline.citation} locale={funnelLocale} />
+            </View>
             {kase?.backdated && (
               <Text style={styles.clockNote}>
                 The clock runs from the day you asked — not the day it was logged.
@@ -393,16 +403,23 @@ export default function RequestCaseScreen() {
               if (!ok) {
                 showToast(
                   Platform.OS === 'web'
-                    ? "The dossier couldn't open — your browser may be blocking pop-ups for this site."
-                    : "Couldn't export the dossier — try again.",
+                    ? "Your case file couldn't open — your browser may be blocking pop-ups for this site."
+                    : "Couldn't open your case file — try again.",
                   'error'
                 );
               }
             }}
             accessibilityRole="button"
-            accessibilityLabel="Export this case as a dossier for an advocate or hearing"
+            // Not "a PDF": on web this opens an HTML page the parent can print
+            // or save, and the native PDF path can itself fall back to a plain
+            // text share. Promise the record, never the file format.
+            accessibilityLabel={`Open your case file — ${recordCount} item${
+              recordCount === 1 ? '' : 's'
+            } on record. A dated record of this request you can save, print, or hand to an advocate. Free.`}
           >
-            <Text style={styles.logBtnText}>{exporting ? 'Exporting…' : '📄 Export'}</Text>
+            <Text style={styles.logBtnText}>
+              {exporting ? 'Preparing…' : `📄 Case file (${recordCount})`}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -576,6 +593,7 @@ const styles = StyleSheet.create({
   clockText: { fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
   clockTextRunning: { color: semantic.warning },
   clockTextOverdue: { color: semantic.danger },
+  clockCitationRow: { marginTop: spacing.xs },
   clockNote: { marginTop: 4, fontSize: fonts.sizes.xs, color: colors.mid },
   noClock: { fontSize: fonts.sizes.sm, color: colors.mid },
   rungStrip: {

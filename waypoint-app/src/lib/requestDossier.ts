@@ -306,7 +306,8 @@ export async function exportRequestDossier(
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {
           mimeType: 'application/pdf',
-          dialogTitle: `Request dossier — ${kase.request.title}`,
+          // The share sheet is parent-facing: "dossier" is our word, not theirs.
+          dialogTitle: `Case file — ${kase.request.title}`,
         });
         return true;
       }
