@@ -51,13 +51,13 @@ const en: TranslationStrings = {
     currentlyWorkingOn: 'Currently working on:',
     more: '+{{count}} more',
     viewActions: 'View Actions',
-    askAiNavigator: 'Ask AI Navigator',
-    actionPlanHint: 'Your personalized action plan will appear here after you chat with the AI Navigator.',
+    askAiNavigator: 'Ask Waypoint Navigator',
+    actionPlanHint: 'Your personalized action plan will appear here after you chat with the Waypoint Navigator.',
     quickActions: 'Quick Actions',
   },
 
   navigator: {
-    title: 'AI Navigator',
+    title: 'Waypoint Navigator',
     subtitle: 'Your guide through disability services',
     placeholder: 'Ask about IEPs, Regional Center, insurance…',
     welcomeTitle: 'How can I help today?',
@@ -74,7 +74,7 @@ const en: TranslationStrings = {
     errorGeneric: 'I had trouble generating a response. Please try again.',
     newChat: 'New Chat',
     disclaimer:
-      'Educational information only — not legal advice. Disability Rights California: 1-800-776-5746',
+      'AI-generated guidance — educational information only, not legal advice. Disability Rights California: 1-800-776-5746',
     followUpsHint: 'Suggested follow-up',
   },
 
@@ -86,7 +86,7 @@ const en: TranslationStrings = {
     completed: 'Done',
     dismissed: 'Dismissed',
     noActions: 'No actions yet',
-    noActionsHint: 'Chat with the AI Navigator to get personalized action steps for your situation.',
+    noActionsHint: 'Chat with the Waypoint Navigator to get personalized action steps for your situation.',
     steps: 'Steps',
     stepsComplete: '{{done}}/{{total}} steps',
     dueIn: 'Due in {{days}} days',

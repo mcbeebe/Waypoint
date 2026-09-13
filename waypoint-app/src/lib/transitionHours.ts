@@ -6,6 +6,7 @@
  * the content_sources registry.
  */
 import { SDP_TRANSITION_HOURS_CAP } from '@/data/benefitFigures';
+import { localDayISO } from '@/lib/dateOnly';
 import type { ServiceEvent, TransitionExtension } from '@/types/database';
 
 export interface TransitionHoursStatus {
@@ -59,7 +60,9 @@ export function transitionHoursStatus(
     const daysToCap = Math.ceil(remainingHours / hoursPerDay);
     const d = new Date(today);
     d.setDate(d.getDate() + daysToCap);
-    forecastCapDate = d.toISOString().slice(0, 10);
+    // `d` is a local-midnight date; the UTC slice named the previous day on
+    // every UTC+ device.
+    forecastCapDate = localDayISO(d);
   }
 
   return {

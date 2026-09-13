@@ -19,6 +19,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useSdpCase } from '@/hooks/useFacilitation';
 import { SDP_PIPELINE, pipelineIndex, nextActionFor } from '@/lib/sdpStages';
+import { localDayISO } from '@/lib/dateOnly';
 import { transitionHoursStatus } from '@/lib/transitionHours';
 import { formatCents } from '@/lib/spendingPlan';
 import { useToast } from '@/components/Toast';
@@ -212,7 +213,7 @@ export default function CaseDetailScreen() {
                     if (!cents) return showToast('Enter a dollar amount', 'error');
                     const ok = await updateCase({
                       certified_budget_cents: cents,
-                      budget_certified_on: new Date().toISOString().slice(0, 10),
+                      budget_certified_on: localDayISO(),
                     });
                     showToast(ok ? 'Budget recorded' : 'Could not save', ok ? 'success' : 'error');
                   }}

@@ -43,6 +43,8 @@ export type HomeStackParamList = {
   Journey: undefined;
   /** "You are here" — Regional Center system by default, or the school system */
   ProcessMap: { system?: 'rc' | 'school' } | undefined;
+  /** How the APP works (not the RC/school process, which is ProcessMap) — the Tell/Plan/Act/Track loop */
+  HowWaypointWorks: undefined;
   /** SDP enrollment stepper, steps 0–8 per DDS D-2026-SDP-002 */
   SdpJourney: undefined;
   /** RC escalation ladder — four rungs, collaborative first (depth plan) */
@@ -74,6 +76,15 @@ export type HomeStackParamList = {
         question?: string;
         guidance?: string;
         draftBody?: string;
+        /**
+         * `draftBody` defaults to meaning "this is already a row in the
+         * paper trail" (CommunicationLogScreen's "keep working on this
+         * draft", homeTriage's saved-draft resume — both hand back text
+         * that was logged when it was first drafted). Set this when that is
+         * NOT true — e.g. a Navigator chat answer, never logged before — or
+         * the first Save/Send silently no-ops instead of writing it.
+         */
+        draftBodyUnlogged?: boolean;
         /** Lever letters launched from a case stamp their log entry with it. */
         requestId?: string;
         /** The draft flow pre-sets the tone the parent chose in the questions. */

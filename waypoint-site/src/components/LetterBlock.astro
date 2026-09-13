@@ -1,0 +1,97 @@
+---
+/**
+ * Template-letter surface: EN/ES toggle, copy button, letter_copied event
+ * (D3). The ES text ships on the EN page via the toggle from day one; the
+ * separate /es/ page twin waits for Phase 2 i18n routing (D12).
+ * Bracketed placeholders use <span class="fill">[…]</span> inside the slots.
+ */
+interface Props {
+  letterId: string;
+  /**
+   * false while the ES text awaits its credited bilingual reviewer: the
+   * toggle stays, but the ES panel renders an "en revisión" note instead of
+   * the unreviewed letter (owner decision, 2026-09-07 — nothing unreviewed
+   * ships to Spanish-speaking families).
+   */
+  esReady?: boolean;
+}
+const { letterId, esReady = true } = Astro.props;
+---
+
+<div class="letter-block" data-letter-id={letterId}>
+  <div class="letter-toolbar">
+    <div class="seg" role="group" aria-label="Letter language">
+      <button class="active" data-lang="en" type="button" aria-pressed="true">English</button>
+      <button data-lang="es" type="button" aria-pressed="false">Español</button>
+    </div>
+    <button class="btn sm ghost" data-letter-copy type="button">Copy letter</button>
+  </div>
+  <div class="letter-paper" data-letter-lang="en"><slot name="en" /></div>
+  <div class="letter-paper" data-letter-lang="es" hidden data-es-soon={esReady ? undefined : ''}>
+    {
+      esReady ? (
+        <slot name="es" />
+      ) : (
+        <p class="es-soon">
+          <b>La versión en español está en revisión y estará disponible muy pronto.</b>
+          <br />
+          The Spanish version of this letter is being reviewed by a bilingual reviewer and is
+          coming soon.
+        </p>
+      )
+    }
+  </div>
+</div>
+
+<script>
+  // One block per letter page; wire every instance defensively anyway.
+  for (const block of document.querySelectorAll<HTMLElement>('.letter-block')) {
+    const letterId = block.dataset.letterId ?? 'unknown';
+    const papers = block.querySelectorAll<HTMLElement>('[data-letter-lang]');
+    const buttons = block.querySelectorAll<HTMLButtonElement>('.seg button');
+    const copyBtn = block.querySelector<HTMLButtonElement>('[data-letter-copy]');
+    let active = 'en';
+
+    for (const btn of buttons) {
+      btn.addEventListener('click', () => {
+        active = btn.dataset.lang ?? 'en';
+        for (const b of buttons) {
+          const on = b === btn;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', String(on));
+        }
+        for (const p of papers) p.hidden = p.dataset.letterLang !== active;
+        // No copy of the "en revisión" placeholder — and no letter_copied event for it.
+        if (copyBtn) {
+          const activePaper = block.querySelector<HTMLElement>(`[data-letter-lang="${active}"]`);
+          copyBtn.disabled = activePaper?.dataset.esSoon !== undefined;
+        }
+      });
+    }
+
+    copyBtn?.addEventListener('click', async () => {
+      const visible = block.querySelector<HTMLElement>(`[data-letter-lang="${active}"]`);
+      if (!visible) return;
+      try {
+        await navigator.clipboard.writeText(visible.innerText);
+        copyBtn.textContent = 'Copied ✓';
+        setTimeout(() => (copyBtn.textContent = 'Copy letter'), 1600);
+        // letter_copied fires on SUCCESS only (docs/analytics-taxonomy.md).
+        window.plausible?.('letter_copied', { props: { letter_id: letterId, locale: active } });
+      } catch {
+        copyBtn.textContent = 'Copy failed — select the text instead';
+        setTimeout(() => (copyBtn.textContent = 'Copy letter'), 2600);
+      }
+    });
+  }
+</script>
+
+<style>
+  .letter-paper :global(p) {
+    margin: 0 0 14px;
+  }
+  .es-soon {
+    color: var(--color-ink-soft, #55606b);
+    font-size: 0.95rem;
+  }
+</style>

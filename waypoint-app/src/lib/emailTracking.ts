@@ -111,6 +111,13 @@ export const GMAIL_SENT_MESSAGE =
 export const GMAIL_SENT_NO_THREAD =
   'Sent through Gmail and saved to your paper trail. Replies may not sync back automatically.';
 
+/**
+ * Saved to Gmail Drafts rather than sent. The row is still a draft; the thread
+ * id is stored, so reply-sync follows it once the parent sends from Gmail.
+ */
+export const DRAFT_SAVED_MESSAGE =
+  "Saved to your Gmail drafts — nothing sent yet. Send it from Gmail and we'll track the thread.";
+
 /** Confirmation copy after the parent confirms a hand-off send. */
 export const HANDOFF_SENT_MESSAGE = 'Marked as sent — it is in your paper trail.';
 

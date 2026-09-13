@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no, interactive-widget=resizes-content"
+    />
+    <!--
+      THE ON-SCREEN KEYBOARD vs. THIS APP'S FIXED-HEIGHT SHELL — still open.
+
+      Focusing a TextInput on a phone shrinks the VISUAL viewport to make
+      room for the keyboard, but leaves the LAYOUT viewport — and the
+      `height: 100%` / `#root` flex column below — at full height. The
+      browser then scrolls that too-tall layout to reveal the focused field,
+      against a display area it no longer matches, and the pre-focus paint
+      stays on screen behind the new one: the composer "jumps" and the screen
+      doubles (owner report, 2026-09-12, Navigator/Learn search bar).
+
+      TWO FIXES HAVE FAILED ON THE REAL DEVICE. Do not add a third from
+      first principles — measure on an iOS device first.
+
+        1. `interactive-widget=resizes-content` (below). Chromium honours it
+           (108+); WebKit does not. Deployed 2026-09-12, jump unchanged. The
+           key stays only because it is correct and free where supported.
+        2. A `visualViewport`-driven `--app-height` on html/body/#root, plus
+           `scrollTo(0, 0)` on every resize AND scroll. It tested clean in
+           headless Chromium (shrink the viewport, the shell follows) and was
+           WORSE on the phone: the app rendered at a stale reduced height
+           with a white void beneath it, and at times blanked entirely.
+           Reverted the same evening. The likely mechanism, unconfirmed: the
+           `scroll` listener and `scrollTo` feed each other while WebKit is
+           still animating the keyboard, so each pass re-measures a viewport
+           that the previous pass moved.
+    -->
+    <title>%WEB_TITLE%</title>
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  </body>
+</html>

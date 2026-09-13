@@ -22,6 +22,7 @@ import DateInput from '@/components/DateInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useFamily } from '@/hooks/useFamily';
+import { localDayISO } from '@/lib/dateOnly';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useToast } from '@/components/Toast';
@@ -364,7 +365,7 @@ function ExpenseModal({
   const [miles, setMiles] = useState('');
   const [category, setCategory] = useState<ExpenseCategory>('therapy');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(localDayISO());
   const [fundingSource, setFundingSource] = useState('');
   const [isTaxDeductible, setIsTaxDeductible] = useState(false);
   const [reimbStatus, setReimbStatus] = useState<ReimbursementStatus>('none');
@@ -391,7 +392,7 @@ function ExpenseModal({
       setMiles('');
       setCategory('therapy');
       setDescription('');
-      setDate(new Date().toISOString().split('T')[0]);
+      setDate(localDayISO());
       setFundingSource('');
       setIsTaxDeductible(false);
       setReimbStatus('none');

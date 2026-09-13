@@ -1,0 +1,9 @@
+---
+/** The human layer — cream callout for emotional moments, used sparingly. */
+interface Props {
+  label: string;
+}
+const { label } = Astro.props;
+---
+
+<div class="empathy"><span class="label">{label}</span><p><slot /></p></div>

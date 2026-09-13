@@ -24,6 +24,7 @@ export const MAIN_LINKING: { screens: Record<string, StackLinking> } = {
         HomeMain: '',
         Journey: 'journey',
         ProcessMap: 'how-it-works',
+        HowWaypointWorks: 'how-waypoint-works',
         EscalationLadder: 'escalation-ladder',
         EligibilityResult: 'your-result',
         FundedOffer: 'free-help',

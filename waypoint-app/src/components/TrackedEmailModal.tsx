@@ -41,13 +41,14 @@ import {
   markCommunicationSent,
   type CommunicationOrg,
 } from '@/hooks/useCommunications';
-import { gmailSend, gmailStatus } from '@/lib/gmail';
+import { gmailSend, gmailStatus, gmailDraft } from '@/lib/gmail';
 import { composeTarget, LONG_BODY_CHARS } from '@/lib/emailCompose';
 import {
   planEmailRoute,
   handoffCopy,
   GMAIL_SENT_MESSAGE,
   GMAIL_SENT_NO_THREAD,
+  DRAFT_SAVED_MESSAGE,
   HANDOFF_SENT_MESSAGE,
   TRAIL_FAILED_MESSAGE,
   TRAIL_FAILED_AFTER_SEND,
@@ -80,7 +81,7 @@ export interface TrackedEmailModalProps {
   onSent?: (communicationId: string | null) => void;
 }
 
-type Phase = 'compose' | 'working' | 'handoff' | 'done';
+type Phase = 'compose' | 'working' | 'handoff' | 'drafted' | 'done';
 
 export default function TrackedEmailModal({
   visible,
@@ -237,6 +238,58 @@ export default function TrackedEmailModal({
     }
   };
 
+  /**
+   * Put it in the parent's own Gmail Drafts instead of sending (owner request,
+   * 2026-09-05: "it would truly be most reassuring if it could go to my drafts
+   * and then track the email thread once sent").
+   *
+   * The paper-trail row stays a DRAFT — nothing was sent — but the Gmail
+   * thread id is stored, so reply-sync picks the thread up the moment they
+   * press send in Gmail. That is the whole reason this is better than a
+   * compose-window hand-off: the hand-off has no thread id, so a reply to it
+   * can never be tracked.
+   */
+  const handleSaveToDrafts = async () => {
+    if (phase !== 'compose') return;
+    const plan = planEmailRoute({ gmailReady, to });
+    if (!plan.canSend) {
+      showToast(plan.blockedReason, 'error');
+      return;
+    }
+    if (!familyId) {
+      showToast("We couldn't find your family record — please reload and try again.", 'error');
+      return;
+    }
+    setPhase('working');
+    setProblem('');
+    try {
+      const id = await saveDraft();
+      setCommId(id);
+      if (!id) {
+        setPhase('compose');
+        showToast(TRAIL_FAILED_MESSAGE, 'error');
+        return;
+      }
+      const result = await gmailDraft({
+        to: to.trim(),
+        subject: subject.trim() || defaultSubject,
+        body,
+        communicationId: id,
+      });
+      if (!result.ok) {
+        setPhase('compose');
+        setProblem(result.error ?? "Couldn't save it to your Gmail drafts.");
+        showToast(result.error ?? "Couldn't save it to your Gmail drafts.", 'error');
+        return;
+      }
+      setPhase('drafted');
+      showToast(DRAFT_SAVED_MESSAGE, 'success');
+    } catch {
+      setPhase('compose');
+      showToast("Couldn't save it to your Gmail drafts — please try again.", 'error');
+    }
+  };
+
   /** The parent confirms the hand-off email actually went out. */
   const handleConfirmSent = async () => {
     if (!commId) {
@@ -265,7 +318,30 @@ export default function TrackedEmailModal({
         <View style={styles.sheet}>
           <Text style={styles.title}>{title}</Text>
 
-          {phase === 'done' ? (
+          {phase === 'drafted' ? (
+            <View>
+              <View style={styles.handoffBanner}>
+                <Ionicons name="checkmark-circle-outline" size={18} color={brand.pine} />
+                <View style={styles.handoffTextCol}>
+                  <Text style={styles.handoffHeadline}>Saved to your Gmail drafts</Text>
+                  <Text style={styles.handoffBody}>
+                    Open Gmail, read it over, and send when you're ready. We'll pick the thread up
+                    from there — replies land in your paper trail. Nothing has been sent yet.
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.actions}>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={onClose}
+                  accessibilityRole="button"
+                  accessibilityLabel="Done"
+                >
+                  <Text style={styles.sendText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : phase === 'done' ? (
             /* Terminal. The sheet is closing; this only shows if a caller
                keeps it mounted, and it must never be the compose form. */
             <View style={styles.handoffBanner}>
@@ -353,6 +429,10 @@ export default function TrackedEmailModal({
                 <Text style={styles.previewText}>{body}</Text>
               </ScrollView>
 
+              {/* A failed Gmail draft returns here; the parent has to be told
+                  why, not just handed the form again. */}
+              {problem ? <Text style={styles.problem}>{problem}</Text> : null}
+
               <Text style={styles.trailNote}>
                 {gmailReady
                   ? 'Sends from your connected Gmail and saves to your paper trail — replies sync back here.'
@@ -370,6 +450,18 @@ export default function TrackedEmailModal({
                 >
                   <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
+                {gmailReady && (
+                  <TouchableOpacity
+                    style={[styles.draftButton, phase === 'working' && styles.sendButtonBusy]}
+                    onPress={handleSaveToDrafts}
+                    disabled={phase === 'working'}
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: phase === 'working' }}
+                    accessibilityLabel="Save to my Gmail drafts instead of sending"
+                  >
+                    <Text style={styles.draftButtonText}>Save to drafts</Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={[styles.sendButton, phase === 'working' && styles.sendButtonBusy]}
                   onPress={handleSend}
@@ -489,6 +581,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sendButtonBusy: { opacity: 0.7 },
+  draftButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.base,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: brand.pine,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  draftButtonText: {
+    fontSize: fonts.sizes.sm,
+    color: brand.pine,
+    fontWeight: fonts.weights.medium as '500',
+  },
   sendText: {
     fontSize: fonts.sizes.sm,
     color: colors.white,

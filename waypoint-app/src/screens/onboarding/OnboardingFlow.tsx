@@ -21,10 +21,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import StepIndicator from '@/components/StepIndicator';
+import { localDayISO } from '@/lib/dateOnly';
 import DiagnosisSelector from '@/components/DiagnosisSelector';
 import SelectGrid from '@/components/SelectGrid';
 import Button from '@/components/Button';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { applyFirstTouch } from '@/lib/attribution';
 import { supabase } from '@/lib/supabase';
 import { generateStarterPlan } from '@/lib/planGenerator';
 import { lookupRC, rcByCounty, ALL_COUNTIES } from '@/data/regionalCenters';
@@ -57,16 +59,6 @@ const INSURANCE_OPTIONS = [
   { value: 'both', label: 'Both', emoji: '🔄' },
   { value: 'none', label: 'None / Unsure', emoji: '❓' },
 ];
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** Format a Date as YYYY-MM-DD in local time (for the web date input). */
-function toDateInputValue(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -196,13 +188,20 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
       if (familyError) throw familyError;
 
+      // 1b. Stamp first-touch attribution, exactly once (D3). Deliberately
+      // fire-and-forget: attribution is telemetry, and a telemetry write
+      // must never cost a parent their onboarding.
+      void applyFirstTouch(family.id);
+
       // 2. Create child record
       const { data: child, error: childError } = await supabase
         .from('children')
         .insert({
           family_id: family.id,
           first_name: data.childName.trim(),
-          date_of_birth: data.birthday?.toISOString().split('T')[0] || null,
+          // The picker hands back local midnight, so the UTC slice named the
+          // day BEFORE the picked birthday for every family east of Greenwich.
+          date_of_birth: data.birthday ? localDayISO(data.birthday) : null,
           is_primary: true,
           rc_status: data.rcStatus,
           iep_status: data.iepStatus,
@@ -379,8 +378,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               React.createElement('input', {
                 type: 'date',
                 'aria-label': "Child's birthday",
-                value: data.birthday ? toDateInputValue(data.birthday) : '',
-                max: toDateInputValue(new Date()),
+                value: data.birthday ? localDayISO(data.birthday) : '',
+                max: localDayISO(),
                 min: '2000-01-01',
                 onChange: (e: { target: { value: string } }) => {
                   const v = e.target.value;

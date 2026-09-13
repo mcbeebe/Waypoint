@@ -16,6 +16,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import type { Communication } from '@/hooks/useCommunications';
+import { formatThreadForDraft } from '@/lib/replyInbox';
 import { draftGmailReply, gmailSend } from '@/lib/gmail';
 import { analyzeEmail, type EmailAnalysis } from '@/lib/letters';
 import { TONE_OPTIONS, type DraftTone } from '@/lib/lettersCatalog';
@@ -65,16 +66,7 @@ export default function GmailReplyModal({
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzedId, setAnalyzedId] = useState<string | null>(null);
 
-  const threadText = useMemo(
-    () =>
-      thread
-        .map(
-          (c) =>
-            `--- ${c.direction === 'incoming' ? `FROM ${c.contact ?? 'the agency'}` : 'FROM the parent'} · ${(c.sent_at ?? c.occurred_at).slice(0, 10)} ---\n${c.subject}\n\n${c.body ?? ''}`
-        )
-        .join('\n\n'),
-    [thread]
-  );
+  const threadText = useMemo(() => formatThreadForDraft(thread), [thread]);
   const lastIncoming = [...thread].reverse().find((c) => c.direction === 'incoming');
   const anchor = thread.find((c) => c.gmail_thread_id) ?? null;
   const parsedTo = emailOf(lastIncoming?.contact ?? null);
@@ -143,12 +135,12 @@ export default function GmailReplyModal({
             {analyzing && (
               <View style={styles.readBox}>
                 <ActivityIndicator size="small" color={colors.teal} />
-                <Text style={styles.readLoading}>Waypoint is reading their reply…</Text>
+                <Text style={styles.readLoading}>Waypoint's AI is reading their reply…</Text>
               </View>
             )}
             {analysis && (
               <View style={styles.readBox}>
-                <Text style={styles.readLabel}>WAYPOINT'S READ</Text>
+                <Text style={styles.readLabel}>HOW WAYPOINT'S AI READ IT</Text>
                 <Text style={styles.readSummary}>{analysis.summary}</Text>
                 {analysis.red_flags.map((f, i) => (
                   <Text key={`f${i}`} style={styles.readItem}>
@@ -209,19 +201,19 @@ export default function GmailReplyModal({
               disabled={drafting}
               onPress={generate}
               accessibilityRole="button"
-              accessibilityLabel="Draft the reply with Waypoint"
+              accessibilityLabel="Draft the reply with AI"
             >
               {drafting ? (
                 <ActivityIndicator size="small" color={colors.teal} />
               ) : (
                 <Text style={styles.draftBtnText}>
-                  ✨ {draft ? 'Redraft with Waypoint' : 'Draft the reply with Waypoint'}
+                  ✨ {draft ? 'Redraft with AI' : 'Draft the reply with AI'}
                 </Text>
               )}
             </Pressable>
             <TextInput
               style={[styles.input, styles.draftInput]}
-              placeholder="Your reply — draft with Waypoint above, or write it yourself"
+              placeholder="Your reply — draft it with AI above, or write it yourself"
               placeholderTextColor={colors.mid}
               value={draft}
               onChangeText={setDraft}

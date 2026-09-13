@@ -10,6 +10,29 @@ import { afterEach, beforeEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
+/**
+ * The zone this suite runs in is load-bearing, so it is asserted, not assumed.
+ *
+ * Every date assertion here that distinguishes a calendar day from a UTC
+ * instant — "Due Aug 1, 2026" and its kin — passes against the very parse it
+ * exists to forbid when the ambient zone IS UTC, which is what a default CI
+ * runner gives you. All of their signal comes from one line in
+ * vitest.config.ts (`env: { TZ: 'America/Los_Angeles' }` on the ui project).
+ * A vitest upgrade or a config refactor that dropped it would leave the whole
+ * suite green while the regression it was written for shipped again.
+ *
+ * This turns that silent de-fanging into a loud failure on the first file.
+ */
+const ZONE = 'America/Los_Angeles';
+const actualZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+if (actualZone !== ZONE) {
+  throw new Error(
+    `The ui suite must run at ${ZONE} (got ${actualZone}). Restore ` +
+      `env: { TZ: '${ZONE}' } on the ui project in vitest.config.ts — without ` +
+      `it the date assertions in this suite pass against the bug they pin.`
+  );
+}
+
 /** In-memory AsyncStorage. Real enough: it persists within a test. */
 const store = new Map<string, string>();
 vi.mock('@react-native-async-storage/async-storage', () => ({

@@ -31,10 +31,20 @@ interface DraftQuestionsSheetProps {
   onComplete: (answers: Record<string, string>) => void;
 }
 
+/**
+ * "Waypoint" is a company; a parent reading this needs to know it was a
+ * machine that read their Regional Center's letter. The draft flow said
+ * "Waypoint read their reply" and "Waypoint writes the draft" in all three
+ * languages, and mentioned AI nowhere — so a parent could have an agency's
+ * email summarised, a reply drafted, and send it in-thread under their own
+ * name, never told a model was involved.
+ */
 const SUMMARY_LABEL: Record<FunnelLocale, string> = {
-  en: 'Waypoint read their reply',
-  es: 'Waypoint leyó su respuesta',
-  vi: 'Waypoint đã đọc thư trả lời',
+  en: "Waypoint's AI read their reply",
+  // NOT 'su respuesta': the app addresses the parent as usted, so 'su'
+  // reads first as YOUR reply — the opposite of what this label means.
+  es: 'La IA de Waypoint leyó la respuesta de ellos',
+  vi: 'AI của Waypoint đã đọc thư trả lời của họ',
 };
 
 const STRINGS: Record<FunnelLocale, { title: string; write: string; close: string; skipHint: string }> = {
@@ -42,19 +52,19 @@ const STRINGS: Record<FunnelLocale, { title: string; write: string; close: strin
     title: 'A couple of quick questions',
     write: 'Write my letter',
     close: 'Close — nothing is lost',
-    skipHint: 'Then Waypoint writes the draft. Nothing sends until you press Send.',
+    skipHint: "Next screen: Waypoint's AI writes the draft. Read it — nothing goes out until you send it yourself.",
   },
   es: {
     title: 'Un par de preguntas rápidas',
     write: 'Escribir mi carta',
     close: 'Cerrar — no se pierde nada',
-    skipHint: 'Luego Waypoint escribe el borrador. Nada se envía hasta que usted pulse Enviar.',
+    skipHint: 'En la siguiente pantalla, la IA de Waypoint escribe el borrador. Léalo — nada sale hasta que usted lo envíe.',
   },
   vi: {
     title: 'Vài câu hỏi nhanh',
     write: 'Viết thư của tôi',
     close: 'Đóng — không mất gì',
-    skipHint: 'Sau đó Waypoint viết bản nháp. Không có gì được gửi cho đến khi quý vị bấm Gửi.',
+    skipHint: 'Ở màn hình kế tiếp, AI của Waypoint sẽ viết bản nháp. Quý vị hãy đọc — không có gì được gửi đi cho đến khi quý vị tự gửi.',
   },
 };
 

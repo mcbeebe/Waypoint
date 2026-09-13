@@ -47,6 +47,16 @@ Each PR swaps one cluster to `<PageHeader>` + `<BrandCard>` + the accent rules, 
 4. **RC Funding** (`ReimbursablesScreen`) — already has the teal ask bar; add the header + card unification.
 5. **Journey** — re-fit to the shared `<PageHeader>` so it stops being bespoke.
 6. **The rest** — Resource Stack, Eligibility Result, Letters, Agencies, Process Map, Supports, staff shell — grouped into 1–2 PRs.
+   - **Known defect waiting here (owner deferred it to Phase 3, Sept 7 2026):**
+     `LettersScreen` has two filled buttons that bypass the shared `Button`
+     entirely — `gmailSendBtn` and `sentTrackButton`, both hand-rolled with
+     `backgroundColor: colors.teal` and white text. Since PR #205 moved the
+     shared `Button` to pine, that screen shows two filled buttons in two
+     colors doing the same job. Migrating Letters means recoloring these two
+     style blocks, not just swapping the header and cards — grep the cluster
+     for `colors.teal` before calling it done. The other unmigrated consumers
+     (`OnboardingFlow`, `EmailAnalyzerScreen`, `ProfileScreen`) carry teal only
+     as text, chip borders, and one spinner; `ResetPasswordScreen` has none.
 
 ### Phase 4 — Close-out
 - Every main surface on the kit; stock compass gone; `theme.ts` is the single source.

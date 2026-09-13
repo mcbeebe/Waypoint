@@ -31,11 +31,17 @@ vi.mock('@/hooks/useCommunications', () => ({
   },
 }));
 
+const gmailDrafts: Array<Record<string, unknown>> = [];
+let draftOk = true;
 vi.mock('@/lib/gmail', () => ({
   gmailStatus: async () => ({ connected: gmailScope, gmail: gmailScope, email: null }),
   gmailSend: async (input: Record<string, unknown>) => {
     gmailSends.push(input);
     return gmailSendOk ? { ok: true, threadId } : { ok: false, error: 'Gmail said no' };
+  },
+  gmailDraft: async (input: Record<string, unknown>) => {
+    gmailDrafts.push(input);
+    return draftOk ? { ok: true, threadId } : { ok: false, error: 'Gmail refused the draft' };
   },
 }));
 
@@ -87,6 +93,8 @@ beforeEach(() => {
   gmailSendOk = true;
   markFails = false;
   threadId = 'thread-9';
+  gmailDrafts.length = 0;
+  draftOk = true;
 });
 
 describe('before anything is sent', () => {
@@ -251,6 +259,68 @@ describe('the Gmail route', () => {
     expect(await screen.findByText(/Gmail said no/)).toBeInTheDocument();
     expect(markedSent).toHaveLength(0);
     expect(logged[0].entry.status).toBe('draft');
+  });
+});
+
+describe('saving to Gmail drafts instead of sending', () => {
+  beforeEach(() => { gmailScope = true; });
+
+  it('is only offered when Gmail is actually connected', async () => {
+    gmailScope = false;
+    sheet();
+    // Without a Gmail connection there is no drafts folder to save into; the
+    // hand-off is the only route.
+    expect(screen.queryByLabelText(/Save to my Gmail drafts/i)).toBeNull();
+  });
+
+  it('creates the draft against the paper-trail row and does NOT mark it sent', async () => {
+    sheet();
+    await screen.findByLabelText(/Save to my Gmail drafts/i);
+    fireEvent.click(screen.getByLabelText('Send to Ana Diaz'));
+    fireEvent.click(screen.getByLabelText(/Save to my Gmail drafts/i));
+
+    await waitFor(() => expect(gmailDrafts).toHaveLength(1));
+    expect(gmailDrafts[0].to).toBe('ana@altaregional.org');
+    // The thread id is what makes this better than a compose hand-off — a
+    // reply to a hand-off can never be tracked.
+    expect(gmailDrafts[0].communicationId).toBe('comm-1');
+    // Nothing was sent. The row stays a draft.
+    expect(gmailSends).toHaveLength(0);
+    expect(markedSent).toHaveLength(0);
+    expect(logged[0].entry.status).toBe('draft');
+  });
+
+  it('says plainly that nothing has been sent yet', async () => {
+    sheet();
+    await screen.findByLabelText(/Save to my Gmail drafts/i);
+    fireEvent.click(screen.getByLabelText('Send to Ana Diaz'));
+    fireEvent.click(screen.getByLabelText(/Save to my Gmail drafts/i));
+
+    expect(await screen.findByText(/Saved to your Gmail drafts/)).toBeInTheDocument();
+    expect(screen.getByText(/Nothing has been sent yet/)).toBeInTheDocument();
+  });
+
+  it('returns to compose — not a false success — when Gmail refuses', async () => {
+    draftOk = false;
+    sheet();
+    await screen.findByLabelText(/Save to my Gmail drafts/i);
+    fireEvent.click(screen.getByLabelText('Send to Ana Diaz'));
+    fireEvent.click(screen.getByLabelText(/Save to my Gmail drafts/i));
+
+    await waitFor(() => expect(toasts.length).toBeGreaterThan(0));
+    expect(toasts[0].text).toMatch(/Gmail refused the draft/);
+    expect(await screen.findByText(/Gmail refused the draft/)).toBeInTheDocument();
+    expect(markedSent).toHaveLength(0);
+  });
+
+  it('still requires a recipient', async () => {
+    sheet();
+    await screen.findByLabelText(/Save to my Gmail drafts/i);
+    fireEvent.click(screen.getByLabelText(/Save to my Gmail drafts/i));
+    await waitFor(() => expect(toasts.length).toBeGreaterThan(0));
+    expect(toasts[0].text).toMatch(/email address/i);
+    expect(gmailDrafts).toHaveLength(0);
+    expect(logged).toHaveLength(0);
   });
 });
 

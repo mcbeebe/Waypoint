@@ -3,7 +3,9 @@
  * Editable: parent name, email, child name, ZIP, diagnosis, RC/IEP/insurance status
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   View,
   Text,
@@ -40,34 +42,43 @@ import ContactsCard from '@/components/ContactsCard';
 import { resetTutorial } from '@/components/OnboardingTutorial';
 import { useI18n } from '@/i18n';
 import type { SupportedLocale } from '@/i18n';
+import { toFunnelLocale } from '@/lib/eligibility';
+import {
+  profileCopy,
+  profileUpdatedClosed,
+  actionsClosedToast,
+  rcStatusOptions,
+  iepStatusOptions,
+  insuranceOptions,
+  editChildLabel,
+  removeChildLabel,
+  makePrimaryLabel,
+  nowPrimaryToast,
+  childAddedToast,
+  childRemovedToast,
+  removeChildTitle,
+  removeChildBody,
+  removeConfirmLabel,
+  forgetMemoryLabel,
+  textSizeLabel,
+  bornLabel,
+  gradeLabel,
+  googleConnectedFull,
+  googleConnectedCalendarOnly,
+  yourGoogleAccount,
+} from '@/lib/profileCopy';
 import { usePremiumGuard } from '@/hooks/usePremiumGuard';
 import type { Child } from '@/types/database';
+import type { HomeStackParamList } from '@/types/navigation';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 // ─── Options (same as onboarding) ────────────────────────────────────────────
+// The three intake grids moved to `@/lib/profileCopy` when this screen was
+// localized (initiative 009): their labels are translated per locale while
+// their VALUES stay locale-invariant, because the values are what the
+// database stores. `profileCopy.test.ts` pins that split.
 
-const RC_STATUS_OPTIONS = [
-  { value: 'unknown', label: "Don't know", emoji: '❓' },
-  { value: 'known', label: 'Know my RC', emoji: '📍' },
-  { value: 'applied', label: 'Applied', emoji: '📝' },
-  { value: 'active', label: 'Active', emoji: '✅' },
-];
-
-const IEP_STATUS_OPTIONS = [
-  { value: 'no', label: 'No IEP', emoji: '📭' },
-  { value: 'unknown', label: "Don't know", emoji: '❓' },
-  { value: 'eval_done', label: 'Eval done', emoji: '🔍' },
-  { value: 'active', label: 'Active IEP', emoji: '✅' },
-  { value: 'na', label: 'N/A', emoji: '➖' },
-];
-
-const INSURANCE_OPTIONS = [
-  { value: 'private', label: 'Private', emoji: '🏥' },
-  { value: 'medicaid', label: 'Medi-Cal', emoji: '🏛️' },
-  { value: 'both', label: 'Both', emoji: '🔄' },
-  { value: 'none', label: 'None', emoji: '❓' },
-];
-
+/** The language picker names each language in itself, so it never translates. */
 const LANGUAGE_OPTIONS = [
   { value: 'en', label: 'English', emoji: '🇺🇸' },
   { value: 'es', label: 'Espa\u00f1ol', emoji: '🇲🇽' },
@@ -84,12 +95,21 @@ const MEMORY_KIND_EMOJI: Record<MemoryKind, string> = {
 };
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const { family, updateFamily, loading: familyLoading } = useFamily();
   const { children, addChild, updateChild, deleteChild } = useChildren(family?.id);
   const { guard } = usePremiumGuard();
-  const primaryChild = children.find(c => c.is_primary) || children[0];
+  const primaryChild = children.find(kid => kid.is_primary) || children[0];
   const { diagnoses, setDiagnoses } = useDiagnoses(primaryChild?.id);
   const { t, locale, setLocale } = useI18n();
+  // Screen chrome is trilingual via profileCopy; `locale` here is the app
+  // language, narrowed to the three the copy is written for.
+  const fl = toFunnelLocale(locale);
+  // Memoized so the handlers below can depend on it without rebuilding every
+  // render. This screen HOSTS the language picker, so `fl` really does change
+  // under the user — a handler closing over a stale `copy` would show the
+  // previous language's dialog right after they switched.
+  const copy = useMemo(() => profileCopy(fl), [fl]);
   const { scale, cycleScale } = useTextScale();
   const { showToast } = useToast();
   const { memories, forgetMemory, forgetAll } = useMemories(family?.id);
@@ -124,13 +144,13 @@ export default function ProfileScreen() {
     try {
       const result = await exportFamilyData(family.id);
       showToast(
-        result.ok ? 'Export ready — check your downloads' : result.error ?? 'Export failed',
+        result.ok ? copy.exportReady : result.error ?? copy.exportFailed,
         result.ok ? 'success' : 'error'
       );
     } finally {
       setExporting(false);
     }
-  }, [family?.id, exporting, showToast]);
+  }, [family?.id, exporting, showToast, copy]);
 
   // Populate form from database
   useEffect(() => {
@@ -187,10 +207,10 @@ export default function ProfileScreen() {
       ok = (await setDiagnoses(primaryChild.id, nextDx)) && ok;
     }
     if (!ok) {
-      showToast("Couldn't save that change — please try again", 'error');
+      showToast(copy.cantSaveChange, 'error');
       return;
     }
-    showToast('Saved', 'success');
+    showToast(copy.saved, 'success');
 
     // Intake changes refresh the starter plan and retire the steps these
     // answers just made obsolete. Best-effort and in the background: the
@@ -216,14 +236,14 @@ export default function ProfileScreen() {
         .then((closed) => {
           if (closed.length > 0) {
             showToast(
-              `${closed.length} action${closed.length === 1 ? '' : 's'} closed — no longer needed`,
+              actionsClosedToast(closed.length, fl),
               'success'
             );
           }
         })
         .catch(() => {});
     }
-  }, [rcStatus, iepStatus, insurance, selectedDiagnoses, primaryChild, family, childName, parentName, zipCode, updateChild, updateFamily, setDiagnoses, showToast]);
+  }, [rcStatus, iepStatus, insurance, selectedDiagnoses, primaryChild, family, childName, parentName, zipCode, updateChild, updateFamily, setDiagnoses, showToast, copy, fl]);
 
   const toggleDiagnosis = (value: string) => {
     const next = selectedDiagnoses.includes(value)
@@ -273,7 +293,7 @@ export default function ProfileScreen() {
       // The hooks swallow DB errors into a return value — surface them,
       // visibly on web too (RN Alert is a no-op in the browser)
       if (!okFamily || !okChild || !okDx) {
-        showToast("Some changes couldn't be saved — please try again", 'error');
+        showToast(copy.someChangesFailed, 'error');
         return;
       }
 
@@ -306,19 +326,19 @@ export default function ProfileScreen() {
 
       showToast(
         !intakeChanged
-          ? 'Profile updated'
+          ? copy.profileUpdated
           : closedCount > 0
-            ? `Profile updated — plan refreshed, ${closedCount} action${closedCount === 1 ? '' : 's'} closed as no longer needed`
-            : 'Profile updated — action plan refreshed to match',
+            ? profileUpdatedClosed(closedCount, fl)
+            : copy.profileUpdatedPlan,
         'success'
       );
     } catch (err: unknown) {
       const e = err as { message?: string };
-      showToast(e.message || 'Failed to save profile', 'error');
+      showToast(e.message || copy.saveProfileFailed, 'error');
     } finally {
       setSaving(false);
     }
-  }, [parentName, parentLastName, email, phone, zipCode, schoolDistrict, insurance, selectedDiagnoses, rcStatus, iepStatus, childName, primaryChild, family, diagnoses, updateFamily, updateChild, setDiagnoses, showToast]);
+  }, [parentName, parentLastName, email, phone, zipCode, schoolDistrict, insurance, selectedDiagnoses, rcStatus, iepStatus, childName, primaryChild, family, diagnoses, updateFamily, updateChild, setDiagnoses, showToast, copy, fl]);
 
   const handleAddChild = useCallback(async () => {
     // Premium (E3): the first child is free forever; additional children
@@ -326,7 +346,7 @@ export default function ProfileScreen() {
     if (children.length >= 1 && !guard('Multi-child support')) return;
     const name = newChildName.trim();
     if (!name) {
-      showToast("Please enter the child's first name", 'error');
+      showToast(copy.enterChildName, 'error');
       return;
     }
     setAddingChild(true);
@@ -339,14 +359,14 @@ export default function ProfileScreen() {
       if (created) {
         setNewChildName('');
         setShowAddChild(false);
-        showToast(`${name} has been added to your family`, 'success');
+        showToast(childAddedToast(name, fl), 'success');
       } else {
-        showToast('Could not add child — please try again', 'error');
+        showToast(copy.childAddFailed, 'error');
       }
     } finally {
       setAddingChild(false);
     }
-  }, [newChildName, addChild, children.length, guard]);
+  }, [newChildName, newChildDob, addChild, children.length, guard, showToast, copy, fl]);
 
   // ─── Google account (web) ─────────────────────────────────────────
   const [googleStatus, setGoogleStatus] = useState<{ connected: boolean; email: string | null; gmail: boolean }>({
@@ -371,19 +391,19 @@ export default function ProfileScreen() {
     setGoogleBusy(false);
     if (!result.success) {
       showAlert(
-        'Could not connect Google',
+        copy.googleConnectFailTitle,
         result.error?.includes('not enabled')
-          ? 'Google sign-in is not configured yet — check the Supabase Google provider setup.'
-          : result.error ?? 'Please try again.'
+          ? copy.googleNotConfigured
+          : result.error ?? copy.tryAgain
       );
     }
-  }, []);
+  }, [copy]);
 
   const handleDisconnectGoogle = useCallback(async () => {
     const ok = await showConfirm(
-      'Disconnect Google?',
-      'Calendar sync, sending, and reply tracking will stop working until you reconnect.',
-      'Disconnect',
+      copy.disconnectGoogleTitle,
+      copy.disconnectGoogleBody,
+      copy.disconnectConfirm,
       true
     );
     if (!ok) return;
@@ -393,46 +413,46 @@ export default function ProfileScreen() {
     if (result.success) {
       setGoogleStatus({ connected: false, email: null, gmail: false });
     } else {
-      showAlert('Could not disconnect', result.error ?? 'Please try again.');
+      showAlert(copy.disconnectFailTitle, result.error ?? copy.tryAgain);
     }
-  }, []);
+  }, [copy]);
 
   const handleToggleAIConsent = useCallback(async () => {
     if (family?.ai_consent_at) {
       const ok = await showConfirm(
-        'Turn off AI features?',
-        'The AI Navigator and document analysis will stop working until you turn this back on. Everything you have saved stays yours.',
-        'Turn off',
+        copy.aiOffTitle,
+        copy.aiOffBody,
+        copy.aiOffConfirm,
         true
       );
       if (!ok) return;
       const saved = await updateFamily({ ai_consent_at: null });
-      if (!saved) showAlert('Could not save', 'Please try again in a moment.');
+      if (!saved) showAlert(copy.couldNotSaveTitle, copy.tryAgainMoment);
     } else {
       const saved = await updateFamily({ ai_consent_at: new Date().toISOString() });
       if (saved) {
-        showAlert('AI features enabled', 'You can turn this off here any time.');
+        showAlert(copy.aiEnabledTitle, copy.aiEnabledBody);
       } else {
         showAlert(
-          'Could not enable AI features',
-          'The server rejected the change — if this keeps happening, the latest database migration may not be applied yet.'
+          copy.aiEnableFailTitle,
+          copy.aiEnableFailBody
         );
       }
     }
-  }, [family?.ai_consent_at, updateFamily]);
+  }, [family?.ai_consent_at, updateFamily, copy]);
 
   const handleDeleteAccount = useCallback(async () => {
     const first = await showConfirm(
-      'Delete your account?',
-      'This permanently deletes your account and ALL data — children, action plans, documents, chats. This cannot be undone.',
-      'Delete everything',
+      copy.deleteTitle,
+      copy.deleteBody,
+      copy.deleteConfirm,
       true
     );
     if (!first) return;
     const second = await showConfirm(
-      'Are you absolutely sure?',
-      'There is no way to recover your data after this.',
-      'Yes, delete permanently',
+      copy.deleteSureTitle,
+      copy.deleteSureBody,
+      copy.deleteSureConfirm,
       true
     );
     if (!second) return;
@@ -445,24 +465,24 @@ export default function ProfileScreen() {
       );
       if (!res.ok) {
         const err = await res.json().catch(() => null);
-        showAlert('Deletion failed', err?.error ?? 'Please try again or email support.');
+        showAlert(copy.deleteFailTitle, err?.error ?? copy.deleteFailBody);
         return;
       }
       await signOut();
     } catch {
-      showAlert('Deletion failed', 'Please check your connection and try again.');
+      showAlert(copy.deleteFailTitle, copy.deleteFailOffline);
     }
-  }, []);
+  }, [copy]);
 
   const handleSignOut = useCallback(async () => {
-    const ok = await showConfirm('Sign Out', 'Are you sure you want to sign out?', 'Sign Out');
+    const ok = await showConfirm(copy.signOutTitle, copy.signOutBody, copy.signOutTitle);
     if (!ok) return;
     // Remove this device's push token first (needs the session): signing out is
     // a consent withdrawal, and it also stops the next signed-in family from
     // inheriting this device's server pushes (phase 7 Lane B).
     await unregisterPushToken();
     await signOut();
-  }, []);
+  }, [copy]);
 
   if (familyLoading) {
     return (
@@ -484,185 +504,185 @@ export default function ProfileScreen() {
         <Text style={styles.title}>{t.profile.title}</Text>
 
         {/* Family Info Section */}
-        <Text style={styles.sectionTitle}>Family Info</Text>
+        <Text style={styles.sectionTitle}>{copy.familyInfo}</Text>
         <View style={styles.card}>
-          <Text style={styles.inputLabel} nativeID="label-parent-name">Your first name</Text>
+          <Text style={styles.inputLabel} nativeID="label-parent-name">{copy.yourFirstName}</Text>
           <TextInput
             style={styles.input}
             value={parentName}
             onChangeText={setParentName}
-            placeholder="e.g., Sarah"
+            placeholder={copy.egParentName}
             placeholderTextColor={colors.mid}
             autoCapitalize="words"
-            accessibilityLabel="Your first name"
+            accessibilityLabel={copy.yourFirstName}
           />
 
-          <Text style={styles.inputLabel} nativeID="label-parent-last-name">Your last name</Text>
+          <Text style={styles.inputLabel} nativeID="label-parent-last-name">{copy.yourLastName}</Text>
           <TextInput
             style={styles.input}
             value={parentLastName}
             onChangeText={setParentLastName}
-            placeholder="Used to sign generated letters"
+            placeholder={copy.yourLastNameHint}
             placeholderTextColor={colors.mid}
             autoCapitalize="words"
-            accessibilityLabel="Your last name"
+            accessibilityLabel={copy.yourLastName}
           />
 
-          <Text style={styles.inputLabel} nativeID="label-email">Email</Text>
+          <Text style={styles.inputLabel} nativeID="label-email">{copy.email}</Text>
           <TextInput
             style={styles.input}
             value={email}
             onChangeText={setEmail}
-            placeholder="For deadline reminders"
+            placeholder={copy.emailHint}
             placeholderTextColor={colors.mid}
             keyboardType="email-address"
             autoCapitalize="none"
-            accessibilityLabel="Email address"
+            accessibilityLabel={copy.emailA11y}
           />
 
-          <Text style={styles.inputLabel} nativeID="label-phone">Phone number</Text>
+          <Text style={styles.inputLabel} nativeID="label-phone">{copy.phone}</Text>
           <TextInput
             style={styles.input}
             value={phone}
             onChangeText={setPhone}
-            placeholder="Auto-fills into letters and emails"
+            placeholder={copy.phoneHint}
             placeholderTextColor={colors.mid}
             keyboardType="phone-pad"
-            accessibilityLabel="Your phone number"
+            accessibilityLabel={copy.phoneA11y}
           />
 
-          <Text style={styles.inputLabel} nativeID="label-child-name">Child's first name</Text>
+          <Text style={styles.inputLabel} nativeID="label-child-name">{copy.childFirstName}</Text>
           <TextInput
             style={styles.input}
             value={childName}
             onChangeText={setChildName}
-            placeholder="e.g., Maya"
+            placeholder={copy.egChildName}
             placeholderTextColor={colors.mid}
             autoCapitalize="words"
-            accessibilityLabel="Child's first name"
+            accessibilityLabel={copy.childFirstName}
           />
 
-          <Text style={styles.inputLabel} nativeID="label-zip">ZIP code</Text>
+          <Text style={styles.inputLabel} nativeID="label-zip">{copy.zipCode}</Text>
           <TextInput
             style={styles.input}
             value={zipCode}
             onChangeText={setZipCode}
-            placeholder="e.g., 94610"
+            placeholder={copy.egZip}
             placeholderTextColor={colors.mid}
             keyboardType="number-pad"
             maxLength={5}
-            accessibilityLabel="ZIP code"
+            accessibilityLabel={copy.zipCode}
           />
 
-          <Text style={styles.inputLabel} nativeID="label-school-district">School district</Text>
+          <Text style={styles.inputLabel} nativeID="label-school-district">{copy.schoolDistrict}</Text>
           <TextInput
             style={styles.input}
             value={schoolDistrict}
             onChangeText={setSchoolDistrict}
-            placeholder="e.g., Oakland Unified"
+            placeholder={copy.egDistrict}
             placeholderTextColor={colors.mid}
             autoCapitalize="words"
-            accessibilityLabel="School district"
+            accessibilityLabel={copy.schoolDistrict}
           />
         </View>
 
         {/* Key contacts (D4): the child's team, auto-filled into letters/emails */}
         {family?.id && (
           <>
-            <Text style={styles.sectionTitle}>Key Contacts</Text>
-            <ContactsCard familyId={family.id} />
+            <Text style={styles.sectionTitle}>{copy.keyContacts}</Text>
+            <ContactsCard familyId={family.id} locale={fl} />
           </>
         )}
 
         {/* Children */}
-        <Text style={styles.sectionTitle}>Children</Text>
+        <Text style={styles.sectionTitle}>{copy.children}</Text>
         <View style={styles.card}>
-          {children.map(c => (
-            <View key={c.id} style={styles.childRow}>
-              {editingChildId === c.id ? (
+          {children.map(child => (
+            <View key={child.id} style={styles.childRow}>
+              {editingChildId === child.id ? (
                 <View>
-                  <Text style={styles.inputLabel}>First name</Text>
+                  <Text style={styles.inputLabel}>{copy.firstName}</Text>
                   <TextInput
                     style={styles.input}
                     value={editChildName}
                     onChangeText={setEditChildName}
                     autoCapitalize="words"
-                    accessibilityLabel="Child's first name"
+                    accessibilityLabel={copy.childFirstName}
                   />
-                  <Text style={styles.inputLabel}>Birthday</Text>
+                  <Text style={styles.inputLabel}>{copy.birthday}</Text>
                   <DateInput value={editChildDob} onChange={setEditChildDob} />
-                  <Text style={styles.inputLabel}>School</Text>
+                  <Text style={styles.inputLabel}>{copy.school}</Text>
                   <TextInput
                     style={styles.input}
                     value={editChildSchool}
                     onChangeText={setEditChildSchool}
-                    placeholder="e.g., Glenview Elementary"
+                    placeholder={copy.egSchool}
                     placeholderTextColor={colors.mid}
                     autoCapitalize="words"
-                    accessibilityLabel="School name"
+                    accessibilityLabel={copy.schoolNameA11y}
                   />
-                  <Text style={styles.inputLabel}>Grade</Text>
+                  <Text style={styles.inputLabel}>{copy.grade}</Text>
                   <TextInput
                     style={styles.input}
                     value={editChildGrade}
                     onChangeText={setEditChildGrade}
-                    placeholder="e.g., 3rd"
+                    placeholder={copy.egGrade}
                     placeholderTextColor={colors.mid}
-                    accessibilityLabel="Grade"
+                    accessibilityLabel={copy.grade}
                   />
                   <View style={styles.addChildButtons}>
                     <Button
-                      title="Save"
+                      title={copy.save}
                       variant="primary"
                       onPress={async () => {
                         if (!editChildName.trim()) return;
-                        const ok = await updateChild(c.id, {
+                        const ok = await updateChild(child.id, {
                           first_name: editChildName.trim(),
                           date_of_birth: /^\d{4}-\d{2}-\d{2}$/.test(editChildDob) ? editChildDob : null,
                           school_name: editChildSchool.trim() || null,
                           grade: editChildGrade.trim() || null,
                         });
-                        showToast(ok ? 'Child updated' : "Couldn't save — try again.", ok ? 'success' : 'error');
+                        showToast(ok ? copy.childUpdated : copy.cantSave, ok ? 'success' : 'error');
                         if (ok) setEditingChildId(null);
                       }}
                     />
-                    <Button title="Cancel" variant="outline" onPress={() => setEditingChildId(null)} />
+                    <Button title={copy.cancel} variant="outline" onPress={() => setEditingChildId(null)} />
                   </View>
                   <View style={styles.childManageRow}>
-                    {!c.is_primary && (
+                    {!child.is_primary && (
                       <TouchableOpacity
                         onPress={async () => {
                           // One primary at a time: demote others, promote this one
-                          for (const other of children.filter(o => o.is_primary && o.id !== c.id)) {
+                          for (const other of children.filter(o => o.is_primary && o.id !== child.id)) {
                             await updateChild(other.id, { is_primary: false });
                           }
-                          const ok = await updateChild(c.id, { is_primary: true });
-                          showToast(ok ? `${c.first_name} is now the primary child` : "Couldn't update.", ok ? 'success' : 'error');
+                          const ok = await updateChild(child.id, { is_primary: true });
+                          showToast(ok ? nowPrimaryToast(child.first_name ?? '', fl) : copy.cantUpdate, ok ? 'success' : 'error');
                         }}
                         accessibilityRole="button"
-                        accessibilityLabel={`Make ${c.first_name} the primary child`}
+                        accessibilityLabel={makePrimaryLabel(child.first_name ?? '', fl)}
                       >
-                        <Text style={styles.childManageLink}>⭐ Make primary</Text>
+                        <Text style={styles.childManageLink}>{copy.makePrimary}</Text>
                       </TouchableOpacity>
                     )}
                     {children.length > 1 && (
                       <TouchableOpacity
                         onPress={async () => {
                           const confirmed = await showConfirm(
-                            `Remove ${c.first_name}?`,
-                            'Their profile and diagnoses will be removed. Actions and documents stay but lose the child link.',
-                            'Remove',
+                            removeChildTitle(child.first_name ?? '', fl),
+                            removeChildBody(fl),
+                            removeConfirmLabel(fl),
                             true
                           );
                           if (!confirmed) return;
-                          const ok = await deleteChild(c.id);
-                          showToast(ok ? `${c.first_name} removed` : "Couldn't remove — try again.", ok ? 'success' : 'error');
+                          const ok = await deleteChild(child.id);
+                          showToast(ok ? childRemovedToast(child.first_name ?? '', fl) : copy.cantRemove, ok ? 'success' : 'error');
                           if (ok) setEditingChildId(null);
                         }}
                         accessibilityRole="button"
-                        accessibilityLabel={`Remove ${c.first_name}`}
+                        accessibilityLabel={removeChildLabel(child.first_name ?? '', fl)}
                       >
-                        <Text style={[styles.childManageLink, styles.childManageDanger]}>Remove child</Text>
+                        <Text style={[styles.childManageLink, styles.childManageDanger]}>{copy.removeChild}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -671,72 +691,73 @@ export default function ProfileScreen() {
                 <TouchableOpacity
                   style={styles.childRowTap}
                   onPress={() => {
-                    setEditingChildId(c.id);
-                    setEditChildName(c.first_name ?? '');
-                    setEditChildDob(c.date_of_birth ?? '');
-                    setEditChildSchool(c.school_name ?? '');
-                    setEditChildGrade(c.grade ?? '');
+                    setEditingChildId(child.id);
+                    setEditChildName(child.first_name ?? '');
+                    setEditChildDob(child.date_of_birth ?? '');
+                    setEditChildSchool(child.school_name ?? '');
+                    setEditChildGrade(child.grade ?? '');
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel={`Edit ${c.first_name}`}
+                  accessibilityLabel={editChildLabel(child.first_name ?? '', fl)}
                 >
                   <View style={{ flex: 1 }}>
                     <Text style={styles.childName}>
-                      {c.first_name}
-                      {c.is_primary ? '  ⭐' : ''}
+                      {child.first_name}
+                      {child.is_primary ? '  ⭐' : ''}
                     </Text>
-                    {c.date_of_birth ? (
-                      <Text style={styles.childDob}>Born {c.date_of_birth}</Text>
+                    {child.date_of_birth ? (
+                      <Text style={styles.childDob}>{bornLabel(child.date_of_birth ?? '', fl)}</Text>
                     ) : null}
-                    {c.school_name || c.grade ? (
+                    {child.school_name || child.grade ? (
                       <Text style={styles.childDob}>
-                        {[c.school_name, c.grade ? `${c.grade} grade` : null].filter(Boolean).join(' · ')}
+                        {[child.school_name, child.grade ? gradeLabel(child.grade, fl) : null].filter(Boolean).join(' · ')}
                       </Text>
                     ) : null}
                   </View>
-                  <Text style={styles.childEditHint}>Edit ›</Text>
+                  <Text style={styles.childEditHint}>{copy.editHint}</Text>
                 </TouchableOpacity>
               )}
             </View>
           ))}
           {showAddChild ? (
             <View>
-              <Text style={styles.inputLabel}>New child's first name</Text>
+              <Text style={styles.inputLabel}>{copy.newChildFirstName}</Text>
               <TextInput
                 style={styles.input}
                 value={newChildName}
                 onChangeText={setNewChildName}
-                placeholder="e.g., Leo"
+                placeholder={copy.egNewChildName}
                 placeholderTextColor={colors.mid}
                 autoCapitalize="words"
-                accessibilityLabel="New child's first name"
+                accessibilityLabel={copy.newChildFirstName}
               />
-              <Text style={styles.inputLabel}>Birthday (optional)</Text>
+              <Text style={styles.inputLabel}>{copy.birthdayOptional}</Text>
               <DateInput value={newChildDob} onChange={setNewChildDob} />
               <View style={styles.addChildButtons}>
-                <Button title="Add" onPress={handleAddChild} loading={addingChild} disabled={addingChild} variant="primary" />
-                <Button title="Cancel" onPress={() => { setShowAddChild(false); setNewChildName(''); setNewChildDob(''); }} variant="outline" />
+                <Button title={copy.add} onPress={handleAddChild} loading={addingChild} disabled={addingChild} variant="primary" />
+                <Button title={copy.cancel} onPress={() => { setShowAddChild(false); setNewChildName(''); setNewChildDob(''); }} variant="outline" />
               </View>
             </View>
           ) : (
-            <Button title="＋ Add a child" onPress={() => setShowAddChild(true)} variant="outline" />
+            <Button title={copy.addAChild} onPress={() => setShowAddChild(true)} variant="outline" />
           )}
         </View>
 
         {/* Diagnosis Section */}
-        <Text style={styles.sectionTitle}>Diagnosis</Text>
+        <Text style={styles.sectionTitle}>{copy.diagnosis}</Text>
         <View style={styles.card}>
           <DiagnosisSelector
             selected={selectedDiagnoses}
             onToggle={toggleDiagnosis}
+            locale={fl}
           />
         </View>
 
         {/* RC Status */}
-        <Text style={styles.sectionTitle}>Regional Center Status</Text>
+        <Text style={styles.sectionTitle}>{copy.rcStatus}</Text>
         <View style={styles.card}>
           <SelectGrid
-            options={RC_STATUS_OPTIONS}
+            options={rcStatusOptions(fl)}
             selected={rcStatus}
             onSelect={(v: string) => { setRcStatus(v); void persistIntake({ rcStatus: v }); }}
             columns={2}
@@ -744,10 +765,10 @@ export default function ProfileScreen() {
         </View>
 
         {/* IEP Status */}
-        <Text style={styles.sectionTitle}>IEP Status</Text>
+        <Text style={styles.sectionTitle}>{copy.iepStatus}</Text>
         <View style={styles.card}>
           <SelectGrid
-            options={IEP_STATUS_OPTIONS}
+            options={iepStatusOptions(fl)}
             selected={iepStatus}
             onSelect={(v: string) => { setIepStatus(v); void persistIntake({ iepStatus: v }); }}
             columns={2}
@@ -755,10 +776,10 @@ export default function ProfileScreen() {
         </View>
 
         {/* Insurance */}
-        <Text style={styles.sectionTitle}>Insurance</Text>
+        <Text style={styles.sectionTitle}>{copy.insurance}</Text>
         <View style={styles.card}>
           <SelectGrid
-            options={INSURANCE_OPTIONS}
+            options={insuranceOptions(fl)}
             selected={insurance}
             onSelect={(v: string) => { setInsurance(v); void persistIntake({ insurance: v }); }}
             columns={2}
@@ -779,7 +800,7 @@ export default function ProfileScreen() {
         {/* Save + Sign Out */}
         <View style={styles.buttonRow}>
           <Button
-            title="Save Changes"
+            title={copy.saveChanges}
             onPress={handleSave}
             loading={saving}
             disabled={saving}
@@ -788,68 +809,78 @@ export default function ProfileScreen() {
         </View>
 
         {/* Accessibility & display */}
-        <Text style={styles.sectionTitle}>Display & Accessibility</Text>
+        <Text style={styles.sectionTitle}>{copy.displayAccessibility}</Text>
         <View style={styles.card}>
           <View style={styles.settingRow}>
             <View style={styles.settingBody}>
-              <Text style={styles.settingLabel}>Text size</Text>
-              <Text style={styles.settingHint}>Applies to reading-heavy screens like actions and analyses.</Text>
+              <Text style={styles.settingLabel}>{copy.textSize}</Text>
+              <Text style={styles.settingHint}>{copy.textSizeHint}</Text>
             </View>
             <TouchableOpacity
               style={styles.textSizePill}
               onPress={cycleScale}
               accessibilityRole="button"
-              accessibilityLabel={`Text size ${Math.round(scale * 100)} percent. Tap to change.`}
+              accessibilityLabel={textSizeLabel(Math.round(scale * 100), fl)}
             >
               <Text style={styles.textSizePillText}>Aa {Math.round(scale * 100)}%</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.settingRow}>
             <View style={styles.settingBody}>
-              <Text style={styles.settingLabel}>App tour</Text>
-              <Text style={styles.settingHint}>Replay the 4-step feature intro on the Home screen.</Text>
+              <Text style={styles.settingLabel}>{copy.appTour}</Text>
+              <Text style={styles.settingHint}>{copy.appTourHint}</Text>
             </View>
             <TouchableOpacity
               style={styles.textSizePill}
               onPress={async () => {
                 await resetTutorial();
-                showToast('Tour will replay next time you open Home.', 'success');
+                showToast(copy.tourWillReplay, 'success');
               }}
               accessibilityRole="button"
-              accessibilityLabel="Replay the app tour"
+              accessibilityLabel={copy.replayTourA11y}
             >
-              <Text style={styles.textSizePillText}>Replay</Text>
+              <Text style={styles.textSizePillText}>{copy.replay}</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.settingRow}>
+            <View style={styles.settingBody}>
+              <Text style={styles.settingLabel}>{copy.howWaypointWorks}</Text>
+              <Text style={styles.settingHint}>{copy.howWaypointWorksHint}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.textSizePill}
+              onPress={() => navigation.navigate('HowWaypointWorks')}
+              accessibilityRole="button"
+              accessibilityLabel={copy.howWaypointWorksA11y}
+            >
+              <Text style={styles.textSizePillText}>{copy.view}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Privacy & AI */}
-        <Text style={styles.sectionTitle}>Privacy & AI</Text>
+        <Text style={styles.sectionTitle}>{copy.privacyAi}</Text>
         <View style={styles.card}>
           <Text style={styles.privacyStatus}>
-            AI features (Navigator, document analysis) are{' '}
-            <Text style={{ fontWeight: '700' }}>{family?.ai_consent_at ? 'ON' : 'OFF'}</Text>.
-            {family?.ai_consent_at
-              ? ' Your questions, your child’s age/diagnoses, and documents you analyze are processed by Anthropic to generate guidance.'
-              : ' Nothing is sent to the AI provider while this is off.'}
+            {copy.aiIntro}{' '}
+            <Text style={{ fontWeight: '700' }}>{family?.ai_consent_at ? copy.aiOn : copy.aiOff}</Text>.
+            {family?.ai_consent_at ? copy.aiOnDetail : copy.aiOffDetail}
           </Text>
           <Button
-            title={family?.ai_consent_at ? 'Turn off AI features' : 'Enable AI features'}
+            title={family?.ai_consent_at ? copy.turnOffAi : copy.enableAi}
             onPress={handleToggleAIConsent}
             variant="outline"
           />
         </View>
 
         {/* Data export — everything the family owns, as one JSON file */}
-        <Text style={styles.sectionTitle}>Your Data</Text>
+        <Text style={styles.sectionTitle}>{copy.yourData}</Text>
         <View style={styles.card}>
           <Text style={styles.privacyStatus}>
-            Download everything Waypoint stores for your family — profile, children, actions,
-            appointments, expenses, chats, contacts, and more — as a single JSON file.
-            Document files stay in Documents, where you can download them individually.
+            {copy.exportBlurb}
           </Text>
           <Button
-            title={exporting ? 'Preparing export…' : '⬇️ Export my data'}
+            title={exporting ? copy.exportPreparing : copy.exportButton}
             onPress={handleExportData}
             variant="outline"
             disabled={exporting}
@@ -860,16 +891,14 @@ export default function ProfileScreen() {
             full parent control — every memory visible and deletable */}
         {family?.ai_consent_at && (
           <>
-            <Text style={styles.sectionTitle}>What Waypoint Knows</Text>
+            <Text style={styles.sectionTitle}>{copy.whatWaypointKnows}</Text>
             <View style={styles.card}>
               <Text style={styles.privacyStatus}>
-                As you chat, Waypoint remembers durable details — services in place, things
-                in progress, preferences — so it understands your family better over time.
-                You control this list: tap ✕ to make it forget anything.
+                {copy.memoriesBlurb}
               </Text>
               {memories.length === 0 ? (
                 <Text style={styles.memoryEmpty}>
-                  Nothing saved yet — memories appear after your next AI Navigator chat.
+                  {copy.memoriesEmpty}
                 </Text>
               ) : (
                 <>
@@ -881,10 +910,10 @@ export default function ProfileScreen() {
                         style={styles.memoryForget}
                         onPress={async () => {
                           const ok = await forgetMemory(m.id);
-                          showToast(ok ? 'Forgotten' : "Couldn't remove — try again.", ok ? 'success' : 'error');
+                          showToast(ok ? copy.forgotten : copy.cantRemove, ok ? 'success' : 'error');
                         }}
                         accessibilityRole="button"
-                        accessibilityLabel={`Forget: ${m.content}`}
+                        accessibilityLabel={forgetMemoryLabel(m.content, fl)}
                       >
                         <Text style={styles.memoryForgetText}>✕</Text>
                       </TouchableOpacity>
@@ -893,20 +922,20 @@ export default function ProfileScreen() {
                   <TouchableOpacity
                     onPress={async () => {
                       const confirmed = await showConfirm(
-                        'Forget everything?',
-                        'Waypoint will delete all saved memories and start fresh.',
-                        'Forget all',
+                        copy.forgetAllTitle,
+                        copy.forgetAllBody,
+                        copy.forgetAllConfirm,
                         true
                       );
                       if (!confirmed) return;
                       const ok = await forgetAll();
-                      showToast(ok ? 'All memories forgotten' : "Couldn't clear — try again.", ok ? 'success' : 'error');
+                      showToast(ok ? copy.allForgotten : copy.cantClear, ok ? 'success' : 'error');
                     }}
                     accessibilityRole="button"
-                    accessibilityLabel="Forget all memories"
+                    accessibilityLabel={copy.forgetAllA11y}
                     style={styles.memoryForgetAll}
                   >
-                    <Text style={styles.memoryForgetAllText}>Forget everything</Text>
+                    <Text style={styles.memoryForgetAllText}>{copy.forgetEverything}</Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -917,24 +946,24 @@ export default function ProfileScreen() {
         {/* Google account (Calendar sync + Gmail — Phase 3) */}
         {Platform.OS === 'web' && (
           <>
-            <Text style={styles.sectionTitle}>Google Account</Text>
+            <Text style={styles.sectionTitle}>{copy.googleAccount}</Text>
             <View style={styles.card}>
               <Text style={styles.privacyStatus}>
                 {!googleStatus.connected
-                  ? 'Connect Google to sync appointments to your calendar, send emails to schools and agencies, and track their replies — all from Waypoint.'
+                  ? copy.googleDisconnected
                   : googleStatus.gmail
-                    ? `Connected as ${googleStatus.email ?? 'your Google account'}. Waypoint can sync your calendar, send emails you approve, and track replies from schools and agencies.`
+                    ? googleConnectedFull(googleStatus.email ?? yourGoogleAccount(fl), fl)
                     // Gmail is a separate, restricted-scope opt-in, so a
                     // connected account is often Calendar-only. Claiming
                     // sending and reply-tracking here would be a promise the
                     // app cannot keep.
-                    : `Connected as ${googleStatus.email ?? 'your Google account'} — calendar only. Tap Connect Google above to add Gmail, so Waypoint can send emails you approve and track replies from schools and agencies.`}
+                    : googleConnectedCalendarOnly(googleStatus.email ?? yourGoogleAccount(fl), fl)}
               </Text>
               {/* Calendar-only is a real, common state: offer the Gmail
                   upgrade rather than only Disconnect. */}
               {googleStatus.connected && !googleStatus.gmail && (
                 <Button
-                  title={googleBusy ? 'Working…' : 'Add Gmail'}
+                  title={googleBusy ? copy.working : copy.addGmail}
                   onPress={handleConnectGoogle}
                   variant="outline"
                   disabled={googleBusy}
@@ -943,10 +972,10 @@ export default function ProfileScreen() {
               <Button
                 title={
                   googleBusy
-                    ? 'Working…'
+                    ? copy.working
                     : googleStatus.connected
-                      ? 'Disconnect Google'
-                      : 'Connect Google (Calendar + Gmail)'
+                      ? copy.disconnectGoogle
+                      : copy.connectGoogle
                 }
                 onPress={googleStatus.connected ? handleDisconnectGoogle : handleConnectGoogle}
                 variant="outline"
@@ -969,12 +998,12 @@ export default function ProfileScreen() {
           onPress={handleDeleteAccount}
           style={styles.deleteRow}
           accessibilityRole="button"
-          accessibilityLabel="Delete account and all data"
+          accessibilityLabel={copy.deleteAccountA11y}
         >
-          <Text style={styles.deleteText}>Delete account & all data</Text>
+          <Text style={styles.deleteText}>{copy.deleteAccount}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>Waypoint v1.0.0</Text>
+        <Text style={styles.version}>{copy.version}</Text>
       </ScrollView>
     </SafeAreaView>
   );

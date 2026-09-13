@@ -1,0 +1,132 @@
+---
+import '../styles/global.css';
+import Seo from '../components/Seo.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  locale?: 'en' | 'es';
+  noindex?: boolean;
+  /** Pillar of the current page — required on pillar content so the header
+   * CTA can carry wp_pillar (D3: required on pillar content). */
+  pillar?: string;
+  /** Content URL, so Seo can pick this page's build-time OG card. */
+  ogSlug?: string;
+  ogType?: 'website' | 'article';
+}
+const { title, description, locale = 'en', noindex = false, pillar, ogSlug, ogType } = Astro.props;
+const isProd = (process.env.VERCEL_ENV ?? 'production') === 'production';
+// GA4: second, additional tracker alongside Plausible (D3 "Providers"). Unset
+// in preview/dev so branch QA traffic never reaches the production property.
+const gaMeasurementId = process.env.GA_MEASUREMENT_ID;
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="/fonts/hanken-grotesk-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/newsreader-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <Seo title={title} description={description} noindex={noindex} ogSlug={ogSlug} ogType={ogType} />
+    {/* Plausible: cookieless analytics — events per docs/analytics-taxonomy.md
+        (D3). Loaded only on production deploys so preview/branch QA traffic
+        never pollutes the production data-domain (local non-Vercel builds
+        keep it for testing; those pages aren't visited by anyone). */}
+    {
+      isProd && (
+        <script defer data-domain="waypointchild.com" src="https://plausible.io/js/script.js" />
+      )
+    }
+    {/* GA4: second, additional tracker per D3 "Providers" — loads only when
+        GA_MEASUREMENT_ID is configured, same production-only gate as Plausible.
+        Google Signals / ad personalization stay off (privacy posture). */}
+    {
+      isProd && gaMeasurementId && (
+        <>
+          <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} />
+          <script define:vars={{ gaMeasurementId }}>
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function (...args) {
+              window.dataLayer.push(args);
+            };
+            window.gtag('js', new Date());
+            window.gtag('config', gaMeasurementId, {
+              allow_google_signals: false,
+              allow_ad_personalization_signals: false,
+            });
+          </script>
+        </>
+      )
+    }
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader pillar={pillar} locale={locale} />
+    <main id="main">
+      <slot />
+    </main>
+    <SiteFooter />
+    <script>
+      // Plausible init queue stub (the official snippet's pattern): events
+      // fired before the deferred script loads are queued, not lost.
+      // Single dispatch point: every call also mirrors to GA4 (gtag) with the
+      // same event name and props, per D3 "Providers" — so no event needs
+      // its own GA4 call at any of its call sites.
+      window.plausible =
+        window.plausible ||
+        function (event: string, options?: { props?: Record<string, string | number> }) {
+          const p = window.plausible as unknown as { q?: unknown[][] };
+          (p.q = p.q || []).push([event, options]);
+          window.gtag?.('event', event, options?.props ?? {});
+        };
+
+      // Delegated analytics per docs/analytics-taxonomy.md (D3).
+      // app_signup_click: any element carrying data-wp-event fires its event
+      // with the JSON props in data-wp-props (Plausible uses keepalive
+      // requests, so the event survives the navigation).
+      document.addEventListener('click', (e) => {
+        const el = (e.target as Element | null)?.closest<HTMLElement>('[data-wp-event]');
+        if (!el?.dataset.wpEvent) return;
+        let props: Record<string, string | number> = {};
+        try {
+          props = JSON.parse(el.dataset.wpProps ?? '{}');
+        } catch {
+          /* malformed props: still record the event itself */
+        }
+        window.plausible?.(el.dataset.wpEvent, { props });
+      });
+
+      // js_error beacon (page + hashed message — never message text, which
+      // could contain URLs or user input).
+      const hash = (s: string) => {
+        let h = 5381;
+        for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+        return (h >>> 0).toString(36);
+      };
+      const beacon = (message: string) =>
+        window.plausible?.('js_error', {
+          props: { page: location.pathname, message_hash: hash(message) },
+        });
+      window.addEventListener('error', (e) => beacon(String(e.message ?? 'error')));
+      window.addEventListener('unhandledrejection', (e) =>
+        beacon(String((e as PromiseRejectionEvent).reason ?? 'rejection')),
+      );
+    </script>
+  </body>
+</html>

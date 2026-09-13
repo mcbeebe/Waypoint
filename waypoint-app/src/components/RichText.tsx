@@ -13,9 +13,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, type StyleProp, type TextStyle } from 'react-native';
 
-/** Remove the inline markers for plain-text consumers (actions, emails). */
+/**
+ * Remove the inline markers for plain-text consumers (actions, emails).
+ *
+ * Single-asterisk emphasis is outside the subset the system prompt allows,
+ * so RichText renders `*current*` literally on screen — and it used to ride
+ * out into an email that way too (owner report, 2026-09-12: "renewals need
+ * *current* data" in a draft addressed to an agency). Stripped after the
+ * bold pass, and only when the pair sits on one line, so arithmetic and a
+ * stray lone asterisk are left alone.
+ */
 export function stripInlineMarkdown(text: string): string {
-  return text.replace(/\*\*([^*]+)\*\*/g, '$1');
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*\n]+)\*/g, '$1');
 }
 
 /** Render a line's text with **bold** spans as nested Text elements. */

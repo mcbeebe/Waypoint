@@ -336,3 +336,18 @@ describe('a dismissal reason can be corrected', () => {
     expect((screen.getByPlaceholderText(/Reason for dismissing/) as HTMLInputElement).value).toBe('');
   });
 });
+
+describe('the deadline chip names the stored day in any timezone', () => {
+  it('renders the due date as its calendar day, not the UTC instant', () => {
+    // due_date is a Postgres `date`. Parsed as UTC midnight it read
+    // "Jul 31, 2026" anywhere west of UTC — a different day than the plan
+    // card and the overdue badge, one tap apart on the same step. Both the
+    // stored string and the expected label are calendar days, so this
+    // assertion holds in every timezone.
+    detail({ due_date: '2026-08-01' });
+    expect(screen.getByText(/Due Aug 1, 2026/)).toBeTruthy();
+    // created_at (a full timestamp) flows through the same formatter and
+    // must never surface as a literal "Invalid Date".
+    expect(screen.queryByText(/Invalid Date/)).toBeNull();
+  });
+});

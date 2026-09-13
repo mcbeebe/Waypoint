@@ -490,6 +490,11 @@ describe('the card and the Overdue filter agree about "overdue"', () => {
    * filter reads the local calendar day. So a card badged "⚠️ Overdue"
    * vanished when the parent tapped Filters → Overdue, and the plan said
    * "No steps match these filters".
+   *
+   * The date LABEL had the same parse: west of UTC, formatDate rendered
+   * '2026-08-01' as "Jul 31" — the badge and the label named different days.
+   * Everything here is local-day on both sides (NOON, the iso strings, the
+   * rendered label), so these assertions hold in any timezone.
    */
   const dueToday = () => {
     const d = new Date(NOON);
@@ -501,6 +506,10 @@ describe('the card and the Overdue filter agree about "overdue"', () => {
     h.actions = [dueToday()];
     render(<ActionsScreen />);
     expect(screen.queryByText(/Overdue/)).toBeNull();
+    // NOON is local Sept 3 — the label must name that day, not the UTC one.
+    // Before formatDate went local-day, this card read "Due soon: Sep 2" on
+    // Sept 3 in California: not overdue, yet dated yesterday.
+    expect(screen.getByText(/Due soon: Sep 3/)).toBeTruthy();
   });
 
   it('anything the card badges Overdue survives the Overdue filter', () => {

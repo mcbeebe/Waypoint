@@ -131,7 +131,7 @@ export const AGENCIES = {
     name: "Your Health Insurance",
     type: "Private / Managed Care",
     what: "California law (SB 946) mandates behavioral health treatment coverage for autism, including ABA therapy. Plans must also cover medically necessary OT, speech, and PT. Mental health parity laws mean MH benefits must equal medical benefits.",
-    whyMatters: "Insurance is typically the FIRST payer for therapy services. If your child has autism, ABA coverage is mandated by state law with no annual or lifetime dollar caps. Fight denials — ~60% are overturned on appeal.",
+    whyMatters: "Insurance is typically the FIRST payer for therapy services. If your child has autism, ABA coverage is mandated by state law with no annual or lifetime dollar caps. Push back on denials — ~60% are overturned on appeal.",
     services: ["ABA therapy (mandated for autism — SB 946)", "OT, Speech, PT", "Psychiatric/psychological services", "Durable medical equipment"],
     rights: ["Appeal any denial (internal + external)", "Independent Medical Review through DMHC (HMO) or CDI (PPO)", "Out-of-network authorization if no in-network available", "Timely access: specialist within 15 business days", "No arbitrary hour/visit caps for mental health (parity law)"],
     watchOut: "First authorization requests are frequently denied. This is common and NOT the end. Appeal immediately. DMHC overturns approximately 60% of denials on Independent Medical Review. Always get denials in writing.",
@@ -194,7 +194,7 @@ export const LEARN_MORE = {
   "IHSS": {
     title: "What is IHSS?",
     body: "In-Home Supportive Services is a California program that pays for personal care so disabled people can stay at home safely. The key benefit: parents can be the paid provider. You're already doing the work — IHSS means you can get compensated for it.",
-    tip: "You need Medi-Cal to qualify. The county will assess your child's needs and assign hours. Fight for protective supervision if your child is a safety risk.",
+    tip: "You need Medi-Cal to qualify. The county will assess your child's needs and assign hours. Ask for more protective supervision hours if your child is a safety risk.",
   },
   "IEP": {
     title: "What is an IEP?",

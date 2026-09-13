@@ -50,7 +50,7 @@ const STRINGS: Record<FunnelLocale, {
   en: {
     title: 'Getting started',
     freeBadge: '✓ No cost to you',
-    navCardTitle: 'Work with a Navigator, free to you',
+    navCardTitle: 'Work with an Independent Facilitator, free to you',
     navCardBody:
       'A real person who has done this for their own child walks you through Self-Determination enrollment end to end.',
     whoPays: 'Who pays for this?',
@@ -83,7 +83,7 @@ const STRINGS: Record<FunnelLocale, {
   es: {
     title: 'Cómo empezar',
     freeBadge: '✓ Sin costo para usted',
-    navCardTitle: 'Trabaje con un Navegador, gratis para usted',
+    navCardTitle: 'Trabaje con un Facilitador Independiente, gratis para usted',
     navCardBody:
       'Una persona real que ya hizo esto por su propio hijo/a le acompaña en la inscripción a la Autodeterminación de principio a fin.',
     whoPays: '¿Quién paga esto?',
@@ -118,7 +118,7 @@ const STRINGS: Record<FunnelLocale, {
   vi: {
     title: 'Bắt đầu',
     freeBadge: '✓ Miễn phí cho quý vị',
-    navCardTitle: 'Làm việc với một Người dẫn đường, miễn phí cho quý vị',
+    navCardTitle: 'Làm việc với một Điều Phối Viên Độc Lập, miễn phí cho quý vị',
     navCardBody:
       'Một người thật, từng làm điều này cho chính con mình, sẽ đồng hành cùng quý vị qua toàn bộ quá trình ghi danh Tự quyết.',
     whoPays: 'Ai trả tiền cho việc này?',
@@ -192,7 +192,7 @@ export default function FundedOfferScreen() {
       const start = new Date(slot.startIso);
       const end = new Date(start.getTime() + 30 * 60 * 1000);
       const appt = await createAppointment({
-        title: 'Waypoint Navigator intro call',
+        title: 'Waypoint facilitator intro call',
         appointment_type: 'other',
         start_time: start.toISOString(),
         end_time: end.toISOString(),

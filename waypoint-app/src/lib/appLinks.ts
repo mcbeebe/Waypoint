@@ -13,7 +13,7 @@
  * work from someone else's device.
  */
 
-export const DEFAULT_WEB_ORIGIN = 'https://waypointchild.com';
+export const DEFAULT_WEB_ORIGIN = 'https://app.waypointchild.com';
 
 /** Marker line prefix, used to keep the link block idempotent. */
 export const LINK_LABEL = 'View in Waypoint:';

@@ -1,0 +1,226 @@
+---
+/**
+ * The single accessibility statement (D9). One canonical location — /about/
+ * carries a two-sentence pointer here rather than a second, drifting copy.
+ *
+ * Every claim on this page is mechanically verifiable from the repo:
+ * `npm run gates` runs axe-core over every built page in both builds
+ * (scripts/axe-scan.mjs) and a real Tab-key walk over one page per
+ * interaction pattern (scripts/keyboard-pass.mjs). Nothing here may say
+ * "we test X" unless a gate fails when X breaks — both scripts are
+ * mutation-tested for exactly that reason. Update the dates below in the
+ * same PR as any change to those gates.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import NoticeBox from '../components/NoticeBox.astro';
+import EmpathyCallout from '../components/EmpathyCallout.astro';
+
+const lastTested = 'September 8, 2026';
+// The site's established contact address (same one the legal pages use).
+// Deliberately NOT a new accessibility@ alias: telling someone who is already
+// locked out to write to a mailbox nobody has created is the exact failure
+// this page exists to prevent. Swap it the day the alias is live and routed.
+const email = 'privacy@waypointchild.com';
+---
+
+<BaseLayout
+  title="Accessibility at Waypoint — what we test, and what we haven't"
+  description="Waypoint targets WCAG 2.2 Level AA. Here's exactly what we test on every build, what we have not tested yet, and how to tell us when we get it wrong."
+>
+  <PageHero
+    eyebrow="Accessibility"
+    title="A site about disability that you can't use is a contradiction."
+    lede="Waypoint is read by disabled parents and by disabled young people. So this page doesn't claim we're accessible — it tells you precisely what gets tested before every deploy, what has never been tested, and how to report the parts we got wrong."
+  />
+
+  <div class="section on-white">
+    <div class="container narrow">
+      <span class="eyebrow">Conformance status</span>
+      <h2>Partially conformant with WCAG 2.2, Level AA</h2>
+      <article class="prose">
+        <p>
+          <b>Partially conformant</b> is the honest label, and it is a defined one: it means
+          most of the site meets the standard, but we cannot yet claim all of it does. Our
+          target is
+          <a href="https://www.w3.org/TR/WCAG22/" rel="noopener"
+            >Web Content Accessibility Guidelines (WCAG) 2.2</a
+          >, Level AA, across every page of waypointchild.com.
+        </p>
+        <p>
+          We do not claim Level AAA. Some AAA criteria are worth aiming at for content like
+          ours — the reading-level one especially, which is why every guide carries a
+          plain-language summary — but claiming a level we don't audit against would be the
+          same kind of borrowed authority we refuse everywhere else on this site.
+        </p>
+      </article>
+    </div>
+  </div>
+
+  <div class="section on-cream">
+    <div class="container narrow">
+      <span class="eyebrow">What is tested, automatically, before anything ships</span>
+      <h2>Every deploy has to pass these</h2>
+      <article class="prose">
+        <p>
+          These run in continuous integration. A failure blocks the merge — it doesn't file a
+          ticket for later.
+        </p>
+        <ul>
+          <li>
+            <b>axe-core on every page, not a sample.</b> Every page of the built site is scanned
+            and any <i>serious</i> or <i>critical</i> violation fails the build. As of
+            {lastTested}, the scan reports <b>zero violations at any severity</b> across the
+            whole site.
+          </li>
+          <li>
+            <b>Scanned twice, in both builds.</b> Some components render differently depending
+            on whether a linked page is published yet. We scan the draft build and the real
+            production build, because a component can pass in one and ship broken in the other —
+            which is exactly how a card of unreadable grey text once reached a live page here.
+          </li>
+          <li>
+            <b>A real keyboard walk.</b> A browser presses Tab through the home page, both
+            tools, a guide, the start-here checklist, and search. It fails if the skip link
+            isn't the first stop or stays invisible when focused, if any control can't be
+            reached, if focus gets trapped, or if a focused control paints no visible focus
+            ring.
+          </li>
+          <li>
+            <b>Both tools must be completable without a mouse.</b> The keyboard walk actually
+            runs the SSI deeming calculator and the Regional Center finder with the keyboard
+            alone and requires a real answer back. A tool you can Tab across but never run is
+            still a mouse tool.
+          </li>
+          <li>
+            <b>Under the real security policy.</b> The scans replay the deployed
+            Content-Security-Policy, so a policy change that silently kills a control fails here
+            instead of in front of a parent.
+          </li>
+        </ul>
+      </article>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container narrow">
+      <span class="eyebrow">What has not been tested</span>
+      <h2>The gaps we know about</h2>
+      <article class="prose">
+        <p>
+          Automated testing catches roughly a third of real accessibility barriers. It cannot
+          tell you that a heading is misleading, that a reading order is confusing, or that an
+          error message makes no sense out loud. So this list matters more than the one above.
+        </p>
+        <ul>
+          <li>
+            <b>No screen-reader testing by a screen-reader user.</b> Nobody has sat down with
+            NVDA, JAWS, or VoiceOver and worked through this site end to end. This is the
+            largest untested area, and it is the one we most want to fix.
+          </li>
+          <li>
+            <b>No independent third-party audit.</b> Everything above is self-testing. We have
+            not paid for an outside accessibility audit, and we will say so on this page until
+            we have.
+          </li>
+          <li>
+            <b>No testing with switch access, voice control, or screen magnification</b> beyond
+            browser zoom.
+          </li>
+          <li>
+            <b>Spanish pages are not separately audited.</b> Spanish content is still being
+            released page by page behind a credited bilingual reviewer; its accessibility
+            testing will follow the same gates once it ships.
+          </li>
+          <li>
+            <b>Cognitive accessibility is a design intention, not a tested claim.</b> Plain
+            language, short steps, and a summary box atop every guide are deliberate — but we
+            have not user-tested them with people with cognitive or learning disabilities.
+          </li>
+        </ul>
+        <p>
+          If you are an accessibility tester, a screen-reader user, or a disabled parent willing
+          to tell us what breaks, we would genuinely rather hear it than not. Write to
+          <a href={`mailto:${email}`}>{email}</a>.
+        </p>
+      </article>
+    </div>
+  </div>
+
+  <div class="section on-cream">
+    <div class="container narrow">
+      <span class="eyebrow">Reporting a barrier</span>
+      <h2>Tell us, and we'll treat it as a bug</h2>
+      <article class="prose">
+        <p>
+          Email <a href={`mailto:${email}`}>{email}</a>. If you can, include the page address,
+          what you were trying to do, and what happened instead — plus your browser and any
+          assistive technology you were using. Any of those details helps; none of them are
+          required, and "this page doesn't work with my screen reader" is a perfectly good bug
+          report.
+        </p>
+        <p>What we commit to:</p>
+        <ul>
+          <li>We reply within <b>5 business days</b>, even if the reply is "we're still on it."</li>
+          <li>
+            Accessibility reports go to the front of the queue, ahead of new features and new
+            content.
+          </li>
+          <li>
+            If we can't fix something quickly, we tell you what we're doing instead — and, where
+            it matters for your child, we'll get you the information another way.
+          </li>
+        </ul>
+        <NoticeBox>
+          <b>If you need the content and can't reach it:</b>
+          Don't wait on a fix. Email <a href={`mailto:${email}`}>{email}</a> and say what you were
+          trying to find. We will send you the same information in whatever format works — plain
+          text in an email, read to you over the phone, whatever gets it to you today.
+        </NoticeBox>
+      </article>
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container narrow">
+      <span class="eyebrow">Technical notes</span>
+      <h2>The details, for anyone checking our work</h2>
+      <article class="prose">
+        <ul>
+          <li>
+            <b>Standard:</b> WCAG 2.2, Level AA. <b>Status:</b> partially conformant.
+            <b>Scope:</b> all of waypointchild.com. The Waypoint app at app.waypointchild.com is
+            a separate product and is not covered by this statement.
+          </li>
+          <li>
+            <b>Last tested:</b> {lastTested}, and again automatically on every deploy since.
+          </li>
+          <li>
+            <b>Method:</b> automated testing (axe-core) plus scripted keyboard-only testing in a
+            real browser. No manual assistive-technology audit yet — see the gaps above.
+          </li>
+          <li>
+            <b>Technology relied upon:</b> HTML, CSS, and JavaScript. Pages are built as static
+            HTML and the content is readable with JavaScript disabled; the two calculators need
+            JavaScript to compute, and each links to the underlying agency source so you can
+            reach the same answer without them.
+          </li>
+          <li>
+            <b>No PDFs.</b> We publish letters and guides as web pages, not downloads, so they
+            stay readable, resizable, and translatable.
+          </li>
+          <li>
+            <b>Motion:</b> the site honors <code>prefers-reduced-motion</code>. There is no
+            autoplaying video, no carousel, and nothing that flashes.
+          </li>
+        </ul>
+      </article>
+      <EmpathyCallout label="Why this page is this blunt">
+        Most accessibility statements are written to be defensible. This one is written to be
+        useful — because the people most likely to read it are the people most likely to be
+        locked out, and they have been told "we are committed to accessibility" by enough
+        organizations already. You deserve the list of what we actually haven't done.
+      </EmpathyCallout>
+    </div>
+  </div>
+</BaseLayout>

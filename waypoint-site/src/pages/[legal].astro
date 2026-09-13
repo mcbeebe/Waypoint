@@ -1,0 +1,21 @@
+---
+import { getCollection, render } from 'astro:content';
+import LegalLayout from '../layouts/LegalLayout.astro';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('legal', (e) => e.data.locale === 'en');
+  return pages.map((entry) => ({ params: { legal: entry.id.replace(/\.mdx?$/, '') }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<LegalLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  dateModified={entry.data.dateModified}
+  lastLegalReview={entry.data.lastLegalReview}
+>
+  <Content />
+</LegalLayout>

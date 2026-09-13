@@ -73,8 +73,8 @@ describe('isValidInviteEmail', () => {
 
 describe('joinLinkFor', () => {
   it("builds the link on the app's canonical origin and encodes the token", () => {
-    expect(joinLinkFor('8f3c-abc')).toBe('https://waypointchild.com/join?token=8f3c-abc');
-    expect(joinLinkFor('a b')).toBe('https://waypointchild.com/join?token=a%20b');
+    expect(joinLinkFor('8f3c-abc')).toBe('https://app.waypointchild.com/join?token=8f3c-abc');
+    expect(joinLinkFor('a b')).toBe('https://app.waypointchild.com/join?token=a%20b');
   });
 });
 

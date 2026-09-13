@@ -55,6 +55,10 @@ describe('warm brand palette — meets WCAG AA where it must', () => {
     expect(contrast('#FFFFFF', brand.pine)).toBeGreaterThanOrEqual(AA);
   });
 
+  it('white text on an ink fill (the secondary button) passes AA', () => {
+    expect(contrast('#FFFFFF', brand.ink)).toBeGreaterThanOrEqual(AA);
+  });
+
   it('body and secondary text pass AA on both paper and panel', () => {
     expect(contrast(brand.ink, brand.paper)).toBeGreaterThanOrEqual(AA);
     expect(contrast(brand.ink, brand.panel)).toBeGreaterThanOrEqual(AA);
@@ -69,6 +73,9 @@ describe('warm brand palette — meets WCAG AA where it must', () => {
   it('sage-as-TEXT uses sageInk (fills fail as text) and urgent text passes AA', () => {
     expect(contrast(brand.sageInk, brand.panel)).toBeGreaterThanOrEqual(AA);
     expect(contrast(brand.urgent, brand.panel)).toBeGreaterThanOrEqual(AA);
+    // Urgent also renders directly on paper (auth error text) — today it clears
+    // AA by only ~0.1, so this line is the tripwire for any paper/urgent tweak.
+    expect(contrast(brand.urgent, brand.paper)).toBeGreaterThanOrEqual(AA);
     // Guard the role split: the sage FILL is deliberately too light for text,
     // which is exactly why sageInk exists — if this ever passes, the two have
     // been conflated.

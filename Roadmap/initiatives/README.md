@@ -40,17 +40,23 @@ serve.
 | 005 | Supports you have to ask for — help parents get RC-funded, non-automatic family supports (sibling support first) via the Resource Stack + Your Result | Open — owner go, building A–D | — | [intent](005-ask-for-supports/intent.md) · [plan](005-ask-for-supports/plan.md) |
 | 006 | Brand refresh — compass mark + navy→teal→sage system + shared `<PageHeader>`/`<BrandCard>` kit, applied surface by surface | Open — owner approved compass + palette; building Phase 1 | — | [intent](006-brand-refresh/intent.md) · [plan](006-brand-refresh/plan.md) |
 | 007 | Family Sharing, made real — owner seeded as member (027), RLS re-scoped owner→membership, invite email delivery + tokenized accept flow | **BLOCKED ON PROD — apply migration 058.** B1 (053) MERGED #182, B3 (054+055+Join) MERGED #183, B2 (Resend, 056+057) MERGED #184. Sep 2 2026: probed live and found all three sharing tables still raising 42P17 — 027 had been applied *after* 055 and silently restored the recursive policies (same policy names). 058 repairs it and self-checks. 027 must never be re-run after 055/058. | #182, #183, #184 | [intent](007-family-sharing-invites/intent.md) · [analysis](007-family-sharing-invites/analysis.md) · [plan](007-family-sharing-invites/plan.md) |
-| 008 | Chabot local tools — hyper-local pilot: Family Navigator 1-pager, parent Google Group, plus an owner-directed community hub prototype (Discussions + Wisdom, flag-only moderation, AI search) | **MIGRATED to [`mcbeebe/school-hub`](https://github.com/mcbeebe/school-hub) on 2026-09-13.** It outgrew an initiative folder: its own users, its own backend (Firebase), its own PTA handoff story. A separate repo keeps a future Waypoint integration a deliberate choice rather than an accident of layout — that integration is Phase 2 of school-hub's `ROADMAP.md` and is **not decided**. Waypoint copies frozen under `Archive/Old-Project-Plans/`. | — | [migration pointer](008-chabot-local-tools/MIGRATED.SUPERSEDED.md) · [school-hub ROADMAP](https://github.com/mcbeebe/school-hub/blob/main/ROADMAP.md) |
+| 008 | Marketing/content site (waypointchild.com) — Astro site, review-gated YMYL content engine, apex cutover | Open — Phase 0 shipped (#200–#204, predating this folder); Phase 1 building | #200–#204, #205+ | [intent](008-marketing-content-site/intent.md) · [plan](008-marketing-content-site/plan.md) |
+| 009 | i18n sweep — finish Spanish on the screens that already hold `locale`; audit found three parallel translation systems and ~95 residual English strings on 8 partly-localized screens | Open — PR 1 (ProfileScreen) built, awaiting owner review per the family-facing stop | — | [intent](009-i18n-sweep/intent.md) · [analysis](009-i18n-sweep/analysis.md) · [PR1 memo](009-i18n-sweep/pr1-review-memo.md) |
+| 010 | Chabot local tools — hyper-local pilot: Family Navigator 1-pager, parent Google Group, plus an owner-directed community hub prototype (Discussions + Wisdom, flag-only moderation, AI search) | **MIGRATED to [`mcbeebe/school-hub`](https://github.com/mcbeebe/school-hub) on 2026-09-13.** It outgrew an initiative folder: its own users, its own backend (Firebase), its own PTA handoff story. A separate repo keeps a future Waypoint integration a deliberate choice rather than an accident of layout — that integration is Phase 2 of school-hub's `ROADMAP.md` and is **not decided**. *Drafted as 008 on a branch that sat unmerged while `main` assigned 008 and 009 to other initiatives; renumbered to 010 on merge. school-hub's own docs still say "initiative 008" because that is what it was called during its life here.* Waypoint copies frozen under `Archive/Old-Project-Plans/`. | — | [migration pointer](010-chabot-local-tools/MIGRATED.SUPERSEDED.md) · [school-hub ROADMAP](https://github.com/mcbeebe/school-hub/blob/main/ROADMAP.md) |
 
 ## Open decisions
 
 Recorded here because they have no other home and keep resurfacing:
 
-- **gas-mvp: wire clasp, or declare it frozen-legacy?** It is labelled
-  "Active — Production" and serves real families, yet deploys by manual
-  copy-paste while a `.clasp.json` with a real `scriptId` has sat unused since
-  March 2026. Today a commit there is not a deploy, and the running code can
-  differ from what is in git with nothing to detect it. *Owner's call.*
+- ~~**gas-mvp: wire clasp, or declare it frozen-legacy?**~~ **RESOLVED
+  2026-09-07 — neither: retired and archived.** The owner confirmed the surface
+  no longer serves users, and it moved to
+  `Archive/Retired-Surfaces/gas-mvp/` with a `.SUPERSEDED.md` record. The
+  clasp question is moot; nothing there deploys. Worth keeping the lesson the
+  question was circling: it was labelled "Active — Production" in CLAUDE.md for
+  months after that stopped being true, which is how a later session came to
+  prepare a production patch for a dead surface. A stale status label is not
+  free.
 - **`pages.yml`: manual only, or repoint at `main`?** Its automatic trigger
   was `push: branches: [dev]`, and no `dev` branch exists — so every deploy of
   the `docs/` web MVP has in fact been a manual dispatch. The dead trigger was

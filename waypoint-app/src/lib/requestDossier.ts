@@ -125,7 +125,7 @@ export function buildRequestDossierText(kase: RequestCase, opts: DossierOptions)
   const r = kase.request;
   const { core, thread } = splitDossierEvents(kase);
   const lines: string[] = [];
-  lines.push(`REQUEST DOSSIER — ${r.title}`);
+  lines.push(`CASE FILE — ${r.title}`);
   lines.push(`${REQUEST_TYPE_LABELS[r.request_type]}${opts.childName ? ` · for ${opts.childName}` : ''}`);
   lines.push(kase.provenanceLine);
   if (kase.deadline) {
@@ -201,7 +201,7 @@ export function renderRequestDossierHtml(kase: RequestCase, opts: DossierOptions
         : '')
     : 'No statutory deadline applies to this request type.';
   return `<!doctype html><html><head><meta charset="utf-8">
-<title>Request Dossier — ${esc(r.title)}</title>
+<title>Case file — ${esc(r.title)}</title>
 <style>
   body{font-family:-apple-system,Segoe UI,sans-serif;color:#1F2937;max-width:760px;margin:40px auto;padding:0 20px;line-height:1.5}
   h1{color:#1B2A4A;margin-bottom:2px} h2{color:#1B2A4A;border-bottom:2px solid #0891B2;padding-bottom:6px;margin-top:32px}
@@ -217,7 +217,7 @@ export function renderRequestDossierHtml(kase: RequestCase, opts: DossierOptions
   .hash{font-family:ui-monospace,monospace;word-break:break-all}
   @media print{body{margin:12px auto}}
 </style></head><body>
-<h1>Request Dossier — ${esc(r.title)}</h1>
+<h1>Case file — ${esc(r.title)}</h1>
 <p class="meta">${esc(REQUEST_TYPE_LABELS[r.request_type])}${opts.childName ? ` · for ${esc(opts.childName)}` : ''} · ${esc(kase.provenanceLine)}</p>
 <p>${deadlineLine}<br>Status: <b>${esc(r.status)}</b>${r.decided_on ? ` (decided ${esc(fmtDateOnly(r.decided_on))})` : ''} · ${esc(standingLine(kase))}</p>
 
@@ -306,7 +306,8 @@ export async function exportRequestDossier(
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri, {
           mimeType: 'application/pdf',
-          dialogTitle: `Request dossier — ${kase.request.title}`,
+          // The share sheet is parent-facing: "dossier" is our word, not theirs.
+          dialogTitle: `Case file — ${kase.request.title}`,
         });
         return true;
       }

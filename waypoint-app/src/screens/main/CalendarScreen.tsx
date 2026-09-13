@@ -29,6 +29,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
 import { expandOccurrences, findOverlaps, type RecurrenceRule } from '@/lib/recurrence';
+import { localDayISO } from '@/lib/dateOnly';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showConfirm } from '@/lib/dialogs';
 import { useFamily } from '@/hooks/useFamily';
@@ -245,7 +246,10 @@ export default function CalendarScreen() {
           occurrenceId: occ.occurrenceId,
           isVirtual: occ.isVirtual,
         };
-        const day = occ.start_time.split('T')[0];
+        // Group by the LOCAL day of the instant, not the UTC slice — a 7pm
+        // Pacific appointment is 02:00Z tomorrow, and the header at the other
+        // end reads this key back as a local day.
+        const day = localDayISO(new Date(occ.start_time));
         if (!groups[day]) groups[day] = [];
         groups[day].push(display);
       }
@@ -269,7 +273,7 @@ export default function CalendarScreen() {
 
   // Upcoming deadlines sorted by urgency
   const sortedDeadlines = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDayISO();
     return [...deadlines]
       .filter((d) => d.status !== 'completed')
       .sort((a, b) => {
@@ -398,7 +402,9 @@ export default function CalendarScreen() {
           <View style={styles.dayHeaderRow}>
             {weekDays.map((d) => {
               const isToday = d.toDateString() === new Date().toDateString();
-              const dateKey = d.toISOString().split('T')[0];
+              // Local day, matching how appointmentsByDay is keyed — the UTC
+              // slice queried tomorrow's events for today's dot every evening.
+              const dateKey = localDayISO(d);
               const hasEvents = (appointmentsByDay[dateKey]?.length ?? 0) > 0;
               return (
                 <TouchableOpacity
@@ -604,7 +610,9 @@ function DeadlineCard({
   onComplete: () => void;
 }) {
   const config = DEADLINE_TYPE_CONFIG[deadline.deadline_type] ?? DEADLINE_TYPE_CONFIG.other;
-  const today = new Date().toISOString().split('T')[0];
+  // The LOCAL day, not toISOString()'s UTC slice — which is already tomorrow
+  // every evening in California, badging a deadline due today as overdue.
+  const today = localDayISO();
   const daysLeft = daysUntil(deadline.due_date);
   const isOverdue = deadline.due_date < today;
   const isUrgent = daysLeft <= 7 && !isOverdue;

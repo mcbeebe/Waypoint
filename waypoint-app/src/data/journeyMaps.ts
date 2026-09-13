@@ -1,7 +1,7 @@
 /**
  * Diagnosis-specific journey maps for California disability services.
  *
- *  - gas-mvp/Index.html — JOURNEY_MAP_DATA / JOURNEY_MAP_DEFAULT (~lines 1708–1913),
+ *  - Archive/Retired-Surfaces/gas-mvp/Index.html — JOURNEY_MAP_DATA / JOURNEY_MAP_DEFAULT (~lines 1708–1913),
  *    getJourneyForDiagnosis() (~1917–1929), getJourneyPhaseForAge() (~1035–1061)
  *  - Waypoint-Journey-Maps.jsx — richer ancestor; its finer-grained phases win where
  *    it has more phases than gas-mvp (autism, down, cp, adhd, id). The JSX `trigger`

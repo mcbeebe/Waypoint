@@ -20,6 +20,7 @@ import {
   stateFromBytes,
   statesMatch,
 } from '@/lib/pkce';
+import { fhirDisplayDay } from '@/lib/fhirDate';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
@@ -388,11 +389,11 @@ export async function buildHealthSummary(): Promise<HealthSummary | null> {
       allergies: allergies.map((a) => a.code.text),
       recentLabs: labs.slice(0, 10).map((l) => {
         const value = l.valueQuantity ? `${l.valueQuantity.value} ${l.valueQuantity.unit}` : l.valueString ?? 'N/A';
-        return `${l.code.text}: ${value} (${l.effectiveDateTime?.split('T')[0] ?? 'unknown date'})`;
+        return `${l.code.text}: ${value} (${fhirDisplayDay(l.effectiveDateTime) ?? 'unknown date'})`;
       }),
       upcomingAppointments: appts.slice(0, 5).map((a) => {
         const provider = a.participant?.[0]?.actor?.display ?? 'Unknown';
-        return `${a.description ?? 'Appointment'} with ${provider} on ${a.start.split('T')[0]}`;
+        return `${a.description ?? 'Appointment'} with ${provider} on ${fhirDisplayDay(a.start) ?? 'an unknown date'}`;
       }),
     };
   } catch {

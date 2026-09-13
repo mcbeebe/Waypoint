@@ -13,6 +13,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useSdpCase } from '@/hooks/useFacilitation';
 import { transitionHoursStatus } from '@/lib/transitionHours';
+import { localDayISO } from '@/lib/dateOnly';
 import { useToast } from '@/components/Toast';
 import type { ServiceActivityType } from '@/types/database';
 import type { StaffStackParamList } from '@/types/navigation';
@@ -57,7 +58,7 @@ export default function TimeCaptureScreen() {
       const result = await logTime({
         activityType: activity,
         minutes,
-        occurredOn: new Date().toISOString().slice(0, 10),
+        occurredOn: localDayISO(),
         notes: notes.trim() || undefined,
       });
       if (result.ok) {

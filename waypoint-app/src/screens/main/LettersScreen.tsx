@@ -34,6 +34,7 @@ import {
 import { fillKnownBlanks, analyzeBlanks, sendReadiness, type LetterProfile } from '@/lib/draftBlanks';
 import { composeTarget, LONG_BODY_CHARS } from '@/lib/emailCompose';
 import { extractSubject, buildSubject, pickRecipient } from '@/lib/letterAddress';
+import type { AddressContact, RecipientMatch } from '@/lib/letterAddress';
 import { useContacts } from '@/hooks/useContacts';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -46,10 +47,12 @@ import {
 } from '@/hooks/useCommunications';
 import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
-import { sentNextFor, trackFor } from '@/lib/sentNext';
+import { sentNextFor, trackFor, clockAnchorFor } from '@/lib/sentNext';
 import { toFunnelLocale } from '@/lib/eligibility';
+import type { FunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
 import { deadlineFor } from '@/lib/requestClocks';
+import { localDayISO } from '@/lib/dateOnly';
 import type { RequestDeadline } from '@/lib/requestClocks';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
@@ -62,6 +65,16 @@ import { colors, fonts, spacing, radii } from '@/lib/theme';
  * sentence. This mirrors the mockup ("we filled these in from your records")
  * and stays honest without a mixed-language list.
  */
+/**
+ * Written next to the draft itself, not in the footer: a parent who scrolls
+ * straight to Send must still pass it.
+ */
+const AI_PROVENANCE: Record<FunnelLocale, string> = {
+  en: 'Written by Waypoint\u2019s AI from what you told us. Read it before you send \u2014 it goes out under your name.',
+  es: 'Escrito por la IA de Waypoint con lo que usted nos cont\u00f3. L\u00e9alo antes de enviarlo \u2014 sale a su nombre.',
+  vi: 'Do AI c\u1ee7a Waypoint vi\u1ebft d\u1ef1a tr\u00ean nh\u1eefng g\u00ec qu\u00fd v\u1ecb cho bi\u1ebft. H\u00e3y \u0111\u1ecdc tr\u01b0\u1edbc khi g\u1eedi \u2014 th\u01b0 \u0111i d\u01b0\u1edbi t\u00ean c\u1ee7a qu\u00fd v\u1ecb.',
+};
+
 const RECORDS_NOTE: Record<'en' | 'es' | 'vi', string> = {
   en: 'We filled in the details we had from your records. Tap to change any of them in your profile.',
   es: 'Completamos los datos que teníamos de su perfil. Toque para cambiar cualquiera en su perfil.',
@@ -138,6 +151,8 @@ export default function LettersScreen() {
       setDraft(null);
       // New template → the previous draft's records note is no longer true.
       setFilledFromRecords([]);
+      setManualRecipient(null);
+      setManualEmailInput('');
     }
     if (route.params?.question) {
       setQuestion(route.params.question);
@@ -164,8 +179,15 @@ export default function LettersScreen() {
     // filled for THIS text — clear any note left from a prior generated draft,
     // or it would assert a false provenance over someone else's letter.
     setFilledFromRecords([]);
-    loggedDraftRef.current = saved; // already in the log — don't duplicate it
-  }, [route.params?.draftBody]);
+    setManualRecipient(null);
+    setManualEmailInput('');
+    // Already in the log — don't duplicate it — UNLESS the caller says this
+    // text was never logged in the first place (see draftBodyUnlogged on the
+    // param type): a Navigator chat answer routed here has no prior row, and
+    // marking it "already logged" made the first Save/Send a silent no-op —
+    // saveDraftOnce short-circuits whenever this ref already equals `draft`.
+    loggedDraftRef.current = route.params?.draftBodyUnlogged ? null : saved;
+  }, [route.params?.draftBody, route.params?.draftBodyUnlogged]);
   const [tone, setTone] = useState<DraftTone>('professional');
   const [question, setQuestion] = useState('');
   const [draft, setDraft] = useState<string | null>(null);
@@ -211,6 +233,8 @@ export default function LettersScreen() {
     // send confirmation so it can't linger over new, unsent text.
     setMarkedSent(false);
     setSentMoment(null);
+    setManualRecipient(null);
+    setManualEmailInput('');
     // Persistent note above the draft instead of a vanishing toast — a parent
     // reviewing the letter later can still see what came from their records.
     setFilledFromRecords(filled);
@@ -315,6 +339,14 @@ export default function LettersScreen() {
     // from here. An existing live row of the same title is not duplicated,
     // and a letter sent FROM a case never opens a second clock row.
     let tracked = false;
+    // The request this send belongs to — the live row it joined, or the one
+    // it founded. Its requested_on, not today, is what the statutory clock
+    // runs from (see clockAnchorFor). One clock reading for the whole
+    // handler, so the row written and the deadline shown cannot straddle
+    // local midnight and disagree by a day.
+    let joined: { requested_on: string } | null = null;
+    const sentAt = new Date();
+    const sentOn = localDayISO(sentAt);
     const track = trackFor(next, routeRequestId);
     // A template can serve several distinct asks (the IPP-need letter, one per
     // support), so the caller can override the constant template title to keep
@@ -331,14 +363,19 @@ export default function LettersScreen() {
       );
       if (existing) {
         tracked = true;
-        // Re-sending from the catalog: the letter still belongs to the live
-        // request's case thread. Best-effort, like the founding stamp.
+        // Re-sending from the catalog: the letter joins the live request's
+        // case thread — and its clock, which keeps running from the original
+        // ask. Best-effort, like the founding stamp.
+        joined = existing;
         attachCommunicationToRequest(id, existing.id);
       } else {
         const created = await createRequest({
           request_type: track.requestType,
           title: trackTitle ?? track.title,
-          requested_on: new Date().toISOString().slice(0, 10),
+          // The family's local day, not the UTC one: after 5pm Pacific the
+          // UTC slice is tomorrow, which would start the statutory clock a
+          // day late and show a request dated a day the family hasn't lived.
+          requested_on: sentOn,
           child_id: primaryChild?.id ?? null,
           channel: 'email',
           notes: 'Sent via Waypoint Letters',
@@ -349,7 +386,10 @@ export default function LettersScreen() {
         tracked = !!created;
         // The founding letter joins its own case thread (047) — the 045
         // communication_id link above stays as the pre-047 fallback.
-        if (created) attachCommunicationToRequest(id, created.id);
+        if (created) {
+          joined = created;
+          attachCommunicationToRequest(id, created.id);
+        }
       }
     }
     // Sending the deeming letter IS applying — reflect it on the Resource
@@ -362,8 +402,12 @@ export default function LettersScreen() {
     ) {
       updateChild(primaryChild.id, { medi_cal_status: 'applied' }).catch(() => undefined);
     }
+    // The deadline this celebration shows must be the SAME statutory date the
+    // Request Tracker shows for the same request: re-sending an open ask does
+    // not restart its clock, and a founding send anchors on the family's local
+    // day (the UTC slice is tomorrow every evening in California).
     const deadline = track
-      ? deadlineFor(track.requestType, new Date().toISOString().slice(0, 10))
+      ? deadlineFor(track.requestType, clockAnchorFor(joined, sentAt), sentAt)
       : null;
     setSentMoment({ next, deadline, tracked });
   }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId]);
@@ -389,6 +433,31 @@ export default function LettersScreen() {
     userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
     maxTouchPoints: typeof navigator !== 'undefined' ? navigator.maxTouchPoints : undefined,
   };
+  const emailableContacts = useMemo(() => contacts.filter((c) => !!c.email), [contacts]);
+  /**
+   * `pickRecipient` only finds someone when the draft greets them by name or
+   * a saved contact matches the template's organization — neither holds for
+   * a chat answer handed here with no template of its own ("Email This"
+   * routes any Navigator answer through this same screen, draft flow 2026-09).
+   * Without this, that answer would land with no in-app way to say who it's
+   * for at all.
+   *
+   * Reset on a fresh template/draftBody hand-off and on a freshly generated
+   * draft (a new letter, a new context) — but deliberately NOT on every
+   * keystroke in the draft text box itself, or fixing a typo would silently
+   * un-pick the recipient mid-edit. The "Change →" link next to the address
+   * (below) is the actual safety net: the pick stays visible next to
+   * whatever text is currently in the box, the same way an auto-matched
+   * greeting is, for the parent to catch and correct before sending either
+   * way (an adversarial review, 2026-09-12, flagged a stale pick surviving
+   * a rewritten draft as silent; this makes it visible and correctable
+   * instead of trying to guess when an edit is "different enough" to clear).
+   */
+  const [manualRecipient, setManualRecipient] = useState<AddressContact | null>(null);
+  /** Typed-address fallback (below): a saved-contact chip is not the only
+   *  way to address this — anyone not yet in Key Contacts still needs a
+   *  path that doesn't dead-end at "go save them first". */
+  const [manualEmailInput, setManualEmailInput] = useState('');
   /**
    * Address the draft before handing it to the mail app: the letter names
    * its own subject and greets its recipient by name, and Key Contacts
@@ -403,13 +472,17 @@ export default function LettersScreen() {
       childFirstName: primaryChild?.first_name,
       familyLastName: family?.parent_last_name,
     });
-    const recipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
+    const autoRecipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
+    const recipient: RecipientMatch =
+      autoRecipient.contact || !manualRecipient
+        ? autoRecipient
+        : { to: [manualRecipient.email!], contact: manualRecipient, reason: 'manual' };
     outgoingSubjectRef.current = subject;
     outgoingContactRef.current = recipient.contact?.name ?? null;
     outgoingOrgRef.current = (recipient.contact?.organization as CommunicationOrg | null) ?? null;
     return { subject, body, recipient };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, template, contacts, primaryChild?.first_name, family?.parent_last_name]);
+  }, [draft, template, contacts, manualRecipient, primaryChild?.first_name, family?.parent_last_name]);
 
   const target = outgoing
     ? composeTarget(
@@ -491,6 +564,8 @@ export default function LettersScreen() {
     setSentMoment(null);
     setDraft(null);
     setFilledFromRecords([]);
+    setManualRecipient(null);
+    setManualEmailInput('');
     setTemplate(null);
     setQuestion('');
     setChatGuidance(null);
@@ -551,7 +626,7 @@ export default function LettersScreen() {
             {chatGuidance && (
               <View style={styles.guidanceChip}>
                 <Text style={styles.guidanceChipText}>
-                  ✓ Using the context from your AI chat — the draft will reflect what you discussed.
+                  ✓ Using the context from your Waypoint Navigator chat — the draft will reflect what you discussed.
                 </Text>
               </View>
             )}
@@ -611,6 +686,12 @@ export default function LettersScreen() {
               <Text style={styles.backLink}>‹ Change tone or details</Text>
             </TouchableOpacity>
             <Text style={styles.stepTitle}>Your draft — edit anything, then send</Text>
+            {/* The screen where machine-written text leaves the app under the
+                parent's own name, into a legal record with an agency. An
+                adversary pass (Sep 2026) found this was the one screen on the
+                draft path with no AI attribution anywhere — and the one route
+                that bypasses the questions sheet reaches it directly. */}
+            <Text style={styles.aiProvenance}>{AI_PROVENANCE[funnelLocale]}</Text>
             {filledFromRecords.length > 0 && (
               <TouchableOpacity
                 style={styles.recordsNote}
@@ -681,26 +762,101 @@ export default function LettersScreen() {
             />
             {outgoing && (
               <View style={styles.addressBox}>
-                <Text style={styles.addressLine} numberOfLines={2}>
-                  <Text style={styles.addressLabel}>To: </Text>
-                  {outgoing.recipient.contact
-                    ? `${outgoing.recipient.contact.name} (${outgoing.recipient.contact.email})`
-                    : 'no saved contact matched — add the address in your email app'}
-                </Text>
+                <View style={styles.addressToRow}>
+                  <Text style={[styles.addressLine, styles.addressToText]} numberOfLines={2}>
+                    <Text style={styles.addressLabel}>To: </Text>
+                    {outgoing.recipient.contact
+                      ? outgoing.recipient.contact.name === outgoing.recipient.contact.email
+                        ? outgoing.recipient.contact.email
+                        : `${outgoing.recipient.contact.name} (${outgoing.recipient.contact.email})`
+                      : 'Choose who this goes to, or add the address in your email app'}
+                  </Text>
+                  {outgoing.recipient.reason === 'manual' && (
+                    <TouchableOpacity
+                      onPress={() => setManualRecipient(null)}
+                      accessibilityRole="button"
+                      accessibilityLabel="Change who this goes to"
+                    >
+                      <Text style={styles.addressHint}>Change →</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
                 <Text style={styles.addressLine} numberOfLines={2}>
                   <Text style={styles.addressLabel}>Subject: </Text>
                   {outgoing.subject}
                 </Text>
                 {!outgoing.recipient.contact && (
-                  <TouchableOpacity
-                    onPress={() => (navigation as any).navigate('Home', { screen: 'Profile' })}
-                    accessibilityRole="button"
-                    accessibilityLabel="Save this recipient in Key Contacts"
-                  >
-                    <Text style={styles.addressHint}>
-                      Save them in Profile → Key Contacts and Waypoint will address the next one →
-                    </Text>
-                  </TouchableOpacity>
+                  <>
+                    {emailableContacts.length > 0 && (
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.recipientChipRow}
+                      >
+                        {emailableContacts.slice(0, 6).map((c) => (
+                          <TouchableOpacity
+                            key={c.id}
+                            style={styles.recipientChip}
+                            onPress={() =>
+                              setManualRecipient({
+                                name: c.name,
+                                email: c.email,
+                                organization: c.organization,
+                                role: c.role,
+                              })
+                            }
+                            accessibilityRole="button"
+                            accessibilityLabel={`Send to ${c.name}`}
+                          >
+                            <Text style={styles.recipientChipText}>
+                              {c.name}{c.role ? ` · ${c.role}` : ''}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    )}
+                    <View style={styles.manualEmailRow}>
+                      <TextInput
+                        style={styles.manualEmailInput}
+                        value={manualEmailInput}
+                        onChangeText={setManualEmailInput}
+                        placeholder="or type an email address"
+                        placeholderTextColor={colors.mid}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        accessibilityLabel="Recipient email address"
+                      />
+                      <TouchableOpacity
+                        style={[
+                          styles.manualEmailButton,
+                          !manualEmailInput.trim().includes('@') && styles.manualEmailButtonDisabled,
+                        ]}
+                        disabled={!manualEmailInput.trim().includes('@')}
+                        onPress={() => {
+                          const email = manualEmailInput.trim();
+                          setManualRecipient({ name: email, email, organization: null, role: null });
+                          setManualEmailInput('');
+                        }}
+                        accessibilityRole="button"
+                        accessibilityState={{ disabled: !manualEmailInput.trim().includes('@') }}
+                        accessibilityLabel="Use this email address"
+                      >
+                        <Text style={styles.manualEmailButtonText}>Use</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => (navigation as any).navigate('Home', { screen: 'Profile' })}
+                      accessibilityRole="button"
+                      accessibilityLabel="Save this recipient in Key Contacts"
+                    >
+                      <Text style={styles.addressHint}>
+                        {emailableContacts.length > 0
+                          ? 'Save a new contact in Profile → Key Contacts and it shows up here next time →'
+                          : 'Save them in Profile → Key Contacts and Waypoint will address the next one →'}
+                      </Text>
+                    </TouchableOpacity>
+                  </>
                 )}
               </View>
             )}
@@ -872,7 +1028,7 @@ export default function LettersScreen() {
             <Button title="Start a new letter" onPress={reset} variant="outline" />
             <Text style={styles.disclaimer}>
               Review before sending: fill in any [BRACKETED] blanks and double-check dates and
-              names. Waypoint drafts are a starting point, not legal advice.
+              names. Waypoint drafts these with AI — a starting point, not legal advice.
             </Text>
           </>
         )}
@@ -1052,7 +1208,47 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   addressLine: { fontSize: fonts.sizes.xs, color: colors.dark, lineHeight: 17 },
+  addressToRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  addressToText: { flex: 1 },
   addressLabel: { color: colors.mid, fontWeight: fonts.weights.semibold as '600' },
+  recipientChipRow: { flexDirection: 'row', gap: 6, paddingVertical: 6 },
+  recipientChip: {
+    backgroundColor: colors.light,
+    borderRadius: radii.full,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    minHeight: 30,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  recipientChipText: { fontSize: fonts.sizes.xs, color: colors.dark },
+  manualEmailRow: { flexDirection: 'row', gap: 6, alignItems: 'center', marginTop: 4 },
+  manualEmailInput: {
+    flex: 1,
+    backgroundColor: colors.light,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    minHeight: 36,
+    fontSize: fonts.sizes.xs,
+    color: colors.dark,
+  },
+  manualEmailButton: {
+    backgroundColor: colors.teal,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.md,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  manualEmailButtonDisabled: { backgroundColor: colors.mid, opacity: 0.5 },
+  manualEmailButtonText: {
+    color: colors.white,
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.semibold as '600',
+  },
   addressHint: {
     fontSize: fonts.sizes.xs,
     color: colors.teal,
@@ -1070,6 +1266,12 @@ const styles = StyleSheet.create({
   },
   gmailSendText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   gmailSendBtnDisabled: { backgroundColor: colors.mid, opacity: 0.6 },
+  aiProvenance: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+    lineHeight: 19,
+    marginBottom: spacing.sm,
+  },
   recordsNote: {
     backgroundColor: '#ECFEFF',
     borderWidth: 1,

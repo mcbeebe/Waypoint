@@ -1,0 +1,282 @@
+---
+title: "Medi-Cal institutional deeming: two paths to coverage"
+description: "Two paths to Medi-Cal for children with disabilities: standard income eligibility or institutional deeming when your family earns too much."
+locale: en
+translationKey: medi-cal-institutional-deeming
+status: published
+pillar: benefits
+datePublished: 2026-09-09
+dateModified: 2026-09-09
+nextReviewEvent: annual
+disclaimerVariant: benefits
+review:
+  reviewedBy: "Mike Beebe"
+  credential: "Founder"
+  date: 2026-09-09
+  versionReviewed: "21d37e0c206620c4f00eb5a7c8cfa100371e9745"
+changelog:
+  - date: 2026-09-07
+    note: "Fact-check pass applied: waiver identified as the DHCS HCBS-DD Waiver; eligibility criteria stated per DHCS (RC client under 18 at home, family-income-ineligible, ≥1 funded RC service/year)."
+  - date: 2026-09-09
+    note: "Removed a review block that falsely credited DHCS as reviewer with no credentialed review having occurred. Fixed the actively-unsafe household-income instruction in Step 3 (previous text told parents to report only the child's income; corrected to report full, accurate household information, matching the same fix applied to planGenerator.ts under initiative 009). Softened the Early Start claim and the secondary-coverage claim, which were asserted as settled fact but are flagged unverified in the initiative's own analysis.md (Early Start eligibility explicitly 'left open'; the secondary-coverage mechanics were backed only by a bare-homepage citation). Replaced two junk sources (coveredca.com used only as a claim citation, undivided.io) with a real, verified CDSS citation for the appeal route. Published under a founder self-review — an outside credentialed review is still planned per initiative 009 and will be credited here when it happens. Initiative 009 (Roadmap/initiatives/009-medi-cal-deeming-correction/) still identifies this page as structurally incomplete (missing the level-of-care gate and the county disability-determination step) and its Phase 2 full rewrite remains outstanding; this pass fixes what could be verified or safely corrected now, not the full rewrite."
+sources:
+  - label: "DHCS — HCBS Waiver for the Developmentally Disabled (institutional deeming)"
+    url: "https://www.dhcs.ca.gov/services/ltc/Pages/DD.aspx"
+    accessed: 2026-09-07
+  - label: "DHCS — HCBS for the Developmentally Disabled (program page)"
+    url: "https://www.dhcs.ca.gov/services/long-term-care-alternatives-home-and-community-based-service-options/home-and-community-based-services-for-the-developmentally-disabled/"
+    accessed: 2026-09-07
+  - label: "DHCS — Medi-Cal Eligibility by Federal Poverty Level"
+    url: "https://www.dhcs.ca.gov/medi-cal/qualify/qualify-for-medi-cal-eligibility-chart/"
+    accessed: 2026-09-09
+  - label: "DHCS — Institutional Status Procedures (Form 7096, waiver referral process)"
+    url: "https://www.dhcs.ca.gov/services/medi-cal/eligibility/Documents/Article6-InstitutionalStatus.pdf"
+    accessed: 2026-09-09
+  - label: "DHCS — Medi-Cal Eligibility Procedures Manual"
+    url: "https://www.dhcs.ca.gov/services/medi-cal-resources/medi-cal-eligibility-division/medi-cal-eligibility-procedures-manual/"
+    accessed: 2026-09-09
+  - label: "CDSS — State Fair Hearing Division (90-day appeal deadline, filing methods)"
+    url: "https://www.cdss.ca.gov/hearing-requests"
+    accessed: 2026-09-09
+  - label: "Covered California — How to Apply for Medi-Cal"
+    url: "https://www.coveredca.com"
+    accessed: 2026-09-09
+---
+
+{/*
+  DRAFT — piece #3 (keyword row /guides/benefits/medi-cal-institutional-deeming/).
+  FACT-CHECKED 2026-09-07 (see sources[]): the vehicle is the DHCS
+  HCBS Waiver for the Developmentally Disabled (HCBS-DD), administered with
+  DDS through the 21 regional centers. Confirmed criteria: Regional Center
+  client under 18, living at home with family, ineligible for Medi-Cal due
+  to family income, receiving at least one funded RC service per year;
+  parental income/resources disregarded, the child's own still counted.
+  All linked sources verified reachable 2026-09-09. Appeal route verified
+  against CDSS's own hearing-requests page (90 days, acms.dss.ca.gov, phone,
+  mail). County application mechanics (DHCS 7096 as the waiver referral) are
+  corroborated by initiative 009's analysis.md, independent of this file's
+  own (unreadable, scanned) PDF source. Early Start eligibility and the
+  secondary-coverage mechanics could not be verified — softened in the body
+  rather than asserted; see changelog. Missing entirely: the level-of-care
+  gate and the county disability-determination step (initiative 009 Phase 2).
+*/}
+
+import AnswerFirst from '../../../components/AnswerFirst.astro';
+import Cite from '../../../components/Cite.astro';
+import EmpathyCallout from '../../../components/EmpathyCallout.astro';
+import HandoffCTA from '../../../components/HandoffCTA.astro';
+import PlainBox from '../../../components/PlainBox.astro';
+import SideCard from '../../../components/SideCard.astro';
+
+<div class="cols">
+<article class="prose">
+
+<h2 class="qa-h" id="what-is-medi-cal">What is Medi-Cal?</h2>
+
+<AnswerFirst>
+  <b>Medi-Cal is California's version of Medicaid</b> — the health insurance program for children
+  with developmental disabilities. It covers therapy, equipment, medical care, and specialized
+  services. The complication: Medi-Cal has income limits, and many middle-income families get turned
+  away because their earnings are "too high." But there's a solution: <b>institutional deeming</b>, a
+  rule that lets your child qualify anyway, without counting your income at all <Cite>DHCS Medi-Cal
+  Eligibility</Cite>.
+</AnswerFirst>
+
+To qualify, your child must either have income below the threshold (standard path) OR be a Regional
+Center client (institutional deeming path). Either way, getting Medi-Cal is the gateway to benefits
+that change everything: IHSS (which can pay you as a caregiver), therapy, and services private
+insurance won't cover.
+
+<h2 class="qa-h" id="what-it-unlocks">What does Medi-Cal unlock?</h2>
+
+<AnswerFirst>
+  Medi-Cal is the eligibility key for <b>IHSS</b> — including
+  <a href="/guides/benefits/ihss-protective-supervision/">protective supervision</a>, which can
+  pay a parent for supervision hours — plus Medi-Cal-covered therapies, equipment, and
+  services that private insurance denies or caps. This is why deeming is worth pursuing even
+  if your child is already insured.
+</AnswerFirst>
+
+Medi-Cal generally works as **secondary** coverage alongside private insurance: present both
+insurance cards to providers, and Medi-Cal can help with costs your primary plan doesn't cover.
+Having private insurance does not affect Medi-Cal eligibility. The exact mechanics for a child
+covered through institutional deeming specifically haven't been independently verified for this
+guide — ask your Regional Center service coordinator or county eligibility worker how it applies
+to your family's situation. And to retire the most stubborn myth in
+this system one more time: your child does **not** need SSI to get IHSS — Medi-Cal is the
+requirement, and deeming is a route to Medi-Cal that ignores your income entirely. The short
+version lives at
+<a href="/answers/does-my-child-need-ssi-to-get-ihss/">Does my child need SSI to get IHSS?</a>
+
+<h2 class="qa-h" id="who-qualifies">Does my child qualify?</h2>
+
+<AnswerFirst>
+  Medi-Cal has two entry points for children with developmental disabilities: <b>standard
+  eligibility</b> (if your family income is below the limit) and <b>institutional deeming</b> (if
+  you're over the limit but your child is a Regional Center client) <Cite>DHCS Medi-Cal
+  Eligibility, DHCS HCBS-DD Waiver</Cite>. Most families fit one of these paths.
+</AnswerFirst>
+
+**Path 1: Standard eligibility (income-based)**
+Your child qualifies if your household income is at or below 138% of the federal poverty level
+(about $36,777 annually for a family of 3 in 2026). This path is fast: apply directly to your
+county or Covered California with no Regional Center involvement needed.
+
+**Path 2: Institutional deeming (waiver-based)**
+Your child qualifies if:
+- They are a **Regional Center client under 18** living at home with family
+- Your family income is **above the Medi-Cal threshold** (the standard limit)
+- They receive **at least one funded Regional Center service per year**
+- The child's **own income** is minimal (usually $0)
+
+If your child isn't yet a Regional Center consumer, start there first: our
+<a href="/guides/regional-centers/">Regional Center guide</a> walks the eligibility rules and
+the decision clock, and the intake call is free regardless of income.
+
+**Early Start children:** Whether a child age 0–3 in Early Start can access institutional deeming
+before turning 3 isn't settled in our research yet. Ask your Regional Center service coordinator
+directly — and if they aren't sure, ask them to check with their supervisor or with DDS, since
+this is a genuinely unclear area even for people who work in the system.
+
+<h2 class="qa-h" id="what-is-it">What is institutional deeming?</h2>
+
+<AnswerFirst>
+  Institutional deeming is a rule that <b>turns off the income test for Regional Center clients</b>.
+  Normally, Medi-Cal counts parents' income when a child applies. Under an HCBS waiver for people
+  with developmental disabilities, your child is treated as if they lived in a medical facility —
+  <b>only the child's own income and resources count</b>, while they stay at home with you
+  <Cite>DHCS HCBS-DD Waiver</Cite>.
+</AnswerFirst>
+
+The name is bureaucratic, so here is the plain version. Decades ago, a child in an institution
+qualified for Medicaid on their own income — which for most children is zero — while the same
+child at home was blocked by their parents' paychecks. Waivers were created to fix that backwards
+incentive: they let the "institutional" counting rules follow the child home. That's the whole
+trick, and it's why the rule feels too good to be true when a parent first hears about it. It
+isn't. It's the system correcting itself.
+
+<h2 class="qa-h" id="do-you-need-deeming">Do you actually need institutional deeming?</h2>
+
+<AnswerFirst>
+  Before you pursue the waiver, check one thing: <b>is your family income above or below the
+  Medi-Cal threshold?</b> If you're below, your child qualifies for regular Medi-Cal — no waiver,
+  no Regional Center paperwork. Only families above the threshold need institutional deeming.
+</AnswerFirst>
+
+Your county DHCS office or Regional Center service coordinator can tell you where your family
+stands relative to the Medi-Cal income threshold.
+
+---
+
+<h2 class="qa-h" id="pathway-below-threshold">If your income is below the threshold: Apply online</h2>
+
+<AnswerFirst>
+  Your child qualifies for standard Medi-Cal. Skip the Regional Center waiver — apply directly
+  through <b>Covered California</b> (the state's unified portal) or your county social services.
+</AnswerFirst>
+
+1. **Start at <a href="https://www.coveredca.com">Covered California</a> (the easiest route).**
+   This is the state's single application for Medi-Cal. You can apply year-round, online or by phone:
+   **<a href="tel:1-800-300-1506">1-800-300-1506</a>**. The application takes about 20 minutes.
+2. **Answer questions about household income and size.** Include both parents' income if applicable.
+   The system will determine if your child qualifies for Medi-Cal and enroll them automatically.
+3. **Wait for your approval notice.** The state typically responds within 30–45 days. Watch your mail
+   for any requests for additional information — response windows are short (usually 10 days).
+4. **Save your award letter.** Once approved, your Medi-Cal award letter is your key to IHSS and
+   other services <Cite>DHCS Medi-Cal Eligibility</Cite>.
+
+**Backup option:** If you prefer to work with your county directly, use the
+<a href="https://www.dhcs.ca.gov/medi-cal/contact/find-a-county-office/">DHCS County Office Finder</a>
+to locate your local social services department (phone, mail, or in-person application available).
+
+---
+
+<h2 class="qa-h" id="pathway-above-threshold">If your income is above the threshold: Pursue institutional deeming</h2>
+
+<AnswerFirst>
+  Your family income is too high for regular Medi-Cal, but institutional deeming opens a path.
+  Your Regional Center service coordinator is the starting point — they handle the waiver enrollment.
+</AnswerFirst>
+
+1. **Ask your service coordinator, in writing, to start institutional deeming.** Using the
+   exact term routes the request correctly, and a written ask creates the paper trail this
+   system responds to. Example: <i>"I'd like to pursue Medi-Cal through institutional deeming for my child under the HCBS-DD waiver."</i>
+2. **Your RC coordinator enrolls your child in the waiver.** This step takes a few weeks. Your
+   coordinator will confirm once the enrollment is active.
+3. **File the Medi-Cal application with your full, accurate household information.** Report
+   your actual household — do **not** list only the child's income. The county needs your real
+   household information to make the finding that excludes it; leaving it off doesn't trigger
+   deeming, it defeats it, and it's reported on a form signed under penalty of perjury. Your
+   Regional Center sends form DHCS 7096 (the waiver referral) to the county; make sure to
+   reference it or upload a copy when you apply through
+   <a href="https://www.benefits.ca.gov">BenefitsCal</a> so the county applies deeming rules
+   <Cite>DHCS Institutional Status Procedures</Cite>.
+4. **Watch for the county counting your income anyway.** It's the most common failure mode:
+   an eligibility worker processes the application as a regular child case. If a denial cites
+   parental income, don't accept it — reply that this is an institutional-deeming case through
+   the Regional Center waiver, and loop your service coordinator in.
+5. **Keep the award letter with your records.** Medi-Cal in hand is what unlocks the next
+   doors — see below.
+
+<EmpathyCallout label="From a parent who's been there">
+  "An eligibility worker told me flatly that we earned too much. She wasn't lying — she just
+  didn't know this rule, because almost nobody does. The parents who get it are the parents
+  who name it. You're allowed to know a rule the person across the counter doesn't."
+</EmpathyCallout>
+
+<h2 class="qa-h" id="if-denied">What if the county says no?</h2>
+
+<AnswerFirst>
+  Get the denial <b>in writing</b>, check whether it wrongly counted parental income, and file a
+  <b>State Fair Hearing request with the California Department of Social Services within 90 days</b>
+  of the denial notice <Cite>CDSS State Fair Hearing Division</Cite>. Your Regional Center service
+  coordinator can often fix a miscounted case without a hearing.
+</AnswerFirst>
+
+A denial that cites your income is, in a deeming case, usually a processing error rather than
+a real decision — the fix is getting the case routed to someone who knows the waiver. Put the
+correction request in writing, copy your service coordinator, and calendar the appeal deadline
+from the notice as your backstop. **To file an appeal:** submit a State Fair Hearing request to
+California Department of Social Services within 90 days of the denial notice. File online at
+<a href="https://acms.dss.ca.gov">acms.dss.ca.gov</a>, by phone at <a href="tel:1-800-743-8525">1-800-743-8525</a>, or by mail to the State Hearings Division. **To keep coverage during the appeal:** request
+"aid paid pending appeal" within 10 days of the denial notice. If you want help beyond the
+Regional Center, the same free advocacy resources in our
+<a href="/guides/regional-centers/">Regional Center guide</a> apply here.
+
+</article>
+<aside>
+  <SideCard title="On this page" toc>
+    <a href="#what-is-medi-cal">What is Medi-Cal?</a>
+    <a href="#what-it-unlocks">What Medi-Cal unlocks</a>
+    <a href="#who-qualifies">Does my child qualify?</a>
+    <a href="#what-is-it">What is institutional deeming?</a>
+    <a href="#do-you-need-deeming">Do you need deeming?</a>
+    <a href="#pathway-below-threshold">If below threshold: Apply online</a>
+    <a href="#pathway-above-threshold">If above threshold: Pursue deeming</a>
+    <a href="#if-denied">If the county says no</a>
+  </SideCard>
+  <SideCard title="Quick facts">
+    <dl>
+      <dt>Parental income</dt><dd>Not counted under deeming</dd>
+      <dt>The child's income</dt><dd>Still counted (usually $0)</dd>
+      <dt>Where it starts</dt><dd>Your Regional Center service coordinator</dd>
+      <dt>What it unlocks</dt><dd>IHSS, covered therapies, secondary coverage</dd>
+    </dl>
+  </SideCard>
+  <SideCard title="Related">
+    <p>The service Medi-Cal most often unlocks for families like yours:</p>
+    <a class="link" href="/guides/benefits/ihss-protective-supervision/">IHSS protective supervision →</a>
+    <p>Wondering about SSI anyway?</p>
+    <a class="link" href="/tools/ssi-deeming-calculator/">SSI deeming calculator →</a>
+  </SideCard>
+</aside>
+</div>
+
+<HandoffCTA
+  heading="Want this mapped to your child?"
+  body="Waypoint asks a few questions, then builds your family's step-by-step plan — the deeming ask, the IHSS application, the deadlines — free, in English or Spanish."
+  action="Build my plan →"
+  slug="guides/benefits/medi-cal-institutional-deeming"
+  cta="guide-footer"
+  pillar="benefits"
+/>

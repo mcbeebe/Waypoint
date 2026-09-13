@@ -20,6 +20,7 @@
  */
 
 import { supabase } from '@/lib/supabase';
+import { localDayISO } from '@/lib/dateOnly';
 
 const IEP_DEADLINE_TYPES = [
   'iep_annual_review',
@@ -35,16 +36,19 @@ export interface IEPDates {
   assessmentConsentSigned: string | null;
 }
 
+// These land in the `deadlines` table as date columns, so serialize the LOCAL
+// day — `toISOString()` slices the UTC day, which east of Greenwich wrote a
+// statutory deadline one day early into a durable row.
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr + 'T00:00:00');
   d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+  return localDayISO(d);
 }
 
 function addYears(dateStr: string, years: number): string {
   const d = new Date(dateStr + 'T00:00:00');
   d.setFullYear(d.getFullYear() + years);
-  return d.toISOString().split('T')[0];
+  return localDayISO(d);
 }
 
 /**

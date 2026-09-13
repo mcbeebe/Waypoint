@@ -20,6 +20,7 @@ import { useAuth } from './src/hooks/useAuth';
 import { useProfile } from './src/hooks/useProfile';
 import { isStaffRole } from './src/lib/roles';
 import { supabase } from './src/lib/supabase';
+import { captureFirstTouch } from './src/lib/attribution';
 import { initSentry, setSentryUser, clearSentryUser } from './src/lib/sentry';
 import WelcomeScreen from './src/screens/auth/WelcomeScreen';
 import ResetPasswordScreen from './src/screens/auth/ResetPasswordScreen';
@@ -101,6 +102,13 @@ export default function App() {
   // the launch URL (cold) or a url event (warm) and stashed, because the
   // Join screen is only mounted once there is a session: a signed-out person
   // taps the link, signs in, and must come back to Join — not lose it.
+  // Attribution first-touch (D3). Runs before anything can navigate or
+  // redirect: OAuth and magic-link round trips drop the query string, so a
+  // capture that waits for a session captures nothing. Idempotent per tab.
+  useEffect(() => {
+    captureFirstTouch();
+  }, []);
+
   const [pendingJoin, setPendingJoin] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;

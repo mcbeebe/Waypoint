@@ -8,16 +8,30 @@
 #
 # This workflow has the inverse filter and declares a job with the SAME name,
 # so exactly one of the two always runs and the `check` context always exists.
-# The pair is mutually exclusive: never both, never neither.
+#
+# KEEP THE TWO FILTERS COMPLEMENTARY. Every path added to ci.yml's `paths`
+# must be added to `paths-ignore` here in the SAME commit, or both workflows
+# run and two check runs share the `check` name — where this one passes in
+# four seconds and can be mistaken for the real suite. Adding
+# '.github/workflows/ci.yml' to ci.yml without this line did exactly that.
+#
+# Both workflow files appear in both lists, so editing EITHER of them runs the
+# real suite and leaves this stub quiet — the CI definition gates on itself.
+#
+# Known hole, pre-dating both filters: on a MIXED PR (one that touches
+# waypoint-app/** AND something else) these filters are OR-per-file, so both
+# workflows still run. Harmless today — the real suite is the slow one and
+# still has to pass — but it is why "exactly one" is a design intent here
+# rather than a guarantee.
 
 name: CI
 
 on:
   push:
     branches: [main]
-    paths-ignore: ['waypoint-app/**']
+    paths-ignore: ['waypoint-app/**', '.github/workflows/ci.yml', '.github/workflows/ci-guard.yml']
   pull_request:
-    paths-ignore: ['waypoint-app/**']
+    paths-ignore: ['waypoint-app/**', '.github/workflows/ci.yml', '.github/workflows/ci-guard.yml']
 
 jobs:
   check:

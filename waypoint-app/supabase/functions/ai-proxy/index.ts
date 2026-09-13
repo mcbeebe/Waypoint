@@ -19,6 +19,7 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
+import { ageFromDob } from '../_shared/childAge.ts';
 
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') ?? '';
@@ -360,7 +361,16 @@ serve(async (req: Request) => {
       // A live entitlement row = Premium; none = free tier. Resolved
       // server-side so gates can't be bypassed by a modified client.
       if (PAYWALL_ENFORCED && family?.id) {
-        const today = new Date().toISOString().slice(0, 10);
+        // Must mirror the boundary contract in src/lib/entitlements.ts
+        // (resolveEntitlement): the client resolves period_start/period_end
+        // against the family's LOCAL day. This server doesn't know the
+        // family's zone, so it accepts any calendar day an honest device
+        // could be on (UTC±1) — generous by at most a day at a period
+        // boundary, never stricter than the Premium the family's screen
+        // shows. Change one side, change the other.
+        const nowMs = Date.now();
+        const dayBefore = new Date(nowMs - 86400000).toISOString().slice(0, 10);
+        const dayAfter = new Date(nowMs + 86400000).toISOString().slice(0, 10);
         const { data: grants } = await supabase
           .from('entitlements')
           .select('status, period_start, period_end')
@@ -368,7 +378,8 @@ serve(async (req: Request) => {
           .eq('status', 'active');
         isPremium = (grants ?? []).some(
           (g) =>
-            g.period_start <= today && (g.period_end === null || g.period_end >= today),
+            g.period_start <= dayAfter &&
+            (g.period_end === null || g.period_end >= dayBefore),
         );
       }
 
@@ -411,12 +422,16 @@ serve(async (req: Request) => {
           .select('id, first_name, date_of_birth, is_primary')
           .order('is_primary', { ascending: false });
         const child = children?.[0];
-        if (child?.date_of_birth) {
-          const birth = new Date(child.date_of_birth);
-          const now = new Date();
-          let years = now.getFullYear() - birth.getFullYear();
-          if (now.getMonth() < birth.getMonth()) years--;
-          childInfo = `The parent has a child who is ${years} years old.`;
+        // Age gates the advice that comes back (Early Start 0–3, Part B at 3,
+        // Lanterman to 22), and the inline version counted a year older from
+        // the 1st of the birth month — see _shared/childAge.ts, which also
+        // records the day-boundary case this does NOT fix (the clock is this
+        // server's, not the family's). Negative means a mistyped future DOB;
+        // null means missing or unparsable, which the old code rendered into
+        // the prompt as "NaN years old".
+        const childYears = ageFromDob(child?.date_of_birth);
+        if (childYears !== null && childYears >= 0) {
+          childInfo = `The parent has a child who is ${childYears} years old.`;
         }
         if (child) {
           const { data: dx } = await userClient
@@ -1036,13 +1051,12 @@ ${extractedText}`;
         .select('id, first_name, last_name, date_of_birth, is_primary, school_name, grade')
         .order('is_primary', { ascending: false });
       const child = children?.[0];
+      // Second copy of the same derivation — see the note at the first call
+      // site. Both count the day of the month; neither knows the family's zone.
       let childAge = '';
-      if (child?.date_of_birth) {
-        const birth = new Date(child.date_of_birth);
-        const now = new Date();
-        let years = now.getFullYear() - birth.getFullYear();
-        if (now.getMonth() < birth.getMonth()) years--;
-        childAge = `${years} years old`;
+      const childAgeYears = ageFromDob(child?.date_of_birth);
+      if (childAgeYears !== null && childAgeYears >= 0) {
+        childAge = `${childAgeYears} years old`;
       }
       let diagnosis = '';
       if (child) {

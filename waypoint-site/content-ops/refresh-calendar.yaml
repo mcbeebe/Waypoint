@@ -1,0 +1,191 @@
+# Waypoint content refresh calendar
+# ---------------------------------
+# The named events that trigger page refreshes. Event ids MUST stay in sync
+# with the REFRESH_EVENTS enum in src/content.config.ts (D2 schema) — a page
+# opts into an event via its `nextReviewEvent` frontmatter field.
+#
+# How the pieces fit:
+#   - The authoritative page↔event link is frontmatter (`nextReviewEvent`).
+#     `affects_pages` globs below are for human orientation and grep sweeps —
+#     use them to catch pages that SHOULD be tagged but aren't.
+#   - `anchor` is the approximate machine-usable trigger date (month/day)
+#     that scripts/refresh-due.mjs uses to decide when tagged pages are due.
+#     The human `window` prose is authoritative for planning.
+#   - `constants_file` names the single source of benefit figures (D4).
+#     Figure changes land THERE first; page prose references, never restates
+#     without pointing at the constant.
+#   - `preapproved: true` means the credentialed reviewer's standing
+#     pre-approval covers the MECHANICAL part of this event: swapping a
+#     figure sourced from the official URL in the SOP, bumping verifiedAsOf,
+#     and adding a changelog entry. Any change to guidance prose goes back
+#     through the D2 status ladder (draft → founder_edit → in_review →
+#     approved → published) regardless of this flag.
+#   - Events with `preapproved: false` consume reviewer capacity. Schedule
+#     them against the cadence cap — reviewed refresh work counts toward
+#     the same throughput budget as new pages.
+
+events:
+  - id: ssa-cola-oct
+    name: SSA cost-of-living adjustment announcement
+    window: >-
+      SSA announces the next year's COLA around the 2nd week of October,
+      alongside the September CPI-W release. The new SSI figures it implies
+      take effect the following January 1 — this event is about ANNOUNCING,
+      not switching current figures.
+    anchor: { month: 10, day: 15 }
+    affects_pages:
+      - src/content/guides/**/*ssi*.mdx
+      - src/content/answers/**/*ssi*.mdx
+      - src/content/answers/**/*cola*.mdx
+      - src/content/letters/**/*ssi*.mdx
+    constants_file: src/data/benefit-constants.json
+    sop:
+      - Confirm the announcement at https://www.ssa.gov/cola/ (press release
+        usually lands mid-October).
+      - Pull the announced next-year SSI FBR figures from
+        https://www.ssa.gov/oact/cola/SSI.html.
+      - Add NEXT-YEAR entries to src/data/benefit-constants.json (value,
+        year, sourceUrl, verifiedAsOf = today). Do NOT overwrite the
+        current-year values — they stay in effect through December 31.
+      - Run `node scripts/refresh-due.mjs` to list tagged pages.
+      - Update each listed page. Frame new figures as "announced for [year],
+        effective January 1" — never as current. Bump dateModified and add a
+        changelog entry per page.
+      - Mechanical figure additions ship under the standing pre-approval.
+        Any rewritten guidance paragraph goes back through the review ladder.
+    preapproved: true
+
+  - id: ssi-fbr-jan
+    name: SSI federal benefit rate takes effect
+    window: >-
+      The new SSI federal benefit rate and deeming allocations are payable
+      starting with the January payment (which in some years is dated
+      December 31). Verify final figures in the first week of January.
+    anchor: { month: 1, day: 2 }
+    affects_pages:
+      - src/content/guides/**/*ssi*.mdx
+      - src/content/answers/**/*ssi*.mdx
+      - src/content/letters/**/*ssi*.mdx
+    constants_file: src/data/benefit-constants.json
+    sop:
+      - Re-verify the now-effective figures at
+        https://www.ssa.gov/oact/cola/SSI.html (do not rely on the October
+        announcement alone).
+      - In src/data/benefit-constants.json, promote the next-year entries to
+        current (ssi_fbr_individual, ssi_fbr_couple, ssi_child_allocation),
+        set verifiedAsOf = today, and move the outgoing year's figures to
+        _[year]_ reference entries.
+      - Check whether the California SSP amounts changed for the new year
+        and update any page that states a combined SSI/SSP figure
+        [TBC — confirm the current CDSS SSP payment-standards page before
+        citing it in an SOP step].
+      - Smoke-test every tool/calculator that imports benefit-constants.json.
+      - Run `node scripts/refresh-due.mjs`; on each listed page change
+        "announced for [year]" framing to current-figure framing, bump
+        dateModified, add a changelog entry.
+    preapproved: true
+
+  - id: ihss-wages-jan
+    name: IHSS county wage rates update
+    window: >-
+      Most county IHSS provider wage changes take effect January 1 (state
+      minimum wage increases and county-negotiated raises). Individual
+      counties can also change mid-year, so spot-check the CDSS table
+      quarterly even though the anchor is January.
+    anchor: { month: 1, day: 15 }
+    affects_pages:
+      - src/content/guides/**/*ihss*.mdx
+      - src/content/answers/**/*ihss*.mdx
+      - src/content/letters/**/*ihss*.mdx
+    constants_file: src/data/benefit-constants.json
+    sop:
+      - Pull the current county wage table from the CDSS county IHSS wage
+        rates page (see ihss_wage_table.sourceUrl in
+        src/data/benefit-constants.json).
+      - Update the ihss_wage_table entry's verifiedAsOf, and any embedded
+        county figures if we have started mirroring them (default posture is
+        to LINK OUT to CDSS rather than restate 58 county rates).
+      - Run `node scripts/refresh-due.mjs` and update tagged IHSS pages —
+        confirm any dollar figure on-page matches the constants file or is
+        replaced by a link to the CDSS table.
+      - Bump dateModified and add a changelog entry per page.
+    preapproved: true
+
+  - id: may-revise
+    name: Governor's May Revision (state budget)
+    window: >-
+      The Governor releases the May Revision of the proposed state budget
+      around mid-May. Watch DDS, regional center, IHSS, and Medi-Cal items
+      for proposals that would change our guidance if enacted.
+    anchor: { month: 5, day: 14 }
+    affects_pages:
+      - src/content/guides/regional-centers/**
+      - src/content/guides/benefits/**
+      - src/content/answers/**
+    constants_file: null
+    sop:
+      - Read the health & human services section of the May Revision summary
+        at https://ebudget.ca.gov [TBC — confirm the exact summary page for
+        the current cycle].
+      - "Triage: list any proposal that, if enacted, changes published
+        guidance (service reductions, eligibility changes, rate changes)."
+      - Do NOT update guidance to reflect proposals — the May Revision is
+        not law. If a proposal is high-impact and parents will hear about it,
+        add a clearly-labeled "proposed, not enacted" note, which requires
+        review like any prose change.
+      - Queue the full page updates against the june-budget event and log
+        the triage outcome in content-ops.
+    preapproved: false
+
+  - id: june-budget
+    name: Enacted state budget and trailer bills
+    window: >-
+      The Legislature passes the budget by June 15; the Governor signs by
+      about June 30; the fiscal year starts July 1. The health & human
+      services trailer bills carry the Welfare & Institutions Code changes
+      that affect Lanterman Act, IHSS, and Medi-Cal guidance.
+    anchor: { month: 7, day: 1 }
+    affects_pages:
+      - src/content/guides/**
+      - src/content/answers/**
+      - src/content/letters/**
+    constants_file: null
+    sop:
+      - Identify the signed budget and the health & human services trailer
+        bills for the new fiscal year (leginfo.legislature.ca.gov).
+      - List statutory changes that affect published guidance — Lanterman /
+        WIC provisions, IHSS, Medi-Cal, SB 946-adjacent insurance rules.
+      - If a trailer bill changes an actual benefit figure, update
+        src/data/benefit-constants.json under this event as well.
+      - Draft page updates with precise statute citations (WIC section
+        style). Every affected page goes through the FULL review ladder —
+        no pre-approval applies to statutory interpretation.
+      - After approval, bump dateModified and add changelog entries noting
+        the enacting bill.
+    preapproved: false
+
+  - id: rc-pos-annual
+    name: Regional center purchase-of-service data annual refresh
+    window: >-
+      DDS posts annual purchase-of-service (POS) expenditure data around the
+      end of the calendar year, and regional centers hold public meetings on
+      it in the following months [TBC — confirm the current DDS posting date
+      and page before relying on this; see WIC §4519.5, verify current text].
+    anchor: { month: 12, day: 31 }
+    affects_pages:
+      - src/content/regional-centers/**/*.mdx
+    constants_file: null
+    sop:
+      - Download the latest POS expenditure data from the DDS website
+        [TBC — confirm the current DDS purchase-of-service data URL].
+      - Update any POS-derived statement on regional-center pages. Numbers
+        come from the DDS file directly; cite the file and its posting date
+        in the page's sources array.
+      - While touching each RC page, re-verify its contact data
+        (intakePhone, intakeUrl, ddsListingUrl) against the RC's own site
+        and set verifiedAsOf = today — this keeps pages inside the 120-day
+        freshness window the schema expects.
+      - Any commentary interpreting disparity data is YMYL prose — full
+        review ladder, no pre-approval.
+      - Bump dateModified and add a changelog entry per touched page.
+    preapproved: false

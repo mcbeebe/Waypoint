@@ -246,7 +246,7 @@ export function generateRichPlan(intake) {
     actions.push({ id: "ihss_apply", ...h(), agencyKey: "ihss", category: "standard",
       title: "Apply for IHSS",
       subtitle: "Parents CAN be paid IHSS providers for their own child. Covers personal care, domestic services, and protective supervision. Requires Medi-Cal.",
-      whyMatters: "IHSS is one of the few programs that pays parents for caregiving they're already doing. Hours are based on assessed need — if your child needs constant supervision, fight for protective supervision hours.",
+      whyMatters: "IHSS is one of the few programs that pays parents for caregiving they're already doing. Hours are based on assessed need — if your child needs constant supervision, ask for more protective supervision hours.",
       learnMoreKey: "IHSS",
       agency: "County IHSS", deadline: "After Medi-Cal approved",
       talkingPoints: [

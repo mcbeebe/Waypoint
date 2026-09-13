@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="A">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Waypoint keyboard probe</title>
+    <!--
+      TEMPORARY DIAGNOSTIC — delete once the iOS keyboard bug is fixed.
+
+      Two fixes for that bug shipped on reasoning alone and both were wrong
+      on the device (see the note in public/index.html). This page replaces
+      the reasoning with measurement: it reproduces the app's shell exactly,
+      reports what WebKit actually does to it when the keyboard opens, and
+      lets the same device try each candidate fix.
+
+      Dependency-free and self-contained, so it behaves the same whether or
+      not the app bundle loads. The mode lives on <html> because two of the
+      candidates have to restyle <html> itself.
+    -->
+    <style>
+      /* ── The shell under test. Mirrors public/index.html's expo-reset. ── */
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        overflow: hidden;
+        margin: 0;
+        font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f5f1e9;
+        color: #16302b;
+      }
+      #root {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        flex: 1;
+      }
+
+      /* B and C size the shell from visualViewport.height. */
+      html[data-mode="B"],
+      html[data-mode="B"] body,
+      html[data-mode="B"] #root,
+      html[data-mode="C"],
+      html[data-mode="C"] body,
+      html[data-mode="C"] #root {
+        height: var(--app-height, 100%);
+      }
+      /* D pins the shell to the layout viewport instead of sizing it. */
+      html[data-mode="D"] #root {
+        position: fixed;
+        inset: 0;
+        height: auto;
+      }
+      /* E uses the dynamic-viewport unit. */
+      html[data-mode="E"],
+      html[data-mode="E"] body,
+      html[data-mode="E"] #root {
+        height: 100dvh;
+      }
+
+      /* ── Fixed panel. Must stay readable when the shell misbehaves. ── */
+      #panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 2147483647;
+      }
+      #hud {
+        background: rgba(11, 42, 38, 0.96);
+        color: #eafff8;
+        padding: 6px 8px;
+        font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      #modes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.95);
+        border-bottom: 1px solid #d8d2c4;
+      }
+      #modes button {
+        flex: 1 1 auto;
+        font: 600 11px/1 -apple-system, sans-serif;
+        padding: 7px 6px;
+        min-height: 34px;
+        border: 1px solid #0f766e;
+        border-radius: 6px;
+        background: #fff;
+        color: #0f766e;
+      }
+      #modes button[aria-pressed="true"] {
+        background: #0f766e;
+        color: #fff;
+      }
+      #copy {
+        flex: 1 0 100%;
+        background: #16302b;
+        border-color: #16302b;
+        color: #fff;
+      }
+
+      /* ── App-shaped content. --panel-h is measured at runtime. ── */
+      header {
+        padding: calc(var(--panel-h, 120px) + 8px) 12px 8px;
+        font-weight: 700;
+        background: #fffdf7;
+        border-bottom: 1px solid #d8d2c4;
+      }
+      main {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 8px 12px;
+      }
+      .row {
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        background: #fffdf7;
+        border: 1px solid #e6e0d2;
+        border-radius: 8px;
+      }
+      footer {
+        display: flex;
+        gap: 8px;
+        padding: 8px 12px;
+        background: #fffdf7;
+        border-top: 1px solid #d8d2c4;
+      }
+      footer input {
+        flex: 1;
+        min-height: 40px;
+        padding: 8px 12px;
+        font-size: 16px; /* below 16px iOS zooms on focus, muddying the read */
+        border: 1px solid #cfd8d5;
+        border-radius: 10px;
+        background: #f5f1e9;
+      }
+      #log {
+        white-space: pre;
+        font: 10px/1.3 ui-monospace, Menlo, monospace;
+        padding: 8px 12px;
+        color: #4a5a56;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="panel">
+      <div id="hud">starting…</div>
+      <div id="modes">
+        <button data-mode="A" aria-pressed="true">A · live app</button>
+        <button data-mode="B">B · vv+scroll</button>
+        <button data-mode="C">C · vv only</button>
+        <button data-mode="D">D · fixed</button>
+        <button data-mode="E">E · dvh</button>
+        <button id="copy">Copy report — paste it to Claude</button>
+      </div>
+    </div>
+
+    <div id="root">
+      <header>Waypoint keyboard probe</header>
+      <main id="scroller">
+        <div class="row">
+          Tap the field at the bottom. Watch whether this list, the bar under it,
+          or the whole screen moves or vanishes — then tap <b>Copy report</b>.
+        </div>
+        <div class="row">
+          Mode <b>A</b> is what the live app does. Try each of B–E with the
+          keyboard open, and note which one keeps the field visible and the
+          screen intact.
+        </div>
+        <div class="row">row 1</div>
+        <div class="row">row 2</div>
+        <div class="row">row 3</div>
+        <div class="row">row 4</div>
+        <div class="row">row 5</div>
+        <div class="row">row 6</div>
+        <div class="row">row 7</div>
+        <div class="row">row 8</div>
+        <div class="row">row 9</div>
+        <div class="row">row 10</div>
+        <div class="row">row 11</div>
+        <div class="row">row 12</div>
+      </main>
+      <footer>
+        <input id="probe" type="text" placeholder="Ask about your child's services…" />
+      </footer>
+    </div>
+    <div id="log"></div>
+
+    <script>
+      (function () {
+        var vv = window.visualViewport;
+        var hud = document.getElementById('hud');
+        var panel = document.getElementById('panel');
+        var logEl = document.getElementById('log');
+        var root = document.getElementById('root');
+        var scroller = document.getElementById('scroller');
+        var docEl = document.documentElement;
+        var entries = [];
+        var mode = 'A';
+        var t0 = Date.now();
+
+        function measurePanel() {
+          docEl.style.setProperty('--panel-h', panel.getBoundingClientRect().height + 'px');
+        }
+
+        function read() {
+          var r = root.getBoundingClientRect();
+          return {
+            ms: Date.now() - t0,
+            mode: mode,
+            innerH: window.innerHeight,
+            vvH: vv ? Math.round(vv.height) : null,
+            vvTop: vv ? Math.round(vv.offsetTop) : null,
+            vvPage: vv ? Math.round(vv.pageTop) : null,
+            winY: Math.round(window.scrollY),
+            docH: docEl.clientHeight,
+            rootTop: Math.round(r.top),
+            rootH: Math.round(r.height),
+            scrTop: Math.round(scroller.scrollTop),
+          };
+        }
+
+        function paint(s) {
+          hud.textContent =
+            'mode ' + s.mode + '   inner ' + s.innerH + '   vvH ' + s.vvH + '   vvTop ' + s.vvTop + '\n' +
+            'winY ' + s.winY + '   docH ' + s.docH + '   scroller ' + s.scrTop + '\n' +
+            'root top ' + s.rootTop + '   root h ' + s.rootH + '   events ' + entries.length;
+        }
+
+        function snap(label) {
+          var s = read();
+          s.ev = label;
+          entries.push(s);
+          if (entries.length > 500) entries.shift();
+          paint(s);
+        }
+
+        /* ── Candidate fixes, each active only in its own mode ─────────── */
+        var pending = false;
+        function applyVv() {
+          pending = false;
+          if (!vv || (mode !== 'B' && mode !== 'C')) return;
+          docEl.style.setProperty('--app-height', vv.height + 'px');
+          /* B additionally fights the browser's reveal-scroll. This exact
+             combination is what shipped and blanked the app. */
+          if (mode === 'B' && (window.scrollY !== 0 || window.scrollX !== 0)) {
+            window.scrollTo(0, 0);
+          }
+        }
+        function schedule() {
+          if (pending) return;
+          pending = true;
+          window.requestAnimationFrame(applyVv);
+        }
+
+        function setMode(next) {
+          mode = next;
+          docEl.setAttribute('data-mode', next);
+          docEl.style.removeProperty('--app-height');
+          Array.prototype.forEach.call(
+            document.querySelectorAll('#modes button[data-mode]'),
+            function (b) { b.setAttribute('aria-pressed', String(b.dataset.mode === next)); }
+          );
+          if (next === 'B' || next === 'C') applyVv();
+          measurePanel();
+          snap('mode:' + next);
+        }
+
+        Array.prototype.forEach.call(
+          document.querySelectorAll('#modes button[data-mode]'),
+          function (b) {
+            b.addEventListener('click', function () { setMode(b.dataset.mode); });
+          }
+        );
+
+        /* ── Instrumentation ───────────────────────────────────────────── */
+        if (vv) {
+          vv.addEventListener('resize', function () { snap('vv:resize'); schedule(); });
+          vv.addEventListener('scroll', function () {
+            snap('vv:scroll');
+            /* Only B reacts to scroll. That asymmetry is the thing under
+               test, so C must not schedule here. */
+            if (mode === 'B') schedule();
+          });
+        }
+        window.addEventListener('scroll', function () { snap('win:scroll'); });
+        window.addEventListener('resize', function () { snap('win:resize'); measurePanel(); });
+        scroller.addEventListener('scroll', function () { snap('scroller'); });
+        document.addEventListener('focusin', function () { snap('FOCUS-IN'); });
+        document.addEventListener('focusout', function () { snap('FOCUS-OUT'); });
+        window.addEventListener('orientationchange', function () { snap('orient'); });
+
+        document.getElementById('copy').addEventListener('click', function () {
+          var pad = function (v, n) { return (v + '           ').slice(0, n); };
+          var head = [
+            'WAYPOINT KEYBOARD PROBE',
+            'ua: ' + navigator.userAgent,
+            'screen: ' + screen.width + 'x' + screen.height + ' dpr ' + window.devicePixelRatio,
+            'dvh supported: ' + !!(window.CSS && CSS.supports && CSS.supports('height', '100dvh')),
+            'visualViewport: ' + !!vv,
+            'samples: ' + entries.length,
+            '',
+          ].join('\n');
+          var body = entries.map(function (s) {
+            return (
+              ('      ' + s.ms).slice(-6) + ' ' + s.mode + ' ' + pad(s.ev, 11) +
+              ' inner=' + s.innerH + ' vvH=' + s.vvH + ' vvTop=' + s.vvTop +
+              ' winY=' + s.winY + ' docH=' + s.docH +
+              ' rootTop=' + s.rootTop + ' rootH=' + s.rootH + ' scr=' + s.scrTop
+            );
+          }).join('\n');
+          var text = head + body;
+          logEl.textContent = text;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(
+              function () { hud.textContent = 'COPIED — paste it to Claude\n' + hud.textContent; },
+              function () { hud.textContent = 'Copy blocked — report printed at the bottom of the page.'; }
+            );
+          } else {
+            hud.textContent = 'No clipboard API — report printed at the bottom of the page.';
+          }
+        });
+
+        measurePanel();
+        snap('load');
+        window.addEventListener('load', function () { measurePanel(); snap('window:load'); });
+      })();
+    </script>
+  </body>
+</html>

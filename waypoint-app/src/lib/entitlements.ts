@@ -8,6 +8,7 @@
  * both tiers lives here so the pricing page and every gate agree.
  */
 import type { Entitlement, SponsorType } from '@/types/database';
+import { localDayISO } from '@/lib/dateOnly';
 
 export interface ResolvedEntitlement {
   isPremium: boolean;
@@ -22,21 +23,56 @@ const SPONSOR_LABELS: Record<Exclude<SponsorType, 'self'>, string> = {
   district: 'Covered by your school district — you pay $0.',
   employer: 'Covered by your employer benefit — you pay $0.',
   licensee: 'Covered by your program — you pay $0.',
+  // Says nothing about poverty, hardship, or charity, and carries no end
+  // date to worry about. A parent glancing at this banner in a waiting room
+  // should learn only that they are covered.
+  community: 'Waypoint is free for your family — nothing to pay, nothing to renew.',
 };
+
+/** Which sponsor labels the experience when a family holds more than one grant. */
+const SPONSOR_PRECEDENCE: SponsorType[] = [
+  'facilitation',
+  'district',
+  'employer',
+  'licensee',
+  'community',
+];
 
 type Row = Pick<Entitlement, 'sponsor_type' | 'status' | 'period_start' | 'period_end'>;
 
 export function resolveEntitlement(rows: Row[], now = new Date()): ResolvedEntitlement {
-  const today = now.toISOString().slice(0, 10);
+  // period_start/period_end are Postgres `date` columns, and the two ends
+  // compare against different day-reckonings ON PURPOSE — both resolve
+  // doubt in the family's favor:
+  //   · ENDS against the family's local day: Premium runs through their own
+  //     calendar day and stops at their midnight, not at 5pm PDT when the
+  //     UTC day flips.
+  //   · STARTS against the LATER of the local and UTC day: the writers
+  //     (stripe-webhook, the column's current_date default) stamp the UTC
+  //     day, which after 5pm in California is tomorrow's date — a family
+  //     that just paid must not wait until local midnight for Premium.
+  // Server-side twin: the tier resolution in
+  // supabase/functions/ai-proxy/index.ts accepts UTC±1 day for the same
+  // reason — change one, change the other.
+  const localToday = localDayISO(now);
+  const utcToday = now.toISOString().slice(0, 10);
+  const startedBy = utcToday > localToday ? utcToday : localToday;
   const live = rows.filter(
     (r) =>
       r.status === 'active' &&
-      r.period_start <= today &&
-      (r.period_end === null || r.period_end >= today)
+      r.period_start <= startedBy &&
+      (r.period_end === null || r.period_end >= localToday)
   );
   if (live.length === 0) return { isPremium: false, sponsorType: null, sponsorLabel: null };
   // A sponsored grant labels the experience even when a self-sub also exists.
-  const sponsored = live.find((r) => r.sponsor_type !== 'self');
+  // Two sponsored grants can now co-exist — a facilitation client whose
+  // child is also on SSI holds both — so the winner is chosen by explicit
+  // precedence, not by whichever row the query happened to return first.
+  // Relationship-based grants win because they explain WHY and can end;
+  // the community waiver sits underneath as the floor nobody falls through.
+  const sponsored = live
+    .filter((r) => r.sponsor_type !== 'self')
+    .sort((a, b) => SPONSOR_PRECEDENCE.indexOf(a.sponsor_type) - SPONSOR_PRECEDENCE.indexOf(b.sponsor_type))[0];
   if (sponsored) {
     const st = sponsored.sponsor_type as Exclude<SponsorType, 'self'>;
     return { isPremium: true, sponsorType: st, sponsorLabel: SPONSOR_LABELS[st] };

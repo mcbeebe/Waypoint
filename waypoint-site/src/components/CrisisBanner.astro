@@ -1,0 +1,37 @@
+---
+/**
+ * Crisis-escalation surface (compliance: reachable site-wide, emphasized on
+ * emotionally heavy topics). 988 Suicide & Crisis Lifeline — call or text;
+ * Spanish line available. Copy per docs/compliance-components.md.
+ */
+interface Props {
+  emphasized?: boolean;
+}
+const { emphasized = false } = Astro.props;
+---
+
+<aside class:list={['crisis', { emphasized }]} aria-label="Crisis support">
+  <p>
+    <strong>Caregiver burnout is real, and you don't have to carry this alone.</strong>
+    If you're struggling, call or text <a href="tel:988"><b>988</b></a> — the Suicide &amp;
+    Crisis Lifeline (para español, llame al 988 y oprima 2). It's free and open 24/7.
+  </p>
+</aside>
+
+<style>
+  .crisis {
+    background: var(--color-cream);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin: 22px 0;
+    font-size: 0.9rem;
+  }
+  .crisis.emphasized {
+    border-left: 4px solid var(--color-sage);
+  }
+  .crisis p {
+    margin: 0;
+    max-width: 72ch;
+  }
+</style>

@@ -1,0 +1,114 @@
+name: waypoint-site
+
+on:
+  pull_request:
+    paths:
+      - 'waypoint-site/**'
+      - '.github/workflows/site.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'waypoint-site/**'
+  schedule:
+    # Monday 15:00 UTC — the freshness sweep. Network-dependent checks live
+    # here, never in the blocking gates: a flaky .gov host must not be able
+    # to block a content PR.
+    - cron: '0 15 * * 1'
+  workflow_dispatch:
+
+jobs:
+  gates:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: waypoint-site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: waypoint-site/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run gates
+
+      # Informational, never blocking: what is going stale, and which
+      # citations have rotted. Surfaced in the job summary so a PR author
+      # sees it without it gating the merge.
+      - name: Freshness report (informational)
+        if: always()
+        run: |
+          {
+            echo '## Content freshness'
+            echo '```'
+            node scripts/refresh-due.mjs || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Performance budget (launch-checklist row 24). Deliberately NOT part of
+  # `npm run gates` and deliberately non-blocking: Lighthouse moves several
+  # points run to run on a shared runner, so wiring it into the merge gate
+  # would buy flaky red X's, not speed. The numbers land in the job summary
+  # where a regression is visible, and `perf-baseline.json` in the repo is
+  # what they are compared against.
+  perf:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: waypoint-site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: waypoint-site/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Lighthouse budget (informational)
+        if: always()
+        run: |
+          {
+            echo '## Performance budget (mobile, throttled)'
+            echo '```'
+            node scripts/lighthouse-budget.mjs || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Weekly: citation link-rot across every sources[] URL. Separate job so a
+  # dead government link opens a signal, not a red X on someone's PR.
+  citations:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: waypoint-site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: waypoint-site/package-lock.json
+      - run: npm ci
+      - name: Citation link check
+        run: |
+          {
+            echo '## Citation link check'
+            echo '```'
+            node scripts/check-sources.mjs || true
+            echo '```'
+            echo '## Content freshness'
+            echo '```'
+            node scripts/refresh-due.mjs || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Deploys are handled by Vercel's git integration (D14): the `waypoint-site`
+  # Vercel project (Root Directory: waypoint-site, framework Astro) builds
+  # per-PR previews and production-on-main automatically — no CI deploy job.

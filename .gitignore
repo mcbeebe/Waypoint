@@ -11,7 +11,7 @@ Thumbs.db
 .~lock.*#
 
 # === Node / Expo ===
-node_modules/
+node_modules
 .expo/
 dist/
 web-build/
@@ -54,6 +54,7 @@ __pycache__/
 # === Xcode (generated from Expo attempt) ===
 Waypoint/Waypoint/
 Waypoint/Waypoint.xcodeproj/
-gas-mvp/.claude/
+Archive/Retired-Surfaces/gas-mvp/.claude/
 gmail-threads-flow.html
 waypoint-app/supabase/.temp/
+.astro/

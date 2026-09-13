@@ -4,6 +4,12 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": null,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

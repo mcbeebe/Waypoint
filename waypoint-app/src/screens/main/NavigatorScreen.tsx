@@ -36,8 +36,7 @@ import type { NavigatorStackParamList } from '@/types/navigation';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import { RC_DATABASE } from '@/data/regionalCenters';
-import TrackedEmailModal from '@/components/TrackedEmailModal';
-import { useContacts } from '@/hooks/useContacts';
+import { extractProposedEmail } from '@/lib/answerEmail';
 import AIConsentModal from '@/components/AIConsentModal';
 import ChatMetaCards from '@/components/ChatMetaCards';
 import RichText, { stripInlineMarkdown } from '@/components/RichText';
@@ -46,10 +45,42 @@ import { deriveActionTitle } from '@/lib/actionContent';
 import { useI18n } from '@/i18n';
 import LearnPanel from '@/components/LearnPanel';
 import { toFunnelLocale } from '@/lib/eligibility';
+import { parseDateLocal } from '@/lib/dateOnly';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
 import { Brandmark } from '@/components/Brandmark';
+
+/**
+ * The Navigator's greeting — and the plainest AI disclosure a parent meets.
+ *
+ * It is HERE and not in the i18n table because the table's `navigator` block is
+ * not read by this screen (only `disclaimer` and `followUpsHint` are), and a
+ * disclosure that lives in dead data is not a disclosure. It is trilingual
+ * because the standing footnote sits below the fold on a long thread, so this
+ * is where most parents actually learn what they are talking to — and shipping
+ * that in English only would give the families least able to spot a wrong
+ * answer about California law the weakest warning.
+ */
+const WELCOME_TITLE: Record<FunnelLocale, string> = {
+  en: "Hi! I'm your Waypoint Navigator.",
+  es: 'Hola. Soy su Navegador de Waypoint.',
+  vi: 'Xin chào! Tôi là Trợ Lý Waypoint của quý vị.',
+};
+
+const WELCOME_BODY: Record<FunnelLocale, string> = {
+  en:
+    "I'm an AI trained on California disability law. I can help you understand your rights, " +
+    'navigate Regional Centers, prepare for IEP meetings, and take concrete next steps for your child.',
+  es:
+    'Soy una IA capacitada en las leyes de discapacidad de California. Puedo ayudarle a entender sus ' +
+    'derechos, navegar los Centros Regionales, prepararse para las reuniones del IEP y dar pasos ' +
+    'concretos para su hijo/a.',
+  vi:
+    'Tôi là một AI được huấn luyện về luật khuyết tật của California. Tôi có thể giúp quý vị hiểu ' +
+    'quyền của mình, tìm hiểu Trung Tâm Khu Vực, chuẩn bị cho các buổi họp IEP và thực hiện những ' +
+    'bước cụ thể cho con của quý vị.',
+};
 
 /** Tone display labels */
 const TONE_LABELS: Record<ToneLevel, { label: string; emoji: string; color: string }> = {
@@ -76,6 +107,31 @@ const META_CATEGORY_TO_ACTION: Record<string, ActionCategory> = {
  */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const asMessageUuid = (id: string): string | undefined => (UUID_RE.test(id) ? id : undefined);
+
+/**
+ * The conversation's substance, shaped for the Letters generator: the
+ * answer's prose plus its key cards, so the letter reflects what was
+ * actually discussed (attendees by role, deadlines, the specific situation)
+ * instead of a generic template fill.
+ *
+ * Shared by both routes out of a chat answer — the AI's own "Draft this
+ * letter" offer and the "Email This" button — because both are asking the
+ * generator the same thing: write the letter THIS conversation implies.
+ */
+function chatGuidanceFor(message: UIMessage): string {
+  const parts: string[] = [message.content.slice(0, 2200)];
+  const meta = message.meta;
+  if (meta?.context) parts.push(`Key context: ${meta.context}`);
+  if (meta?.rights) parts.push(`Relevant right: ${meta.rights}`);
+  if (meta?.watchOut) parts.push(`Watch out: ${meta.watchOut}`);
+  if (meta?.steps?.length) {
+    parts.push(
+      'Recommended steps:\n' +
+        meta.steps.map((s, i) => `${i + 1}. ${s.action}${s.who ? ` (${s.who})` : ''}`).join('\n')
+    );
+  }
+  return parts.join('\n\n').slice(0, 3500);
+}
 
 export default function NavigatorScreen() {
   const { family, updateFamily } = useFamily();
@@ -139,8 +195,6 @@ export default function NavigatorScreen() {
   const { createAction, actions, refetch: refetchActions } = useActions({
     familyId: family?.id ?? '',
   });
-  const { contacts } = useContacts(family?.id);
-  const emailableContacts = contacts.filter((c) => c.email);
   const { showToast } = useToast();
   const { t, locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
@@ -174,7 +228,6 @@ export default function NavigatorScreen() {
   const [savedStepKeys, setSavedStepKeys] = useState<Set<string>>(new Set());
   // Thumbs feedback already given, keyed by message id
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 'up' | 'down'>>({});
-  const [emailComposeMessage, setEmailComposeMessage] = useState<UIMessage | null>(null);
   // Chat history (wave 3 retention): list past sessions, tap to resume
   const [showHistory, setShowHistory] = useState(false);
   const [historySessions, setHistorySessions] = useState<
@@ -335,25 +388,7 @@ export default function NavigatorScreen() {
       if (question) question = question[0].toUpperCase() + question.slice(1);
     }
 
-    // Carry the conversation's substance into the draft: the answer's prose
-    // plus its key cards, so the letter reflects what was actually discussed
-    // (attendees by role, deadlines, the specific situation) instead of a
-    // generic template fill.
-    let guidance: string | undefined;
-    if (message) {
-      const parts: string[] = [message.content.slice(0, 2200)];
-      const meta = message.meta;
-      if (meta?.context) parts.push(`Key context: ${meta.context}`);
-      if (meta?.rights) parts.push(`Relevant right: ${meta.rights}`);
-      if (meta?.watchOut) parts.push(`Watch out: ${meta.watchOut}`);
-      if (meta?.steps?.length) {
-        parts.push(
-          'Recommended steps:\n' +
-            meta.steps.map((s, i) => `${i + 1}. ${s.action}${s.who ? ` (${s.who})` : ''}`).join('\n')
-        );
-      }
-      guidance = parts.join('\n\n').slice(0, 3500);
-    }
+    const guidance = message ? chatGuidanceFor(message) : undefined;
 
     navigation.navigate('Home', {
       screen: 'Letters',
@@ -398,22 +433,61 @@ export default function NavigatorScreen() {
   );
 
   /**
-   * Email this answer — through the tracked process, not around it.
+   * Email this answer — through the same drafting screen as "Draft this
+   * letter", not a second, lighter-weight compose sheet of its own (owner
+   * report, 2026-09-12: the two felt like different products for what is
+   * the same job).
    *
-   * This used to open a compose window and, in the same breath, write a
-   * `communications` row marked `sent` with no recipient and no Gmail thread
-   * id: a send recorded before anything was sent, that no reply could ever
-   * attach to. TrackedEmailModal runs the Letters process instead — draft row
-   * first, real Gmail send or a confirmed hand-off second.
+   * WHICH of the two things a chat answer is decides the route, and getting
+   * this wrong shipped a real defect (owner report, 2026-09-12, second
+   * round): most answers are advice written TO THE PARENT — "you're the one
+   * who notices if they miss the window", "what families commonly miss" —
+   * and pasting that verbatim into the draft editor put coaching prose under
+   * "Your draft — edit anything, then send", "it goes out under your name",
+   * and a green "no blanks left — ready to send", addressed to a case
+   * manager. It was never an email, and no amount of addressing made it one.
+   *
+   *   Answer already contains an email ("Subject:" + the letter under it) →
+   *   that IS the draft. Paste it, re-heading the body with the subject so
+   *   Letters' own `extractSubject` (which only reads a Subject: line that
+   *   OPENS the text) recovers it, and mark it unlogged so the first
+   *   Save/Send actually writes it to the paper trail.
+   *
+   *   Anything else → hand the substance to the Letters GENERATOR the same
+   *   way the AI's own draft offer does, with the ask seeded in the question
+   *   box. The parent lands one tap from a real letter instead of staring at
+   *   their own advice with a Send button under it.
    */
   const handleEmailThis = useCallback((message: UIMessage) => {
-    setEmailComposeMessage(message);
-  }, []);
+    const plain = stripInlineMarkdown(message.content);
+    const { subject, body } = extractProposedEmail(plain);
 
-  const emailBody = useMemo(
-    () => (emailComposeMessage ? stripInlineMarkdown(emailComposeMessage.content) : ''),
-    [emailComposeMessage]
-  );
+    if (subject) {
+      navigation.navigate('Home', {
+        screen: 'Letters',
+        params: {
+          template: 'general',
+          draftBody: `Subject: ${subject}\n\n${body}`,
+          // Never logged anywhere yet — without this, Letters assumes a
+          // draftBody hand-off is already a paper-trail row (true for its
+          // other two callers) and silently skips writing it.
+          draftBodyUnlogged: true,
+        },
+      });
+      return;
+    }
+
+    navigation.navigate('Home', {
+      screen: 'Letters',
+      params: {
+        template: 'general',
+        // The ask this answer implies, as a whole sentence — the 80-char
+        // list-title cap would land it in the question box mid-clause.
+        question: deriveActionTitle({ content: plain, steps: message.meta?.steps }, 200),
+        guidance: chatGuidanceFor(message),
+      },
+    });
+  }, [navigation]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -751,20 +825,6 @@ export default function NavigatorScreen() {
           </View>
         </View>
       </Modal>
-
-      {/* Email this answer — the shared, tracked send (paper trail + Gmail thread) */}
-      <TrackedEmailModal
-        visible={!!emailComposeMessage}
-        familyId={family?.id}
-        title="Email this answer"
-        defaultSubject="Waypoint: Disability Services Guidance"
-        body={emailBody}
-        contacts={emailableContacts}
-        childId={primaryChild?.id ?? null}
-        templateKey="navigator_answer"
-        onClose={() => setEmailComposeMessage(null)}
-        onSent={() => setEmailComposeMessage(null)}
-      />
     </SafeAreaView>
   );
 }
@@ -799,11 +859,8 @@ function WelcomeView({
         <View style={styles.welcomeMark}>
           <Brandmark size={52} route />
         </View>
-        <Text style={styles.welcomeTitle}>Hi! I'm your Waypoint Navigator.</Text>
-        <Text style={styles.welcomeSubtitle}>
-          I can help you understand your rights, navigate Regional Centers, prepare for IEP
-          meetings, and take concrete next steps for your child.
-        </Text>
+        <Text style={styles.welcomeTitle}>{WELCOME_TITLE[locale]}</Text>
+        <Text style={styles.welcomeSubtitle}>{WELCOME_BODY[locale]}</Text>
       </View>
       <LearnPanel locale={locale} query={query} onAsk={onFill} onAskAI={onSend} />
     </ScrollView>
@@ -1141,7 +1198,9 @@ function SourceAttribution({
 
 /** Calculate age string from DOB */
 function getAgeString(dob: string): string {
-  const birth = new Date(dob);
+  // date_of_birth is a Postgres `date` — read it on the local calendar, or
+  // the age flips a day early west of Greenwich.
+  const birth = parseDateLocal(dob);
   const now = new Date();
   let years = now.getFullYear() - birth.getFullYear();
   let months = now.getMonth() - birth.getMonth();

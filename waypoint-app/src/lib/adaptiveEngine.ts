@@ -3,7 +3,7 @@
  * flows (FRUSTRATION_DEEP), deep escalation action generators
  * (generateDeepRCActions / generateDeepSchoolActions /
  * generateDeepInsuranceActions), and completion check-ins (FOLLOWUPS +
- * getFollowUpActions), all from gas-mvp/Index.html.
+ * getFollowUpActions), all from Archive/Retired-Surfaces/gas-mvp/Index.html.
  *
  * The wizard is deterministic — no AI calls. A parent taps "I'm stuck",
  * answers 1-3 questions about which system is failing them and how, and gets

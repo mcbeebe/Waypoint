@@ -76,8 +76,14 @@ export interface RecipientMatch {
   to: string[];
   /** The contact matched, for showing the parent who this is going to */
   contact: AddressContact | null;
-  /** How the match was made — drives the explanatory line in the UI */
-  reason: 'greeting' | 'organization' | 'none';
+  /**
+   * How the match was made — drives the explanatory line in the UI.
+   * `pickRecipient` below only ever returns 'greeting' | 'organization' |
+   * 'none'; 'manual' is a caller's own override (the parent picked a
+   * contact chip when neither auto-match found one) and is not produced
+   * here.
+   */
+  reason: 'greeting' | 'organization' | 'manual' | 'none';
 }
 
 /**

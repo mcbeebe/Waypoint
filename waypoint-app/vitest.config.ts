@@ -69,6 +69,12 @@ export default defineConfig({
           include: ['src/**/*.test.tsx'],
           environment: 'jsdom',
           setupFiles: ['./vitest.setup.ui.tsx'],
+          // Pinned to where Waypoint's families live. The Overdue-badge date
+          // bug (due_date parsed as UTC midnight, label a day early) was
+          // invisible to this suite on a UTC runner and failed only on a
+          // west-coast dev machine; under CI's default clock a screen that
+          // regresses to `new Date(dateOnly)` still renders the right day.
+          env: { TZ: 'America/Los_Angeles' },
         },
       },
     ],
