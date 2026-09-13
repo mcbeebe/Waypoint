@@ -3,14 +3,20 @@
  *
  * WHY THIS EXISTS. Until now `I18nProvider` defaulted to English and read
  * only AsyncStorage — and the ONLY writer of that key is the picker on
- * ProfileScreen. So the Spanish a family needs was unreachable until they had
- * already navigated an English Welcome, an English six-step onboarding, and
- * an English Home to find Ajustes. Translating those screens would not have
- * helped on its own: the locale was still 'en' while a parent read them.
+ * ProfileScreen. So the Spanish the app already has was unreachable until a
+ * family had navigated an English app to Ajustes and asked for it. Every
+ * translated screen rendered in English to a Spanish-speaking parent's first
+ * session, because the locale was 'en' the whole time they read it.
  *
- * This seeds the opening language from the device on first launch, which is
- * how ~19% of Regional Center consumers who are Spanish-primary
+ * This seeds the opening language from the device instead, which is how ~19%
+ * of Regional Center consumers who are Spanish-primary
  * (`Roadmap/Market-Sizing-CA-Aug2026.md`) will actually meet the app.
+ *
+ * WHAT IT DOES NOT DO. It only decides which language the ALREADY TRANSLATED
+ * surfaces render in. `WelcomeScreen` and `OnboardingFlow` hold their own
+ * hardcoded English and are untouched by it, so the pre-auth funnel stays
+ * English until those screens are wired. Do not read this module as evidence
+ * that first-run is localized — it is not, yet.
  *
  * TWO RULES, both load-bearing:
  *

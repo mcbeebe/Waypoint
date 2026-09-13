@@ -12,15 +12,14 @@
  *   </I18nProvider>
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Localization from 'expo-localization';
 import type { SupportedLocale, TranslationStrings } from './types';
 import { LOCALES } from './types';
+import { deviceLanguageTags } from './deviceLocale';
 import {
   DEFAULT_LOCALE,
   LOCALE_STORAGE_KEY as STORAGE_KEY,
-  isSupportedLocale,
   resolveInitialLocale,
 } from './resolveLocale';
 import en from './en';
@@ -29,28 +28,17 @@ import vi from './vi';
 
 export { LOCALES } from './types';
 export type { SupportedLocale, TranslationStrings } from './types';
-export { resolveInitialLocale, localeFromTag } from './resolveLocale';
+export {
+  resolveInitialLocale,
+  localeFromTag,
+  isSupportedLocale,
+  DEFAULT_LOCALE,
+  LOCALE_STORAGE_KEY,
+} from './resolveLocale';
 
 // ─── Translation Map ───────────────────────────────────────────────────────
 
 const TRANSLATIONS: Record<SupportedLocale, TranslationStrings> = { en, es, vi };
-
-/**
- * The device's language preferences, most-preferred first.
- *
- * Wrapped because this is the one native call in the i18n path: if the module
- * is unavailable or throws on some platform, a family must still get an app,
- * in English, rather than a crash on the very first screen.
- */
-function deviceLanguageTags(): string[] {
-  try {
-    return Localization.getLocales()
-      .map((l) => l.languageTag)
-      .filter((t): t is string => typeof t === 'string');
-  } catch {
-    return [];
-  }
-}
 
 // ─── Context ───────────────────────────────────────────────────────────────
 
@@ -81,35 +69,60 @@ interface I18nProviderProps {
 
 export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
   /**
-   * Open in the device's language straight away, so a Spanish-speaking parent
-   * meets Welcome and onboarding in Spanish rather than after finding
-   * Ajustes. Synchronous on purpose: an async seed would paint English first,
-   * which is the exact frame this change exists to remove.
+   * Open in the device's language straight away, rather than English-then-
+   * correct. Synchronous on purpose: an async seed paints English first,
+   * which is the frame this exists to remove.
+   *
+   * SCOPE, stated honestly: this only decides which language the ALREADY
+   * TRANSLATED surfaces render in. `WelcomeScreen` and `OnboardingFlow` carry
+   * their own hardcoded English and are unaffected until they are wired —
+   * see `Roadmap/initiatives/009-i18n-sweep/`.
    */
   const [locale, setLocaleState] = useState<SupportedLocale>(
     () => initialLocale ?? resolveInitialLocale(null, deviceLanguageTags()),
   );
 
   /**
-   * Then let an explicit choice override the device. Storage is the authority
-   * — see `resolveLocale.ts` — so this corrects the device seed when a parent
-   * has previously picked a language that differs from their phone.
+   * A parent's explicit pick, once made, outranks the phone forever. Tracked
+   * in a ref so the in-flight storage read below cannot undo a choice made
+   * while it was still resolving.
+   */
+  const chosen = useRef(false);
+
+  /**
+   * Correct the device seed from storage. Runs the SAME resolver as the seed,
+   * so precedence lives in one place (`resolveLocale.ts`) rather than being
+   * re-implemented here and drifting from the tests that pin it.
    *
-   * KNOWN EDGE: that correction lands one render after first paint, so a
-   * returning parent whose stored choice differs from their phone's language
-   * can see a single frame of the device language. Only reachable when the
-   * two disagree, never on first launch (the case this change is for), and
-   * preferable to blocking first paint on a storage read.
+   * KNOWN EDGE: the correction lands after first paint, so a RETURNING parent
+   * whose stored choice differs from their phone sees the device language
+   * briefly — on native that is an AsyncStorage bridge round-trip during cold
+   * start, not merely a render tick. They had no such frame before this
+   * change. The trade buys a correct first paint for new installs, which is
+   * the case this is for; if it proves ugly on device, the fix is to await
+   * storage inside the existing `LoadingScreen` gate in `App.tsx`.
    */
   useEffect(() => {
     if (initialLocale) return; // Explicit prop wins; used by tests and previews.
+    let cancelled = false;
     AsyncStorage.getItem(STORAGE_KEY)
       .then((stored) => {
-        if (isSupportedLocale(stored)) setLocaleState(stored);
+        // Don't clobber a pick the parent made while this was in flight, and
+        // don't set state on an unmounted provider.
+        if (cancelled || chosen.current) return;
+        setLocaleState(resolveInitialLocale(stored, deviceLanguageTags()));
       })
       .catch(() => {
-        // Unreadable storage is not a reason to fail: the device seed stands.
+        // Unreadable storage: we cannot tell "no choice yet" from "choice we
+        // can't read", so the device seed stands. That is right for a fresh
+        // install (the usual cause) and wrong for a parent who had stored a
+        // language differing from their phone — they get the phone's for this
+        // session. Rare, and the alternative strands first-run families in
+        // English on exactly the devices this change is meant to serve.
       });
+    return () => {
+      cancelled = true;
+    };
   }, [initialLocale]);
 
   /**
@@ -118,6 +131,7 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
    * rather than pinned to whatever it said on the day they installed.
    */
   const setLocale = useCallback(async (newLocale: SupportedLocale) => {
+    chosen.current = true;
     setLocaleState(newLocale);
     await AsyncStorage.setItem(STORAGE_KEY, newLocale);
   }, []);
