@@ -9,6 +9,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, Linking } from 'react-na
 import { useNavigation } from '@react-navigation/native';
 import { getEscalationRungs } from '@/lib/escalationLadder';
 import type { RungTone } from '@/lib/escalationLadder';
+import Citation from '@/components/Citation';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
@@ -123,7 +124,9 @@ export default function EscalationLadderScreen() {
                   </Text>
                 </Pressable>
               )}
-              <Text style={styles.citation}>ⓘ {rung.citation}</Text>
+              <View style={styles.citationRow}>
+                <Citation citation={rung.citation} locale={funnelLocale} />
+              </View>
             </View>
           </View>
         );
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
   leverTextPrimary: { color: colors.white },
   leverAdvocate: { borderColor: semantic.success },
   leverTextAdvocate: { color: semantic.success },
-  citation: { marginTop: spacing.sm, fontSize: fonts.sizes.xs, color: colors.mid },
+  citationRow: { marginTop: spacing.sm },
   why: {
     backgroundColor: semantic.warningBg,
     borderRadius: radii.md,
