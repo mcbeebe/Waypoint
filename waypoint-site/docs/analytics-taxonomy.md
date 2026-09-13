@@ -7,6 +7,20 @@ doc. Both repos link here from code comments. Changing this contract requires
 editing this doc first, in its own PR, with both sides' parsers updated in the
 same change.
 
+## Providers
+
+**Plausible remains the source of truth** for the event taxonomy below and for
+the north star metric. **GA4 is a second, additional tracker** (added 2026-09,
+site-only) for acquisition/audience reporting Plausible doesn't cover — it is
+not a replacement and does not change any event name, prop, or the north star
+definition. Every event listed below fires to both providers: `BaseLayout.astro`
+mirrors each `window.plausible(...)` call to `gtag('event', ...)` with the same
+name and props at a single dispatch point, so no per-event code exists in two
+places. GA4 loads only when `GA_MEASUREMENT_ID` is set and `VERCEL_ENV ===
+'production'`, same gating as Plausible. Google Signals / ad personalization
+are left off in both the GA4 property config and the per-call `gtag('config',
+...)` options, matching the privacy posture Plausible was chosen for.
+
 ## Site-side events (Plausible, cookieless, data-domain: waypointchild.com)
 
 | Event | Props | Fires when |
@@ -47,6 +61,9 @@ including Apple Sign-In and OAuth redirects. The app persists the payload
 Tested explicitly per auth path; re-verified in the monthly reconciliation.
 
 ## App-side events (same Plausible data-domain + Supabase)
+
+GA4 mirroring is site-only for now — waypoint-app has no web analytics
+surface, so app-side events below stay Plausible + Supabase only.
 
 | Event | Props | Fires when |
 |---|---|---|
