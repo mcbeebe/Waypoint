@@ -44,6 +44,22 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
+/**
+ * The device's language, as `I18nProvider` reads it on first launch.
+ *
+ * `expo-localization` pulls in `expo-modules-core`, which cannot load under
+ * jsdom — so it is stubbed rather than imported. Mutate `deviceLocales` in a
+ * test to rehearse a Spanish or Vietnamese phone; it resets to an English
+ * phone before each test, so a test that changes it cannot leak into the next.
+ */
+export const deviceLocales = { tags: ['en-US'] as string[] };
+vi.mock('expo-localization', () => ({
+  getLocales: () => deviceLocales.tags.map((languageTag) => ({ languageTag })),
+}));
+beforeEach(() => {
+  deviceLocales.tags = ['en-US'];
+});
+
 vi.mock('@expo/vector-icons', () => ({
   Ionicons: ({ name }: { name: string }) => <span data-icon={name} />,
 }));
