@@ -46,6 +46,7 @@ import { toFunnelLocale } from '@/lib/eligibility';
 import {
   profileCopy,
   profileUpdatedClosed,
+  actionsClosedToast,
   rcStatusOptions,
   iepStatusOptions,
   insuranceOptions,
@@ -206,10 +207,10 @@ export default function ProfileScreen() {
       ok = (await setDiagnoses(primaryChild.id, nextDx)) && ok;
     }
     if (!ok) {
-      showToast("Couldn't save that change — please try again", 'error');
+      showToast(copy.cantSaveChange, 'error');
       return;
     }
-    showToast('Saved', 'success');
+    showToast(copy.saved, 'success');
 
     // Intake changes refresh the starter plan and retire the steps these
     // answers just made obsolete. Best-effort and in the background: the
@@ -235,14 +236,14 @@ export default function ProfileScreen() {
         .then((closed) => {
           if (closed.length > 0) {
             showToast(
-              `${closed.length} action${closed.length === 1 ? '' : 's'} closed — no longer needed`,
+              actionsClosedToast(closed.length, fl),
               'success'
             );
           }
         })
         .catch(() => {});
     }
-  }, [rcStatus, iepStatus, insurance, selectedDiagnoses, primaryChild, family, childName, parentName, zipCode, updateChild, updateFamily, setDiagnoses, showToast]);
+  }, [rcStatus, iepStatus, insurance, selectedDiagnoses, primaryChild, family, childName, parentName, zipCode, updateChild, updateFamily, setDiagnoses, showToast, copy, fl]);
 
   const toggleDiagnosis = (value: string) => {
     const next = selectedDiagnoses.includes(value)
@@ -292,7 +293,7 @@ export default function ProfileScreen() {
       // The hooks swallow DB errors into a return value — surface them,
       // visibly on web too (RN Alert is a no-op in the browser)
       if (!okFamily || !okChild || !okDx) {
-        showToast("Some changes couldn't be saved — please try again", 'error');
+        showToast(copy.someChangesFailed, 'error');
         return;
       }
 
@@ -342,7 +343,7 @@ export default function ProfileScreen() {
   const handleAddChild = useCallback(async () => {
     // Premium (E3): the first child is free forever; additional children
     // are part of multi-child support
-    if (children.length >= 1 && !guard(copy.multiChildFeature)) return;
+    if (children.length >= 1 && !guard('Multi-child support')) return;
     const name = newChildName.trim();
     if (!name) {
       showToast(copy.enterChildName, 'error');
@@ -378,7 +379,7 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (Platform.OS !== 'web') return;
     isGoogleConnectedWeb().then(setGoogleStatus);
-  }, [copy]);
+  }, []);
 
   const handleConnectGoogle = useCallback(async () => {
     setGoogleBusy(true);
@@ -589,7 +590,7 @@ export default function ProfileScreen() {
         {family?.id && (
           <>
             <Text style={styles.sectionTitle}>{copy.keyContacts}</Text>
-            <ContactsCard familyId={family.id} />
+            <ContactsCard familyId={family.id} locale={fl} />
           </>
         )}
 
@@ -707,7 +708,7 @@ export default function ProfileScreen() {
                     {child.date_of_birth ? (
                       <Text style={styles.childDob}>{bornLabel(child.date_of_birth ?? '', fl)}</Text>
                     ) : null}
-                    {child.school_name || copy.grade ? (
+                    {child.school_name || child.grade ? (
                       <Text style={styles.childDob}>
                         {[child.school_name, child.grade ? gradeLabel(child.grade, fl) : null].filter(Boolean).join(' · ')}
                       </Text>
@@ -748,6 +749,7 @@ export default function ProfileScreen() {
           <DiagnosisSelector
             selected={selectedDiagnoses}
             onToggle={toggleDiagnosis}
+            locale={fl}
           />
         </View>
 

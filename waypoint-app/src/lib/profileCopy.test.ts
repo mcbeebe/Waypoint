@@ -69,9 +69,11 @@ describe('profileCopy is fully translated', () => {
     });
   }
 
-  it('an unknown locale falls back to English rather than blanking', () => {
-    // `toFunnelLocale` already narrows, but the default parameter is the last
-    // line of defence if a caller ever passes through something unmapped.
+  it('the default parameter is English', () => {
+    // NOTE: this pins the DEFAULT, not "unknown locale" handling — the
+    // signature is `FunnelLocale`, so an unknown value cannot reach here
+    // without a cast. Narrowing is `toFunnelLocale`'s job and is tested in
+    // `localeParity.test.ts`.
     expect(profileCopy().familyInfo).toBe(en.familyInfo);
   });
 });
@@ -116,12 +118,23 @@ describe('option grids are structurally locale-invariant', () => {
       }
     });
 
-    it(`${name}: labels are actually translated`, () => {
+    it(`${name}: EVERY label is translated, not just one`, () => {
+      // Proper nouns and international abbreviations legitimately survive
+      // translation; everything else must move. Asserting "at least one
+      // changed" would pass on `Don't know / Conozco mi CR / Applied / Active`.
+      const KEEPS: Record<string, string[]> = {
+        medicaid: ['Medi-Cal'],
+        na: ['N/A'],
+      };
       for (const locale of TRANSLATED) {
         const other = fn(locale);
-        // Not a blanket inequality: "Medi-Cal" is a proper noun that stays.
-        const changed = other.filter((o, i) => o.label !== en[i].label);
-        expect(changed.length).toBeGreaterThan(0);
+        const untranslated = other
+          .filter((o, i) => {
+            if (o.label !== en[i].label) return false;
+            return !(KEEPS[o.value] ?? []).includes(o.label);
+          })
+          .map((o) => o.value);
+        expect(untranslated, `${name}.${locale}`).toEqual([]);
       }
     });
   }
@@ -158,10 +171,13 @@ describe('interpolated strings carry the name in every language', () => {
     });
   }
 
-  it('forgetMemoryLabel quotes the memory back in every language', () => {
+  it('forgetMemoryLabel quotes the memory back AND translates its frame', () => {
     const memory = 'ABA authorized 10 hrs/week';
     for (const locale of ['en', ...TRANSLATED] as FunnelLocale[]) {
       expect(forgetMemoryLabel(memory, locale)).toContain(memory);
+    }
+    for (const locale of TRANSLATED) {
+      expect(forgetMemoryLabel(memory, locale)).not.toBe(forgetMemoryLabel(memory, 'en'));
     }
   });
 
@@ -210,19 +226,49 @@ describe('Google account copy does not over-promise in any language', () => {
   const ACCOUNT = 'parent@example.com';
 
   it('the calendar-only state never claims sending or reply tracking', () => {
-    // The English comment in ProfileScreen says claiming Gmail here "would be
-    // a promise the app cannot keep". That has to survive translation: the
-    // calendar-only string must read as an INVITATION to add Gmail, so it
-    // always names the connect action.
-    const CONNECT_HINT: Record<FunnelLocale, RegExp> = {
-      en: /Connect Google/i,
-      es: /Conectar Google/i,
-      vi: /Kết nối Google/i,
+    // Claiming Gmail here "would be a promise the app cannot keep", so the
+    // string must read as an INVITATION — and it must name the button that is
+    // ACTUALLY on screen in this state, which is "Add Gmail", not the
+    // "Connect Google" button that renders only when disconnected. Pinning the
+    // wrong button is how a dead end survives a translation pass.
+    const ADD_GMAIL_HINT: Record<FunnelLocale, RegExp> = {
+      en: /Add Gmail/i,
+      es: /Agregar Gmail/i,
+      vi: /Thêm Gmail/i,
     };
     for (const locale of ['en', ...TRANSLATED] as FunnelLocale[]) {
       const s = googleConnectedCalendarOnly(ACCOUNT, locale);
       expect(s, locale).toContain(ACCOUNT);
-      expect(s, locale).toMatch(CONNECT_HINT[locale]);
+      expect(s, locale).toMatch(ADD_GMAIL_HINT[locale]);
+    }
+  });
+
+  it('the calendar-only string names the exact label the button renders', () => {
+    // Belt and braces: if `addGmail` is ever reworded, the instruction that
+    // points at it must be reworded in the same commit.
+    for (const locale of ['en', ...TRANSLATED] as FunnelLocale[]) {
+      expect(googleConnectedCalendarOnly(ACCOUNT, locale)).toContain(profileCopy(locale).addGmail);
+    }
+  });
+
+  it('frames sending as conditional on adding Gmail, never as already working', () => {
+    // The over-promise rule: in this state Waypoint CANNOT send mail, so any
+    // mention of sending must come AFTER the "add Gmail" instruction — i.e.
+    // as its consequence, not as a current capability. Asserting order is
+    // checkable; regexing "does this sentence promise something" is not.
+    for (const locale of ['en', ...TRANSLATED] as FunnelLocale[]) {
+      const text = googleConnectedCalendarOnly(ACCOUNT, locale);
+      const instruction = text.indexOf(profileCopy(locale).addGmail);
+      expect(instruction, `${locale}: names the button`).toBeGreaterThan(-1);
+      // "calendar only" is stated before the instruction; the capability after.
+      const CALENDAR_ONLY: Record<FunnelLocale, string> = {
+        en: 'calendar only',
+        es: 'solo calendario',
+        vi: 'chỉ lịch',
+      };
+      const limitation = text.indexOf(CALENDAR_ONLY[locale]);
+      expect(limitation, `${locale}: states the limitation`).toBeGreaterThan(-1);
+      expect(limitation, `${locale}: limitation precedes the instruction`).toBeLessThan(instruction);
     }
   });
 

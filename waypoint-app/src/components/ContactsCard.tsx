@@ -14,32 +14,31 @@ import {
   type ContactOrg,
   type ContactInput,
 } from '@/hooks/useContacts';
+import type { FunnelLocale } from '@/lib/eligibility';
+import {
+  contactsCopy,
+  orgOptions,
+  roleSuggestions,
+  editContactLabel,
+  removeContactTitle,
+  type ContactsCopy,
+} from '@/lib/contactsCopy';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
-const ORG_OPTIONS: Array<{ value: ContactOrg; label: string; emoji: string }> = [
-  { value: 'school', label: 'School', emoji: '🏫' },
-  { value: 'regional_center', label: 'Regional Center', emoji: '🏛️' },
-  { value: 'insurance', label: 'Insurance', emoji: '🏥' },
-  { value: 'medical', label: 'Medical', emoji: '⚕️' },
-  { value: 'other', label: 'Other', emoji: '📋' },
-];
-
+/** Emoji are locale-invariant, so this map can be built once from English. */
 const ORG_EMOJI: Record<string, string> = Object.fromEntries(
-  ORG_OPTIONS.map((o) => [o.value, o.emoji])
+  orgOptions('en').map((o) => [o.value, o.emoji])
 );
 
-const ROLE_SUGGESTIONS = [
-  'Service Coordinator',
-  'SpEd Teacher',
-  'Gen Ed Teacher',
-  'Case Manager',
-  'Principal',
-  'School Psychologist',
-  'Pediatrician',
-  'Insurance Case Worker',
-];
-
-export default function ContactsCard({ familyId }: { familyId: string }) {
+export default function ContactsCard({
+  familyId,
+  locale = 'en',
+}: {
+  familyId: string;
+  /** App language. Defaults to English so untranslated callers are unchanged. */
+  locale?: FunnelLocale;
+}) {
+  const copy = contactsCopy(locale);
   const { showToast } = useToast();
   const { contacts, addContact, updateContact, deleteContact } = useContacts(familyId);
 
@@ -67,28 +66,27 @@ export default function ContactsCard({ familyId }: { familyId: string }) {
     const input: ContactInput = { name, role, organization: org, email, phone };
     const ok = formFor === 'new' ? await addContact(input) : await updateContact(formFor!, input);
     setSaving(false);
-    showToast(ok ? 'Contact saved' : "Couldn't save — try again.", ok ? 'success' : 'error');
+    showToast(ok ? copy.contactSaved : copy.cantSave, ok ? 'success' : 'error');
     if (ok) setFormFor(null);
   };
 
   const handleDelete = async (contact: FamilyContact) => {
     const confirmed = await showConfirm(
-      `Remove ${contact.name}?`,
-      'They will no longer auto-fill into letters and emails.',
-      'Remove',
+      removeContactTitle(contact.name, locale),
+      copy.removeBody,
+      copy.remove,
       true
     );
     if (!confirmed) return;
     const ok = await deleteContact(contact.id);
-    showToast(ok ? 'Contact removed' : "Couldn't remove — try again.", ok ? 'success' : 'error');
+    showToast(ok ? copy.contactRemoved : copy.cantRemove, ok ? 'success' : 'error');
     if (ok && formFor === contact.id) setFormFor(null);
   };
 
   return (
     <View style={styles.card}>
       <Text style={styles.intro}>
-        Your child's team — these names auto-fill into generated letters, email recipients,
-        and the Waypoint Navigator's suggestions.
+        {copy.intro}
       </Text>
 
       {contacts.map((c) =>
@@ -104,6 +102,8 @@ export default function ContactsCard({ familyId }: { familyId: string }) {
             onSave={handleSave}
             onCancel={() => setFormFor(null)}
             onDelete={() => handleDelete(c)}
+            copy={copy}
+            locale={locale}
           />
         ) : (
           <TouchableOpacity
@@ -111,16 +111,16 @@ export default function ContactsCard({ familyId }: { familyId: string }) {
             style={styles.contactRow}
             onPress={() => openForm(c)}
             accessibilityRole="button"
-            accessibilityLabel={`Edit contact ${c.name}`}
+            accessibilityLabel={editContactLabel(c.name, locale)}
           >
             <Text style={styles.contactEmoji}>{ORG_EMOJI[c.organization ?? 'other']}</Text>
             <View style={styles.contactBody}>
               <Text style={styles.contactName}>{c.name}</Text>
               <Text style={styles.contactMeta}>
-                {[c.role, c.email, c.phone].filter(Boolean).join(' · ') || 'Tap to add details'}
+                {[c.role, c.email, c.phone].filter(Boolean).join(' · ') || copy.tapToAdd}
               </Text>
             </View>
-            <Text style={styles.editHint}>Edit ›</Text>
+            <Text style={styles.editHint}>{copy.editHint}</Text>
           </TouchableOpacity>
         )
       )}
@@ -135,15 +135,17 @@ export default function ContactsCard({ familyId }: { familyId: string }) {
           saving={saving}
           onSave={handleSave}
           onCancel={() => setFormFor(null)}
+          copy={copy}
+          locale={locale}
         />
       ) : (
         <TouchableOpacity
           style={styles.addBtn}
           onPress={() => openForm()}
           accessibilityRole="button"
-          accessibilityLabel="Add a contact"
+          accessibilityLabel={copy.addContactA11y}
         >
-          <Text style={styles.addBtnText}>＋ Add a contact</Text>
+          <Text style={styles.addBtnText}>{copy.addContact}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -160,32 +162,35 @@ function ContactForm(props: {
   onSave: () => void;
   onCancel: () => void;
   onDelete?: () => void;
+  copy: ContactsCopy;
+  locale: FunnelLocale;
 }) {
+  const copy = props.copy;
   return (
     <View style={styles.form}>
-      <Text style={styles.label}>Name</Text>
+      <Text style={styles.label}>{copy.name}</Text>
       <TextInput
         style={styles.input}
         value={props.name}
         onChangeText={props.setName}
-        placeholder="e.g., Maria Lopez"
+        placeholder={copy.namePlaceholder}
         placeholderTextColor={colors.mid}
         autoCapitalize="words"
-        accessibilityLabel="Contact name"
+        accessibilityLabel={copy.nameA11y}
       />
 
-      <Text style={styles.label}>Role</Text>
+      <Text style={styles.label}>{copy.role}</Text>
       <TextInput
         style={styles.input}
         value={props.role}
         onChangeText={props.setRole}
-        placeholder="e.g., Service Coordinator"
+        placeholder={copy.rolePlaceholder}
         placeholderTextColor={colors.mid}
         autoCapitalize="words"
-        accessibilityLabel="Contact role"
+        accessibilityLabel={copy.roleA11y}
       />
       <View style={styles.chipRow}>
-        {ROLE_SUGGESTIONS.filter((r) => r.toLowerCase() !== props.role.trim().toLowerCase())
+        {roleSuggestions(props.locale).filter((r) => r.toLowerCase() !== props.role.trim().toLowerCase())
           .slice(0, 4)
           .map((r) => (
             <TouchableOpacity
@@ -199,9 +204,9 @@ function ContactForm(props: {
           ))}
       </View>
 
-      <Text style={styles.label}>Organization</Text>
+      <Text style={styles.label}>{copy.organization}</Text>
       <View style={styles.chipRow}>
-        {ORG_OPTIONS.map((o) => (
+        {orgOptions(props.locale).map((o) => (
           <TouchableOpacity
             key={o.value}
             style={[styles.orgChip, props.org === o.value && styles.orgChipActive]}
@@ -216,27 +221,27 @@ function ContactForm(props: {
         ))}
       </View>
 
-      <Text style={styles.label}>Email</Text>
+      <Text style={styles.label}>{copy.email}</Text>
       <TextInput
         style={styles.input}
         value={props.email}
         onChangeText={props.setEmail}
-        placeholder="name@district.org"
+        placeholder={copy.emailPlaceholder}
         placeholderTextColor={colors.mid}
         keyboardType="email-address"
         autoCapitalize="none"
-        accessibilityLabel="Contact email"
+        accessibilityLabel={copy.emailA11y}
       />
 
-      <Text style={styles.label}>Phone</Text>
+      <Text style={styles.label}>{copy.phone}</Text>
       <TextInput
         style={styles.input}
         value={props.phone}
         onChangeText={props.setPhone}
-        placeholder="(510) 555-0100"
+        placeholder={copy.phonePlaceholder}
         placeholderTextColor={colors.mid}
         keyboardType="phone-pad"
-        accessibilityLabel="Contact phone"
+        accessibilityLabel={copy.phoneA11y}
       />
 
       <View style={styles.formActions}>
@@ -245,16 +250,16 @@ function ContactForm(props: {
           onPress={props.onSave}
           disabled={!props.name.trim() || props.saving}
           accessibilityRole="button"
-          accessibilityLabel="Save contact"
+          accessibilityLabel={copy.saveA11y}
         >
-          <Text style={styles.saveBtnText}>Save</Text>
+          <Text style={styles.saveBtnText}>{copy.save}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelBtn} onPress={props.onCancel} accessibilityRole="button">
-          <Text style={styles.cancelBtnText}>Cancel</Text>
+          <Text style={styles.cancelBtnText}>{copy.cancel}</Text>
         </TouchableOpacity>
         {props.onDelete && (
           <TouchableOpacity style={styles.deleteBtn} onPress={props.onDelete} accessibilityRole="button">
-            <Text style={styles.deleteBtnText}>Remove</Text>
+            <Text style={styles.deleteBtnText}>{copy.remove}</Text>
           </TouchableOpacity>
         )}
       </View>

@@ -166,11 +166,12 @@ export interface ProfileCopy {
   deleteFailOffline: string;
   signOutTitle: string;
   signOutBody: string;
-  multiChildFeature: string;
 
   // Toasts
   childUpdated: string;
-  childRemoved: string;
+  saved: string;
+  cantSaveChange: string;
+  someChangesFailed: string;
   enterChildName: string;
   childAddFailed: string;
   profileUpdated: string;
@@ -193,7 +194,7 @@ export function profileCopy(locale: FunnelLocale = 'en'): ProfileCopy {
   return {
     familyInfo: L('Family Info', 'Información familiar', 'Thông tin gia đình'),
     keyContacts: L('Key Contacts', 'Contactos clave', 'Liên hệ quan trọng'),
-    children: L('Children', 'Hijos', 'Các con'),
+    children: L('Children', 'Hijos', 'Con cái'),
     diagnosis: L('Diagnosis', 'Diagnóstico', 'Chẩn đoán'),
     rcStatus: L('Regional Center Status', 'Estado con el Centro Regional', 'Tình trạng với Trung tâm Khu vực'),
     iepStatus: L('IEP Status', 'Estado del IEP', 'Tình trạng IEP'),
@@ -231,7 +232,7 @@ export function profileCopy(locale: FunnelLocale = 'en'): ProfileCopy {
     egZip: L('e.g., 94610', 'p. ej., 94610', 'ví dụ: 94610'),
     egDistrict: L('e.g., Oakland Unified', 'p. ej., Oakland Unified', 'ví dụ: Oakland Unified'),
     egSchool: L('e.g., Glenview Elementary', 'p. ej., Glenview Elementary', 'ví dụ: Glenview Elementary'),
-    egGrade: L('e.g., 3rd', 'p. ej., 3.º', 'ví dụ: lớp 3'),
+    egGrade: L('e.g., 3rd', 'p. ej., 3.º', 'ví dụ: 3'),
 
     firstName: L('First name', 'Nombre', 'Tên'),
     birthday: L('Birthday', 'Fecha de nacimiento', 'Ngày sinh'),
@@ -422,16 +423,24 @@ export function profileCopy(locale: FunnelLocale = 'en'): ProfileCopy {
       '¿Seguro que quiere cerrar sesión?',
       'Quý vị có chắc muốn đăng xuất không?',
     ),
-    multiChildFeature: L('Multi-child support', 'Apoyo para varios hijos', 'Hỗ trợ nhiều con'),
-
     // Gender-neutral by construction: Spanish adjective agreement on a child
     // of unknown gender would force "actualizado/a" everywhere, so these
     // phrase around the noun instead.
     childUpdated: L('Child updated', 'Datos actualizados', 'Đã cập nhật thông tin con'),
-    childRemoved: L('removed', 'eliminado', 'đã được xóa'),
+    saved: L('Saved', 'Guardado', 'Đã lưu'),
+    cantSaveChange: L(
+      "Couldn't save that change — please try again",
+      'No se pudo guardar ese cambio — inténtelo de nuevo',
+      'Không lưu được thay đổi đó — vui lòng thử lại',
+    ),
+    someChangesFailed: L(
+      "Some changes couldn't be saved — please try again",
+      'Algunos cambios no se pudieron guardar — inténtelo de nuevo',
+      'Một số thay đổi chưa lưu được — vui lòng thử lại',
+    ),
     enterChildName: L(
       "Please enter the child's first name",
-      'Escriba el nombre del hijo/a',
+      'Por favor escriba el nombre del hijo/a',
       'Vui lòng nhập tên của con',
     ),
     childAddFailed: L(
@@ -488,6 +497,22 @@ export function makePrimaryLabel(name: string, locale: FunnelLocale = 'en'): str
     `Make ${name} the primary child`,
     `Establecer a ${name} como hijo/a principal`,
     `Đặt ${name} làm con chính`,
+  );
+}
+
+/**
+ * "N actions closed — no longer needed", the toast the intake grids raise
+ * when a tapped answer retires steps. Same sentence as the tail of
+ * `profileUpdatedClosed`, reached by a different path — it must not be
+ * Spanish via one route and English via the other.
+ */
+export function actionsClosedToast(count: number, locale: FunnelLocale = 'en'): string {
+  const n = Math.max(0, Math.floor(count));
+  return pick(
+    locale,
+    `${n} action${n === 1 ? '' : 's'} closed — no longer needed`,
+    `${n} ${n === 1 ? 'acción cerrada' : 'acciones cerradas'} — ya no ${n === 1 ? 'es necesaria' : 'son necesarias'}`,
+    `Đã đóng ${n} hành động — không còn cần thiết`,
   );
 }
 
@@ -598,14 +623,21 @@ export function googleConnectedFull(account: string, locale: FunnelLocale = 'en'
 /**
  * Google connected, Calendar only. Gmail is a separate restricted-scope
  * opt-in, so this state is common — and claiming sending/reply-tracking here
- * would be a promise the app cannot keep, in any language.
+ * would be a promise the app cannot keep, in any language. Both other-language
+ * strings therefore keep the capability conditional ("podrá", "có thể").
+ *
+ * It names the "Add Gmail" button BELOW this paragraph. The English used to
+ * say "Tap Connect Google above", which is the wrong button (that one renders
+ * only when disconnected) in the wrong place — a parent following it found
+ * nothing. Translating that faithfully would have shipped the same dead end
+ * to two more languages, so it is corrected here rather than mirrored.
  */
 export function googleConnectedCalendarOnly(account: string, locale: FunnelLocale = 'en'): string {
   return pick(
     locale,
-    `Connected as ${account} — calendar only. Tap Connect Google above to add Gmail, so Waypoint can send emails you approve and track replies from schools and agencies.`,
-    `Conectado como ${account} — solo calendario. Toque Conectar Google arriba para agregar Gmail, y así Waypoint podrá enviar los correos que usted apruebe y seguir las respuestas de escuelas y agencias.`,
-    `Đã kết nối với ${account} — chỉ lịch. Chạm Kết nối Google ở trên để thêm Gmail, để Waypoint có thể gửi email quý vị chấp thuận và theo dõi thư trả lời từ trường học và cơ quan.`,
+    `Connected as ${account} — calendar only. Tap Add Gmail below, so Waypoint can send emails you approve and track replies from schools and agencies.`,
+    `Conectado como ${account} — solo calendario. Toque Agregar Gmail abajo, y así Waypoint podrá enviar los correos que usted apruebe y seguir las respuestas de escuelas y agencias.`,
+    `Đã kết nối với ${account} — chỉ lịch. Chạm Thêm Gmail bên dưới, để Waypoint có thể gửi email quý vị chấp thuận và theo dõi thư trả lời từ trường học và cơ quan.`,
   );
 }
 
@@ -641,7 +673,7 @@ export function iepStatusOptions(locale: FunnelLocale = 'en'): GridOption[] {
     { value: 'unknown', label: L("Don't know", 'No sé', 'Không biết'), emoji: '❓' },
     { value: 'eval_done', label: L('Eval done', 'Evaluación hecha', 'Đã đánh giá'), emoji: '🔍' },
     { value: 'active', label: L('Active IEP', 'IEP activo', 'IEP đang hiệu lực'), emoji: '✅' },
-    { value: 'na', label: L('N/A', 'N/C', 'Không áp dụng'), emoji: '➖' },
+    { value: 'na', label: L('N/A', 'N/A', 'Không áp dụng'), emoji: '➖' },
   ];
 }
 
