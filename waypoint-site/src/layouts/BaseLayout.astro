@@ -17,6 +17,10 @@ interface Props {
   ogType?: 'website' | 'article';
 }
 const { title, description, locale = 'en', noindex = false, pillar, ogSlug, ogType } = Astro.props;
+const isProd = (process.env.VERCEL_ENV ?? 'production') === 'production';
+// GA4: second, additional tracker alongside Plausible (D3 "Providers"). Unset
+// in preview/dev so branch QA traffic never reaches the production property.
+const gaMeasurementId = process.env.GA_MEASUREMENT_ID;
 ---
 
 <!doctype html>
@@ -45,8 +49,29 @@ const { title, description, locale = 'en', noindex = false, pillar, ogSlug, ogTy
         never pollutes the production data-domain (local non-Vercel builds
         keep it for testing; those pages aren't visited by anyone). */}
     {
-      (process.env.VERCEL_ENV ?? 'production') === 'production' && (
+      isProd && (
         <script defer data-domain="waypointchild.com" src="https://plausible.io/js/script.js" />
+      )
+    }
+    {/* GA4: second, additional tracker per D3 "Providers" — loads only when
+        GA_MEASUREMENT_ID is configured, same production-only gate as Plausible.
+        Google Signals / ad personalization stay off (privacy posture). */}
+    {
+      isProd && gaMeasurementId && (
+        <>
+          <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} />
+          <script define:vars={{ gaMeasurementId }}>
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function (...args) {
+              window.dataLayer.push(args);
+            };
+            window.gtag('js', new Date());
+            window.gtag('config', gaMeasurementId, {
+              allow_google_signals: false,
+              allow_ad_personalization_signals: false,
+            });
+          </script>
+        </>
       )
     }
   </head>
@@ -60,11 +85,15 @@ const { title, description, locale = 'en', noindex = false, pillar, ogSlug, ogTy
     <script>
       // Plausible init queue stub (the official snippet's pattern): events
       // fired before the deferred script loads are queued, not lost.
+      // Single dispatch point: every call also mirrors to GA4 (gtag) with the
+      // same event name and props, per D3 "Providers" — so no event needs
+      // its own GA4 call at any of its call sites.
       window.plausible =
         window.plausible ||
-        function (this: unknown) {
-          const p = window.plausible as unknown as { q?: IArguments[] };
-          (p.q = p.q || []).push(arguments);
+        function (event: string, options?: { props?: Record<string, string | number> }) {
+          const p = window.plausible as unknown as { q?: unknown[][] };
+          (p.q = p.q || []).push([event, options]);
+          window.gtag?.('event', event, options?.props ?? {});
         };
 
       // Delegated analytics per docs/analytics-taxonomy.md (D3).
