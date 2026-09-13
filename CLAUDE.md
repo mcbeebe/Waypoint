@@ -101,11 +101,13 @@ elsewhere. The description below is historical.
   - Auto-updating `updated_at` triggers
 - **Navigation:** React Navigation (native-stack)
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
-- **Current state (2026-09-03):** the flagship product. 59 migrations, eight
-  Edge Functions in production, 44 screens under `main/` plus auth /
-  onboarding / staff / legal, and a 111-file / 1313-test vitest suite across
-  four projects. (This line previously read "Auth scaffolding… no screens
-  beyond onboarding exist yet.")
+- **Current state (2026-09-13):** the flagship product. 61 migrations, eight
+  Edge Functions in production (plus `_shared/`), 58 screens under `main/` (73
+  screen files including auth / onboarding / staff / legal), ~86k lines of
+  TS/TSX under `src/`, and a 124-file / ~1317-test vitest suite across four
+  projects. (This line previously read "Auth scaffolding… no screens beyond
+  onboarding exist yet.", and before 2026-09-13 carried the 2026-09-03 counts
+  of 59 / 44 / 111 — re-measure rather than trusting it.)
 
 ### Commands (from `waypoint-app/`)
 
