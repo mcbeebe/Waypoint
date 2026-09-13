@@ -1,0 +1,173 @@
+# Owner action items — September 2026
+
+**Date:** Sep 13, 2026 · **Status:** open — tick as you go
+**Companion to:** `Roadmap/Statute-Registry-Worksheet-Sep2026.md` (the detail behind Step 2),
+`Roadmap/Build-Plan-Items1-4-Sep2026.md`, `Roadmap/initiatives/009-adult-transition/`
+
+---
+
+## How to use this
+
+1. Tick boxes as you finish them. Write answers directly in the blanks.
+2. When a **whole step** is done, tell Claude "Step N is done" — the work that
+   unblocks is listed under each step.
+3. This file is the cross-session state. A returning session should read it
+   before asking what's outstanding.
+
+**Everything here is something only you can do.** Code that was waiting on
+nobody has already shipped.
+
+---
+
+## 🔴 Step 1 — Unblock the product
+
+Nothing built after this matters until it is done. `ROADMAP.md` reports W0–W3
+all **code complete**; every open gate is operational. You have a finished
+product that is not fully running.
+
+- [ ] **1.1 · Apply migrations 043+** in order, in the Supabase SQL editor.
+      `waypoint-app/scripts/build-pending-migrations.mjs` bundles a range into
+      one transaction. *(~20 min)*
+- [ ] **1.2 · Run the RLS verification queries.** *(~10 min)*
+- [ ] **1.3 · Create the two Stripe Payment Links + the webhook secret**, then
+      set the env vars. *(~30 min)*
+- [ ] **1.4 · Deploy initiative 003 Lane B** — `push-send` and the reply poll
+      are built and waiting on your deploy. See
+      `Roadmap/initiatives/003-outbound-loop/plan.md` §7B-3 / 7B-4. *(~10 min)*
+- [ ] **1.5 · Submit the 099 vendorization packet** — its own checklist is
+      `Operations/099-Vendorization-Packet-Checklist.md`. *(~1 hr, plus RCEB's
+      response time)*
+
+> **Then:** the app runs end to end, Premium can take a payment, and a reply
+> from an agency can reach a parent's phone.
+
+---
+
+## 🟠 Step 2 — Verify the statutes
+
+**23 findings, but only 15 need you to open a source.** The audit
+(`statuteAudit.ts`) found every statute asserted in prose with nothing behind
+it. Detail, quoted claims and file:line for all of them are in
+`Roadmap/Statute-Registry-Worksheet-Sep2026.md`.
+
+**Why this one is urgent:** several of these sit inside **letter templates a
+parent sends to a school district or Regional Center**, under the heading
+`Violations:`. A wrong section number there is a false legal claim a family
+makes on Waypoint's word, to an agency with power over their child.
+
+### 2A · Eight that need no lookup — just confirm the code name
+
+The registry **already covers** these. The prose simply writes `§4731` where it
+should write `W&I §4731`, so a parent cannot look it up. In-repo evidence:
+`agencies.ts:183` lists them together under "W&I Code §4500+", and
+`agencies.ts:177` spells out "W&I Code §4731".
+
+- [ ] **Confirm: these eight are correctly attributed as written below.**
+      One glance, no source lookup.
+
+| Prose says | Should say | Where |
+|---|---|---|
+| `§4642` | **W&I** §4642 | actionEmail.ts, planGenerator.ts |
+| `§4643` | **W&I** §4643 | processMap.ts |
+| `§4646` | **W&I** §4646 | agencies.ts |
+| `§4710` | **W&I** §4710 | learnLibrary.ts |
+| `§4710.5` | **W&I** §4710.5 | agencies.ts, learnLibrary.ts, +1 |
+| `§4731` | **W&I** §4731 | agencies.ts, escalationLadder.ts, +3 |
+| `§56321` | **Ed Code** §56321 | iepDeadlines.ts |
+| `§56344` | **Ed Code** §56344 | iepDeadlines.ts, planGenerator.ts |
+
+*(`§4642` also appears in 2B — it is the one of these eight the registry does
+not yet cover, so it needs the lookup there as well.)*
+
+### 2B · Fifteen that need a source opened
+
+For each: click the link, read the section, and write **one** verdict in the
+last column.
+
+- **`REGISTER`** — it says what we claim. Claude writes the registry entry.
+- **`FIX`** — the citation is wrong; note the right one.
+- **`REMOVE`** — the source does not support the claim; the citation comes out.
+
+| # | Citation | What the app rests on it | Source (unverified) | Verdict |
+|---|---|---|---|---|
+| 1 | 34 CFR §300.301 | right to request an evaluation — in a **CDE complaint template** | [ecfr](https://www.ecfr.gov/current/title-34/section-300.301) | |
+| 2 | 34 CFR §300.502 | IEE at public expense — in an **IEE request letter** | [ecfr](https://www.ecfr.gov/current/title-34/section-300.502) | |
+| 3 | Ed Code §56302.1 | the 60-day evaluation timeline — in a **complaint template** | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56302.1.) | |
+| 4 | Ed Code §56341.1 | IEP team duties | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56341.1.) | |
+| 5 | Ed Code §56329 | assessment / IEE rights (registry verified §56329(b) only) | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56329.) | |
+| 6 | H&S Code §1374.73 | autism behavioral-health treatment mandate | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=1374.73.) | |
+| 7 | Ins Code §10144.51 | the Insurance Code twin of §1374.73 | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=INS&sectionNum=10144.51.) | |
+| 8 | 42 U.S.C. §1396d(r) | EPSDT — cited in a **Medi-Cal denial appeal** | [cornell](https://www.law.cornell.edu/uscode/text/42/1396d) | |
+| 9 | W&I §4500 | the Lanterman Act's opening section | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4500.) | |
+| 10 | W&I §4502 | rights of persons with developmental disabilities | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4502.) | |
+| 11 | W&I §4620 | Regional Center responsibilities | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4620.) | |
+| 12 | W&I §4642 | intake assessment within 120 days | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642.) | |
+| 13 | W&I §4648 | services must be delivered as authorised (registry verified §4648(a) only) | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4648.) | |
+| 14 | W&I §95014 | Early Start eligibility | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=95014.) | |
+| 15 | Section 504 (Rehabilitation Act) | 504 plans as an IEP fallback — **not a California code**; likely 29 U.S.C. §794 | [cornell](https://www.law.cornell.edu/uscode/text/29/794) | |
+
+- [ ] **All 15 verdicts written.**
+
+> **Then Claude:** writes every registry entry with your date, applies the eight
+> prose fixes, empties `KNOWN_GAPS` in `statuteAudit.guard.test.ts`, and
+> promotes the ratchet from "no new debt" to a hard gate. *(~1 day)*
+
+---
+
+## 🟡 Step 3 — Two decisions on the Adult Transition
+
+Read `Roadmap/initiatives/009-adult-transition/intent.md` first (one page).
+
+### 3.1 · Can you get a credentialed review of the conservatorship content?
+
+- [ ] **Yes** — name / date: ______________________ → Claude builds the full arc.
+- [ ] **No** → **cut legal-capacity content from scope.** *(Claude's
+      recommendation.)* An arc covering SSI, IEP transition and DOR is still the
+      feature. A confident wrong sentence about restricting a disabled adult's
+      legal rights is the worst thing this product could ship.
+
+### 3.2 · Age range for v1
+
+- [ ] **14–19, stopping at school exit** *(recommended)*
+- [ ] Other: ______________________
+
+> **Then Claude:** builds B1 — the age-keyed arc, the date/window split, and
+> design-canvas mockups. *(~3 days, then back to you for approval before code.)*
+
+---
+
+## 🟢 Step 4 — Approve the Learn engine scope
+
+Initiative 004 is planned and waiting. The scope question is the whole decision.
+
+- [ ] **Approve ~40 derived articles**, each generated from a module that
+      already exists, each carrying a citation and a reviewed-on date, each
+      ending in an action the app performs.
+- [ ] **Do not approve** phase 8's original "dozens, then hundreds of articles"
+      — the level-up review called that the single most dangerous line in the
+      roadmap for a solo owner.
+
+**Sequence note:** do not start this until **Step 2** is done. The entire reason
+grounded answers was sequenced first is so all 40 articles generate against a
+citation gate that actually works.
+
+> **Then Claude:** generates the set through the Batch API at half cost. *(~3 wks)*
+
+---
+
+## Status log
+
+Append a line when something changes; a returning session reads this first.
+
+| Date | What changed |
+|---|---|
+| 2026-09-13 | Checklist created. Steps 1–4 all open. Code that needed no decision has shipped: `statuteAudit.ts` + ratchet, `sourceFreshness.ts`, initiative 009 intent/plan. |
+
+---
+
+## What is NOT waiting on you
+
+So you can skip past it: the statute audit and its ratchet, the provenance
+freshness module, the build plan, the product roadmap, the competitor analyses,
+and initiative 009's intent and plan are all written, tested and pushed. Gates
+green at 140 test files / 1,558 tests.
