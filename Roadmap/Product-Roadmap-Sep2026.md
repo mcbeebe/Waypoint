@@ -71,6 +71,19 @@ Speech/Language, Cerebral Palsy. **There is no journey for the transition to
 adulthood, and no clock for any of its dates.** The topic is mentioned
 everywhere and owned nowhere.
 
+> **Corrected Sep 13, 2026 (same day), by `initiatives/009-adult-transition/intent.md`.**
+> "Mentioned everywhere and owned nowhere" overstates it. Reading the matches
+> rather than counting them: three are a different sense entirely (the Lanterman
+> criterion that a disability must *originate* before 18), and the transition
+> content that exists is deliberate, not accidental — `journeyActions.ts:185`
+> already explains the SSI redetermination and its Medi-Cal consequence, and
+> `:188` explains that conservatorship "takes months to arrange," carrying a
+> comment recording that its matcher was narrowed to stop over-matching. The
+> accurate finding is narrower and better: **knowledge with no spine and no
+> clock.** No age-keyed arc, no clock for any adulthood date, no registry-backed
+> transition statute, no triage rung — all four verified absent. This lowers the
+> content risk in the estimate below and sharpens the engineering.
+
 **Why this beats the competition, specifically.** Adult transition is Special
 Needs Navigator's centre of mass — his origin story is literally *"what needs to
 be done to help kids get underway with adult services after high school."* And
