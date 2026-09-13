@@ -36,7 +36,7 @@ import {
   type ProvenanceTier,
 } from '@/lib/requestCase';
 import { REQUEST_TYPE_LABELS } from '@/lib/requestClocks';
-import { exportRequestDossier, splitDossierEvents } from '@/lib/requestDossier';
+import { exportRequestDossier } from '@/lib/requestDossier';
 import { gmailStatus } from '@/lib/gmail';
 import GmailReplyModal from '@/components/GmailReplyModal';
 import Citation from '@/components/Citation';
@@ -216,12 +216,16 @@ export default function RequestCaseScreen() {
     [request, communications, funnelLocale]
   );
 
-  // The number the button shows is the number the case file's own headline
-  // shows — same split, from the dossier module, never recomputed here.
-  const recordCount = useMemo(
-    () => (kase ? splitDossierEvents(kase).core.length : 0),
-    [kase]
-  );
+  // Count every item the parent can see, because every one of them is in the
+  // file: the document lists exactly-linked items and thread-inferred items in
+  // two sections, but both are in it. Counting only the first section printed
+  // "2" on a button sitting above a list of three.
+  const recordCount = kase?.events.length ?? 0;
+  // A count is a claim. When this fetch is known to be partial — a real
+  // failure, or a pre-047 database where the request_id query cannot run — the
+  // screen already warns the record may be incomplete, so the button drops the
+  // number rather than asserting a total it cannot stand behind.
+  const countIsKnown = !loadFailed && !pre047;
 
   const openReply = useCallback(
     (reply: Communication) => {
@@ -413,12 +417,20 @@ export default function RequestCaseScreen() {
             // Not "a PDF": on web this opens an HTML page the parent can print
             // or save, and the native PDF path can itself fall back to a plain
             // text share. Promise the record, never the file format.
-            accessibilityLabel={`Open your case file — ${recordCount} item${
-              recordCount === 1 ? '' : 's'
-            } on record. A dated record of this request you can save, print, or hand to an advocate. Free.`}
+            accessibilityLabel={
+              countIsKnown
+                ? `Open your case file — ${recordCount} item${
+                    recordCount === 1 ? '' : 's'
+                  } on record. A dated record of this request you can save, print, or hand to an advocate. Free.`
+                : 'Open your case file — a dated record of this request you can save, print, or hand to an advocate. Free.'
+            }
           >
             <Text style={styles.logBtnText}>
-              {exporting ? 'Preparing…' : `📄 Case file (${recordCount})`}
+              {exporting
+                ? 'Preparing…'
+                : countIsKnown
+                  ? `📄 Case file (${recordCount})`
+                  : '📄 Case file'}
             </Text>
           </Pressable>
         </View>

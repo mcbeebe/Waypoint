@@ -64,10 +64,17 @@ export default function Citation({ citation, locale, fontSize = 11.5 }: Citation
 
   // Unregistered: the citation still shows, but there is nothing verified to
   // open, so it is not a button.
+  // The chip text scales with the reader's text-size setting like everything
+  // else. It did not, while the icon beside it did (sz(13)) — so at 150% the
+  // shield grew and the statute it labels stayed 11.5px. Multiplied, not
+  // rounded, so the default (scale 1) renders exactly as before.
+  const chipFont = fontSize * scale;
+  const chipLine = Math.round(chipFont * 1.4);
+
   if (!source) {
     return (
       <View style={styles.chip}>
-        <Text style={[styles.chipText, { fontSize, lineHeight: Math.round(fontSize * 1.4) }]}>
+        <Text style={[styles.chipText, { fontSize: chipFont, lineHeight: chipLine }]}>
           {citation}
         </Text>
       </View>
@@ -79,14 +86,17 @@ export default function Citation({ citation, locale, fontSize = 11.5 }: Citation
       <Pressable
         onPress={() => setOpen(true)}
         style={styles.chip}
-        // The chip is small by design (inline with the claim); hitSlop brings
-        // the touch target to the 44pt minimum without inflating the visual.
+        // The chip is small by design (inline with the claim). NOTE: hitSlop
+        // enlarges the target on native only — react-native-web's Pressable
+        // ignores it, so on web the tappable area is the chip box itself
+        // (~22px tall), under the repo's 44pt minimum. Tracked for a fix that
+        // does not change the chip's visual size on every screen using it.
         hitSlop={{ top: 12, bottom: 12, left: 10, right: 10 }}
         accessibilityRole="button"
         accessibilityLabel={`${citation}. ${t.why}`}
       >
         <Ionicons name="shield-checkmark-outline" size={sz(13)} color={colors.mid} style={styles.chipIcon} />
-        <Text style={[styles.chipText, { fontSize, lineHeight: Math.round(fontSize * 1.4) }]}>
+        <Text style={[styles.chipText, { fontSize: chipFont, lineHeight: chipLine }]}>
           {citation}
         </Text>
       </Pressable>

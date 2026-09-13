@@ -99,18 +99,21 @@ describe('splitDossierEvents — exact links vs thread inference', () => {
     expect(thread[0].communication.direction).toBe('incoming');
   });
 
-  // The Case file button on RequestCaseScreen prints this same count. A parent
-  // who reads "Case file (2)" and opens a document headed "3 items" has been
-  // told two different numbers about their own evidence — so the button's
-  // source and the document's headline are pinned to each other here.
-  it('the core count the button shows is the count the document headlines', () => {
+  // The Case file button prints kase.events.length. This does NOT test the
+  // button — RequestCaseScreen.test.tsx does that, by reading the label and
+  // the thread together. What it pins is the property the button relies on:
+  // the document accounts for every event, so a total taken from the case can
+  // never exceed or undershoot what the parent finds inside the file.
+  it('the document accounts for every event — nothing is silently dropped', () => {
     const { kase } = fullCase();
-    const count = splitDossierEvents(kase).core.length;
+    const { core, thread } = splitDossierEvents(kase);
+    expect(core.length + thread.length).toBe(kase.events.length);
+
     const text = buildRequestDossierText(kase, OPTS);
-    expect(text).toContain(`RECORD (${count} item${count === 1 ? '' : 's'}, oldest first)`);
-    expect(renderRequestDossierHtml(kase, OPTS)).toContain(
-      `The record (${count} item${count === 1 ? '' : 's'}, oldest first)`
-    );
+    expect(text).toContain(`RECORD (${core.length} item${core.length === 1 ? '' : 's'}, oldest first)`);
+    expect(text).toContain(`SAME EMAIL THREAD (${thread.length} item`);
+    // Every event's subject actually appears, in one section or the other.
+    for (const e of kase.events) expect(text).toContain(e.communication.subject!);
   });
 
   it('singular and plural both hold, so "1 items" can never ship', () => {
@@ -123,6 +126,18 @@ describe('splitDossierEvents — exact links vs thread inference', () => {
     const empty = buildRequestCase(req({}), [], 'en', NOW);
     expect(splitDossierEvents(empty).core).toHaveLength(0);
     expect(buildRequestDossierText(empty, OPTS)).toContain('RECORD (0 items, oldest first)');
+  });
+
+  it('the document a parent opens is headed "Case file", never "dossier"', () => {
+    const { kase } = fullCase();
+    const text = buildRequestDossierText(kase, OPTS);
+    const html = renderRequestDossierHtml(kase, OPTS);
+    expect(text).toContain('CASE FILE —');
+    expect(html).toContain('<h1>Case file —');
+    expect(html).toContain('<title>Case file —');
+    // "Dossier" is our word for it, not a word any parent asked for.
+    expect(text.toLowerCase()).not.toContain('dossier');
+    expect(html.toLowerCase()).not.toContain('dossier');
   });
 });
 

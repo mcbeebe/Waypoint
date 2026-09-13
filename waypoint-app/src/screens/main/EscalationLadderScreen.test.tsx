@@ -14,14 +14,10 @@ import { getEscalationRungs } from '@/lib/escalationLadder';
 import { sourceForCitation } from '@/data/contentSources';
 
 describe('the escalation ladder shows its work', () => {
-  it('every rung citation is registered, so none renders as a dead label', () => {
-    // If this fails, a rung is asserting law the provenance registry cannot
-    // vouch for — the Citation component would silently degrade to plain text.
-    for (const rung of getEscalationRungs('en')) {
-      expect(sourceForCitation(rung.citation), rung.citation).not.toBeNull();
-    }
-  });
-
+  // Registration itself is already guarded for every locale by
+  // contentSources.test.ts, which enumerates getEscalationRungs — not repeated
+  // here. What that test cannot see is whether this screen renders the
+  // registry entry as something a parent can open.
   it('a statute is a button, and opening it shows the authority and verified date', () => {
     const rungs = getEscalationRungs('en');
     const first = rungs[0];
