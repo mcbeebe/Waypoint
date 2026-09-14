@@ -23,6 +23,15 @@ import {
   signUpWithEmail,
   requestPasswordReset,
 } from '@/lib/auth';
+import { useI18n } from '@/i18n';
+import { toFunnelLocale } from '@/lib/eligibility';
+import {
+  welcomeCopy,
+  badCredentials,
+  emailNeededForReset,
+  confirmationSent,
+  resetSent,
+} from '@/lib/welcomeCopy';
 import { brand, fonts, spacing, radii } from '@/lib/theme';
 
 /**
@@ -40,6 +49,11 @@ const GOOGLE_SIGNIN_ENABLED =
 
 export default function WelcomeScreen() {
   const navigation = useNavigation();
+  // The app opens in the device's language (see `src/i18n/resolveLocale.ts`),
+  // so this is the first screen where that seed is visible to a parent.
+  const { locale } = useI18n();
+  const fl = toFunnelLocale(locale);
+  const copy = welcomeCopy(fl);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
@@ -61,7 +75,7 @@ export default function WelcomeScreen() {
     const result = await signInWithApple();
     setLoading(null);
     if (!result.success && result.error !== 'Sign-in cancelled') {
-      setError(result.error ?? 'Apple Sign-In failed.');
+      setError(result.error ?? copy.appleFailed);
     }
   };
 
@@ -71,18 +85,18 @@ export default function WelcomeScreen() {
     const result = await signInWithGoogle();
     setLoading(null);
     if (!result.success && result.error !== 'Sign-in cancelled') {
-      setError(result.error ?? 'Google Sign-In failed.');
+      setError(result.error ?? copy.googleFailed);
     }
   };
 
   const handleEmail = async () => {
     clearMessages();
     if (!email.trim() || !password.trim()) {
-      setError('Please enter your email and password.');
+      setError(copy.missingCredentials);
       return;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError(copy.passwordTooShort);
       return;
     }
 
@@ -93,40 +107,34 @@ export default function WelcomeScreen() {
     setLoading(null);
 
     if (!result.success) {
-      const message = result.error ?? 'Something went wrong. Please try again.';
+      const message = result.error ?? copy.genericFailure;
       // Supabase's raw message for a bad login is terse — make it friendly
       setError(
         /invalid login credentials/i.test(message)
-          ? 'Incorrect email or password. Double-check both, or tap "Forgot password?" below.'
+          ? badCredentials(copy.forgotPassword, fl)
           : message
       );
       return;
     }
     if (isSignUp && 'needsConfirmation' in result && result.needsConfirmation) {
-      setInfo(
-        `Almost there! We sent a confirmation link to ${email.trim()}. ` +
-          'Open it to activate your account, then come back and sign in.'
-      );
+      setInfo(confirmationSent(email.trim(), fl));
     }
   };
 
   const handleForgotPassword = async () => {
     clearMessages();
     if (!email.trim()) {
-      setError('Enter your email above first, then tap "Forgot password?" again.');
+      setError(emailNeededForReset(copy.forgotPassword, fl));
       return;
     }
     setLoading('reset');
     const result = await requestPasswordReset(email.trim());
     setLoading(null);
     if (!result.success) {
-      setError(result.error ?? 'Could not send the reset email. Please try again.');
+      setError(result.error ?? copy.resetSendFailed);
       return;
     }
-    setInfo(
-      `Password reset link sent to ${email.trim()}. ` +
-        'Open the email and follow the link to choose a new password.'
-    );
+    setInfo(resetSent(email.trim(), fl));
   };
 
   return (
@@ -141,15 +149,13 @@ export default function WelcomeScreen() {
             <Brandmark size={72} route />
           </View>
           <Text style={styles.logo}>Waypoint</Text>
-          <Text style={styles.tagline}>
-            Your child's unexpected journey.{'\n'}Every step, mapped.
-          </Text>
+          <Text style={styles.tagline}>{copy.tagline}</Text>
           {/* Value props (wave 4) — why sign up, in three lines */}
           {!showEmailForm && (
             <View style={styles.valueProps}>
-              <Text style={styles.valueProp}>📍 Answers that cite California law — with the exact words to say</Text>
-              <Text style={styles.valueProp}>📋 A personalized action plan for Regional Center, IEP & benefits</Text>
-              <Text style={styles.valueProp}>✉️ Ready-to-send letters, appeals & records requests — free</Text>
+              <Text style={styles.valueProp}>{copy.valueProp1}</Text>
+              <Text style={styles.valueProp}>{copy.valueProp2}</Text>
+              <Text style={styles.valueProp}>{copy.valueProp3}</Text>
             </View>
           )}
         </View>
@@ -160,7 +166,7 @@ export default function WelcomeScreen() {
             <>
               {Platform.OS === 'ios' && (
                 <Button
-                  title="Continue with Apple"
+                  title={copy.continueWithApple}
                   onPress={handleApple}
                   variant="secondary"
                   loading={loading === 'apple'}
@@ -169,7 +175,7 @@ export default function WelcomeScreen() {
               )}
               {GOOGLE_SIGNIN_ENABLED && (
                 <Button
-                  title="Continue with Google"
+                  title={copy.continueWithGoogle}
                   onPress={handleGoogle}
                   variant="outline"
                   loading={loading === 'google'}
@@ -177,7 +183,7 @@ export default function WelcomeScreen() {
                 />
               )}
               <Button
-                title="Sign up with Email"
+                title={copy.signUpWithEmail}
                 onPress={() => setShowEmailForm(true)}
                 variant="primary"
                 disabled={loading !== null}
@@ -186,14 +192,14 @@ export default function WelcomeScreen() {
           ) : (
             <>
               <Text style={styles.emailTitle}>
-                {isSignUp ? 'Create Account' : 'Sign In'}
+                {isSignUp ? copy.createAccount : copy.signIn}
               </Text>
 
               <TextInput
                 style={styles.input}
                 value={email}
                 onChangeText={(v) => { setEmail(v); setError(null); }}
-                placeholder="Email address"
+                placeholder={copy.emailPlaceholder}
                 placeholderTextColor={brand.inkFaint}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -204,7 +210,7 @@ export default function WelcomeScreen() {
                 style={styles.input}
                 value={password}
                 onChangeText={(v) => { setPassword(v); setError(null); }}
-                placeholder="Password (6+ characters)"
+                placeholder={copy.passwordPlaceholder}
                 placeholderTextColor={brand.inkFaint}
                 secureTextEntry
               />
@@ -213,7 +219,7 @@ export default function WelcomeScreen() {
               {info ? <Text style={styles.infoText}>{info}</Text> : null}
 
               <Button
-                title={isSignUp ? 'Create Account' : 'Sign In'}
+                title={isSignUp ? copy.createAccount : copy.signIn}
                 onPress={handleEmail}
                 variant="primary"
                 loading={loading === 'email'}
@@ -226,19 +232,19 @@ export default function WelcomeScreen() {
                   onPress={loading === null ? handleForgotPassword : undefined}
                   accessibilityRole="link"
                 >
-                  {loading === 'reset' ? 'Sending reset email…' : 'Forgot password?'}
+                  {loading === 'reset' ? copy.sendingReset : copy.forgotPassword}
                 </Text>
               )}
 
               <Button
-                title={isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+                title={isSignUp ? copy.haveAccount : copy.noAccount}
                 onPress={() => { setIsSignUp(!isSignUp); clearMessages(); }}
                 variant="outline"
                 disabled={loading !== null}
               />
 
               <Button
-                title="Back to other options"
+                title={copy.backToOptions}
                 onPress={() => setShowEmailForm(false)}
                 variant="outline"
                 disabled={loading !== null}
@@ -247,22 +253,23 @@ export default function WelcomeScreen() {
           )}
 
           <Text style={styles.terms}>
-            By continuing, you agree to our{' '}
+            {copy.termsPrefix}
             <Text
               style={styles.termsLink}
               onPress={() => (navigation as any).navigate('Terms')}
               accessibilityRole="link"
             >
-              Terms of Service
+              {copy.termsOfService}
             </Text>
-            {' '}and{' '}
+            {copy.termsAnd}
             <Text
               style={styles.termsLink}
               onPress={() => (navigation as any).navigate('Privacy')}
               accessibilityRole="link"
             >
-              Privacy Policy
+              {copy.privacyPolicy}
             </Text>
+            {copy.termsSuffix}
           </Text>
         </View>
       </KeyboardAvoidingView>
