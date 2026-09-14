@@ -164,18 +164,6 @@ const vi: TranslationStrings = {
     terms: 'Điều Khoản Dịch Vụ',
   },
 
-  auth: {
-    signIn: 'Đăng Nhập',
-    signUp: 'Tạo Tài Khoản',
-    email: 'Email',
-    password: 'Mật Khẩu',
-    forgotPassword: 'Quên mật khẩu?',
-    continueWithApple: 'Tiếp tục với Apple',
-    noAccount: 'Chưa có tài khoản?',
-    hasAccount: 'Đã có tài khoản?',
-    welcomeTitle: 'Chào mừng đến Waypoint',
-    welcomeSubtitle: 'Người hướng dẫn qua các dịch vụ khuyết tật tại California',
-  },
 
   empathy: [
     'Bạn đang làm rất tuyệt vời trong việc bảo vệ quyền lợi cho con bạn.',
