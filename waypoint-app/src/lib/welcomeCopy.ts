@@ -57,6 +57,10 @@ export interface WelcomeCopy {
   passwordTooShort: string;
   genericFailure: string;
   resetSendFailed: string;
+  accountExists: string;
+  emailNotConfirmed: string;
+  networkError: string;
+  rateLimited: string;
 
   /** Terms footer — split because word order differs (see `termsSuffix`). */
   termsPrefix: string;
@@ -74,19 +78,19 @@ export function welcomeCopy(locale: FunnelLocale = 'en'): WelcomeCopy {
     tagline: L(
       "Your child's unexpected journey.\nEvery step, mapped.",
       'El viaje inesperado de su hijo/a.\nCada paso, trazado.',
-      'Hành trình không ngờ của con quý vị.\nTừng bước, được vẽ rõ.',
+      'Hành trình không ai ngờ tới của con quý vị.\nTừng bước đều đã có bản đồ.',
     ),
     // These are promises, not decoration. "free" in the third one is a
     // commitment the product keeps — it survives translation intact.
     valueProp1: L(
       '📍 Answers that cite California law — with the exact words to say',
-      '📍 Respuestas que citan la ley de California — con las palabras exactas que decir',
+      '📍 Respuestas que citan la ley de California — con las palabras exactas que debe decir',
       '📍 Câu trả lời trích dẫn luật California — kèm đúng lời cần nói',
     ),
     valueProp2: L(
       '📋 A personalized action plan for Regional Center, IEP & benefits',
       '📋 Un plan de acción personalizado para el Centro Regional, el IEP y los beneficios',
-      '📋 Kế hoạch hành động riêng cho Trung tâm Khu vực, IEP và trợ cấp',
+      '📋 Kế hoạch hành động riêng cho gia đình quý vị — Trung tâm Khu vực, IEP và trợ cấp',
     ),
     valueProp3: L(
       '✉️ Ready-to-send letters, appeals & records requests — free',
@@ -107,7 +111,11 @@ export function welcomeCopy(locale: FunnelLocale = 'en'): WelcomeCopy {
       'Mật khẩu (từ 6 ký tự)',
     ),
     forgotPassword: L('Forgot password?', '¿Olvidó su contraseña?', 'Quên mật khẩu?'),
-    sendingReset: L('Sending reset email…', 'Enviando el correo…', 'Đang gửi email…'),
+    sendingReset: L(
+      'Sending reset email…',
+      'Enviando el correo de restablecimiento…',
+      'Đang gửi email đặt lại mật khẩu…',
+    ),
     haveAccount: L(
       'Already have an account? Sign in',
       '¿Ya tiene una cuenta? Inicie sesión',
@@ -132,7 +140,7 @@ export function welcomeCopy(locale: FunnelLocale = 'en'): WelcomeCopy {
     ),
     missingCredentials: L(
       'Please enter your email and password.',
-      'Escriba su correo electrónico y su contraseña.',
+      'Por favor, escriba su correo electrónico y su contraseña.',
       'Vui lòng nhập email và mật khẩu của quý vị.',
     ),
     passwordTooShort: L(
@@ -150,15 +158,35 @@ export function welcomeCopy(locale: FunnelLocale = 'en'): WelcomeCopy {
       'No se pudo enviar el correo de restablecimiento. Inténtelo de nuevo.',
       'Không gửi được email đặt lại mật khẩu. Vui lòng thử lại.',
     ),
+    accountExists: L(
+      'An account with this email already exists. Try signing in instead.',
+      'Ya existe una cuenta con este correo. Pruebe a iniciar sesión.',
+      'Đã có tài khoản dùng email này. Quý vị hãy thử đăng nhập.',
+    ),
+    emailNotConfirmed: L(
+      'Check your email for the confirmation link, then come back and sign in.',
+      'Busque en su correo el enlace de confirmación y luego vuelva e inicie sesión.',
+      'Hãy kiểm tra email để tìm liên kết xác nhận, rồi quay lại và đăng nhập.',
+    ),
+    networkError: L(
+      'Network error. Please check your connection.',
+      'Error de conexión. Revise su conexión a internet.',
+      'Lỗi kết nối. Vui lòng kiểm tra kết nối mạng của quý vị.',
+    ),
+    rateLimited: L(
+      'Too many attempts. Please wait a minute and try again.',
+      'Demasiados intentos. Espere un minuto e inténtelo de nuevo.',
+      'Quá nhiều lần thử. Vui lòng đợi một phút rồi thử lại.',
+    ),
 
     termsPrefix: L(
       'By continuing, you agree to our ',
       'Al continuar, acepta nuestros ',
       'Bằng việc tiếp tục, quý vị đồng ý với ',
     ),
-    termsOfService: L('Terms of Service', 'Términos de Servicio', 'Điều khoản Dịch vụ'),
+    termsOfService: L('Terms of Service', 'Términos de servicio', 'Điều khoản Dịch vụ'),
     termsAnd: L(' and ', ' y nuestra ', ' và '),
-    privacyPolicy: L('Privacy Policy', 'Política de Privacidad', 'Chính sách Quyền riêng tư'),
+    privacyPolicy: L('Privacy Policy', 'Política de privacidad', 'Chính sách Quyền riêng tư'),
     // Vietnamese puts the possessive AFTER the noun phrase, so the sentence
     // cannot be assembled as prefix + link + "and" + link in every language.
     // This is why the footer is five fields rather than three.
@@ -211,4 +239,49 @@ export function resetSent(address: string, locale: FunnelLocale = 'en'): string 
     `Enviamos un enlace para restablecer la contraseña a ${address}. Abra el correo y siga el enlace para elegir una contraseña nueva.`,
     `Đã gửi liên kết đặt lại mật khẩu đến ${address}. Hãy mở email và làm theo liên kết để chọn mật khẩu mới.`,
   );
+}
+
+/**
+ * Turn whatever `@/lib/auth` returned into something the parent can read.
+ *
+ * WHY THIS EXISTS. `auth.ts` always sets `error`, and always in English — some
+ * of it its own hardcoded prose (`'An account with this email already
+ * exists…'`), some of it Supabase's. So `result.error ?? copy.fallback` made
+ * every translated fallback DEAD CODE while the real error reached a
+ * Spanish-speaking parent in English. That is the one place on this screen a
+ * family cannot ask anyone for help: they have no account yet.
+ *
+ * THIS IS STRING MATCHING ACROSS A MODULE BOUNDARY, and that is a real
+ * fragility — reword `auth.ts` and the Spanish silently reverts to English.
+ * It is pinned rather than hoped for: `welcomeCopy.test.ts` asserts every
+ * literal `auth.ts` can return is still matched here, so the drift fails a
+ * test instead of a family.
+ *
+ * The better fix is for `auth.ts` to return a discriminated CODE and for this
+ * screen to own every string. That is a change to an untested module in a
+ * copy PR, so it is named here and left for the owner rather than smuggled in.
+ *
+ * Anything unrecognized falls through to `unknown` — never to raw English.
+ */
+export function localizeAuthError(
+  raw: string | undefined,
+  copy: WelcomeCopy,
+  locale: FunnelLocale = 'en',
+): string {
+  const unknown = copy.genericFailure;
+  if (!raw) return unknown;
+  // Supabase's GoTrue messages are server-side English regardless of client
+  // locale, so matching on them is stable across languages.
+  if (/invalid login credentials/i.test(raw)) {
+    // Quoted label comes from the same bundle, so the sentence always points
+    // at the control as it is actually labelled on screen.
+    return badCredentials(copy.forgotPassword, locale);
+  }
+  if (/already exists/i.test(raw)) return copy.accountExists;
+  if (/email not confirmed|not confirmed/i.test(raw)) return copy.emailNotConfirmed;
+  if (/network error/i.test(raw)) return copy.networkError;
+  if (/only request this after|rate limit|too many/i.test(raw)) return copy.rateLimited;
+  if (/no identity token received from apple/i.test(raw)) return copy.appleFailed;
+  if (/no id token received from google/i.test(raw)) return copy.googleFailed;
+  return unknown;
 }

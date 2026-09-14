@@ -13,8 +13,10 @@
  *    Apple sign-in into an error banner.
  */
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   welcomeCopy,
+  localizeAuthError,
   badCredentials,
   emailNeededForReset,
   confirmationSent,
@@ -93,9 +95,25 @@ describe('the terms footer assembles correctly in every language', () => {
     const sentence = c.termsPrefix + c.termsOfService + c.termsAnd + c.privacyPolicy + c.termsSuffix;
     expect(sentence).toContain(c.termsOfService);
     expect(sentence).toContain(c.privacyPolicy);
-    // No doubled or missing spaces where the parts meet.
+    // No DOUBLED space…
     expect(sentence).not.toMatch(/\s{2,}/);
-    expect(sentence.trim()).toBe(sentence.trim());
+    // …and no MISSING one: every join must have whitespace on one side.
+    // The previous version only checked for doubles, so deleting the trailing
+    // space in `termsPrefix` rendered "…acepta nuestrosTérminos" and passed.
+    const beforeTerms = sentence.charAt(sentence.indexOf(c.termsOfService) - 1);
+    expect(beforeTerms, 'space before the Terms link').toBe(' ');
+    const afterTerms = sentence.charAt(sentence.indexOf(c.termsOfService) + c.termsOfService.length);
+    expect(afterTerms, 'space after the Terms link').toBe(' ');
+    const beforePrivacy = sentence.charAt(sentence.indexOf(c.privacyPolicy) - 1);
+    expect(beforePrivacy, 'space before the Privacy link').toBe(' ');
+    if (c.termsSuffix) {
+      const afterPrivacy = sentence.charAt(
+        sentence.indexOf(c.privacyPolicy) + c.privacyPolicy.length,
+      );
+      expect(afterPrivacy, 'space before the trailing possessive').toBe(' ');
+    }
+    // No stray leading/trailing whitespace on the assembled sentence.
+    expect(sentence).toBe(sentence.trim());
   });
 
   it('Vietnamese actually uses the trailing possessive the split exists for', () => {
@@ -171,6 +189,63 @@ describe('Spanish keeps the corpus register (usted, not tú)', () => {
       resetSent('a@b.com', 'es'),
     ]) {
       expect(s, s).not.toMatch(TU_FORMS);
+    }
+  });
+});
+
+describe('every error auth.ts can return reaches the parent translated', () => {
+  // THE COUPLING PIN. `localizeAuthError` matches on prose that lives in
+  // another module. Reword `auth.ts` and the Spanish silently reverts to
+  // English — unless this test reads that file and fails first.
+  const AUTH_SRC = readFileSync(new URL('./auth.ts', import.meta.url), 'utf8');
+  const literals = [...AUTH_SRC.matchAll(/error: '([^']+)'/g)].map((m) => m[1]);
+
+  it('auth.ts still returns the literals this module was written against', () => {
+    // If this fails, someone changed auth.ts's prose — update the patterns in
+    // `localizeAuthError` in the same commit.
+    expect(literals.length).toBeGreaterThan(0);
+    expect(literals).toContain('An account with this email already exists. Try signing in instead.');
+    expect(literals).toContain('Network error. Please check your connection.');
+    expect(literals).toContain('Sign-in cancelled');
+  });
+
+  it.each(TRANSLATED)('%s: no auth literal renders as raw English', (locale) => {
+    const c = welcomeCopy(locale);
+    for (const raw of literals) {
+      // 'Sign-in cancelled' never reaches the banner — the screen filters it
+      // before calling the localizer.
+      if (raw === 'Sign-in cancelled') continue;
+      const shown = localizeAuthError(raw, c, locale);
+      expect(shown, `${locale}: "${raw}" fell through`).not.toBe(raw);
+    }
+  });
+
+  it.each(TRANSLATED)('%s: Supabase messages are mapped too', (locale) => {
+    const c = welcomeCopy(locale);
+    const SUPABASE = [
+      'Invalid login credentials',
+      'Email not confirmed',
+      'For security purposes, you can only request this after 60 seconds',
+    ];
+    for (const raw of SUPABASE) {
+      expect(localizeAuthError(raw, c, locale), raw).not.toBe(raw);
+    }
+  });
+
+  it('a bad password quotes the localized forgot-password label', () => {
+    for (const locale of TRANSLATED) {
+      const c = welcomeCopy(locale);
+      expect(localizeAuthError('Invalid login credentials', c, locale)).toContain(
+        `"${c.forgotPassword}"`,
+      );
+    }
+  });
+
+  it('anything unrecognized becomes the generic message, never raw English', () => {
+    for (const locale of ALL) {
+      const c = welcomeCopy(locale);
+      expect(localizeAuthError('Some new upstream failure', c, locale)).toBe(c.genericFailure);
+      expect(localizeAuthError(undefined, c, locale)).toBe(c.genericFailure);
     }
   });
 });

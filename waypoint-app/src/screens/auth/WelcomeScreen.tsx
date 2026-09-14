@@ -27,10 +27,10 @@ import { useI18n } from '@/i18n';
 import { toFunnelLocale } from '@/lib/eligibility';
 import {
   welcomeCopy,
-  badCredentials,
   emailNeededForReset,
   confirmationSent,
   resetSent,
+  localizeAuthError,
 } from '@/lib/welcomeCopy';
 import { brand, fonts, spacing, radii } from '@/lib/theme';
 
@@ -75,7 +75,7 @@ export default function WelcomeScreen() {
     const result = await signInWithApple();
     setLoading(null);
     if (!result.success && result.error !== 'Sign-in cancelled') {
-      setError(result.error ?? copy.appleFailed);
+      setError(localizeAuthError(result.error, copy, fl));
     }
   };
 
@@ -85,7 +85,7 @@ export default function WelcomeScreen() {
     const result = await signInWithGoogle();
     setLoading(null);
     if (!result.success && result.error !== 'Sign-in cancelled') {
-      setError(result.error ?? copy.googleFailed);
+      setError(localizeAuthError(result.error, copy, fl));
     }
   };
 
@@ -107,13 +107,10 @@ export default function WelcomeScreen() {
     setLoading(null);
 
     if (!result.success) {
-      const message = result.error ?? copy.genericFailure;
-      // Supabase's raw message for a bad login is terse — make it friendly
-      setError(
-        /invalid login credentials/i.test(message)
-          ? badCredentials(copy.forgotPassword, fl)
-          : message
-      );
+      // Everything auth.ts returns is English — its own prose and Supabase's
+      // alike — so it is mapped to the parent's language here rather than
+      // rendered raw under a translated UI.
+      setError(localizeAuthError(result.error, copy, fl));
       return;
     }
     if (isSignUp && 'needsConfirmation' in result && result.needsConfirmation) {
@@ -131,7 +128,7 @@ export default function WelcomeScreen() {
     const result = await requestPasswordReset(email.trim());
     setLoading(null);
     if (!result.success) {
-      setError(result.error ?? copy.resetSendFailed);
+      setError(localizeAuthError(result.error, copy, fl));
       return;
     }
     setInfo(resetSent(email.trim(), fl));

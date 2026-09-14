@@ -73,10 +73,12 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
    * correct. Synchronous on purpose: an async seed paints English first,
    * which is the frame this exists to remove.
    *
-   * SCOPE, stated honestly: this only decides which language the ALREADY
-   * TRANSLATED surfaces render in. `WelcomeScreen` and `OnboardingFlow` carry
-   * their own hardcoded English and are unaffected until they are wired —
-   * see `Roadmap/initiatives/009-i18n-sweep/`.
+   * SCOPE, stated honestly: this only decides which language the already
+   * translated surfaces render in. `WelcomeScreen` is wired as of the
+   * Welcome-screen PR; `OnboardingFlow` still carries its own hardcoded
+   * English, so a parent who signs up in Spanish meets an English onboarding
+   * on the very next screen. That is the next piece of work, not a claim this
+   * module already covers.
    */
   const [locale, setLocaleState] = useState<SupportedLocale>(
     () => initialLocale ?? resolveInitialLocale(null, deviceLanguageTags()),
