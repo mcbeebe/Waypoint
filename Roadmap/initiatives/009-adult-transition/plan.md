@@ -6,9 +6,10 @@
 Three PRs. Every one is `[owner]`: family-facing, tone-bearing, and — for B3 —
 schema. `/adversary` memo in each.
 
-**Answer question 1 in the intent before B1 starts.** If no credentialed read is
-available for the legal-capacity content, cut it from scope now rather than
-discovering that at review.
+**Both scope questions are answered (owner, Sep 15 2026).** Legal-capacity
+content **stays**, under the rule *present the options, never give a legal
+opinion* — see the intent's Constraints. The arc runs **ages 14 → school exit**,
+and the upper bound is an event, not an age. B1 may start.
 
 ---
 
@@ -23,7 +24,10 @@ discovering that at review.
    transition-coordinator lines). Put them in one table with their source, and
    mark each as *keep · rewrite · drop*. This is the content budget, and it is
    mostly already spent.
-2. **Sequence by age**, 14 → 19. For each stage name the trigger (an age, a
+2. **Sequence by age**, 14 → school exit (owner, Sep 15: "stop at school exit").
+   The upper bound is an EVENT, not an age — a student may exit at 18 with a
+   diploma or stay to 22 on a certificate track, so the arc reads the exit date
+   and never assumes the birthday. For each stage name the trigger (an age, a
    date, or a window), the obligation, who owes it, and what Waypoint can do
    about it in-app.
 3. **Separate dates from windows.** A birthday is a date. "Start months before"
@@ -61,7 +65,12 @@ output, not its input):
 - the SSA age-18 redetermination for SSI, and its Medi-Cal consequence;
 - the Disabled Adult Child benefit and what it turns on;
 - Department of Rehabilitation referral;
-- whatever supports the legal-capacity content, **if** it stays in scope.
+- the legal-capacity content, which **stays in scope** under the owner's rule.
+  Note what it needs a citation *for*: naming the options needs none — those are
+  facts about what exists. A citation is needed only if the arc ever wants to say
+  California law RANKS them (a court must consider less restrictive alternatives,
+  say). Without that citation the arc names the options and stops, which is a
+  complete answer, not a degraded one.
 
 **Exit:** every entry registered with a real `verifiedOn`; `KNOWN_GAPS` in
 `statuteAudit.guard.test.ts` is not one line longer than it was.
@@ -92,7 +101,7 @@ output, not its input):
    prose only — same keys, same citations, same lever refs. Budget for it in
    this PR rather than discovering it in CI.
 
-**Exit:** a family with a 14–19-year-old sees the item on Home unprompted, with
+**Exit:** a family with a child aged 14 up to school exit sees the item on Home unprompted, with
 a tappable citation; every gate green; `/adversary` memo and owner approval on
 the PR.
 
@@ -106,5 +115,7 @@ the PR.
   and a countdown to an invented date is worse than a sentence.
 - **Extend past the school-exit date.** Adult day programs, SNTs and the SDP
   adult pathway each deserve their own initiative.
-- **Ship legal-capacity content without a credentialed read.** Cutting it is a
-  smaller loss than getting it wrong.
+- **Give a legal opinion.** The options get named and described; they never get
+  ranked, recommended, or ordered in Waypoint's voice. The only way to say
+  California law prefers one is to cite the law that says so — and the statute
+  gate fails the build if that citation is not registered.

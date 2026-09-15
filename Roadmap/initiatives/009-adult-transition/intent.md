@@ -141,15 +141,25 @@ searching for it**, with a citation they can tap.
    ID") that nudged families of children with intellectual disability toward the
    option that removes rights. That is the clearest case for the rule.
 
-2. **How far past 18 does this go?** Conservatorship, SNTs, DOR and adult day
-   programs each pull toward a much larger surface. I would cap v1 at **14–19**
-   and treat everything after the school-exit date as out of scope.
+2. ~~**How far past 18 does this go?**~~ **ANSWERED, Sep 15 2026 — "stop at
+   school exit."** v1 runs **ages 14 → school exit**. Everything after that date
+   is a different initiative: adult day programs, the SDP adult pathway, Special
+   Needs Trusts, and supported/competitive employment beyond the DOR referral.
+
+   Note what the answer settles that the question did not: the boundary is an
+   **event, not an age**. School exit is a date a family can name — it varies
+   with whether a student exits at 18 with a diploma or stays to 22 on a
+   certificate track, and the arc must read the event rather than assume the
+   birthday. That makes it a real clock input rather than a hardcoded number,
+   and it is the correct answer for a product whose whole claim is dates that
+   arrive.
 3. **One arc or one per diagnosis?** I propose one shared arc. The transition
    obligations are set by age and system, not by diagnosis.
 
 ## Done when
 
-- A family with a child aged 14–19 sees a transition item on Home they did not
+- A family with a child aged 14 or older, up to school exit, sees a transition
+  item on Home they did not
   go looking for, and can tap its citation to see the authority and the date a
   human verified it.
 - Every statute the arc asserts resolves in `contentSources.ts` — confirmed by

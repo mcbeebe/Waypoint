@@ -1,6 +1,6 @@
 # Owner action items — September 2026
 
-**Date:** Sep 13, 2026 · **Updated:** Sep 15, 2026 · **Status:** open — Steps 2 and 3.1 DONE
+**Date:** Sep 13, 2026 · **Updated:** Sep 15, 2026 · **Status:** Step 1 is the only thing left — Steps 2, 3 and 4 are DONE
 **Companion to:** `Roadmap/Statute-Registry-Worksheet-Sep2026.md` (the detail behind Step 2),
 `Roadmap/Build-Plan-Items1-4-Sep2026.md`, `Roadmap/initiatives/009-adult-transition/`
 
@@ -119,7 +119,7 @@ last column.
 
 ---
 
-## 🟡 Step 3 — Two decisions on the Adult Transition
+## ✅ Step 3 — Two decisions on the Adult Transition — **BOTH ANSWERED**
 
 Read `Roadmap/initiatives/009-adult-transition/intent.md` first (one page).
 
@@ -147,24 +147,29 @@ The statute gate makes this mechanical: say it only if you can cite it.
 "Limited conservatorship is most common for ID," an unsourced empirical claim
 that nudged families toward the option that removes rights.
 
-### 3.2 · Age range for v1
+### 3.2 · Age range for v1 — **ANSWERED Sep 15, 2026**
 
-- [ ] **14–19, stopping at school exit** *(recommended)*
-- [ ] Other: ______________________
+- [x] **"Stop at school exit."** v1 runs **ages 14 → school exit**.
+
+The answer settles something the question didn't: the upper bound is an **event,
+not an age**. A student may exit at 18 with a diploma or stay to 22 on a
+certificate track — so the arc reads the exit date rather than assuming a
+birthday. That makes it a real clock input, which is the right shape for a
+product whose whole claim is dates that arrive.
 
 > **Then Claude:** builds B1 — the age-keyed arc, the date/window split, and
 > design-canvas mockups. *(~3 days, then back to you for approval before code.)*
 
 ---
 
-## 🟢 Step 4 — Approve the Learn engine scope
+## ✅ Step 4 — Approve the Learn engine scope — **APPROVED Sep 15, 2026**
 
 Initiative 004 is planned and waiting. The scope question is the whole decision.
 
-- [ ] **Approve ~40 derived articles**, each generated from a module that
+- [x] **APPROVED Sep 15, 2026 — ~40 derived articles**, each generated from a module that
       already exists, each carrying a citation and a reviewed-on date, each
       ending in an action the app performs.
-- [ ] **Do not approve** phase 8's original "dozens, then hundreds of articles"
+- [x] **Not approved** (correctly) — phase 8's original "dozens, then hundreds of articles"
       — the level-up review called that the single most dangerous line in the
       roadmap for a solo owner.
 
@@ -182,6 +187,7 @@ Append a line when something changes; a returning session reads this first.
 
 | Date | What changed |
 |---|---|
+| 2026-09-15 | **Step 3.2 answered** ("stop at school exit" — an event, not an age) and **Step 4 approved** (~40 derived articles). Only Step 1, the operational unblock, remains. |
 | 2026-09-15 | **Step 3.1 answered:** present the options, never give a legal opinion. Rule encoded in initiative 009; four shipped opinion lines neutralised. |
 | 2026-09-15 | **Step 2 closed.** Owner verified all 23. 12 authorities registered, 2 parent sections folded into existing entries, Section 504 registered as a named authority, 9 bare `§` given their code in prose (trilingual). Registry 25 → 38 entries. `KNOWN_GAPS` empty; ratchet is now a hard gate. Gates green: 140 files / 1560 tests. |
 | 2026-09-13 | Checklist created. Steps 1–4 all open. Code that needed no decision has shipped: `statuteAudit.ts` + ratchet, `sourceFreshness.ts`, initiative 009 intent/plan. |
