@@ -39,3 +39,22 @@ describe('the Your Result RC card opens the family-supports tier — when enroll
     expect(screen.queryByRole('button', { name: /family supports you can ask for/i })).toBeNull();
   });
 });
+
+describe('each result card carries a receipt, without hiding the date', () => {
+  it('the citation opens its source', () => {
+    state.rcStatus = 'active';
+    render(<EligibilityResultScreen />);
+    const chips = screen.getAllByLabelText(/Why this — the source/);
+    expect(chips.length).toBeGreaterThan(0);
+    fireEvent.click(chips[0]);
+    expect(screen.getByLabelText('Read the section')).toBeTruthy();
+  });
+
+  it('keeps the reviewed date on the face of the card', () => {
+    // The hero promises "the date we last checked it" — so the date must stay
+    // visible, not retreat behind the tap that now opens the source.
+    state.rcStatus = 'active';
+    render(<EligibilityResultScreen />);
+    expect(screen.getAllByText(/reviewed 2026-/).length).toBeGreaterThan(0);
+  });
+});

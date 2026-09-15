@@ -16,6 +16,7 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
+import Citation from '@/components/Citation';
 import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
 
 const T: Record<
@@ -168,7 +169,9 @@ export default function SupportDetailScreen() {
           <Text style={styles.secondaryCtaText}>{t.ask(support.name)}</Text>
         </Pressable>
 
-        <Text style={styles.citation}>ⓘ {support.citation}</Text>
+        <View style={styles.citationRow}>
+          <Citation citation={support.citation} locale={fl} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -262,10 +265,6 @@ const styles = StyleSheet.create({
   },
   secondaryCtaPressed: { backgroundColor: '#ECFEFF' },
   secondaryCtaText: { color: colors.teal, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600' },
-  citation: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-    marginTop: spacing.md,
-    textAlign: 'center',
-  },
+  // The chip aligns itself flex-start; this keeps the old centred placement.
+  citationRow: { alignItems: 'center', marginTop: spacing.md },
 });

@@ -17,6 +17,7 @@ import type { StackLayer, StackLayerKey } from '@/lib/resourceStack';
 import { ageFromDob, toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
+import Citation from '@/components/Citation';
 import type { HomeStackParamList } from '@/types/navigation';
 import type { Child } from '@/types/database';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
@@ -300,7 +301,7 @@ export default function ResourceStackScreen() {
             </Pressable>
           </View>
         )}
-        <Text style={styles.citation}>ⓘ {layer.citation}</Text>
+        <Citation citation={layer.citation} locale={funnelLocale} />
       </Pressable>
     );
   };
@@ -440,7 +441,6 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.semibold,
     textDecorationLine: 'underline',
   },
-  citation: { fontSize: fonts.sizes.xs, color: colors.mid },
   connector: {
     textAlign: 'center',
     fontSize: fonts.sizes.xs,

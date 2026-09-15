@@ -14,6 +14,7 @@ import type { RequestType } from '@/lib/requestClocks';
 import { getSdpJourneySteps } from '@/lib/sdpJourney';
 import { deriveResourceStack } from '@/lib/resourceStack';
 import { getGlossary, getLearnArticles } from '@/lib/learnLibrary';
+import { getFamilySupports } from '@/lib/familySupports';
 
 function emittedCitations(): Set<string> {
   const out = new Set<string>();
@@ -44,6 +45,10 @@ function emittedCitations(): Set<string> {
   // SDP journey steps + resource stack layers, both locales
   for (const locale of locales) {
     for (const s of getSdpJourneySteps(locale)) out.add(s.citation);
+    // The family-supports tier: SupportDetail renders this citation as a
+    // tappable receipt, so an uncovered one degrades to inert grey text —
+    // exactly the state this screen's wiring was meant to end.
+    for (const s of getFamilySupports(locale)) out.add(s.citation);
     // The Learn library asserts law too; without this the guard could not
     // see the newest content module at all.
     for (const a of getLearnArticles(locale)) if (a.citation) out.add(a.citation);
@@ -90,6 +95,24 @@ describe('content provenance registry', () => {
         new Date('2027-01-01').getTime()
       );
       expect(s.claim.length).toBeGreaterThan(20);
+    }
+  });
+
+  it('a card\u2019s visible reviewed date matches the registry\u2019s verified date', () => {
+    // EligibilityResult shows the date on the face of the card AND, since the
+    // chip became tappable, inside the sheet the chip opens. Those are two
+    // different constants (REVIEWED in eligibility.ts, verifiedOn here); if
+    // one is bumped without the other, a parent checking their receipt reads
+    // two different dates for the same claim. They must move together.
+    const { cards } = deriveEligibility(
+      { ageYears: 6, rcStatus: 'active', iepStatus: 'active', hasDiagnosis: true },
+      'en'
+    );
+    expect(cards.length).toBeGreaterThan(0);
+    for (const c of cards) {
+      const src = sourceForCitation(c.citation);
+      expect(src, `no source for ${c.citation}`).not.toBeNull();
+      expect(src!.verifiedOn, `${c.citation} date drift`).toBe(c.reviewedOn);
     }
   });
 

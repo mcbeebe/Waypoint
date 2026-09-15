@@ -47,3 +47,23 @@ describe('the Resource Stack RC layer opens the family-supports tier — when a 
     expect(screen.queryByRole('button', { name: /what to ask for/i })).toBeNull();
   });
 });
+
+describe('each layer carries a tappable receipt', () => {
+  it('the citation opens its source and does NOT also fire the card it sits inside', () => {
+    state.rcStatus = 'active';
+    render(<ResourceStackScreen />);
+
+    // Every layer's citation is registered, so every one is a button rather
+    // than the grey text it used to be.
+    const chips = screen.getAllByLabelText(/Why this — the source/);
+    expect(chips.length).toBeGreaterThan(0);
+
+    fireEvent.click(chips[0]);
+    // The sheet is open: the authority, and a link to read it.
+    expect(screen.getByLabelText('Read the section')).toBeTruthy();
+    // And nothing navigated. The chip sits INSIDE a Pressable card whose own
+    // press opens that layer's lever, so a parent reaching for their receipt
+    // must not be carried off to a letter draft instead.
+    expect(navigateCalls).toHaveLength(0);
+  });
+});

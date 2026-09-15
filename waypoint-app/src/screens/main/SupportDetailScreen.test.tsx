@@ -84,3 +84,24 @@ describe('the support detail renders and its CTAs fire the right navigation', ()
     }
   });
 });
+
+describe('the support carries a tappable receipt', () => {
+  it('the citation opens the Lanterman sections the ask rests on', () => {
+    routeParams.supportKey = 'sibling_support';
+    render(<SupportDetailScreen />);
+
+    const chip = screen.getByLabelText(/Why this — the source/);
+    fireEvent.click(chip);
+    expect(screen.getByText(/Verified /)).toBeTruthy();
+    expect(screen.getByLabelText('Read the section')).toBeTruthy();
+  });
+
+  it('every support in the tier is covered, so none renders an inert chip', () => {
+    for (const key of ['sibling_support', 'respite', 'camp_recreation', 'parent_training']) {
+      routeParams.supportKey = key;
+      const { unmount } = render(<SupportDetailScreen />);
+      expect(screen.queryByLabelText(/Why this — the source/)).not.toBeNull();
+      unmount();
+    }
+  });
+});
