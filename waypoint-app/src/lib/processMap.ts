@@ -178,9 +178,9 @@ export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
         'Không hiệu quả? Nấc thang leo thang'
       ),
       body: L(
-        'Four rungs, in order, each with its own letter and clock: a friendly written ask plus the IPP review (30 days) → request the written Notice of Action and appeal it if refused (60 days) → a §4731 complaint to the RC director (20 working days) → free advocates at OCRA and Disability Rights California. It starts collaborative; the tone firms up only as rungs go unanswered — and each rung creates the paper trail the next one needs.',
-        'Cuatro peldaños, en orden, cada uno con su propia carta y plazo: una petición amistosa por escrito más la revisión del IPP (30 días) → solicitar la Notificación de Acción por escrito y apelarla si la niegan (60 días) → una queja §4731 al director del Centro Regional (20 días hábiles) → defensores gratuitos en OCRA y Disability Rights California. Empieza colaborativo; el tono se endurece solo cuando los peldaños quedan sin respuesta — y cada peldaño crea el expediente que el siguiente necesita.',
-        'Bốn nấc, theo thứ tự, mỗi nấc có lá thư và thời hạn riêng: đề nghị thân thiện bằng văn bản kèm yêu cầu họp IPP (30 ngày) → yêu cầu Thông báo Hành động bằng văn bản và kháng cáo nếu bị từ chối (60 ngày) → đơn khiếu nại §4731 gửi giám đốc Trung tâm (20 ngày làm việc) → người bênh vực miễn phí tại OCRA và Disability Rights California. Bắt đầu hợp tác; giọng điệu chỉ cứng rắn dần khi các nấc không được hồi đáp — và mỗi nấc tạo hồ sơ cho nấc kế tiếp.'
+        'Four rungs, in order, each with its own letter and clock: a friendly written ask plus the IPP review (30 days) → request the written Notice of Action and appeal it if refused (60 days) → a W&I §4731 complaint to the RC director (20 working days) → free advocates at OCRA and Disability Rights California. It starts collaborative; the tone firms up only as rungs go unanswered — and each rung creates the paper trail the next one needs.',
+        'Cuatro peldaños, en orden, cada uno con su propia carta y plazo: una petición amistosa por escrito más la revisión del IPP (30 días) → solicitar la Notificación de Acción por escrito y apelarla si la niegan (60 días) → una queja W&I §4731 al director del Centro Regional (20 días hábiles) → defensores gratuitos en OCRA y Disability Rights California. Empieza colaborativo; el tono se endurece solo cuando los peldaños quedan sin respuesta — y cada peldaño crea el expediente que el siguiente necesita.',
+        'Bốn nấc, theo thứ tự, mỗi nấc có lá thư và thời hạn riêng: đề nghị thân thiện bằng văn bản kèm yêu cầu họp IPP (30 ngày) → yêu cầu Thông báo Hành động bằng văn bản và kháng cáo nếu bị từ chối (60 ngày) → đơn khiếu nại W&I §4731 gửi giám đốc Trung tâm (20 ngày làm việc) → người bênh vực miễn phí tại OCRA và Disability Rights California. Bắt đầu hợp tác; giọng điệu chỉ cứng rắn dần khi các nấc không được hồi đáp — và mỗi nấc tạo hồ sơ cho nấc kế tiếp.'
       ),
       citation: 'W&I §4710.5 · §4731',
       clock: L(
@@ -427,7 +427,7 @@ export function deriveStageIndex(
 ): number {
   switch (rcStatus) {
     case 'applied':
-      return 1; // waiting on assessment/eligibility — the §4643 clock matters now
+      return 1; // waiting on assessment/eligibility — the W&I §4643 clock matters now
     case 'active':
       return hasIpp ? 4 : 2; // IPP confirmed → living with services; else the meeting lever matters now
     case 'known':

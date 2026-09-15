@@ -32,6 +32,9 @@ export interface ContentSource {
 
 const VERIFIED = '2026-08-23';
 
+/** The prose-audit backlog, verified by the owner on this date (phase A2). */
+const VERIFIED_SEP = '2026-09-15';
+
 export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'lanterman_act',
@@ -167,7 +170,9 @@ export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'edc_56329b_56501',
     title: 'Education Code §56329(b) (IEE at public expense) · §56501 (due process)',
-    covers: ['Ed Code §56329(b) · §56501'],
+    // '§56329' bare is the parent section; the registry verified (b), and the
+    // prose cites the section. Both resolve here rather than to two entries.
+    covers: ['Ed Code §56329(b) · §56501', 'Ed Code §56329'],
     url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56329.',
     verifiedOn: '2026-08-26',
     claim:
@@ -176,7 +181,8 @@ export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'wic_4648',
     title: 'Welfare & Institutions Code §4648(a) (securing IPP services)',
-    covers: ['W&I §4646.5 · §4648(a)'],
+    // As above: prose cites the parent §4648, the registry verified (a).
+    covers: ['W&I §4646.5 · §4648(a)', 'W&I §4648'],
     url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4648.',
     verifiedOn: '2026-08-28',
     claim:
@@ -253,6 +259,135 @@ export const CONTENT_SOURCES: ContentSource[] = [
     verifiedOn: '2026-08-25',
     claim:
       "Institutional deeming under the HCBS DD waiver determines a child's Medi-Cal eligibility without counting parental income or resources.",
+  },
+
+  // ── Registered 2026-09-15 ────────────────────────────────────────────────
+  // The prose-audit backlog (`statuteAudit.ts`, phase A2). Each of these was
+  // asserted to families in running text — several inside letter templates a
+  // parent sends to a district or Regional Center under the heading
+  // "Violations:" — with no entry here. Owner verified the set on 2026-09-15
+  // against the sources below; see `Roadmap/Statute-Registry-Worksheet-Sep2026.md`
+  // for the claim each one was checked against.
+  {
+    key: 'cfr_300_301',
+    title: '34 CFR §300.301 (IDEA — initial evaluation)',
+    covers: ['34 CFR §300.301'],
+    url: 'https://www.ecfr.gov/current/title-34/section-300.301',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'A parent may request an initial special-education evaluation; the district must conduct it within 60 days of consent unless state law sets another timeline.',
+  },
+  {
+    key: 'cfr_300_502',
+    title: '34 CFR §300.502 (IDEA — independent educational evaluation)',
+    covers: ['34 CFR §300.502'],
+    url: 'https://www.ecfr.gov/current/title-34/section-300.502',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'A parent who disagrees with the district evaluation may request an IEE at public expense; the district must either fund it or file for due process.',
+  },
+  {
+    key: 'edc_56302_1',
+    title: 'Education Code §56302.1 (referral for assessment)',
+    covers: ['Ed Code §56302.1'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56302.1.',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'A parent referral for special-education assessment starts the statutory assessment-plan and evaluation clocks.',
+  },
+  {
+    key: 'edc_56341_1',
+    title: 'Education Code §56341.1 (IEP team duties)',
+    covers: ['Ed Code §56341.1', 'IDEA · Ed Code §56341.1'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&sectionNum=56341.1.',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      "The IEP team must consider the parent's concerns and the strengths of the child when developing the IEP.",
+  },
+  {
+    key: 'hsc_1374_73',
+    title: 'Health & Safety Code §1374.73 (autism behavioral health treatment)',
+    covers: ['H&S §1374.73', 'Health & Safety Code §1374.73'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=HSC&sectionNum=1374.73.',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'Health plans regulated by DMHC must cover behavioral health treatment, including ABA, for pervasive developmental disorder or autism.',
+  },
+  {
+    key: 'ins_10144_51',
+    title: 'Insurance Code §10144.51 (autism behavioral health treatment — CDI plans)',
+    covers: ['Ins Code §10144.51', 'Insurance Code §10144.51'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=INS&sectionNum=10144.51.',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'The Insurance Code twin of H&S §1374.73: disability insurers regulated by CDI must cover behavioral health treatment for autism.',
+  },
+  {
+    key: 'usc_1396d_r',
+    title: '42 U.S.C. §1396d(r) — EPSDT',
+    covers: ['42 U.S.C. §1396d(r)', '42 USC §1396d(r)'],
+    url: 'https://www.law.cornell.edu/uscode/text/42/1396d',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'EPSDT requires Medicaid (Medi-Cal) to cover any medically necessary service to correct or ameliorate a condition for a beneficiary under 21, whether or not the service is in the state plan for adults.',
+  },
+  {
+    key: 'wic_4500',
+    title: 'Welfare & Institutions Code §4500 (Lanterman Act — opening)',
+    covers: ['W&I §4500'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4500.',
+    verifiedOn: VERIFIED_SEP,
+    claim: 'The opening section of the Lanterman Developmental Disabilities Services Act.',
+  },
+  {
+    key: 'wic_4502',
+    title: 'Welfare & Institutions Code §4502 (rights)',
+    covers: ['W&I §4502'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4502.',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'People with developmental disabilities have the same legal rights as all other Californians, plus enumerated rights to treatment, dignity, and participation in decisions.',
+  },
+  {
+    key: 'wic_4620',
+    title: 'Welfare & Institutions Code §4620 (Regional Center responsibilities)',
+    covers: ['W&I §4620'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4620.',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'DDS contracts with private non-profit regional centers to deliver Lanterman services locally.',
+  },
+  {
+    key: 'wic_4642',
+    title: 'Welfare & Institutions Code §4642 (intake)',
+    covers: ['W&I §4642', 'Lanterman Act, W&I §4642'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4642.',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'A regional center must provide initial intake within 15 working days of a request for services.',
+  },
+  {
+    key: 'wic_95014',
+    title: 'Welfare & Institutions Code §95014 (Early Start eligibility)',
+    covers: ['W&I §95014'],
+    url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=95014.',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'Eligibility for Early Start (California Early Intervention Services) for infants and toddlers from birth to 36 months.',
+  },
+  {
+    // A NAMED authority, not a numbered California code section — which is why
+    // the prose says "a Section 504 plan" and must keep saying exactly that. A
+    // parent's letter to a principal is not the place for a US Code cite, and
+    // the collaborative-tone rule says the first ask stays plain. The audit
+    // recognises this entry by its literal `covers` string instead.
+    key: 'section_504',
+    title: 'Section 504 of the Rehabilitation Act of 1973 (29 U.S.C. §794)',
+    covers: ['Section 504', '29 U.S.C. §794'],
+    url: 'https://www.hhs.gov/civil-rights/for-individuals/disability/laws-guidance/index.html',
+    verifiedOn: VERIFIED_SEP,
+    claim:
+      'Section 504 prohibits disability discrimination by recipients of federal funds, and is the basis for a school "504 plan" of accommodations for a student who does not qualify for an IEP.',
   },
 ];
 

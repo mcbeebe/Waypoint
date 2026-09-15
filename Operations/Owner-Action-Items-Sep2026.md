@@ -1,6 +1,6 @@
 # Owner action items — September 2026
 
-**Date:** Sep 13, 2026 · **Status:** open — tick as you go
+**Date:** Sep 13, 2026 · **Updated:** Sep 15, 2026 · **Status:** open — Step 2 DONE
 **Companion to:** `Roadmap/Statute-Registry-Worksheet-Sep2026.md` (the detail behind Step 2),
 `Roadmap/Build-Plan-Items1-4-Sep2026.md`, `Roadmap/initiatives/009-adult-transition/`
 
@@ -43,7 +43,12 @@ product that is not fully running.
 
 ---
 
-## 🟠 Step 2 — Verify the statutes
+## ✅ Step 2 — Verify the statutes — **DONE Sep 15, 2026**
+
+> Owner verified rows 1–14 as REGISTER and corrected row 15 to 29 U.S.C. §794.
+> All 23 gaps are closed; `KNOWN_GAPS` is empty and the ratchet is now a plain
+> gate. Registry went from 25 entries to 38. Nothing below needs doing again —
+> kept for the record.
 
 **23 findings, but only 15 need you to open a source.** The audit
 (`statuteAudit.ts`) found every statute asserted in prose with nothing behind
@@ -62,7 +67,7 @@ should write `W&I §4731`, so a parent cannot look it up. In-repo evidence:
 `agencies.ts:183` lists them together under "W&I Code §4500+", and
 `agencies.ts:177` spells out "W&I Code §4731".
 
-- [ ] **Confirm: these eight are correctly attributed as written below.**
+- [x] **Confirmed and applied.**
       One glance, no source lookup.
 
 | Prose says | Should say | Where |
@@ -106,7 +111,7 @@ last column.
 | 14 | W&I §95014 | Early Start eligibility | [leginfo](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=95014.) | |
 | 15 | Section 504 (Rehabilitation Act) | 504 plans as an IEP fallback — **not a California code**; likely 29 U.S.C. §794 | [cornell](https://www.law.cornell.edu/uscode/text/29/794) | |
 
-- [ ] **All 15 verdicts written.**
+- [x] **All 15 verdicts given.** 1–14 REGISTER; 15 corrected to 29 U.S.C. §794.
 
 > **Then Claude:** writes every registry entry with your date, applies the eight
 > prose fixes, empties `KNOWN_GAPS` in `statuteAudit.guard.test.ts`, and
@@ -161,6 +166,7 @@ Append a line when something changes; a returning session reads this first.
 
 | Date | What changed |
 |---|---|
+| 2026-09-15 | **Step 2 closed.** Owner verified all 23. 12 authorities registered, 2 parent sections folded into existing entries, Section 504 registered as a named authority, 9 bare `§` given their code in prose (trilingual). Registry 25 → 38 entries. `KNOWN_GAPS` empty; ratchet is now a hard gate. Gates green: 140 files / 1560 tests. |
 | 2026-09-13 | Checklist created. Steps 1–4 all open. Code that needed no decision has shipped: `statuteAudit.ts` + ratchet, `sourceFreshness.ts`, initiative 009 intent/plan. |
 
 ---

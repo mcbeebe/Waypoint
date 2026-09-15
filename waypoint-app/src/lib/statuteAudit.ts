@@ -186,6 +186,18 @@ export interface RegistryCoverage {
   exact: Set<string>;
   /** `CODE:section` strings, ignoring subsection. */
   sections: Set<string>;
+  /**
+   * Registered authorities that carry no `§` — "Lanterman Act", "IDEA Part C ·
+   * Early Start", "Section 504". They are proper nouns, and the last of those
+   * is why this exists: "Section 504" parses as a bare section number and
+   * reported as unattributed forever. The fix is NOT to write "29 U.S.C. §794"
+   * into a parent's letter to a principal — that is over-lawyering the first,
+   * friendliest ask, which the escalation-tone rule forbids. It is to let the
+   * registry say "this phrase is an authority I cover," and take its word.
+   *
+   * Longest first, so a longer name wins over a shorter one it contains.
+   */
+  named: string[];
 }
 
 /**
@@ -198,15 +210,38 @@ export function registryCoverage(
 ): RegistryCoverage {
   const exact = new Set<string>();
   const sections = new Set<string>();
+  const named: string[] = [];
   for (const source of sources) {
     for (const cover of source.covers) {
+      if (!cover.includes('§')) named.push(cover);
       for (const atom of scan(cover)) {
         exact.add(atom.id);
         sections.add(atom.sectionId);
       }
     }
   }
-  return { exact, sections };
+  named.sort((a, b) => b.length - a.length);
+  return { exact, sections, named };
+}
+
+/** Escape a literal for use inside a RegExp. */
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Blank out registered named authorities before scanning, so their numbers are
+ * never mistaken for statute references.
+ *
+ * Replaced with spaces rather than removed, so every other citation on the line
+ * keeps its offsets and its inherited code.
+ */
+function redactNamed(text: string, named: ReadonlyArray<string>): string {
+  let out = text;
+  for (const name of named) {
+    out = out.replace(new RegExp(escapeRe(name), 'gi'), (m) => ' '.repeat(m.length));
+  }
+  return out;
 }
 
 /** How well a prose citation lines up with the registry. */
@@ -243,7 +278,7 @@ export function auditText(
   where = '',
   coverage: RegistryCoverage = registryCoverage()
 ): AuditFinding[] {
-  return parseCitations(text)
+  return parseCitations(redactNamed(text, coverage.named))
     .map((atom) => ({ atom, match: classify(atom, coverage), where }))
     .filter((f) => f.match !== 'exact');
 }

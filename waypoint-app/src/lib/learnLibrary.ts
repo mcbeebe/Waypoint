@@ -247,8 +247,8 @@ export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
         'Lời từ chối bằng miệng không phải là một quyết định. Hãy yêu cầu bằng văn bản: Thông báo Hành động nêu lý do và quyền kháng nghị của quý vị. Hầu hết gia đình không yêu cầu, và lời từ chối cứ thế tồn tại.'
       ),
       minutes: 6,
-      // §4710 is the section that REQUIRES the written Notice of Action;
-      // §4710.5 is the appeal window, which this article does not claim.
+      // W&I §4710 is the section that REQUIRES the written Notice of Action;
+      // W&I §4710.5 is the appeal window, which this article does not claim.
       citation: 'W&I §4710',
       body: [
         {

@@ -245,19 +245,37 @@ describe('against the real registry', () => {
     expect(auditText('assessment within 120 days (W&I §4643)', '', coverage)).toEqual([]);
   });
 
-  it('flags the prose-only statutes the level-up review found', () => {
-    // These appear in running text in src/ and have no registry entry. If one
-    // of them is ever registered, this test SHOULD fail — delete its line.
+  it('the prose-only statutes the level-up review found are now registered', () => {
+    // These were the audit's original findings — asserted in running text with
+    // nothing behind them. Phase A2 registered them on 2026-09-15, so the
+    // assertion inverted: the audit must now find nothing to say about them.
+    // (The previous version of this test expected them to be FLAGGED, and its
+    // comment said it should fail the day they were registered. It did.)
     const flagged = summarise(
       auditAll(
         [
           { where: 'prose', text: 'W&I §4642' },
           { where: 'prose', text: 'Health & Safety Code §1374.73' },
+          { where: 'prose', text: '34 CFR §300.301 and 34 CFR §300.502' },
+          { where: 'prose', text: 'Ed Code §56302.1 · Ed Code §56341.1' },
+          { where: 'prose', text: 'W&I §4500 · W&I §4502 · W&I §4620 · W&I §95014' },
         ],
         coverage
       )
-    ).map((r) => r.id);
-    expect(flagged).toContain('WIC:4642');
-    expect(flagged).toContain('HSC:1374.73');
+    );
+    expect(flagged).toEqual([]);
+  });
+
+  it('a named authority is covered by its phrase, not by a section number', () => {
+    // "Section 504" is a proper noun. It must stay plain English in a parent's
+    // letter to a principal — writing "29 U.S.C. §794" there over-lawyers the
+    // friendliest ask, which the escalation-tone rule forbids.
+    expect(auditText('if denied, request a Section 504 plan', 'x.ts', coverage)).toEqual([]);
+  });
+
+  it('still flags a statute that genuinely has no entry', () => {
+    // The gate has to keep biting now that KNOWN_GAPS is empty.
+    const flagged = summarise(auditAll([{ where: 'x.ts', text: 'W&I §9999' }], coverage));
+    expect(flagged.map((r) => r.id)).toEqual(['WIC:9999']);
   });
 });
