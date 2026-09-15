@@ -31,6 +31,17 @@ import { supabase } from '@/lib/supabase';
 import { generateStarterPlan } from '@/lib/planGenerator';
 import { lookupRC, rcByCounty, ALL_COUNTIES } from '@/data/regionalCenters';
 import { showAlert } from '@/lib/dialogs';
+import { useI18n } from '@/i18n';
+import { toFunnelLocale } from '@/lib/eligibility';
+import {
+  onboardingCopy,
+  rcStatusOptions,
+  iepStatusOptions,
+  insuranceOptions,
+  countyChosen,
+  ageDisplay,
+  ageBandLabel,
+} from '@/lib/onboardingCopy';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 /** Set at onboarding completion; Home reads it once to reveal the Journey Map */
@@ -38,27 +49,10 @@ export const SHOW_JOURNEY_FLAG = '@waypoint_show_journey';
 
 // ─── Step option data (ported from GAS MVP ONBOARD_STEPS) ────────────────────
 
-const RC_STATUS_OPTIONS = [
-  { value: 'unknown', label: "I don't know", emoji: '❓', description: 'Not sure what Regional Center is' },
-  { value: 'known', label: 'I know my RC', emoji: '📍', description: 'Know which one but not connected' },
-  { value: 'applied', label: 'Applied / In process', emoji: '📝', description: 'Referral or intake started' },
-  { value: 'active', label: 'Active client', emoji: '✅', description: 'Currently receiving RC services' },
-];
-
-const IEP_STATUS_OPTIONS = [
-  { value: 'no', label: 'No IEP', emoji: '📭', description: 'Never requested' },
-  { value: 'unknown', label: "Don't know", emoji: '❓', description: "Not sure if child has one" },
-  { value: 'eval_done', label: 'Evaluation done', emoji: '🔍', description: 'Assessed but no IEP yet' },
-  { value: 'active', label: 'Active IEP', emoji: '✅', description: 'Currently has IEP in place' },
-  { value: 'na', label: 'Not applicable', emoji: '➖', description: 'Child not school age' },
-];
-
-const INSURANCE_OPTIONS = [
-  { value: 'private', label: 'Private insurance', emoji: '🏥' },
-  { value: 'medicaid', label: 'Medi-Cal', emoji: '🏛️' },
-  { value: 'both', label: 'Both', emoji: '🔄' },
-  { value: 'none', label: 'None / Unsure', emoji: '❓' },
-];
+// The three intake grids live in `@/lib/onboardingCopy` so their labels can
+// be translated while their VALUES stay locale-invariant — the values are
+// persisted and shared with ProfileScreen, and `onboardingCopy.test.ts` pins
+// the two screens' lists against each other.
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -83,6 +77,11 @@ const TOTAL_STEPS = 6;
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
+  // The app opens in the device's language, so a family that installed on a
+  // Spanish phone reaches this flow already in Spanish.
+  const { locale } = useI18n();
+  const fl = toFunnelLocale(locale);
+  const copy = onboardingCopy(fl);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios');
@@ -138,9 +137,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     let months = now.getMonth() - data.birthday.getMonth();
     if (months < 0) { years--; months += 12; }
 
-    const display = years > 0
-      ? `${years} year${years !== 1 ? 's' : ''}, ${months} month${months !== 1 ? 's' : ''}`
-      : `${months} month${months !== 1 ? 's' : ''}`;
+    const display = ageDisplay(years, months, fl);
 
     let band = '0-2';
     if (years >= 13) band = '13-17';
@@ -265,12 +262,16 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
       onComplete();
     } catch (err: unknown) {
-      const e = err as { message?: string };
-      showAlert('Could not finish setup', e.message || 'Failed to save. Please try again.');
+      // The raw message is Supabase's (or our own `'Not authenticated'`) and
+      // always English — showing it verbatim would hand a Spanish-speaking
+      // parent an untranslated failure at the end of six steps, on something
+      // they cannot act on anyway. It goes to the log; they get their language.
+      console.warn('Onboarding completion failed:', err);
+      showAlert(copy.setupFailedTitle, copy.setupFailedBody);
     } finally {
       setSaving(false);
     }
-  }, [data, onComplete]);
+  }, [data, onComplete, copy, fl, selectedCounty]);
 
   // ─── Navigation ──────────────────────────────────────────────────────────
 
@@ -293,36 +294,36 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       case 0:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Welcome to Waypoint</Text>
-            <Text style={styles.stepSubtitle}>Let's get to know your family</Text>
+            <Text style={styles.stepTitle}>{copy.welcomeTitle}</Text>
+            <Text style={styles.stepSubtitle}>{copy.welcomeSubtitle}</Text>
 
-            <Text style={styles.inputLabel}>Your first name</Text>
+            <Text style={styles.inputLabel}>{copy.parentFirstName}</Text>
             <TextInput
               style={styles.input}
               value={data.parentFirstName}
               onChangeText={v => updateField('parentFirstName', v)}
-              placeholder="e.g., Sarah"
+              placeholder={copy.parentFirstNameExample}
               placeholderTextColor={colors.mid}
               autoCapitalize="words"
               autoFocus
             />
 
-            <Text style={styles.inputLabel}>Child's first name</Text>
+            <Text style={styles.inputLabel}>{copy.childFirstName}</Text>
             <TextInput
               style={styles.input}
               value={data.childName}
               onChangeText={v => updateField('childName', v)}
-              placeholder="e.g., Maya"
+              placeholder={copy.childFirstNameExample}
               placeholderTextColor={colors.mid}
               autoCapitalize="words"
             />
 
-            <Text style={styles.inputLabel}>ZIP code</Text>
+            <Text style={styles.inputLabel}>{copy.zipCode}</Text>
             <TextInput
               style={styles.input}
               value={data.zipCode}
               onChangeText={v => updateField('zipCode', v)}
-              placeholder="e.g., 94610"
+              placeholder={copy.zipExample}
               placeholderTextColor={colors.mid}
               keyboardType="number-pad"
               maxLength={5}
@@ -330,21 +331,21 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             <TouchableOpacity
               onPress={() => setShowCountyPicker(true)}
               accessibilityRole="button"
-              accessibilityLabel="Find your Regional Center by county instead"
+              accessibilityLabel={copy.findByCountyA11y}
             >
               <Text style={styles.countyLink}>
                 {selectedCounty
-                  ? `County: ${selectedCounty} ✓ (tap to change)`
-                  : "Don't know your ZIP? Find by county →"}
+                  ? countyChosen(selectedCounty, fl)
+                  : copy.findByCounty}
               </Text>
             </TouchableOpacity>
 
-            <Text style={styles.inputLabel}>Email (optional)</Text>
+            <Text style={styles.inputLabel}>{copy.emailOptional}</Text>
             <TextInput
               style={styles.input}
               value={data.email}
               onChangeText={v => updateField('email', v)}
-              placeholder="For deadline reminders"
+              placeholder={copy.emailHint}
               placeholderTextColor={colors.mid}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -355,10 +356,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       case 1:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Child's Diagnosis</Text>
+            <Text style={styles.stepTitle}>{copy.diagnosisTitle}</Text>
             <DiagnosisSelector
               selected={data.diagnoses}
               onToggle={toggleDiagnosis}
+              locale={fl}
             />
           </View>
         );
@@ -367,17 +369,15 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         const age = getAge();
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Child's Birthday</Text>
-            <Text style={styles.stepSubtitle}>
-              This helps us give age-appropriate guidance
-            </Text>
+            <Text style={styles.stepTitle}>{copy.birthdayTitle}</Text>
+            <Text style={styles.stepSubtitle}>{copy.birthdaySubtitle}</Text>
 
             {Platform.OS === 'web' &&
               // Native DateTimePicker has no web implementation — use the
               // browser's built-in date input, styled to match the theme.
               React.createElement('input', {
                 type: 'date',
-                'aria-label': "Child's birthday",
+                'aria-label': copy.birthdayA11y,
                 value: data.birthday ? localDayISO(data.birthday) : '',
                 max: localDayISO(),
                 min: '2000-01-01',
@@ -409,7 +409,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 <Text style={styles.dateButtonText}>
                   {data.birthday
                     ? data.birthday.toLocaleDateString()
-                    : 'Tap to select birthday'}
+                    : copy.tapToSelectBirthday}
                 </Text>
               </TouchableOpacity>
             )}
@@ -431,7 +431,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             {age && (
               <View style={styles.ageBadge}>
                 <Text style={styles.ageText}>{age.display}</Text>
-                <Text style={styles.ageBand}>Age band: {age.band}</Text>
+                <Text style={styles.ageBand}>{ageBandLabel(age.band, fl)}</Text>
               </View>
             )}
           </View>
@@ -441,12 +441,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       case 3:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Regional Center Status</Text>
-            <Text style={styles.stepSubtitle}>
-              Regional Centers provide services under the Lanterman Act
-            </Text>
+            <Text style={styles.stepTitle}>{copy.rcStatusTitle}</Text>
+            <Text style={styles.stepSubtitle}>{copy.rcStatusSubtitle}</Text>
             <SelectGrid
-              options={RC_STATUS_OPTIONS}
+              options={rcStatusOptions(fl)}
               selected={data.rcStatus}
               onSelect={v => updateField('rcStatus', v)}
               columns={1}
@@ -457,12 +455,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       case 4:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>IEP Status</Text>
-            <Text style={styles.stepSubtitle}>
-              Individualized Education Program at school
-            </Text>
+            <Text style={styles.stepTitle}>{copy.iepStatusTitle}</Text>
+            <Text style={styles.stepSubtitle}>{copy.iepStatusSubtitle}</Text>
             <SelectGrid
-              options={IEP_STATUS_OPTIONS}
+              options={iepStatusOptions(fl)}
               selected={data.iepStatus}
               onSelect={v => updateField('iepStatus', v)}
               columns={1}
@@ -473,12 +469,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       case 5:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Insurance Type</Text>
-            <Text style={styles.stepSubtitle}>
-              This determines which benefits and services apply
-            </Text>
+            <Text style={styles.stepTitle}>{copy.insuranceTitle}</Text>
+            <Text style={styles.stepSubtitle}>{copy.insuranceSubtitle}</Text>
             <SelectGrid
-              options={INSURANCE_OPTIONS}
+              options={insuranceOptions(fl)}
               selected={data.insurance}
               onSelect={v => updateField('insurance', v)}
               columns={2}
@@ -514,7 +508,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         {showCountyPicker && (
           <View style={styles.countyOverlay}>
             <View style={styles.countySheet}>
-              <Text style={styles.countyTitle}>Choose your county</Text>
+              <Text style={styles.countyTitle}>{copy.chooseCounty}</Text>
               <ScrollView style={styles.countyList}>
                 {ALL_COUNTIES.map(({ county }) => (
                   <TouchableOpacity
@@ -536,9 +530,9 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 style={styles.countyCancel}
                 onPress={() => setShowCountyPicker(false)}
                 accessibilityRole="button"
-                accessibilityLabel="Cancel"
+                accessibilityLabel={copy.cancel}
               >
-                <Text style={styles.countyCancelText}>Cancel</Text>
+                <Text style={styles.countyCancelText}>{copy.cancel}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -550,16 +544,16 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               onPress={handleBack}
               style={styles.backButton}
               accessibilityRole="button"
-              accessibilityLabel="Go back"
+              accessibilityLabel={copy.backA11y}
             >
-              <Text style={styles.backText}>Back</Text>
+              <Text style={styles.backText}>{copy.back}</Text>
             </TouchableOpacity>
           )}
 
           <View style={styles.flex} />
 
           <Button
-            title={step === TOTAL_STEPS - 1 ? "Let's go!" : 'Next'}
+            title={step === TOTAL_STEPS - 1 ? copy.letsGo : copy.next}
             onPress={handleNext}
             disabled={!canAdvance() || saving}
             loading={saving}
