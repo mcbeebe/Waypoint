@@ -28,7 +28,7 @@ WayPoint/
 │   │   ├── hooks/              # useAuth.ts (Supabase session management)
 │   │   └── types/              # database.ts (schema types), navigation.ts
 │   ├── supabase/
-│   │   ├── migrations/         # 59 sequential SQL files — APPLIED BY HAND
+│   │   ├── migrations/         # 61 sequential SQL files — APPLIED BY HAND
 │   │   └── functions/          # 8 Edge Functions: ai-proxy, gmail, google-auth,
 │   │                           #   delete-account, stripe-webhook, push-send,
 │   │                           #   poll-replies, family-invite (Deno) + _shared/
@@ -101,9 +101,9 @@ elsewhere. The description below is historical.
   - Auto-updating `updated_at` triggers
 - **Navigation:** React Navigation (native-stack)
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
-- **Current state (2026-09-03):** the flagship product. 59 migrations, eight
-  Edge Functions in production, 44 screens under `main/` plus auth /
-  onboarding / staff / legal, and a 111-file / 1313-test vitest suite across
+- **Current state (2026-09-15):** the flagship product. 61 migrations, eight
+  Edge Functions in production, 45 screens under `main/` plus auth /
+  onboarding / staff / legal, and a 131-file / 1602-test vitest suite across
   four projects. (This line previously read "Auth scaffolding… no screens
   beyond onboarding exist yet.")
 
@@ -112,7 +112,7 @@ elsewhere. The description below is historical.
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
 npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
-npm test            # vitest, FOUR projects, 111 files (117 runs) / 1313 — CI gate
+npm test            # vitest, FOUR projects, 131 files (143 runs) — CI gate
 npm run build:web   # expo export + postbuild — CI gate (prod bundle)
 npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
 ```
@@ -138,7 +138,7 @@ npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
   tests, yet `deploy-edge-functions.yml` ships them to the production project
   on merge to `main`. Treat every change there as unverified by CI.
 - **`npm test` runs FOUR projects, and the count of files is not the count of
-  runs** — the six `.tz.test.ts` files execute twice, once per timezone.
+  runs** — the twelve `.tz.test.ts` files execute twice, once per timezone.
   - `logic` (`*.test.ts`, node) — the pure modules.
   - `ui` (`*.test.tsx`, jsdom + react-native-web) renders components. It exists
     because three adversarial reviews in a row found defects the logic suite
