@@ -199,12 +199,22 @@ The credentialed-review attestation. `null` until the reviewer signs off.
 | `annual` | Page's own anniversary | Default for evergreen process guides |
 | `none` | No scheduled refresh | Truly static content (still subject to `verifiedAsOf` rules where applicable) |
 
-### `sources` — array of `{ label, url, accessed }`, default `[]`
+### `sources` — array of `{ cite?, label, url, accessed }`, default `[]`
 
 - **Purpose:** The citations rendered on-page. Every statute, figure, deadline,
   or program rule in the body needs a source here. `url` must be a valid URL
   (schema-validated); `accessed` records when it was last checked, which is what
   makes future re-verification tractable.
+- **`cite` (optional):** the chip text this source backs, when the label alone
+  cannot be matched to it. A citation chip in the prose links to its entry in
+  the on-page Sources list; the pairing is normally inferred from the start of
+  the label, which works for statutes (`WIC §4643 (…)` ↔ a `WIC §4643` chip)
+  and fails for publisher sources — `DHCS HCBS-DD Waiver` in the prose against
+  `DHCS — HCBS Waiver for the Developmentally Disabled` in the label, with four
+  other DHCS entries on the same page. Set `cite` to the chip's exact text and
+  the guessing stops. Two sources on one page must not declare the same `cite`;
+  if they do, neither chip links (an ambiguous receipt is worse than none).
+  A chip whose page offers no match stays plain text, never a dead link.
 - **Who fills:** Claude draft proposes (real sources only — a source Claude
   cannot verify gets a `[TBC]` label and a note, never a fabricated URL);
   founder/reviewer verify each one before publish.
@@ -213,9 +223,15 @@ The credentialed-review attestation. `null` until the reviewer signs off.
 - **Example:**
   ```yaml
   sources:
+    # A statute label needs no `cite` — it already starts with the citation.
     - label: "WIC § 4643 — Regional Center assessment timeline"
       url: "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643"
       accessed: 2026-08-25
+    # A publisher source does: the chip and the label are different prose.
+    - cite: "DHCS HCBS-DD Waiver"
+      label: "DHCS — HCBS Waiver for the Developmentally Disabled (institutional deeming)"
+      url: "https://www.dhcs.ca.gov/services/ltc/Pages/HCBS-DD-Waiver.aspx"
+      accessed: 2026-09-15
   ```
 
 ### `changelog` — array of `{ date, note }`, default `[]`

@@ -104,7 +104,23 @@ const seoBase = z.object({
   /** Which named calendar event triggers this page's refresh. */
   nextReviewEvent: z.enum(REFRESH_EVENTS).default('annual'),
   sources: z
-    .array(z.object({ label: z.string(), url: z.string().url(), accessed: z.coerce.date() }))
+    .array(
+      z.object({
+        /**
+         * The chip text this source backs, when the label alone cannot be
+         * matched to it. Statute labels start with their citation
+         * (`WIC §4643 (…)` ↔ a `WIC §4643` chip) and need nothing; publisher
+         * sources do — a `DHCS HCBS-DD Waiver` chip and a
+         * `DHCS — HCBS Waiver for the Developmentally Disabled` label are the
+         * same source in different prose, and five DHCS labels on one page all
+         * reduce to "DHCS". Declaring the pairing beats inferring it.
+         */
+        cite: z.string().optional(),
+        label: z.string(),
+        url: z.string().url(),
+        accessed: z.coerce.date(),
+      })
+    )
     .default([]),
   /** Maintenance record, NOT rendered on the page (owner decision 2026-09-07 —
    *  the on-page block was noise for parents). Kept in frontmatter and git so
