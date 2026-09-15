@@ -11,7 +11,13 @@
  * Each entry carries the id a chip links to, so tapping `WIC §4643` in the
  * prose lands on the authority, what we accessed, and when.
  */
-import { anchorableKeys, citeKey, leadCitation, sourceAnchorId, type SourceEntry } from '../lib/citations';
+import {
+  anchorableKeys,
+  leadCitation,
+  sourceAnchorId,
+  sourceKey,
+  type SourceEntry,
+} from '../lib/citations';
 
 interface Props {
   sources: SourceEntry[];
@@ -22,6 +28,18 @@ const { sources } = Astro.props;
 // list "DHCS — …" three or four times; every one of those labels reduces to
 // the same key, and iding them all would put the same id on four list items.
 const anchorable = anchorableKeys(sources);
+
+/**
+ * The id a chip links to, or undefined when this entry's citation is not
+ * unique on the page.
+ *
+ * Derived from the same text the matcher keys on — the `cite`, or the label's
+ * leading citation. Handing the FULL label to sourceAnchorId minted
+ * `src-wic-4643-assessment-within-120-days…` while every chip still pointed at
+ * `#src-wic-4643`: 502 dead anchors in one build, caught by check-citations.
+ */
+const anchorIdFor = (s: SourceEntry): string | undefined =>
+  anchorable.has(sourceKey(s)) ? sourceAnchorId(s.cite ?? leadCitation(s.label)) : undefined;
 
 const fmt = (d: Date | string) =>
   new Date(d).toLocaleDateString('en-US', {
@@ -41,13 +59,7 @@ const fmt = (d: Date | string) =>
       </p>
       <ol class="sources-list">
         {sources.map((s) => (
-          <li
-            id={
-              anchorable.has(citeKey(leadCitation(s.label)))
-                ? sourceAnchorId(leadCitation(s.label))
-                : undefined
-            }
-          >
+          <li id={anchorIdFor(s)}>
             <a href={s.url} rel="noopener nofollow" target="_blank">
               {s.label}
             </a>

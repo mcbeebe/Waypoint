@@ -14,9 +14,22 @@
  */
 
 export interface SourceEntry {
+  /** The chip text this source backs, when the label cannot be matched to it. */
+  cite?: string;
   label: string;
   url: string;
   accessed: Date | string;
+}
+
+/**
+ * What a source answers to. An explicit `cite` wins outright: the author knows
+ * which chip an entry backs, and inference cannot for a publisher source —
+ * `DHCS HCBS-DD Waiver` in the prose against a
+ * `DHCS — HCBS Waiver for the Developmentally Disabled` label, alongside four
+ * other DHCS entries that all reduce to the same word.
+ */
+export function sourceKey(source: SourceEntry): string {
+  return citeKey(source.cite ?? leadCitation(source.label));
 }
 
 /**
@@ -74,7 +87,7 @@ export function sourceAnchorId(text: string): string {
  */
 export function findSource<T extends SourceEntry>(chip: string, sources: T[]): T | null {
   const key = citeKey(chip);
-  const hits = sources.filter((s) => citeKey(leadCitation(s.label)) === key);
+  const hits = sources.filter((s) => sourceKey(s) === key);
   return hits.length === 1 ? hits[0] : null;
 }
 
@@ -85,7 +98,7 @@ export function findSource<T extends SourceEntry>(chip: string, sources: T[]): T
 export function anchorableKeys(sources: SourceEntry[]): Set<string> {
   const counts = new Map<string, number>();
   for (const s of sources) {
-    const k = citeKey(leadCitation(s.label));
+    const k = sourceKey(s);
     counts.set(k, (counts.get(k) ?? 0) + 1);
   }
   return new Set([...counts].filter(([, n]) => n === 1).map(([k]) => k));
