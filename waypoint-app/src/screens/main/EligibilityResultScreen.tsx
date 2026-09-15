@@ -12,7 +12,7 @@ import type { EligibilityStatus, FunnelLocale } from '@/lib/eligibility';
 import { sdpAvailable } from '@/lib/processMap';
 import { trackFunnelStep } from '@/lib/analytics';
 import { useI18n } from '@/i18n';
-import Citation from '@/components/Citation';
+import Citation, { fmtISO } from '@/components/Citation';
 import { colors, brand, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 /** Screen chrome in EN/ES/VI. */
@@ -151,9 +151,21 @@ export default function EligibilityResultScreen() {
                 </View>
               )}
               <View style={styles.citationRow}>
-                <Citation citation={card.citation} locale={funnelLocale} />
-                <Text style={styles.citation}>
-                  · {S.reviewed} {card.reviewedOn}
+                <Citation
+                  citation={card.citation}
+                  locale={funnelLocale}
+                  detail={`${S.reviewed} ${fmtISO(card.reviewedOn, funnelLocale)}`}
+                />
+                {/* Spoken as part of the chip above (its `detail`), so hidden
+                    here: as its own node a screen reader announced a bare
+                    "reviewed Aug 23, 2026" with no antecedent — four of them
+                    on a four-card screen. */}
+                <Text
+                  style={styles.citation}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                >
+                  · {S.reviewed} {fmtISO(card.reviewedOn, funnelLocale)}
                 </Text>
               </View>
               {/* The RC card names "family services" — make them reachable: the
@@ -268,7 +280,7 @@ const styles = StyleSheet.create({
   },
   // The date stays on the face of the card — the hero copy promises "the date
   // we last checked it" at a glance, so it must not retreat behind the tap.
-  // eligibilityCitations.test.ts pins it to the registry's verifiedOn, so the
+  // contentSources.test.ts pins it to the registry's verifiedOn, so the
   // face and the sheet can never show a reader two different dates.
   citationRow: {
     flexDirection: 'row',

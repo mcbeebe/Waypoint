@@ -265,6 +265,8 @@ const styles = StyleSheet.create({
   },
   secondaryCtaPressed: { backgroundColor: '#ECFEFF' },
   secondaryCtaText: { color: colors.teal, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600' },
-  // The chip aligns itself flex-start; this keeps the old centred placement.
-  citationRow: { alignItems: 'center', marginTop: spacing.md },
+  // The chip sets alignSelf: 'flex-start', which OVERRIDES a parent's
+  // alignItems — so centring has to come from the main axis instead. A row
+  // with justifyContent: 'center' keeps the placement the old centred Text had.
+  citationRow: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.md },
 });

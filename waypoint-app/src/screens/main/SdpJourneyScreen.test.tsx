@@ -22,7 +22,7 @@ vi.mock('@/components/Toast', () => ({ useToast: () => ({ showToast: () => {} })
 
 import SdpJourneyScreen from './SdpJourneyScreen';
 import { getSdpJourneySteps } from '@/lib/sdpJourney';
-import { sourceForCitation } from '@/data/contentSources';
+import { sourcesForCitation } from '@/data/contentSources';
 
 describe('every SDP step carries a receipt a parent can open', () => {
   it('renders one tappable citation per step — none left as inert text', () => {
@@ -33,12 +33,23 @@ describe('every SDP step carries a receipt a parent can open', () => {
     expect(chips).toHaveLength(getSdpJourneySteps('en').length);
   });
 
-  it('opening one shows the authority, the claim, and when it was verified', () => {
+  it('opening step 0 shows BOTH sections it cites, each with its own claim', () => {
+    // Step 0 cites "W&I §4685.8 · §4646.5(b)" beside the 30-day IPP-meeting
+    // right — a rule that lives in §4646.5. Showing only §4685.8 would have
+    // sent a parent to a section that does not contain their deadline.
+    const citation = getSdpJourneySteps('en')[0].citation;
+    const sources = sourcesForCitation(citation);
+    expect(sources.length).toBe(2);
+
     render(<SdpJourneyScreen />);
     fireEvent.click(screen.getAllByLabelText(/Why this — the source/)[0]);
-    const src = sourceForCitation(getSdpJourneySteps('en')[0].citation)!;
-    expect(screen.getByText(src.title)).toBeTruthy();
-    expect(screen.getByText(/Verified /)).toBeTruthy();
-    expect(screen.getByLabelText('Read the section')).toBeTruthy();
+
+    for (const src of sources) {
+      expect(screen.getByText(src.title), src.key).toBeTruthy();
+      expect(screen.getByText(src.claim), src.key).toBeTruthy();
+      expect(screen.getByLabelText(`Read the section — ${src.title}`), src.key).toBeTruthy();
+    }
+    expect(screen.getByText(/within 30 days/)).toBeTruthy();
+    expect(screen.getAllByText(/Verified /)).toHaveLength(2);
   });
 });
