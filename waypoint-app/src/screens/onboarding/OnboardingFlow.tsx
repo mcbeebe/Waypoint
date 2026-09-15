@@ -157,8 +157,6 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const age = getAge();
-
       // Resolve the family's Regional Center from ZIP (or county fallback)
       const rc = data.zipCode.trim()
         ? lookupRC(data.zipCode.trim())

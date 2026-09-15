@@ -1,6 +1,15 @@
 # 009 — i18n sweep: finish Spanish on the screens that already speak it
 
-**Date:** 2026-09-13 · **Status:** Open — PR 1 (ProfileScreen + DiagnosisSelector + ContactsCard) built and adversary-reviewed; **awaiting owner approval** per the family-facing stop
+**Date:** 2026-09-13 (scope amended 2026-09-15) · **Status:** Open — four PRs built and adversary-reviewed, **all awaiting owner approval** per the family-facing stop. None merged.
+
+| PR | Branch | Scope | Base |
+|----|--------|-------|------|
+| 1 | `claude/waypoint-multi-language-status-1zu5nu` | ProfileScreen + DiagnosisSelector + ContactsCard | `main` |
+| 2 | `claude/i18n-device-locale-detection` | Device-language detection | `main` |
+| 3 | `claude/i18n-welcome-screen` | WelcomeScreen | PR 2 |
+| 4 | `claude/i18n-onboarding` | OnboardingFlow | PR 1 |
+
+Two independent stacks. PR 4 needs PR 1 (`DiagnosisSelector`) and is only *reachable* once PR 2 lands.
 **Artifacts:** intent.md (this) → analysis.md (the audit) → pr1-review-memo.md → PRs, one per screen cluster
 **Serves:** `ROADMAP.md` Phase **7.1 — i18n sweep** ("English + Spanish. Move all screens onto the translation system") and **Gate 7** ("A Spanish-speaking parent uses the full app offline"). Locked decision row 5: *Languages — English + Spanish; vi kept in repo but unlisted.*
 
@@ -37,7 +46,17 @@ Third, a process danger: **inventing a fourth system.** This initiative does not
 - **Vietnamese travels with it.** `Record<FunnelLocale, …>` makes vi non-optional. The ROADMAP calls vi "unlisted", but `ProfileScreen.tsx` ships it as a selectable option — so vi strings are load-bearing today. See the open decision below.
 - **Tests:** the `ui` vitest project renders each touched screen under `es` and asserts the English is gone. That suite exists precisely because the logic suite cannot see a rendered string.
 
-**Explicitly out of scope** (later PRs or other initiatives): the 29 screens with no i18n at all (onboarding, auth, legal, Providers/Insurance/Services/Expenses/Calendar/Documents); the 25 English-only `lettersCatalog.ts` templates; passing `locale` into the Navigator chat in `ai.ts`; consolidating the three systems; the marketing site's zero Spanish pages (reviewer-bound, initiative 008).
+**SCOPE AMENDED 2026-09-15.** This doc originally scoped the initiative to *"screens that already hold `locale`"* and listed onboarding and auth as explicitly out of scope. PRs 2–4 went outside that line, and an adversary pass was right to flag that the record had been silently invalidated. The reason the line moved, recorded honestly rather than retrofitted:
+
+Finishing the partly-localized screens turned out not to deliver anything. `I18nProvider` defaulted to English and read only a stored preference that nothing writes before Settings — so a Spanish-speaking parent met the whole app in English on their first run regardless of how much of it was translated. The entry point (PR 2) and the two screens before the app proper (PRs 3–4) are what make any of the rest reachable. **Now in scope:** device-locale detection, `WelcomeScreen`, `OnboardingFlow`.
+
+**Still explicitly out of scope** (later PRs or other initiatives): the remaining ~26 screens with no i18n (legal, Providers/Insurance/Services/Expenses/Calendar/Documents and the staff surfaces); the 25 English-only `lettersCatalog.ts` templates; passing `locale` into the Navigator chat in `ai.ts`; consolidating the three systems; the marketing site's zero Spanish pages (reviewer-bound, initiative 008).
+
+**Known debt carried by these PRs, for the owner:**
+
+- The legal screens (`TermsOfService`, `PrivacyPolicy`) are English-only, while PR 3's footer now promises in Spanish that the parent agrees to them. That is a **consent** question, not a copy one.
+- `pick()` / `Tri` string tables are duplicated across four modules; a `Record<FunnelLocale, string>` shape (PR 4) catches a dropped locale at compile time but **not** a transposed es/vi pair — PR 4 adds an orthography guard for that, the others do not have one yet.
+- Every string in all four PRs is a careful draft **pending native-speaker review**, per the house rule in `eligibility.ts`. No Spanish speaker has read any of it.
 
 ## Open decisions for the owner
 

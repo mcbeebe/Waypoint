@@ -210,3 +210,52 @@ describe('Spanish keeps the corpus register (usted, not tú)', () => {
     expect(es.diagnosisTitle).toContain('hijo/a');
   });
 });
+
+describe('a transposed es/vi pair cannot hide', () => {
+  /**
+   * WHY A HEURISTIC AND NOT A TYPE. Moving to `Record<FunnelLocale, string>`
+   * makes a DROPPED locale a compile error and a transposed one visible to a
+   * reader — but not to the compiler: `{ es: 'Tiếp theo', vi: 'Siguiente' }`
+   * type-checks, and every parity assertion here is satisfied, because both
+   * values still differ from English. An adversary pass demonstrated exactly
+   * that: two swapped pairs, `tsc` clean, 1613 tests green, and a Spanish
+   * parent reading Vietnamese on the footer button through all six steps.
+   *
+   * The two orthographies are disjoint enough to catch it cheaply. Vietnamese
+   * uses horned and breve vowels and đ, which Spanish has none of; Spanish
+   * uses ñ and inverted punctuation, which Vietnamese has none of.
+   */
+  const VIETNAMESE_ONLY = /[ăâđêôơưĂÂĐÊÔƠƯ]|[ạảấầẩẫậắằẳẵặẹẻẽếềểễệịỉĩọỏốồổỗộớờởỡợụủứừửữựỳỷỹỵ]/;
+  const SPANISH_ONLY = /[ñÑ¿¡]/;
+
+  /** Every translated string the module can produce, by locale. */
+  function stringsFor(locale: FunnelLocale): string[] {
+    const out = Object.values(onboardingCopy(locale));
+    for (const fn of [rcStatusOptions, iepStatusOptions, insuranceOptions]) {
+      for (const o of fn(locale)) {
+        out.push(o.label);
+        if (o.description) out.push(o.description);
+      }
+    }
+    out.push(countyChosen('Alameda', locale), ageBandLabel('3-5', locale), ageDisplay(2, 3, locale));
+    return out;
+  }
+
+  it('no Spanish string contains Vietnamese-only letters', () => {
+    const offenders = stringsFor('es').filter((v) => VIETNAMESE_ONLY.test(v));
+    expect(offenders, 'Vietnamese text in the es slot').toEqual([]);
+  });
+
+  it('no Vietnamese string contains Spanish-only characters', () => {
+    const offenders = stringsFor('vi').filter((v) => SPANISH_ONLY.test(v));
+    expect(offenders, 'Spanish text in the vi slot').toEqual([]);
+  });
+
+  it('the guard actually fires on a transposed pair', () => {
+    // Proves the regexes bite, so a future edit cannot quietly defang them.
+    expect(VIETNAMESE_ONLY.test('Tiếp theo')).toBe(true);
+    expect(VIETNAMESE_ONLY.test('Siguiente')).toBe(false);
+    expect(SPANISH_ONLY.test('¿No sabe su código postal?')).toBe(true);
+    expect(SPANISH_ONLY.test('Không biết mã bưu điện?')).toBe(false);
+  });
+});

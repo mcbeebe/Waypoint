@@ -1,11 +1,13 @@
 /**
  * Onboarding, rendered in each language (initiative 009, PR 4).
  *
- * This walks all six steps and sweeps each one for English. Step-by-step
- * matters here in a way it did not on a single-screen surface: five of the six
- * steps are behind a "Next" tap, so a test that only rendered step 0 would
- * have proven almost nothing — which is precisely the gap an adversarial
- * review found in the two PRs before this one.
+ * This walks ALL SIX steps and sweeps each one for English, then completes
+ * the flow. Five of the six are behind a "Next" tap, so a test that stops
+ * early proves almost nothing — and an earlier draft of this file stopped at
+ * step 2 while claiming otherwise. With the grids unreached, changing
+ * `rcStatusOptions(fl)` to `rcStatusOptions()` left all 14 tests green: three
+ * fully English intake grids, shipped past a suite that said they were
+ * translated. Reaching the step is the whole assertion.
  *
  * `DiagnosisSelector` renders for real (its 21 option labels are the biggest
  * single block of text in the flow); only the data and network edges are
@@ -13,7 +15,7 @@
  */
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -28,6 +30,13 @@ vi.mock('@/lib/planGenerator', () => ({ generateStarterPlan: () => [] }));
 vi.mock('@/lib/attribution', () => ({ applyFirstTouch: vi.fn() }));
 vi.mock('@/lib/dialogs', () => ({ showAlert: vi.fn() }));
 vi.mock('@react-native-community/datetimepicker', () => ({ default: () => null }));
+// Required for the module to LOAD, not for the branch to run. Under jsdom
+// `Platform.OS === 'web'`, so step 2 renders a real <input type="date"> and
+// the native picker never executes — but `OnboardingFlow` still imports it at
+// module scope, and the real package is Flow-typed, which rolldown cannot
+// parse. So: mocked, and its presence is NOT a reason a test may stop at
+// step 2 — the web date input is fully drivable, which is how the steps
+// below are reached.
 
 import OnboardingFlow from './OnboardingFlow';
 import { I18nProvider } from '@/i18n';
@@ -92,6 +101,35 @@ function completeStepZero(locale: FunnelLocale) {
   fireEvent.click(screen.getByRole('button', { name: c.next }));
 }
 
+/** Advance one step by tapping Next. */
+function next(locale: FunnelLocale) {
+  fireEvent.click(screen.getByRole('button', { name: onboardingCopy(locale).next }));
+}
+
+/**
+ * Walk from step 0 to the step requested, satisfying each gate on the way.
+ * Step 2 needs a real date — under jsdom that is the web `<input type="date">`.
+ */
+function advanceTo(step: number, locale: FunnelLocale, container: HTMLElement) {
+  const c = onboardingCopy(locale);
+  completeStepZero(locale); // → 1
+  if (step === 1) return c;
+  fireEvent.click(screen.getByText(diagnosisOptions(locale)[0].label));
+  next(locale); // → 2
+  if (step === 2) return c;
+  const date = container.querySelector('input[type=date]');
+  if (!date) throw new Error('step 2 did not render a date input');
+  fireEvent.change(date, { target: { value: '2020-03-15' } });
+  next(locale); // → 3
+  if (step === 3) return c;
+  fireEvent.click(screen.getByText(rcStatusOptions(locale)[3].label));
+  next(locale); // → 4
+  if (step === 4) return c;
+  fireEvent.click(screen.getByText(iepStatusOptions(locale)[3].label));
+  next(locale); // → 5
+  return c;
+}
+
 describe('every step of onboarding is in the family\'s language', () => {
   it.each(['es', 'vi'] as const)('%s: step 0 — the first thing after signup', (locale) => {
     const { container } = renderIn(locale);
@@ -116,22 +154,75 @@ describe('every step of onboarding is in the family\'s language', () => {
     expect(leaked, `English leaked into ${locale} step 1`).toEqual([]);
   });
 
-  it.each(['es', 'vi'] as const)('%s: the intake grids and their descriptions', (locale) => {
+  it.each(['es', 'vi'] as const)('%s: step 2 — birthday, and the age badge', (locale) => {
     const { container } = renderIn(locale);
-    const c = onboardingCopy(locale);
-    completeStepZero(locale);
-
-    // Pick a diagnosis so step 1 can advance, then walk to the grids.
-    fireEvent.click(screen.getByText(diagnosisOptions(locale)[0].label));
-    fireEvent.click(screen.getByRole('button', { name: c.next }));
-    // Step 2 (birthday) needs a date, which the native picker supplies — the
-    // grids are reachable in the render tree regardless, so assert the copy
-    // module drives them rather than forcing the date path here.
+    const c = advanceTo(2, locale, container);
     expect(screen.getByText(c.birthdayTitle)).toBeTruthy();
     expect(screen.getByText(c.birthdaySubtitle)).toBeTruthy();
 
+    // A date makes the age badge render — "1 año, 2 meses", not "1 años".
+    const date = container.querySelector('input[type=date]');
+    fireEvent.change(date!, { target: { value: '2020-03-15' } });
     const leaked = englishStrings(locale).filter((s) => (container.textContent ?? '').includes(s));
     expect(leaked, `English leaked into ${locale} step 2`).toEqual([]);
+    expect(container.textContent, 'age badge is not English').not.toMatch(/\byears?\b|Age band/);
+  });
+
+  it.each(['es', 'vi'] as const)('%s: step 3 — the Regional Center grid', (locale) => {
+    const { container } = renderIn(locale);
+    const c = advanceTo(3, locale, container);
+    expect(screen.getByText(c.rcStatusTitle)).toBeTruthy();
+    expect(screen.getByText(c.rcStatusSubtitle)).toBeTruthy();
+    // Labels AND descriptions — the sub-labels a parent skims to pick a bucket.
+    for (const o of rcStatusOptions(locale)) {
+      expect(screen.getByText(o.label), o.value).toBeTruthy();
+      if (o.description) expect(screen.getByText(o.description), o.value).toBeTruthy();
+    }
+    const leaked = englishStrings(locale).filter((s) => (container.textContent ?? '').includes(s));
+    expect(leaked, `English leaked into ${locale} step 3`).toEqual([]);
+  });
+
+  it.each(['es', 'vi'] as const)('%s: step 4 — the IEP grid', (locale) => {
+    const { container } = renderIn(locale);
+    const c = advanceTo(4, locale, container);
+    expect(screen.getByText(c.iepStatusTitle)).toBeTruthy();
+    for (const o of iepStatusOptions(locale)) {
+      expect(screen.getByText(o.label), o.value).toBeTruthy();
+      if (o.description) expect(screen.getByText(o.description), o.value).toBeTruthy();
+    }
+    const leaked = englishStrings(locale).filter((s) => (container.textContent ?? '').includes(s));
+    expect(leaked, `English leaked into ${locale} step 4`).toEqual([]);
+  });
+
+  it.each(['es', 'vi'] as const)('%s: step 5 — insurance, and the final button', (locale) => {
+    const { container } = renderIn(locale);
+    const c = advanceTo(5, locale, container);
+    expect(screen.getByText(c.insuranceTitle)).toBeTruthy();
+    for (const o of insuranceOptions(locale)) {
+      expect(screen.getByText(o.label), o.value).toBeTruthy();
+    }
+    // The last step swaps Next for the reward button.
+    expect(screen.getByRole('button', { name: c.letsGo })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: c.next })).toBeNull();
+
+    const leaked = englishStrings(locale).filter((s) => (container.textContent ?? '').includes(s));
+    expect(leaked, `English leaked into ${locale} step 5`).toEqual([]);
+  });
+
+  it('a family can actually finish — the write path runs', async () => {
+    // `handleComplete` writes families, children, diagnoses and the starter
+    // plan. Nothing reached it before, so the elaborate mocks below were never
+    // invoked and a crash in the final tap would have shipped green.
+    const onComplete = vi.fn();
+    const { container } = render(
+      <I18nProvider initialLocale="es">
+        <OnboardingFlow onComplete={onComplete} />
+      </I18nProvider>,
+    );
+    const c = advanceTo(5, 'es', container);
+    fireEvent.click(screen.getByText(insuranceOptions('es')[0].label));
+    fireEvent.click(screen.getByRole('button', { name: c.letsGo }));
+    await waitFor(() => expect(onComplete).toHaveBeenCalled());
   });
 
   it('English still renders in English', () => {
