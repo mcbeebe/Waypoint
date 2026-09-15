@@ -23,6 +23,9 @@
  * unit-testable. Phase 8 grows the article set; the schema is set here.
  */
 import type { FunnelLocale } from '@/lib/eligibility';
+// The review gate (slice 8-2). `learnReview` imports only TYPES from this file,
+// so this value import is not a runtime cycle.
+import { reviewedArticles, supersededKeys } from '@/lib/learnReview';
 
 function picker(locale: FunnelLocale) {
   return (en: string, es: string, vi: string) =>
@@ -231,7 +234,14 @@ export function getLearnPaths(locale: FunnelLocale = 'en'): LearnPath[] {
   ];
 }
 
-export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
+/**
+ * The hand-authored articles — written by a person, start to finish.
+ *
+ * Exported so the review pipeline can tell authored from derived. Families see
+ * {@link getLearnArticles}, which is this set plus every derived article a
+ * human has reviewed.
+ */
+export function getAuthoredArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
   const L = picker(locale);
   return [
     {
@@ -822,6 +832,27 @@ export function getGlossary(locale: FunnelLocale = 'en'): GlossaryEntry[] {
       citation: '34 CFR §303.310 · Early Start',
       terms: ['early intervention', 'under 3', 'birth to three'],
     },
+  ];
+}
+
+/**
+ * Every article a family can see: the hand-authored set, minus anything a
+ * reviewer retired, plus every derived article a human has reviewed.
+ *
+ * Composition lives HERE rather than in a helper only one screen calls, so the
+ * reader (`getLearnArticle`), search (`searchLearn`), Home and Tools all get
+ * the same answer. An earlier draft of slice 8-2 composed in a parallel
+ * function wired only to `LearnPanel`; a reviewed article then appeared in the
+ * browse list, 404'd when tapped, and could not be found by typing its own
+ * title. One library, one answer.
+ *
+ * While `REVIEW_LEDGER` is empty this returns exactly the authored set.
+ */
+export function getLearnArticles(locale: FunnelLocale = 'en'): LearnArticle[] {
+  const retired = supersededKeys();
+  return [
+    ...getAuthoredArticles(locale).filter((a) => !retired.has(a.key)),
+    ...reviewedArticles(locale),
   ];
 }
 
