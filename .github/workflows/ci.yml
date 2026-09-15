@@ -33,6 +33,12 @@ jobs:
           cache: npm
           cache-dependency-path: waypoint-app/package-lock.json
       - run: npm ci
+      # Cheap and first: CLAUDE.md is the first file every session reads, and a
+      # wrong count there misleads every future session. It had drifted five
+      # months once and two migrations + twenty test files by Sept 2026, so the
+      # "keep this true" rule is mechanized rather than restated.
+      - name: CLAUDE.md is accurate
+        run: node scripts/check-claude-md.mjs
       - name: Typecheck
         run: npx tsc --noEmit
       # CLAUDE.md's ship-it rule names three gates — tsc, vitest, eslint — but
