@@ -39,6 +39,7 @@ import { useContacts } from '@/hooks/useContacts';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useI18n } from '@/i18n';
+import Citation from '@/components/Citation';
 import { trackDraftUsed } from '@/lib/analytics';
 import {
   logCommunication,
@@ -904,8 +905,14 @@ export default function LettersScreen() {
                   {sentMoment.deadline && (
                     <View style={styles.sentClockChip}>
                       <Text style={styles.sentClockText}>
-                        ⏱ {locale === 'es' ? 'Su plazo' : locale === 'vi' ? 'Hạn của họ' : 'Their deadline'}: {sentMoment.deadline.dueOn} ({sentMoment.deadline.daysRemaining} {locale === 'es' ? 'días' : locale === 'vi' ? 'ngày' : 'days'}) · {sentMoment.deadline.citation}
+                        ⏱ {locale === 'es' ? 'Su plazo' : locale === 'vi' ? 'Hạn của họ' : 'Their deadline'}: {sentMoment.deadline.dueOn} ({sentMoment.deadline.daysRemaining} {locale === 'es' ? 'días' : locale === 'vi' ? 'ngày' : 'days'})
                       </Text>
+                      <View style={styles.sentClockCitationRow}>
+                        <Citation
+                          citation={sentMoment.deadline.citation}
+                          locale={funnelLocale}
+                        />
+                      </View>
                     </View>
                   )}
                   {/* The third artifact of a send: it's on the record. The clock
@@ -1306,6 +1313,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   sentClockText: { color: '#92600A', fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
+  sentClockCitationRow: { marginTop: spacing.xs },
   sentTrailChip: {
     backgroundColor: '#E6F7F1',
     borderRadius: radii.sm,
