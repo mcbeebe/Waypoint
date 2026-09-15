@@ -11,11 +11,12 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import {
-  getLearnLibrary,
-  popularQuestions,
-  searchLearn,
-} from '@/lib/learnLibrary';
+import { popularQuestions, searchLearn } from '@/lib/learnLibrary';
+// The library a family sees is the hand-authored set PLUS any derived article a
+// human has reviewed (slice 8-2). While the review ledger is empty this returns
+// exactly what `getLearnLibrary()` returned, so nothing here changes until a
+// person signs off on a projection.
+import { composeLearnLibrary } from '@/lib/learnReview';
 import type { LearnHit, LearnTarget } from '@/lib/learnLibrary';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useTextScale } from '@/lib/textSize';
@@ -60,7 +61,7 @@ export default function LearnPanel({ locale, query, onAsk, onAskAI }: LearnPanel
   const t = strings(locale);
   const [expanded, setExpanded] = useState(false);
 
-  const library = useMemo(() => getLearnLibrary(locale), [locale]);
+  const library = useMemo(() => composeLearnLibrary(locale), [locale]);
   const hits = useMemo(
     () => (query && query.trim().length > 1 ? searchLearn(query, locale) : []),
     [query, locale]
