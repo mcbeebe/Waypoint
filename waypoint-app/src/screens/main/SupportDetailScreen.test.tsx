@@ -21,7 +21,8 @@ vi.mock('@/hooks/useFamily', () => ({
 
 import SupportDetailScreen from './SupportDetailScreen';
 import { navigateCalls, routeParams } from '../../../vitest.setup.ui';
-import { getFamilySupport } from '@/lib/familySupports';
+import { getFamilySupport, getFamilySupports } from '@/lib/familySupports';
+import { sourcesForCitation } from '@/data/contentSources';
 
 describe('the support detail renders and its CTAs fire the right navigation', () => {
   it('shows the catch and fills the child’s name into the script', () => {
@@ -80,6 +81,42 @@ describe('the support detail renders and its CTAs fire the right navigation', ()
       const { unmount } = render(<SupportDetailScreen />);
       const support = getFamilySupport(key, 'en')!;
       expect(screen.getByText(support.theCatch), `${key} catch`).toBeTruthy();
+      unmount();
+    }
+  });
+});
+
+describe('the support carries a tappable receipt', () => {
+  it('the citation opens both Lanterman sections the ask rests on', () => {
+    // The chip reads "W&I §4646.5 · §4648(a)". The ask rests on §4646.5 — a
+    // service has to connect to an identified need in the IPP — while §4648(a)
+    // is what makes the regional center secure it once it is in there. The
+    // sheet showed only §4648(a); the section the support detail actually
+    // argues from was unreachable behind it.
+    routeParams.supportKey = 'sibling_support';
+    const citation = getFamilySupport('sibling_support', 'en')!.citation;
+    const sources = sourcesForCitation(citation);
+    expect(sources.length).toBe(2);
+
+    render(<SupportDetailScreen />);
+    fireEvent.click(screen.getByLabelText(/Why this — the source/));
+
+    for (const src of sources) {
+      expect(screen.getByText(src.title), src.key).toBeTruthy();
+      expect(screen.getByLabelText(`Read the section — ${src.title}`), src.key).toBeTruthy();
+    }
+    expect(screen.getAllByText(/Verified /)).toHaveLength(2);
+  });
+
+  it('every support in the tier is covered, so none renders an inert chip', () => {
+    // Derived, not hardcoded: a fifth support added tomorrow is covered by
+    // this loop on the day it ships rather than escaping a frozen list.
+    const supports = getFamilySupports('en');
+    expect(supports.length).toBeGreaterThan(0);
+    for (const s of supports) {
+      routeParams.supportKey = s.key;
+      const { unmount } = render(<SupportDetailScreen />);
+      expect(screen.queryByLabelText(/Why this — the source/), s.key).not.toBeNull();
       unmount();
     }
   });

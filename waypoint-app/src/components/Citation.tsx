@@ -14,7 +14,7 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, Modal, ScrollView, Linking, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { sourceForCitation } from '@/data/contentSources';
+import { sourcesForCitation } from '@/data/contentSources';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useTextScale } from '@/lib/textSize';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
@@ -25,6 +25,13 @@ interface CitationProps {
   locale: FunnelLocale;
   /** Chip text size — already scaled by the host, so passed straight through. */
   fontSize?: number;
+  /**
+   * Extra words for the chip's accessibility label — for a host that prints
+   * something beside the chip that belongs to it, such as the reviewed date on
+   * a result card. Spoken as part of the chip so the two never separate in the
+   * swipe order; the host hides its own visible copy from assistive tech.
+   */
+  detail?: string;
 }
 
 const STRINGS: Record<
@@ -44,8 +51,15 @@ const MONTHS: Record<FunnelLocale, string[]> = {
   vi: ['thg 1', 'thg 2', 'thg 3', 'thg 4', 'thg 5', 'thg 6', 'thg 7', 'thg 8', 'thg 9', 'thg 10', 'thg 11', 'thg 12'],
 };
 
-/** ISO YYYY-MM-DD → a localized, timezone-immune date string. */
-function fmtISO(iso: string, locale: FunnelLocale): string {
+/**
+ * ISO YYYY-MM-DD → a localized, timezone-immune date string.
+ *
+ * Exported so a host printing the same date beside the chip renders it the way
+ * the sheet does. EligibilityResult showed `reviewed 2026-08-23` on the card
+ * and `Verified Aug 23, 2026` inside it — the same day in two notations, left
+ * for the reader to reconcile.
+ */
+export function fmtISO(iso: string, locale: FunnelLocale): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!m) return iso;
   const year = m[1];
@@ -55,8 +69,8 @@ function fmtISO(iso: string, locale: FunnelLocale): string {
   return `${day} ${mon} ${year}`; // es/vi read day-first
 }
 
-export default function Citation({ citation, locale, fontSize = 11.5 }: CitationProps) {
-  const source = sourceForCitation(citation);
+export default function Citation({ citation, locale, fontSize = 11.5, detail }: CitationProps) {
+  const sources = sourcesForCitation(citation);
   const [open, setOpen] = useState(false);
   const { scale } = useTextScale();
   const sz = (n: number) => Math.round(n * scale);
@@ -71,7 +85,7 @@ export default function Citation({ citation, locale, fontSize = 11.5 }: Citation
   const chipFont = fontSize * scale;
   const chipLine = Math.round(chipFont * 1.4);
 
-  if (!source) {
+  if (sources.length === 0) {
     return (
       <View style={styles.chip}>
         <Text style={[styles.chipText, { fontSize: chipFont, lineHeight: chipLine }]}>
@@ -93,43 +107,60 @@ export default function Citation({ citation, locale, fontSize = 11.5 }: Citation
         // does not change the chip's visual size on every screen using it.
         hitSlop={{ top: 12, bottom: 12, left: 10, right: 10 }}
         accessibilityRole="button"
-        accessibilityLabel={`${citation}. ${t.why}`}
+        accessibilityLabel={detail ? `${citation}. ${detail}. ${t.why}` : `${citation}. ${t.why}`}
       >
-        <Ionicons name="shield-checkmark-outline" size={sz(13)} color={colors.mid} style={styles.chipIcon} />
+        <Ionicons name="shield-checkmark-outline" size={sz(13)} color={colors.dark} style={styles.chipIcon} />
         <Text style={[styles.chipText, { fontSize: chipFont, lineHeight: chipLine }]}>
           {citation}
         </Text>
       </Pressable>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.scrim} onPress={() => setOpen(false)} accessibilityRole="button" accessibilityLabel={t.close}>
-          {/* Inner press is swallowed so a tap on the sheet doesn't close it. */}
-          <Pressable style={styles.sheetWrap} onPress={() => {}}>
+        <View style={styles.scrim}>
+          {/* The dismiss target sits BEHIND the sheet rather than wrapping it.
+              Wrapping made the whole sheet a descendant of a button — invalid
+              HTML on web, where nested interactive content is not reliably
+              operable and the title and claim were swallowed into a control
+              named "Close". */}
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel={t.close}
+          />
+          <View style={styles.sheetWrap}>
             <SafeAreaView style={styles.sheet} edges={['bottom']} accessibilityViewIsModal>
               <View style={styles.grabber} />
               <ScrollView contentContainerStyle={styles.body}>
                 <Text style={[styles.cite, { fontSize: sz(fonts.sizes.sm) }]}>{citation}</Text>
-                <Text style={[styles.title, { fontSize: sz(fonts.sizes.lg), lineHeight: sz(24) }]}>
-                  {source.title}
-                </Text>
-                <Text style={[styles.claim, { fontSize: sz(fonts.sizes.base), lineHeight: sz(21) }]}>
-                  {source.claim}
-                </Text>
-                <View style={styles.verifiedRow}>
-                  <Ionicons name="checkmark-circle-outline" size={sz(15)} color={colors.sage} />
-                  <Text style={[styles.verified, { fontSize: sz(fonts.sizes.sm) }]}>
-                    {t.verified(fmtISO(source.verifiedOn, locale))}
-                  </Text>
-                </View>
-                <Pressable
-                  style={({ pressed }) => [styles.readBtn, pressed && styles.dim]}
-                  onPress={() => Linking.openURL(source.url).catch(() => {})}
-                  accessibilityRole="link"
-                  accessibilityLabel={t.read}
-                >
-                  <Ionicons name="open-outline" size={sz(16)} color={colors.teal} />
-                  <Text style={[styles.readText, { fontSize: sz(fonts.sizes.base) }]}>{t.read}</Text>
-                </Pressable>
+                {sources.map((source, i) => (
+                  <View key={source.key} style={i > 0 ? styles.nextAuthority : undefined}>
+                    <Text style={[styles.title, { fontSize: sz(fonts.sizes.lg), lineHeight: sz(24) }]}>
+                      {source.title}
+                    </Text>
+                    <Text style={[styles.claim, { fontSize: sz(fonts.sizes.base), lineHeight: sz(21) }]}>
+                      {source.claim}
+                    </Text>
+                    <View style={styles.verifiedRow}>
+                      <Ionicons name="checkmark-circle-outline" size={sz(15)} color={colors.sage} />
+                      <Text style={[styles.verified, { fontSize: sz(fonts.sizes.sm) }]}>
+                        {t.verified(fmtISO(source.verifiedOn, locale))}
+                      </Text>
+                    </View>
+                    <Pressable
+                      style={({ pressed }) => [styles.readBtn, pressed && styles.dim]}
+                      onPress={() => Linking.openURL(source.url).catch(() => {})}
+                      accessibilityRole="link"
+                      // Named, because a compound citation shows more than one
+                      // "Read the section" and a screen reader would otherwise
+                      // announce two identical links.
+                      accessibilityLabel={`${t.read} — ${source.title}`}
+                    >
+                      <Ionicons name="open-outline" size={sz(16)} color={colors.teal} />
+                      <Text style={[styles.readText, { fontSize: sz(fonts.sizes.base) }]}>{t.read}</Text>
+                    </Pressable>
+                  </View>
+                ))}
                 <Pressable
                   style={({ pressed }) => [styles.closeBtn, pressed && styles.dim]}
                   onPress={() => setOpen(false)}
@@ -139,8 +170,8 @@ export default function Citation({ citation, locale, fontSize = 11.5 }: Citation
                 </Pressable>
               </ScrollView>
             </SafeAreaView>
-          </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </>
   );
@@ -157,7 +188,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
   },
   chipIcon: { marginRight: 4 },
-  chipText: { color: colors.mid },
+  // colors.mid (#64748B) on this chip measured 4.344:1 — under WCAG AA's 4.5
+  // floor for text this size, and a regression on the screens whose citation
+  // used to sit on white (4.76:1). colors.dark clears it at 9.0:1.
+  chipText: { color: colors.dark },
   scrim: { flex: 1, backgroundColor: 'rgba(15,23,42,0.35)', justifyContent: 'flex-end' },
   sheetWrap: { width: '100%' },
   sheet: {
@@ -172,7 +206,7 @@ const styles = StyleSheet.create({
   cite: {
     alignSelf: 'flex-start',
     backgroundColor: '#F1F5F9',
-    color: colors.mid,
+    color: colors.dark,
     borderRadius: 6,
     paddingVertical: 2,
     paddingHorizontal: 7,
@@ -181,6 +215,14 @@ const styles = StyleSheet.create({
   title: { fontWeight: fonts.weights.extrabold, color: colors.navy },
   claim: { color: colors.dark },
   verifiedRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
+  // A compound citation names several authorities; each gets its own block so
+  // the claim a parent reads is the one the section they tap actually makes.
+  nextAuthority: {
+    marginTop: spacing.base,
+    paddingTop: spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
   verified: { color: colors.sage, fontWeight: fonts.weights.semibold as '600' },
   readBtn: {
     minHeight: MIN_TOUCH_TARGET,
