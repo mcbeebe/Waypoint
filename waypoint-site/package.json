@@ -27,6 +27,7 @@
     "check-citations": "node scripts/check-citations.mjs"
   },
   "dependencies": {
+    "@astrojs/markdown-satteri": "^0.4.0",
     "@astrojs/mdx": "^8.0.0",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
@@ -34,7 +35,8 @@
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.1",
     "satori": "^0.33.4",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "yaml": "^2.9.0"
   },
   "allowScripts": {
     "esbuild": true

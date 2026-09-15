@@ -42,6 +42,7 @@ function htmlFiles(dir) {
 }
 
 let dead = [];
+let duplicates = [];
 let orphans = 0;
 const orphansByPage = {};
 
@@ -49,13 +50,26 @@ for (const file of htmlFiles(DIST)) {
   const html = readFileSync(file, 'utf8');
   const page = path.relative(DIST, file);
 
-  const ids = new Set([...html.matchAll(/id="(src-[^"]+)"/g)].map((m) => m[1]));
-  for (const m of html.matchAll(/<a class="cite cite-link" href="#(src-[^"]+)"/g)) {
+  const idList = [...html.matchAll(/id="(src-[^"]+)"/g)].map((m) => m[1]);
+  const ids = new Set(idList);
+  for (const m of html.matchAll(/<a class="[^"]*\bcite-link\b[^"]*" href="#(src-[^"]+)"/g)) {
     if (!ids.has(m[1])) dead.push(`${page} → #${m[1]}`);
   }
 
-  // A chip still rendered as a bare <span class="cite"> found no source.
-  const n = [...html.matchAll(/<span class="cite">/g)].length;
+  // Two source entries sharing an id would make the chip's destination a coin
+  // flip, and duplicate ids are their own accessibility defect.
+  if (idList.length !== ids.size) {
+    const seen = new Set();
+    for (const id of idList) {
+      if (seen.has(id)) duplicates.push(`${page} → #${id}`);
+      seen.add(id);
+    }
+  }
+
+  // A chip still rendered as a plain span found no source. Matched loosely on
+  // purpose: keying off the exact string `<span class="cite">` meant any added
+  // attribute silently hid orphans and reported the drop as progress.
+  const n = [...html.matchAll(/<span[^>]*\bclass="[^"]*\bcite\b[^"]*"/g)].length;
   if (n > 0) {
     orphans += n;
     orphansByPage[page] = n;
@@ -67,7 +81,12 @@ if (dead.length > 0) {
   for (const d of dead.slice(0, 20)) console.error(`    ${d}`);
   process.exit(1);
 }
-console.log(`✓ every linked chip resolves to a source on its own page`);
+if (duplicates.length > 0) {
+  console.error(`✗ ${duplicates.length} duplicate source id(s) — a chip would land on a coin flip:`);
+  for (const d of duplicates.slice(0, 20)) console.error(`    ${d}`);
+  process.exit(1);
+}
+console.log(`✓ every linked chip resolves to a unique source on its own page`);
 
 if (UPDATE) {
   writeFileSync(BASELINE, `${JSON.stringify({ total: orphans, byPage: orphansByPage }, null, 2)}\n`);
@@ -83,16 +102,20 @@ try {
   process.exit(1);
 }
 
-if (orphans > baseline.total) {
+// Per page, not just in total: a global count lets a new unsourced chip on one
+// page hide behind a chip that got sourced on another, which is exactly how a
+// ratchet stops ratcheting.
+const worse = Object.entries(orphansByPage)
+  .map(([p, n]) => [p, baseline.byPage?.[p] ?? 0, n])
+  .filter(([, was, now]) => now > was);
+
+if (worse.length > 0) {
+  console.error(`✗ chips without a sources[] entry grew on ${worse.length} page(s):`);
+  for (const [p, was, now] of worse.slice(0, 15)) console.error(`    ${p}: ${was} → ${now}`);
   console.error(
-    `✗ chips without a sources[] entry grew ${baseline.total} → ${orphans}.\n` +
-      `  Add the verified primary source to that page's sources[]; never delete the chip\n` +
+    `  Add the verified primary source to that page's sources[]; never delete the chip\n` +
       `  and never guess a URL (STYLE-GUIDE §3 rule 3).`
   );
-  const worse = Object.entries(orphansByPage)
-    .filter(([p, n]) => n > (baseline.byPage?.[p] ?? 0))
-    .slice(0, 15);
-  for (const [p, n] of worse) console.error(`    ${p}: ${baseline.byPage?.[p] ?? 0} → ${n}`);
   process.exit(1);
 }
 

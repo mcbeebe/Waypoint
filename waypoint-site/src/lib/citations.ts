@@ -31,15 +31,26 @@ export function leadCitation(label: string): string {
 }
 
 /**
- * Comparison key for a chip or a lead citation. `et seq.` is dropped so a
- * `WIC §4500 et seq.` chip pairs with a `WIC §4500` source and vice versa —
- * they name the same authority, and requiring the suffix to match on both
- * sides would orphan chips over punctuation.
+ * Comparison key for a chip or a lead citation, normalising the three ways the
+ * same authority is spelled across prose and frontmatter:
+ *
+ * - `et seq.` — a `WIC §4500 et seq.` chip names the same statute as a
+ *   `WIC §4500` source.
+ * - a `CA ` / `California ` prefix — labels say `CA Ed Code §56321` where the
+ *   style guide's own chip format (§3) says `Ed Code §56321`. Left
+ *   unnormalised this orphaned every Ed Code chip on the site's most
+ *   statute-dense pages, which had the verified source sitting right there.
+ * - a trailing subdivision — `WIC §4646(f)(1)` lives inside the section a
+ *   `WIC §4646` source points at, so the receipt is the right one. A DECIMAL
+ *   is never stripped: §4646.5 is a different section from §4646, not a part
+ *   of it, and collapsing them would hand a parent the wrong statute.
  */
 export function citeKey(text: string): string {
   return text
     .replace(/\s+/g, ' ')
     .replace(/\s*et\s+seq\.?\s*$/i, '')
+    .replace(/^(?:CA|California)\s+/i, '')
+    .replace(/(§\s*\d+(?:\.\d+)*)(?:\([^)]*\))+\s*$/, '$1')
     .trim()
     .toLowerCase();
 }
@@ -52,8 +63,30 @@ export function sourceAnchorId(text: string): string {
   return `src-${slug}`;
 }
 
-/** The sources[] entry backing a chip, or null when the page lists none. */
+/**
+ * The sources[] entry backing a chip — or null when the page lists none, AND
+ * null when it lists more than one that answers to the same key.
+ *
+ * The ambiguous case is not theoretical: several pages cite `DHCS — …` three
+ * or four times, and every one of those labels reduces to `DHCS`. Taking the
+ * first would hand a parent a confidently-wrong receipt, and would also mint
+ * duplicate DOM ids. No link is the honest answer.
+ */
 export function findSource<T extends SourceEntry>(chip: string, sources: T[]): T | null {
   const key = citeKey(chip);
-  return sources.find((s) => citeKey(leadCitation(s.label)) === key) ?? null;
+  const hits = sources.filter((s) => citeKey(leadCitation(s.label)) === key);
+  return hits.length === 1 ? hits[0] : null;
+}
+
+/**
+ * Keys a page can safely anchor: those exactly one source answers to. The
+ * Sources list ids only these, so a page can never render the same id twice.
+ */
+export function anchorableKeys(sources: SourceEntry[]): Set<string> {
+  const counts = new Map<string, number>();
+  for (const s of sources) {
+    const k = citeKey(leadCitation(s.label));
+    counts.set(k, (counts.get(k) ?? 0) + 1);
+  }
+  return new Set([...counts].filter(([, n]) => n === 1).map(([k]) => k));
 }

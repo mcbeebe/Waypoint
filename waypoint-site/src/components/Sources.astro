@@ -11,12 +11,17 @@
  * Each entry carries the id a chip links to, so tapping `WIC §4643` in the
  * prose lands on the authority, what we accessed, and when.
  */
-import { leadCitation, sourceAnchorId, type SourceEntry } from '../lib/citations';
+import { anchorableKeys, citeKey, leadCitation, sourceAnchorId, type SourceEntry } from '../lib/citations';
 
 interface Props {
   sources: SourceEntry[];
 }
 const { sources } = Astro.props;
+
+// Only entries whose citation is unique on this page get an id. Several pages
+// list "DHCS — …" three or four times; every one of those labels reduces to
+// the same key, and iding them all would put the same id on four list items.
+const anchorable = anchorableKeys(sources);
 
 const fmt = (d: Date | string) =>
   new Date(d).toLocaleDateString('en-US', {
@@ -32,11 +37,17 @@ const fmt = (d: Date | string) =>
     <section class="sources" aria-labelledby="sources-heading">
       <h2 id="sources-heading">Sources</h2>
       <p class="sources-intro">
-        Every legal claim on this page points to the law itself, so you can check us.
+        The primary sources behind this page, so you can check us.
       </p>
       <ol class="sources-list">
         {sources.map((s) => (
-          <li id={sourceAnchorId(leadCitation(s.label))}>
+          <li
+            id={
+              anchorable.has(citeKey(leadCitation(s.label)))
+                ? sourceAnchorId(leadCitation(s.label))
+                : undefined
+            }
+          >
             <a href={s.url} rel="noopener nofollow" target="_blank">
               {s.label}
             </a>
@@ -86,10 +97,5 @@ const fmt = (d: Date | string) =>
     display: block;
     color: var(--color-ink-soft);
     font-size: 0.82rem;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    :global(html) {
-      scroll-behavior: smooth;
-    }
   }
 </style>
