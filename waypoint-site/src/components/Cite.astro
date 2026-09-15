@@ -1,8 +1,28 @@
 ---
 /**
  * Citation chip — inline statute/regulation reference (STYLE-GUIDE §3).
- * Text-only chip; the page's sources[] frontmatter carries the URL.
+ *
+ * The chip links to the page's matching sources[] entry, where the reader
+ * finds the primary-source URL and the date we last accessed it. The href is
+ * supplied at build time by remark-cite-links, which does the pairing; a chip
+ * with no matching source is handed no href and stays plain text, the way the
+ * app's Citation component degrades on an unregistered citation.
  */
+interface Props {
+  /** Anchor to this chip's sources[] entry. Absent when the page lists none. */
+  href?: string;
+}
+const { href } = Astro.props;
 ---
 
-<span class="cite"><slot /></span>
+{
+  href ? (
+    <a class="cite cite-link" href={href}>
+      <slot />
+    </a>
+  ) : (
+    <span class="cite">
+      <slot />
+    </span>
+  )
+}
