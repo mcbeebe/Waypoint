@@ -177,7 +177,11 @@ Initiative 004 is planned and waiting. The scope question is the whole decision.
 grounded answers was sequenced first is so all 40 articles generate against a
 citation gate that actually works.
 
-> **Then Claude:** generates the set through the Batch API at half cost. *(~3 wks)*
+> **Corrected Sep 15, after deriving it:** "~40" is mostly already built. The
+> harness (`learnDerive.ts`) shipped Sep 8 and mechanically emits **22** articles;
+> **5** more are already live. So the gap is **~13**, not 40, and the next step is
+> slice **8-2** — composing and human-reviewing the 22 — rather than new writing.
+> Full accounting: `Roadmap/initiatives/004-learn-content-engine/analysis-manifest-Sep2026.md`
 
 ---
 
@@ -187,6 +191,7 @@ Append a line when something changes; a returning session reads this first.
 
 | Date | What changed |
 |---|---|
+| 2026-09-15 | **Step 4 scope corrected after measurement:** the Learn harness already ships 22 derived articles and 5 are live, so the approved "~40" needs ~13 new ones, not 40. Next slice is 8-2 (compose + review), not authoring. |
 | 2026-09-15 | **Step 3.2 answered** ("stop at school exit" — an event, not an age) and **Step 4 approved** (~40 derived articles). Only Step 1, the operational unblock, remains. |
 | 2026-09-15 | **Step 3.1 answered:** present the options, never give a legal opinion. Rule encoded in initiative 009; four shipped opinion lines neutralised. |
 | 2026-09-15 | **Step 2 closed.** Owner verified all 23. 12 authorities registered, 2 parent sections folded into existing entries, Section 504 registered as a named authority, 9 bare `§` given their code in prose (trilingual). Registry 25 → 38 entries. `KNOWN_GAPS` empty; ratchet is now a hard gate. Gates green: 140 files / 1560 tests. |
