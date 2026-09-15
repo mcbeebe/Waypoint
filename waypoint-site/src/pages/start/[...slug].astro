@@ -9,6 +9,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import DraftBanner from '../../components/DraftBanner.astro';
 import InlineDisclaimer from '../../components/InlineDisclaimer.astro';
+import Sources from '../../components/Sources.astro';
 import { visibleEntries } from '../../lib/content';
 import { articleJsonLd, breadcrumbsJsonLd } from '../../lib/jsonld';
 import type { Crumb } from '../../lib/jsonld';
@@ -82,6 +83,10 @@ const crumbLd = !isDraft ? breadcrumbsJsonLd(crumbs) : null;
       >
         <Content />
       </div>
+      {/* This route renders its own chrome instead of ArticleLayout, so the
+          sources block has to be repeated here or the receipts vanish on the
+          one page most first-time parents land on. */}
+      <Sources sources={d.sources} />
       <InlineDisclaimer variant={d.disclaimerVariant} />
     </div>
   </div>
