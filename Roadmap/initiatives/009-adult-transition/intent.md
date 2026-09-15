@@ -91,11 +91,28 @@ searching for it**, with a citation they can tap.
   DOR referral obligation, and inventing them is precisely the failure
   `statuteAudit.ts` was built last week to catch. Establishing them is B2, and
   `verifiedOn` needs a human.
-- **Conservatorship is the sharpest copy in the product.** The escalation-tone
-  rule applies at full force: **supported decision-making is presented first,
-  and conservatorship is never a default recommendation.** It restricts a
-  disabled adult's legal rights; the app's job is to make sure a family knows
-  the lighter option exists before anyone files.
+- **Present the legal options; never give a legal opinion.** *(Owner decision,
+  Sep 15 2026 — this supersedes the version of this bullet that said "supported
+  decision-making is presented first," which was itself the kind of ranking the
+  rule forbids.)*
+
+  **Allowed:** naming every option that exists — conservatorship, limited
+  conservatorship, supported decision-making, power of attorney,
+  representative payee — describing factually what each one is, saying when the
+  decision arrives and how long it takes, and routing to free credentialed help
+  (OCRA is assigned to every Regional Center by statute).
+
+  **Not allowed, in Waypoint's own voice:** ranking the options, calling one
+  "lighter" or "most common," recommending an order to consider them in,
+  describing how to file, or drafting an instrument for any of them.
+
+  **The escape hatch is a citation, and the gate already enforces it.** If
+  California law itself ranks the options — a court must consider less
+  restrictive alternatives, say — then Waypoint may state that as a *fact about
+  the law*, because it arrives with a registered authority behind it. What it
+  may not do is assert the ranking unsourced. `statuteAudit.guard.test.ts`
+  makes this mechanical: an uncited statute fails the build, so "we can say it
+  if we can cite it" is enforced rather than remembered.
 - **`request_type` is a `text … check (…)` constraint**
   (`037_family_requests.sql:15`). New clock types need a hand-applied migration
   — batch it with initiative C's (the Binder's) to spend one window, not two.
@@ -104,13 +121,26 @@ searching for it**, with a citation they can tap.
 
 ## Open questions — for the owner
 
-1. **Does this need a lawyer?** The benefit and education dates I would build
-   with confidence. The legal-capacity content — conservatorship versus
-   supported decision-making — is where a confident wrong sentence does real
-   harm. **If no credentialed read is available, my recommendation is to cut
-   the legal-capacity content from scope entirely** and ship the arc without
-   it, rather than write it carefully and hope. An arc that covers SSI, IEP
-   transition and DOR is still the feature.
+1. ~~**Does this need a lawyer?**~~ **ANSWERED, Sep 15 2026.** The question was
+   posed as a binary — get a credentialed read, or cut the legal-capacity
+   content. The owner's answer is neither, and is better than both: *"It's OK to
+   present the legal options, but NOT OK to give legal opinions."* The content
+   stays and is constrained instead, per the rule in **Constraints** above.
+
+   Applied immediately to the copy already shipped. Four lines were opinions in
+   Waypoint's voice and are now neutral:
+
+   | Was | Now |
+   |---|---|
+   | "Explore Supported Decision-Making **before defaulting to** conservatorship" | "Conservatorship and Supported Decision-Making are both options — compare them before 18" |
+   | "Limited conservatorship **is most common for ID** — start 6–12 months before 18" | "Limited conservatorship and Supported Decision-Making are both options — allow 6–12 months before 18" |
+   | "**Start conservatorship process** 6–12 months before age 18" | "Legal decision-making options take 6–12 months to arrange — start before 18" |
+   | "Conservatorship — or **a lighter alternative like** supported decision-making — takes months" | "The options — conservatorship, limited conservatorship, supported decision-making, power of attorney — each take months" |
+
+   Note what the second one was: an unsourced empirical claim ("most common for
+   ID") that nudged families of children with intellectual disability toward the
+   option that removes rights. That is the clearest case for the rule.
+
 2. **How far past 18 does this go?** Conservatorship, SNTs, DOR and adult day
    programs each pull toward a much larger surface. I would cap v1 at **14–19**
    and treat everything after the school-exit date as out of scope.

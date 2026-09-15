@@ -1,6 +1,6 @@
 # Owner action items — September 2026
 
-**Date:** Sep 13, 2026 · **Updated:** Sep 15, 2026 · **Status:** open — Step 2 DONE
+**Date:** Sep 13, 2026 · **Updated:** Sep 15, 2026 · **Status:** open — Steps 2 and 3.1 DONE
 **Companion to:** `Roadmap/Statute-Registry-Worksheet-Sep2026.md` (the detail behind Step 2),
 `Roadmap/Build-Plan-Items1-4-Sep2026.md`, `Roadmap/initiatives/009-adult-transition/`
 
@@ -123,13 +123,29 @@ last column.
 
 Read `Roadmap/initiatives/009-adult-transition/intent.md` first (one page).
 
-### 3.1 · Can you get a credentialed review of the conservatorship content?
+### 3.1 · Legal-capacity content — **ANSWERED Sep 15, 2026**
 
-- [ ] **Yes** — name / date: ______________________ → Claude builds the full arc.
-- [ ] **No** → **cut legal-capacity content from scope.** *(Claude's
-      recommendation.)* An arc covering SSI, IEP transition and DOR is still the
-      feature. A confident wrong sentence about restricting a disabled adult's
-      legal rights is the worst thing this product could ship.
+- [x] **"It's OK to present the legal options, but NOT OK to give legal
+      opinions."** The content stays, constrained. Claude asked this as a
+      binary (credentialed review, or cut it); the answer is neither and is
+      better than both.
+
+**The rule, as encoded in `initiatives/009-adult-transition/intent.md`:**
+
+| Allowed | Not allowed in Waypoint's voice |
+|---|---|
+| Name every option that exists | Rank them |
+| Describe factually what each is | Call one "lighter" or "most common" |
+| Say when the decision arrives, and how long it takes | Recommend an order to consider them in |
+| Route to free credentialed help (OCRA) | Describe how to file, or draft an instrument |
+
+**Escape hatch:** if California law itself ranks the options, Waypoint may state
+that as a *fact about the law* — because it arrives with a registered citation.
+The statute gate makes this mechanical: say it only if you can cite it.
+
+**Already applied** to four shipped lines that were opinions — including
+"Limited conservatorship is most common for ID," an unsourced empirical claim
+that nudged families toward the option that removes rights.
 
 ### 3.2 · Age range for v1
 
@@ -166,6 +182,7 @@ Append a line when something changes; a returning session reads this first.
 
 | Date | What changed |
 |---|---|
+| 2026-09-15 | **Step 3.1 answered:** present the options, never give a legal opinion. Rule encoded in initiative 009; four shipped opinion lines neutralised. |
 | 2026-09-15 | **Step 2 closed.** Owner verified all 23. 12 authorities registered, 2 parent sections folded into existing entries, Section 504 registered as a named authority, 9 bare `§` given their code in prose (trilingual). Registry 25 → 38 entries. `KNOWN_GAPS` empty; ratchet is now a hard gate. Gates green: 140 files / 1560 tests. |
 | 2026-09-13 | Checklist created. Steps 1–4 all open. Code that needed no decision has shipped: `statuteAudit.ts` + ratchet, `sourceFreshness.ts`, initiative 009 intent/plan. |
 

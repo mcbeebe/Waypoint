@@ -185,7 +185,7 @@ const ENTITY_EXPLAINERS: { match: RegExp; why: string }[] = [
   { match: /\bssi\b|social security|\bssa\b/, why: 'SSI is a monthly benefit for eligible children and, at 18, is re-determined against adult criteria. Knowing that timing avoids a gap in income and the Medi-Cal that can come with it.' },
   // Guardianship only — narrowed from a broad /18|adult|transition/, which was
   // catching medical "Adult neurology / CCS → adult programs" rows.
-  { match: /conservator|guardianship|supported decision/, why: 'Turning 18 changes who can legally make decisions. Conservatorship — or a lighter alternative like supported decision-making — takes months to arrange, so families start well before the birthday.' },
+  { match: /conservator|guardianship|supported decision/, why: 'Turning 18 changes who can legally make decisions. The options — conservatorship, limited conservatorship, supported decision-making, power of attorney — each take months to arrange, so families start well before the birthday.' },
 ];
 
 export function entityExplainer(entityName: string): string | null {
