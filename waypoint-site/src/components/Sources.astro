@@ -84,6 +84,10 @@ const fmt = (d: Date | string) =>
   .sources-list li {
     font-size: 0.9rem;
     line-height: 1.5;
+    /* The site header is sticky (129px at phone width), so a chip's jump would
+       otherwise land its source underneath it — the reader taps to check a
+       statute and sees the nav. Clears the header plus a little breathing room. */
+    scroll-margin-top: 150px;
   }
   /* The chip jumps here; make the landing obvious rather than leaving the
      reader to guess which of fifteen entries they were sent to. */

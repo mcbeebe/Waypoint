@@ -358,6 +358,10 @@ a.cite-link {
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 2px;
+  /* WCAG 2.2 SC 2.5.8 wants 24×24 CSS px; the chip measured 23px tall, missing
+     it by a pixel. Padding rather than min-height, so the chip still sits on
+     the text baseline inside a sentence. */
+  padding-block: 4px;
 }
 a.cite-link:hover,
 a.cite-link:focus-visible {
