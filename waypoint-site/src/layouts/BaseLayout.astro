@@ -18,9 +18,11 @@ interface Props {
 }
 const { title, description, locale = 'en', noindex = false, pillar, ogSlug, ogType } = Astro.props;
 const isProd = (process.env.VERCEL_ENV ?? 'production') === 'production';
-// GA4: second, additional tracker alongside Plausible (D3 "Providers"). Unset
-// in preview/dev so branch QA traffic never reaches the production property.
-const gaMeasurementId = process.env.GA_MEASUREMENT_ID;
+// GA4: second, additional tracker alongside Plausible (D3 "Providers"). The
+// Measurement ID is committed, not a secret — gtag.js publishes it in the
+// markup of every page. GA_MEASUREMENT_ID overrides it for a separate
+// property. Preview/dev never reach it: isProd gates the tag, not this value.
+const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
 ---
 
 <!doctype html>

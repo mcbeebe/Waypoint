@@ -16,10 +16,17 @@ not a replacement and does not change any event name, prop, or the north star
 definition. Every event listed below fires to both providers: `BaseLayout.astro`
 mirrors each `window.plausible(...)` call to `gtag('event', ...)` with the same
 name and props at a single dispatch point, so no per-event code exists in two
-places. GA4 loads only when `GA_MEASUREMENT_ID` is set and `VERCEL_ENV ===
-'production'`, same gating as Plausible. Google Signals / ad personalization
-are left off in both the GA4 property config and the per-call `gtag('config',
-...)` options, matching the privacy posture Plausible was chosen for.
+places. GA4 loads only when `VERCEL_ENV === 'production'`, the same gate as
+Plausible — that gate, not the ID, is what keeps preview/branch QA traffic out
+of the property. Google Signals / ad personalization are left off in both the
+GA4 property config and the per-call `gtag('config', ...)` options, matching
+the privacy posture Plausible was chosen for.
+
+The Measurement ID is **committed in `BaseLayout.astro`**, not held in an env
+var: gtag.js publishes it in the markup of every page, so it is public by
+construction and there is nothing to protect. This is deliberate — it keeps the
+production tag working without a deploy-time secret. `GA_MEASUREMENT_ID`
+overrides it when a build needs to point at a different property.
 
 ## Site-side events (Plausible, cookieless, data-domain: waypointchild.com)
 
