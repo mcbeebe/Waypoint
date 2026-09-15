@@ -91,6 +91,62 @@ describe('findSource', () => {
   });
 });
 
+describe('an explicit cite ends the guessing', () => {
+  // The real shape of /guides/benefits/medi-cal-institutional-deeming/: five
+  // DHCS sources, every label reducing to "DHCS", and chips that are shortened
+  // human names. Inference cannot pair these; the author can.
+  const page = [
+    {
+      cite: 'DHCS HCBS-DD Waiver',
+      label: 'DHCS — HCBS Waiver for the Developmentally Disabled (institutional deeming)',
+      url: 'https://example.gov/waiver',
+      accessed: '2026-09-15',
+    },
+    {
+      cite: 'DHCS Institutional Status Procedures',
+      label: 'DHCS — Institutional Status Procedures (Form 7096, waiver referral process)',
+      url: 'https://example.gov/7096',
+      accessed: '2026-09-15',
+    },
+    src('DHCS — Medi-Cal Eligibility by Federal Poverty Level'),
+    src('DHCS — Medi-Cal Eligibility Procedures Manual'),
+  ];
+
+  it('pairs a publisher chip the label could never match', () => {
+    expect(findSource('DHCS HCBS-DD Waiver', page)?.url).toBe('https://example.gov/waiver');
+    expect(findSource('DHCS Institutional Status Procedures', page)?.url).toBe(
+      'https://example.gov/7096'
+    );
+  });
+
+  it('leaves the undeclared entries ambiguous rather than guessing between them', () => {
+    // Both remaining labels still reduce to "DHCS" — two candidates, no link.
+    expect(findSource('DHCS', page)).toBeNull();
+    expect(findSource('DHCS Medi-Cal Eligibility', page)).toBeNull();
+  });
+
+  it('ids the declared entries off their cite, so the anchor matches the chip', () => {
+    expect(anchorableKeys(page).has(citeKey('DHCS HCBS-DD Waiver'))).toBe(true);
+    expect(sourceAnchorId('DHCS HCBS-DD Waiver')).toBe('src-dhcs-hcbs-dd-waiver');
+  });
+
+  it('refuses two entries that claim the same chip', () => {
+    const clash = [
+      { cite: 'DHCS Medi-Cal Eligibility', label: 'DHCS — FPL', url: 'https://a.gov/', accessed: '2026-09-15' },
+      { cite: 'DHCS Medi-Cal Eligibility', label: 'DHCS — Manual', url: 'https://b.gov/', accessed: '2026-09-15' },
+    ];
+    expect(findSource('DHCS Medi-Cal Eligibility', clash)).toBeNull();
+    expect(anchorableKeys(clash).size).toBe(0);
+  });
+
+  it('a cite wins over what the label would have implied', () => {
+    // Guards against a future refactor quietly preferring the label again.
+    const s = [{ cite: 'The waiver', label: 'WIC §4643 (assessment)', url: 'https://x.gov/', accessed: '2026-09-15' }];
+    expect(findSource('The waiver', s)?.label).toMatch(/^WIC §4643/);
+    expect(findSource('WIC §4643', s)).toBeNull();
+  });
+});
+
 describe('the spellings the site actually uses in prose vs frontmatter', () => {
   it('pairs a bare "Ed Code" chip with a "CA Ed Code" label', () => {
     // 26 labels say "CA Ed Code §…" while 100 chips say "Ed Code §…" — the
