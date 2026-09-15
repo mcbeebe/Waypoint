@@ -16,7 +16,7 @@
  */
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 
 const h = vi.hoisted(() => ({
   // One live IPP request, asked six weeks before the re-send below.
@@ -73,6 +73,7 @@ vi.mock('@/lib/letters', async (importOriginal) => ({
 
 import LettersScreen from './LettersScreen';
 import { routeParams } from '../../../vitest.setup.ui';
+import { sourcesForCitation } from '@/data/contentSources';
 
 /** Generate a draft, then confirm it went out — the path a parent walks. */
 async function draftAndMarkSent() {
@@ -100,14 +101,40 @@ afterEach(() => {
 });
 
 describe('the deadline the sent moment shows', () => {
+  it('its citation is a receipt the parent can open, not grey text', async () => {
+    await draftAndMarkSent();
+    const line = await screen.findByText(/Their deadline/);
+    const chip = within(line.parentElement as HTMLElement).getByLabelText(
+      /Why this — the source/
+    );
+    fireEvent.click(chip);
+    // The sheet shows the section that actually carries the 30-day clock
+    // printed beside it, with its own claim and its own link. (Asserted via
+    // the registry rather than a literal, so a re-verified claim doesn't
+    // break this test for the wrong reason.)
+    const src = sourcesForCitation('W&I §4646.5(b)');
+    expect(src).toHaveLength(1);
+    expect(screen.getByText(src[0].title)).toBeTruthy();
+    expect(screen.getByText(src[0].claim)).toBeTruthy();
+    expect(screen.getByLabelText(`Read the section — ${src[0].title}`)).toBeTruthy();
+  });
+
   it('re-sending an open ask keeps that request’s clock, and says it is overdue', async () => {
     await draftAndMarkSent();
     // The Aug 1 ask + 30 days = Aug 31, already past on Sep 6. The bug showed
     // a comfortable Oct 6 here while the Request Tracker showed Aug 31.
     const line = await screen.findByText(/Their deadline/);
     expect(line.textContent).toContain('2026-08-31');
-    expect(line.textContent).toContain('W&I §4646.5(b)');
     expect(line.textContent).not.toContain('2026-10-06');
+    // The citation moved out of this sentence and into a tappable chip. The
+    // pairing this file exists to guard is ADJACENCY, so it is asserted
+    // within the clock pill — a whole-screen query passed with the chip
+    // relocated to the bottom of the card, which is exactly the regression
+    // that would put a statute next to the wrong date.
+    const pill = line.parentElement as HTMLElement;
+    expect(
+      within(pill).getByLabelText(/^W&I §4646\.5\(b\)\. Why this — the source$/)
+    ).toBeTruthy();
     // Joining a live request must not open a second clock row.
     expect(h.createRequest).not.toHaveBeenCalled();
     expect(h.attach).toHaveBeenCalledWith('comm1', 'req1');
