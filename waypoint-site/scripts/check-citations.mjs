@@ -46,6 +46,24 @@ let duplicates = [];
 let orphans = 0;
 const orphansByPage = {};
 
+// An empty or missing dist reported "✓ unsourced chips: 0 (down from 24)" —
+// a failed build congratulating itself. Nothing below can be trusted without
+// pages to read.
+const pageCount = (() => {
+  try {
+    return htmlFiles(DIST).length;
+  } catch {
+    return 0;
+  }
+})();
+if (pageCount < 20) {
+  console.error(
+    `✗ only ${pageCount} built page(s) under dist/ — run \`npm run build\` first; ` +
+      `a partial build makes every count below meaningless.`
+  );
+  process.exit(1);
+}
+
 for (const file of htmlFiles(DIST)) {
   const html = readFileSync(file, 'utf8');
   const page = path.relative(DIST, file);
