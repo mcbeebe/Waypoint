@@ -188,19 +188,6 @@ export interface TranslationStrings {
     terms: string;
   };
 
-  // ─── Auth ────────────────────────────────────────────────
-  auth: {
-    signIn: string;
-    signUp: string;
-    email: string;
-    password: string;
-    forgotPassword: string;
-    continueWithApple: string;
-    noAccount: string;
-    hasAccount: string;
-    welcomeTitle: string;
-    welcomeSubtitle: string;
-  };
 
   // ─── Empathy Messages (rotating) ─────────────────────────
   empathy: string[];
