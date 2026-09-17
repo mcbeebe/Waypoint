@@ -1,15 +1,18 @@
 # 009 — i18n sweep: finish Spanish on the screens that already speak it
 
-**Date:** 2026-09-13 (scope amended 2026-09-15) · **Status:** Open — four PRs built and adversary-reviewed, **all awaiting owner approval** per the family-facing stop. None merged.
+**Date:** 2026-09-13 (scope amended 2026-09-15; PR status corrected 2026-09-17) · **Status:** Open — **PRs 1 and 2 are merged to `main`.** PR 3 is re-landed and PR 4 open, both awaiting owner approval per the family-facing stop.
 
-| PR | Branch | Scope | Base |
-|----|--------|-------|------|
-| 1 | `claude/waypoint-multi-language-status-1zu5nu` | ProfileScreen + DiagnosisSelector + ContactsCard | `main` |
-| 2 | `claude/i18n-device-locale-detection` | Device-language detection | `main` |
-| 3 | `claude/i18n-welcome-screen` | WelcomeScreen | PR 2 |
-| 4 | `claude/i18n-onboarding` | OnboardingFlow | PR 1 |
+| PR | Scope | Status |
+|----|-------|--------|
+| 1 (#280) | ProfileScreen + DiagnosisSelector + ContactsCard | ✅ **Merged to `main`** 2026-09-13 |
+| 2 (#282) | Device-language detection | ✅ **Merged to `main`** 2026-09-13 |
+| 3 (#283) | WelcomeScreen | ⚠️ **Merged into a base that had already merged — never reached `main`.** Re-landed as **#295** |
+| 4 | OnboardingFlow | Open, rebased onto current `main` |
 
-Two independent stacks. PR 4 needs PR 1 (`DiagnosisSelector`) and is only *reachable* once PR 2 lands.
+**The stacking mistake, recorded so it is not repeated.** PR 3 was based on PR 2's branch rather than on `main`. PR 2 merged to `main` at `2026-09-13T23:52Z`; PR 3 then merged into that branch at `2026-09-14T04:55Z`, five hours after it had stopped feeding `main`. The merge succeeded and the code went nowhere — `welcomeCopy.ts` was absent from `main` for three days while the PR read as merged. The repo has hit this before (#288, "#287 merged into its stale base"). **Base an i18n PR on `main` unless it genuinely cannot compile there**, and when a stack is unavoidable, re-target the child the moment the parent merges.
+
+**Where that leaves a family today:** `main` detects a Spanish phone and opens in Spanish, then shows an English Welcome and an English onboarding. Gate 7 needs #295 and PR 4.
+
 **Artifacts:** intent.md (this) → analysis.md (the audit) → pr1-review-memo.md → PRs, one per screen cluster
 **Serves:** `ROADMAP.md` Phase **7.1 — i18n sweep** ("English + Spanish. Move all screens onto the translation system") and **Gate 7** ("A Spanish-speaking parent uses the full app offline"). Locked decision row 5: *Languages — English + Spanish; vi kept in repo but unlisted.*
 
