@@ -23,6 +23,7 @@ vi.mock('@/lib/analytics', () => ({ trackFunnelStep: () => {} }));
 
 import EligibilityResultScreen from './EligibilityResultScreen';
 import { navigateCalls } from '../../../vitest.setup.ui';
+import { deriveEligibility } from '@/lib/eligibility';
 
 describe('the Your Result RC card opens the family-supports tier — when enrolled', () => {
   it('an enrolled family sees the link and it fires navigate(AskForSupports)', () => {
@@ -37,5 +38,44 @@ describe('the Your Result RC card opens the family-supports tier — when enroll
     state.rcStatus = 'unknown'; // → RC card likely (has dx) — not enrolled
     render(<EligibilityResultScreen />);
     expect(screen.queryByRole('button', { name: /family supports you can ask for/i })).toBeNull();
+  });
+});
+
+describe('each result card carries a receipt, without hiding the date', () => {
+  it('the citation opens its source', () => {
+    state.rcStatus = 'active';
+    render(<EligibilityResultScreen />);
+    // One per card. `> 0` would have passed with three of the four cards
+    // silently degraded to inert text.
+    const chips = screen.getAllByLabelText(/Why this — the source/);
+    expect(chips).toHaveLength(
+      deriveEligibility(
+        { ageYears: 8, rcStatus: 'active', iepStatus: 'active', hasDiagnosis: true },
+        'en'
+      ).cards.length
+    );
+    fireEvent.click(chips[0]);
+    expect(screen.getAllByLabelText(/^Read the section — /).length).toBeGreaterThan(0);
+  });
+
+  it('keeps the reviewed date on the face of the card, in the sheet\u2019s own format', () => {
+    // The hero promises "the date we last checked it" — so the date must stay
+    // visible, not retreat behind the tap that now opens the source. And it
+    // reads the same on the face as inside: `reviewed Aug 23, 2026`, not an
+    // ISO string the reader has to reconcile with `Verified Aug 23, 2026`.
+    state.rcStatus = 'active';
+    render(<EligibilityResultScreen />);
+    expect(screen.getAllByText(/reviewed Aug 23, 2026/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/reviewed 2026-08-23/)).toBeNull();
+  });
+
+  it('speaks the date as part of the citation, not as a loose fragment', () => {
+    state.rcStatus = 'active';
+    render(<EligibilityResultScreen />);
+    // The chip carries the date in its own label, so VoiceOver's swipe order
+    // never yields a bare "reviewed Aug 23, 2026" with no antecedent.
+    expect(
+      screen.getAllByLabelText(/Why this — the source/)[0].getAttribute('aria-label')
+    ).toMatch(/reviewed Aug 23, 2026\. Why this/);
   });
 });

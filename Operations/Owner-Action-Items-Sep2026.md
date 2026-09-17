@@ -2,7 +2,7 @@
 
 **Date:** Sep 13, 2026 · **Updated:** Sep 15, 2026 · **Status:** Step 1 is the only thing left — Steps 2, 3 and 4 are DONE
 **Companion to:** `Roadmap/Statute-Registry-Worksheet-Sep2026.md` (the detail behind Step 2),
-`Roadmap/Build-Plan-Items1-4-Sep2026.md`, `Roadmap/initiatives/009-adult-transition/`
+`Roadmap/Build-Plan-Items1-4-Sep2026.md`, `Roadmap/initiatives/012-adult-transition/`
 
 ---
 
@@ -121,7 +121,7 @@ last column.
 
 ## ✅ Step 3 — Two decisions on the Adult Transition — **BOTH ANSWERED**
 
-Read `Roadmap/initiatives/009-adult-transition/intent.md` first (one page).
+Read `Roadmap/initiatives/012-adult-transition/intent.md` first (one page).
 
 ### 3.1 · Legal-capacity content — **ANSWERED Sep 15, 2026**
 
@@ -130,7 +130,7 @@ Read `Roadmap/initiatives/009-adult-transition/intent.md` first (one page).
       binary (credentialed review, or cut it); the answer is neither and is
       better than both.
 
-**The rule, as encoded in `initiatives/009-adult-transition/intent.md`:**
+**The rule, as encoded in `initiatives/012-adult-transition/intent.md`:**
 
 | Allowed | Not allowed in Waypoint's voice |
 |---|---|
@@ -193,9 +193,9 @@ Append a line when something changes; a returning session reads this first.
 |---|---|
 | 2026-09-15 | **Step 4 scope corrected after measurement:** the Learn harness already ships 22 derived articles and 5 are live, so the approved "~40" needs ~13 new ones, not 40. Next slice is 8-2 (compose + review), not authoring. |
 | 2026-09-15 | **Step 3.2 answered** ("stop at school exit" — an event, not an age) and **Step 4 approved** (~40 derived articles). Only Step 1, the operational unblock, remains. |
-| 2026-09-15 | **Step 3.1 answered:** present the options, never give a legal opinion. Rule encoded in initiative 009; four shipped opinion lines neutralised. |
+| 2026-09-15 | **Step 3.1 answered:** present the options, never give a legal opinion. Rule encoded in initiative 012; four shipped opinion lines neutralised. |
 | 2026-09-15 | **Step 2 closed.** Owner verified all 23. 12 authorities registered, 2 parent sections folded into existing entries, Section 504 registered as a named authority, 9 bare `§` given their code in prose (trilingual). Registry 25 → 38 entries. `KNOWN_GAPS` empty; ratchet is now a hard gate. Gates green: 140 files / 1560 tests. |
-| 2026-09-13 | Checklist created. Steps 1–4 all open. Code that needed no decision has shipped: `statuteAudit.ts` + ratchet, `sourceFreshness.ts`, initiative 009 intent/plan. |
+| 2026-09-13 | Checklist created. Steps 1–4 all open. Code that needed no decision has shipped: `statuteAudit.ts` + ratchet, `sourceFreshness.ts`, initiative 012 intent/plan. |
 
 ---
 
@@ -203,5 +203,5 @@ Append a line when something changes; a returning session reads this first.
 
 So you can skip past it: the statute audit and its ratchet, the provenance
 freshness module, the build plan, the product roadmap, the competitor analyses,
-and initiative 009's intent and plan are all written, tested and pushed. Gates
+and initiative 012's intent and plan are all written, tested and pushed. Gates
 green at 140 test files / 1,558 tests.

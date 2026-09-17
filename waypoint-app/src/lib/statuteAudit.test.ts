@@ -123,9 +123,12 @@ describe('parseCitations — the many ways prose names a law', () => {
     expect(ids('cite EPSDT — 42 U.S.C. §1396d(r)')).toEqual(['USC42:1396d(r)']);
   });
 
-  it('ignores a § that belongs to a spec rather than a statute', () => {
+  it('ignores a § that belongs to a spec or a repo document, not a statute', () => {
     expect(parseCitations('base64url per RFC 4648 §5: the alphabet with +/ swapped')).toEqual([]);
     expect(parseCitations('Phase-1 gates (PRD §7 kill criteria) — single source')).toEqual([]);
+    // Added when a real line tripped the gate: DiagnosisSelector.tsx cites
+    // "content-ops STYLE-GUIDE §4" for its disability-language rule.
+    expect(parseCitations('phrasing (content-ops STYLE-GUIDE §4 — per-community language)')).toEqual([]);
   });
 
   it('reports where it found each citation', () => {

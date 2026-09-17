@@ -48,7 +48,7 @@ export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'wic_4643',
     title: 'Welfare & Institutions Code §4643',
-    covers: ['W&I §4643'],
+    covers: ['W&I §4643', 'Lanterman Act, W&I §4512 · §4643'],
     url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4643.',
     verifiedOn: VERIFIED,
     claim: 'Regional Center assessment within 120 days of intake; 60 days when delay risks harm.',
@@ -56,7 +56,12 @@ export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'wic_4646',
     title: 'Welfare & Institutions Code §4646 · §4646.5(b)',
-    covers: ['W&I §4646 · §4646.5(b)', 'W&I §4646.5(b)'],
+    covers: [
+      'W&I §4646 · §4646.5(b)',
+      'W&I §4646.5(b)',
+      'W&I §4685.8 · §4646.5(b)',
+      'W&I §4646.5 · §4648(a)',
+    ],
     url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4646.5.',
     verifiedOn: VERIFIED,
     claim:
@@ -73,7 +78,13 @@ export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'wic_4685_8',
     title: 'Welfare & Institutions Code §4685.8 (Self-Determination Program)',
-    covers: ['W&I §4685.8', 'W&I §4685.8(u)', 'W&I §4685.8 · §4646.5(b)'],
+    covers: [
+      'W&I §4685.8',
+      'W&I §4685.8(u)',
+      'W&I §4685.8 · §4646.5(b)',
+      'W&I §4685.8 · DDS D-2026-SDP-002',
+      'W&I §4685.8 · DDS PDS FAQ',
+    ],
     url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4685.8.',
     verifiedOn: VERIFIED,
     claim:
@@ -200,7 +211,7 @@ export const CONTENT_SOURCES: ContentSource[] = [
   {
     key: 'wic_4731',
     title: 'Welfare & Institutions Code §4731 (rights-violation complaint)',
-    covers: ['W&I §4731'],
+    covers: ['W&I §4731', 'W&I §4710.5 · §4731'],
     url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=WIC&sectionNum=4731.',
     verifiedOn: '2026-08-28',
     claim:
@@ -391,7 +402,31 @@ export const CONTENT_SOURCES: ContentSource[] = [
   },
 ];
 
-/** The registry entry covering a UI citation string, or null. */
+/**
+ * EVERY registry entry behind a citation string, in registry order.
+ *
+ * A citation chip often names more than one authority — `Lanterman Act, W&I
+ * §4512 · §4643`, `W&I §4685.8 · §4646.5(b)`. While the chip was inert text
+ * that was harmless: it named both and asserted nothing about which one said
+ * what. The moment the chip opens a sheet, picking ONE of them is an
+ * assertion, and first-match picked wrong: the §4512 entry says nothing about
+ * the 120-day assessment clock printed beside it, and the §4685.8 entry says
+ * nothing about the 30-day IPP-meeting right the SDP step rests on. A parent
+ * would have quoted the section that does not contain their deadline.
+ *
+ * So a compound chip resolves to every authority it names, each keeping its
+ * own verified claim and its own link. That is why a compound string may
+ * appear in more than one entry's `covers` — the one exception to the
+ * uniqueness rule, pinned in contentSources.test.ts.
+ */
+export function sourcesForCitation(citation: string): ContentSource[] {
+  return CONTENT_SOURCES.filter((s) => s.covers.includes(citation));
+}
+
+/**
+ * The first registry entry covering a citation string, or null.
+ * Prefer {@link sourcesForCitation}; a compound chip has more than one.
+ */
 export function sourceForCitation(citation: string): ContentSource | null {
-  return CONTENT_SOURCES.find((s) => s.covers.includes(citation)) ?? null;
+  return sourcesForCitation(citation)[0] ?? null;
 }

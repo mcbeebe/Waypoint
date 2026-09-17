@@ -16,6 +16,7 @@ import type { SdpJourneyStep, SdpStepStatus } from '@/lib/sdpJourney';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
+import Citation from '@/components/Citation';
 import type { HomeStackParamList } from '@/types/navigation';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
@@ -201,7 +202,7 @@ export default function SdpJourneyScreen() {
               <Text style={styles.hereBtnText}>{S.imHere}</Text>
             </Pressable>
           )}
-          <Text style={styles.citation}>ⓘ {step.citation}</Text>
+          <Citation citation={step.citation} locale={funnelLocale} />
         </View>
       </View>
     );
@@ -366,5 +367,4 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.semibold,
     textDecorationLine: 'underline',
   },
-  citation: { fontSize: fonts.sizes.xs, color: colors.mid },
 });

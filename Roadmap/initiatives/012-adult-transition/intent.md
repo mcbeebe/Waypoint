@@ -1,7 +1,11 @@
-# 009 — The Adult Transition
+# 012 — The Adult Transition
 
 **Date:** 2026-09-13 · **Status:** Open — plan for owner go, no code written
 **Artifacts:** intent.md (this) → plan.md → PRs B1–B3
+**Renumbered 009 → 012 on 2026-09-17.** This was drafted as 009 on a branch that
+sat unmerged while `main` assigned 009 to the i18n sweep, 010 to Chabot and 011 to
+citation receipts. Renumbered on merge rather than renumbering theirs, per the
+precedent 010 set for exactly this collision.
 **Serves:** `ROADMAP.md` v2.0 · implements `Build-Plan-Items1-4-Sep2026.md`
 workstream B, which implements `Product-Roadmap-Sep2026.md` item 1. Competitive
 basis: `SpecialNeedsNavigator-Comparison-Sep2026.md` §6.

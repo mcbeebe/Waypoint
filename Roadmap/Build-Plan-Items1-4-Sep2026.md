@@ -119,7 +119,7 @@ decision window. **Supported decision-making is presented first and
 conservatorship is never a default recommendation** — the escalation-tone rule at
 full force. This needs a credentialed read, not just `/adversary`.
 
-- Deliverable: `Roadmap/initiatives/009-adult-transition/` (intent, plan) +
+- Deliverable: `Roadmap/initiatives/012-adult-transition/` (intent, plan) +
   mockups. It clears the initiative bar on every axis.
 
 ### B2 · Registry first, then content — **OWNER** · ~1 wk

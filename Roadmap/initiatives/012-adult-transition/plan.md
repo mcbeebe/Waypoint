@@ -1,4 +1,4 @@
-# 009 — The Adult Transition · build plan
+# 012 — The Adult Transition · build plan
 
 **Date:** 2026-09-13 · **Status:** Open — for owner go
 **Intent:** [`intent.md`](intent.md) · **Parent plan:** `Roadmap/Build-Plan-Items1-4-Sep2026.md` workstream B

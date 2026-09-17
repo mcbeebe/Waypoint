@@ -16,6 +16,7 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useI18n } from '@/i18n';
+import Citation from '@/components/Citation';
 import { colors, fonts, spacing, radii, semantic } from '@/lib/theme';
 
 const T: Record<
@@ -168,7 +169,9 @@ export default function SupportDetailScreen() {
           <Text style={styles.secondaryCtaText}>{t.ask(support.name)}</Text>
         </Pressable>
 
-        <Text style={styles.citation}>ⓘ {support.citation}</Text>
+        <View style={styles.citationRow}>
+          <Citation citation={support.citation} locale={fl} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -262,10 +265,8 @@ const styles = StyleSheet.create({
   },
   secondaryCtaPressed: { backgroundColor: '#ECFEFF' },
   secondaryCtaText: { color: colors.teal, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold as '600' },
-  citation: {
-    fontSize: fonts.sizes.xs,
-    color: colors.mid,
-    marginTop: spacing.md,
-    textAlign: 'center',
-  },
+  // The chip sets alignSelf: 'flex-start', which OVERRIDES a parent's
+  // alignItems — so centring has to come from the main axis instead. A row
+  // with justifyContent: 'center' keeps the placement the old centred Text had.
+  citationRow: { flexDirection: 'row', justifyContent: 'center', marginTop: spacing.md },
 });

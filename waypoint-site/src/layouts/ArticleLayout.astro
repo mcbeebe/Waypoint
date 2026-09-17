@@ -22,6 +22,8 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 import DraftBanner from '../components/DraftBanner.astro';
 import InlineDisclaimer from '../components/InlineDisclaimer.astro';
 import CrisisBanner from '../components/CrisisBanner.astro';
+import Sources from '../components/Sources.astro';
+import type { SourceEntry } from '../lib/citations';
 import { articleJsonLd } from '../lib/jsonld';
 import type { Crumb } from '../lib/jsonld';
 
@@ -43,6 +45,8 @@ interface Props {
   /** Page slug (path without slashes) + pillar for the read_complete beacon. */
   slug: string;
   pillar?: string;
+  /** Primary sources behind this page's citation chips; rendered at the foot. */
+  sources?: SourceEntry[];
   /** Narrow single-column container (answers, letters). */
   narrow?: boolean;
   /** Crisis surface emphasis for emotionally heavy topics. */
@@ -63,6 +67,7 @@ const {
   noindex,
   slug,
   pillar,
+  sources = [],
   narrow = false,
   crisis = false,
 } = Astro.props;
@@ -110,6 +115,9 @@ const jsonLd = !isDraft
       </div>
       {crisis && <CrisisBanner emphasized />}
       <slot name="handoff" />
+      {/* Sits outside #article-root on purpose: statute labels in the Pagefind
+          index would crowd out the prose a parent is actually searching for. */}
+      <Sources sources={sources} />
       <InlineDisclaimer variant={disclaimerVariant} />
     </div>
   </div>

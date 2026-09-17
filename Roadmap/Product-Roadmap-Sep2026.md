@@ -71,7 +71,7 @@ Speech/Language, Cerebral Palsy. **There is no journey for the transition to
 adulthood, and no clock for any of its dates.** The topic is mentioned
 everywhere and owned nowhere.
 
-> **Corrected Sep 13, 2026 (same day), by `initiatives/009-adult-transition/intent.md`.**
+> **Corrected Sep 13, 2026 (same day), by `initiatives/012-adult-transition/intent.md`.**
 > "Mentioned everywhere and owned nowhere" overstates it. Reading the matches
 > rather than counting them: three are a different sense entirely (the Lanterman
 > criterion that a disability must *originate* before 18), and the transition

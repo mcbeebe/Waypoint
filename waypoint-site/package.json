@@ -16,16 +16,18 @@
     "build:drafts": "WAYPOINT_SHOW_DRAFTS=1 astro build && node scripts/pagefind-index.mjs",
     "axe": "npm run build:drafts && node scripts/axe-scan.mjs",
     "keyboard": "node scripts/keyboard-pass.mjs",
-    "gates": "astro check && vitest run && node scripts/check-tbc.mjs && node scripts/check-language.mjs && npm run build:drafts && node scripts/check-internal-links.mjs && node scripts/axe-scan.mjs && node scripts/keyboard-pass.mjs && npm run build && node scripts/check-internal-links.mjs && node scripts/axe-scan.mjs --production && node scripts/keyboard-pass.mjs --production && node scripts/validate-jsonld.mjs && node scripts/check-sitemap-noindex.mjs && node scripts/validate-keyword-map.mjs",
+    "gates": "astro check && vitest run && node scripts/check-tbc.mjs && node scripts/check-language.mjs && npm run build:drafts && node scripts/check-internal-links.mjs && node scripts/axe-scan.mjs && node scripts/keyboard-pass.mjs && npm run build && node scripts/check-citations.mjs && node scripts/check-internal-links.mjs && node scripts/axe-scan.mjs --production && node scripts/keyboard-pass.mjs --production && node scripts/validate-jsonld.mjs && node scripts/check-sitemap-noindex.mjs && node scripts/validate-keyword-map.mjs",
     "refresh-due": "node scripts/refresh-due.mjs",
     "check-language": "node scripts/check-language.mjs",
     "check-sources": "node scripts/check-sources.mjs",
     "check-jsonld": "node scripts/validate-jsonld.mjs",
     "perf": "node scripts/lighthouse-budget.mjs",
     "perf:update": "node scripts/lighthouse-budget.mjs --update",
-    "monitor": "node scripts/uptime-check.mjs"
+    "monitor": "node scripts/uptime-check.mjs",
+    "check-citations": "node scripts/check-citations.mjs"
   },
   "dependencies": {
+    "@astrojs/markdown-satteri": "^0.4.0",
     "@astrojs/mdx": "^8.0.0",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
@@ -33,7 +35,8 @@
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.3.1",
     "satori": "^0.33.4",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "yaml": "^2.9.0"
   },
   "allowScripts": {
     "esbuild": true

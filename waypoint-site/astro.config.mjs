@@ -3,6 +3,8 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
+import { satteri } from '@astrojs/markdown-satteri';
+import citeLinks from './src/plugins/satteri-cite-links.mjs';
 
 // Static marketing site for waypointchild.com (build plan D-decisions apply).
 // Custom per-locale hreflang sitemaps replace the default integration in
@@ -32,6 +34,12 @@ export default defineConfig({
           }),
         ]),
   ],
+  markdown: {
+    // Pairs each citation chip with the page's sources[] entry and links it.
+    // Applies to <Cite> and raw <span class="cite"> alike; a chip with no
+    // matching source stays plain text. See src/plugins/satteri-cite-links.
+    processor: satteri({ mdastPlugins: [citeLinks] }),
+  },
   vite: {
     plugins: [tailwindcss()],
     build: {

@@ -1,0 +1,117 @@
+---
+/**
+ * Sources — the receipts behind this page's citation chips.
+ *
+ * sources[] has been schema-validated (label + URL + accessed date) and
+ * link-rot-checked by scripts/check-sources.mjs since the collection existed,
+ * but nothing ever rendered it, so no reader could reach a single statute. The
+ * style guide always assumed this block ("renders in the Trust Block"); D2-R
+ * removed the byline block it named, and the sources went with it.
+ *
+ * Each entry carries the id a chip links to, so tapping `WIC §4643` in the
+ * prose lands on the authority, what we accessed, and when.
+ */
+import {
+  anchorableKeys,
+  leadCitation,
+  sourceAnchorId,
+  sourceKey,
+  type SourceEntry,
+} from '../lib/citations';
+
+interface Props {
+  sources: SourceEntry[];
+}
+const { sources } = Astro.props;
+
+// Only entries whose citation is unique on this page get an id. Several pages
+// list "DHCS — …" three or four times; every one of those labels reduces to
+// the same key, and iding them all would put the same id on four list items.
+const anchorable = anchorableKeys(sources);
+
+/**
+ * The id a chip links to, or undefined when this entry's citation is not
+ * unique on the page.
+ *
+ * Derived from the same text the matcher keys on — the `cite`, or the label's
+ * leading citation. Handing the FULL label to sourceAnchorId minted
+ * `src-wic-4643-assessment-within-120-days…` while every chip still pointed at
+ * `#src-wic-4643`: 502 dead anchors in one build, caught by check-citations.
+ */
+const anchorIdFor = (s: SourceEntry): string | undefined =>
+  anchorable.has(sourceKey(s)) ? sourceAnchorId(s.cite ?? leadCitation(s.label)) : undefined;
+
+const fmt = (d: Date | string) =>
+  new Date(d).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC', // the date is a plain calendar date; never shift it by the reader's zone
+  });
+---
+
+{
+  sources.length > 0 && (
+    <section class="sources" aria-labelledby="sources-heading">
+      <h2 id="sources-heading">Sources</h2>
+      <p class="sources-intro">
+        The primary sources behind this page, so you can check us.
+      </p>
+      <ol class="sources-list">
+        {sources.map((s) => (
+          <li id={anchorIdFor(s)}>
+            <a href={s.url} rel="noopener nofollow" target="_blank">
+              {s.label}
+            </a>
+            <span class="sources-accessed">Accessed {fmt(s.accessed)}</span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+<style>
+  .sources {
+    margin: 40px 0 8px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+  }
+  .sources h2 {
+    font-size: 1.05rem;
+    margin: 0 0 4px;
+  }
+  .sources-intro {
+    margin: 0 0 14px;
+    font-size: 0.9rem;
+    color: var(--color-ink-soft);
+  }
+  .sources-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sources-list li {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    /* The site header is sticky (129px at phone width), so a chip's jump would
+       otherwise land its source underneath it — the reader taps to check a
+       statute and sees the nav. Clears the header plus a little breathing room. */
+    scroll-margin-top: 150px;
+  }
+  /* The chip jumps here; make the landing obvious rather than leaving the
+     reader to guess which of fifteen entries they were sent to. */
+  .sources-list li:target {
+    background: var(--color-pine-tint);
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin: -6px -8px;
+  }
+  .sources-accessed {
+    display: block;
+    color: var(--color-ink-soft);
+    font-size: 0.82rem;
+  }
+</style>

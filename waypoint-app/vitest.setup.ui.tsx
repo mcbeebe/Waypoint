@@ -44,6 +44,25 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
+/**
+ * The device's language, as `I18nProvider` reads it on first launch.
+ *
+ * Substitutes `src/i18n/deviceLocale` — OUR seam — rather than
+ * `expo-localization` itself, because the real module is required lazily
+ * inside that seam precisely so a missing native module cannot throw at
+ * import time, and a lazy `require` escapes `vi.mock` of the package.
+ *
+ * Mutate `deviceLocales.tags` to rehearse a Spanish or Vietnamese phone; it
+ * resets to an English phone before each test so nothing leaks between them.
+ */
+export const deviceLocales = { tags: ['en-US'] as string[] };
+vi.mock('@/i18n/deviceLocale', () => ({
+  deviceLanguageTags: () => deviceLocales.tags,
+}));
+beforeEach(() => {
+  deviceLocales.tags = ['en-US'];
+});
+
 vi.mock('@expo/vector-icons', () => ({
   Ionicons: ({ name }: { name: string }) => <span data-icon={name} />,
 }));

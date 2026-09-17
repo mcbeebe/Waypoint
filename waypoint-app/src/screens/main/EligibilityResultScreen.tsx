@@ -12,6 +12,7 @@ import type { EligibilityStatus, FunnelLocale } from '@/lib/eligibility';
 import { sdpAvailable } from '@/lib/processMap';
 import { trackFunnelStep } from '@/lib/analytics';
 import { useI18n } from '@/i18n';
+import Citation, { fmtISO } from '@/components/Citation';
 import { colors, brand, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 /** Screen chrome in EN/ES/VI. */
@@ -149,9 +150,24 @@ export default function EligibilityResultScreen() {
                   <Text style={styles.factValue}>{card.factValue}</Text>
                 </View>
               )}
-              <Text style={styles.citation}>
-                ⓘ {card.citation} · {S.reviewed} {card.reviewedOn}
-              </Text>
+              <View style={styles.citationRow}>
+                <Citation
+                  citation={card.citation}
+                  locale={funnelLocale}
+                  detail={`${S.reviewed} ${fmtISO(card.reviewedOn, funnelLocale)}`}
+                />
+                {/* Spoken as part of the chip above (its `detail`), so hidden
+                    here: as its own node a screen reader announced a bare
+                    "reviewed Aug 23, 2026" with no antecedent — four of them
+                    on a four-card screen. */}
+                <Text
+                  style={styles.citation}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                >
+                  · {S.reviewed} {fmtISO(card.reviewedOn, funnelLocale)}
+                </Text>
+              </View>
               {/* The RC card names "family services" — make them reachable: the
                   tier of supports a family has to ask for (initiative 005-C).
                   Only when enrolled: the destination presupposes an IPP to write
@@ -262,7 +278,18 @@ const styles = StyleSheet.create({
     color: brand.ink,
     textAlign: 'right',
   },
-  citation: { marginTop: spacing.sm, fontSize: fonts.sizes.xs, color: brand.inkFaint },
+  // The date stays on the face of the card — the hero copy promises "the date
+  // we last checked it" at a glance, so it must not retreat behind the tap.
+  // contentSources.test.ts pins it to the registry's verifiedOn, so the
+  // face and the sheet can never show a reader two different dates.
+  citationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  citation: { fontSize: fonts.sizes.xs, color: brand.inkFaint },
   familyLink: {
     marginTop: spacing.sm,
     paddingTop: spacing.sm,

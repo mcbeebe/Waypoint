@@ -67,10 +67,15 @@ const CODE_SPELLINGS: ReadonlyArray<readonly [RegExp, string]> = [
 ];
 
 /**
- * Prefixes that mean the `§` after them is NOT law — a spec, a PRD, an RFC.
- * Without these, `RFC 4648 §5` and `PRD §7 kill criteria` report as statutes.
+ * Prefixes that mean the `§` after them is NOT law — a spec, a PRD, an RFC, one
+ * of this repo's own documents. Without these, `RFC 4648 §5`, `PRD §7 kill
+ * criteria` and `content-ops STYLE-GUIDE §4` all report as uncited statutes.
+ *
+ * This list grows by discovery rather than guesswork: each entry was added
+ * because a real line in `src/` tripped the gate. Add the next one the same way
+ * — when the build fails on a document reference, not in anticipation of one.
  */
-const NON_STATUTE = /\b(?:RFC|PRD|ISO|IETF|W3C)\b\s*\d*/iy;
+const NON_STATUTE = /\b(?:RFC|PRD|ISO|IETF|W3C|STYLE-GUIDE|SOP|SCHEMA|README)\b\s*\d*/iy;
 
 /**
  * `§ 4646.5(b)(2)` or `section 4643`.
