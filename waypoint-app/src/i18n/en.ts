@@ -164,18 +164,6 @@ const en: TranslationStrings = {
     terms: 'Terms of Service',
   },
 
-  auth: {
-    signIn: 'Sign In',
-    signUp: 'Create Account',
-    email: 'Email',
-    password: 'Password',
-    forgotPassword: 'Forgot Password?',
-    continueWithApple: 'Continue with Apple',
-    noAccount: "Don't have an account?",
-    hasAccount: 'Already have an account?',
-    welcomeTitle: 'Welcome to Waypoint',
-    welcomeSubtitle: 'Your guide through disability services in California',
-  },
 
   empathy: [
     "You're doing an incredible job advocating for your child.",
