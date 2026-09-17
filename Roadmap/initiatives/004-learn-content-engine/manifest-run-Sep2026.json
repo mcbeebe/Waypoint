@@ -1,0 +1,784 @@
+{
+ "additivePool": [
+  {
+   "slug": "early-start-under-three",
+   "title": "Your child is under 3: what Early Start is, and who it's for",
+   "primaryQuestion": "My child is under 3 \u2014 is there any help this early?",
+   "journeyStage": "noticing",
+   "sourceRef": "eligibility.ts 'early_start' card (ageYears < 3 branch, status 'likely', factValue 'Your Regional Center (IDEA Part C)') + agencies.ts AGENCIES[1] key 'earlystart' (what / services / rights)",
+   "citation": "IDEA Part C \u00b7 Early Start",
+   "productAction": "Letters composer, template `rc_request` \u2014 { screen: 'Letters', params: { template: 'rc_request' }, tab: 'Home' } \u2014 a friendly request to the Regional Center for Early Start intake and evaluation",
+   "whyItMatters": "Families often wait for a diagnosis before asking for anything; both modules already say a child under 3 can go to the Regional Center for evaluation and services at no cost, on a lower eligibility bar.",
+   "priority": 1
+  },
+  {
+   "slug": "early-start-45-day-clock",
+   "title": "You referred your baby to Early Start \u2014 what the first 45 days look like",
+   "primaryQuestion": "What happens after I refer my baby or toddler to Early Start?",
+   "journeyStage": "noticing",
+   "sourceRef": "contentSources.ts key 'cfr_303_310' \u2014 claim: initial evaluation, initial assessments and the initial IFSP meeting within 45 days of the referral (exceptional documented family circumstances excepted)",
+   "citation": "34 CFR \u00a7303.310 \u00b7 Early Start",
+   "productAction": "RequestTracker screen \u2014 { screen: 'RequestTracker', tab: 'Home' } \u2014 log the referral date so the 45-day mark sits on a date the family can prove",
+   "whyItMatters": "A parent who is only just worried gets one small, dated, low-stakes step instead of a whole system to understand.",
+   "priority": 2
+  },
+  {
+   "slug": "agency-regional-center-what-it-does",
+   "title": "What the Regional Center is actually responsible for",
+   "primaryQuestion": "What does the Regional Center do, and what is it not able to do?",
+   "journeyStage": "seeking_help",
+   "sourceRef": "agencies.ts AGENCIES[0] key 'rceb' (what / whyMatters / services / rights) + LEARN_MORE['Regional Center']",
+   "citation": "W&I \u00a74620",
+   "productAction": "Agencies screen \u2014 { screen: 'Agencies', tab: 'Home' } \u2014 the family's own Regional Center matched from their ZIP, with phone number and website",
+   "whyItMatters": "A parent who knows the Regional Center is the gateway to a Service Coordinator, funded therapies, respite and equipment \u2014 and that it asks about insurance and school first \u2014 spends the first call asking for the right things.",
+   "priority": 2
+  },
+  {
+   "slug": "add-a-need-to-the-ipp",
+   "title": "Getting a need written into the IPP \u2014 without waiting for the annual meeting",
+   "primaryQuestion": "How do I get something added to my child's IPP?",
+   "journeyStage": "seeking_help",
+   "sourceRef": "lettersCatalog.ts LETTER_TEMPLATES key 'ipp_need_request' (title \"Add a Need to the IPP\", description citing W&I \u00a74646.5 / \u00a74648(a), defaultRequest)",
+   "citation": "W&I \u00a74646.5 \u00b7 \u00a74648(a)",
+   "productAction": "Letters composer, template `ipp_need_request` \u2014 { screen: 'Letters', params: { template: 'ipp_need_request' }, tab: 'Home' }",
+   "whyItMatters": "What the plan lists is what the Regional Center works to secure, so naming the need in writing is how a support gets on the table at all.",
+   "priority": 2
+  },
+  {
+   "slug": "get-my-childs-records",
+   "title": "How to get a copy of everything in your child's file",
+   "primaryQuestion": "How do I get copies of my child's school or Regional Center records?",
+   "journeyStage": "seeking_help",
+   "sourceRef": "lettersCatalog.ts LETTER_TEMPLATES key 'records_request' (title \"Records Request\", audience \"School / RC\", defaultRequest) + contentSources.ts key 'edc_56500_4_56504'",
+   "citation": "Ed Code \u00a756500.4 \u00b7 \u00a756504",
+   "productAction": "Letters composer, template `records_request` \u2014 { screen: 'Letters', params: { template: 'records_request' }, tab: 'Home' }",
+   "whyItMatters": "A parent holding the assessments, the current plan and the service authorizations can see what the agency sees, and school records arrive within 5 business days of a written request.",
+   "priority": 2
+  },
+  {
+   "slug": "ssi-what-it-pays-and-what-it-depends-on",
+   "title": "SSI for a child with a disability: what it pays, and who decides",
+   "primaryQuestion": "Would my child get a monthly SSI payment, and who decides?",
+   "journeyStage": "seeking_help",
+   "sourceRef": "eligibility.ts 'ssi' card (always emitted, status 'review'; factLabel `${SSI_YEAR} federal rate` / factValue from src/data/benefitFigures.ts) + agencies.ts AGENCIES[4] key 'ssa' (what / services / rights) + LEARN_MORE['SSI']",
+   "citation": "SSA 2026 COLA",
+   "productAction": "ResourceStack screen \u2014 { screen: 'ResourceStack', tab: 'Home' } \u2014 where SSI sits against Medi-Cal, IHSS and Regional Center funding",
+   "whyItMatters": "It gives a real number without promising it, and names that SSI is decided by the Social Security Administration rather than the Regional Center or the school \u2014 with a California approval also opening the Medi-Cal door other supports depend on.",
+   "priority": 3
+  },
+  {
+   "slug": "sdp-fix-the-ipp-first",
+   "title": "Before anyone puts a number on your SDP budget, get the IPP right",
+   "primaryQuestion": "What should I do before my Self-Determination budget is calculated?",
+   "journeyStage": "seeking_help",
+   "sourceRef": "sdpJourney.ts getSdpJourneySteps() step 0, key 'fix_ipp'",
+   "citation": "W&I \u00a74685.8 \u00b7 \u00a74646.5(b)",
+   "productAction": "Letters composer, template `ipp_review_request` \u2014 { screen: 'Letters', params: { template: 'ipp_review_request' }, tab: 'Home' } \u2014 the same lever the step card pulls",
+   "whyItMatters": "The budget is built from the last 12 months of authorized services plus needs written into the IPP, so asking for an IPP review before the number is set is what makes the number reflect the child a parent actually has.",
+   "priority": 3
+  },
+  {
+   "slug": "sdp-orientation-two-parts-scdd",
+   "title": "The SDP orientation is two sessions, and only SCDD runs them",
+   "primaryQuestion": "How do I sign up for the Self-Determination orientation, and what happens after I hand in the certificates?",
+   "journeyStage": "seeking_help",
+   "sourceRef": "sdpJourney.ts step 1 key 'orientation' (Part A / Part B checklist) and step 2 key 'certificates' (the mandatory four-item response)",
+   "citation": "W&I \u00a74685.8 \u00b7 DDS D-2026-SDP-002",
+   "productAction": "Letters composer, template `sdp_info_request` \u2014 { screen: 'Letters', params: { template: 'sdp_info_request' }, tab: 'Home' } \u2014 whose default text already asks for the registration steps and all four items in writing",
+   "whyItMatters": "A parent who sits through an orientation run by anyone other than SCDD, or takes Part B before Part A, has to do it again \u2014 and handing in both certificates is what triggers the four items that become the working file for everything after.",
+   "priority": 3
+  },
+  {
+   "slug": "likely-eligible-vs-needs-review",
+   "title": "What \"likely eligible\" and \"needs review\" mean on your results",
+   "primaryQuestion": "My results say \"needs review\" \u2014 does that mean no?",
+   "journeyStage": "overwhelmed",
+   "sourceRef": "eligibility.ts \u2014 the `EligibilityStatus` union ('enrolled' | 'likely' | 'review' | 'later'), STATUS_LABELS, the `likelyCount` tally, and the honesty rules in the module header (no dollar value we can't derive; never a false binary)",
+   "citation": null,
+   "productAction": "EligibilityResult screen \u2014 { screen: 'EligibilityResult', tab: 'Home' } \u2014 the card set itself, where each status sits next to its citation and last-reviewed date",
+   "whyItMatters": "Four words carry the whole result screen, and a family that reads \"needs review\" as a rejection stops before the one program that would have paid.",
+   "priority": 2
+  },
+  {
+   "slug": "request-with-no-legal-clock",
+   "title": "When the law puts no deadline on your request",
+   "primaryQuestion": "I asked for a service weeks ago and nobody has answered \u2014 is there a deadline they have to meet?",
+   "journeyStage": "advocating",
+   "sourceRef": "requestClocks.ts \u2014 CLOCKS has no entry for service_request, authorization, reimbursement or other, so deadlineFor() returns null (\"null is an honest answer, not a gap\"); REQUEST_LEVERS maps service_request and authorization to 'noa_request'",
+   "citation": "W&I \u00a74710",
+   "productAction": "Letters composer, template `noa_request` (\"Put It in Writing\") \u2014 { screen: 'Letters', params: { template: 'noa_request' }, tab: 'Home' }",
+   "whyItMatters": "A parent stops hunting for a deadline that does not exist and learns the lever that does: a written decision, which is the thing that carries appeal rights.",
+   "priority": 3
+  },
+  {
+   "slug": "school-break-days-may-not-count",
+   "title": "The date passed \u2014 but school breaks may not count against it",
+   "primaryQuestion": "My district's deadline date has passed. Are they actually late?",
+   "journeyStage": "advocating",
+   "sourceRef": "iepDeadlines.ts header block 'IMPORTANT LIMITATION (Wave 1.5)' \u2014 both \u00a756321 and \u00a756344 exclude days between regular sessions and vacations longer than 5 schooldays; the module counts plain calendar days, so its dates are EARLIER than the law allows across a break",
+   "citation": "Ed Code \u00a756321 \u00b7 \u00a756344",
+   "productAction": "Letters composer, template `iep_email` \u2014 { screen: 'Letters', params: { template: 'iep_email' }, tab: 'Home' } \u2014 ask the district to confirm the schoolday count on the request",
+   "whyItMatters": "It keeps a parent from opening with a missed-deadline claim that a summer break quietly makes wrong, and turns an anxious date into one friendly question the district can answer.",
+   "priority": 3
+  },
+  {
+   "slug": "insurance-must-cover-aba",
+   "title": "Your health plan and behavioral health treatment for autism",
+   "primaryQuestion": "Does our insurance have to cover ABA for my child's autism, and what if they say no?",
+   "journeyStage": "advocating",
+   "sourceRef": "contentSources.ts key 'hsc_1374_73' (its CDI twin is key 'ins_10144_51', covers 'Ins Code \u00a710144.51') + agencies.ts AGENCIES[3] key 'insurance' (what / rights / watchOut) + LEARN_MORE['SB 946'], LEARN_MORE['IMR']",
+   "citation": "H&S \u00a71374.73",
+   "productAction": "Letters composer, template `appeal_letter` (\"Insurance Appeal\") \u2014 { screen: 'Letters', params: { template: 'appeal_letter' }, tab: 'Home' }",
+   "whyItMatters": "A family told their plan doesn't do ABA learns which California rule covers their type of plan, and that a first denial is a step in the process rather than the end of it.",
+   "priority": 2
+  },
+  {
+   "slug": "sdp-budget-ipp-meeting",
+   "title": "The IPP meeting where your annual budget is set",
+   "primaryQuestion": "How is my child's Self-Determination budget decided, and what if I disagree with it?",
+   "journeyStage": "advocating",
+   "sourceRef": "sdpJourney.ts step 5, key 'budget' (the IPP team sets the annual number; appeal and fair-hearing rights unchanged)",
+   "citation": "W&I \u00a74685.8",
+   "productAction": "Letters composer, template `ipp_review_request` \u2014 { screen: 'Letters', params: { template: 'ipp_review_request' }, tab: 'Home' } \u2014 step 5's leverLabel is \"Request the budget IPP meeting\"",
+   "whyItMatters": "The number is set by the IPP team, enrolling does not reduce it, and if the team does not agree to an increase the same appeal and fair-hearing options that existed before are still there.",
+   "priority": 3
+  },
+  {
+   "slug": "turning-three-what-changes",
+   "title": "Your child is turning 3: what changes, and who takes over",
+   "primaryQuestion": "What happens when my child turns 3 and Early Start ends?",
+   "journeyStage": "now_what",
+   "sourceRef": "eligibility.ts \u2014 the age boundary between the 'early_start' card (ageYears < 3) and the 'iep' card (ageYears >= 3 && < 22), plus that card's factValue '15 days to assessment plan \u00b7 60 days to complete'",
+   "citation": "Ed Code \u00a756321 \u00b7 \u00a756344",
+   "productAction": "ProcessMap screen \u2014 { screen: 'ProcessMap', params: { system: 'school' }, tab: 'Home' } \u2014 evaluation \u2192 IEP \u2192 progress data, with each deadline on it",
+   "whyItMatters": "The handoff from Regional Center early intervention to the school district is where services most often lapse, and this puts the dates in the family's hands before the birthday.",
+   "priority": 1
+  },
+  {
+   "slug": "iep-triennial-re-evaluation",
+   "title": "The three-year re-evaluation, and asking for one sooner",
+   "primaryQuestion": "When does my child get re-evaluated for their IEP, and can I ask before then?",
+   "journeyStage": "now_what",
+   "sourceRef": "iepDeadlines.ts deadline_type 'iep_triennial' \u2014 addYears(lastTriennial, 3), notes: a comprehensive re-evaluation is required every 3 years and can be requested sooner in writing",
+   "citation": null,
+   "productAction": "Letters composer, template `assessment_request` \u2014 { screen: 'Letters', params: { template: 'assessment_request' }, tab: 'Home' }",
+   "whyItMatters": "Three years is long enough that a plan built on old testing quietly stops fitting the child; this names the date and the written ask that can move it earlier.",
+   "priority": 3
+  },
+  {
+   "slug": "agency-dor-after-high-school",
+   "title": "After high school: what the Department of Rehabilitation does",
+   "primaryQuestion": "Who helps my child find work after school ends?",
+   "journeyStage": "now_what",
+   "sourceRef": "agencies.ts AGENCIES[7] key 'dor' (what / whyMatters / services / rights / watchOut) + LEARN_MORE['DOR']",
+   "citation": null,
+   "productAction": "Letters composer, template `iep_email` \u2014 { screen: 'Letters', params: { template: 'iep_email' }, tab: 'Home' } \u2014 ask that the Department of Rehabilitation be invited to the IEP transition meeting",
+   "whyItMatters": "The Department of Rehabilitation handles job training, supported employment and college support through an Individualized Plan for Employment, and its waitlists are long \u2014 so a family at 15 or 16 can start the conversation while the IEP team is still in the room.",
+   "priority": 3
+  }
+ ],
+ "problems": [
+  {
+   "slug": "MANIFEST",
+   "problem": "CITATION LENS RESULT, stated honestly: all 37 non-null citation strings are EXACT matches for entries in a `covers` array in waypoint-app/src/data/contentSources.ts. I verified this mechanically, not by eye. Zero build-gate breaks from statuteAudit.guard.test.ts on citation strings. The real defects are elsewhere, and they are worse: promised app behavior that does not exist, and a missing schema half.",
+   "fix": "No citation-string fix needed. Do not let the clean citation pass be read as a clean manifest \u2014 see the blocking items below.",
+   "severity": "minor"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Every article is missing more than half the required schema. `LearnArticle` (waypoint-app/src/lib/learnLibrary.ts:105-149) REQUIRES `summary`, `relatedQuestions` (5-10), `bridge` {label, blurb, seed}, `minutes`, `actionLabel`, `terms`, and every user-visible string must be trilingual via the `L()` picker (en/es/vi). The manifest supplies none of these for any of the 40 articles. The editorial spec calls the conversation bridge \"required by schema \u2014 no article ships without them\" (editorial-spec.md:87-106), and locale-parity tests in learnLibrary.test.ts enforce the trilingual half. As written, all 40 articles fail to compile and fail the suite.",
+   "fix": "Either declare this manifest as a topic/citation/action plan only and add a second pass that produces the bridge + trilingual bodies, or extend every row with relatedQuestions, bridge, summary, minutes, actionLabel and terms in all three locales. Say which, in the manifest header.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "early-start-45-day-clock",
+   "problem": "The product action promises app behavior that does not exist. `ADDABLE_TYPES` in waypoint-app/src/screens/main/RequestTrackerScreen.tsx:41-49 is ['service_request','ipp_meeting','rc_assessment','authorization','reimbursement','iep_evaluation','other'] \u2014 there is no Early Start / referral type. And `CLOCKS` in waypoint-app/src/lib/requestClocks.ts:37-53 has exactly three entries (rc_assessment 120d, ipp_meeting 30d, iep_evaluation 15d) \u2014 no 45-day clock. A parent who follows this article logs the referral as \"Other\", `deadlineFor` returns null, and the 45-day mark the article promised never appears. Hard rule 4 is violated: the end-action is a real screen, but not the action described.",
+   "fix": "Either add an `early_start_referral` RequestType with a 45-day CLOCKS entry citing '34 CFR \u00a7303.310 \u00b7 Early Start' plus an ADDABLE_TYPES row \u2014 a code PR that must land BEFORE the article \u2014 or retarget to an honest existing action (Letters `rc_request` to make the referral, or CommunicationLog to date it) and drop the \"45-day mark\" promise.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "rc-intake-15-working-days",
+   "problem": "Two failures. (1) Product action is impossible: `rc_intake` exists in the RequestType union (requestClocks.ts:9) but is NOT in RequestTrackerScreen's ADDABLE_TYPES, and CLOCKS has no rc_intake entry \u2014 so the family cannot log it and the 15-working-day mark cannot render. (2) It is authored, not derived. The sourceRef claims processMap.ts getRcStages() stage 'intake' supports the 15-working-day figure; it does not. That stage (processMap.ts:48-67) carries citation 'Lanterman Act' and clock text \"You start this clock \u2014 apply in writing and keep the date.\" The number 15 appears nowhere in shipped family-facing content. Its only home is the `claim:` field of the wic_4642 registry entry (contentSources.ts:366-367) \u2014 a provenance note for auditors, not verified user-facing prose. Initiative 004's thesis is that an article projects \"structure the app already encodes and has already verified\" (learnDerive.ts:4-11); a registry claim line is neither.",
+   "fix": "Drop the article, or promote it to a code change first: add the 15-working-day clock to processMap's 'intake' stage and to CLOCKS/ADDABLE_TYPES, review that on its own, then derive. Do not let a `claim:` string become a family-facing deadline by way of a Learn article.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "notice-of-action-appeal-windows",
+   "problem": "Product action cannot do what it says. \"log the NOA date so both the 30-day and the 60-day dates sit on the family's clock\" \u2014 RequestTracker has no NOA request type (RequestTrackerScreen.tsx:41-49) and requestClocks CLOCKS has no 30- or 60-day appeal entry. Conceptually it is also the wrong tracker: RequestTracker tracks requests the FAMILY made (`asked {item.requested_on}`, RequestTrackerScreen.tsx:163); an NOA is a notice the agency sent. This is a priority-1 article and the one where a missed window costs a child their running services.",
+   "fix": "Retarget to EscalationLadder ({ screen: 'EscalationLadder', tab: 'Home' }), which already renders rung 2 with the exact string \"Appeal within 60 days of the NOA \u2014 within 30 to keep services running\" (escalationLadder.ts:79-83) and its `noa_request` lever. If a dated NOA clock is genuinely wanted, that is a requestClocks + RequestTracker PR that ships first.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "iep-triennial-re-evaluation",
+   "problem": "Legal claim with a null citation, and no registry entry exists to fix it with. The title (\"The three-year re-evaluation\"), the primaryQuestion and the sourceRef all assert that a comprehensive re-evaluation is REQUIRED every 3 years \u2014 a statutory duty (Ed Code \u00a756381 / 34 CFR \u00a7300.303(b)(2)). Neither is in contentSources.ts; `34 CFR \u00a7300.301` is registered but covers INITIAL evaluation only (contentSources.ts:277-278). null is the correct choice over a guess, but an article whose entire subject is an uncited legal duty cannot ship. Secondary: the end-action is Letters `assessment_request`, whose defaultRequest reads \"I am requesting a special education evaluation for my child. Please send me the assessment plan within 15 calendar days\" (lettersCatalog.ts:25) \u2014 an INITIAL evaluation request with the wrong statutory clock, sent by a parent who already has an IEP.",
+   "fix": "Register Ed Code \u00a756381 (and/or 34 CFR \u00a7300.303) in contentSources.ts with a verifiedOn date in its own PR, then cite it; until then cut the article. Separately, add a `reevaluation_request` template or retarget to Letters `iep_email`, which carries no misleading default text.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "rc-friendly-ask-ipp-review",
+   "problem": "Duplicates a shipped article AND regresses a deliberate editorial decision. learnLibrary.ts:336 already ships `ipp_clock` \u2014 \"The 30-day IPP clock, explained\", same citation 'W&I \u00a74646.5(b)', same 30-day claim, same escalation-rung-1 source. Worse, that shipped article carries an explicit code comment (learnLibrary.ts:338-341): \"The 7-day path is in the same subdivision as the 30-day one, and it is the half a family in crisis needs. Leaving it out is not neutral: it tells a parent to wait a month when the law gives them a week.\" The manifest article names only the 30-day path. The 7-day health-and-safety path is also in the shipped glossary (learnLibrary.ts, IPP entry). Shipping this replaces a corrected article with the uncorrected version.",
+   "fix": "Cut it, or explicitly scope it to the ASK (how to name a gap warmly and put it in writing) with `ipp_clock` owning the clock \u2014 and either way carry the 7-day health/safety path in any article that states the 30-day number.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "The manifest never reconciles itself with the five articles already shipped in waypoint-app/src/lib/learnLibrary.ts (`rc_said_no`, `ipp_clock`, `rc_money`, `sibling_support`, `first_iep`). Beyond the ipp_clock collision: `request-with-no-legal-clock` (W&I \u00a74710 \u2192 Letters/noa_request) is a near-twin of shipped `rc_said_no` (W&I \u00a74710 \u2192 Letters/noa_request, \"a spoken no is not a decision\"); `add-a-need-to-the-ipp` and `authorized-hours-not-arriving` overlap shipped `rc_money` (W&I \u00a74646.5 \u00b7 \u00a74648(a)); `assessment-plan-and-the-60-day-clock` picks up where shipped `first_iep` (Ed Code \u00a756321, 15-day plan clock) leaves off without saying so. Because of that last one the manifest's school on-ramp starts at \"the assessment plan came home\" and no article tells a `seeking_help` parent how to request an evaluation at all.",
+   "fix": "Add an `existingArticle` / `supersedes` / `complements` field to every row that touches a shipped key, and state in the manifest header whether this set is additive to the five or replaces any of them. Resolve the four overlaps explicitly before authoring.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "benefit-layers-in-order",
+   "problem": "Filed `overwhelmed`, but it is the exact article the spec's `overwhelmed` row forbids: editorial-spec.md:47 defines that stage as \"One thing. Permission to do only that. Nothing else on screen.\" This hands a drowning parent all six benefit systems at once, at priority 1. Second: the citation 'W&I \u00a74685.8' is the Self-Determination statute anchoring an article about school/IDEA, Lanterman, HCBS deeming, IHSS and SSI \u2014 resourceStack.ts:181-270 gives each of the six layers its own distinct citation and no single registered string covers the set. Third: \"why the order matters\" overstates the code \u2014 only `ihss` and `sdp` carry a conditional `lockedBy` (resourceStack.ts:237, 255); school, regional_center, medi_cal and ssi are all `lockedBy: null`.",
+   "fix": "Restage to `seeking_help` and give `overwhelmed` an article that genuinely does one thing. Set citation to null (no single legal claim) and let the ResourceStack screen carry the per-layer citations it already renders. Retitle away from \"the order matters\" toward the two real dependencies: Medi-Cal unlocks IHSS, Regional Center unlocks SDP.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "rc-four-ways-to-raise-a-problem",
+   "problem": "Flattens an ordered ladder into a flat menu, contradicting both the source module and CLAUDE.md. escalationLadder.ts:19-34 defines `n: 1-based rung number, climb order` and its header says \"Order matters twice over: each rung's written record is the next rung's evidence, and starting warm keeps a years-long coordinator relationship workable.\" processMap.ts:181 says \"Four rungs, IN ORDER... It starts collaborative; the tone firms up only as rungs go unanswered.\" editorial-spec.md:48 assigns the advocating stage \"the escalation ladder, one rung at a time.\" CLAUDE.md mandates collaborative \u2192 assertive \u2192 adversarial. \"Side by side\" as four equal options is not a faithful projection; it is a reinterpretation, and the one that can send a first-time parent straight to a \u00a74731 complaint. Secondary: the citation 'W&I \u00a74710.5 \u00b7 \u00a74731' covers two of the four routes \u2014 the 30-day IPP review (W&I \u00a74646.5(b)) and OCRA are uncited here.",
+   "fix": "Retitle to the sequence the modules encode (\"Four rungs, in order\") and describe each factually without ranking \u2014 which satisfies rule 3, since the ordering is the source module's structure rather than the article's recommendation. Get the owner to confirm which rule wins; that decision belongs in the editorial spec, not a manifest row.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "agency-regional-center-what-it-does",
+   "problem": "End-action lands one step short of the promise. waypoint-app/src/screens/main/AgenciesScreen.tsx takes NO route params \u2014 agency detail opens via local state (`const [selected, setSelected] = useState<Agency | null>(null)`, line 32) in a Modal (line 83). So `{ screen: 'Agencies', tab: 'Home' }` renders a list of eight agencies and the parent must find the right one. The ZIP match is real for the RC (AgenciesScreen.tsx:35, 44 via lookupRC), so the content promise holds once they tap, but the spec's \"One next step, and it is real\" (editorial-spec.md:25-28) is not met. Same defect in `ihss-paid-care-hours` and `ssi-and-the-month-after-18`.",
+   "fix": "Add an optional `agency` route param to AgenciesScreen that pre-opens the modal (small, CI-covered PR), then pass params: { agency: 'rceb' | 'ihss' | 'ssa' } from these three articles. Until that lands, reword productAction to \"the Agencies directory\" rather than naming a specific contact.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "ihss-paid-care-hours",
+   "problem": "productAction promises \"the county IHSS office contact and what to bring to the assessment.\" Neither exists. agencies.ts AGENCIES[5] key 'ihss' has `phone: 'County social services'` and `website: ''` \u2014 a placeholder string \u2014 and AgenciesScreen.tsx:103 wires that phone into `tel:` with non-digits stripped, so the call button on this entry dials nothing. There is no per-county IHSS lookup (lookupRC covers Regional Centers only), and no \"what to bring\" content; the nearest is watchOut: \"Document every task in a full 24-hour day.\"",
+   "fix": "Reword productAction to what the screen actually shows (what IHSS covers, that a parent can be the paid provider, the protective-supervision watch-out), or retarget to ResourceStack where `unlockGuideFor('ihss')` gives the real Medi-Cal-first sequence. File the dead `tel:` link on the IHSS entry as its own bug.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "insurance-must-cover-aba",
+   "problem": "The stated payoff is that a family \"learns which California rule covers their type of plan\" \u2014 which requires BOTH H&S \u00a71374.73 (DMHC-regulated health plans) and Ins Code \u00a710144.51 (CDI-regulated disability insurers). The manifest cites only 'H&S \u00a71374.73'; its own sourceRef names the CDI twin and then drops it. Half of California families get an article citing the wrong regulator for their plan. The registry has both as separate entries (contentSources.ts:308-324) with no combined covers string.",
+   "fix": "Either add a combined covers string (e.g. 'H&S \u00a71374.73 \u00b7 Ins Code \u00a710144.51') to both registry entries in a schema-first PR and cite that, or narrow the article to DMHC plans and say so in the title. Also: it stops at `appeal_letter` and never names Independent Medical Review, which LEARN_MORE['IMR'] (agencies.ts:193) already carries and which is the California-specific step after a plan denial.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "likely-eligible-vs-needs-review",
+   "problem": "Factually wrong about the screen it explains. It says \"Four words carry the whole result screen\" and its sourceRef names only the four-member `EligibilityStatus` union. But STATUS_LABELS in waypoint-app/src/lib/eligibility.ts:56-77 is typed `Record<FunnelLocale, Record<EligibilityStatus | 'right', string>>` \u2014 FIVE labels: 'Enrolled \u2713', 'Likely eligible', 'Needs review', 'After enrollment', 'Your right'. 'Your right' is not decorative: the IEP card renders `statusLabel: SL.right` while carrying `status: 'likely'` (eligibility.ts:222-223), so a parent with a school-age child sees a label this article does not explain and cannot find in the union it describes.",
+   "fix": "Cover all five labels, and explain the genuinely confusing case \u2014 that the IEP card shows 'Your right' rather than 'Likely eligible' because the underlying entitlement is not a probability. Correct the sourceRef to name STATUS_LABELS rather than the union.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "disagree-with-school-assessment-your-options",
+   "problem": "The article is built on hard rule 3 (name every option, rank none) and then its end-action silently ranks them: it routes to Letters `cde_complaint`. A parent who chooses the IEE \u2014 the option processMap's school_disagree stage lists first, and the one most families take \u2014 is handed nothing. \"if that is the option you choose\" in the productAction text does not undo the fact that the app performs exactly one of the four.",
+   "fix": "End on ProcessMap ({ screen: 'ProcessMap', params: { system: 'school' }, tab: 'Home' }), whose school_disagree stage already presents IEE, compliance complaint, mediation and due process together \u2014 the app action then matches the article's non-ranking promise. Let the AI bridge route to the specific letter once the parent has chosen.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "private-placement-ten-business-day-notice",
+   "problem": "The one letter in the set where a defect forfeits money is routed to the blank-box template. `general` (\"Custom Letter\", lettersCatalog.ts:44) has NO `defaultRequest`, unlike the twelve templates that do \u2014 and LettersScreen.tsx:141-144 notes that unknown keys fall back to General \"rather than\" landing a parent one tap from generating. So an article whose premise is \"reimbursement can be reduced or denied over a notice step\" ends by handing a parent an empty text box and no required elements. processMap's school_disagree leverTemplate is `cde_complaint`, so `general` is not the module's own lever either \u2014 this end-action is authored, not derived.",
+   "fix": "Add a `private_placement_notice` template to lettersCatalog.ts with a defaultRequest naming the required elements (concerns with the proposed placement, intent to enroll privately, intent to seek reimbursement, the date), ship that PR first, then point the article at it.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "agency-dor-after-high-school",
+   "problem": "Null citation, but whyItMatters asserts a statutory program and a statutory instrument: \"job training, supported employment and college support through an Individualized Plan for Employment.\" The IPE is a Rehabilitation Act / WIOA entitlement (34 CFR \u00a7361.45-46), and agencies.ts AGENCIES[7] lists it under `rights:` \u2014 the app already frames it as a right. Nothing in contentSources.ts covers vocational rehabilitation; 'Section 504' / '29 U.S.C. \u00a7794' is the antidiscrimination provision, not the VR title, so it cannot be borrowed. \"its waitlists are long\" is likewise an unsourced assertion derived from agencies.ts whyMatters with no authority behind it.",
+   "fix": "Register the VR authority (34 CFR \u00a7361.45 or the Rehab Act title) in contentSources.ts before writing, or rewrite to describe what DOR does without framing the IPE as an entitlement and without the waitlist claim. Also confirm the age framing: the module says \"Apply at 15-16, not 18\", making this a transition-planning article, not an \"after high school\" one.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "sdp-what-it-is-and-who-can-join",
+   "problem": "Asserts a statistic the registry does not cover: \"about 1.5% are enrolled\" and \"nearly every Regional Center consumer can join.\" The figure is shipped in five places (eligibility.ts:167, insights.ts:53, sentNext.ts:93, planGenerator.ts:423, processMap.ts:393) so it is genuinely derived \u2014 but it has NO entry in contentSources.ts, and 'W&I \u00a74685.8' establishes the program, not an enrollment rate. Under the spec's \"Every legal claim carries a citation... the provenance test fails the build on an orphan claim\" (editorial-spec.md:123-125) this is a numeric claim about a public program published to parents with no verifiable source.",
+   "fix": "Register the DDS SDP enrollment source (the DDS SDP dashboard or the relevant legislative report) in contentSources.ts with a verifiedOn date. Worth doing regardless of this manifest \u2014 the figure is already in production in five modules with no provenance, which is a standing statuteAudit gap.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "ssi-and-the-month-after-18",
+   "problem": "Citation does not reach the claim. 'SSA 2026 COLA' is registered for exactly one thing: \"SSI federal benefit rate for 2026 (see benefitFigures.SSI_FBR_MONTHLY); California adds a state supplement\" (contentSources.ts:113-114). The article's central claim \u2014 parent income stops being deemed the month after the child turns 18 \u2014 is an SSI deeming rule (20 CFR \u00a7416.1165), not a COLA figure. Same defect in `ssi-what-it-pays-and-what-it-depends-on`, which additionally claims \"a California approval also opening the Medi-Cal door.\" Both are faithful derivations of resourceStack.ts:265-267 and agencies.ts \u2014 the manifest is inheriting a live provenance defect rather than introducing one.",
+   "fix": "Register the SSI deeming rule (20 CFR \u00a7416.1165) and the CA SSI-to-Medi-Cal linkage, then cite them alongside the COLA. Flag to the owner that this is a pre-existing gap in the shipped resourceStack SSI layer and should be fixed there in the same PR.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "rc-friendly-ask-ipp-review",
+   "problem": "Stage mismatch. Filed `noticing`, but the title is \"The plan isn't covering what we need\" \u2014 a family that already has an IPP and has found a gap is `advocating` by the spec's own table (\"They said no / it isn't working\", editorial-spec.md:48), and the source is escalationLadder rung 1, which the spec assigns to advocating. Same pattern in `rc-put-it-in-writing-record` (filed `seeking_help`, derived from escalation rung 1 body) and `turning-three-what-changes` (filed `now_what`, but a family about to lose Early Start is not \"It's handled \u2014 what's next?\", editorial-spec.md:49).",
+   "fix": "Re-sort against the spec's table. The distribution is also lopsided: 14 seeking_help and 13 advocating against 4 overwhelmed, and two of those four (benefit-layers, likely-eligible) are meta-explainers rather than the \"one thing, permission to do only that\" the stage calls for.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "school-break-days-may-not-count",
+   "problem": "The primaryQuestion is actor-blame framing, which hard rule 2 and CLAUDE.md's Aug 29 2026 owner decision both forbid: \"My district's deadline date has passed. Are they actually late?\" That asks the parent to evaluate whether an actor failed. The title does this correctly (\"The date passed \u2014 but school breaks may not count against it\") and so does `rc-assessment-answer-is-past-due` \u2014 this row is the outlier. The article itself is good and unusually honest: it is derived from a known defect in waypoint-app/src/lib/iepDeadlines.ts:12-20 (the module counts plain calendar days, so its dates are EARLIER than the law allows across a break).",
+   "fix": "Reframe to status, e.g. \"The date on my calendar has passed \u2014 is the answer actually past due?\" The whyItMatters already gets this right; only the question needs the fix.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "turning-three-what-changes",
+   "problem": "The weakest derivation in the set. sourceRef is \"the age boundary between the 'early_start' card (ageYears < 3) and the 'iep' card (ageYears >= 3 && < 22)\" \u2014 a pair of conditionals in eligibility.ts:91 and 205-210, not content. No module in the repo encodes the Part C \u2192 Part B transition: not processMap (getRcStages has no transition stage), not journeyMaps, not eligibility. The article's substantive claim \u2014 \"the handoff... is where services most often lapse\" \u2014 appears nowhere in the codebase. This is authoring wearing a sourceRef, and it is priority 1.",
+   "fix": "Either add the transition as a real stage to processMap.ts (with the IFSP-to-IEP timing and its citation, reviewed on its own) and then derive, or drop the \"where services most often lapse\" assertion and scope strictly to what the two cards say \u2014 that the agency changes at 3 and the school clocks (15 days to assessment plan, 60 to complete) begin.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Field-name mismatch with the schema. The manifest keys articles by `slug` (kebab-case); `LearnArticle` keys by `key` (learnLibrary.ts:104), `getLearnArticle(key)` looks up by it, and the five shipped articles use snake_case (`rc_said_no`, `first_iep`). No collision today, but nothing says how slug maps to key, and the Article route (routeGraph.ts:65, Navigator stack) resolves on the key.",
+   "fix": "State the mapping explicitly \u2014 rename the field to `key` and adopt snake_case to match the shipped five, or declare slug as the web/SEO identifier with a separate `key` column. Decide before 40 rows are authored against the wrong one.",
+   "severity": "minor"
+  },
+  {
+   "slug": "regional-center-who-qualifies",
+   "problem": "Citation is valid but is not the one its own source emits. The manifest cites 'Lanterman Act, W&I \u00a74512' (the resourceStack layer-2 string, resourceStack.ts:203). The eligibility card it names as its primary source emits 'Lanterman Act, W&I \u00a74512 \u00b7 \u00a74643' (eligibility.ts:152). Both are registered so nothing breaks, but the article drops \u00a74643, and its sourceRef quotes the same card's \"no income test, no waiting list, no cost to families\" branch, whose sibling fact is the 120-day decision clock the dropped section covers.",
+   "fix": "Use the card's own string, or state in the row why the shorter one is deliberate (the article makes no 120-day claim). Minor, but this is the drift that makes the next reviewer re-derive from scratch.",
+   "severity": "minor"
+  },
+  {
+   "slug": "ihss-paid-care-hours",
+   "problem": "sourceRef states resourceStack layer 4 `ihss` has \"lockedBy 'medi_cal'\" as a fact. It is conditional: `lockedBy: ihssStatus === 'locked' ? 'medi_cal' : null` (resourceStack.ts:237). For a family already on Medi-Cal the layer is not locked at all, so an article opening with \"Medi-Cal comes first\" as an unconditional gate mis-describes what a good share of readers see on their own ResourceStack screen.",
+   "fix": "Phrase the dependency as conditional, matching what the screen renders for that family, rather than as a universal rule.",
+   "severity": "minor"
+  },
+  {
+   "slug": "notice-of-action-appeal-windows",
+   "problem": "Dead end-action. RequestTracker logs REQUESTS the family makes, not decisions the agency issues: there is no NOA request type in `RequestType` (requestClocks.ts:8-16) and no 30- or 60-day clock anywhere \u2014 `CLOCKS` holds exactly three entries (rc_assessment 120, ipp_meeting 30-from-request, iep_evaluation 15) at requestClocks.ts:37-53. So \"log the NOA date so both the 30-day and the 60-day dates sit on the family's clock\" is something the app cannot do; the card renders the no-deadline branch (RequestTrackerScreen.tsx:147, 199+). This is the highest-stakes one in the set: aid-paid-pending turns on the 30-day window and the article tells a parent Waypoint is holding that date.",
+   "fix": "End the article at Letters `noa_request` or `rc_timeline_followup` (both exist), or at EscalationLadder rung 2 \u2014 and only claim RequestTracker after a separate typed PR adds an NOA/appeal request type plus its 30/60-day clocks to requestClocks.ts.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "rc-intake-15-working-days",
+   "problem": "Dead end-action, twice over. `rc_intake` is NOT in `ADDABLE_TYPES` (RequestTrackerScreen.tsx:41-49), so a parent cannot even create this request; and `CLOCKS` has no `rc_intake` entry (requestClocks.ts:37-53), so `deadlineFor('rc_intake', \u2026)` returns null and no 15-working-day date is ever shown. Worse, the clock engine is calendar-day math (`addDays`, requestClocks.ts:63-67) and structurally cannot express \"15 WORKING days\" \u2014 the article's whole spine.",
+   "fix": "End at Letters `rc_request` (the written ask that starts the clock) or `rc_timeline_followup`. If RequestTracker is wanted, add `rc_intake` to ADDABLE_TYPES and a working-day clock to requestClocks.ts in its own PR first, and only then write the article against it.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "early-start-45-day-clock",
+   "problem": "Dead end-action. There is no Early Start / Part C referral request type at all (requestClocks.ts:8-16); the only usable option is `other`, which has no clock, so the promised \"45-day mark sits on a date the family can prove\" renders as the honest no-deadline branch instead. No other surface can hold the date either \u2014 IEPHub only accepts four IEP dates (IEPHubScreen.tsx:79-112) and neither Plan nor Calendar has an add-deadline UI.",
+   "fix": "Either add an `early_start_referral` type + 45-day clock to requestClocks.ts in a prior PR, or end the article at CommunicationLog (which does support a manual dated entry, CommunicationLogScreen.tsx:411-417) and drop the \"we watch the 45-day clock\" promise.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "rc-4731-rights-complaint",
+   "problem": "The title \"When it's a right, not a service: the \u00a74731 complaint to the director\" carries a bare `\u00a74731` with no code on that line. statuteAudit scanning is line-scoped on purpose (statuteAudit.ts:93-97, 160-171), so this emits `UNKNOWN:4731`, and `KNOWN_GAPS` in statuteAudit.guard.test.ts is empty by design \u2014 the build fails the moment this string lands in src/. The citation field being correct does not save it; the guard reads prose.",
+   "fix": "Write \"the W&I \u00a74731 complaint\" in the title (and anywhere else a bare \u00a7 appears in a body line).",
+   "severity": "blocking"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "About 18 of the 40 slugs duplicate stubs `deriveArticles()` already emits, one for one: ladder_friendly_ask, ladder_noa_appeal, ladder_complaint_4731, ladder_advocate, rc_stage_assessment/ipp/rc_delivery/rc_escalation, school_stage_school_data/school_services/school_disagree, and stack_school/regional_center/medi_cal/ihss/sdp/ssi (learnDerive.ts:229-236). Slice 8-2's stated job is to write BODIES for those stubs (plan.md, \"8-2 \u00b7 Authoring pipeline\"), not to mint parallel slugs. As written the library ships two records per source module, two search hits for the same question, and none of the new ones carry `derivedFrom` provenance, which is what lets a reviewer trace the projection (learnDerive.ts:24-28).",
+   "fix": "Key every article whose source is a ladder rung, process-map stage or stack layer to the existing derived stub key and carry `derivedFrom`; reserve new slugs for the genuinely hand-authored ones (agencies.ts, eligibility.ts, iepDeadlines.ts, sdpJourney.ts, lettersCatalog.ts sources), and say in the manifest which are which.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Three manifest articles collide with articles already shipped in learnLibrary.ts and the manifest says nothing about supersession: `request-with-no-legal-clock` targets Letters/noa_request, which is exactly `rc_said_no` (learnLibrary.ts:238, target at :332); `rc-eligibility-decision-clock` overlaps `ipp_clock` (:336, target RequestTracker at :427); `assessment-plan-and-the-60-day-clock` overlaps `first_iep` (:648, target Letters/assessment_request at :748).",
+   "fix": "For each, state merge-into-existing or supersede-and-remove, and name the surviving key. Two articles answering one question is the maintained-magazine failure mode intent.md warns about.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "The manifest omits fields the schema and the editorial spec make mandatory on every article: `relatedQuestions` (5-10) and `bridge` {label, blurb, seed} are required by `LearnArticle`/`ArticleBridge` (learnLibrary.ts) and by editorial-spec.md (\"Four fields, required by schema \u2014 no article ships without them\"), and no entry names its keepable `checklist` or `script` tool, which \"What every body must contain\" #3 requires. Everything is English-only against trilingual parity tests (learnLibrary.test.ts:137-139).",
+   "fix": "Add relatedQuestions, bridge and the tool type (checklist vs script) per row before drafting bodies \u2014 they are the reviewer's checklist items, and 40 articles is too many to retrofit them onto.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "ihss-paid-care-hours",
+   "problem": "The end-action promises \"the county IHSS office contact and what to bring to the assessment\", but AGENCIES[5] 'ihss' has `phone: 'County social services'` and `website: ''` (agencies.ts:81-91), and AgenciesScreen renders both contact buttons unconditionally (AgenciesScreen.tsx:100-115) \u2014 the call button opens `tel:` with every non-digit stripped (empty) and the website button opens `https://`. Two dead taps at the end of the article. \"What to bring to the assessment\" is not on that entry either; its watchOut is about documenting a 24-hour day.",
+   "fix": "Either end at Letters (`ihss_appeal` is for denials, so `general` for the county application ask) or fix the IHSS agency row first. Note resourceStack.ts:227-238 gives layer 4 the same `{screen:'Agencies'}` lever, so the hole is in the module too.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "early-start-under-three",
+   "problem": "The action is described as \"a friendly request to the Regional Center for Early Start intake and evaluation\", but `rc_request` has no `defaultRequest` (lettersCatalog.ts:36) \u2014 LettersScreen only seeds the ask box when the template carries one (LettersScreen.tsx:158-165), so this lever lands the parent on a blank box, which is precisely what that code comment says a lever tap must not do. Same defect in `regional-center-who-qualifies` (\"ask the Regional Center to open intake and schedule an assessment\").",
+   "fix": "Add a `defaultRequest` to `rc_request` in a prior letters-catalog PR, or pass an explicit `params.question`, or point both articles at a template that already seeds (e.g. `medi_cal_deeming`-style text for intake).",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "rc-friendly-ask-ipp-review",
+   "problem": "Staged `noticing`, but it is escalationLadder rung 1 (escalationLadder.ts:46-62) and its own primaryQuestion assumes an existing IPP and an existing coordinator relationship \u2014 that is a parent at `seeking_help`/`advocating`, not \"something isn't right\". editorial-spec.md says derived articles inherit the stage of their source rung/stage/layer.",
+   "fix": "Move to `advocating` (or `seeking_help`), and re-check every stage against its source module rather than against the title's mood.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "benefit-layers-in-order",
+   "problem": "Staged `overwhelmed`, but the spec's overwhelmed door is \"One thing. Permission to do only that. Nothing else on screen\" (editorial-spec.md stage table) and this article puts all six benefit layers plus an ordering argument in front of a drowning parent. `likely-eligible-vs-needs-review` in the same stage is a vocabulary explainer with no next step of its own. Stage distribution is also lopsided: seeking_help 14, advocating 13, noticing 4, overwhelmed 4, now_what 5.",
+   "fix": "Re-stage the six-layer overview to `seeking_help` or `now_what`, and fill `overwhelmed` with single-action articles (the free advocate one already qualifies) so the door matches the parent's sentence.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "disagree-with-school-assessment-your-options",
+   "problem": "The article names four options (IEE, compliance complaint, mediation, due process) under rule 3, but its single end-action drafts one of them \u2014 `cde_complaint`. There is no IEE-request template and no mediation/due-process action anywhere in lettersCatalog.ts, so three of the four dead-end and the app's structure ranks by which option it will do for you, which is exactly what rule 3 forbids in prose.",
+   "fix": "End at ProcessMap {system:'school'} (stage school_disagree presents all four neutrally) or offer `general` for the IEE ask. processMap.ts:336-353 gives school_disagree the same single cde_complaint lever, so fixing this properly means fixing the module.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "iep-triennial-re-evaluation",
+   "problem": "citation is null, which is correct under rule 1 (no covered string exists \u2014 `cfr_300_301` is the INITIAL evaluation, contentSources.ts:271-279), but the article's entire spine is a legal claim: \"a comprehensive re-evaluation is required every 3 years and can be requested sooner in writing\". editorial-spec.md's provenance rule is that every legal claim carries a citation, so as scoped this article cannot ship either way.",
+   "fix": "Register 34 CFR \u00a7300.303 / Ed Code \u00a756381 in contentSources.ts in its own PR (the registry-first order the spec sets), then cite it. Otherwise drop the requirement claim and keep only the app-side date. Same, milder, for `agency-dor-after-high-school`, which asserts DOR duties and the Individualized Plan for Employment with citation null.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "ssi-what-it-pays-and-what-it-depends-on",
+   "problem": "Ends at ResourceStack \u2014 a comparison view, not an action \u2014 while the module this article projects gives the SSI layer the lever `{screen:'Agencies'}` (resourceStack.ts:259-270), and the sibling article `ssi-and-the-month-after-18` correctly uses Agencies. Inconsistent derivation, and the weaker of the two end-actions for a parent who wants to apply.",
+   "fix": "Use `{screen:'Agencies', tab:'Home'}` for both SSI articles, matching the layer's own lever, and keep ResourceStack as the end-action only for `benefit-layers-in-order`.",
+   "severity": "minor"
+  },
+  {
+   "slug": "benefit-layers-in-order",
+   "problem": "Cites \"W&I \u00a74685.8\" for an article about all six benefit layers. That string is covered (contentSources.ts:76) so the provenance gate passes, but \u00a74685.8 is the Self-Determination Program \u2014 it backs layer 5 only, not the school, RC, Medi-Cal, IHSS or SSI layers the article is actually about. A citation that does not support its claim is the failure the registry exists to prevent.",
+   "fix": "Set citation null (the article is structural, not statutory) or cite per-layer inside the body using each layer's own `citation` field from resourceStack.ts.",
+   "severity": "minor"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Nothing in the repo catches a wrong letter template. LettersScreen silently falls back to `general` on an unknown key (LettersScreen.tsx:144-148), and learnDerive.test.ts:31-37 only asserts `resolvesFrom('Navigator', target)` \u2014 i.e. the SCREEN resolves. All 17 template keys in this manifest happen to exist, but the batch adds ~25 template-bearing targets with no gate behind them.",
+   "fix": "Add a test to this batch asserting every Learn target with `params.template` matches a key in LETTER_TEMPLATES \u2014 same shape as the existing no-dead-taps test, next to it.",
+   "severity": "minor"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "`priority` is not a field on `LearnArticle` and has no consumer anywhere in the schema (learnLibrary.ts). As written it is an authoring note travelling in a data manifest, which is how a field ends up half-implemented.",
+   "fix": "Either drop it, or state in the manifest header that priority governs authoring order only and never reaches the shipped record.",
+   "severity": "minor"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "No entry carries `relatedQuestions` or `bridge`. editorial-spec.md lines 87-106 make these schema-required (\"Four fields, required by schema \u2014 no article ships without them\"), and learnLibrary.test.ts:437-456 asserts 5-10 relatedQuestions plus a non-empty bridge.label/blurb/seed on every article. The manifest also names no `tool` (checklist/script), which spec item 3 under \"What every body must contain\" calls the utility-over-prose payload. As scoped, none of these 40 articles can pass the existing suite.",
+   "fix": "Add relatedQuestions (5-10), bridge {label, blurb, seed} and the keepable tool type to every manifest row before drafting, or state explicitly that the manifest covers only the retrieval spine and budget the remaining fields as separate work.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Every title and primaryQuestion is English-only. editorial-spec.md line 71 makes English, Spanish and Vietnamese peers \"not a translation afterthought\", and learnLibrary.test.ts:462-468 asserts per-field ES/VI divergence from EN for primaryQuestion, bridge.label, bridge.blurb, bridge.seed and each relatedQuestion \u2014 plus 378-390 for checklist items and script text. 40 articles x 3 locales is the real unit of work and the manifest budgets one third of it.",
+   "fix": "Make trilingual copy a manifest column, not a follow-on phase, so the ES/VI primaryQuestion is authored alongside the EN one rather than glossed from it.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "school-break-days-may-not-count",
+   "problem": "primaryQuestion is \"My district's deadline date has passed. Are they actually late?\" \u2014 blame of the actor, which the spec (line 64) and CLAUDE.md's homeTriage rule both forbid. The article's own whyItMatters says its purpose is to stop a parent \"opening with a missed-deadline claim\", so the question contradicts the article. Separately, the source is an acknowledged defect: iepDeadlines.ts's 'IMPORTANT LIMITATION (Wave 1.5)' block says the module counts plain calendar days and so shows dates EARLIER than law allows. Deriving family-facing content that explains away the app's own miscalculation ships a workaround as editorial.",
+   "fix": "Reframe to the status of the count, e.g. \"The date Waypoint shows has passed \u2014 has the legal deadline?\" And escalate the schoolday-exclusion bug in iepDeadlines.ts rather than papering it with an article.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "disagree-with-school-assessment-your-options",
+   "problem": "The article names four options (IEE at public expense, CDE compliance complaint, mediation, due process) but productAction gives exactly one a button \u2014 `cde_complaint`. Under the owner's Sep 15 rule you may name every option and may not rank or recommend one; a single default end-action is a de facto recommendation regardless of the hedge \"if that is the option you choose\". Article 26 (rc-four-ways-to-raise-a-problem) solves the identical problem correctly by routing to a screen that shows all routes.",
+   "fix": "Route to ProcessMap { screen: 'ProcessMap', params: { system: 'school' }, tab: 'Home' } \u2014 stage school_disagree already carries all four \u2014 so the parent picks, then reaches the letter. Reserve the direct `cde_complaint` action for an article whose scope IS the compliance complaint.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "ssi-and-the-month-after-18",
+   "problem": "The title's whole claim \u2014 parental income stops being deemed the month after 18 \u2014 is cited to \"SSA 2026 COLA\", whose registry claim (contentSources.ts:108-115) covers only the 2026 federal benefit rate plus the CA supplement. Deeming cessation at 18 is 20 CFR \u00a7416.1165, which is not in the registry. The citation string exists, so the copy-exactly rule is satisfied, but the citation does not support the claim \u2014 exactly the orphan the statuteAudit guard is meant to catch.",
+   "fix": "Either register the deeming authority and cite it, or set citation to null and drop the age-18 rule from the title so the article does not assert an uncited rule in its headline.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "rc-friendly-ask-ipp-review",
+   "problem": "whyItMatters asserts \"a requested IPP review meeting is held within 30 days\" and nothing in the manifest carries the other half of W&I \u00a74646.5(b). learnLibrary.test.ts:275-296 pins this precisely: the statute also gives \"no later than 7 days \u2026 if necessary for the consumer's health and safety\", and the test comment says omitting it \"tells a parent in crisis to wait a month when the law gives them a week.\" All four IPP-review articles (this, rc-what-is-the-ipp, sdp-fix-the-ipp-first, sdp-budget-ipp-meeting) repeat the 30-day half alone.",
+   "fix": "Name the 7-day health-and-safety path wherever the 30-day clock appears, and add it to the manifest as an explicit content requirement on the \u00a74646.5(b) set.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "rc-friendly-ask-ipp-review",
+   "problem": "Stage is `noticing`, but the title is \"The plan isn't covering what we need\" \u2014 which is verbatim the `advocating` sentence in the spec's stage table (line 48: \"They said no / it isn't working\"). The source is escalationLadder.ts rung 1, the first rung of the escalation ladder; a parent on the ladder is past noticing. A `noticing` parent has no IPP yet.",
+   "fix": "Move to `advocating` (or `seeking_help` if the intent is a parent with a plan but no dispute), and let the noticing slot go to something that precedes having a plan.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "benefit-layers-in-order",
+   "problem": "Stage is `overwhelmed`, whose spec contract (line 47) is \"One thing. Permission to do only that. Nothing else on screen.\" The article puts all six layers on screen at once; the whyItMatters even argues the parent \"can work on one thing instead of carrying all six\", which the article's own payload contradicts. Separately, the citation W&I \u00a74685.8 is the Self-Determination statute \u2014 it cannot carry a claim about how school, Regional Center, Medi-Cal, IHSS and SSI relate.",
+   "fix": "Re-stage to `seeking_help` (the spec's \"map\" stage) and set citation to null, or cite per-layer. Then author a real `overwhelmed` article that gives one action and nothing else.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "rc-assessment-answer-is-past-due",
+   "problem": "The slug gets the rule right and the primaryQuestion breaks it: \"What do I do when the Regional Center hasn't finished my child's assessment?\" frames an actor who failed rather than the status of an answer, and \"What do I do\" solicits a recommendation. The title is correct; the retrieval key \u2014 which the spec (lines 96-98) says is what the SEO build and the AI both retrieve on \u2014 is the part that carries the blame framing into search and into the AI seed.",
+   "fix": "\"The assessment answer is past due \u2014 what can I ask for next?\" Keeps the status framing and keeps it findable.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "sdp-what-it-is-and-who-can-join",
+   "problem": "Title \"The path nobody mentions: directing your own budget\" hands the parent a grievance against the Regional Center before the first sentence, which the status-not-blame rule exists to prevent (\"The framing a parent reads first is the one they carry into the phone call; it starts neutral\", spec line 65). whyItMatters also asserts \"about 1.5% are enrolled\" \u2014 an enrollment statistic that W&I \u00a74685.8, the named citation, does not carry and that appears nowhere in contentSources.ts.",
+   "fix": "Neutral title, e.g. \"Self-Determination: directing your child's own budget\". Drop the 1.5% figure or register a source for it; participation figures are not in the statute.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "insurance-must-cover-aba",
+   "problem": "The slug asserts a legal conclusion \u2014 \"must cover\" \u2014 while the title and primaryQuestion correctly hedge. Slugs become the public SEO URL per the spec's SEO build, so the URL states an opinion the article does not. The body is also cited only to H&S \u00a71374.73 (DMHC plans) while whyItMatters promises the parent will learn \"which California rule covers their type of plan\": the CDI twin Ins Code \u00a710144.51 is separately registered (contentSources.ts:316-324) and uncited here, and self-funded ERISA plans are covered by neither \u2014 a large share of California families.",
+   "fix": "Rename to `insurance-and-aba-coverage`. Cite both H&S \u00a71374.73 and Ins Code \u00a710144.51, and say plainly which plan types each covers and that a self-funded plan follows neither.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "turning-three-what-changes",
+   "problem": "Cited to \"Ed Code \u00a756321 \u00b7 \u00a756344\", whose registry claim is the assessment-plan and IEP-consent clocks. The article's actual subject is the Part C to Part B transition at age 3, governed by 34 CFR \u00a7303.209 / Ed Code \u00a756426.9 \u2014 not in the registry. The string is copied correctly; the claim underneath it is not the one the source verifies. Stage is also `now_what` (\"It's handled \u2014 what's next?\") for an event the article itself calls \"where services most often lapse\".",
+   "fix": "Cite null and keep the \u00a756321/\u00a756344 clocks as the school-side follow-on, or register the transition authority. Re-stage to `seeking_help`.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "rc-four-ways-to-raise-a-problem",
+   "problem": "\"Side by side\" is presented as compliance with the no-ranking rule, but escalationLadder.ts is explicitly ordered \u2014 `n: 1-based rung number, climb order`, and the module header says \"Order matters twice over: each rung's written record is the next rung's evidence.\" The manifest's own whyItMatters then lists the four in ladder order anyway. So the article either misrepresents its source (un-ordering what the app orders) or the \"side by side\" framing is cosmetic. Initiative 004's premise is that an article is a projection of verified structure; this one contradicts it.",
+   "fix": "Resolve the tension explicitly rather than in a title: either present the rungs in the app's climb order and state factually why the record accumulates (a sequence, not a recommendation), or get an owner decision that the ladder ordering is itself off-limits under the Sep 15 rule.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "iep-triennial-re-evaluation",
+   "problem": "citation is null, but the article's central assertion \u2014 a comprehensive re-evaluation is required every 3 years \u2014 is a legal claim. Rule 1 says null is right when nothing covers it, but then the article cannot assert the requirement as law. Ed Code \u00a756381 / 34 CFR \u00a7300.303 are not in contentSources.ts, though the September registry pass added several neighbouring IDEA entries (cfr_300_301, cfr_300_502, edc_56302_1).",
+   "fix": "Register the triennial authority in the same pass as the other prose-audit entries, or rewrite so the article teaches the written request (which the letter template supports) without asserting the 3-year rule.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "sdp-fix-the-ipp-first",
+   "problem": "primaryQuestion is \"What should I do before my Self-Determination budget is calculated?\" \u2014 a direct request for a recommendation, and the title's imperative \"get the IPP right\" implies the parent's current IPP is wrong. The underlying source (sdpJourney step 0) is a sequenced program step, so the ordering is derivable, but the copy reads as advice rather than as the step the app already sequences.",
+   "fix": "\"What happens to my IPP before my Self-Determination budget is set?\" and a title that states the mechanism \u2014 the budget is built from the last 12 months plus documented needs \u2014 rather than instructing the parent.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "school-layer-what-it-covers",
+   "problem": "primaryQuestion \"What does the school district have to pay for?\" is obligation-framing at the `seeking_help` stage, before any refusal has happened. Collaborative-first means the parent's first frame of the district is a partner, not a debtor. The title (\"What the school district provides\") gets this right; the question does not.",
+   "fix": "\"What does the school district provide, and what does it not?\" Keeps the scope, drops the adversarial premise.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "rc-eligibility-decision-clock",
+   "problem": "Title \"How long the wait for an eligibility answer is supposed to be\" \u2014 \"supposed to be\" primes the reader to expect the deadline will be missed, which is the actor-blame frame arriving by implication. It is also vague for a title that has two concrete numbers behind it (120 days, 60 when delay risks harm).",
+   "fix": "\"The two timeframes for a Regional Center eligibility answer\" \u2014 states the status, carries the facts, primes nothing.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "ssi-what-it-pays-and-what-it-depends-on",
+   "problem": "primaryQuestion \"Would my child get a monthly SSI payment, and who decides?\" invites a yes/no the app cannot give. The article's own sourceRef quotes eligibility.ts's honesty rules \u2014 status 'review', \"never a false binary\" \u2014 and the title's \"what it pays\" promises a personal figure when only the federal rate is derivable.",
+   "fix": "\"How does SSI work for a child with a disability, and who decides?\" and a title that names the federal rate as a rate, not as what this family would receive.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Four articles route to the same end-action `ipp_review_request` (rc-friendly-ask-ipp-review, rc-what-is-the-ipp, sdp-fix-the-ipp-first, sdp-budget-ipp-meeting) and their primaryQuestions all sit in IPP vocabulary. learnLibrary.test.ts:458-461 requires every article to be the search hit for its own primaryQuestion; four near-synonymous questions competing in searchLearn is how that test fails, and the suite already carries three regression cases for exactly this class of collision (the phone-denial decoy, the sibshop tie, the rc_money cross-list).",
+   "fix": "Give each of the four a distinct retrieval vocabulary, or merge the two weakest into their neighbours.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Compound primaryQuestions in at least seven entries (early-start-45-day-clock, rc-intake-15-working-days, notice-of-action-appeal-windows, insurance-must-cover-aba, sdp-budget-ipp-meeting, iep-triennial-re-evaluation, sdp-what-it-is-and-who-can-join \u2014 the last asks three). The spec calls primaryQuestion \"the one question this article answers\" and \"the title's spine\", and it feeds search, JSON-LD FAQPage and the AI seed. A two-clause question retrieves worse on both halves.",
+   "fix": "One question per article; move the second clause into relatedQuestions, where it does the flywheel work the spec designed it for.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "free-clients-rights-advocate",
+   "problem": "Title \"There is a free advocate assigned to your Regional Center\" is faithful to the source string but reads, standing alone in a Learn list, as though the advocate works for the Regional Center \u2014 the opposite of the point contentSources.ts:246-253 verifies (\"advocates are independent of the regional center\"). For an `overwhelmed` parent skimming titles, that misread costs them the article.",
+   "fix": "\"A free advocate for your Regional Center's clients \u2014 independent of the center.\"",
+   "severity": "minor"
+  },
+  {
+   "slug": "sdp-orientation-two-parts-scdd",
+   "problem": "whyItMatters frames the rule through the parent's error: \"A parent who sits through an orientation run by anyone other than SCDD, or takes Part B before Part A, has to do it again.\" That is consequence-of-your-mistake framing at the edge of the no-guilt rule (spec line 66), and it lands on a parent who has not made the mistake yet.",
+   "fix": "State the requirement forward: \"Only SCDD runs the orientation, and Part A comes before Part B \u2014 both certificates together trigger the four items.\"",
+   "severity": "minor"
+  },
+  {
+   "slug": "rc-4731-rights-complaint",
+   "problem": "Title and primaryQuestion both lead with the section number (\"the \u00a74731 complaint\", \"What is a W&I \u00a74731 complaint\"). The plain-language rule (spec line 69) is agency word first, then explained \u2014 and a tired parent searches \"they violated my child's rights\", not a code section. The rung title in escalationLadder.ts leads with the number legitimately, but that is a chip inside a ladder UI with surrounding context; an article title and retrieval key are not.",
+   "fix": "\"When it's a right, not a service: the complaint to the Regional Center director\" and a primaryQuestion in the parent's words, with \u00a74731 named in the first line of the body.",
+   "severity": "minor"
+  },
+  {
+   "slug": "early-start-45-day-clock",
+   "problem": "Stage is `noticing` but the article opens after the referral is already made (\"You referred your baby\u2026\", \"What happens after I refer\u2026\"). whyItMatters describes \"a parent who is only just worried\", which is a different parent from the one in the title. A noticing parent has not referred anyone.",
+   "fix": "Move to `seeking_help`, or rewrite so the article covers making the referral and what the 45 days then hold.",
+   "severity": "minor"
+  },
+  {
+   "slug": "private-placement-ten-business-day-notice",
+   "problem": "End-action is template `general` (\"Custom Letter\"), which has no defaultRequest (lettersCatalog.ts:44). For an article whose entire subject is a notice with a statutory form and a 10-business-day deadline, handing the parent a blank composer is the thinnest end-action in the manifest \u2014 and the reimbursement consequence of getting it wrong is the highest.",
+   "fix": "Add a `private_placement_notice` template with a defaultRequest naming the date and the intent, the way `medi_cal_deeming` and `delivery_plan_request` do, or route to the ProcessMap school_disagree stage instead.",
+   "severity": "minor"
+  },
+  {
+   "slug": "agency-dor-after-high-school",
+   "problem": "Two mismatches. The title says \"After high school\" but the end-action asks that DOR be invited to the IEP transition meeting \u2014 an action taken at 15 or 16, while the student is still in school, which whyItMatters itself says. And whyItMatters asserts \"its waitlists are long\" with citation null; that is an uncited characterisation of an agency, and a faintly disparaging one, in an article whose stage is `now_what`.",
+   "fix": "Retitle to the transition window the action actually serves (\"Planning for work before high school ends\") and cut the waitlist claim or source it.",
+   "severity": "minor"
+  },
+  {
+   "slug": "regional-center-who-qualifies",
+   "problem": "Title \"and what it costs your family\" sets up a cost that the article exists to say does not exist (the eligibility.ts branch it derives from reads \"no income test, no waiting list, no cost to families\"). A curiosity gap adds load for the 11pm reader the spec describes rather than lowering it.",
+   "fix": "\"Who the Regional Center is for \u2014 no income test, no cost to families.\" The answer is the hook.",
+   "severity": "minor"
+  },
+  {
+   "slug": "agency-regional-center-what-it-does",
+   "problem": "\"What the Regional Center is actually responsible for\" \u2014 \"actually\" implies the center misrepresents its remit, seeding an adversarial frame at `seeking_help`, before any contact. The same tic appears in is-the-iep-working-progress-data (\"Is the IEP actually working?\"), where it is defensible because a worry already exists; here it is not.",
+   "fix": "Drop \"actually\".",
+   "severity": "minor"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Roughly 22 of the 39 articles hand-re-author projections that waypoint-app/src/lib/learnDerive.ts ALREADY generates mechanically. deriveArticles() (line 229) emits one article per escalation rung, per RC process-map stage, per school process-map stage, and per resource-stack layer \u2014 with the module's own body, its own citation, its own lever letter, in all three locales. rc-friendly-ask-ipp-review = ladder_friendly_ask; rc-4731-rights-complaint = ladder_complaint_4731; free-clients-rights-advocate = ladder_advocate; rc-intake-15-working-days = rc_stage_intake; rc-eligibility-decision-clock = rc_stage_assessment; rc-what-is-the-ipp = rc_stage_ipp; authorized-hours-not-arriving = rc_stage_rc_delivery; rc-four-ways-to-raise-a-problem = rc_stage_rc_escalation; ask-for-iep-meeting-any-time = school_stage_school_iep; verbal-no-from-school-prior-written-notice = school_stage_school_services; is-the-iep-working-progress-data = school_stage_school_data; disagree-with-school-assessment-your-options = school_stage_school_disagree; school-layer-what-it-covers = stack_school; regional-center-who-qualifies = stack_regional_center; medi-cal-without-counting-parent-income = stack_medi_cal; ihss-paid-care-hours = stack_ihss; ssi-and-the-month-after-18 = stack_ssi; sdp-what-it-is-and-who-can-join = stack_sdp. This is a hand-copied mirror of a structured module \u2014 the exact failure src/navigation/routeGraph.ts:11 records ('it drifted immediately and certified nine dead taps').",
+   "fix": "Cut every article whose sourceRef is a rung, a process-map stage, or a stack layer. What the harness actually lacks is what this manifest should supply: DerivedArticle sets relatedQuestions: [] (learnDerive.ts:147, :208) and never sets stage at all, though LearnArticle.stage exists and the editorial spec says derived articles inherit one (8-0c). Ship a stage + relatedQuestions map keyed by ladder_* / rc_stage_* / school_stage_* / stack_*, and spend the hand-authoring budget only on sources the harness cannot reach: lettersCatalog, LEARN_MORE, eligibility cards, sdpJourney, iepDeadlines, familySupports.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "The manifest never reconciles against the five articles already shipped in waypoint-app/src/lib/learnLibrary.ts (getLearnArticles(), line 234): rc_said_no (W&I \u00a74710, Letters/noa_request), ipp_clock (W&I \u00a74646.5(b), the 30-day clock AND the 7-day emergency path), rc_money (W&I \u00a74646.5 \u00b7 \u00a74648(a)), sibling_support, first_iep (Ed Code \u00a756321, the 15-day assessment plan). At least three manifest entries land on the same citation, the same letter and the same claim as a page a parent can already open.",
+   "fix": "Add a dedup column to the manifest: for each proposed slug, the existing learnLibrary key or learnDerive key it overlaps, and either cut it or state what it adds that the shipped page does not. Do this before any body is drafted.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "rc-friendly-ask-ipp-review",
+   "problem": "Triple defect. (1) It duplicates shipped article ipp_clock (learnLibrary.ts:337) \u2014 same citation W&I \u00a74646.5(b), same letter ipp_review_request, same 30-day claim. (2) It omits the 7-day emergency IPP, which ipp_clock's own source comment says is not a neutral omission: 'it tells a parent to wait a month when the law gives them a week.' (3) Its stage is noticing, but its source is escalationLadder rung 1 \u2014 the ladder is the advocating door, and the shipped twin is stage advocating. The editorial spec says derived articles inherit the stage from their source.",
+   "fix": "Cut it. If a warmer entry point for rung 1 is genuinely wanted, that is a stage assignment on ladder_friendly_ask, not a second English-only page that drops the emergency path.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "benefit-layers-in-order",
+   "problem": "Cited to W&I \u00a74685.8. That section is the Self-Determination Program statute (contentSources.ts key wic_4685_8, claim: 'SDP: annual family-directed budget\u2026'). It says nothing about how school, Regional Center, Medi-Cal, IHSS and SSI stack or unlock each other. The string passes statuteAudit.guard.test.ts because it sits in a covers array, so the gate will not catch it \u2014 this is a citation attached to a claim the law never made, the failure mode initiative 009's intent.md explicitly names.",
+   "fix": "Set citation: null. resourceStack.ts gives no single authority for the ordering; the per-layer citations already travel with each layer. Null is the honest answer the eligibility module's own header rule demands.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "ask-for-iep-meeting-any-time",
+   "problem": "Asserts a flat '30 days of your written request' clock. The registry entry it rests on states the exception: contentSources.ts key edc_56343_5 claim reads '\u2026within 30 days of the request (school vacations excepted).' The manifest's own sibling article (school-break-days-may-not-count) teaches a parent that break days may not count \u2014 so two articles in the same set give conflicting accounts of the same rule, and this is the one that sends a family into a district conversation with a wrong date.",
+   "fix": "Carry the vacation exception in the body, in the registry's own words, and cross-link the two articles. Run the same check on every other calendar-day clock in the set.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Every string is English-only, with no note on Spanish and Vietnamese. The editorial spec makes them peers, not an afterthought ('Trilingual by construction\u2026 the locale-parity tests hold it'), and the reviewer checklist requires 'the Spanish and Vietnamese say the same thing, at the same reading level \u2014 not a machine gloss.' Derived articles get ES/VI free from the source modules; 39 hand-authored ones need 78 real translations plus credentialed review. That cost appears nowhere in the manifest.",
+   "fix": "State the per-article translation and review cost, or shrink the hand-authored set to what a native-speaker reviewer can actually clear. This is the strongest single argument for cutting the derived duplicates.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Not one article names its keepable tool. The editorial spec's first consequence is 'Utility over prose\u2026 Every article carries something the parent keeps and carries into the room \u2014 a checklist to bring to the meeting, a script for the phone call\u2026 Prose sets it up; the tool is the payload,' and the reviewer checklist gates on it. The manifest plans title, question, citation and end-action, and stops. lettersCatalog.ts already ships exactly one keepable tool \u2014 iep_prep ('A printable checklist to walk into your IEP meeting prepared', audience 'For you') \u2014 and no article uses it.",
+   "fix": "Add a required tool column (checklist | script, plus its content source) to every row, and reject any row that cannot name one. Start with the IEP-meeting article, which has a shipped checklist waiting.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Adult transition (initiative 009, newly in scope, ages 14 \u2192 school exit) is represented by two articles \u2014 agency-dor-after-high-school and ssi-and-the-month-after-18 \u2014 both stage now_what, priority 2 and 3. Nothing covers the 14\u201318 window where every dated obligation actually sits, though the content already exists to derive from: data/journeyMaps.ts:69 ('your child's IEP must include transition goals by age 16'), :373 ('Limited conservatorship and Supported Decision-Making are both options \u2014 allow 6\u201312 months before 18'), :465 ('Comprehensive transition IEP \u2014 By age 16'), :470 ('Start transition planning at 14'), lib/journeyActions.ts:185 (SSI re-determined against adult criteria at 18) and :188 (the four legal-capacity options, already rewritten into rule-3-compliant neutral wording on Sep 15).",
+   "fix": "Add the four transition articles named in missingTopics. Per 009's registry-first constraint, any statute they assert needs a contentSources entry first \u2014 until then those articles carry citation: null rather than a guess.",
+   "severity": "blocking"
+  },
+  {
+   "slug": "notice-of-action-appeal-windows",
+   "problem": "The 30-day aid-paid-pending claim is right per contentSources key wic_4710_5, but data/agencies.ts LEARN_MORE['Fair Hearing'] tells the same parent 'If you file within 10 days of the notice, existing services CONTINUE while you appeal' \u2014 while its own tip three lines later says 30. Publishing this article without fixing that leaves the app answering the highest-stakes timing question two different ways, in two surfaces reachable from the same chat.",
+   "fix": "Fix agencies.ts LEARN_MORE['Fair Hearing'] to 30 days in the same PR as this article, and make the article the canonical statement.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "rc-intake-15-working-days",
+   "problem": "Correct per contentSources key wic_4642, but contradicted inside the app: data/agencies.ts LEARN_MORE['Lanterman Act'] lists '\u00a74642 \u2014 Intake: Assessment within 120 days of referral', which both mislabels the section and erases the 15-working-day intake this article is built on.",
+   "fix": "Correct the LEARN_MORE['Lanterman Act'] timeline block in the same PR (\u00a74642 = intake within 15 working days; \u00a74643 = assessment/eligibility within 120 days, 60 when delay risks harm).",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "insurance-must-cover-aba",
+   "problem": "One article, one citation (H&S \u00a71374.73), for a question \u2014 'Does our insurance have to cover ABA' \u2014 whose answer depends entirely on plan type. Ins Code \u00a710144.51 is separately registered (contentSources key ins_10144_51, the CDI twin) and never cited. Worse, LEARN_MORE['SB 946'] in agencies.ts states the carve-out this article omits: 'SB 946 does not apply to self-funded employer plans (ERISA plans).' A parent on a self-funded plan is handed appeal_letter citing a statute that does not reach their plan.",
+   "fix": "Name all three cases in the body \u2014 DMHC-regulated (H&S \u00a71374.73), CDI-regulated (Ins Code \u00a710144.51), self-funded/ERISA (neither; no covered citation, so say so plainly) \u2014 and make identifying the plan type the article's keepable checklist and first step.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "disagree-with-school-assessment-your-options",
+   "problem": "The body promises four neutral options (IEE, compliance complaint, mediation, due process), then the end-action routes to exactly one: cde_complaint. Under hard rule 3 an end-action that selects one option for the parent is a ranking by another name. The IEE \u2014 the option with two registered citations (Ed Code \u00a756329(b) \u00b7 \u00a756501, 34 CFR \u00a7300.502) \u2014 has no letter template in lettersCatalog.ts at all, so the routing is driven by what the app happens to have built.",
+   "fix": "Either add an IEE-request template to lettersCatalog.ts and let the article offer the options side by side, or end at { screen: 'ProcessMap', params: { system: 'school' } } on the school_disagree stage, which presents all four without choosing.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "turning-three-what-changes",
+   "problem": "Cited to Ed Code \u00a756321 \u00b7 \u00a756344. Those sections govern a district assessment-plan and evaluation timeline; they do not govern the Part C \u2192 Part B handoff this article is about. The real obligation (the transition conference and an IEP in place by the third birthday) has no entry in contentSources.ts \u2014 cfr_303_310 covers only the 45-day post-referral timeline. The article as scoped attaches a school clock to an early-intervention transition claim.",
+   "fix": "Register the Part C transition authority first (009's 'registry first, prose second' discipline), or reduce the article to what \u00a756321/\u00a756344 actually support and carry the handoff itself with citation: null. agencies.ts AGENCIES[1] watchOut ('Transition from Early Start to school IEP at age 3 is where many kids lose services') is a sourceable, non-legal statement of the risk.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "likely-eligible-vs-needs-review",
+   "problem": "Assigned overwhelmed, whose spec row reads 'One thing. Permission to do only that. Nothing else on screen.' The end-action returns the parent to EligibilityResult \u2014 the full six-card program set that produced the overwhelm. Same pattern in benefit-layers-in-order, which lands an overwhelmed parent on all six ResourceStack layers.",
+   "fix": "Re-stage both to seeking_help, or keep the stage and change the end-action to the single next thing (nextUnlock in resourceStack.ts returns exactly one layer available now).",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "agency-dor-after-high-school",
+   "problem": "Title and stage say after school ends; the app's own data says the opposite. agencies.ts AGENCIES[7] watchOut: 'Apply at 15-16, not 18.' LEARN_MORE['DOR']: 'Apply at 15-16 \u2014 don't wait until graduation\u2026 waitlists for services can be 6-12 months.' The manifest's own whyItMatters knows this ('a family at 15 or 16 can start the conversation') and the title still mis-times the single action the article exists to trigger.",
+   "fix": "Retitle to the 15\u201316 window, move it out of now_what into the transition arc, and raise the priority \u2014 a 6\u201312 month waitlist is the case for reading it early.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "The Regional Center gets an overdue-clock article (rc-assessment-answer-is-past-due, letter rc_timeline_followup); the school district gets none, though lib/requestClocks.ts carries CLOCKS.iep_evaluation and REQUEST_LEVERS.iep_evaluation = { template: 'assessment_request', label: 'Follow up on the 15-day clock' }, and iepDeadlines.ts deadline_type iep_assessment_plan already writes the date and names the remedy.",
+   "fix": "Add the school twin, stage advocating, citation Ed Code \u00a756321, end-action Letters/assessment_request, carrying the schoolday-count caveat from the same iepDeadlines.ts notes block.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "MANIFEST",
+   "problem": "Three shipped letter templates have no article pointing at them: ihss_appeal ('Appeal an IHSS denial or too-few hours, with Aid Paid Pending'), iep_prep, and complaint. IHSS gets one article that stops at 'Medi-Cal comes first' \u2014 nothing for the assessment visit, protective supervision, or the hours appeal, though LEARN_MORE['IHSS'] carries all three in detail (the care log, 'don't compensate for your child's needs' during the assessment, 'if you disagree with hours, appeal within 90 days').",
+   "fix": "Add the two IHSS articles listed in missingTopics plus the IEP-prep article that uses the shipped checklist.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "private-placement-ten-business-day-notice",
+   "problem": "A notice whose defects cost a family reimbursement ends in template general ('Custom Letter', audience 'Varies', no defaultRequest). Every other high-stakes article in the set routes to a structured template. The app gives the parent a blank box for the one letter where the wording and the date are the whole point.",
+   "fix": "Add a unilateral-placement-notice template to lettersCatalog.ts with a dated defaultRequest, or route to EscalationLadder rung 4 (OCRA) instead of a blank draft.",
+   "severity": "should-fix"
+  },
+  {
+   "slug": "rc-four-ways-to-raise-a-problem",
+   "problem": "Presents the four routes 'side by side' per hard rule 3, but its end-action opens EscalationLadder, which is explicitly an ordered climb: escalationLadder.ts:2 'four rungs, in order' and :8 'Order matters twice over: each rung's written record is the next rung's evidence.' Article and destination disagree about whether a recommended order exists, and the manifest does not resolve it.",
+   "fix": "Resolve it explicitly: either state the ordering as a sourced fact about how evidence accumulates (the module's own rationale, not a legal claim), or drop the 'side by side' framing and describe the ladder the screen actually shows.",
+   "severity": "minor"
+  },
+  {
+   "slug": "regional-center-who-qualifies",
+   "problem": "Answers 'do we earn too much' and 'is there a waiting list' but never states the \u00a74512 criteria the article is cited to \u2014 five qualifying conditions, onset before 18, substantial impairment in 3+ major life areas (LEARN_MORE['Regional Center'] carries all of it). A family whose child has ADHD or a learning disability alone reads an encouraging page and then gets a denial; data/journeyMaps.ts:263 already states plainly that neither qualifies.",
+   "fix": "State the criteria, and route the not-eligible case to the school door (504/IEP) rather than leaving it unhandled.",
+   "severity": "minor"
+  },
+  {
+   "slug": "sdp-orientation-two-parts-scdd",
+   "problem": "whyItMatters reads 'A parent who sits through an orientation run by anyone other than SCDD, or takes Part B before Part A, has to do it again' \u2014 consequence framing that lands close to the spec's no-scold rule ('Content states what to do next; it never implies they should have done it sooner').",
+   "fix": "Lead with the do: 'Both parts are run by SCDD, and Part A comes first.' Keep the redo as a neutral note, not the hook.",
+   "severity": "minor"
+  }
+ ],
+ "missingTopics": [
+  "EPSDT \u2014 Medi-Cal must cover any medically necessary service for a child under 21. '42 U.S.C. \u00a71396d(r)' is registered and verified (contentSources.ts:326-333), LEARN_MORE['EPSDT'] exists, and agencies.ts says \"EPSDT covers ALL medically necessary services for children under 21\" \u2014 yet the manifest has zero articles on it. Arguably the single most load-bearing uncovered right for a family whose insurance said no.",
+  "Section 504 plans \u2014 for the child who does not qualify for an IEP but needs accommodations. 'Section 504' / '29 U.S.C. \u00a7794' was registered and owner-verified on 2026-09-15 with a code comment explaining exactly how the prose must cite it. Nothing in the manifest uses it; a large population has no door.",
+  "How to request a special education evaluation in the first place \u2014 the 15-calendar-day assessment plan clock. The manifest's school on-ramp begins at \"the assessment plan came home\"; shipped `first_iep` covers the request but the manifest never says so, and 'Ed Code \u00a756302.1' and '34 CFR \u00a7300.301' sit registered and unused.",
+  "Medi-Cal annual redetermination \u2014 agencies.ts calls it \"#1 risk: missing annual redetermination. Set reminders 60 days before renewal.\" A now_what article ending in the Calendar or a deadline is the most obviously derivable piece in the repo, and it is absent.",
+  "IHSS appeal and protective supervision hours \u2014 the `ihss_appeal` template (lettersCatalog.ts:40, with Aid Paid Pending) is used by NO article in the manifest, and protective supervision (\"up to 24hr\") is named in both agencies.ts and resourceStack.ts. The manifest gets families into IHSS and abandons them at the assessment.",
+  "Independent Medical Review after an insurance denial \u2014 LEARN_MORE['IMR'] already ships. `insurance-must-cover-aba` stops at the internal appeal, the step before the California-specific one that actually overturns denials.",
+  "The 7-day emergency IPP review when a child's health, safety, or living at home is at risk. It is in the shipped glossary and in `ipp_clock` with a code comment insisting it not be dropped \u2014 and it is in none of the manifest's four IPP articles.",
+  "SDP steps 3, 4, 6, 7 and 8 \u2014 independent facilitator, the three FMS models, the spending plan, the \u00a74685.8(u) Medi-Cal waiver, and living in the program. The manifest covers only steps 0, 1/2 and 5. 'three models: Bill Payer \u00b7 Sole Employer \u00b7 Co-Employer', 'W&I \u00a74685.8(u)' and 'DDS SDP guidance (2024)' are all registered and unused.",
+  "Participant-directed services INSIDE traditional POS \u2014 'W&I \u00a74685.8 \u00b7 DDS PDS FAQ' is registered and processMap.ts has a `traditional` fork for it. It is the option for a family who wants choice without converting to SDP, and nothing names it.",
+  "Disability-related expenses, reimbursement and tax treatment \u2014 reimbursables.ts, the Expenses screen and TaxReport all exist and are derivable, and money relief is exactly what an overwhelmed parent needs. The manifest has nothing.",
+  "\"They answered \u2014 now what?\" \u2014 RequestCase, CommunicationLog and EmailAnalyzer are built, and RequestTrackerScreen even gates escalation on an unanswered reply (\"while their reply sits unanswered, the move is to respond... not to escalate\"). Every manifest now_what article is an age transition; none covers what to do when a reply actually arrives.",
+  "The first written request for a special-education evaluation \u2014 processMap `school_referral` (Ed Code \u00a756321, assessment plan in 15 calendar days) is the one school stage with no article in the manifest, and it is the step that starts every other school clock",
+  "Section 504 plans \u2014 `section_504` is registered in contentSources.ts (covers 'Section 504', '29 U.S.C. \u00a7794') with no article; it is the door for a child who does not qualify for an IEP",
+  "EPSDT \u2014 42 U.S.C. \u00a71396d(r) is registered and LEARN_MORE['EPSDT'] exists; for a Medi-Cal child under 21 it is the broadest coverage lever in California and nothing in the manifest names it",
+  "Independent Medical Review after an insurance appeal is denied \u2014 LEARN_MORE['IMR'] and the CDI twin Ins Code \u00a710144.51 are both registered; the one insurance article stops at the first appeal",
+  "What a Regional Center fair hearing actually is \u2014 LEARN_MORE['Fair Hearing']; the manifest covers the 30/60-day appeal windows but never the hearing the family is filing for",
+  "IHSS denial, too-few hours, and protective supervision \u2014 the `ihss_appeal` letter template (lettersCatalog.ts:40) has no article pointing at it, and this is a top advocating moment for the same families the IHSS article recruits",
+  "SDP steps 3, 4, 6 and 7 \u2014 person-centered-plan facilitator, the three FMS models, the spending plan, and the \u00a74685.8(u) Medi-Cal waiver step are all in sdpJourney.ts with no article, so the SDP set teaches enrollment and then stops at the budget",
+  "CalABLE \u2014 LEARN_MORE['CalABLE']; saving money without losing SSI/Medi-Cal is a now_what question with no article",
+  "Turning 18 as a legal event \u2014 conservatorship vs supported decision-making, and SSI/IHSS as an adult; the manifest has the SSI income rule at 18 but nothing on decision-making authority",
+  "Regional Center purchase-of-service funding a family can actually ask for (diapers, respite, camps) \u2014 `Reimbursables` and the existing `rc_money` article cover it, so the manifest should say it is deliberately out of scope rather than leaving the gap ambiguous",
+  "The 7-day health-and-safety IPP review path under W&I \u00a74646.5(b) \u2014 learnLibrary.test.ts:275-296 pins this as a thing that must never be omitted alongside the 30-day clock, and no article in the manifest carries it",
+  "EPSDT (42 U.S.C. \u00a71396d(r), registered 2026-09-15 and unused by any article; LEARN_MORE['EPSDT'] already exists) \u2014 the Medi-Cal route to any medically necessary service for a child under 21, including therapies an insurer or district has denied",
+  "Section 504 plans ('Section 504' / '29 U.S.C. \u00a7794' registered and unused) \u2014 the accommodations route for a child who does not qualify for an IEP, which is a large share of the audience",
+  "Asking for the first special-education evaluation in writing \u2014 processMap.ts has a `school_referral` stage, contentSources.ts has 'Ed Code \u00a756302.1' and '34 CFR \u00a7300.301', and lettersCatalog has `assessment_request`, all unused; the manifest starts at 'the assessment plan came home', skipping the step that produces it",
+  "Lanterman Act rights themselves (W&I \u00a74502 and W&I \u00a74500 registered and unused; LEARN_MORE['Lanterman Act'] exists) \u2014 what a person with a developmental disability is entitled to, which is the premise the \u00a74731 complaint article depends on",
+  "The independent educational evaluation at public expense as its own article (34 CFR \u00a7300.502 registered and unused) \u2014 currently it is one bullet inside a four-option list whose only button is a compliance complaint",
+  "A genuine `overwhelmed` crisis door \u2014 respite, or 'what is the one thing to do this week'; all four current overwhelmed articles are explainers, none gives one action and nothing else as the spec's stage contract requires",
+  "School discipline, suspension, restraint, and shortened school days \u2014 nothing in the manifest addresses a child being sent home early or excluded, one of the most common acute crises for this population",
+  "The Independent Medical Review after an insurance denial \u2014 insurance-must-cover-aba names LEARN_MORE['IMR'] in its sourceRef but no article covers the IMR route, and none says which parents (self-funded/ERISA) are covered by neither California statute",
+  "The fair hearing itself (LEARN_MORE['Fair Hearing'] exists) \u2014 notice-of-action-appeal-windows covers the 30/60-day windows but nothing covers what happens at the hearing a parent has just filed for",
+  "FMS models under SDP ('three models: Bill Payer \u00b7 Sole Employer \u00b7 Co-Employer' registered and unused; sdpJourney step 4 `fms`) \u2014 a choice every enrolling family makes, and one the Sep 15 rule requires be named without ranking",
+  "Participant-directed services inside traditional POS ('W&I \u00a74685.8 \u00b7 DDS PDS FAQ' registered and unused) \u2014 the option for families who do not want full SDP",
+  "Early Start eligibility criteria (W&I \u00a795014 registered and unused) \u2014 early-start-under-three cites the federal Part C string but nothing carries California's own eligibility section",
+  "Turning 18: conservatorship, supported decision-making and the alternatives, named as options without ranking \u2014 ssi-and-the-month-after-18 is the manifest's only age-18 content and covers money alone",
+  "CalABLE accounts (LEARN_MORE['CalABLE'] exists and is unused) \u2014 the savings vehicle that lets a family hold assets without losing SSI or Medi-Cal, directly relevant to the two benefit articles that are present",
+  "Medi-Cal denied a service for a child under 21 \u2014 EPSDT. 42 U.S.C. \u00a71396d(r) was registered in contentSources.ts on 2026-09-15 and NO article in this manifest uses it. LEARN_MORE['EPSDT'] and AGENCIES[6] carry the full body ('the most comprehensive pediatric health benefit in the United States'). This is the largest uncovered lever in the repo \u2014 it reaches every denied therapy, DME, nursing and mental-health request. Stage: advocating.",
+  "The annual Medi-Cal redetermination. agencies.ts AGENCIES[6] watchOut: '#1 risk: missing annual redetermination. Set reminders 60 days before renewal.' Losing Medi-Cal cascades \u2014 IHSS stops, institutional deeming stops. Waypoint's whole differentiator is dates that arrive, and it has RequestTracker and Calendar. Stage: now_what.",
+  "The insurance denial after the first appeal \u2014 Independent Medical Review. LEARN_MORE['IMR']: free, binding, DMHC for HMOs / CDI for PPOs, 45 days standard and 72 hours expedited. The one insurance article in the manifest stops at appeal_letter.",
+  "A 504 plan when the child does not qualify for an IEP. 'Section 504' and '29 U.S.C. \u00a7794' were registered on 2026-09-15 specifically so this could be said, with a code comment explaining the prose must say 'a Section 504 plan'. Three of the seven journeys in journeyMaps.ts (ADHD, SLD, Speech/Language) route families to 'IEP or 504' and the manifest has no 504 door at all.",
+  "California Children's Services (CCS) and the school-based Medical Therapy Program. Named in CLAUDE.md's core domain list and carried through journeyMaps.ts for cerebral palsy, Down syndrome and epilepsy \u2014 'CCS MTP operates in schools \u2014 ensure it's in the IEP' (:215), 'free regardless of income' (:202), 'CCS services end at age 21' (:254). Zero coverage. No registered citation yet, so citation: null plus a registry entry.",
+  "Respite \u2014 how to ask for a break. lib/familySupports.ts key respite plus data/reimbursables.ts ('Respite Care, 862/868\u2026 Most-used RC service statewide', 'Ask by name and code'), ending at the AskForSupports / SupportDetail screens that already exist in routeGraph. The overwhelmed stage has four articles and not one of them relieves the overwhelm. Its siblings parent_training and camp_recreation are equally uncovered.",
+  "The IHSS assessment visit and protective supervision hours. LEARN_MORE['IHSS'] carries the care-log method, 'DO NOT help your child perform during the visit', and protective supervision up to 24 hours. Stage: seeking_help.",
+  "Appealing IHSS hours. Shipped template ihss_appeal ('Appeal an IHSS denial or too-few hours, with Aid Paid Pending') has no article; LEARN_MORE['Fair Hearing'] gives the 90-day state-hearing window. Stage: advocating.",
+  "The SSI Function Report, and what to do with a denial. LEARN_MORE['SSI']: 'the most important document in your application\u2026 describe your child's WORST days', 3\u20136 month decision, appeal within 60 days, 'never re-apply \u2014 always appeal'. The two SSI articles cover the rate and the age-18 rule and skip the document that decides the claim.",
+  "TRANSITION (009): the transition plan in the IEP at 16. journeyMaps.ts:69 ('by law, your child's IEP must include transition goals by age 16'), :465 ('Comprehensive transition IEP \u2014 By age 16'), agencies.ts AGENCIES[2] services ('Transition services (16+)'), LEARN_MORE['IEP'] ('transition plan (at age 16)'). End-action: Letters/iep_email asking for it, with DOR invited.",
+  "TRANSITION (009): what changes legally at 18. journeyActions.ts:188 already carries the rule-3-compliant sentence naming conservatorship, limited conservatorship, supported decision-making and power of attorney with no ranking, plus '6\u201312 months to arrange'. End-action: EscalationLadder rung 4 / OCRA \u2014 free credentialed help, exactly what 009's constraint says to route to. The biggest cliff in the arc has no door.",
+  "TRANSITION (009): the SSI redetermination at 18. journeyActions.ts:185 \u2014 SSI 'at 18, is re-determined against adult criteria\u2026 avoids a gap in income and the Medi-Cal that can come with it.' Distinct from the manifest's 'parent income stops counting' article, and it is a birthday, i.e. a real clock.",
+  "TRANSITION (009): school exit itself \u2014 the boundary event the owner chose over an age. What ends with the IEP, what the Regional Center picks up, and why the date differs for a diploma exit at 18 versus a certificate track to 22 (journeyMaps.ts:245; eligibility.ts gates the IEP card at ageYears < 22).",
+  "The Regional Center found my child not eligible. eligibility.ts emits regional_center at status 'review' without a diagnosis, journeyMaps.ts:263 states plainly that ADHD and learning disabilities alone do not qualify, and the covered citation 'Lanterman Act, W&I \u00a74512' exists. A denial currently has no page and no next door.",
+  "Asking for services by name \u2014 the POS disparity article. agencies.ts AGENCIES[0] watchOut: 'White families receive ~2x more than Latino families. Know what's available and request it specifically.' reimbursables.ts supplies the names and codes. For a trilingual product whose Spanish- and Vietnamese-speaking families are precisely the under-served group in that data, this is the highest-equity article available and it is absent. Ends at the Reimbursables screen, which no article in the manifest opens.",
+  "Preparing for the IEP meeting. Shipped template iep_prep is the only keepable checklist in the catalog and nothing points at it; LEARN_MORE['IEP'] supplies the content ('NEVER sign the IEP at the meeting', request reports 5 days before, recording under Ed Code \u00a756341.1 \u2014 a registered citation).",
+  "The school district missed the 15-day assessment-plan date. requestClocks.ts REQUEST_LEVERS.iep_evaluation ('Follow up on the 15-day clock') and iepDeadlines.ts iep_assessment_plan already exist; only the Regional Center side of the overdue-clock pair has an article.",
+  "SDP after enrollment: the three FMS models (contentSources key dds_fms_models, sdpJourney step 4), the independent facilitator (step 3), the spending plan (step 6) and the \u00a74685.8(u) Medi-Cal waiver step (step 7) \u2014 five of the nine SDP steps have no article, so the manifest covers joining and stops before the family has to run it."
+ ]
+}

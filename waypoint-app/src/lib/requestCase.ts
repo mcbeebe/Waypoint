@@ -139,7 +139,7 @@ const FOLLOW_UP_TEMPLATE: Record<RequestType, string> = {
   other: 'general',
 };
 
-/** Formal-rung venue is system-correct: school disputes go to CDE, RC to §4731. */
+/** Formal-rung venue is system-correct: school disputes go to CDE, RC to W&I §4731. */
 function formalTemplateFor(type: RequestType): string {
   if (type === 'iep_evaluation') return 'cde_complaint';
   if (type === 'other') return 'complaint';

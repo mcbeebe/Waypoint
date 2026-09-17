@@ -7,9 +7,9 @@
  * - Annual review: last annual review + 1 year
  * - Triennial evaluation: last triennial + 3 years
  * - Assessment plan due: written request + 15 calendar days (CA Ed Code §56321)
- * - Evaluation complete due: signed consent + 60 calendar days (§56344)
+ * - Evaluation complete due: signed consent + 60 calendar days (Ed Code §56344)
  *
- * IMPORTANT LIMITATION (Wave 1.5): both §56321 and §56344 EXCLUDE days
+ * IMPORTANT LIMITATION (Wave 1.5): both Ed Code §56321 and Ed Code §56344 EXCLUDE days
  * between regular school sessions/terms and school vacations longer than
  * 5 schooldays from the count, with special rules near year-end. This
  * module counts plain calendar days, so dates that span a school break
