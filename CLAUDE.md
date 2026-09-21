@@ -101,9 +101,9 @@ elsewhere. The description below is historical.
   - Auto-updating `updated_at` triggers
 - **Navigation:** React Navigation (native-stack)
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
-- **Current state (2026-09-15):** the flagship product. 61 migrations, eight
+- **Current state (2026-09-21):** the flagship product. 61 migrations, eight
   Edge Functions in production, 45 screens under `main/` plus auth /
-  onboarding / staff / legal, and a 138-file / 1708-test vitest suite across
+  onboarding / staff / legal, and a 142-file / 1831-test vitest suite across
   four projects. (This line previously read "Auth scaffolding… no screens
   beyond onboarding exist yet.")
 
@@ -112,7 +112,7 @@ elsewhere. The description below is historical.
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
 npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
-npm test            # vitest, FOUR projects, 138 files (151 runs) — CI gate
+npm test            # vitest, FOUR projects, 142 files (155 runs) — CI gate
 npm run build:web   # expo export + postbuild — CI gate (prod bundle)
 npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
 ```
