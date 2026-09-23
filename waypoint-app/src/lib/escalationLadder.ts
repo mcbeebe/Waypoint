@@ -91,9 +91,9 @@ export function getEscalationRungs(locale: FunnelLocale = 'en'): EscalationRung[
       tone: 'formal',
       toneLabel: L('Formal', 'Formal', 'Chính thức'),
       title: L(
-        '§4731 complaint to the RC director',
-        'Queja §4731 al director del Centro Regional',
-        'Khiếu nại §4731 gửi giám đốc Trung tâm'
+        'W&I §4731 complaint to the RC director',
+        'Queja W&I §4731 al director del Centro Regional',
+        'Khiếu nại W&I §4731 gửi giám đốc Trung tâm'
       ),
       body: L(
         'For rights violations — not just service disagreements: the director must respond with a written proposed resolution within 20 working days. Unresolved complaints escalate to the Department of Developmental Services.',
@@ -103,7 +103,7 @@ export function getEscalationRungs(locale: FunnelLocale = 'en'): EscalationRung[
       clock: L('Written response within 20 working days', 'Respuesta escrita dentro de 20 días hábiles', 'Trả lời bằng văn bản trong 20 ngày làm việc'),
       citation: 'W&I §4731',
       leverTemplate: 'dds_4731_complaint',
-      leverLabel: L('File the §4731 complaint', 'Presentar la queja §4731', 'Nộp đơn khiếu nại §4731'),
+      leverLabel: L('File the W&I §4731 complaint', 'Presentar la queja W&I §4731', 'Nộp đơn khiếu nại §4731'),
     },
     {
       n: 4,

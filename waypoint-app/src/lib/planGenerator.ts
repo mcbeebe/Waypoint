@@ -373,7 +373,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       ],
       steps: [
         "Call your local RC (find number at dds.ca.gov/rc) and say 'I want to refer my child.'",
-        'RC must schedule intake within 15 working days (Lanterman Act §4642).',
+        'RC must schedule intake within 15 working days (Lanterman Act, W&I §4642).',
         'Bring ALL documents — diagnosis, medical records, school records, insurance.',
         'At intake, they begin a multidisciplinary assessment across all areas of need.',
         'Eligibility determination must happen within 120 days.',
@@ -395,7 +395,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
       dueInDays: 7,
       talkingPoints: [
         "Hi, I'm calling to follow up on my child's referral. I submitted it on [date].",
-        'Has the intake been scheduled yet? Under Lanterman Act §4642, intake should happen within 15 working days.',
+        'Has the intake been scheduled yet? Under the Lanterman Act, W&I §4642, intake should happen within 15 working days.',
         "Who is our assigned Service Coordinator? I'd like their direct contact information.",
         "What is the expected timeline for eligibility determination? I understand it's 120 days maximum.",
         'Are there any documents I can provide to speed up the process?',
@@ -407,7 +407,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
         'If past 15 working days with no intake: ask for the supervisor.',
         'Document every call: date, time, who you spoke with, what was said.',
         'If still no progress, file a 4731 complaint (your right under W&I Code §4731).',
-        'Consider requesting a Fair Hearing if services are being delayed (§4710.5).',
+        'Consider requesting a Fair Hearing if services are being delayed (W&I §4710.5).',
       ],
       documents: ['Your referral date (check email/records)', 'Any correspondence from RC', 'Notes from previous calls'],
       smsReminder: 'Tomorrow: Call RC. Reference referral date and 15-day rule.',
@@ -517,7 +517,7 @@ export function generateStarterPlan(intake: PlanIntake): StarterAction[] {
           'Review the Assessment Plan carefully. Make sure it covers ALL areas of concern, not just academics.',
           "Sign the Assessment Plan (this gives consent to evaluate — it doesn't commit you to anything).",
           'School then has 60 calendar days from your consent to complete the evaluation.',
-          'The IEP meeting must happen within that same 60-day window — the evaluation and the meeting share one clock (§56344).',
+          'The IEP meeting must happen within that same 60-day window — the evaluation and the meeting share one clock (Ed Code §56344).',
         ],
         documents: [
           'Your written request letter (keep a dated copy)',

@@ -11,11 +11,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import {
-  getLearnLibrary,
-  popularQuestions,
-  searchLearn,
-} from '@/lib/learnLibrary';
+import { getLearnLibrary, popularQuestions, searchLearn } from '@/lib/learnLibrary';
 import type { LearnHit, LearnTarget } from '@/lib/learnLibrary';
 import type { FunnelLocale } from '@/lib/eligibility';
 import { useTextScale } from '@/lib/textSize';

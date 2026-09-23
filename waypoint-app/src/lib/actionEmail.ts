@@ -16,7 +16,7 @@
  * THE PARENT, and a large share of it is escalation material:
  *
  *   planGenerator  → "RC must schedule intake within 15 working days
- *                     (Lanterman Act §4642)", "Eligibility determination must
+ *                     (Lanterman Act, W&I §4642)", "Eligibility determination must
  *                     happen within 120 days", "Build that relationship."
  *   adaptiveEngine → "⚠️ Timeline violation: Eligibility within 120 days",
  *                     "This may be a Lanterman Act violation", "Agency: RC →

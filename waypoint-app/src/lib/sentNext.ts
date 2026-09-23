@@ -409,9 +409,9 @@ export function sentNextFor(
             'Các cơ quan thường hành động trong vài ngày sau thư nhắc có trích dẫn điều luật.'
           ),
           L(
-            'If this one goes unanswered too, the next step is a §4731 complaint — Waypoint can draft it.',
-            'Si este también queda sin respuesta, el siguiente paso es una queja §4731 — Waypoint puede redactarla.',
-            'Nếu thư này cũng không được trả lời, bước tiếp theo là đơn khiếu nại §4731 — Waypoint có thể soạn giúp.'
+            'If this one goes unanswered too, the next step is a W&I §4731 complaint — Waypoint can draft it.',
+            'Si este también queda sin respuesta, el siguiente paso es una queja W&I §4731 — Waypoint puede redactarla.',
+            'Nếu thư này cũng không được trả lời, bước tiếp theo là đơn khiếu nại W&I §4731 — Waypoint có thể soạn giúp.'
           ),
         ],
         track: null, // it follows up an existing tracked request

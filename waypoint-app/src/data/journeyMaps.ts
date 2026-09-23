@@ -75,7 +75,7 @@ export const JOURNEY_MAP_DATA: Record<string, Journey> = {
           { name: 'Conservatorship', action: 'Research conservatorship vs. SDM options', time: '6–12 mo before 18' },
         ],
         milestone: 'Transition plan in IEP, DOR engaged, legal planning started',
-        alert: 'Start conservatorship process 6–12 months before age 18',
+        alert: 'Legal decision-making options take 6–12 months to arrange — start before 18',
       },
       {
         age: '18–22', label: 'Young Adulthood', color: '#F97316', bg: '#FFF7ED', icon: '🧑‍💼',
@@ -163,7 +163,7 @@ export const JOURNEY_MAP_DATA: Record<string, Journey> = {
           { name: 'Conservatorship / SDM', action: 'Legal decision-making options', time: '6–12 mo before 18' },
         ],
         milestone: 'Vocational plan active, legal and financial framework in place',
-        alert: 'Explore Supported Decision-Making before defaulting to conservatorship',
+        alert: 'Conservatorship and Supported Decision-Making are both options — compare them before 18',
       },
       {
         age: '18+', label: 'Adult Life', color: '#F97316', bg: '#FFF7ED', icon: '🏠',
@@ -370,11 +370,11 @@ export const JOURNEY_MAP_DATA: Record<string, Journey> = {
           { name: 'Conservatorship / SDM', action: 'Legal decision-making framework', time: 'Before 18' },
         ],
         milestone: 'Transition plan active, adult services identified, legal framework set',
-        alert: 'Limited conservatorship is most common for ID — start 6–12 months before 18',
+        alert: 'Limited conservatorship and Supported Decision-Making are both options — allow 6–12 months before 18',
       },
       {
         age: '18+', label: 'Adult Life', color: '#F97316', bg: '#FFF7ED', icon: '🏠',
-        description: 'This is the life you\'ve been building toward — and it can be a beautiful one. Adults with intellectual disabilities are living fuller, more connected lives than ever before. Supported employment, day programs, community integration, shared living, and independent living services are all available through the Regional Center. SSI provides income. Medi-Cal provides healthcare. IHSS provides daily support. The Self-Determination Program gives your adult child (or you, as their conservator) direct control over the RC budget to design services that truly fit their life. You have navigated one of the most complex systems in the country for your child\'s entire life. You\'ve earned every good thing that comes from it.',
+        description: 'This is the life you\'ve been building toward — and it can be a beautiful one. Adults with intellectual disabilities are living fuller, more connected lives than ever before. Supported employment, day programs, community integration, shared living, and independent living services are all available through the Regional Center. SSI provides income. Medi-Cal provides healthcare. IHSS provides daily support. The Self-Determination Program gives your adult child (or you, if you hold that authority) direct control over the RC budget to design services that truly fit their life. You have navigated one of the most complex systems in the country for your child\'s entire life. You\'ve earned every good thing that comes from it.',
         entities: [
           { name: 'Regional Center', action: 'Day programs, SLS/ILS, employment, community', time: 'Lifelong' },
           { name: 'SSI / Medi-Cal', action: 'Income + healthcare', time: 'Lifelong' },

@@ -101,9 +101,9 @@ elsewhere. The description below is historical.
   - Auto-updating `updated_at` triggers
 - **Navigation:** React Navigation (native-stack)
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
-- **Current state (2026-09-17):** the flagship product. 61 migrations, eight
+- **Current state (2026-09-21):** the flagship product. 61 migrations, eight
   Edge Functions in production, 45 screens under `main/` plus auth /
-  onboarding / staff / legal, and a 136-file / 1729-test vitest suite across
+  onboarding / staff / legal, and a 142-file / 1831-test vitest suite across
   four projects. (This line previously read "Auth scaffolding… no screens
   beyond onboarding exist yet.")
 
@@ -112,7 +112,7 @@ elsewhere. The description below is historical.
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
 npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
-npm test            # vitest, FOUR projects, 136 files (148 runs) — CI gate
+npm test            # vitest, FOUR projects, 142 files (155 runs) — CI gate
 npm run build:web   # expo export + postbuild — CI gate (prod bundle)
 npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
 ```
@@ -138,7 +138,7 @@ npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
   tests, yet `deploy-edge-functions.yml` ships them to the production project
   on merge to `main`. Treat every change there as unverified by CI.
 - **`npm test` runs FOUR projects, and the count of files is not the count of
-  runs** — the twelve `.tz.test.ts` files execute twice, once per timezone.
+  runs** — the thirteen `.tz.test.ts` files execute twice, once per timezone.
   - `logic` (`*.test.ts`, node) — the pure modules.
   - `ui` (`*.test.tsx`, jsdom + react-native-web) renders components. It exists
     because three adversarial reviews in a row found defects the logic suite
