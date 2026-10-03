@@ -88,3 +88,11 @@ jobs:
         # verify_jwt=true (config.toml). Needs RESEND_API_KEY set as a Supabase
         # secret; without it the function answers 503 delivery_not_configured.
         run: supabase functions deploy family-invite --project-ref "$SUPABASE_PROJECT_ID"
+
+      - name: Deploy notify-signup
+        if: steps.token.outputs.present == 'true'
+        # verify_jwt=false (config.toml) — the auth.users trigger's pg_net entry
+        # (061); auth is the OUTBOUND_CRON_SECRET shared secret. Sends nothing
+        # until SIGNUP_NOTIFY_TO and RESEND_API_KEY are set. Reads
+        # _shared/signupNotify.ts.
+        run: supabase functions deploy notify-signup --project-ref "$SUPABASE_PROJECT_ID"
