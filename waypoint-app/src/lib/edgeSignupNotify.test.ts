@@ -13,6 +13,8 @@ const base = {
   email: 'parent@example.com',
   provider: 'apple',
   createdAt: '2026-10-03T03:30:00Z',
+  confirmed: false,
+  capped: false,
   userId: '6f1c2a9e-1b2c-4d5e-8f90-123456789abc',
   dashboardUrl: 'https://supabase.com/dashboard/project/abcdefghijklmnopqrst/auth/users',
 };
@@ -26,6 +28,22 @@ describe('renderSignupEmail', () => {
     expect(text).toContain(`User ID: ${base.userId}`);
     expect(html).toContain('parent@example.com');
     expect(html).toContain(base.dashboardUrl);
+  });
+
+  it('says a sign-up, not an account, and whether the email is confirmed', () => {
+    expect(renderSignupEmail(base).text).toContain('Someone just signed up for Waypoint.');
+    expect(renderSignupEmail(base).text).toContain('Email confirmed: Not yet');
+    expect(renderSignupEmail({ ...base, confirmed: true }).text).toContain('Email confirmed: Yes');
+  });
+
+  it('flags the hourly cap\'s last alert in the subject and body', () => {
+    const plain = renderSignupEmail(base);
+    expect(plain.subject).toBe('New Waypoint sign-up');
+    expect(plain.text).not.toContain('paused');
+    const capped = renderSignupEmail({ ...base, capped: true });
+    expect(capped.subject).toBe('New Waypoint sign-up (alerts paused for the hour)');
+    expect(capped.text).toContain('alerts are paused');
+    expect(capped.html).toContain('alerts are paused');
   });
 
   it('escapes user-controlled values in the HTML body', () => {

@@ -3,7 +3,7 @@
  * 061). Pure so the vitest suite can pin it — the function itself has no CI.
  *
  * Carries only what the owner needs to notice a sign-up: the account email,
- * how they signed in, and when. Never child, diagnosis, or family details —
+ * how they signed in, whether the email is confirmed, and when. Never child, diagnosis, or family details —
  * the alert fires on the auth insert, before any of that exists, and it
  * should stay that way if this is ever moved later in the flow.
  */
@@ -13,6 +13,10 @@ export interface SignupAlertInput {
   provider: string | null;
   /** ISO-8601 timestamp from auth.users.created_at. */
   createdAt: string;
+  /** auth.users.email_confirmed_at is set. False = signed up, not yet confirmed. */
+  confirmed: boolean;
+  /** This is the hourly cap's last alert; more sign-ups this hour send nothing. */
+  capped: boolean;
   userId: string;
   /** Supabase dashboard link to the Users page, or '' when unknown. */
   dashboardUrl: string;
@@ -80,12 +84,16 @@ export function renderSignupEmail(input: SignupAlertInput): RenderedEmail {
   const rows: [string, string][] = [
     ['Account', email],
     ['Signed up with', providerLabel(input.provider)],
+    ['Email confirmed', input.confirmed ? 'Yes' : 'Not yet'],
     ['When', pacificTime(input.createdAt)],
     ['User ID', input.userId],
   ];
 
+  const lead = 'Someone just signed up for Waypoint.';
+  const cap = 'This is the 11th sign-up in the past hour, so alerts are paused until the hour rolls over. Check the Supabase Users page for the rest.';
   const text = [
-    'Someone just created a Waypoint account.',
+    lead,
+    ...(input.capped ? ['', cap] : []),
     '',
     ...rows.map(([k, v]) => `${k}: ${v}`),
     '',
@@ -93,7 +101,7 @@ export function renderSignupEmail(input: SignupAlertInput): RenderedEmail {
     ...(input.dashboardUrl ? ['', `All users: ${input.dashboardUrl}`] : []),
   ].join('\n');
 
-  const html = `<p>Someone just created a Waypoint account.</p>
+  const html = `<p>${lead}</p>${input.capped ? `\n<p><strong>${cap}</strong></p>` : ''}
 <table cellpadding="4" style="border-collapse:collapse">
 ${rows.map(([k, v]) => `<tr><td style="color:#555">${escapeHtml(k)}</td><td><strong>${escapeHtml(v)}</strong></td></tr>`).join('\n')}
 </table>
@@ -101,5 +109,9 @@ ${rows.map(([k, v]) => `<tr><td style="color:#555">${escapeHtml(k)}</td><td><str
     input.dashboardUrl ? `\n<p><a href="${escapeHtml(input.dashboardUrl)}">See all users in Supabase</a></p>` : ''
   }`;
 
-  return { subject: 'New Waypoint sign-up', text, html };
+  return {
+    subject: input.capped ? 'New Waypoint sign-up (alerts paused for the hour)' : 'New Waypoint sign-up',
+    text,
+    html,
+  };
 }

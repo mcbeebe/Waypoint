@@ -13,6 +13,11 @@
 --     even a missing pg_net or Vault cannot fail a sign-up.
 --   * Missing config (no Vault secrets) → it does nothing.
 --
+-- Capped at 10 alerts per rolling hour. auth.users is written by the public
+-- anon key (signUp), so a script could otherwise flood the owner's inbox and
+-- burn the Resend quota family-invite shares. The 11th sign-up in an hour
+-- sends one "alerts paused" notice; the rest send nothing until the hour rolls.
+--
 -- Reuses 052's two Vault secrets — `project_url` and `outbound_cron_secret` —
 -- so if the reply poller is set up, this needs no new Vault entries. If not:
 --   Dashboard → Project Settings → Vault:
@@ -36,8 +41,15 @@ as $$
 declare
   base_url text;
   secret text;
+  recent int;
 begin
   begin
+    -- Includes this row: the trigger is AFTER INSERT.
+    select count(*) into recent
+      from auth.users where created_at > now() - interval '1 hour';
+    if recent > 11 then
+      return new;
+    end if;
     select decrypted_secret into base_url
       from vault.decrypted_secrets where name = 'project_url' limit 1;
     select decrypted_secret into secret
@@ -51,7 +63,7 @@ begin
         'Content-Type', 'application/json',
         'x-outbound-secret', secret
       ),
-      body := jsonb_build_object('user_id', new.id)
+      body := jsonb_build_object('user_id', new.id, 'capped', recent = 11)
     );
   exception when others then
     -- Never block a sign-up over an alert. Logged for the owner to find.

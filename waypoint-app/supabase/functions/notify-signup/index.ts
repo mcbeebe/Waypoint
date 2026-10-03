@@ -2,10 +2,12 @@
  * notify-signup edge function — emails the owner when a new account is created.
  *
  * Migration 061 adds an AFTER INSERT trigger on auth.users that posts
- * `{ "user_id": "<uuid>" }` here via pg_net. The body carries ONLY the id: the
- * function looks the user up itself with the service role, so a forged call
- * can at most re-send an alert about a real account — it cannot put words in
- * the owner's inbox.
+ * `{ "user_id": "<uuid>", "capped": bool }` here via pg_net. The body carries
+ * only the id: the function looks the user up itself with the service role,
+ * so a forged call can at most re-send an alert about a real account. The
+ * account email IS chosen by whoever signs up and appears in the alert
+ * (HTML-escaped, but still their words) — treat it as untrusted text.
+ * The trigger caps alerts at 10 per hour (see 061).
  *
  * Auth: verify_jwt=false (config.toml). Authenticity is the shared secret in
  * x-outbound-secret, compared timing-safe to OUTBOUND_CRON_SECRET (the same
@@ -59,9 +61,11 @@ Deno.serve(async (req) => {
   }
 
   let userId = '';
+  let capped = false;
   try {
     const body = await req.json();
     userId = typeof body?.user_id === 'string' ? body.user_id : '';
+    capped = body?.capped === true;
   } catch {
     return json({ error: 'invalid_body' }, 400);
   }
@@ -86,6 +90,8 @@ Deno.serve(async (req) => {
       email: user.email ?? null,
       provider: typeof user.app_metadata?.provider === 'string' ? user.app_metadata.provider : null,
       createdAt: user.created_at,
+      confirmed: Boolean(user.email_confirmed_at),
+      capped,
       userId: user.id,
       dashboardUrl: dashboardUsersUrl(SUPABASE_URL),
     });
