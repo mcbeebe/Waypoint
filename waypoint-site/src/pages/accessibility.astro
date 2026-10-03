@@ -10,6 +10,11 @@
  * "we test X" unless a gate fails when X breaks — both scripts are
  * mutation-tested for exactly that reason. Update the dates below in the
  * same PR as any change to those gates.
+ *
+ * PENDING REVIEW (owner decision, 2026-10-03): kept out of search until the
+ * statement is reviewed — noindex here, filtered from the sitemap in
+ * astro.config.mjs, footer link hidden in SiteFooter.astro. Lift all three
+ * together once it's signed off.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PageHero from '../components/PageHero.astro';
@@ -27,6 +32,7 @@ const email = 'privacy@waypointchild.com';
 <BaseLayout
   title="Accessibility at Waypoint — what we test, and what we haven't"
   description="Waypoint targets WCAG 2.2 Level AA. Here's exactly what we test on every build, what we have not tested yet, and how to tell us when we get it wrong."
+  noindex={true}
 >
   <PageHero
     eyebrow="Accessibility"
