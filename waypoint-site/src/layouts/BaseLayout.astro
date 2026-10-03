@@ -52,7 +52,12 @@ const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
         keep it for testing; those pages aren't visited by anyone). */}
     {
       isProd && (
-        <script defer data-domain="waypointchild.com" src="https://plausible.io/js/script.js" />
+        <>
+          {/* External, not inline: the CSP blocks inline scripts. The init file
+              also mirrors every event to GA4. See public/plausible-init.js. */}
+          <script is:inline src="/plausible-init.js" />
+          <script async src="https://plausible.io/js/pa-oWUSFlebFmKz0lRdhJ6_x.js" />
+        </>
       )
     }
     {/* GA4: second, additional tracker per D3 "Providers" — loads only when
@@ -76,18 +81,8 @@ const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
     </main>
     <SiteFooter />
     <script>
-      // Plausible init queue stub (the official snippet's pattern): events
-      // fired before the deferred script loads are queued, not lost.
-      // Single dispatch point: every call also mirrors to GA4 (gtag) with the
-      // same event name and props, per D3 "Providers" — so no event needs
-      // its own GA4 call at any of its call sites.
-      window.plausible =
-        window.plausible ||
-        function (event: string, options?: { props?: Record<string, string | number> }) {
-          const p = window.plausible as unknown as { q?: unknown[][] };
-          (p.q = p.q || []).push([event, options]);
-          window.gtag?.('event', event, options?.props ?? {});
-        };
+      // window.plausible (queue + GA4 mirror) is defined in public/plausible-init.js,
+      // production only; every call here stays optional-chained for preview/dev.
 
       // Delegated analytics per docs/analytics-taxonomy.md (D3).
       // app_signup_click: any element carrying data-wp-event fires its event
