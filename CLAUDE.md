@@ -28,10 +28,11 @@ WayPoint/
 │   │   ├── hooks/              # useAuth.ts (Supabase session management)
 │   │   └── types/              # database.ts (schema types), navigation.ts
 │   ├── supabase/
-│   │   ├── migrations/         # 61 sequential SQL files — APPLIED BY HAND
-│   │   └── functions/          # 8 Edge Functions: ai-proxy, gmail, google-auth,
+│   │   ├── migrations/         # 62 sequential SQL files — APPLIED BY HAND
+│   │   └── functions/          # 9 Edge Functions: ai-proxy, gmail, google-auth,
 │   │                           #   delete-account, stripe-webhook, push-send,
-│   │                           #   poll-replies, family-invite (Deno) + _shared/
+│   │                           #   poll-replies, family-invite, notify-signup
+│   │                           #   (Deno) + _shared/
 │   ├── qa/                     # promptRegression.golden.json — 78-case golden set
 │   └── scripts/                # prompt-regression.mjs, build-pending-migrations.mjs
 │
@@ -101,9 +102,9 @@ elsewhere. The description below is historical.
   - Auto-updating `updated_at` triggers
 - **Navigation:** React Navigation (native-stack)
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
-- **Current state (2026-09-21):** the flagship product. 61 migrations, eight
+- **Current state (2026-09-21):** the flagship product. 62 migrations, nine
   Edge Functions in production, 45 screens under `main/` plus auth /
-  onboarding / staff / legal, and a 142-file / 1831-test vitest suite across
+  onboarding / staff / legal, and a 144-file / 1844-test vitest suite across
   four projects. (This line previously read "Auth scaffolding… no screens
   beyond onboarding exist yet.")
 
@@ -112,7 +113,7 @@ elsewhere. The description below is historical.
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
 npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
-npm test            # vitest, FOUR projects, 142 files (155 runs) — CI gate
+npm test            # vitest, FOUR projects, 144 files (158 runs) — CI gate
 npm run build:web   # expo export + postbuild — CI gate (prod bundle)
 npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
 ```
@@ -134,11 +135,11 @@ npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
   Code that assumes an unapplied migration ships a silently broken feature —
   this has already happened once (`e0bdcdd`, "Fix empty calendar when
   migration 029 hasn't been applied").
-- **The eight Edge Functions are excluded from `tsconfig.json`** and have no
+- **The nine Edge Functions are excluded from `tsconfig.json`** and have no
   tests, yet `deploy-edge-functions.yml` ships them to the production project
   on merge to `main`. Treat every change there as unverified by CI.
 - **`npm test` runs FOUR projects, and the count of files is not the count of
-  runs** — the thirteen `.tz.test.ts` files execute twice, once per timezone.
+  runs** — the fourteen `.tz.test.ts` files execute twice, once per timezone.
   - `logic` (`*.test.ts`, node) — the pure modules.
   - `ui` (`*.test.tsx`, jsdom + react-native-web) renders components. It exists
     because three adversarial reviews in a row found defects the logic suite
@@ -225,7 +226,7 @@ mechanical changes, and it stays. But it does **not** extend to:
 - anything a family sees or that changes advice, tone, or legal framing;
 - anything touching money (`stripe-webhook`, entitlements);
 - schema changes and migrations;
-- the eight Edge Functions (no CI covers them);
+- the nine Edge Functions (no CI covers them);
 - anything leaving the desk — the DDS/vendorization packet, payer-facing
   letters, App Store submission.
 
@@ -250,7 +251,7 @@ heavily-reviewed initiative; the `/adversary` pass stays mandatory precisely
 because the human gate is now standing rather than per-PR.
 
 It does **not** widen any other line: money (`stripe-webhook`, entitlements),
-schema changes and migrations, the eight Edge Functions (so a draft-flow PR that
+schema changes and migrations, the nine Edge Functions (so a draft-flow PR that
 also touches `functions/gmail` still waits — the narrower stop wins), and
 anything leaving the desk still stop here and wait for the owner, even inside
 the draft flow. The grant is draft-flow-scoped; any other family-facing work

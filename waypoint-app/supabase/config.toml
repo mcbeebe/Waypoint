@@ -33,3 +33,9 @@ verify_jwt = false
 # user-JWT auth; authorization is RLS (055) — the invitation is read with the
 # caller's own token, so only the family's owner/admin gets the row.
 verify_jwt = true
+
+[functions.notify-signup]
+# The owner's new-sign-up email (061). An auth.users trigger posts here via
+# pg_net with no JWT; the OUTBOUND_CRON_SECRET shared secret is the auth.
+# Do not flip true or the trigger's call silently 401s.
+verify_jwt = false
