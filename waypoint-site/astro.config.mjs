@@ -31,7 +31,9 @@ export default defineConfig({
             // verified 2026 constants (2026-09-07); the RC finder's came off
             // 2026-09-10 once all 21 Regional Center pages published — this
             // filter must keep tracking each tool's noindex state.
-            filter: (page) => page !== `${SITE}/404/` && page !== `${SITE}/search/`,
+            // /accessibility/ is out until its review is signed off (see the page).
+            filter: (page) =>
+              ![`${SITE}/404/`, `${SITE}/search/`, `${SITE}/accessibility/`].includes(page),
           }),
         ]),
   ],
