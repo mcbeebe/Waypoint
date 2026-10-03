@@ -61,18 +61,9 @@ const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
     {
       isProd && gaMeasurementId && (
         <>
+          {/* External, not inline: the CSP blocks inline scripts. See public/ga-init.js. */}
+          <script is:inline src="/ga-init.js" data-ga-id={gaMeasurementId} />
           <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} />
-          <script define:vars={{ gaMeasurementId }}>
-            window.dataLayer = window.dataLayer || [];
-            window.gtag = function (...args) {
-              window.dataLayer.push(args);
-            };
-            window.gtag('js', new Date());
-            window.gtag('config', gaMeasurementId, {
-              allow_google_signals: false,
-              allow_ad_personalization_signals: false,
-            });
-          </script>
         </>
       )
     }
