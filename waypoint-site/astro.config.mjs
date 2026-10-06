@@ -5,6 +5,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { satteri } from '@astrojs/markdown-satteri';
 import citeLinks from './src/plugins/satteri-cite-links.mjs';
+import vercel from '@astrojs/vercel';
 
 // Static marketing site for waypointchild.com (build plan D-decisions apply).
 // Custom per-locale hreflang sitemaps replace the default integration in
@@ -17,6 +18,11 @@ export default defineConfig({
   site: SITE,
   trailingSlash: 'always',
   output: 'static',
+  adapter: vercel({
+    webAnalytics: {
+      enabled: true,
+    },
+  }),
   integrations: [
     mdx(),
     // No sitemap on drafts builds: a preview must not advertise unpublished
