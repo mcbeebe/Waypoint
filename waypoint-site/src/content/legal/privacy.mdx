@@ -21,11 +21,13 @@ You came to this site because your child needs help — not to be tracked. This 
 
 ## What we collect
 
-### Aggregate analytics (Plausible and Vercel Web Analytics)
+### Aggregate analytics (Plausible, Vercel Web Analytics, and Google Analytics)
 
 We use Plausible Analytics, a privacy-first service, to understand which pages help families most. Plausible is cookieless and collects only aggregate counts — which page was visited, roughly where the visit came from (country level), the browser type, and the site that linked here. It does not use cookies, does not store IP addresses, and does not follow you across other websites. We see totals, not people.
 
 Our hosting provider, Vercel, also counts page views for us with its own cookieless tool, Vercel Web Analytics. It records the same kind of aggregate information: the page visited (including any campaign tag in the link you clicked to get here), the site that linked here, roughly where the visit came from (down to the city), and the device type, browser, and operating system, with their versions. It sets no cookies and does not follow you across other websites. To count one visit as one visit, it keeps a short-lived code derived from the request for 24 hours, then discards it; the counts we see are never tied to an individual or an IP address. Nothing you type into our tools ever appears in a page address, so none of it reaches this counter.
+
+We also send the same aggregate counts to Google Analytics 4 for additional audience reporting. We run it in Google's cookieless mode: Google states that in this mode it sets no analytics cookies and reads none, and we have configured it that way, so it is not designed to recognize you from one page to the next or from one visit to the next. Google says each ping in this mode includes the time, your browser and device details (the browser's standard identification string, screen size, and language), the page address and title (including any campaign tag in the link you clicked to get here), the site that linked here, a random number generated fresh for that page load, your consent state, and the on-site action being counted — which guide was read to the end, which tool was used, which letter was copied — never anything you typed. Google uses your IP address to work out an approximate location (down to the city) and states that Google Analytics 4 does not log or store IP addresses. We have switched off Google Signals and ad personalization, so these counts are not linked to Google advertising profiles. Google explains its own handling of this data at [How Google uses information from sites or apps that use our services](https://policies.google.com/technologies/partner-sites).
 
 ### Server logs
 
@@ -64,6 +66,7 @@ Because this site has no accounts and our tools send us nothing, we usually hold
 ## Third parties we rely on
 
 - **Plausible Analytics** — cookieless, aggregate analytics, described above.
+- **Google Analytics 4** — aggregate analytics in Google's cookieless mode, described above. See [How Google uses information from sites or apps that use our services](https://policies.google.com/technologies/partner-sites).
 - **Vercel** — hosting and content delivery, including the server logs described above, and Vercel Web Analytics, the cookieless page-view counter described above.
 
 We do not use advertising networks, social media pixels, or data brokers. If this list ever changes, we will update this page and note the change in the log below.
@@ -81,4 +84,4 @@ Questions, corrections, or concerns: **privacy@waypointchild.com**
 - **Effective date:** September 7, 2026
 - **Draft dated:** September 6, 2026
 - **Change log:**
-  - **October 6, 2026:** Added Vercel Web Analytics, a second cookieless page-view counter run by our hosting provider, to the analytics section and to the list of third parties, and updated the date at the top. No other practice changed.
+  - **October 6, 2026:** Two changes to the analytics section and the list of third parties. First, we added Vercel Web Analytics, a cookieless page-view counter run by our hosting provider. Second, we disclosed Google Analytics 4, which we should have named here when we added it. We added the Google tag in mid-September 2026, but a mistake in our setup kept it from working until October 2. Between October 2 and this update it was working and set Google's standard analytics cookies, which contradicted the "no cookies" promise above. As of this update it runs in Google's cookieless mode, and on your next visit the site clears those earlier Google cookies from your browser. We are sorry for the lapse.

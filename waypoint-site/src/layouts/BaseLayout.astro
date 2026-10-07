@@ -63,7 +63,8 @@ const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
     }
     {/* GA4: second, additional tracker per D3 "Providers" — loads only when
         GA_MEASUREMENT_ID is configured, same production-only gate as Plausible.
-        Google Signals / ad personalization stay off (privacy posture). */}
+        Google Signals / ad personalization stay off, and Consent Mode defaults
+        to denied so no cookies are set (privacy policy: "no cookies"). */}
     {
       isProd && gaMeasurementId && (
         <>
