@@ -28,6 +28,15 @@ construction and there is nothing to protect. This is deliberate — it keeps th
 production tag working without a deploy-time secret. `GA_MEASUREMENT_ID`
 overrides it when a build needs to point at a different property.
 
+**Vercel Web Analytics is a page-view counter only** (added 2026-10, site-only:
+`<Analytics />` from `@vercel/analytics/astro` in `BaseLayout.astro`). It
+exists for the hosting dashboard and carries no event from this document — no
+`track()` call anywhere on the site, and none may be added without changing
+this contract first. It is not gated to production: Vercel tags every view
+with its environment, so preview traffic is filtered in the dashboard rather
+than kept out. It changes nothing above: Plausible stays the source of truth
+and GA4 the mirror.
+
 ## Site-side events (Plausible, cookieless, data-domain: waypointchild.com)
 
 | Event | Props | Fires when |

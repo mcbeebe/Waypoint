@@ -3,6 +3,7 @@ import '../styles/global.css';
 import Seo from '../components/Seo.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import Analytics from '@vercel/analytics/astro';
 
 interface Props {
   title: string;
@@ -80,6 +81,20 @@ const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
       <slot />
     </main>
     <SiteFooter />
+    {/* Vercel Web Analytics: page views only, for the hosting dashboard
+        (D3 "Providers"). No event goes through it — every window.plausible
+        call still fans out to Plausible + the GA4 mirror. The component's
+        script stays an external file because astro.config sets
+        assetsInlineLimit: 0 (Astro would otherwise inline a chunk this small,
+        and the CSP — script-src 'self', no 'unsafe-inline' — would kill it);
+        it then loads same-origin /_vercel/insights/script.js, which Vercel
+        serves only while Web Analytics is switched ON for the project in the
+        dashboard — enable first, then deploy, or every page 404s it. Not
+        gated to production: Vercel tags each view with its environment, so
+        preview QA is filterable rather than pollution. Built locally the
+        script 404s harmlessly; `astro dev` loads Vercel's no-op debug script
+        instead. */}
+    <Analytics />
     <script>
       // window.plausible (queue + GA4 mirror) is defined in public/plausible-init.js,
       // production only; every call here stays optional-chained for preview/dev.
