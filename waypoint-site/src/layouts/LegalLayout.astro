@@ -8,8 +8,16 @@ interface Props {
   lastLegalReview: Date | null;
 }
 const { title, description, dateModified, lastLegalReview } = Astro.props;
+// Frontmatter dates coerce to UTC midnight, so format in UTC: on a west-coast
+// build the local clock is still the previous evening, and "Last updated"
+// would render a day before the change-log entry it sits above.
 const fmt = (d: Date) =>
-  d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  d.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
 ---
 
 <BaseLayout title={`${title} — Waypoint`} description={description}>
