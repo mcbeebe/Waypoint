@@ -610,6 +610,8 @@ function replyItem(
   const { reply, senderName } = unanswered;
   const when = reply.sent_at ?? reply.occurred_at;
   const owner = activeRequestForReply(reply, requests, communications);
+  // An ellipsis only where text was actually cut — "OK.…" reads as dropped words.
+  const more = unanswered.truncated ? '…' : '';
 
   return {
     id: `reply:${reply.id}`,
@@ -641,9 +643,9 @@ function replyItem(
     )} ${
       unanswered.snippet
         ? L(
-            `They wrote: “${unanswered.snippet}…” `,
-            `Escribieron: “${unanswered.snippet}…” `,
-            `Họ viết: “${unanswered.snippet}…” `
+            `They wrote: “${unanswered.snippet}${more}” `,
+            `Escribieron: “${unanswered.snippet}${more}” `,
+            `Họ viết: “${unanswered.snippet}${more}” `
           )
         : ''
     }${L(
@@ -656,7 +658,7 @@ function replyItem(
     // one) ride along so the answer attaches to the same case.
     action: {
       kind: 'draft',
-      label: L('Read it and reply', 'Leer y responder', 'Đọc và trả lời'),
+      label: L('Draft your answer', 'Redactar su respuesta', 'Soạn câu trả lời'),
       params: owner
         ? { requestId: owner.id, replyId: reply.id }
         : { replyId: reply.id },

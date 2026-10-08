@@ -636,31 +636,53 @@ describe('Home describes the status, not an actor who failed (owner decision)', 
     // "I'll let you know when it's done" is a reply too. The sync cannot tell
     // it from a "no", so no reply surface on Home may claim the ball is with
     // the family, or name an agency that is waiting on them.
-    const owes =
-      /ball is in your court|waiting on you|pelota|espera su respuesta|đến lượt quý vị|đang chờ quý vị|owes?\b|le deben|Họ nợ/i;
-    const reply = comm({
-      direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'Caitriona <c@x.com>',
+    const owes = new RegExp(
+      [
+        'ball is in your court', 'your turn', 'waiting (on|for) you', '\\bowes?\\b',
+        'pelota', 'le toca', 'espera su respuesta', 'están esperando', '\\ble deben\\b',
+        'đến lượt quý vị', 'chờ quý vị', 'đợi quý vị', 'Họ nợ',
+      ].join('|'),
+      'i'
+    );
+    // A sender named Lowe must not trip the guard; the case title branch runs too.
+    const r = req({ communication_id: 'o', title: 'Standing frame' });
+    const origin = comm({ id: 'o', gmail_thread_id: 't', gmail_message_id: 'm1', request_id: r.id });
+    const onCase = comm({
+      direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'Pat Lowe <p@x.com>',
+      sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
+    });
+    const stray = comm({
+      direction: 'incoming', gmail_thread_id: 's', gmail_message_id: 'm3', contact: 'Caitriona <c@x.com>',
       sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
     });
     for (const loc of ['en', 'es', 'vi'] as const) {
-      const result = triageHome(base({ communications: [reply], locale: loc }));
-      const item = result.queue.find((i) => i.cls === 'reply')!;
-      const rung = buildLadderSheet({ result, locale: loc }).rows.find((r) => r.cls === 'reply')!;
-      for (const text of [item.kicker, item.title, item.why, item.action.label, rung.name]) {
-        expect(text).not.toMatch(owes);
+      for (const input of [{ requests: [r], communications: [origin, onCase] }, { communications: [stray] }]) {
+        const result = triageHome(base({ ...input, locale: loc }));
+        const item = result.queue.find((i) => i.cls === 'reply')!;
+        const rung = buildLadderSheet({ result, locale: loc }).rows.find((x) => x.cls === 'reply')!;
+        for (const text of [item.kicker, item.title, item.why, rung.name]) {
+          expect(text).not.toMatch(owes);
+        }
       }
     }
   });
 
-  it('a reply card says why it is here, like every other rung', () => {
-    const reply = comm({
-      direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'Caitriona <c@x.com>',
-      body: '', sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
-    });
-    const item = triageHome(base({ communications: [reply] })).queue.find((i) => i.cls === 'reply')!;
-    expect(item.why).toMatch(/^Because a reply came in/);
-    // An empty body leaves no dangling "They wrote: “…”".
-    expect(item.why).not.toContain('They wrote');
+  it('a reply card says why it is here, and quotes without inventing a cut', () => {
+    const at = { sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z' };
+    const reply = (body: string) =>
+      comm({ direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'C <c@x.com>', body, ...at });
+    const why = (body: string, locale: 'en' | 'es' | 'vi') =>
+      triageHome(base({ communications: [reply(body)], locale })).queue.find((i) => i.cls === 'reply')!.why;
+    const opens = { en: /^Because a reply came in/, es: /^Porque llegó una respuesta/, vi: /^Vì có thư trả lời/ };
+    for (const loc of ['en', 'es', 'vi'] as const) {
+      expect(why('', loc)).toMatch(opens[loc]);
+      // No body: no dangling quote, and one space between the sentences.
+      expect(why('', loc)).not.toMatch(/“|  /);
+      // A short reply is quoted whole — no "…" claiming words were dropped.
+      expect(why('OK.', loc)).toContain('“OK.”');
+      // A long one is cut, and says so.
+      expect(why('x'.repeat(200), loc)).toContain(`${'x'.repeat(140)}…”`);
+    }
   });
 
   it('never claims an outcome it has no data for', () => {
