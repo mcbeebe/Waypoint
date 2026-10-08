@@ -14,8 +14,10 @@ interface Props {
   cta: CtaId;
   /** Heading level id prefix, so two widgets on one page never share ids. */
   idPrefix?: string;
+  /** Show the "Want the whole IEP read?" line (off where the page says it already). */
+  upsell?: boolean;
 }
-const { slug, cta, idPrefix = 'gc' } = Astro.props;
+const { slug, cta, idPrefix = 'gc', upsell = true } = Astro.props;
 const saveHref = appStartUrl({ slug, cta, pillar: 'iep' });
 const saveProps = JSON.stringify({ slug, pillar: 'iep', locale: 'en', cta_id: cta, tool_id: 'iep-goal-check' });
 const inputId = `${idPrefix}-goal`;
@@ -53,11 +55,15 @@ const hintId = `${idPrefix}-privacy`;
       this goal, and a friendly way to ask the team about the rest.
     </p>
   </div>
-  <p class="gc-upsell">
-    <b>Want the whole IEP read?</b> Waypoint's app rates every goal in the IEP, suggests stronger
-    wording, and builds your meeting-prep questions.{' '}
-    <a href={saveHref} data-gc-save data-wp-event="app_signup_click" data-wp-props={saveProps}>Upload your IEP in the app →</a>
-  </p>
+  {
+    upsell && (
+    <p class="gc-upsell">
+      <b>Want the whole IEP read?</b> Waypoint's app rates every goal in the IEP, suggests stronger
+      wording, and builds your meeting-prep questions.{' '}
+      <a href={saveHref} data-gc-save data-wp-event="app_signup_click" data-wp-props={saveProps}>Upload your IEP in the app →</a>
+    </p>
+    )
+  }
 </div>
 
 <script>

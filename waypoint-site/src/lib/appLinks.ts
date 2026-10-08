@@ -28,6 +28,7 @@ export const CTA_IDS = [
   'about-footer',
   'product-hero',
   'product-footer',
+  'home-showcase',
 ] as const;
 export type CtaId = (typeof CTA_IDS)[number];
 

@@ -11,8 +11,10 @@
  * that second row visually smear over the article text scrolling underneath
  * it — reported live on an iPhone. The collapsed nav pushes content down
  * when open rather than overlaying it, so there's no z-index/backdrop
- * interaction to get wrong. No JS = nav stays visible (falls back to the
- * pre-toggle wrapping behavior), so nothing is unreachable without it.
+ * interaction to get wrong. JS disabled = nav stays visible (the collapse
+ * CSS is gated on `scripting: enabled`). JS enabled but the script failed to
+ * load (flaky network, content blocker, CSP slip) = the toggle is a real link
+ * to #primary-nav, and `:target` opens the nav without any script.
  */
 import Brandmark from './Brandmark.astro';
 import { visibleContentUrls } from '../lib/content';
@@ -58,10 +60,10 @@ const ctaProps = JSON.stringify({ slug, ...(pillar ? { pillar } : {}), locale, c
       <Brandmark size={30} />
       <span class="word">WAYPOINT</span>
     </a>
-    <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="primary-nav">
+    <a href="#primary-nav" role="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="primary-nav">
       <span class="bars" aria-hidden="true"></span>
       <span class="sr-only">Menu</span>
-    </button>
+    </a>
     <nav aria-label="Primary" id="primary-nav">
       {
         navItems.map((item) => (
@@ -80,23 +82,29 @@ const ctaProps = JSON.stringify({ slug, ...(pillar ? { pillar } : {}), locale, c
 </header>
 
 <script>
-  // Progressive enhancement: the .js-nav class is only added once this runs,
-  // so with JS disabled the header CSS never switches into collapsed mode —
-  // the nav stays visible and wraps, exactly as it did before this toggle
-  // existed. Nothing becomes unreachable without JS.
+  // Progressive enhancement. The collapse itself is CSS (see the
+  // `scripting: enabled` block); if this script never runs, the toggle's
+  // #primary-nav link still opens the nav via :target. Once it runs, the
+  // link behaves as a button: no hash change, Space activates it too.
   const header = document.getElementById('site-header');
   const toggle = document.getElementById('nav-toggle');
   const nav = document.getElementById('primary-nav');
   if (header && toggle && nav) {
-    header.classList.add('js-nav');
     const close = () => {
       toggle.setAttribute('aria-expanded', 'false');
       nav.classList.remove('is-open');
     };
-    toggle.addEventListener('click', () => {
+    toggle.addEventListener('click', (e) => {
+      e.preventDefault();
       const open = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
       nav.classList.toggle('is-open', !open);
+    });
+    toggle.addEventListener('keydown', (e) => {
+      if (e.key === ' ') {
+        e.preventDefault();
+        toggle.click();
+      }
     });
     nav.addEventListener('click', (e) => {
       if (e.target instanceof HTMLAnchorElement) close();
@@ -259,14 +267,17 @@ const ctaProps = JSON.stringify({ slug, ...(pillar ? { pillar } : {}), locale, c
     border: 0;
   }
 
-  /* Collapsed mobile nav — only takes effect once JS has confirmed it can
-     drive the toggle (site-header.js-nav, added on load). Without JS the
-     nav keeps the original always-visible, wrapping behavior below. */
-  @media (max-width: 860px) {
-    .topnav.js-nav .nav-toggle {
+  /* Collapsed mobile nav — only where scripting is enabled, decided by CSS
+     BEFORE first paint. It used to wait for the script to add .js-nav, which
+     re-laid-out the header after paint (CLS 0.25 on phones in the perf budget,
+     initiative 013). Without JS, or in a browser that doesn't support the
+     `scripting` media feature, the whole block is skipped and the nav keeps
+     the original always-visible, wrapping behavior. */
+  @media (max-width: 860px) and (scripting: enabled) {
+    .topnav .nav-toggle {
       display: inline-flex;
     }
-    .topnav.js-nav nav[aria-label='Primary'] {
+    .topnav nav[aria-label='Primary'] {
       display: none;
       flex-basis: 100%;
       flex-direction: column;
@@ -275,14 +286,15 @@ const ctaProps = JSON.stringify({ slug, ...(pillar ? { pillar } : {}), locale, c
       border-top: 1px solid var(--color-border);
       margin-top: 8px;
     }
-    .topnav.js-nav nav[aria-label='Primary'].is-open {
+    .topnav nav[aria-label='Primary'].is-open,
+    .topnav nav[aria-label='Primary']:target {
       display: flex;
     }
-    .topnav.js-nav nav[aria-label='Primary'] a {
+    .topnav nav[aria-label='Primary'] a {
       padding: 12px 4px;
       border-bottom: 1px solid var(--color-border);
     }
-    .topnav.js-nav nav[aria-label='Primary'] a[aria-current='page'] {
+    .topnav nav[aria-label='Primary'] a[aria-current='page'] {
       border-bottom-color: var(--color-pine);
     }
   }
