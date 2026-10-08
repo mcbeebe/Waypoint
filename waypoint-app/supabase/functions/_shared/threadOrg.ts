@@ -19,27 +19,34 @@
  * because the next outgoing row on such a thread is exactly the kind of
  * stamped reply above. Unlabelled is honest; wrong is not.
  *
- * Migration 063 applies the same rule to rows written before the fix.
  *
  * Plain TypeScript with no Deno APIs, so vitest loads it directly
  * (src/lib/threadOrg.test.ts).
  */
 
 export interface ThreadRow {
+  id?: string | null;
   direction: string | null;
   organization: string | null;
-  sent_at?: string | null;
+  created_at?: string | null;
   occurred_at?: string | null;
 }
 
-/** The organization of the thread's founding (earliest outgoing) row, or null. */
+/**
+ * The organization of the thread's founding outgoing row, or null.
+ *
+ * "Founding" is by INSERTION order (created_at, then id), never by sent_at:
+ * "Mark as sent" rewrites sent_at on a draft long after a later reply was
+ * written, which would hand the thread to that reply. Migration 063 orders
+ * the same way.
+ */
 export function threadOrganization(rows: ThreadRow[]): string | null {
-  let founder: { at: string; org: string | null } | null = null;
+  let founder: { key: string; org: string | null } | null = null;
   for (const r of rows) {
     if (r.direction !== 'outgoing') continue;
-    // occurred_at is NOT NULL, so an undated row should not exist; it never founds.
-    const at = r.sent_at ?? r.occurred_at ?? '\uffff';
-    if (!founder || at < founder.at) founder = { at, org: r.organization || null };
+    // created_at is NOT NULL; an undated row should not exist and never founds.
+    const key = `${r.created_at ?? r.occurred_at ?? '\uffff'}|${r.id ?? ''}`;
+    if (!founder || key < founder.key) founder = { key, org: r.organization || null };
   }
   return founder?.org ?? null;
 }

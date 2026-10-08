@@ -269,7 +269,7 @@ serve(async (req) => {
       if (loggedThread) {
         const { data: threadRows } = await userClient
           .from('communications')
-          .select('direction, organization, sent_at, occurred_at')
+          .select('id, direction, organization, created_at, occurred_at')
           .eq('family_id', family.id)
           .eq('gmail_thread_id', loggedThread)
           .eq('direction', 'outgoing');
@@ -312,11 +312,15 @@ serve(async (req) => {
     const knownIds = new Set((known ?? []).map((k) => k.gmail_message_id as string));
     // Every outgoing row on these threads — not only the 25 newest — so a
     // thread's founding letter is found however long ago it was sent.
-    const { data: threadRows } = await userClient
+    const { data: threadRows, error: threadErr } = await userClient
       .from('communications')
-      .select('family_id, gmail_thread_id, direction, organization, sent_at, occurred_at')
+      .select('id, family_id, gmail_thread_id, direction, organization, created_at, occurred_at')
       .eq('direction', 'outgoing')
       .in('gmail_thread_id', threadIds);
+    // Without the founders every reply would be saved unlabelled — and a
+    // saved message is never re-synced, so the gap would be permanent. Skip
+    // this run instead; the next one retries.
+    if (threadErr) return json({ newReplies: 0 });
     const selfEmail = (account.google_email ?? '').toLowerCase();
 
     let newReplies = 0;

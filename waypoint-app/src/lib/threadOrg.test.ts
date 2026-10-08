@@ -11,7 +11,7 @@ describe('threadOrganization', () => {
     // The 2026-10-08 report: a letter filed under School, answered by a provider.
     expect(
       threadOrganization([
-        { direction: 'outgoing', organization: 'school', occurred_at: '2026-10-08T03:12:53Z' },
+        { direction: 'outgoing', organization: 'school', created_at: '2026-10-08T03:12:53Z' },
         { direction: 'incoming', organization: 'regional_center', occurred_at: '2026-10-08T17:01:09Z' },
       ])
     ).toBe('school');
@@ -22,8 +22,8 @@ describe('threadOrganization', () => {
     // hard-coded 'regional_center' — always newer than the founder.
     expect(
       threadOrganization([
-        { direction: 'outgoing', organization: 'regional_center', sent_at: '2026-10-03T00:00:00Z' },
-        { direction: 'outgoing', organization: 'school', sent_at: '2026-10-01T00:00:00Z' },
+        { direction: 'outgoing', organization: 'regional_center', created_at: '2026-10-03T00:00:00Z' },
+        { direction: 'outgoing', organization: 'school', created_at: '2026-10-01T00:00:00Z' },
       ])
     ).toBe('school');
   });
@@ -31,19 +31,31 @@ describe('threadOrganization', () => {
   it('an unlabelled founder is null — it never falls through to a stamped later row', () => {
     expect(
       threadOrganization([
-        { direction: 'outgoing', organization: null, occurred_at: '2026-10-01T00:00:00Z' },
-        { direction: 'outgoing', organization: 'regional_center', occurred_at: '2026-10-05T00:00:00Z' },
+        { direction: 'outgoing', organization: null, created_at: '2026-10-01T00:00:00Z' },
+        { direction: 'outgoing', organization: 'regional_center', created_at: '2026-10-05T00:00:00Z' },
       ])
     ).toBeNull();
   });
 
-  it('dates by send time first, then log time', () => {
+  it('founds by insertion order — "Mark as sent" moving sent_at cannot hand the thread over', () => {
+    // A Gmail-drafts letter marked sent AFTER a reply was written: its sent_at
+    // is later, but it was inserted first, so it is still the founder.
     expect(
       threadOrganization([
-        { direction: 'outgoing', organization: 'school', sent_at: '2026-10-05T00:00:00Z', occurred_at: '2026-09-01T00:00:00Z' },
-        { direction: 'outgoing', organization: 'insurance', sent_at: '2026-10-02T00:00:00Z' },
+        { id: 'p', direction: 'outgoing', organization: 'regional_center', created_at: '2026-10-03T00:00:00Z' },
+        { id: 'r', direction: 'outgoing', organization: 'school', created_at: '2026-10-01T00:00:00Z' },
       ])
-    ).toBe('insurance');
+    ).toBe('school');
+  });
+
+  it('breaks an insertion-time tie by id, like the migration', () => {
+    const at = '2026-10-01T00:00:00Z';
+    const rows = [
+      { id: 'b', direction: 'outgoing', organization: 'medical', created_at: at },
+      { id: 'a', direction: 'outgoing', organization: 'insurance', created_at: at },
+    ];
+    expect(threadOrganization(rows)).toBe('insurance');
+    expect(threadOrganization([...rows].reverse())).toBe('insurance');
   });
 
   it('ignores incoming rows, and an empty thread is null', () => {

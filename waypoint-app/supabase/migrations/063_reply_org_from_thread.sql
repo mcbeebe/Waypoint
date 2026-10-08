@@ -12,7 +12,9 @@
 -- The functions now use the thread founder's label (_shared/threadOrg.ts);
 -- this repairs rows already written, by the same rule:
 --
---   founder = the earliest outgoing row on (family_id, gmail_thread_id);
+--   founder = the first outgoing row INSERTED on (family_id, gmail_thread_id)
+--             (created_at, then id — never sent_at, which "Mark as sent"
+--             rewrites after later rows exist);
 --   label   = founder.organization — null if the founder is unlabelled.
 --
 -- Rows touched — only those whose value was stamped, never chosen:
@@ -30,7 +32,7 @@
 --     select distinct on (family_id, gmail_thread_id) family_id, gmail_thread_id, id, organization
 --       from public.communications
 --      where direction = 'outgoing' and gmail_thread_id is not null
---      order by family_id, gmail_thread_id, coalesce(sent_at, occurred_at), created_at)
+--      order by family_id, gmail_thread_id, created_at, id)
 --   select c.direction, c.organization as old, f.organization as new, count(*)
 --     from public.communications c
 --     join founder f on f.family_id = c.family_id and f.gmail_thread_id = c.gmail_thread_id
@@ -50,7 +52,7 @@ with founder as (
     from public.communications
    where direction = 'outgoing'
      and gmail_thread_id is not null
-   order by family_id, gmail_thread_id, coalesce(sent_at, occurred_at), created_at
+   order by family_id, gmail_thread_id, created_at, id
 )
 update public.communications c
    set organization = f.organization

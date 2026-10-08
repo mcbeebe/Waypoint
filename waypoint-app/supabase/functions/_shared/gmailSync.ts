@@ -124,12 +124,15 @@ async function syncFamily(
 
   // Every outgoing row on these threads, so each reply can take its thread
   // founder's label (_shared/threadOrg.ts) — mirrors functions/gmail "sync".
-  const { data: outgoing } = await supabase
+  const { data: outgoing, error: outgoingErr } = await supabase
     .from('communications')
-    .select('gmail_thread_id, direction, organization, sent_at, occurred_at')
+    .select('id, gmail_thread_id, direction, organization, created_at, occurred_at')
     .eq('family_id', familyId)
     .eq('direction', 'outgoing')
     .in('gmail_thread_id', threadIds);
+  // A saved reply is never re-synced, so syncing without the founders would
+  // leave its label empty for good. Skip this family's run; the next retries.
+  if (outgoingErr) return 0;
   const threadRows = (outgoing ?? []) as (ThreadRow & { gmail_thread_id: string })[];
 
   let newReplies = 0;
