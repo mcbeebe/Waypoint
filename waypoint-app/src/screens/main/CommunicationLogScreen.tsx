@@ -369,7 +369,12 @@ export default function CommunicationLogScreen() {
                         onPress={() =>
                           (navigation as never as { navigate: (n: string, p?: object) => void }).navigate(
                             'Letters',
-                            { template: item.template_key ?? 'general', draftBody: item.body }
+                            {
+                              template: item.template_key ?? 'general',
+                              draftBody: item.body,
+                              draftId: item.id,
+                              draftSubject: item.subject,
+                            }
                           )
                         }
                         accessibilityRole="button"

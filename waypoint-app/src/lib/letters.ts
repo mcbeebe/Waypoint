@@ -59,8 +59,9 @@ export async function generateLetter(options: GenerateLetterOptions): Promise<Ge
       return { draft: null, error: `Draft failed (${response.status})` };
     }
     const data = await response.json();
+    // One header line: a line break from the model would start a second header.
     const subject =
-      typeof data.subject === 'string' && data.subject.trim() ? data.subject.trim() : null;
+      typeof data.subject === 'string' ? data.subject.replace(/\s+/g, ' ').trim() || null : null;
     return { draft: data.draft ?? null, subject };
   } catch (err) {
     return { draft: null, error: err instanceof Error ? err.message : 'Draft failed' };

@@ -350,7 +350,9 @@ function resumeItem(input: Required<Pick<TriageInput, 'drafts'>> & { now: Date; 
       // the template's generic ask — "picking it up" would start over.
       params: {
         ...(newest.templateKey ? { template: newest.templateKey } : {}),
-        ...(newest.body ? { draftBody: newest.body } : {}),
+        ...(newest.body
+          ? { draftBody: newest.body, draftId: newest.id, draftSubject: newest.subject }
+          : {}),
       },
     },
     deferDays: 1,

@@ -132,6 +132,36 @@ export async function attachCommunicationToRequest(
   }
 }
 
+/**
+ * Revise a letter that is still a DRAFT in place — one letter, one row.
+ * Logging each revision as a new row left the pre-edit text behind as an
+ * unsent draft, which Home then surfaced as "Finish the letter you started"
+ * for a letter the parent had already sent. Sent rows are never rewritten
+ * (`status = 'draft'` is part of the match); false means nothing was updated
+ * and the caller should log a new row instead.
+ */
+export async function updateCommunicationDraft(
+  id: string,
+  fields: Pick<NewCommunication, 'subject' | 'body' | 'contact' | 'organization'>
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('communications')
+      .update({
+        subject: fields.subject,
+        body: fields.body ?? null,
+        contact: fields.contact ?? null,
+        organization: fields.organization ?? null,
+      })
+      .eq('id', id)
+      .eq('status', 'draft')
+      .select('id');
+    return !error && (data?.length ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Mark a logged draft as actually sent. Returns false if it didn't stick. */
 export async function markCommunicationSent(id: string): Promise<boolean> {
   try {
