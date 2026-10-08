@@ -610,6 +610,8 @@ function replyItem(
   const { reply, senderName } = unanswered;
   const when = reply.sent_at ?? reply.occurred_at;
   const owner = activeRequestForReply(reply, requests, communications);
+  // An ellipsis only where text was actually cut — "OK.…" reads as dropped words.
+  const more = unanswered.truncated ? '…' : '';
 
   return {
     id: `reply:${reply.id}`,
@@ -631,18 +633,25 @@ function replyItem(
           `${senderName} respondió: ${reply.subject}`,
           `${senderName} đã trả lời: ${reply.subject}`
         ),
-    why: `${
+    // Provenance first, like every other rung. The copy states that a reply
+    // arrived, never that the family owes one: Home cannot tell an "I'll get
+    // back to you" from a "no" by the sync alone.
+    why: `${L(
+      'Because a reply came in on a thread you started.',
+      'Porque llegó una respuesta en un hilo que usted inició.',
+      'Vì có thư trả lời trong một chuỗi thư quý vị đã bắt đầu.'
+    )} ${
       unanswered.snippet
         ? L(
-            `They wrote: “${unanswered.snippet}…” `,
-            `Escribieron: “${unanswered.snippet}…” `,
-            `Họ viết: “${unanswered.snippet}…” `
+            `They wrote: “${unanswered.snippet}${more}” `,
+            `Escribieron: “${unanswered.snippet}${more}” `,
+            `Họ viết: “${unanswered.snippet}${more}” `
           )
         : ''
     }${L(
-      `It arrived from ${senderName}'s email and the ball is in your court. Nothing sends until you press Send.`,
-      `Llegó del correo de ${senderName} y la pelota está en su tejado. Nada se envía hasta que usted pulse Enviar.`,
-      `Thư đến từ email của ${senderName} và giờ đến lượt quý vị. Không có gì được gửi cho đến khi quý vị bấm Gửi.`
+      'If it needs an answer, Waypoint drafts one with you — nothing sends until you press Send.',
+      'Si hace falta contestarla, Waypoint le ayuda a redactar la respuesta — nada se envía hasta que usted toque Enviar.',
+      'Nếu cần trả lời, Waypoint sẽ cùng quý vị soạn thư trả lời — không có gì được gửi cho đến khi quý vị bấm Gửi.'
     )}`,
     // Phase 9: the reply loop — the CTA drafts the answer rather than only
     // opening the thread. The reply id (and the owning request, when there is
