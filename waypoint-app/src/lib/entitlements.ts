@@ -105,16 +105,22 @@ export const PREMIUM_FEATURES = [
   'Multi-child support',
 ] as const;
 
-/** Launch pricing (E1): annual is the lead offer; monthly is secondary. */
+/**
+ * One paid tier, Premium (owner decision 2026-10-08, superseding the site's
+ * Plus/Pro D13 figures): $99/year as the lead offer, $9.99/month secondary.
+ * waypoint-site/src/lib/pricingSync.test.ts reads these two constants and
+ * fails if the marketing site's pricing page shows anything else.
+ */
 export const PRICE_ANNUAL_CENTS = 9900;
-export const PRICE_MONTHLY_CENTS = 1499;
-export const MONEY_BACK_DAYS = 30;
+export const PRICE_MONTHLY_CENTS = 999;
+/** Free trial on either plan, in days ("first month free"). Must match the Stripe prices' trial. */
+export const FREE_TRIAL_DAYS = 30;
 
 /** Value explanation shown at a gate — never a dead end (E3). */
 export function gateCopy(feature: string): { title: string; body: string } {
   return {
     title: `${feature} is a Premium feature`,
     body:
-      `Your free plan keeps everything you already use — eligibility results, the process map, your action plan, and the request tracker, free forever. Premium adds ${feature.toLowerCase()} and more for $${(PRICE_ANNUAL_CENTS / 100).toFixed(0)}/year, with a ${MONEY_BACK_DAYS}-day money-back guarantee.`,
+      `Your free plan keeps everything you already use — eligibility results, the process map, your action plan, and the request tracker, free forever. Premium adds ${feature.toLowerCase()} and more for $${(PRICE_ANNUAL_CENTS / 100).toFixed(0)}/year, and your first month is free.`,
   };
 }

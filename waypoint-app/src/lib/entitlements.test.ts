@@ -4,6 +4,9 @@ import {
   gateCopy,
   FREE_FEATURES,
   FREE_NAVIGATOR_MONTHLY_LIMIT,
+  FREE_TRIAL_DAYS,
+  PRICE_ANNUAL_CENTS,
+  PRICE_MONTHLY_CENTS,
 } from './entitlements';
 import type { SponsorType, EntitlementStatus } from '@/types/database';
 
@@ -109,7 +112,15 @@ describe('tier copy', () => {
   it('gate copy explains value and never reads as a dead end', () => {
     const c = gateCopy('IEP document analysis');
     expect(c.body).toContain('free forever');
-    expect(c.body).toContain('money-back');
+    expect(c.body).toContain('$99/year');
+    expect(c.body).toContain('first month is free');
+    expect(c.body).not.toMatch(/money-back|guarantee/);
+  });
+
+  it('prices one Premium tier at $99/year or $9.99/month, first month free (owner, 2026-10-08)', () => {
+    expect(PRICE_ANNUAL_CENTS).toBe(9900);
+    expect(PRICE_MONTHLY_CENTS).toBe(999);
+    expect(FREE_TRIAL_DAYS).toBe(30);
   });
 
   it('the free feature list states the Navigator cap it enforces', () => {
