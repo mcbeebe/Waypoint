@@ -56,10 +56,10 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
   root.querySelectorAll<HTMLButtonElement>('[data-gc-example]').forEach((b) => {
     b.addEventListener('click', () => {
       input.value = EXAMPLES[b.dataset.gcExample ?? ''] ?? '';
-      render();
+      render(true);
     });
   });
-  run.addEventListener('click', render);
+  run.addEventListener('click', () => render(false));
 
   // Summaries only into the deep link (D3): the rating, never the goal text.
   // Cleared whenever there is no rating, so a stale result never rides along.
@@ -76,13 +76,21 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
     save.href = url.toString();
   };
 
+  // Examples are a demo, not a parent's goal: they emit no analytics at all,
+  // so completions never outnumber starts.
+  let fromExample = false;
+  const complete = (outcome: string) => {
+    if (!fromExample) window.plausible?.('tool_completed', { props: { tool_id: TOOL_ID, locale, outcome } });
+  };
+
   function decline(message: string, outcome: string | null): void {
     out!.append(el('p', 'gc-empty', message));
     setSaveContext(null);
-    if (outcome) window.plausible?.('tool_completed', { props: { tool_id: TOOL_ID, locale, outcome } });
+    if (outcome) complete(outcome);
   }
 
-  function render(): void {
+  function render(example: boolean): void {
+    fromExample = example;
     const r = checkGoal(input!.value);
     out!.replaceChildren();
     if (!r) {
@@ -95,7 +103,7 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
     }
     if (r.kind === 'not-a-goal') {
       decline(
-        'This doesn\'t look like an annual goal. Goals usually say what your child "will" do, like "Maya will answer 4 of 5 questions." Baselines and service lines are separate parts of the IEP.',
+        'We couldn\'t find a sentence saying what your child "will" do, like "Maya will answer 4 of 5 questions." This check reads goals written that way. If yours starts with a verb, like "Increase reading fluency…", try adding your child\'s name and "will" in front. Baselines and service lines are separate parts of the IEP.',
         'not-a-goal',
       );
       return;
@@ -134,7 +142,7 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
       out!.append(ask);
     }
 
-    window.plausible?.('tool_completed', { props: { tool_id: TOOL_ID, locale, outcome: r.rating } });
+    complete(r.rating);
     setSaveContext(r.rating);
   }
 }

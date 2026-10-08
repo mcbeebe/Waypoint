@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { COMPLETE, STRIPPED } from './iepGoalCheck.fixtures';
 import {
   GOAL_PARTS,
   MAX_GOAL_LENGTH,
@@ -173,8 +174,53 @@ describe('declined input', () => {
     expect(checkGoal(g)).toEqual({ kind: 'not-a-goal' });
   });
 
+  it.each([
+    'Đến tháng 5 năm 2027, khi được đưa một đoạn văn, Minh sẽ trả lời đúng 4 trên 5 câu hỏi.',
+    '到2027年5月，在给定一段文章时，小明将正确回答5个问题中的4个。',
+  ])('declines Vietnamese and Chinese as not English, never "not a goal": %s', (g) => {
+    expect(checkGoal(g)).toEqual({ kind: 'not-english' });
+  });
+
   it('reads a short English goal for a child with an accented name', () => {
     expect(checkGoal('Sofía Núñez will read 90 wcpm per DIBELS.')!.kind).toBe('checked');
+  });
+});
+
+/**
+ * Independent corpora (third adversarial review): written by someone other
+ * than the rules' author, balanced across both error directions.
+ */
+describe('independent corpus — complete goals (all five spotted)', () => {
+  it.each(COMPLETE)('[%s] %s', (_domain, goal) => {
+    expect(checked(goal).parts.filter((p) => !p.present).map((p) => p.id)).toEqual([]);
+  });
+});
+
+describe('independent corpus — stripped goals (the removed part stays not spotted)', () => {
+  it.each(STRIPPED)('%s → %s', (goal, id) => {
+    expect(presentIds(goal)).not.toContain(id);
+  });
+});
+
+describe('false "spotted" probes from the third review', () => {
+  it.each([
+    ['By May 2027, using a hundreds chart, Sam will count to 100 in 4 of 5 trials.', 'measurement'],
+    ['By May 2027, given a passage, Sam will master grade-level reading with 80% accuracy, as measured by teacher data.', 'skill'],
+    ['By May 2027, Sam will comprehend grade-level text with 80% accuracy, as measured by teacher data.', 'skill'],
+    ['By May 2027, Sam will work to improve his writing in 4 of 5 trials, as measured by work samples.', 'skill'],
+    ['By May 2027, Sam will be more independent 80% of the time, as measured by staff data.', 'skill'],
+    ['Sam will be provided 30 minutes of speech therapy 2x weekly.', 'skill'],
+    ['By May 2027, given 3-step directions, Sam will follow directions, as measured by teacher data.', 'criterion'],
+    ['By May 2027, Sam will initiate play with a peer 3 times per day, as measured by staff observation.', 'conditions'],
+    ['By May 2027, Sam will write sentences using correct capitalization in 4 of 5 trials, as measured by work samples.', 'conditions'],
+    ['By May 2027, Sam will be given 30 minutes of speech therapy weekly.', 'conditions'],
+    ['IEP Goal #2, Sam will improve his reading skills.', 'conditions'],
+    ['Goal 1 Reading Fluency, Sam will read more fluently.', 'conditions'],
+    ['Based on his baseline, Sam will read more fluently.', 'conditions'],
+    ['In the area of reading, Sam will read more fluently.', 'conditions'],
+    ['By May 2027, Sam will name the items shown in the picture in 4 of 5 trials.', 'measurement'],
+  ] as Array<[string, GoalPartId]>)('%s → %s not spotted', (goal, id) => {
+    expect(presentIds(goal)).not.toContain(id);
   });
 });
 
@@ -293,8 +339,6 @@ describe('criterion', () => {
     'Maya will read 90 wcpm.',
     'Maya will read 90 WPM.',
     'Maya will answer 4/5 questions.',
-    'Maya will write a 5-sentence paragraph.',
-    'Maya will follow 3-step directions.',
     'Maya will have 0 incidents per week.',
     'Maya will score 3 or higher on the rubric.',
     'Maya will greet at least 2 peers.',
@@ -308,7 +352,11 @@ describe('criterion', () => {
     'By 6/15/2027, Maya will spell words.',
     'By 6/27, Maya will answer questions correctly.',
     'Maya will work independently by June 2027.',
-  ])('does not mistake a date for a criterion in %j', (g) => {
+    // the size of the task is not how well it is done
+    'Maya will write a 5-sentence paragraph.',
+    'Maya will follow 3-step directions.',
+    'Goal 1 of 3: By May 2027, Maya will improve her reading.',
+  ])('does not mistake a date, task size, or goal number for a criterion in %j', (g) => {
     expect(presentIds(g)).not.toContain('criterion');
   });
 });
