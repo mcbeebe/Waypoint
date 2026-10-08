@@ -1,0 +1,254 @@
+---
+/**
+ * "A navigator in your pocket" — a SCRIPTED demo of the AI Navigator
+ * (initiative 013, after attune.coach's coach demo). Not live AI: three
+ * sample questions with fixed answers, so nothing a visitor does leaves the
+ * browser. After all three it ends at "Start free", the demo itself as CTA.
+ *
+ * Every citation is one the site already sources: Ed Code §56343.5 and
+ * §56321; WIC §4710.5 (60 days to appeal) and §4715 (services continue when
+ * the appeal is filed within 30 days, before the change takes effect).
+ */
+import { appStartUrl } from '../../lib/appLinks';
+
+const startHref = appStartUrl({ slug: 'home', cta: 'home-showcase' });
+const startProps = JSON.stringify({ slug: 'home', locale: 'en', cta_id: 'home-showcase' });
+
+const demos = [
+  {
+    q: 'Can I ask for a behavior assessment before the next IEP meeting?',
+    a: "Yes, and you don't have to wait for the meeting. Put the request in writing so the timeline starts.",
+    right: "You can ask for an IEP meeting at any time. Once the district receives your written request, it holds the meeting within 30 days, not counting breaks over five school days (Ed Code §56343.5).",
+    know: 'A written request for an assessment starts its own clock: an assessment plan within 15 calendar days (Ed Code §56321).',
+    watch: 'If the team says no, ask for that answer in writing.',
+    action: 'Draft the request',
+  },
+  {
+    q: 'The Regional Center said no to more respite. What now?',
+    a: "First, ask for the decision in writing if you don't have it. Then you have real options, starting with a friendly request to talk it through.",
+    right: 'You can appeal a Regional Center decision within 60 days of the notice (WIC §4710.5).',
+    know: 'If a service you already get is being cut, filing within 30 days, before the change takes effect, keeps it going during the appeal (WIC §4715).',
+    watch: 'Keep the notice and note the date it arrived. The clocks count from it.',
+    action: 'Save as a step',
+  },
+  {
+    q: 'What should I bring to the IPP meeting?',
+    a: 'Bring the needs, not just the services. A clear need is easier to fund.',
+    right: 'The plan is built around your child’s needs, and you are part of the planning team.',
+    know: '"More respite" is a wish. "20 hours a month, starting in October" is something someone can agree to.',
+    watch: "If something is declined at the meeting, ask for that in writing too.",
+    action: 'Make my meeting list',
+  },
+];
+---
+
+<div class="nav-demo" data-nav-demo>
+  <div class="nav-phone">
+    <div class="nav-head">
+      <b>Waypoint Navigator</b>
+      <span>Sample conversation · not live</span>
+    </div>
+    <div class="nav-thread" data-thread aria-live="polite">
+      <p class="nav-hint">Pick a question below to see how the Navigator answers.</p>
+    </div>
+    <div class="nav-chips" data-chips>
+      {demos.map((d, i) => <button type="button" data-q={i}>{d.q}</button>)}
+    </div>
+    <div class="nav-end" data-end hidden>
+      <p>That's the demo. Start free to ask about your own child.</p>
+      <a class="btn" href={startHref} data-wp-event="app_signup_click" data-wp-props={startProps}>Start free →</a>
+    </div>
+    <div class="nav-input" aria-hidden="true">Ask about your child's services… <span>Sample only</span></div>
+  </div>
+  <script type="application/json" data-demos set:html={JSON.stringify(demos)} />
+</div>
+
+<script>
+  interface Demo {
+    q: string;
+    a: string;
+    right: string;
+    know: string;
+    watch: string;
+    action: string;
+  }
+  document.querySelectorAll<HTMLElement>('[data-nav-demo]').forEach((root) => {
+    const thread = root.querySelector<HTMLElement>('[data-thread]');
+    const end = root.querySelector<HTMLElement>('[data-end]');
+    const data = root.querySelector<HTMLScriptElement>('[data-demos]');
+    if (!thread || !end || !data) return;
+    const demos = JSON.parse(data.textContent ?? '[]') as Demo[];
+    const asked = new Set<number>();
+    const el = (tag: string, cls: string, text?: string) => {
+      const n = document.createElement(tag);
+      n.className = cls;
+      if (text !== undefined) n.textContent = text;
+      return n;
+    };
+    root.querySelectorAll<HTMLButtonElement>('[data-q]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.q);
+        const d = demos[i];
+        if (!d) return;
+        thread.replaceChildren();
+        thread.append(el('div', 'nav-me', d.q), el('div', 'nav-ai', d.a));
+        for (const [cls, label, text] of [
+          ['right', 'YOUR RIGHT', d.right],
+          ['know', 'GOOD TO KNOW', d.know],
+          ['watch', 'WATCH OUT', d.watch],
+        ] as const) {
+          const card = el('div', `nav-card ${cls}`);
+          card.append(el('b', '', label), el('span', '', text));
+          thread.append(card);
+        }
+        thread.append(el('div', 'nav-action', `${d.action} ›`));
+        asked.add(i);
+        btn.setAttribute('aria-pressed', 'true');
+        if (asked.size === demos.length) end.hidden = false;
+      });
+    });
+  });
+</script>
+
+<style>
+  .nav-demo {
+    min-width: 0;
+  }
+  .nav-phone {
+    background: var(--color-paper);
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 18px 40px rgba(18, 38, 36, 0.12);
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  .nav-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .nav-head span {
+    font-size: 0.75rem;
+    color: var(--color-ink-faint);
+  }
+  .nav-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 120px;
+    font-size: 0.9rem;
+  }
+  .nav-hint {
+    margin: 0;
+    color: var(--color-ink-soft);
+  }
+  .nav-thread :global(.nav-me) {
+    background: var(--color-pine);
+    color: #fff;
+    border-radius: 14px 14px 3px 14px;
+    padding: 9px 12px;
+    margin-left: auto;
+    max-width: 85%;
+  }
+  .nav-thread :global(.nav-ai) {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 14px 14px 14px 3px;
+    padding: 9px 12px;
+    max-width: 95%;
+  }
+  .nav-thread :global(.nav-card) {
+    border-radius: 10px;
+    padding: 8px 11px;
+    font-size: 0.85rem;
+  }
+  .nav-thread :global(.nav-card b) {
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+  }
+  .nav-thread :global(.nav-card.right) {
+    background: var(--color-pine-tint);
+  }
+  .nav-thread :global(.nav-card.right b) {
+    color: var(--color-pine-deep);
+  }
+  .nav-thread :global(.nav-card.know) {
+    background: var(--color-amber-soft);
+  }
+  .nav-thread :global(.nav-card.know b) {
+    color: var(--color-amber);
+  }
+  .nav-thread :global(.nav-card.watch) {
+    background: var(--color-urgent-tint);
+  }
+  .nav-thread :global(.nav-card.watch b) {
+    color: var(--color-urgent);
+  }
+  .nav-thread :global(.nav-action) {
+    align-self: flex-start;
+    border: 1.5px solid var(--color-pine);
+    color: var(--color-pine);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-weight: 700;
+    font-size: 0.82rem;
+  }
+  .nav-chips {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .nav-chips button {
+    text-align: left;
+    background: var(--color-panel);
+    border: 1.5px solid var(--color-border-strong);
+    border-radius: 12px;
+    padding: 9px 12px;
+    font: inherit;
+    font-size: 0.88rem;
+    color: var(--color-ink);
+    cursor: pointer;
+  }
+  .nav-chips button[aria-pressed='true'] {
+    border-color: var(--color-pine);
+    background: var(--color-pine-tint);
+  }
+  .nav-chips button:focus-visible {
+    outline: 3px solid var(--color-pine);
+    outline-offset: 2px;
+  }
+  .nav-end {
+    background: var(--color-pine-tint);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .nav-end[hidden] {
+    display: none;
+  }
+  .nav-end p {
+    margin: 0;
+    font-weight: 700;
+  }
+  .nav-input {
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 9px 12px;
+    color: var(--color-ink-faint);
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--color-panel);
+  }
+</style>

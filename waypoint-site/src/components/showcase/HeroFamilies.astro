@@ -1,0 +1,188 @@
+---
+/**
+ * Hero card: "Same Monday, four different families" (initiative 013; the
+ * four families approved by the owner 2026-10-08). Each tab shows that
+ * family's Home heads-up. Families and names are fictional.
+ *
+ * Every clock shown is one the site already cites: Ed Code §56321 (15
+ * calendar days, assessment plan) and 17 CCR §52086 (Early Start 45 days).
+ * Status-first wording per the CLAUDE.md tone rule — nobody "missed" anything.
+ *
+ * Without JS the first family renders and the tab row stays hidden.
+ */
+import PhoneFrame from './PhoneFrame.astro';
+
+const families = [
+  {
+    id: 'early',
+    tab: 'Just diagnosed',
+    label:
+      "Sample Home screen for Leo, age 2: the Regional Center's first family service plan meeting is due within 45 days of referral, with the next step to get ready.",
+    pill: 'COMING UP · DAY 31 OF 45',
+    pillKind: 'ms-soon',
+    title: "Leo's Early Start plan meeting is coming up",
+    body: 'The Regional Center has 45 days from your referral to evaluate Leo and hold the first family service plan meeting.',
+    button: 'Get ready for the meeting',
+    next: 'Write down what you see at home',
+    nextMeta: 'On your plan · 1 of 4 steps done',
+  },
+  {
+    id: 'iep',
+    tab: 'IEP years',
+    label:
+      "Sample Home screen for Maya, age 8: the school's assessment plan is due in 3 days, 15 calendar days after the written request.",
+    pill: 'HEADS-UP · DUE IN 3 DAYS',
+    pillKind: 'ms-soon',
+    title: "The school's assessment plan is due in 3 days",
+    body: 'You asked for an evaluation in writing on Oct 1. The district has 15 calendar days to send a plan. Nothing has come in yet.',
+    button: "See what to do if it doesn't come",
+    next: 'Ask for typing as a writing accommodation',
+    nextMeta: 'On your plan · School',
+  },
+  {
+    id: 'benefits',
+    tab: 'Benefits',
+    label:
+      "Sample Home screen for Ana, age 6: the county's IHSS home visit is Thursday, with a checklist of what to have ready.",
+    pill: 'THIS WEEK · THURSDAY',
+    pillKind: 'ms-soon',
+    title: 'The IHSS home visit is Thursday',
+    body: "A county social worker will ask how much care Ana needs each day. Here's what to have ready.",
+    button: 'Open the visit checklist',
+    next: 'Ask about Medi-Cal institutional deeming',
+    nextMeta: 'On your plan · 2 of 8 steps done',
+  },
+  {
+    id: 'adult',
+    tab: 'Turning 18',
+    label:
+      'Sample Home screen for Sam, age 17: Sam turns 18 in 5 months, and some adult steps take months to arrange, so the plan starts them now.',
+    pill: 'PLAN AHEAD · 5 MONTHS',
+    pillKind: 'ms-soon',
+    title: 'Sam turns 18 in 5 months',
+    body: 'Some adult steps take months to arrange, so families start well before the birthday. Here are the three to begin now.',
+    button: 'See the three steps',
+    next: 'Talk about decision-making support',
+    nextMeta: 'On your plan · Turning 18',
+  },
+];
+---
+
+<div class="families" data-families>
+  <div class="fam-tabs" role="tablist" aria-label="Sample families" data-tablist hidden>
+    {
+      families.map((f, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`fam-tab-${f.id}`}
+          aria-controls={`fam-panel-${f.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+        >
+          {f.tab}
+        </button>
+      ))
+    }
+  </div>
+  {
+    families.map((f, i) => (
+      <div id={`fam-panel-${f.id}`} role="tabpanel" aria-labelledby={`fam-tab-${f.id}`} hidden={i !== 0} class="fam-panel">
+        <PhoneFrame label={f.label}>
+          <div class="ms-card ms-hero">
+            <span class={`ms-pill ${f.pillKind}`}>{f.pill}</span>
+            <div class="ms-title">{f.title}</div>
+            <div class="ms-muted">{f.body}</div>
+            <div class="ms-btn">{f.button}</div>
+            <div class="ms-muted" style="margin-top:7px">Not today, show the next thing</div>
+          </div>
+          <div style="font-weight:700;font-size:13px;margin-top:4px">Got something on your mind?</div>
+          <div class="ms-ask">
+            <div class="ms-field">Ask or search: "they said no" <b>Ask</b></div>
+            <div class="ms-chips"><span>They said no</span><span>Read my IEP</span><span>Respite</span></div>
+          </div>
+          <div class="ms-card">
+            <div class="ms-title" style="font-size:12.5px;margin-top:0">{f.next}</div>
+            <div class="ms-muted">{f.nextMeta}</div>
+          </div>
+        </PhoneFrame>
+      </div>
+    ))
+  }
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-families]').forEach((root) => {
+    const list = root.querySelector<HTMLElement>('[data-tablist]');
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    if (!list || tabs.length === 0) return;
+    const select = (tab: HTMLButtonElement, focus: boolean) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = document.getElementById(t.getAttribute('aria-controls') ?? '');
+        if (panel) panel.hidden = !on;
+      }
+      if (focus) tab.focus();
+    };
+    list.hidden = false;
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(t, false));
+      t.addEventListener('keydown', (e) => {
+        const n = tabs.length;
+        const next =
+          e.key === 'ArrowRight' ? tabs[(i + 1) % n]
+          : e.key === 'ArrowLeft' ? tabs[(i - 1 + n) % n]
+          : e.key === 'Home' ? tabs[0]
+          : e.key === 'End' ? tabs[n - 1]
+          : null;
+        if (!next) return;
+        e.preventDefault();
+        select(next, true);
+      });
+    });
+  });
+</script>
+
+<style>
+  .families {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .fam-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+  .fam-tabs[hidden] {
+    display: none;
+  }
+  .fam-tabs button {
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    background: transparent;
+    color: #eef6f1;
+    border-radius: 999px;
+    padding: 7px 13px;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .fam-tabs button[aria-selected='true'] {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: var(--color-pine-deep);
+  }
+  .fam-tabs button:focus-visible {
+    outline: 3px solid #a9efe0;
+    outline-offset: 2px;
+  }
+  .fam-panel[hidden] {
+    display: none;
+  }
+</style>

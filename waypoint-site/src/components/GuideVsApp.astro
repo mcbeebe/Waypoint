@@ -1,0 +1,87 @@
+---
+/**
+ * "Why not just read the guides?" — guide-vs-app rows, shared by the homepage
+ * (first three) and /product/ (all four). Initiative 013; owner asked to keep
+ * the comparison tables, 2026-10-08.
+ */
+interface Props {
+  /** How many rows to show, from the top. */
+  limit?: number;
+}
+const { limit } = Astro.props;
+const rows = [
+  { guideTag: 'A guide says', guide: 'The assessment plan is due 15 calendar days after your written request.', appTag: 'The app', app: 'Starts that clock the day you send the request, and alerts you three days before it runs out.' },
+  { guideTag: 'A guide gives you', guide: 'A letter template you fill in yourself, print, and mail.', appTag: 'The app', app: "Drafts it filled in with your child's name, diagnosis, district, and the date — ready to send." },
+  { guideTag: 'A guide explains', guide: 'What a Notice of Action is, and that you have 60 days to appeal.', appTag: 'The app', app: 'Stores yours, watches your specific 60-day window, and reminds you before it closes.' },
+  { guideTag: 'A search or a Facebook group', guide: "Answers a stranger's situation, from three years ago, in a different county.", appTag: "Waypoint's AI Navigator", app: "Answers yours — in English or Spanish, cited to the same statutes as this site, at 2am if that's when you're up." },
+].slice(0, limit);
+---
+
+{
+  rows.map((r) => (
+    <div class="compare-row">
+      <div class="compare-col guide"><span class="tag">{r.guideTag}</span><p>{r.guide}</p></div>
+      <div class="arrow" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </div>
+      <div class="compare-col app"><span class="tag">{r.appTag}</span><p>{r.app}</p></div>
+    </div>
+  ))
+}
+
+<style>
+  /* why not just guides */
+  .compare-row {
+    display: grid;
+    grid-template-columns: 1fr 28px 1fr;
+    gap: 0 18px;
+    align-items: center;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .compare-row:last-child {
+    border-bottom: none;
+  }
+  .compare-col {
+    padding: 4px 0;
+  }
+  .compare-col .tag {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .compare-col.guide .tag {
+    color: var(--color-ink-faint);
+  }
+  .compare-col.app .tag {
+    color: var(--color-sage-ink);
+  }
+  .compare-col p {
+    margin: 0;
+    color: var(--color-ink-soft);
+    font-size: 0.97rem;
+  }
+  .compare-col.app p {
+    color: var(--color-ink);
+  }
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-border-strong);
+  }
+  @media (max-width: 720px) {
+    .compare-row {
+      grid-template-columns: 1fr;
+      gap: 10px 0;
+    }
+    .arrow {
+      transform: rotate(90deg);
+      justify-content: flex-start;
+      padding-left: 2px;
+    }
+  }
+</style>
