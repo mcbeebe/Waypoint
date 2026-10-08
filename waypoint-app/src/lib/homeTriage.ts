@@ -288,7 +288,7 @@ function hoursBetween(a: Date, b: Date): number {
 }
 
 /** "yesterday" / "Aug 28" — provenance a parent can check against reality. */
-function relativeDay(iso: string, now: Date, locale: FunnelLocale): string {
+export function relativeDay(iso: string, now: Date, locale: FunnelLocale): string {
   const L = picker(locale);
   const days = Math.floor((now.getTime() - new Date(iso).getTime()) / MS_PER_DAY);
   if (days <= 0) return L('today', 'hoy', 'hôm nay');
