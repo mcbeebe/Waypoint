@@ -76,14 +76,57 @@ compact by design; the build checks scroll depth at 390 px before review.
   `*.example`, names only from an allowlist; banned claims ("best", "#1",
   user counts, unverified prices or integrations).
 
-## Decisions needed
+## Owner decisions (2026-10-08)
 
-1. **Prices.** Site: Plus $4.99/mo, Pro $9.99/mo. App (`entitlements.ts`): one Premium tier, $99/yr or $14.99/mo. Which is real?
-2. **What's free.** Site puts deadline alerts in Plus and letters in Pro; the app lists core letters and the request tracker as free.
-3. **Spanish.** Home says "En español"; pricing says "English + Spanish, full parity"; the site has no Spanish pages. Reword to "The app speaks Spanish", or plan Spanish pages?
-4. **Persona tabs.** Are these the right four families: just diagnosed (0–5), IEP years, benefits and money, turning 18?
-5. **FAQ answers.** I draft from existing site copy (pricing, privacy, about); you approve the wording.
-6. **Goal check indexing.** Lift its noindex and footer hold when PR 1 merges, or after a separate copy review?
+1. **Prices: decided.** Plus $9.99/mo or $99/yr; Pro $14.99/mo or $139/yr
+   (read as Plus/Pro respectively — confirm).
+2. **What's free: pending** the feature table below.
+3. **Spanish: plan it.** A Spanish-pages plan is added (PR 7). Until those
+   pages ship, the site says "The app speaks Spanish" instead of "En español".
+4. **Hero families: approved** — just diagnosed (0–5), IEP years, benefits and
+   money, turning 18.
+5. **FAQ: approved** — drafted from existing pricing, privacy and about copy,
+   owner approves wording in the PR.
+6. **Goal check indexing: lift at PR merge** — noindex, sitemap filter and
+   hidden footer link removed in PR 1 itself.
+
+## Core features and tiers (for decision 2)
+
+Today the app's paywall is **off** for everyone (`waypoint-app/src/lib/flags.ts`
+`paywall: false`, and its server twin `PAYWALL_ENFORCED = false` in `ai-proxy`):
+every family currently gets everything. The app's code also has ONE paid tier
+("Premium"), not Plus and Pro. Two tiers at the decided prices means an app
+change (entitlements, Stripe products, the webhook) — a money change that
+sits outside this site initiative and waits for the owner under CLAUDE.md.
+
+| Feature | What it does | App code (when the paywall turns on) | Site pricing today | Suggested |
+|---|---|---|---|---|
+| AI Navigator | Ask anything; answers cite the law | Free: 30 messages/mo. Premium: unlimited | Free: limited. Plus: unlimited. Pro: “priority AI” | Free 30/mo · Plus and Pro unlimited |
+| Eligibility results | What your child may qualify for, with the rule behind each | Free | Free | Free |
+| Journey and process maps | Ages and stages, how each system works | Free | Free (as guides) | Free |
+| Resource Stack | Benefit layers in order, and your next one | Not gated | Not listed | Free |
+| Self-Determination path | Step-by-step SDP enrollment with its clocks | Not gated | Not listed | Free |
+| Action plan | One list across every system, next 3 steps first | Free (starter plan) | Not listed | Free |
+| Request tracker and clocks | Each request starts its legal clock; Home shows what's due | Free | Plus: “deadline alerts” | Free to see clocks · Plus for push reminders |
+| Reminders (push notifications) | Heads-up before a clock runs out, and when an answer is past due | Not gated | Plus | Plus |
+| Letter drafts, core letters | Friendly drafted requests in your name, three tones | Free (core letters) | Pro: “appeal & letter generation” | Free |
+| Letter sending history | A record of every letter sent and when | Premium | Pro | Plus |
+| Gmail connection | Send from your Gmail; replies come back into Waypoint | Not gated | Not listed | Plus |
+| Email analyzer | Paste an agency email; get what it means and what to do | Not gated (AI) | Not listed | Plus |
+| IEP document analysis | Upload an IEP: goals rated, rewrites, compare, meeting prep, goal tracking | Premium | Plus: “IEP meeting prep” | Plus |
+| IEP goal check (website) | One goal, five parts, in the browser | — | — (new) | Free, no account |
+| Document vault | Store reports, notices, IEPs | Free to store | Plus | Free to store |
+| Document sharing links and binder export | Share or export your records | Premium | Plus | Plus |
+| Paper-trail export | Export the communication log | Premium | Not listed | Plus |
+| Expense tracking and tax report | Track disability expenses; year-end report | Premium | Plus | Plus |
+| Multi-child | More than one child on the account | Premium | Pro | Pro |
+| Family sharing | Invite a co-parent or caregiver | Not gated | Not listed | Pro |
+| Spanish | The app in Spanish | Free | Free | Free |
+| “Priority AI” | Listed on the site's Pro plan | Does not exist in the app | Pro | Remove from site until built |
+
+The site's pricing page will show exactly the column the owner approves; a
+test fails if the page lists a feature the app does not have (the "priority
+AI" row today).
 
 ## Build order
 
@@ -93,9 +136,9 @@ compact by design; the build checks scroll depth at 390 px before review.
 | 2 | Homepage, sections 1–12 + guard tests; shared loop and comparison components | 1, decisions 4–5 |
 | 3 | Free tools hub, nav, shared next-step block | 1 |
 | 4 | `/product/` full tour | 2 |
-| 5 | Pricing alignment | decisions 1–2 |
+| 5 | Pricing page: decided prices + approved feature table | decision 2 |
 | 6 | Screens in content-page CTA boxes | 2 |
-| 7 | Spanish wording or Spanish pages plan | decision 3 |
+| 7 | Spanish pages plan (interim wording ships in PR 2) | — |
 
 Every PR: `npm run gates` (types, tests, both builds, links, axe, keyboard
 walk, citations, sitemap, keyword map), screenshots at 390 and 1280 px,
