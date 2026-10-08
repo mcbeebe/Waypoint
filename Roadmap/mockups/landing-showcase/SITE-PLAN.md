@@ -108,7 +108,7 @@ sits outside this site initiative and waits for the owner under CLAUDE.md.
 | Self-Determination path | Step-by-step SDP enrollment with its clocks | Not gated | Not listed | Free |
 | Action plan | One list across every system, next 3 steps first | Free (starter plan) | Not listed | Free |
 | Request tracker and clocks | Each request starts its legal clock; Home shows what's due | Free | Plus: “deadline alerts” | Free to see clocks · Plus for push reminders |
-| Reminders (push notifications) | Heads-up before a clock runs out, and when an answer is past due | Not gated | Plus | Plus |
+| Reminders (push notifications) | Heads-up before a clock runs out, and when an answer is past due | Not gated. Native app only: the web app has no push today (`pushTokens.ts` is guarded on web); clocks show on Home | Plus | Plus |
 | Letter drafts, core letters | Friendly drafted requests in your name, three tones | Free (core letters) | Pro: “appeal & letter generation” | Free |
 | Letter sending history | A record of every letter sent and when | Premium | Pro | Plus |
 | Gmail connection | Send from your Gmail; replies come back into Waypoint | Not gated | Not listed | Plus |
