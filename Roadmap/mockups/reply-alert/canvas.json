@@ -1,0 +1,11 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 620, "h": 1000, "title": "Reply alert on Home — why & proposal" },
+    { "file": "OptionA.dc.html", "x": 720, "y": 0, "w": 390, "h": 1000, "title": "A · 'New reply' strip under the One Thing (recommended)", "is_interactive": false },
+    { "file": "OptionB.dc.html", "x": 1210, "y": 0, "w": 390, "h": 1000, "title": "B · A fresh reply takes the One Thing slot", "is_interactive": false }
+  ],
+  "annotations": [
+    { "id": "root-cause", "x": 0, "y": -150, "w": 900, "text": "WHY IT WAS BURIED — Home already builds a reply card (homeTriage.ts replyItem), but the ladder is resume > crisis > overdue > reply. Any overdue plan action — here, IHSS, 43 days — outranks every reply, so a reply that came in this morning never surfaces. Only one card shows at a time." }
+  ],
+  "launch": { "view": "canvas" }
+}

@@ -652,7 +652,7 @@ describe('Home describes the status, not an actor who failed (owner decision)', 
       sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
     });
     const stray = comm({
-      direction: 'incoming', gmail_thread_id: 's', gmail_message_id: 'm3', contact: 'Caitriona <c@x.com>',
+      direction: 'incoming', gmail_thread_id: 's', gmail_message_id: 'm3', contact: 'Dana <d@x.com>',
       sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
     });
     for (const loc of ['en', 'es', 'vi'] as const) {
@@ -670,7 +670,7 @@ describe('Home describes the status, not an actor who failed (owner decision)', 
   it('a reply card says why it is here, and quotes without inventing a cut', () => {
     const at = { sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z' };
     const reply = (body: string) =>
-      comm({ direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'C <c@x.com>', body, ...at });
+      comm({ direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'C <d@x.com>', body, ...at });
     const why = (body: string, locale: 'en' | 'es' | 'vi') =>
       triageHome(base({ communications: [reply(body)], locale })).queue.find((i) => i.cls === 'reply')!.why;
     const opens = { en: /^Because a reply came in/, es: /^Porque llegó una respuesta/, vi: /^Vì có thư trả lời/ };

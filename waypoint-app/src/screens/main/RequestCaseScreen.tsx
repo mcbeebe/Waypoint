@@ -339,7 +339,7 @@ export default function RequestCaseScreen() {
       {/* They replied — the one thing to do right now */}
       {kase?.unansweredReply && (
         <View style={[styles.card, styles.replyCard]}>
-          <Text style={styles.replyTitle}>💬 They replied — the ball is in your court</Text>
+          <Text style={styles.replyTitle}>💬 A reply came in — read it and choose your next step</Text>
           <Text style={styles.replySubject} numberOfLines={2}>
             {kase.unansweredReply.subject}
           </Text>

@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: "Hanken Grotesk", -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .serif { font-family: Newsreader, Georgia, serif; }
+    .card { background: #FFFFFF; border: 2px solid #0F766E; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .kick { align-self: flex-start; border-radius: 6px; padding: 3px 8px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.9px; }
+    .btn { min-height: 46px; border-radius: 12px; background: #0F766E; color: #FFFFFF; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+    .meta { font-size: 12px; color: #6D6555; }
+    .tag { position: absolute; background: #1B2A4A; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 1px; border-radius: 6px; padding: 2px 8px; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1000px; background: #F5F1E9; box-sizing: border-box; padding: 20px 16px; color: #22303A">
+  <div style="font-size: 11px; font-weight: 800; letter-spacing: 2px; color: #22303A">WAYPOINT</div>
+  <div class="serif" style="font-size: 26px; font-weight: 600; color: #22303A; margin: 4px 0 14px 0">Good morning, Sam</div>
+  <div class="card">
+    <div class="kick" style="background: #E6F1EF; color: #0F766E">NEW REPLY — RECEIVED TODAY</div>
+    <div style="font-size: 19px; font-weight: 800; color: #22303A">Dana Reyes replied: Re: IPP Meeting Request — Teddy Rivera</div>
+    <div style="font-size: 13.5px; color: #55606B">They wrote: &ldquo;Thanks for the note &mdash; I&rsquo;ll look into it and follow up by Friday.&rdquo;</div>
+    <div class="btn">Read the reply</div>
+    <div style="font-size: 13px; color: #55606B; font-weight: 600">Not today — show the next thing</div>
+  </div>
+  <div class="meta" style="margin-top: 8px; padding-left: 4px">Next up after this: Apply for IHSS (overdue 43 days)</div>
+  <div style="margin-top: 18px; border: 1px solid #EAE3D5; border-radius: 14px; background: #FFFFFF; padding: 14px; font-size: 15px; font-weight: 600; color: #22303A">My action plan →</div>
+  <div class="meta" style="margin-top: 12px">● Gmail checked 11:42 AM · Clocks counted from your records</div>
+  <div style="margin-top: 22px; background: #FFFFFF; border: 1px dashed #E2D8C4; border-radius: 12px; padding: 12px; font-size: 12.5px; color: #55606B; line-height: 1.5">
+    <b style="color:#22303A">Ladder change:</b> a reply received in the last 3 days ranks above an overdue <i>plan action</i> (a self-set checklist item). Legal clocks that passed (&ldquo;DEADLINE PASSED&rdquo;) still win — those carry appeal rights.<br><br>
+    <b style="color:#22303A">Cost:</b> rewrites a published, test-pinned ladder (&ldquo;overdue actions rank above a reply&rdquo;), and it changes what Home tells a family to do first. Shows only one thing — a second reply on the same day still hides.
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

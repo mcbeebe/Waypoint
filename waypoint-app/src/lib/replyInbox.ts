@@ -63,29 +63,71 @@ export function formatThreadForDraft(thread: Communication[]): string {
     .join('\n\n');
 }
 
+function isAnswered(reply: Communication, communications: Communication[]): boolean {
+  return communications.some(
+    (c) =>
+      c.direction === 'outgoing' &&
+      c.gmail_thread_id === reply.gmail_thread_id &&
+      when(c) > when(reply)
+  );
+}
+
+function toUnanswered(reply: Communication): UnansweredReply {
+  const text = (reply.body ?? '').replace(/\s+/g, ' ').trim();
+  return {
+    reply,
+    senderName: nameOf(reply.contact),
+    snippet: text.slice(0, SNIPPET_LENGTH),
+    truncated: text.length > SNIPPET_LENGTH,
+  };
+}
+
+/** Synced replies on tracked threads, newest first. */
+function trackedReplies(communications: Communication[]): Communication[] {
+  return communications
+    .filter((c) => c.direction === 'incoming' && c.gmail_thread_id)
+    .sort((a, b) => when(b).localeCompare(when(a)));
+}
+
 /** The newest incoming reply not yet answered on its thread, if any. */
 export function findUnansweredReply(
   communications: Communication[]
 ): UnansweredReply | null {
-  const incoming = communications
-    .filter((c) => c.direction === 'incoming' && c.gmail_thread_id)
-    .sort((a, b) => when(b).localeCompare(when(a)));
-  for (const reply of incoming) {
-    const answered = communications.some(
-      (c) =>
-        c.direction === 'outgoing' &&
-        c.gmail_thread_id === reply.gmail_thread_id &&
-        when(c) > when(reply)
-    );
-    if (!answered) {
-      const text = (reply.body ?? '').replace(/\s+/g, ' ').trim();
-      return {
-        reply,
-        senderName: nameOf(reply.contact),
-        snippet: text.slice(0, SNIPPET_LENGTH),
-        truncated: text.length > SNIPPET_LENGTH,
-      };
-    }
+  for (const reply of trackedReplies(communications)) {
+    if (!isAnswered(reply, communications)) return toUnanswered(reply);
   }
   return null;
+}
+
+/**
+ * How long a reply can be "new". Matches migration 062's backfill, and also
+ * covers replies synced late — a weeks-old message pulled in after Gmail is
+ * reconnected is part of the record, not news. One window for every surface:
+ * the Home strip and the paper trail's NEW marker never disagree.
+ */
+export const NEW_REPLY_DAYS = 14;
+
+/**
+ * Whether this synced reply is new to the family (062): not opened, and from
+ * the last NEW_REPLY_DAYS. Migrations are applied by hand, so the app cannot
+ * assume 062: before it, rows simply have no `read_at` key, and treating that
+ * as "unread" would pin every reply with no way to clear it — so an absent
+ * key is never new.
+ */
+export function isUnreadReply(c: Communication, now: Date): boolean {
+  if (c.direction !== 'incoming' || !c.gmail_thread_id || !('read_at' in c) || c.read_at != null) {
+    return false;
+  }
+  return new Date(when(c)).getTime() >= now.getTime() - NEW_REPLY_DAYS * 24 * 60 * 60 * 1000;
+}
+
+/**
+ * Replies new to the family and not yet answered, newest first — what the
+ * Home "New reply" strip announces. Answering a reply from Waypoint clears it
+ * even if it was never opened, matching the One Thing reply card.
+ */
+export function unreadReplies(communications: Communication[], now: Date): UnansweredReply[] {
+  return trackedReplies(communications)
+    .filter((c) => isUnreadReply(c, now) && !isAnswered(c, communications))
+    .map(toUnanswered);
 }
