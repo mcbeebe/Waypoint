@@ -640,9 +640,9 @@ function replyItem(
           )
         : ''
     }${L(
-      `It arrived from ${senderName}'s email and the ball is in your court. Nothing sends until you press Send.`,
-      `Llegó del correo de ${senderName} y la pelota está en su tejado. Nada se envía hasta que usted pulse Enviar.`,
-      `Thư đến từ email của ${senderName} và giờ đến lượt quý vị. Không có gì được gửi cho đến khi quý vị bấm Gửi.`
+      'Read it and decide whether it needs an answer. If it does, Waypoint drafts one with you — nothing sends until you press Send.',
+      'Léala y decida si necesita una respuesta. Si la necesita, Waypoint la redacta con usted — nada se envía hasta que usted pulse Enviar.',
+      'Hãy đọc và quyết định xem thư này có cần trả lời không. Nếu cần, Waypoint sẽ cùng quý vị soạn thư — không có gì được gửi cho đến khi quý vị bấm Gửi.'
     )}`,
     // Phase 9: the reply loop — the CTA drafts the answer rather than only
     // opening the thread. The reply id (and the owning request, when there is

@@ -631,6 +631,22 @@ describe('Home describes the status, not an actor who failed (owner decision)', 
     expect(item.title).not.toMatch(/owe/);
   });
 
+  it('does not presume a reply needs an answer', () => {
+    // "I'll let you know when it's done" is a reply too — Home cannot tell
+    // from the sync whether the ball is with the family, so it says so.
+    const reply = comm({
+      direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'Caitriona <c@x.com>',
+      body: "Yep, I'll let you know when I have it completed.",
+      sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
+    });
+    const decide = { en: /decide whether it needs an answer/, es: /decida si necesita/, vi: /có cần trả lời không/ };
+    for (const loc of ['en', 'es', 'vi'] as const) {
+      const item = triageHome(base({ communications: [reply], locale: loc })).queue.find((i) => i.cls === 'reply')!;
+      expect(item.why).not.toMatch(/ball is in your court|pelota está en su tejado|giờ đến lượt quý vị/);
+      expect(item.why).toMatch(decide[loc]);
+    }
+  });
+
   it('never claims an outcome it has no data for', () => {
     const overdue = req({ requested_on: '2026-07-01' });
     for (const loc of ['en', 'es', 'vi'] as const) {
