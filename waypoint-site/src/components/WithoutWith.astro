@@ -1,0 +1,93 @@
+---
+/**
+ * "Without it / With Waypoint" panels, shared by the homepage and /product/
+ * (initiative 013; owner asked to keep the comparisons, 2026-10-08).
+ */
+interface Props {
+  without: string[];
+  withWaypoint: string[];
+}
+const { without, withWaypoint } = Astro.props;
+---
+
+<div class="split-panel">
+  <div class="panel without">
+    <h3>Without it</h3>
+    <ul>
+      {without.map((t) => <li><span class="x" aria-hidden="true">✕</span>{t}</li>)}
+    </ul>
+  </div>
+  <div class="panel with">
+    <h3>With Waypoint</h3>
+    <ul>
+      {withWaypoint.map((t) => <li><span class="ok" aria-hidden="true">✓</span>{t}</li>)}
+    </ul>
+  </div>
+</div>
+
+<style>
+  /* without / with */
+  .split-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 34px;
+  }
+  .panel {
+    border-radius: 16px;
+    padding: 26px 28px;
+  }
+  .panel h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.3rem;
+    margin: 0 0 16px;
+  }
+  .panel ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+  .panel li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.94rem;
+  }
+  .panel.without {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+  }
+  .panel.without h3 {
+    color: var(--color-ink-faint);
+  }
+  .panel.without .x {
+    color: #b7907a;
+    font-weight: 700;
+    flex: none;
+    margin-top: 1px;
+  }
+  .panel.with {
+    background: var(--color-pine);
+  }
+  .panel.with h3 {
+    color: #ffffff;
+  }
+  .panel.with li {
+    color: #eaf5f2;
+  }
+  .panel.with .ok {
+    color: #a9efe0;
+    font-weight: 700;
+    flex: none;
+    margin-top: 1px;
+  }
+  @media (max-width: 800px) {
+    .split-panel {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

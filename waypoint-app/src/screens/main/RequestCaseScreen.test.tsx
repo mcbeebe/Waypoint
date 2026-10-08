@@ -191,6 +191,19 @@ describe('the Case file button', () => {
     expect(chip).toBeTruthy();
   });
 
+  it('a reply is announced as arrived — never as the ball in the family\'s court', async () => {
+    // The case reads it from the thread: "I'll let you know when it's done"
+    // is a reply too, and needs no answer.
+    // The shared fixture's reply inherits a Jul 1 sent_at, which the Jul 5
+    // call answers; this one arrives after everything else on the case.
+    h.rows = h.rows.map((r) =>
+      r.id === 'reply' ? { ...r, sent_at: '2026-07-10T09:00:00Z' } : r
+    );
+    render(<RequestCaseScreen />);
+    expect(await screen.findByText('💬 A reply came in — read it and choose your next step')).toBeTruthy();
+    expect(screen.queryByText(/ball is in your court/i)).toBeNull();
+  });
+
   it('says "1 item", never "1 items", to a screen reader', async () => {
     h.rows = [comm({ id: 'origin' })];
     render(<RequestCaseScreen />);

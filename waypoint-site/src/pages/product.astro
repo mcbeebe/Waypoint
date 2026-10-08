@@ -13,6 +13,9 @@
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import HandoffCTA from '../components/HandoffCTA.astro';
+import OneLoop from '../components/OneLoop.astro';
+import GuideVsApp from '../components/GuideVsApp.astro';
+import WithoutWith from '../components/WithoutWith.astro';
 import { appStartUrl } from '../lib/appLinks';
 
 const heroHref = appStartUrl({ slug: 'product', cta: 'product-hero' });
@@ -60,26 +63,10 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
         That's not a knock on you. That's the system. Waypoint is built to be the other way
         around.
       </p>
-      <div class="split-panel">
-        <div class="panel without">
-          <h3>Without it</h3>
-          <ul>
-            <li><span class="x">✕</span>Hours of searching before you even know what question to ask</li>
-            <li><span class="x">✕</span>Advice from a stranger's situation, a different county, a different year</li>
-            <li><span class="x">✕</span>You find out about a deadline after it's already passed</li>
-            <li><span class="x">✕</span>Nobody's watching your case but you</li>
-          </ul>
-        </div>
-        <div class="panel with">
-          <h3>With Waypoint</h3>
-          <ul>
-            <li><span class="ok">✓</span>The next step, before you have to ask for it</li>
-            <li><span class="ok">✓</span>Advice grounded in your child's age, diagnosis, and county</li>
-            <li><span class="ok">✓</span>A reminder before the clock runs out — and again if you don't act</li>
-            <li><span class="ok">✓</span>One quarterback for the whole case, not a library waiting to be searched</li>
-          </ul>
-        </div>
-      </div>
+      <WithoutWith
+        without={['Hours of searching before you even know what question to ask', "Advice from a stranger's situation, a different county, a different year", "You find out about a deadline after it's already passed", "Nobody's watching your case but you"]}
+        withWaypoint={['The next step, before you have to ask for it', "Advice grounded in your child's age, diagnosis, and county", "A reminder before the clock runs out — and again if you don't act", 'One quarterback for the whole case, not a library waiting to be searched']}
+      />
       <p class="pull-quote">Waypoint turns <em>"What do I do?"</em> into <em>"Here's what to do next."</em></p>
     </div>
   </div>
@@ -93,37 +80,7 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
         actual difference, one situation at a time.
       </p>
 
-      <div class="compare-row">
-        <div class="compare-col guide"><span class="tag">A guide says</span><p>The assessment plan is due 15 calendar days after your written request.</p></div>
-        <div class="arrow" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </div>
-        <div class="compare-col app"><span class="tag">The app</span><p>Starts that clock the day you send the request, and alerts you three days before it runs out.</p></div>
-      </div>
-
-      <div class="compare-row">
-        <div class="compare-col guide"><span class="tag">A guide gives you</span><p>A letter template you fill in yourself, print, and mail.</p></div>
-        <div class="arrow" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </div>
-        <div class="compare-col app"><span class="tag">The app</span><p>Drafts it filled in with your child's name, diagnosis, district, and the date — ready to send.</p></div>
-      </div>
-
-      <div class="compare-row">
-        <div class="compare-col guide"><span class="tag">A guide explains</span><p>What a Notice of Action is, and that you have 60 days to appeal.</p></div>
-        <div class="arrow" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </div>
-        <div class="compare-col app"><span class="tag">The app</span><p>Stores yours, watches your specific 60-day window, and reminds you before it closes.</p></div>
-      </div>
-
-      <div class="compare-row">
-        <div class="compare-col guide"><span class="tag">A search or a Facebook group</span><p>Answers a stranger's situation, from three years ago, in a different county.</p></div>
-        <div class="arrow" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </div>
-        <div class="compare-col app"><span class="tag">Waypoint's AI Navigator</span><p>Answers yours — in English or Spanish, cited to the same statutes as this site, at 2am if that's when you're up.</p></div>
-      </div>
+      <GuideVsApp />
     </div>
   </div>
 
@@ -176,76 +133,7 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
         start of the same four moves.
       </p>
 
-      <div class="loop-diagram" aria-hidden="true">
-        <svg class="loop-track" viewBox="0 0 260 264" width="260" height="264">
-          <circle cx="130" cy="132" r="78" fill="none" stroke="var(--color-border-strong)" stroke-width="2"></circle>
-        </svg>
-        <div class="loop-hub">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 13.6-5.7"></path><path d="M20 12a8 8 0 0 1-13.6 5.7"></path><path d="M17.6 3.4v3.4h-3.4"></path><path d="M6.4 20.6v-3.4h3.4"></path></svg>
-          <span>Keeps going</span>
-        </div>
-        <div class="loop-node loop-tell">
-          <div class="loop-circle"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
-          <span class="loop-label">Tell</span>
-        </div>
-        <div class="loop-node loop-plan">
-          <div class="loop-circle"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></div>
-          <span class="loop-label">Plan</span>
-        </div>
-        <div class="loop-node loop-act">
-          <div class="loop-circle"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></div>
-          <span class="loop-label">Act</span>
-        </div>
-        <div class="loop-node loop-track-node">
-          <div class="loop-circle"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
-          <span class="loop-label">Track</span>
-        </div>
-      </div>
-
-      <div class="loop-stages">
-        <div class="loop-stage">
-          <h3><span class="loop-num">Tell</span> Say what's happening</h3>
-          <p>
-            In plain English — a call that didn't get returned, a diagnosis that just came
-            through, a letter you don't understand. Waypoint already knows your child's age,
-            diagnosis, and county from your profile, so it starts from your actual situation,
-            not a blank page.
-          </p>
-        </div>
-        <div class="loop-stage">
-          <h3><span class="loop-num">Plan</span> Get one next step</h3>
-          <p>
-            Not a forty-item checklist — one action, checked against the law that actually
-            applies: the Lanterman Act, IDEA, Medi-Cal, SSI. It's the step that matters right
-            now, in the order that protects your case.
-          </p>
-        </div>
-        <div class="loop-stage">
-          <h3><span class="loop-num">Act</span> Send something real</h3>
-          <p>
-            Waypoint drafts the letter, the request, the follow-up — filled in with your
-            child's name, the date, and the citation, ready to send. The first ask is always
-            friendly and collaborative, because that's what keeps the door open — and what
-            makes your record look reasonable if you ever do have to push harder.
-          </p>
-        </div>
-        <div class="loop-stage">
-          <h3><span class="loop-num">Track</span> Let the clock get watched</h3>
-          <p>
-            Every request starts a real deadline — a 15-day, a 45-day, a 60-day window the law
-            puts on the other side, not on you. Waypoint watches it, and if it passes without
-            an answer, the next message firms up a notch: still yours to send, just a little
-            less patient.
-          </p>
-        </div>
-      </div>
-
-      <p class="loop-close">
-        Then it starts again — a reply arrives, that deadline closes, a new stage of the
-        process opens — and Waypoint is already there with the next Tell, the next Plan.
-        That's the whole model: not a document you fill out once, a loop you come back to for
-        as long as your case needs it.
-      </p>
+      <OneLoop showClose />
     </div>
   </div>
 
@@ -314,65 +202,6 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
     margin: 8px 0 14px;
   }
 
-  /* without / with */
-  .split-panel {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
-    margin-top: 34px;
-  }
-  .panel {
-    border-radius: 16px;
-    padding: 26px 28px;
-  }
-  .panel h3 {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: 1.3rem;
-    margin: 0 0 16px;
-  }
-  .panel ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 13px;
-  }
-  .panel li {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    font-size: 0.94rem;
-  }
-  .panel.without {
-    background: var(--color-panel);
-    border: 1px solid var(--color-border);
-  }
-  .panel.without h3 {
-    color: var(--color-ink-faint);
-  }
-  .panel.without .x {
-    color: #b7907a;
-    font-weight: 700;
-    flex: none;
-    margin-top: 1px;
-  }
-  .panel.with {
-    background: var(--color-pine);
-  }
-  .panel.with h3 {
-    color: #ffffff;
-  }
-  .panel.with li {
-    color: #eaf5f2;
-  }
-  .panel.with .ok {
-    color: #a9efe0;
-    font-weight: 700;
-    flex: none;
-    margin-top: 1px;
-  }
   .pull-quote {
     font-family: var(--font-display);
     font-weight: 400;
@@ -388,61 +217,6 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
     color: var(--color-pine);
   }
 
-  /* why not just guides */
-  .compare-row {
-    display: grid;
-    grid-template-columns: 1fr 28px 1fr;
-    gap: 0 18px;
-    align-items: center;
-    padding: 22px 0;
-    border-bottom: 1px solid var(--color-border);
-  }
-  .compare-row:last-child {
-    border-bottom: none;
-  }
-  .compare-col {
-    padding: 4px 0;
-  }
-  .compare-col .tag {
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: 6px;
-  }
-  .compare-col.guide .tag {
-    color: var(--color-ink-faint);
-  }
-  .compare-col.app .tag {
-    color: var(--color-sage-ink);
-  }
-  .compare-col p {
-    margin: 0;
-    color: var(--color-ink-soft);
-    font-size: 0.97rem;
-  }
-  .compare-col.app p {
-    color: var(--color-ink);
-  }
-  .arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-border-strong);
-  }
-  @media (max-width: 720px) {
-    .compare-row {
-      grid-template-columns: 1fr;
-      gap: 10px 0;
-    }
-    .arrow {
-      transform: rotate(90deg);
-      justify-content: flex-start;
-      padding-left: 2px;
-    }
-  }
-
   /* feature grid */
   .feature-grid .icon {
     width: 38px;
@@ -453,127 +227,6 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
     align-items: center;
     justify-content: center;
     margin-bottom: 14px;
-  }
-
-  /* how it works — the loop diagram */
-  .loop-diagram {
-    position: relative;
-    width: 260px;
-    height: 264px;
-    margin: 36px auto 4px;
-  }
-  .loop-track {
-    position: absolute;
-    top: 0;
-    left: 0;
-  }
-  .loop-hub {
-    position: absolute;
-    left: 130px;
-    top: 132px;
-    transform: translate(-50%, -50%);
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--color-pine-tint);
-    border: 2px solid var(--color-pine);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-  }
-  .loop-hub span {
-    font-size: 0.6rem;
-    font-weight: 700;
-    color: var(--color-pine);
-    text-align: center;
-    line-height: 1.15;
-  }
-  .loop-node {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    transform: translateX(-50%);
-  }
-  .loop-circle {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--color-panel);
-    border: 2px solid var(--color-pine);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
-  }
-  .loop-label {
-    font-size: 0.76rem;
-    font-weight: 700;
-    color: var(--color-ink);
-  }
-  .loop-tell {
-    top: 30px;
-    left: 130px;
-  }
-  .loop-plan {
-    top: 108px;
-    left: 208px;
-  }
-  .loop-act {
-    top: 186px;
-    left: 130px;
-  }
-  .loop-track-node {
-    top: 108px;
-    left: 52px;
-  }
-
-  .loop-stages {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 28px 32px;
-    margin-top: 44px;
-  }
-  .loop-stage h3 {
-    font-size: 1.02rem;
-    margin: 0 0 8px;
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .loop-num {
-    display: inline-block;
-    font-size: 0.65rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-pine);
-    background: var(--color-pine-tint);
-    border-radius: 6px;
-    padding: 3px 8px;
-  }
-  .loop-stage p {
-    font-size: 0.92rem;
-    margin: 0;
-    line-height: 1.55;
-    color: var(--color-ink-soft);
-  }
-  .loop-close {
-    max-width: 56ch;
-    margin: 40px auto 0;
-    text-align: center;
-    font-size: 1rem;
-    line-height: 1.6;
-    color: var(--color-ink-soft);
-  }
-  @media (max-width: 620px) {
-    .loop-stages {
-      grid-template-columns: 1fr;
-    }
   }
 
   /* trust strip */

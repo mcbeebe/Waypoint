@@ -1,0 +1,32 @@
+---
+/**
+ * A code-built phone showing an app screen on the marketing site
+ * (initiative 013). The screens inside are illustrations with a fictional
+ * family, never a real one, so the frame is one labelled image to assistive
+ * tech: `label` says what the screen shows, and the mock text inside is not
+ * read out as if it were the reader's own data.
+ */
+import '../../styles/showcase.css';
+interface Props {
+  /** What the screen shows, read by screen readers in place of the mock UI. */
+  label: string;
+  /** Title in the app bar; omit for a screen without one. */
+  appBar?: string;
+  /** Which bottom tab is active. */
+  tab?: 'Home' | 'Journey' | 'Learn' | 'Tools' | 'Plan';
+}
+const { label, appBar, tab = 'Home' } = Astro.props;
+const tabs = ['Home', 'Journey', 'Learn', 'Tools', 'Plan'] as const;
+---
+
+<div class="phone" role="img" aria-label={label}>
+  <div class="phone-screen" aria-hidden="true">
+    <div class="phone-status">app.waypointchild.com</div>
+    {appBar && <div class="phone-appbar">{appBar}</div>}
+    <div class="phone-body"><slot /></div>
+    <div class="phone-tabs">
+      {tabs.map((t) => <span class={t === tab ? 'on' : undefined}>{t}</span>)}
+    </div>
+  </div>
+</div>
+

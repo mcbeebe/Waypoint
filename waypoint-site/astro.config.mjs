@@ -17,6 +17,13 @@ export default defineConfig({
   site: SITE,
   trailingSlash: 'always',
   output: 'static',
+  // Inline stylesheets into each page. Render-blocking CSS requests were what
+  // held up the homepage's largest paint on a throttled phone (perf budget,
+  // initiative 013). Safe under the CSP: style-src allows 'unsafe-inline';
+  // scripts stay external (assetsInlineLimit: 0 below).
+  build: {
+    inlineStylesheets: 'always',
+  },
   integrations: [
     mdx(),
     // No sitemap on drafts builds: a preview must not advertise unpublished

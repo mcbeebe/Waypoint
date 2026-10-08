@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { supabase } from './supabase';
+import { resetSessionReads } from './sessionReads';
 
 // Google OAuth scopes requested upfront (used in Sprint 4-5 for Calendar/Gmail)
 const GOOGLE_SCOPES = [
@@ -227,6 +228,8 @@ export async function signOut(): Promise<void> {
   // A pending Family Sharing join token belongs to THIS person; it must not
   // greet whoever signs in next on the same device.
   import('./joinInvite').then(({ clearPendingJoin }) => clearPendingJoin()).catch(() => {});
+  // Replies opened this session belong to this person's session too.
+  resetSessionReads();
   try {
     // Clear Google tokens
     await SecureStore.deleteItemAsync(GOOGLE_TOKEN_KEY);

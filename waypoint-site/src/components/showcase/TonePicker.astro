@@ -1,0 +1,101 @@
+---
+/**
+ * "Your tone, your call" — the same follow-up in the app's three tones
+ * (initiative 013, after attune.coach's "Make it yours"). Follows the
+ * CLAUDE.md escalation tone rule: it starts collaborative, firms up step by
+ * step, and even the firmest version requests rather than demands.
+ *
+ * Citations are ones the site already sources: Ed Code §56321 (assessment
+ * plan within 15 calendar days) and §56500.4 (prior written notice).
+ * Sample family is fictional.
+ */
+import '../../styles/showcase.css';
+const tones = [
+  {
+    id: 'collab',
+    name: 'Collaborative',
+    when: 'The first ask, always',
+    body: [
+      'Hi Ms. Lopez,',
+      "I wanted to check in on Maya's assessment plan. I sent my request on October 1, and I'm looking forward to seeing it. Could you let me know when it might be ready?",
+      'Thank you so much for your help!',
+    ],
+  },
+  {
+    id: 'assert',
+    name: 'Assertive',
+    when: 'If the first ask goes unanswered',
+    body: [
+      'Dear Ms. Lopez,',
+      "I'm following up on my written request of October 1 to assess Maya. The assessment plan is due within 15 calendar days of the district receiving a request (Ed Code §56321). Could you please send it by Friday?",
+      'Thank you,',
+    ],
+  },
+  {
+    id: 'advocacy',
+    name: 'Advocacy',
+    when: 'Only if asks keep going unanswered',
+    body: [
+      'Dear Ms. Lopez,',
+      "I'm writing again about my October 1 written request to assess Maya. I have not yet received an assessment plan, which is due within 15 calendar days (Ed Code §56321). Please send the plan by October 24. If the district decides not to assess, please send that decision in writing as prior written notice (Ed Code §56500.4).",
+      "I'm copying the director of special education so we can keep this moving together.",
+    ],
+  },
+];
+---
+
+<div class="tone" data-tone>
+  <div class="tone-choices" role="radiogroup" aria-label="Letter tone">
+    {
+      tones.map((t, i) => (
+        <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-tone-id={t.id}>
+          <b>{t.name}</b>
+          <span>{t.when}</span>
+        </button>
+      ))
+    }
+  </div>
+  {
+    tones.map((t, i) => (
+      <div class="tone-letter" data-letter={t.id} hidden={i !== 0}>
+        <span class="tone-label">Sample draft · {t.name}</span>
+        {t.body.map((para) => <p>{para}</p>)}
+      </div>
+    ))
+  }
+  <p class="ms-sr" aria-live="polite" data-tone-status></p>
+</div>
+
+<script>
+  // Every option stays in the Tab order (the site's keyboard gate requires every
+  // control reachable by Tab); arrow keys move between them as well.
+  document.querySelectorAll<HTMLElement>('[data-tone]').forEach((root) => {
+    const radios = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="radio"]'));
+    const status = root.querySelector<HTMLElement>('[data-tone-status]');
+    const select = (r: HTMLButtonElement, focus: boolean) => {
+      for (const x of radios) {
+        const on = x === r;
+        x.setAttribute('aria-checked', String(on));
+        const letter = root.querySelector<HTMLElement>(`[data-letter="${x.dataset.toneId}"]`);
+        if (letter) letter.hidden = !on;
+      }
+      // Un-hiding a letter is not announced; this line is.
+      if (status) status.textContent = `Showing the ${r.querySelector('b')?.textContent ?? ''} draft.`;
+      if (focus) r.focus();
+    };
+    radios.forEach((r, i) => {
+      r.addEventListener('click', () => select(r, false));
+      r.addEventListener('keydown', (e) => {
+        const n = radios.length;
+        const next =
+          e.key === 'ArrowRight' || e.key === 'ArrowDown' ? radios[(i + 1) % n]
+          : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? radios[(i - 1 + n) % n]
+          : null;
+        if (!next) return;
+        e.preventDefault();
+        select(next, true);
+      });
+    });
+  });
+</script>
+

@@ -1,15 +1,18 @@
 {
   "recorded": "2026-09-08",
+  "rerecorded": {
+    "home": "2026-10-08 (initiative 013 homepage; the other templates are as recorded on the date above)"
+  },
   "templates": {
     "home": {
-      "performance": 99,
+      "performance": 95,
       "accessibility": 100,
       "best-practices": 100,
       "seo": 100,
-      "lcp": 2103,
+      "lcp": 2704,
       "cls": 0,
       "tbt": 0,
-      "transferKb": 208
+      "transferKb": 289
     },
     "guide": {
       "performance": 97,

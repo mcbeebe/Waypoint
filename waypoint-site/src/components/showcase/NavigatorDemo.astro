@@ -1,0 +1,128 @@
+---
+/**
+ * "A navigator in your pocket" — a SCRIPTED demo of the AI Navigator
+ * (initiative 013, after attune.coach's coach demo). Not live AI: three
+ * sample questions with fixed answers, so nothing a visitor does leaves the
+ * browser. After all three it ends at "Start free", the demo itself as CTA.
+ *
+ * Every citation is one the site already sources: Ed Code §56321, §56343.5
+ * and §56500.4; WIC §4646 (the IPP), §4710.5 (60 days to appeal) and §4715
+ * (services continue when the appeal is filed within 30 days of receiving the
+ * notice: one condition, per the regional-centers guide's 2026-09-08
+ * correction). Without JS, a <noscript> shows the first answer instead.
+ */
+import '../../styles/showcase.css';
+import { appStartUrl } from '../../lib/appLinks';
+
+const startHref = appStartUrl({ slug: 'home', cta: 'home-showcase' });
+const startProps = JSON.stringify({ slug: 'home', locale: 'en', cta_id: 'home-showcase' });
+
+const demos = [
+  {
+    q: 'Can I ask for a behavior assessment before the next IEP meeting?',
+    a: "Yes, and you don't have to wait for the meeting. Put the request in writing so the timeline starts.",
+    right: 'Once the district receives your written request for an assessment, it has 15 calendar days to send you an assessment plan, not counting school breaks over five school days (Ed Code §56321).',
+    know: 'You can also ask for an IEP meeting at any time. The district holds it within 30 days of receiving your written request, not counting breaks over five school days (Ed Code §56343.5).',
+    watch: 'If the district decides not to assess, ask for that decision in writing, as prior written notice (Ed Code §56500.4).',
+    action: 'Draft the request',
+  },
+  {
+    q: 'The Regional Center said no to more respite. What now?',
+    a: "First, ask for the decision in writing if you don't have it. Then you have real options, starting with a friendly request to talk it through.",
+    right: 'You can appeal a Regional Center decision within 60 days of the notice (WIC §4710.5).',
+    know: 'If a service you already get is being cut, filing within 30 days of receiving the notice keeps it going during the appeal (WIC §4715).',
+    watch: 'Keep the notice and note the date it arrived. The clocks count from it.',
+    action: 'Save as a step',
+  },
+  {
+    q: 'What should I bring to the IPP meeting?',
+    a: 'Bring the needs, not just the services. A clear need is easier to fund.',
+    right: 'The plan is prepared jointly with you, and decisions about services are made by agreement with you, not announced to you (WIC §4646).',
+    know: '"More respite" is a wish. "20 hours a month, starting in October" is something someone can agree to.',
+    watch: "If something is declined at the meeting, ask for that in writing too.",
+    action: 'Make my meeting list',
+  },
+];
+---
+
+<div class="nav-demo" data-nav-demo>
+  <div class="nav-phone">
+    <div class="nav-head">
+      <b>Waypoint Navigator</b>
+      <span>Sample conversation · not live</span>
+    </div>
+    <div class="nav-thread" data-thread aria-live="polite">
+      <p class="nav-hint">Pick a question below to see how the Navigator answers.</p>
+      <noscript>
+        <div class="nav-me">{demos[0].q}</div>
+        <div class="nav-ai">{demos[0].a}</div>
+        <div class="nav-card right"><b>YOUR RIGHT</b><span>{demos[0].right}</span></div>
+        <div class="nav-card know"><b>GOOD TO KNOW</b><span>{demos[0].know}</span></div>
+        <div class="nav-card watch"><b>WATCH OUT</b><span>{demos[0].watch}</span></div>
+      </noscript>
+    </div>
+    <p class="ms-sr" aria-live="polite" data-nav-status></p>
+    <div class="nav-chips" data-chips>
+      {demos.map((d, i) => <button type="button" aria-pressed="false" data-q={i}>{d.q}</button>)}
+    </div>
+    <div class="nav-end nav-end-wait" data-end>
+      <p>That's the demo. Start free to ask about your own child.</p>
+      <a class="btn" href={startHref} data-wp-event="app_signup_click" data-wp-props={startProps}>Start free →</a>
+    </div>
+    <div class="nav-input" aria-hidden="true">Ask about your child's services… <span>Sample only</span></div>
+  </div>
+  <script type="application/json" data-demos set:html={JSON.stringify(demos)} />
+</div>
+
+<script>
+  interface Demo {
+    q: string;
+    a: string;
+    right: string;
+    know: string;
+    watch: string;
+    action: string;
+  }
+  document.querySelectorAll<HTMLElement>('[data-nav-demo]').forEach((root) => {
+    const thread = root.querySelector<HTMLElement>('[data-thread]');
+    const end = root.querySelector<HTMLElement>('[data-end]');
+    const data = root.querySelector<HTMLScriptElement>('[data-demos]');
+    const status = root.querySelector<HTMLElement>('[data-nav-status]');
+    if (!thread || !end || !data) return;
+    const demos = JSON.parse(data.textContent ?? '[]') as Demo[];
+    const asked = new Set<number>();
+    const el = (tag: string, cls: string, text?: string) => {
+      const n = document.createElement(tag);
+      n.className = cls;
+      if (text !== undefined) n.textContent = text;
+      return n;
+    };
+    root.querySelectorAll<HTMLButtonElement>('[data-q]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.q);
+        const d = demos[i];
+        if (!d) return;
+        thread.replaceChildren();
+        thread.append(el('div', 'nav-me', d.q), el('div', 'nav-ai', d.a));
+        for (const [cls, label, text] of [
+          ['right', 'YOUR RIGHT', d.right],
+          ['know', 'GOOD TO KNOW', d.know],
+          ['watch', 'WATCH OUT', d.watch],
+        ] as const) {
+          const card = el('div', `nav-card ${cls}`);
+          card.append(el('b', '', label), el('span', '', text));
+          thread.append(card);
+        }
+        thread.append(el('div', 'nav-action', `${d.action} ›`));
+        asked.add(i);
+        btn.setAttribute('aria-pressed', 'true');
+        if (asked.size === demos.length && end.classList.contains('nav-end-wait')) {
+          end.classList.remove('nav-end-wait');
+          // The end block sits outside the live thread; say it once.
+          if (status) status.textContent = "That's the demo. Start free to ask about your own child.";
+        }
+      });
+    });
+  });
+</script>
+

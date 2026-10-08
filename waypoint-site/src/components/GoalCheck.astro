@@ -1,0 +1,223 @@
+---
+/**
+ * IEP goal check widget (initiative 013). Used on /tools/iep-goal-check/ and
+ * embedded on the homepage. Rule-based and browser-only: the script imports
+ * src/lib/iepGoalCheckUi.ts, which a guard test keeps free of any network or
+ * storage call. Results are built by script, so their styles are global but
+ * every selector is scoped under `.goal-check`.
+ */
+import { appStartUrl, type CtaId } from '../lib/appLinks';
+
+interface Props {
+  /** Originating page slug for the deep link (path without slashes). */
+  slug: string;
+  cta: CtaId;
+  /** Heading level id prefix, so two widgets on one page never share ids. */
+  idPrefix?: string;
+  /** Show the "Want the whole IEP read?" line (off where the page says it already). */
+  upsell?: boolean;
+}
+const { slug, cta, idPrefix = 'gc', upsell = true } = Astro.props;
+const saveHref = appStartUrl({ slug, cta, pillar: 'iep' });
+const saveProps = JSON.stringify({ slug, pillar: 'iep', locale: 'en', cta_id: cta, tool_id: 'iep-goal-check' });
+const inputId = `${idPrefix}-goal`;
+const hintId = `${idPrefix}-privacy`;
+---
+
+<div class="goal-check" data-goal-check>
+  <div class="gc-panel">
+    <label class="gc-label" for={inputId}>Paste one goal from your child's IEP</label>
+    <textarea
+      id={inputId}
+      data-gc-input
+      rows="5"
+      maxlength="2000"
+      spellcheck="false"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      aria-describedby={hintId}
+      placeholder="Example: By May 2027, when given a grade-level passage, Maya will answer 4 of 5 comprehension questions correctly, as measured by teacher-charted data."
+    ></textarea>
+    <div class="gc-examples">
+      <span>Or try an example:</span>
+      <button type="button" data-gc-example="vague">A vague goal</button>
+      <button type="button" data-gc-example="strong">A strong goal</button>
+    </div>
+    <button class="btn" type="button" data-gc-run>Check this goal</button>
+    <p class="gc-privacy" id={hintId}>
+      Runs entirely in your browser. Waypoint never receives or stores what you paste.
+    </p>
+  </div>
+  <div class="gc-panel gc-result" data-gc-result aria-live="polite">
+    <p class="gc-empty">
+      Your results appear here: the five parts a measurable goal names, which ones we spotted in
+      this goal, and a friendly way to ask the team about the rest.
+    </p>
+  </div>
+  {
+    upsell && (
+    <p class="gc-upsell">
+      <b>Want the whole IEP read?</b> Waypoint's app rates every goal in the IEP, suggests stronger
+      wording, and builds your meeting-prep questions.{' '}
+      <a href={saveHref} data-gc-save data-wp-event="app_signup_click" data-wp-props={saveProps}>Upload your IEP in the app →</a>
+    </p>
+    )
+  }
+</div>
+
+<script>
+  import { mountGoalCheck } from '../lib/iepGoalCheckUi';
+  document.querySelectorAll<HTMLElement>('[data-goal-check]').forEach((root) => mountGoalCheck(root));
+</script>
+
+<style is:global>
+  .goal-check {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  @media (max-width: 860px) {
+    .goal-check {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .goal-check .gc-panel {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    padding: 20px;
+    min-width: 0;
+  }
+  .goal-check .gc-label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .goal-check textarea {
+    width: 100%;
+    min-height: 130px;
+    border: 1.5px solid var(--color-border-strong);
+    border-radius: 10px;
+    padding: 12px;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.5;
+    background: var(--color-cream);
+    color: var(--color-ink);
+    resize: vertical;
+  }
+  .goal-check textarea:focus-visible {
+    outline: 3px solid var(--color-pine);
+    outline-offset: 1px;
+  }
+  .goal-check .gc-examples {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 14px;
+    font-size: 0.85rem;
+    color: var(--color-ink-soft);
+  }
+  .goal-check .gc-examples button {
+    background: var(--color-pine-tint);
+    color: var(--color-pine-deep);
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .goal-check .gc-examples button:hover {
+    background: var(--color-pine-tint-pressed);
+  }
+  .goal-check .gc-privacy {
+    font-size: 0.85rem;
+    color: var(--color-ink-soft);
+    margin: 12px 0 0;
+  }
+  .goal-check .gc-empty {
+    color: var(--color-ink-soft);
+    margin: 0;
+  }
+  .goal-check .gc-summary {
+    font-weight: 700;
+    margin: 0 0 14px;
+  }
+  .goal-check .gc-warn {
+    background: var(--color-amber-soft);
+    border: 1px solid var(--color-amber-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.88rem;
+    margin: 0 0 12px;
+  }
+  .goal-check .gc-checks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .goal-check .gc-checks li {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 10px;
+    font-size: 0.95rem;
+  }
+  .goal-check .gc-ic {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 0.75rem;
+  }
+  .goal-check .gc-yes .gc-ic {
+    background: var(--color-sage-tint);
+    color: var(--color-sage-ink);
+  }
+  .goal-check .gc-no .gc-ic {
+    background: var(--color-amber-soft);
+    color: var(--color-amber);
+  }
+  .goal-check .gc-state {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .goal-check .gc-checks small {
+    display: block;
+    color: var(--color-ink-soft);
+    font-size: 0.86rem;
+    margin-top: 2px;
+  }
+  .goal-check .gc-ask {
+    margin-top: 16px;
+    background: var(--color-pine-tint);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+  .goal-check .gc-ask p {
+    margin: 4px 0 0;
+  }
+  .goal-check .gc-upsell {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--color-ink-soft);
+  }
+  .goal-check .gc-upsell a {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+</style>

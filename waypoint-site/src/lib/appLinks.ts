@@ -28,6 +28,7 @@ export const CTA_IDS = [
   'about-footer',
   'product-hero',
   'product-footer',
+  'home-showcase',
 ] as const;
 export type CtaId = (typeof CTA_IDS)[number];
 
@@ -55,8 +56,13 @@ export interface AppLinkParams {
   ctx?: WpCtx;
 }
 
-/** base64url without padding — matches the app-side parser expectation. */
-function base64url(json: string): string {
+/**
+ * base64url without padding — matches the app-side parser expectation.
+ *
+ * @param json - The serialized wp_ctx payload.
+ * @returns The URL-safe encoding.
+ */
+export function base64url(json: string): string {
   // Buffer exists at build time (node); btoa in the browser bundle.
   let b64: string;
   if (typeof Buffer !== 'undefined') {
