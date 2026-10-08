@@ -70,9 +70,9 @@ function ladderName(cls: TriageClass, locale: FunnelLocale): string {
       return L('A legal deadline that has passed', 'Un plazo legal ya vencido', 'Thời hạn luật định đã qua');
     case 'reply':
       return L(
-        'An agency replied and is waiting on you',
-        'Una agencia respondió y espera su respuesta',
-        'Cơ quan đã trả lời và đang chờ quý vị'
+        'A reply came in on a thread you started',
+        'Llegó una respuesta en un hilo que usted inició',
+        'Có thư trả lời trong một chuỗi thư quý vị đã bắt đầu'
       );
     case 'today':
       return L('Something happening today', 'Algo que ocurre hoy', 'Việc diễn ra hôm nay');
