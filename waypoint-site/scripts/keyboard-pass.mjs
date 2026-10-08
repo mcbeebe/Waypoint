@@ -39,6 +39,7 @@ const PAGES = [
   '/',
   '/tools/ssi-deeming-calculator/',
   '/tools/regional-center-finder/',
+  '/tools/iep-goal-check/',
   '/guides/benefits/ihss-protective-supervision/',
   '/start/',
   '/search/',
@@ -53,6 +54,7 @@ const ALWAYS_BUILT = new Set([
   '/',
   '/tools/ssi-deeming-calculator/',
   '/tools/regional-center-finder/',
+  '/tools/iep-goal-check/',
   '/search/',
 ]);
 const PRODUCTION = process.argv.includes('--production');
@@ -331,6 +333,93 @@ try {
       failures.push('/tools/regional-center-finder/: Enter on the focused button produced no match');
     }
   }
+
+  // The goal check: type a goal, Tab (real key presses) from the textarea to
+  // the run button, press Enter — the result must appear without a mouse.
+  // The same run proves the privacy promise end to end: a sentinel word in
+  // the goal must never appear in any request URL or body, the deep link, a
+  // cookie, or browser storage.
+  const SENTINEL = 'Zqxsentinel';
+  // Encoded forms too. Base64 output depends on where the text starts relative to
+  // a 3-byte boundary, so build the needle for all three alignments (dropping the
+  // characters the prefix bytes touch), in both base64 and base64url.
+  const needles = [SENTINEL];
+  for (const pad of ['', 'x', 'xx']) {
+    const enc = Buffer.from(pad + SENTINEL).toString('base64');
+    const core = enc.slice(Math.ceil((pad.length * 4) / 3) + (pad.length ? 1 : 0), enc.length - 4);
+    if (core.length >= 6) needles.push(core, core.replace(/\+/g, '-').replace(/\//g, '_'));
+  }
+  const hasNeedle = (v) => needles.some((n) => v.includes(n));
+  const leaks = [];
+  const onRequest = (req) => {
+    if (hasNeedle(req.url()) || hasNeedle(req.postData() ?? '')) leaks.push(req.url());
+  };
+  page.on('request', onRequest);
+  await page.goto(`${base}/tools/iep-goal-check/`, { waitUntil: 'load' });
+  // Analytics scripts don't load offline, so a leak would sit in a queue and
+  // never become a request. Record every analytics call directly instead.
+  await page.evaluate(() => {
+    const w = window;
+    w.__wpAnalytics = [];
+    const orig = w.plausible;
+    w.plausible = (...args) => {
+      w.__wpAnalytics.push(JSON.stringify(args));
+      return orig?.(...args);
+    };
+  });
+  const goalInput = await page.$('[data-gc-input]');
+  if (!goalInput) {
+    failures.push('/tools/iep-goal-check/: the goal textarea is missing');
+  } else {
+    await goalInput.focus();
+    await page.keyboard.type(`${SENTINEL} will improve her reading skills.`);
+    let onRun = false;
+    for (let i = 0; i < 6 && !onRun; i++) {
+      await page.keyboard.press('Tab');
+      onRun = await page.evaluate(() => document.activeElement?.matches('[data-gc-run]') ?? false);
+    }
+    if (!onRun) failures.push('/tools/iep-goal-check/: Tab from the goal box never reached the check button');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(400);
+    const summary = (await page.textContent('[data-gc-result] .gc-summary').catch(() => null))?.trim() ?? '';
+    if (!summary) {
+      failures.push('/tools/iep-goal-check/: Enter on the focused button produced no result');
+    }
+    const stored = await page.evaluate((ns) => {
+      const hrefs = [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href') ?? '');
+      let storage = '';
+      try {
+        storage = JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage });
+      } catch {
+        /* storage blocked — nothing stored */
+      }
+      const analytics = [...(window.__wpAnalytics ?? []), JSON.stringify(window.dataLayer ?? [])];
+      return [...hrefs, ...analytics, document.cookie, storage, location.href].some((v) => ns.some((n) => v.includes(n)));
+    }, needles);
+    if (stored) failures.push('/tools/iep-goal-check/: the pasted goal reached analytics, a link, a cookie, the URL, or storage');
+    // The deep link's wp_ctx is base64url JSON: decode it and allow exactly the
+    // summary fields, with the fixed summary text — never anything typed.
+    const saveHref = await page.getAttribute('[data-gc-save]', 'href').catch(() => null);
+    const ctxRaw = saveHref ? new URL(saveHref).searchParams.get('wp_ctx') : null;
+    if (!ctxRaw) {
+      failures.push('/tools/iep-goal-check/: the save link carries no wp_ctx after a result');
+    } else {
+      let ctx = null;
+      try {
+        ctx = JSON.parse(Buffer.from(ctxRaw.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
+      } catch {
+        failures.push('/tools/iep-goal-check/: wp_ctx is not valid base64url JSON');
+      }
+      const keys = ctx ? Object.keys(ctx).sort().join(',') : '';
+      if (ctx && (keys !== 'inputs_summary,kind,result_summary,tool_id,v' || ctx.inputs_summary !== 'one IEP goal' || JSON.stringify(ctx).includes(SENTINEL))) {
+        failures.push(`/tools/iep-goal-check/: wp_ctx carries more than the rating summary: ${JSON.stringify(ctx)}`);
+      }
+    }
+  }
+  page.off('request', onRequest);
+  if (leaks.length) {
+    failures.push(`/tools/iep-goal-check/: the pasted goal left the browser in ${leaks.length} request(s): ${leaks.join(', ')}`);
+  }
 } finally {
   await browser.close();
   server.close();
@@ -342,5 +431,5 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  `PASS: keyboard pass — ${pagesWalked} pages walked with real Tab presses; skip link first, no traps, every control reachable with a visible focus ring, both tools completable without a mouse.`,
+  `PASS: keyboard pass — ${pagesWalked} pages walked with real Tab presses; skip link first, no traps, every control reachable with a visible focus ring, every tool completable without a mouse, and the goal check sent nothing a parent pasted.`,
 );
