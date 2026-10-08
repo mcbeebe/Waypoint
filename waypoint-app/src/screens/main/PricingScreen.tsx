@@ -15,7 +15,7 @@ import {
   PREMIUM_FEATURES,
   PRICE_ANNUAL_CENTS,
   PRICE_MONTHLY_CENTS,
-  MONEY_BACK_DAYS,
+  FREE_TRIAL_DAYS,
 } from '@/lib/entitlements';
 import { useToast } from '@/components/Toast';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
@@ -95,8 +95,8 @@ export default function PricingScreen() {
           <Text style={styles.tierPer}>/year</Text>
         </Text>
         <Text style={styles.tierNote}>
-          or ${(PRICE_MONTHLY_CENTS / 100).toFixed(2)}/month · {MONEY_BACK_DAYS}-day money-back
-          guarantee · cancel any time
+          or ${(PRICE_MONTHLY_CENTS / 100).toFixed(2)}/month · first {FREE_TRIAL_DAYS} days free, then
+          renews until you cancel
         </Text>
         <Text style={styles.everything}>Everything in Free, plus:</Text>
         {PREMIUM_FEATURES.map((f) => (
