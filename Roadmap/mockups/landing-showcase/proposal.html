@@ -1,0 +1,206 @@
+<title>Waypoint Landing Showcase</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Layout: a single reading column (proposal memo) with decision cards and a build table; Waypoint brand tokens. */
+  :root {
+    --bg: #f5f1e9; --surface: #ffffff; --surface-2: #fbf6ec; --fg: #22303a; --fg-soft: #55606b; --fg-faint: #6d6555;
+    --line: #eae3d5; --accent: #0f766e; --accent-ink: #115e56; --accent-tint: #e6f1ef; --on-accent: #ffffff;
+    --good: #047857; --good-tint: #e7f5ee; --warn: #b45309; --warn-tint: #fdf3e3; --bad: #b42318; --bad-tint: #fde8e6;
+    --display: 'Newsreader', Georgia, 'Times New Roman', serif;
+    --body: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #141b20; --surface: #1c252c; --surface-2: #212c34; --fg: #e9eef0; --fg-soft: #b3bec4; --fg-faint: #9aa59f;
+    --line: #2d3a43; --accent: #3bb3a5; --accent-ink: #7fd6ca; --accent-tint: #183a37; --on-accent: #0c1a19;
+    --good: #5fd3a3; --good-tint: #163327; --warn: #f0b45a; --warn-tint: #3a2a14; --bad: #f28b82; --bad-tint: #3b1d1b; color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --bg: #141b20; --surface: #1c252c; --surface-2: #212c34; --fg: #e9eef0; --fg-soft: #b3bec4; --fg-faint: #9aa59f;
+    --line: #2d3a43; --accent: #3bb3a5; --accent-ink: #7fd6ca; --accent-tint: #183a37; --on-accent: #0c1a19;
+    --good: #5fd3a3; --good-tint: #163327; --warn: #f0b45a; --warn-tint: #3a2a14; --bad: #f28b82; --bad-tint: #3b1d1b; color-scheme: dark; }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 820px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; display: flex; flex-direction: column; gap: 44px; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 500; text-wrap: balance; margin: 0; color: var(--fg); }
+  h1 { font-size: clamp(2rem, 5vw, 2.7rem); line-height: 1.1; }
+  h2 { font-size: 1.6rem; line-height: 1.2; }
+  h3 { font-size: 1.18rem; line-height: 1.3; }
+  p { margin: 0; }
+  .label { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  section { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .soft { color: var(--fg-soft); }
+
+  /* header */
+  .head { display: flex; flex-direction: column; gap: 14px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--fg-soft); align-items: center; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--warn-tint); color: var(--warn); }
+  .lede { font-size: 1.1rem; color: var(--fg-soft); max-width: 62ch; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .btn { display: inline-block; padding: 11px 18px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 15px; }
+  .btn.primary { background: var(--accent); color: var(--on-accent); }
+  .btn.secondary { border: 1.5px solid var(--accent); color: var(--accent); }
+
+  /* goals */
+  .goals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .goal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+  .goal b { font-family: var(--display); font-weight: 500; font-size: 1.1rem; }
+  @media (max-width: 600px) { .goals { grid-template-columns: minmax(0, 1fr); } }
+
+  /* decisions */
+  .decision { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .decision > header { display: flex; gap: 12px; align-items: baseline; }
+  .qnum { flex: none; font-family: var(--display); font-size: 1.3rem; color: var(--accent); }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; background: var(--surface-2); }
+  .opt .key { font-family: var(--display); font-size: 1.25rem; line-height: 1.2; color: var(--fg-faint); grid-row: span 2; }
+  .opt .title { font-weight: 700; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .opt .why { font-size: 14.5px; color: var(--fg-soft); }
+  .opt.rec { border: 2px solid var(--accent); background: var(--accent-tint); }
+  .opt.rec .key { color: var(--accent); }
+  .tag { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; }
+  .tag.rec { background: var(--accent); color: var(--on-accent); }
+  .tag.no { background: var(--bad-tint); color: var(--bad); }
+  .quote { font-family: var(--display); font-size: 1.15rem; padding: 10px 14px; border-radius: 8px; background: var(--surface-2); }
+  .quote.old { color: var(--fg-faint); text-decoration: line-through; text-decoration-thickness: 1px; }
+
+  /* outline */
+  ol.outline { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; counter-reset: s; border-left: 2px solid var(--line); }
+  ol.outline li { counter-increment: s; position: relative; padding: 0 0 18px 26px; display: flex; flex-direction: column; gap: 2px; }
+  ol.outline li::before { content: counter(s); position: absolute; left: -12px; top: 1px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 800; display: grid; place-items: center; }
+  ol.outline li:last-child { padding-bottom: 0; }
+  .goaltag { font-size: 12px; font-weight: 700; color: var(--good); }
+  .goaltag.free { color: var(--warn); }
+
+  ul.list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+
+  /* table */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14.5px; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-faint); background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-family: var(--display); font-size: 1.1rem; color: var(--accent); }
+  code { font-size: 13px; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+
+  .callout { border-radius: 12px; padding: 14px 16px; background: var(--warn-tint); color: var(--fg); font-size: 15px; }
+  .callout b { color: var(--warn); }
+  .sources { font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .sources a { overflow-wrap: anywhere; }
+  footer { font-size: 13px; color: var(--fg-faint); border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+
+<main class="page">
+  <div class="head">
+    <span class="label">Proposal · waypointchild.com homepage</span>
+    <h1>Show the app working, and give real help before sign-up</h1>
+    <div class="meta"><span class="pill">Waiting on 3 decisions</span><span>Oct 8, 2026</span><span>·</span><span>Mockup only, nothing built</span></div>
+    <p class="lede">A new homepage that previews the AI chat, email drafting, reminders and IEP analysis, with a free IEP goal check right on the page. The sample family is fictional. No real names, emails or phone numbers from the screenshots appear anywhere.</p>
+    <div class="actions">
+      <a class="btn primary" href="mockup.html">Open the interactive mockup</a>
+      <a class="btn secondary" href="#decisions">Jump to decisions</a>
+    </div>
+  </div>
+
+  <section>
+    <span class="label">The two jobs</span>
+    <div class="goals">
+      <div class="goal"><b>1. Get families to sign up</b><span class="soft">Show the product doing the work: a heads-up before a deadline, a drafted email, an IEP read for them.</span></div>
+      <div class="goal"><b>2. Give a little free help</b><span class="soft">A useful IEP tool and the existing free guides, with no email gate.</span></div>
+    </div>
+  </section>
+
+  <section id="decisions">
+    <span class="label">Decisions needed</span>
+    <h2>Three calls before building</h2>
+
+    <div class="decision">
+      <header><span class="qnum">1</span><h3>How free should IEP analysis be?</h3></header>
+      <p class="soft">In the app today, IEP document analysis is a Premium feature (<code>entitlements.ts</code>). "Free" can mean three different things.</p>
+      <div class="options">
+        <div class="opt rec"><span class="key">A</span><span class="title">Free goal check on the site; full analysis stays Premium <span class="tag rec">Recommended</span></span><span class="why">The parent pastes one goal and gets an instant check of the five parts a measurable goal needs. Rule-based and runs in their browser. Nothing is uploaded and there's no AI cost. The full AI analysis is shown as the upgrade.</span></div>
+        <div class="opt"><span class="key">B</span><span class="title">One free full AI analysis per free account</span><span class="why">Stronger hook for sign-up. Changes the free tier, so app entitlements and pricing copy change too.</span></div>
+        <div class="opt"><span class="key">C</span><span class="title">Anonymous AI analysis on the website <span class="tag no">Not recommended</span></span><span class="why">Needs a new Edge Function (not covered by CI), rate limiting and AI cost, and means handling a child's IEP with no account.</span></div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <header><span class="qnum">2</span><h3>Change the hero headline?</h3></header>
+      <p class="quote old">Your child was just diagnosed. You have questions. We have a roadmap.</p>
+      <p class="quote">The next step for your child — before you have to ask.</p>
+      <p class="soft">The new line leads with what the app does that a guide can't: it speaks first.</p>
+    </div>
+
+    <div class="decision">
+      <header><span class="qnum">3</span><h3>What's the right address for attune.coach?</h3></header>
+      <p class="soft">It didn't resolve from my environment, so I couldn't review the live site. The Broken Arrow Training repo turned out to hold the same Attune landing page, so its patterns are covered below. Send the correct URL if you want a comparison with what's live.</p>
+    </div>
+  </section>
+
+  <section>
+    <span class="label">The page, top to bottom</span>
+    <h2>Six sections</h2>
+    <ol class="outline">
+      <li><h3>Hero with a phone showing Home</h3><span class="soft">A heads-up that the school's assessment plan is due in 3 days. Buttons: "Start free" and "Check an IEP goal — free, no signup".</span><span class="goaltag">Sign-up</span></li>
+      <li><h3>Free IEP goal check</h3><span class="soft">Paste a goal, get Strong / Adequate / Needs work, see what's missing, and get a friendly ask for the team. Ends by pointing to the full analysis.</span><span class="goaltag free">Free help</span></li>
+      <li><h3>"See it work" tabs</h3><span class="soft">Navigator chat, email draft, IEP analysis, action plan and benefits stack. Each tab pairs a phone screen with short bullets and a Free or Premium tag.</span><span class="goaltag">Sign-up</span></li>
+      <li><h3>"Waypoint speaks first"</h3><span class="soft">Day 0 request, Day 12 heads-up, Day 16 "an answer is past due" with a friendly follow-up drafted. Tone firms up only when the family chooses.</span><span class="goaltag">Sign-up</span></li>
+      <li><h3>Free help grid</h3><span class="soft">IEP goal check, SSI deeming calculator, Regional Center finder, and the three main guides.</span><span class="goaltag free">Free help</span></li>
+      <li><h3>Built by a parent, final call to action</h3><span class="soft">"Turn 'What do I do?' into 'Here's what to do next.'"</span><span class="goaltag">Sign-up</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <span class="label">Borrowed from the Attune landing page</span>
+    <ul class="list">
+      <li>Product screens rebuilt in code above the fold, not pasted screenshots. They stay sharp, carry no real data, and can be translated into Spanish.</li>
+      <li>Free tools run only in the browser, with a test that fails if they ever send or store anything.</li>
+      <li>Every demo ends at the same sign-up button, and the tool a visitor came from carries into sign-up.</li>
+      <li>Approved copy kept in one place, with a test that blocks banned claims.</li>
+    </ul>
+  </section>
+
+  <section>
+    <span class="label">Your screenshots</span>
+    <ul class="list">
+      <li>Used as layout reference only. Every screen is rebuilt with a fictional child, "Maya".</li>
+      <li>Left out: your son's name, the family surname, the case manager's name and email, your phone number, and the district and IEP details.</li>
+      <li>A scan for each of those runs before every commit and comes back empty.</li>
+    </ul>
+  </section>
+
+  <section>
+    <span class="label">Build plan, after your go</span>
+    <h2>About three pull requests</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>PR</th><th>What ships</th><th>Before merge</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Phone-frame component, screen recreations, and the new homepage sections. New call-to-action ids registered in <code>appLinks.ts</code> and the style guide.</td><td>Site gates, accessibility scan, <code>/adversary</code> review, your approval</td></tr>
+          <tr><td>2</td><td>IEP goal check at <code>/tools/iep-goal-check/</code> plus the homepage embed. Unit tests for every rule, and a test that it never sends data.</td><td>Same</td></tr>
+          <tr><td>3</td><td>Only if you pick option B: one free full analysis in the app.</td><td>Same, plus entitlement tests</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="soft">Homepage copy is family-facing and outside the draft-flow lane, so each PR waits for you. Tracked as initiative 013.</p>
+  </section>
+
+  <section>
+    <span class="label">Something to check</span>
+    <p class="callout"><b>Pricing doesn't match.</b> The site's pricing page says Plus $4.99/mo and Pro $9.99/mo. The app's code says $99/yr or $14.99/mo. I haven't changed either.</p>
+  </section>
+
+  <section>
+    <span class="label">Sources for the law shown in the mock screens</span>
+    <div class="sources">
+      <span>Ed Code §56321, 15-day assessment-plan clock: <a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&amp;sectionNum=56321.">leginfo.legislature.ca.gov</a></span>
+      <span>Ed Code §56343.5, IEP meeting within 30 days of a written request: <a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&amp;sectionNum=56343.5.">leginfo.legislature.ca.gov</a></span>
+      <span>Ed Code §56345(a)(2), measurable annual goals: <a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=EDC&amp;sectionNum=56345.">leginfo.legislature.ca.gov</a></span>
+      <span>34 CFR §300.320(a)(2), measurable annual goals (federal): <a href="https://www.ecfr.gov/current/title-34/section-300.320">ecfr.gov</a></span>
+      <span class="soft">All four are already cited on waypointchild.com.</span>
+    </div>
+  </section>
+
+  <footer>Source of record: <code>Roadmap/mockups/landing-showcase/PROPOSAL.md</code> on branch <code>design/landing-showcase-mockup</code>.</footer>
+</main>
