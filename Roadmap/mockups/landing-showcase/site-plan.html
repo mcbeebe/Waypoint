@@ -1,0 +1,209 @@
+<title>Waypoint Site Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Layout: a single reading column (proposal memo) with decision cards and a build table; Waypoint brand tokens. */
+  :root {
+    --bg: #f5f1e9; --surface: #ffffff; --surface-2: #fbf6ec; --fg: #22303a; --fg-soft: #55606b; --fg-faint: #6d6555;
+    --line: #eae3d5; --accent: #0f766e; --accent-ink: #115e56; --accent-tint: #e6f1ef; --on-accent: #ffffff;
+    --good: #047857; --good-tint: #e7f5ee; --warn: #b45309; --warn-tint: #fdf3e3; --bad: #b42318; --bad-tint: #fde8e6;
+    --display: 'Newsreader', Georgia, 'Times New Roman', serif;
+    --body: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #141b20; --surface: #1c252c; --surface-2: #212c34; --fg: #e9eef0; --fg-soft: #b3bec4; --fg-faint: #9aa59f;
+    --line: #2d3a43; --accent: #3bb3a5; --accent-ink: #7fd6ca; --accent-tint: #183a37; --on-accent: #0c1a19;
+    --good: #5fd3a3; --good-tint: #163327; --warn: #f0b45a; --warn-tint: #3a2a14; --bad: #f28b82; --bad-tint: #3b1d1b; color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --bg: #141b20; --surface: #1c252c; --surface-2: #212c34; --fg: #e9eef0; --fg-soft: #b3bec4; --fg-faint: #9aa59f;
+    --line: #2d3a43; --accent: #3bb3a5; --accent-ink: #7fd6ca; --accent-tint: #183a37; --on-accent: #0c1a19;
+    --good: #5fd3a3; --good-tint: #163327; --warn: #f0b45a; --warn-tint: #3a2a14; --bad: #f28b82; --bad-tint: #3b1d1b; color-scheme: dark; }
+
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 820px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; display: flex; flex-direction: column; gap: 44px; }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 500; text-wrap: balance; margin: 0; color: var(--fg); }
+  h1 { font-size: clamp(2rem, 5vw, 2.7rem); line-height: 1.1; }
+  h2 { font-size: 1.6rem; line-height: 1.2; }
+  h3 { font-size: 1.18rem; line-height: 1.3; }
+  p { margin: 0; }
+  .label { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  section { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .soft { color: var(--fg-soft); }
+
+  /* header */
+  .head { display: flex; flex-direction: column; gap: 14px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--fg-soft); align-items: center; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--warn-tint); color: var(--warn); }
+  .lede { font-size: 1.1rem; color: var(--fg-soft); max-width: 62ch; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .btn { display: inline-block; padding: 11px 18px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 15px; }
+  .btn.primary { background: var(--accent); color: var(--on-accent); }
+  .btn.secondary { border: 1.5px solid var(--accent); color: var(--accent); }
+
+  /* goals */
+  .goals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .goal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+  .goal b { font-family: var(--display); font-weight: 500; font-size: 1.1rem; }
+  @media (max-width: 600px) { .goals { grid-template-columns: minmax(0, 1fr); } }
+
+  /* decisions */
+  .decision { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .decision > header { display: flex; gap: 12px; align-items: baseline; }
+  .qnum { flex: none; font-family: var(--display); font-size: 1.3rem; color: var(--accent); }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; background: var(--surface-2); }
+  .opt .key { font-family: var(--display); font-size: 1.25rem; line-height: 1.2; color: var(--fg-faint); grid-row: span 2; }
+  .opt .title { font-weight: 700; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .opt .why { font-size: 14.5px; color: var(--fg-soft); }
+  .opt.rec { border: 2px solid var(--accent); background: var(--accent-tint); }
+  .opt.rec .key { color: var(--accent); }
+  .tag { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; }
+  .tag.rec { background: var(--accent); color: var(--on-accent); }
+  .tag.no { background: var(--bad-tint); color: var(--bad); }
+  .quote { font-family: var(--display); font-size: 1.15rem; padding: 10px 14px; border-radius: 8px; background: var(--surface-2); }
+  .quote.old { color: var(--fg-faint); text-decoration: line-through; text-decoration-thickness: 1px; }
+
+  /* outline */
+  ol.outline { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; counter-reset: s; border-left: 2px solid var(--line); }
+  ol.outline li { counter-increment: s; position: relative; padding: 0 0 18px 26px; display: flex; flex-direction: column; gap: 2px; }
+  ol.outline li::before { content: counter(s); position: absolute; left: -12px; top: 1px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 800; display: grid; place-items: center; }
+  ol.outline li:last-child { padding-bottom: 0; }
+  .goaltag { font-size: 12px; font-weight: 700; color: var(--good); }
+  .goaltag.free { color: var(--warn); }
+
+  ul.list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+
+  /* table */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14.5px; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-faint); background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-family: var(--display); font-size: 1.1rem; color: var(--accent); }
+  code { font-size: 13px; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+
+  .callout { border-radius: 12px; padding: 14px 16px; background: var(--warn-tint); color: var(--fg); font-size: 15px; }
+  .callout b { color: var(--warn); }
+  .sources { font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .sources a { overflow-wrap: anywhere; }
+  footer { font-size: 13px; color: var(--fg-faint); border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+
+<style>
+  /* Site-plan additions: a section-by-section map pairing attune.coach with Waypoint. */
+  .map { display: flex; flex-direction: column; gap: 10px; }
+  .row { display: grid; grid-template-columns: 34px minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; align-items: stretch; }
+  .row .n { font-family: var(--display); font-size: 1.2rem; color: var(--fg-faint); padding-top: 10px; text-align: right; font-variant-numeric: tabular-nums; }
+  .cell { border-radius: 12px; padding: 12px 14px; min-width: 0; font-size: 14.5px; }
+  .cell b { font-weight: 700; color: inherit; }
+  .cell .src { display: block; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--accent); }
+  .them { background: var(--surface-2); border: 1px dashed var(--line); color: var(--fg-soft); }
+  .us { background: var(--surface); border: 1px solid var(--line); }
+  .us.dark { background: #123f39; color: #eef6f1; border-color: #123f39; }
+  .us.dark .src { color: #a9efe0; }
+  .us.built { border-left: 4px solid var(--good); }
+  .us.new { border-left: 4px solid var(--accent); }
+  .us.dark.built, .us.dark.new { border-left-width: 4px; }
+  .colhead { display: grid; grid-template-columns: 34px minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-faint); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--fg-soft); }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .legend .l-built::before { background: var(--good); }
+  .legend .l-new::before { background: var(--accent); }
+  .legend .l-dark::before { background: #123f39; }
+  @media (max-width: 640px) {
+    .row, .colhead { grid-template-columns: minmax(0, 1fr); }
+    .row .n { text-align: left; padding: 0; }
+    .colhead { display: none; }
+    .them::before { content: "attune.coach · "; font-weight: 700; }
+  }
+  .status { font-size: 12px; font-weight: 800; letter-spacing: .04em; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+  .s-built { background: var(--good-tint); color: var(--good); }
+  .s-new { background: var(--accent-tint); color: var(--accent-ink); }
+  .s-small { background: var(--surface-2); color: var(--fg-soft); }
+  .s-block { background: var(--warn-tint); color: var(--warn); }
+  .s-none { color: var(--fg-faint); }
+  ol.decide { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; }
+  ol.decide li { padding-left: 4px; }
+  ol.decide b { display: block; }
+</style>
+
+<main class="page">
+  <div class="head">
+    <span class="label">Site plan · waypointchild.com</span>
+    <h1>The whole site, mapped to attune.coach, before we build</h1>
+    <div class="meta"><span class="pill">Waiting on 6 decisions</span><span>Oct 8, 2026</span><span>·</span><span>Two pieces built, nothing merged</span></div>
+    <p class="lede">Every page does one or both jobs: show the app working so families sign up, and give real help with no email. The homepage follows attune.coach section by section, adapted for parents. Every screen uses a made-up family.</p>
+    <div class="actions">
+      <a class="btn primary" href="#decisions">Jump to decisions</a>
+      <a class="btn secondary" href="mockup.html">Open the earlier homepage mockup</a>
+    </div>
+  </div>
+
+  <section>
+    <span class="label">Homepage, section by section</span>
+    <h2>Attune on the left, Waypoint on the right</h2>
+    <p class="soft">Taken from the full-page screenshot of attune.coach saved in its own repo. The live address doesn’t load from the build environment.</p>
+    <div class="legend"><span class="l-built">Already built on a branch</span><span class="l-new">New</span><span class="l-dark">Dark band</span></div>
+    <div class="map"><div class="colhead"><span></span><span>attune.coach</span><span>Waypoint</span></div><div class="row"><span class="n">1</span><div class="cell them">Hero: “Training that actually adapts to you.” Sign-up beside an interactive card: “Same morning, four different athletes.”</div><div class="cell us new">Hero: “The next step for your child, before you have to ask.” Start free, beside a phone with tabs: <b>Same Monday, four different families</b>. Just diagnosed, IEP years, benefits, turning 18. Each shows its own Home heads-up.<span class="src">Screen: Home triage</span></div></div><div class="row"><span class="n">2</span><div class="cell them">“How a morning works”: four numbered steps.</div><div class="cell us new"><b>How a week works</b>. Tell us what happened. Waypoint finds the next step. You send the friendly ask. Waypoint watches the clock.</div></div><div class="row"><span class="n">3</span><div class="cell them">Dark band “Whatever you’re training for”: four path cards and a week-by-week chart marked “Today”.</div><div class="cell us dark new">Dark band <b>Wherever you are</b>: four path cards, then the journey by age (0–3, 3–5, 5–13, 14–22) with “You are here”.<span class="src">Screen: Journey</span></div></div><div class="row"><span class="n">4</span><div class="cell them">“A coach in your pocket”: scripted chat with Approve and Keep my plan.</div><div class="cell us new"><b>A navigator in your pocket</b>: a scripted chat, not live AI, with three sample questions. Answers show Your right, Good to know and Watch out, with Save as step and Draft the request. After three tries it ends at Start free.<span class="src">Screen: Navigator</span></div></div><div class="row"><span class="n">5</span><div class="cell them">“Make it yours”: name the coach, pick a personality.</div><div class="cell us new"><b>Your tone, your call</b>: Collaborative, Assertive, Advocacy. Always starts collaborative. The letter preview changes as you pick.<span class="src">Screen: Letters &amp; Drafts</span></div></div><div class="row"><span class="n">6</span><div class="cell them">(no equivalent)</div><div class="cell us built"><b>Free IEP goal check</b>, inline, with the IEP analysis screen as the upgrade.<span class="src">Screen: IEP Review</span></div></div><div class="row"><span class="n">7</span><div class="cell them">(no equivalent)</div><div class="cell us built"><b>Waypoint speaks first</b>: Day 0, Day 12, Day 16 reminders, worded as status, never blame.<span class="src">Screen: Home triage</span></div></div><div class="row"><span class="n">8</span><div class="cell them">“Works with the gear you already wear”: Garmin, Strava, Apple Health.</div><div class="cell us new"><b>Works with what you already use</b>: Gmail (replies come back in), your mail app, phone notifications, upload a PDF or photo. Checked in the app’s code. No calendar export exists, so none is claimed.</div></div><div class="row"><span class="n">9</span><div class="cell them">Dark “Try it before you’re in”: three free calculators.</div><div class="cell us dark new">Dark <b>Try it free</b>: IEP goal check, SSI calculator, Regional Center finder, template letters.</div></div><div class="row"><span class="n">10</span><div class="cell them">Founder quote beside a short FAQ.</div><div class="cell us new">Mike’s quote beside an <b>FAQ</b>: legal advice? cost? my data? only California? Spanish? who’s behind it?</div></div><div class="row"><span class="n">11</span><div class="cell them">Dark closing band: “Start training that adapts to you.”</div><div class="cell us built">Dark closing band: “Turn ‘What do I do?’ into ‘Here’s what to do next.’” Start free.</div></div></div>
+  </section>
+
+  <section>
+    <span class="label">Every other page</span>
+    <h2>What changes, page by page</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Page</th><th>Today</th><th>Plan</th><th>Status</th></tr></thead>
+      <tbody><tr><td>Home <code>/</code></td><td>Text pitch and pillar cards</td><td>The eleven sections above</td><td><span class="status s-built">Partly built</span></td></tr><tr><td>IEP goal check <code>/tools/iep-goal-check/</code></td><td>None</td><td>Built and independently reviewed. 14 well-written goals all pass. Copy says “not spotted, check the goal”</td><td><span class="status s-built">Built</span></td></tr><tr><td>Free tools hub <code>/tools/</code></td><td>No page. The “Free Tools” menu item opens the SSI calculator</td><td>New hub listing all free tools. The menu points here</td><td><span class="status s-new">New</span></td></tr><tr><td>SSI calculator, Regional Center finder</td><td>Working</td><td>Same “next step” box after a result as the goal check</td><td><span class="status s-small">Small</span></td></tr><tr><td>The App <code>/product/</code></td><td>Text-only feature list</td><td>Full tour, each feature beside its screen: Navigator, letters, Home, plan, IEP review, Resource Stack, Self-Determination path, document vault</td><td><span class="status s-new">New</span></td></tr><tr><td>Pricing <code>/pricing/</code></td><td>Plus $4.99, Pro $9.99</td><td>Match the app’s real prices and free tier, once you decide</td><td><span class="status s-block">Needs decision</span></td></tr><tr><td>Guides, answers, letters, Regional Center pages</td><td>Text sign-up box at the end</td><td>The sign-up box gains a small matching screen. A letter page shows the drafted email. No content edits</td><td><span class="status s-new">New</span></td></tr><tr><td>Header and footer</td><td>“Free Tools” opens the SSI calculator</td><td>“Free Tools” goes to the hub. Goal-check link appears once its review hold lifts</td><td><span class="status s-small">Small</span></td></tr><tr><td>About, Start here, legal, search</td><td></td><td>No change</td><td><span class="status s-none">None</span></td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <span class="label">Rules every page follows</span>
+    <ul class="list">
+      <li>Screens are built in code with a made-up family (“Maya”). No real child, parent, staff, email or phone number, ever.</li>
+      <li>One main button everywhere: “Start free.” Free tools end at the same button, and the tool a visitor came from goes with them into sign-up.</li>
+      <li>Free tools run only in the browser. Tests fail if a tool sends or stores anything.</li>
+      <li>Copy tests block claims like “best” or “#1”, user counts, and any price or integration we haven’t confirmed.</li>
+      <li>Every legal point is cited to a source the site has already verified.</li>
+    </ul>
+  </section>
+
+  <section id="decisions">
+    <span class="label">Decisions needed</span>
+    <h2>Six calls, and which pages wait on each</h2>
+    <ol class="decide">
+      <li><b>Which prices are real?</b><span class="soft">The site says Plus is $4.99 a month and Pro $9.99. The app’s code has one Premium plan at $99 a year or $14.99 a month. Blocks the pricing page.</span></li>
+      <li><b>What’s free?</b><span class="soft">The site puts deadline alerts in Plus and letters in Pro. The app lists core letters and the request tracker as free. Blocks any Free or Premium labels.</span></li>
+      <li><b>Spanish.</b><span class="soft">The homepage says “En español” and pricing says “full parity”, but the website has no Spanish pages. Change the wording to “The app speaks Spanish”, or plan Spanish pages?</span></li>
+      <li><b>The four families in the hero tabs.</b><span class="soft">Proposed: just diagnosed (0–5), the IEP years, benefits and money, turning 18.</span></li>
+      <li><b>FAQ answers.</b><span class="soft">I’ll draft them from what the pricing, privacy and about pages already say, and you approve the wording.</span></li>
+      <li><b>When the goal check shows up in search.</b><span class="soft">Unhide it from search and the footer when its PR merges, or after a separate copy review?</span></li>
+    </ol>
+  </section>
+
+  <section>
+    <span class="label">Build order</span>
+    <h2>Seven pull requests</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>#</th><th>What ships</th><th>Waits on</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>IEP goal check (built and reviewed)</td><td>Your approval</td></tr>
+        <tr><td>2</td><td>Homepage, sections 1 to 11, plus the copy tests</td><td>PR 1; decisions 4 and 5</td></tr>
+        <tr><td>3</td><td>Free tools hub, menu link, shared “next step” box</td><td>PR 1</td></tr>
+        <tr><td>4</td><td>The App page tour</td><td>PR 2</td></tr>
+        <tr><td>5</td><td>Pricing</td><td>Decisions 1 and 2</td></tr>
+        <tr><td>6</td><td>Screens in the guide and letter sign-up boxes</td><td>PR 2</td></tr>
+        <tr><td>7</td><td>Spanish wording, or a plan for Spanish pages</td><td>Decision 3</td></tr>
+      </tbody>
+    </table></div>
+    <p class="soft">Before each one goes to you, it gets the full site checks (types, tests, both builds, links, accessibility scan, keyboard walk, citations, sitemap), screenshots at phone and desktop width, and an independent review. Each PR waits for you to merge.</p>
+  </section>
+
+  <section>
+    <span class="label">Not in this plan</span>
+    <p class="soft">No AI or network calls from the website. No changes to the app, its plans, its server functions or analytics. No new legal claims beyond what the site has already verified.</p>
+  </section>
+
+  <footer>Source of record: <code>Roadmap/mockups/landing-showcase/SITE-PLAN.md</code> on branch <code>design/landing-showcase-mockup</code>.</footer>
+</main>
