@@ -4,17 +4,24 @@
  * in this build (src/lib/content.ts); gated cards show an honest "publishing
  * soon" state instead of a dead link.
  *
- * Initiative 013 (owner go 2026-10-08): the page now SHOWS the app working —
- * code-built screens with a fictional family ("Maya"), never a real one — and
- * gives free help up front with the browser-only IEP goal check. Headline
- * approved by the owner the same day.
+ * Initiative 013 (owner go 2026-10-08; site plan
+ * Roadmap/mockups/landing-showcase/SITE-PLAN.md): twelve sections mapped to
+ * attune.coach, keeping everything the previous homepage carried (stats,
+ * pillar cards, both comparisons, founder quote) plus the loop from
+ * /product/. Every app screen is code-built with fictional families, never a
+ * real one; every legal clock shown is one the site already sources.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EmpathyCallout from '../components/EmpathyCallout.astro';
 import HandoffCTA from '../components/HandoffCTA.astro';
 import GoalCheck from '../components/GoalCheck.astro';
+import OneLoop from '../components/OneLoop.astro';
+import GuideVsApp from '../components/GuideVsApp.astro';
+import WithoutWith from '../components/WithoutWith.astro';
 import PhoneFrame from '../components/showcase/PhoneFrame.astro';
-import AppShowcase from '../components/showcase/AppShowcase.astro';
+import HeroFamilies from '../components/showcase/HeroFamilies.astro';
+import NavigatorDemo from '../components/showcase/NavigatorDemo.astro';
+import TonePicker from '../components/showcase/TonePicker.astro';
 import '../styles/showcase.css';
 import { visibleContentUrls } from '../lib/content';
 import { appStartUrl } from '../lib/appLinks';
@@ -25,35 +32,6 @@ const has = (u: string) => urls.has(u);
 
 const heroHref = appStartUrl({ slug: 'home', cta: 'hero' });
 const heroProps = JSON.stringify({ slug: 'home', locale: 'en', cta_id: 'hero' });
-const showcaseHref = appStartUrl({ slug: 'home', cta: 'home-showcase' });
-const showcaseProps = JSON.stringify({ slug: 'home', locale: 'en', cta_id: 'home-showcase' });
-
-// "Waypoint speaks first": status-first wording per the escalation tone rule
-// (CLAUDE.md) — the answer is past due; nobody is said to have failed.
-const timeline = [
-  {
-    when: 'Day 0',
-    title: 'You send the request',
-    body: 'Waypoint drafts it and you send it. The district now has 15 calendar days to send an assessment plan.',
-  },
-  {
-    when: 'Day 12',
-    title: 'A heads-up',
-    body: 'Nothing back yet. A gentle note, with nothing you need to do today.',
-    push: 'The assessment plan is due in 3 days. Nothing has come in yet.',
-  },
-  {
-    when: 'Day 16',
-    title: 'The answer is past due',
-    body: 'It moves to the top of Home, with a friendly follow-up already drafted.',
-    push: "An answer on Maya's assessment plan is past due. Want to send a quick follow-up?",
-  },
-  {
-    when: 'If needed',
-    title: 'Firmer, one step at a time',
-    body: 'The tone only firms up if asks go unanswered, and only when you choose.',
-  },
-];
 
 const pillars = [
   {
@@ -95,12 +73,97 @@ const pillars = [
     always: true,
   },
 ];
+
+// The journey by age, as the app's Journey tab shows it.
+const ages = [
+  { range: '0–3', name: 'Early Start' },
+  { range: '3–5', name: 'Transition to school' },
+  { range: '5–13', name: 'School years', here: true },
+  { range: '14–22', name: 'Transition to adulthood' },
+];
+
+// "Waypoint speaks first": status-first wording per the CLAUDE.md tone rule —
+// the answer is past due; nobody is said to have failed.
+const timeline = [
+  {
+    when: 'Day 0',
+    title: 'You send the request',
+    body: 'Waypoint drafts it and you send it. The district now has 15 calendar days to send an assessment plan.',
+  },
+  {
+    when: 'Day 12',
+    title: 'A heads-up',
+    body: 'Nothing back yet. A gentle note on Home, with nothing you need to do today.',
+    note: 'The assessment plan is due in 3 days. Nothing has come in yet.',
+  },
+  {
+    when: 'Day 16',
+    title: 'The answer is past due',
+    body: 'It moves to the top of Home, with a friendly follow-up already drafted.',
+    note: "An answer on Maya's assessment plan is past due. Want to send a quick follow-up?",
+  },
+  {
+    when: 'If needed',
+    title: 'Firmer, one step at a time',
+    body: 'The tone only firms up if asks go unanswered, and only when you choose.',
+  },
+];
+
+// Only integrations verified in the app's code (initiative 013 plan): Gmail
+// send + reply polling, Open in Mail, document/photo upload, Home clocks.
+// No calendar export and no web push exist, so neither is claimed.
+const worksWith = [
+  { title: 'Gmail', body: 'Send from your own address. Replies come back into Waypoint, next to the request they answer.' },
+  { title: 'Your mail app', body: 'Not using Gmail? Open any draft in the mail app you already use.' },
+  { title: 'PDFs and photos', body: 'Upload a report, a notice, or an IEP as a PDF or a photo of the page.' },
+  { title: 'Home, every day', body: 'Every clock you start shows on Home, so you see what is due before it is due.' },
+];
+
+const tools = [
+  { title: 'IEP goal check', body: 'Is a goal measurable? Paste it and see.', href: '/tools/iep-goal-check/' },
+  { title: 'SSI deeming calculator', body: 'How parent income counts for a child.', href: '/tools/ssi-deeming-calculator/' },
+  { title: 'Regional Center finder', body: 'Find yours by county.', href: '/tools/regional-center-finder/' },
+  { title: 'Template letters', body: 'Copy, fill in, send.', href: '/letters/iep-evaluation-request/', gated: true },
+];
+
+// FAQ — drafted from what /pricing/, /privacy/, /terms/ and /about/ already
+// say (owner approved drafting this way, 2026-10-08; wording reviewed in PR).
+const faq = [
+  {
+    q: 'Is this legal advice?',
+    a: "No. Waypoint explains how California systems usually work, with the law cited so you can check it. It isn't legal advice, and using it doesn't create an attorney-client relationship. For decisions that matter, talk with a qualified professional who knows your child's case.",
+  },
+  {
+    q: 'What does it cost?',
+    a: 'Every guide, tool, and template letter on this site is free, with no email required. The app is free to start, and paid plans add more. The pricing page shows exactly what each plan includes, and what to do if money is tight.',
+    link: { href: '/pricing/', label: 'See pricing' },
+  },
+  {
+    q: 'What happens to what I type?',
+    a: 'The free tools on this site run in your browser, and nothing you type into them is sent to us. This site uses cookieless analytics and no ad tech.',
+    link: { href: '/privacy/', label: 'Read the privacy page' },
+  },
+  {
+    q: 'Is it only for California?',
+    a: "For now, yes. Waypoint is built around California's systems: the 21 Regional Centers, California special education law, Medi-Cal, and IHSS.",
+  },
+  {
+    q: 'Is it in Spanish?',
+    a: 'The app can write your letters in Spanish, and translation of its screens is under way. Spanish pages for this website are planned.',
+  },
+  {
+    q: "Who's behind it?",
+    a: 'Waypoint was built by Mike, a parent of two boys in Oakland, after hundreds of hours learning the system for his son. Every guide is checked against its sources before it publishes.',
+    link: { href: '/about/', label: 'How we publish' },
+  },
+];
 ---
 
 <BaseLayout
   title="Waypoint — the next step for your child, before you have to ask"
-  description="Waypoint helps California families of children with disabilities navigate Regional Centers, IEPs, Medi-Cal, and SSI — an AI navigator, drafted letters, deadline reminders, and free tools like the IEP goal check."
+  description="Waypoint helps California families of children with disabilities navigate Regional Centers, IEPs, Medi-Cal, and SSI — an AI navigator, drafted letters, deadline tracking, and free tools like the IEP goal check."
 >
+  <!-- 1 · Hero -->
   <div class="hero">
     <div class="container hero-grid">
       <div class="hero-copy">
@@ -118,26 +181,17 @@ const pillars = [
           <a class="btn ghost-dark" href="#iep-check">Check an IEP goal, free</a>
         </div>
         <p class="cta-note">Free to start · no credit card · no email to use the free tools</p>
+        <div class="stat-row">
+          <div class="stat"><b>23</b><span>agencies mapped</span></div>
+          <div class="stat"><b>21</b><span>regional centers profiled</span></div>
+          <div class="stat"><b>13</b><span>diagnoses covered</span></div>
+          <div class="stat"><b>3</b><span>free tools</span></div>
+        </div>
       </div>
-      <PhoneFrame label="Sample Waypoint Home screen: a heads-up that the school's assessment plan is due in 3 days, a box to ask a question, and an IHSS application that is past due on the family's own plan.">
-        <div class="ms-card ms-hero">
-          <span class="ms-pill ms-soon">HEADS-UP · DUE IN 3 DAYS</span>
-          <div class="ms-title">The school's assessment plan is due in 3 days</div>
-          <div class="ms-muted">You asked for an evaluation in writing on Oct 1. The district has 15 calendar days to send a plan. Nothing has come in yet.</div>
-          <div class="ms-btn">See what to do if it doesn't come</div>
-          <div class="ms-muted" style="margin-top:7px">Not today, show the next thing</div>
-        </div>
-        <div style="font-weight:700;font-size:13px;margin-top:4px">Got something on your mind?</div>
-        <div class="ms-ask">
-          <div class="ms-field">Ask or search: "they said no" <b>Ask</b></div>
-          <div class="ms-chips"><span>They said no</span><span>Read my IEP</span><span>Respite</span><span>Sibling support</span></div>
-        </div>
-        <div class="ms-card">
-          <span class="ms-pill ms-late">PAST DUE · 6 DAYS</span>
-          <div class="ms-title" style="font-size:12.5px">Apply for IHSS</div>
-          <div class="ms-muted">On your plan · 2 of 8 steps done</div>
-        </div>
-      </PhoneFrame>
+      <div class="hero-card">
+        <p class="hero-card-label">Same Monday, four different families</p>
+        <HeroFamilies />
+      </div>
     </div>
   </div>
 
@@ -145,73 +199,33 @@ const pillars = [
     <div class="container band-inner">
       <span><i>✓</i>Free guides and tools, no email required</span>
       <span><i>✓</i>Every claim cited to statute, or it's cut</span>
-      <span><i>✓</i>En español</span>
+      <span><i>✓</i>Letters in Spanish</span>
     </div>
   </div>
 
-  <div class="section on-white" id="iep-check">
-    <div class="container">
-      <span class="eyebrow">Free tool · nothing you paste leaves your browser</span>
-      <h2>Is this IEP goal actually measurable?</h2>
-      <p class="sub">
-        Paste one annual goal from your child's IEP. You'll see which of the five parts of a
-        measurable goal it names, and a friendly way to ask the team for any that are missing.
-        <a href="/tools/iep-goal-check/">More about the goal check →</a>
-      </p>
-      <GoalCheck slug="home" cta="tool-result" idPrefix="home-gc" />
-    </div>
-  </div>
-
-  <div class="section" id="see-it-work">
-    <div class="container">
-      <span class="eyebrow">See it work</span>
-      <h2>What Waypoint does once you're in</h2>
-      <p class="sub">Sample screens with a made-up family. Pick a feature to see it.</p>
-      <AppShowcase />
-      <div class="showcase-cta">
-        <a class="btn" href={showcaseHref} data-wp-event="app_signup_click" data-wp-props={showcaseProps}>Start free →</a>
-        <a class="link" href="/pricing/">See what's free and what's in Plus</a>
-      </div>
-    </div>
-  </div>
-
+  <!-- 2 · The loop (shared with /product/) -->
   <div class="section on-white">
-    <div class="container">
-      <span class="eyebrow">Reminders that come to you</span>
-      <h2>Waypoint speaks first.</h2>
+    <div class="container narrow">
+      <span class="eyebrow">How it works</span>
+      <h2>One loop, every time something changes.</h2>
       <p class="sub">
-        Most tools wait for you to remember. Waypoint knows which clock your request started, and
-        checks in before it runs out.
+        Your case moves: a reply comes in, a deadline passes, a new stage opens. Every time it
+        does, you're back at the start of the same four moves.
       </p>
-      <ol class="timeline">
-        {
-          timeline.map((t) => (
-            <li class="tstep">
-              <span class="when">{t.when}</span>
-              <h3>{t.title}</h3>
-              <p>{t.body}</p>
-              {t.push && (
-                <div class="push">
-                  <b>Waypoint</b>
-                  {t.push}
-                </div>
-              )}
-            </li>
-          ))
-        }
-      </ol>
+      <OneLoop />
     </div>
   </div>
 
-  <div class="section">
+  <!-- 3 · Wherever you are (dark band): Guides, Schools, Regional Centers -->
+  <div class="section band-dark">
     <div class="container">
-      <span class="eyebrow">Free help, right now</span>
+      <span class="eyebrow">Wherever you are</span>
       <h2>Start with where you are today</h2>
       <p class="sub">
-        Six pillars cover every system a California family navigates — each in plain language,
+        Six pillars cover every system a California family navigates, each in plain language,
         with the deadlines, scripts, and template letters that make the next step obvious.
       </p>
-      <div class="grid-3">
+      <div class="grid-3 dark-cards">
         {
           pillars.map((p) => (
             <div class="card">
@@ -230,15 +244,239 @@ const pillars = [
           ))
         }
       </div>
+      <p class="hub-links">
+        Or go straight to <a href="/guides/">all guides</a>
+        {has('/guides/iep/') && (
+          <>
+            , <a href="/guides/iep/">schools and IEPs</a>
+          </>
+        )}
+        {has('/guides/regional-centers/') && (
+          <>
+            , <a href="/guides/regional-centers/">Regional Centers</a>
+          </>
+        )}
+        , or <a href="/tools/regional-center-finder/">find your Regional Center</a>.
+      </p>
+      <ol class="ages" aria-label="The journey by age">
+        {
+          ages.map((a) => (
+            <li class={a.here ? 'here' : undefined}>
+              {a.here && <span class="you">Sample: you are here</span>}
+              <b>Ages {a.range}</b>
+              <span>{a.name}</span>
+            </li>
+          ))
+        }
+      </ol>
     </div>
   </div>
 
+  <!-- 4 · A navigator in your pocket -->
   <div class="section on-white">
+    <div class="container split">
+      <div class="split-copy">
+        <span class="eyebrow">A navigator in your pocket</span>
+        <h2>Ask anything. Get the answer and the law behind it.</h2>
+        <ul class="ticks">
+          <li>Plain-language answers that know your child's age, diagnosis, county, and Regional Center.</li>
+          <li>Each answer separates your right, what's good to know, and what to watch out for, with the citation for each.</li>
+          <li>One tap turns an answer into a drafted letter or a step on your plan.</li>
+        </ul>
+      </div>
+      <NavigatorDemo />
+    </div>
+  </div>
+
+  <!-- 5 · Your tone, your call -->
+  <div class="section">
+    <div class="container split">
+      <div class="split-copy">
+        <span class="eyebrow">Your tone, your call</span>
+        <h2>The friendly email, already written.</h2>
+        <p class="sub">
+          Every first ask is friendly. If it goes unanswered, Waypoint can firm up the next one,
+          one step at a time, and only when you choose. Everything goes out under your name, after
+          you've read it.
+        </p>
+      </div>
+      <TonePicker />
+    </div>
+  </div>
+
+  <!-- 6 · Why not just read the guides? (both comparisons, kept) -->
+  <div class="section on-white">
+    <div class="container">
+      <span class="eyebrow">The honest comparison</span>
+      <h2>Why not just read the guides?</h2>
+      <p class="sub">Every guide on this site is free, and stays free. Here's the actual difference.</p>
+      <WithoutWith
+        without={["Hours of searching before you know what to ask", "You find out about a deadline after it's passed"]}
+        withWaypoint={['The next step, before you have to ask for it', 'A reminder before the clock runs out']}
+      />
+      <div class="compare-wrap">
+        <GuideVsApp limit={3} />
+      </div>
+      <div class="grid-2 generic-vs">
+        <div class="card generic">
+          <h3>Generic advice</h3>
+          <p>
+            "You may want to consider requesting an assessment from your school district and
+            following up with your regional center about available services."
+          </p>
+        </div>
+        <div class="card waypoint">
+          <h3>Waypoint</h3>
+          <p>
+            A drafted assessment-request letter in your name, the 15-day clock it starts, the
+            calendar reminder for day 16 — and the fallback script if the district stalls.
+          </p>
+        </div>
+      </div>
+      <p class="more"><a href="/product/">See everything the app does →</a></p>
+    </div>
+  </div>
+
+  <!-- 7 · Free IEP goal check + the app's IEP analysis -->
+  <div class="section" id="iep-check">
+    <div class="container">
+      <span class="eyebrow">Free tool · nothing you paste is sent to Waypoint</span>
+      <h2>Is this IEP goal measurable?</h2>
+      <p class="sub">
+        Paste one annual goal from your child's IEP. You'll see which of the five parts of a
+        measurable goal we spot in it, and a friendly way to ask the team about any that seem to
+        be missing. <a href="/tools/iep-goal-check/">More about the goal check →</a>
+      </p>
+      <GoalCheck slug="home" cta="tool-result" idPrefix="home-gc" upsell={false} />
+      <div class="split iep-app">
+        <div class="split-copy">
+          <h3>Want the whole IEP read?</h3>
+          <ul class="ticks">
+            <li>Upload the IEP. Every goal is rated, with stronger wording suggested.</li>
+            <li>Compare it with an earlier IEP you've uploaded.</li>
+            <li>Get your meeting-prep questions, then track the goals through the year.</li>
+          </ul>
+        </div>
+        <PhoneFrame
+          appBar="IEP Review"
+          label="Sample IEP analysis: goals rated strong, adequate, or weak, a plain-language bottom line, the good news, and what to ask the team about."
+        >
+          <div class="ms-stats"><div class="s1"><b>1</b>Strong</div><div class="s2"><b>2</b>Adequate</div><div class="s3"><b>1</b>Weak</div><div class="s4"><b>4</b>Total</div></div>
+          <div class="ms-bottomline"><small>THE BOTTOM LINE</small>Maya met two goals and reads at grade level. Her writing goal has no way to measure it yet.</div>
+          <div class="ms-good"><b>The good news</b><ul><li>Reading grew a full level this fall</li><li>Met her group-participation goal</li></ul></div>
+          <div class="ms-gap"><b>Ask the team about</b><ul><li>A number for the writing goal</li><li>How progress will be reported</li></ul></div>
+          <div class="ms-row"><div class="ms-btn">Meeting prep</div><div class="ms-btn ms-outline">Compare</div></div>
+        </PhoneFrame>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8 · Waypoint speaks first -->
+  <div class="section on-white">
+    <div class="container">
+      <span class="eyebrow">Reminders that come to you</span>
+      <h2>Waypoint speaks first.</h2>
+      <p class="sub">
+        Most tools wait for you to remember. Waypoint knows which clock your request started, and
+        checks in before it runs out.
+      </p>
+      <ol class="timeline">
+        {
+          timeline.map((t) => (
+            <li class="tstep">
+              <span class="when">{t.when}</span>
+              <h3>{t.title}</h3>
+              <p>{t.body}</p>
+              {t.note && (
+                <div class="note">
+                  <b>On Home</b>
+                  {t.note}
+                </div>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+
+  <!-- 9 · Works with what you already use -->
+  <div class="section">
+    <div class="container">
+      <span class="eyebrow">Works with what you already use</span>
+      <h2>No new inbox. No new filing system.</h2>
+      <div class="works">
+        {
+          worksWith.map((w) => (
+            <div class="work">
+              <b>{w.title}</b>
+              <p>{w.body}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 · Try it free (dark) -->
+  <div class="section">
+    <div class="container">
+      <div class="try-free">
+        <div class="try-copy">
+          <h2>Try it free</h2>
+          <p>Free tools built on the same rules as the app. No sign-up, and nothing you type leaves your browser.</p>
+        </div>
+        <div class="try-tools">
+          {
+            tools
+              .filter((t) => !t.gated || has(t.href))
+              .map((t) => (
+                <a class="try-tool" href={t.href}>
+                  <b>{t.title}</b>
+                  <span>{t.body}</span>
+                  <span class="open">Open →</span>
+                </a>
+              ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11 · Founder + FAQ -->
+  <div class="section on-white">
+    <div class="container founder-faq">
+      <div>
+        <EmpathyCallout label="Built by a parent">
+          "I'm Mike, father of two boys in Oakland. When my son needed services, I spent hundreds
+          of hours navigating the system. I built Waypoint so no family has to do it alone."
+        </EmpathyCallout>
+      </div>
+      <div class="faq">
+        <h2>Questions</h2>
+        {
+          faq.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <p>
+                {f.a}
+                {f.link && (
+                  <>
+                    {' '}
+                    <a href={f.link.href}>{f.link.label} →</a>
+                  </>
+                )}
+              </p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- 12 · Closing band -->
+  <div class="section">
     <div class="container narrow">
-      <EmpathyCallout label="Built by a parent">
-        "I'm Mike, father of two boys in Oakland. When my son needed services, I spent hundreds
-        of hours navigating the system. I built Waypoint so no family has to do it alone."
-      </EmpathyCallout>
       <HandoffCTA
         heading="Turn “What do I do?” into “Here's what to do next.”"
         body="Tell us about your child · see what they may qualify for · get your step-by-step plan."
@@ -257,7 +495,7 @@ const pillars = [
   .hero {
     background: linear-gradient(165deg, #22303a 0%, #123f39 55%, #0f766e 135%);
     color: #eef6f1;
-    padding: 56px 0 64px;
+    padding: 56px 0 60px;
   }
   .hero-grid {
     display: grid;
@@ -279,7 +517,7 @@ const pillars = [
     font-size: clamp(2.1rem, 4.8vw, 3.2rem);
     line-height: 1.1;
     color: #ffffff;
-    margin: 12px 0 12px;
+    margin: 12px 0;
     text-wrap: balance;
   }
   .hero h1 em {
@@ -302,6 +540,44 @@ const pillars = [
     color: #b5d6cc;
     margin: 12px 0 0;
   }
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px 20px;
+    margin-top: 32px;
+    max-width: 560px;
+  }
+  @media (max-width: 480px) {
+    .stat-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .stat b {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.9rem;
+    color: #ffffff;
+    display: block;
+    line-height: 1.1;
+  }
+  .stat span {
+    font-size: 0.72rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #b5d6cc;
+  }
+  .hero-card {
+    min-width: 0;
+  }
+  .hero-card-label {
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9fe8db;
+    margin: 0 0 12px;
+  }
   .trustband {
     background: var(--color-panel);
     border-bottom: 1px solid var(--color-border);
@@ -320,13 +596,156 @@ const pillars = [
     font-style: normal;
     margin-right: 6px;
   }
-  .showcase-cta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 14px 22px;
-    margin-top: 36px;
+
+  /* 3 · dark band */
+  .band-dark {
+    background: #123f39;
+    color: #eef6f1;
   }
+  .band-dark .eyebrow {
+    color: #9fe8db;
+  }
+  .band-dark h2 {
+    color: #ffffff;
+  }
+  .band-dark .sub {
+    color: #d3e7de;
+  }
+  .dark-cards .card {
+    background: #0e332e;
+    border-color: #23544d;
+  }
+  .dark-cards .card h3 {
+    color: #ffffff;
+  }
+  .dark-cards .card p {
+    color: #d3e7de;
+  }
+  .dark-cards .card .link {
+    color: #a9efe0;
+  }
+  .dark-cards .card .link.soon {
+    color: #b5d6cc;
+  }
+  .hub-links {
+    margin: 22px 0 0;
+    color: #d3e7de;
+  }
+  .hub-links a {
+    color: #a9efe0;
+    font-weight: 700;
+  }
+  .ages {
+    list-style: none;
+    margin: 30px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+  @media (max-width: 760px) {
+    .ages {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .ages li {
+    border-top: 3px solid #23544d;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ages li.here {
+    border-top-color: #a9efe0;
+  }
+  .ages b {
+    color: #ffffff;
+    font-size: 0.95rem;
+  }
+  .ages span {
+    color: #d3e7de;
+    font-size: 0.88rem;
+  }
+  .ages .you {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #a9efe0;
+  }
+
+  /* split sections (4, 5, 7) */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+  }
+  @media (max-width: 860px) {
+    .split {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+    }
+  }
+  .split-copy {
+    min-width: 0;
+  }
+  .ticks {
+    list-style: none;
+    margin: 14px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ticks li {
+    position: relative;
+    padding-left: 24px;
+  }
+  .ticks li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--color-sage-ink);
+    font-weight: 800;
+  }
+
+  /* 6 · comparisons */
+  .compare-wrap {
+    margin-top: 26px;
+  }
+  .generic-vs {
+    margin-top: 22px;
+  }
+  .card.generic {
+    border-left: 4px solid var(--color-border);
+  }
+  .card.generic h3 {
+    color: var(--color-ink-faint);
+  }
+  .card.waypoint {
+    border-left: 4px solid var(--color-pine);
+  }
+  .card.waypoint h3 {
+    color: var(--color-pine);
+  }
+  .more {
+    margin: 22px 0 0;
+    font-weight: 700;
+  }
+
+  /* 7 · IEP */
+  .iep-app {
+    margin-top: 40px;
+  }
+  .iep-app h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin: 0;
+  }
+
+  /* 8 · timeline */
   .timeline {
     list-style: none;
     margin: 0;
@@ -367,16 +786,135 @@ const pillars = [
     color: var(--color-ink-soft);
     font-size: 0.92rem;
   }
-  .tstep .push {
+  .tstep .note {
     margin-top: 6px;
     background: var(--color-paper);
     border-radius: 10px;
     padding: 8px 10px;
     font-size: 0.82rem;
   }
-  .tstep .push b {
+  .tstep .note b {
     display: block;
     font-size: 0.72rem;
     color: var(--color-ink-faint);
+  }
+
+  /* 9 · works with */
+  .works {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 860px) {
+    .works {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 480px) {
+    .works {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .work {
+    background: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .work p {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+    color: var(--color-ink-soft);
+  }
+
+  /* 10 · try it free */
+  .try-free {
+    background: #123f39;
+    color: #eef6f1;
+    border-radius: 20px;
+    padding: 28px;
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 24px;
+    align-items: center;
+  }
+  @media (max-width: 860px) {
+    .try-free {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .try-copy h2 {
+    color: #ffffff;
+    margin: 0 0 8px;
+  }
+  .try-copy p {
+    margin: 0;
+    color: #d3e7de;
+  }
+  .try-tools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  @media (max-width: 480px) {
+    .try-tools {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .try-tool {
+    background: #0e332e;
+    border: 1px solid #23544d;
+    border-radius: 12px;
+    padding: 14px;
+    text-decoration: none;
+    color: #eef6f1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .try-tool span {
+    font-size: 0.88rem;
+    color: #d3e7de;
+  }
+  .try-tool .open {
+    color: #a9efe0;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .try-tool:focus-visible {
+    outline: 3px solid #a9efe0;
+    outline-offset: 2px;
+  }
+
+  /* 11 · founder + FAQ */
+  .founder-faq {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 36px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .founder-faq {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .faq h2 {
+    margin-top: 0;
+  }
+  .faq details {
+    border-bottom: 1px solid var(--color-border);
+    padding: 12px 0;
+  }
+  .faq summary {
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .faq summary:focus-visible {
+    outline: 3px solid var(--color-pine);
+    outline-offset: 2px;
+  }
+  .faq details p {
+    margin: 8px 0 0;
+    color: var(--color-ink-soft);
   }
 </style>
