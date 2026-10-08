@@ -340,10 +340,13 @@ try {
   // the goal must never appear in any request URL or body, the deep link, a
   // cookie, or browser storage.
   const SENTINEL = 'Zqxsentinel';
+  // Encoded forms too: a leak through base64/base64url or URL-encoding must not slip by.
+  const b64 = Buffer.from(SENTINEL).toString('base64').slice(0, 8);
+  const needles = [SENTINEL, b64, b64.replace(/\+/g, '-').replace(/\//g, '_'), encodeURIComponent(SENTINEL)];
+  const hasNeedle = (v) => needles.some((n) => v.includes(n));
   const leaks = [];
   const onRequest = (req) => {
-    const body = req.postData() ?? '';
-    if (req.url().includes(SENTINEL) || body.includes(SENTINEL)) leaks.push(req.url());
+    if (hasNeedle(req.url()) || hasNeedle(req.postData() ?? '')) leaks.push(req.url());
   };
   page.on('request', onRequest);
   await page.goto(`${base}/tools/iep-goal-check/`, { waitUntil: 'load' });
@@ -388,6 +391,24 @@ try {
       return [...hrefs, ...analytics, document.cookie, storage, location.href].some((v) => v.includes(s));
     }, SENTINEL);
     if (stored) failures.push('/tools/iep-goal-check/: the pasted goal reached analytics, a link, a cookie, the URL, or storage');
+    // The deep link's wp_ctx is base64url JSON: decode it and allow exactly the
+    // summary fields, with the fixed summary text — never anything typed.
+    const saveHref = await page.getAttribute('[data-gc-save]', 'href').catch(() => null);
+    const ctxRaw = saveHref ? new URL(saveHref).searchParams.get('wp_ctx') : null;
+    if (!ctxRaw) {
+      failures.push('/tools/iep-goal-check/: the save link carries no wp_ctx after a result');
+    } else {
+      let ctx = null;
+      try {
+        ctx = JSON.parse(Buffer.from(ctxRaw.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8'));
+      } catch {
+        failures.push('/tools/iep-goal-check/: wp_ctx is not valid base64url JSON');
+      }
+      const keys = ctx ? Object.keys(ctx).sort().join(',') : '';
+      if (ctx && (keys !== 'inputs_summary,kind,result_summary,tool_id,v' || ctx.inputs_summary !== 'one IEP goal' || JSON.stringify(ctx).includes(SENTINEL))) {
+        failures.push(`/tools/iep-goal-check/: wp_ctx carries more than the rating summary: ${JSON.stringify(ctx)}`);
+      }
+    }
   }
   page.off('request', onRequest);
   if (leaks.length) {
