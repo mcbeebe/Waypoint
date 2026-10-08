@@ -334,22 +334,64 @@ try {
     }
   }
 
-  // The goal check: type a goal, Tab to the run button, press Enter — the
-  // rating must appear without a mouse.
+  // The goal check: type a goal, Tab (real key presses) from the textarea to
+  // the run button, press Enter — the result must appear without a mouse.
+  // The same run proves the privacy promise end to end: a sentinel word in
+  // the goal must never appear in any request URL or body, the deep link, a
+  // cookie, or browser storage.
+  const SENTINEL = 'Zqxsentinel';
+  const leaks = [];
+  const onRequest = (req) => {
+    const body = req.postData() ?? '';
+    if (req.url().includes(SENTINEL) || body.includes(SENTINEL)) leaks.push(req.url());
+  };
+  page.on('request', onRequest);
   await page.goto(`${base}/tools/iep-goal-check/`, { waitUntil: 'load' });
+  // Analytics scripts don't load offline, so a leak would sit in a queue and
+  // never become a request. Record every analytics call directly instead.
+  await page.evaluate(() => {
+    const w = window;
+    w.__wpAnalytics = [];
+    const orig = w.plausible;
+    w.plausible = (...args) => {
+      w.__wpAnalytics.push(JSON.stringify(args));
+      return orig?.(...args);
+    };
+  });
   const goalInput = await page.$('[data-gc-input]');
   if (!goalInput) {
     failures.push('/tools/iep-goal-check/: the goal textarea is missing');
   } else {
     await goalInput.focus();
-    await page.keyboard.type('Maya will improve her reading skills.');
-    await page.focus('[data-gc-run]');
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(250);
-    const badge = (await page.textContent('[data-gc-result] .gc-badge').catch(() => null))?.trim() ?? '';
-    if (!badge) {
-      failures.push('/tools/iep-goal-check/: Enter on the focused button produced no rating');
+    await page.keyboard.type(`${SENTINEL} will improve her reading skills.`);
+    let onRun = false;
+    for (let i = 0; i < 6 && !onRun; i++) {
+      await page.keyboard.press('Tab');
+      onRun = await page.evaluate(() => document.activeElement?.matches('[data-gc-run]') ?? false);
     }
+    if (!onRun) failures.push('/tools/iep-goal-check/: Tab from the goal box never reached the check button');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(400);
+    const summary = (await page.textContent('[data-gc-result] .gc-summary').catch(() => null))?.trim() ?? '';
+    if (!summary) {
+      failures.push('/tools/iep-goal-check/: Enter on the focused button produced no result');
+    }
+    const stored = await page.evaluate((s) => {
+      const hrefs = [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href') ?? '');
+      let storage = '';
+      try {
+        storage = JSON.stringify({ ...localStorage }) + JSON.stringify({ ...sessionStorage });
+      } catch {
+        /* storage blocked — nothing stored */
+      }
+      const analytics = [...(window.__wpAnalytics ?? []), JSON.stringify(window.dataLayer ?? [])];
+      return [...hrefs, ...analytics, document.cookie, storage, location.href].some((v) => v.includes(s));
+    }, SENTINEL);
+    if (stored) failures.push('/tools/iep-goal-check/: the pasted goal reached analytics, a link, a cookie, the URL, or storage');
+  }
+  page.off('request', onRequest);
+  if (leaks.length) {
+    failures.push(`/tools/iep-goal-check/: the pasted goal left the browser in ${leaks.length} request(s): ${leaks.join(', ')}`);
   }
 } finally {
   await browser.close();
@@ -362,5 +404,5 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  `PASS: keyboard pass — ${pagesWalked} pages walked with real Tab presses; skip link first, no traps, every control reachable with a visible focus ring, every tool completable without a mouse.`,
+  `PASS: keyboard pass — ${pagesWalked} pages walked with real Tab presses; skip link first, no traps, every control reachable with a visible focus ring, every tool completable without a mouse, and the goal check sent nothing a parent pasted.`,
 );

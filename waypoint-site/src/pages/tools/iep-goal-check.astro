@@ -6,9 +6,9 @@
  * judges whether the goal is right for the child. The full AI IEP analysis
  * stays a Premium app feature and is offered as the next step.
  *
- * PENDING REVIEW: noindex here and filtered from the sitemap in
- * astro.config.mjs until the owner signs off the page copy — the same
- * pattern /accessibility/ uses. Lift both together.
+ * Indexable from launch: owner decision 2026-10-08 — the page is reviewed in
+ * its PR and goes into search, the sitemap, and the footer when that PR
+ * merges.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
@@ -50,20 +50,20 @@ const parts = [
   title="Free IEP goal check — is this goal measurable? — Waypoint"
   description="Paste one goal from your child's IEP and see whether it names a timeframe, conditions, an observable skill, a target, and how it's measured. Free, private, nothing uploaded."
   pillar="iep"
-  noindex={true}
 >
   <PageHero
-    eyebrow="Free tool · no email · nothing you paste leaves your browser"
-    title="Is this IEP goal actually measurable?"
-    lede="Paste one annual goal from your child's IEP. You'll see which of the five parts of a measurable goal it names, and a friendly way to ask the team for any that are missing."
+    eyebrow="Free tool · no email · nothing you paste is sent to Waypoint"
+    title="Is this IEP goal measurable?"
+    lede="Paste one annual goal from your child's IEP. You'll see which of the five parts of a measurable goal we spot in it, and a friendly way to ask the team about any that seem to be missing."
   />
   <div class="section">
     <div class="container">
       <GoalCheck slug="tools/iep-goal-check" cta="tool-result" />
       <NoticeBox>
-        This checks the wording of one goal against a simple pattern. It can miss a part that is
-        phrased unusually, and it can't tell whether a goal is the right goal for your child. Use
-        it to know what to ask, not as a verdict on the IEP.
+        This checks the wording of one goal against patterns, in English only. It can miss a part
+        that is phrased in an unusual way, so check the goal itself before you ask about anything
+        we didn't spot. It can't tell whether a goal is the right goal for your child. Use it to
+        know what to ask, not as a verdict on the IEP.
       </NoticeBox>
 
       <article class="prose" style="margin-top:34px">
@@ -82,8 +82,9 @@ const parts = [
         <p>
           A goal like "will improve reading skills" leaves the team without a shared way to tell
           whether it was met. You can ask for the missing parts at any IEP meeting, and you can
-          ask for a meeting in writing at any time; the district holds it within 30 days of your
-          request. <Cite href={meetingHref}>Ed Code §56343.5</Cite> Our{' '}
+          ask for a meeting in writing at any time. The district holds it within 30 days of
+          receiving your written request, not counting school breaks longer than five school
+          days. <Cite href={meetingHref}>Ed Code §56343.5</Cite> Our{' '}
           <a href="/guides/iep/">IEP guide</a> walks through what to bring and what to sign.
         </p>
         <InlineDisclaimer variant="legal" />

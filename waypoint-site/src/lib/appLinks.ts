@@ -56,8 +56,13 @@ export interface AppLinkParams {
   ctx?: WpCtx;
 }
 
-/** base64url without padding — matches the app-side parser expectation. */
-function base64url(json: string): string {
+/**
+ * base64url without padding — matches the app-side parser expectation.
+ *
+ * @param json - The serialized wp_ctx payload.
+ * @returns The URL-safe encoding.
+ */
+export function base64url(json: string): string {
   // Buffer exists at build time (node); btoa in the browser bundle.
   let b64: string;
   if (typeof Buffer !== 'undefined') {
