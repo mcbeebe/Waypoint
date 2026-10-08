@@ -5,7 +5,7 @@
  * tool id, locale and rating — never the goal itself. Covered by the privacy
  * guard in iepGoalCheck.test.ts.
  */
-import { RATING_LABEL, checkGoal } from './iepGoalCheck';
+import { checkGoal } from './iepGoalCheck';
 import { base64url } from './appLinks';
 
 export const TOOL_ID = 'iep-goal-check';
@@ -50,6 +50,7 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
     started = true;
     window.plausible?.('tool_started', { props: { tool_id: TOOL_ID, locale } });
   };
+  // Only a parent's own typing counts as starting; trying an example does not.
   input.addEventListener('input', markStarted);
 
   root.querySelectorAll<HTMLButtonElement>('[data-gc-example]').forEach((b) => {
@@ -60,23 +61,47 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
   });
   run.addEventListener('click', render);
 
+  // Summaries only into the deep link (D3): the rating, never the goal text.
+  // Cleared whenever there is no rating, so a stale result never rides along.
+  const save = root.querySelector<HTMLAnchorElement>('[data-gc-save]');
+  const setSaveContext = (rating: string | null) => {
+    if (!save) return;
+    const url = new URL(save.href);
+    if (rating) {
+      const ctx = { v: 1, kind: 'tool', tool_id: TOOL_ID, inputs_summary: 'one IEP goal', result_summary: rating };
+      url.searchParams.set('wp_ctx', base64url(JSON.stringify(ctx)));
+    } else {
+      url.searchParams.delete('wp_ctx');
+    }
+    save.href = url.toString();
+  };
+
+  function decline(message: string, outcome: string | null): void {
+    out!.append(el('p', 'gc-empty', message));
+    setSaveContext(null);
+    if (outcome) window.plausible?.('tool_completed', { props: { tool_id: TOOL_ID, locale, outcome } });
+  }
+
   function render(): void {
-    markStarted();
     const r = checkGoal(input!.value);
     out!.replaceChildren();
     if (!r) {
-      out!.append(el('p', 'gc-empty', 'Paste a full goal first. Goals are usually one or two sentences about what your child will do.'));
+      decline('Paste a full goal first. Goals are usually one or two sentences about what your child will do.', null);
       return;
     }
     if (r.kind === 'not-english') {
-      out!.append(el('p', 'gc-empty', 'This check can only read goals written in English for now.'));
-      window.plausible?.('tool_completed', { props: { tool_id: TOOL_ID, locale, outcome: 'not-english' } });
+      decline('This check can only read goals written in English for now.', 'not-english');
+      return;
+    }
+    if (r.kind === 'not-a-goal') {
+      decline(
+        'This doesn\'t look like an annual goal. Goals usually say what your child "will" do, like "Maya will answer 4 of 5 questions." Baselines and service lines are separate parts of the IEP.',
+        'not-a-goal',
+      );
       return;
     }
 
-    const head = el('div', 'gc-verdict');
-    head.append(el('span', `gc-badge gc-${r.rating}`, RATING_LABEL[r.rating]), el('span', 'gc-count', `${r.found} of 5 spotted`));
-    out!.append(head);
+    out!.append(el('p', 'gc-summary', `We spotted ${r.found} of 5 parts in the goal text.`));
 
     if (r.looksLikeSeveralGoals) {
       out!.append(el('p', 'gc-warn', 'This looks like more than one goal. Each goal should name all five parts, so try them one at a time.'));
@@ -88,8 +113,13 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
       li.append(el('span', 'gc-ic', p.present ? '✓' : '?'));
       const body = el('span', 'gc-part');
       body.append(el('b', undefined, p.label));
-      body.append(el('span', 'gc-state', p.present ? ' — spotted' : ' — not spotted'));
-      if (!p.present) body.append(el('small', undefined, `Not spotted. Check the goal for it: ${p.hint}`));
+      body.append(el('span', 'gc-state', p.present ? ' — spotted.' : ' — not spotted.'));
+      if (!p.present) {
+        body.append(el('small', undefined, p.hint));
+        if (p.id === 'timeframe' || p.id === 'measurement') {
+          body.append(el('small', undefined, 'Many IEP forms list this in its own box next to the goal. Check there before asking.'));
+        }
+      }
       li.append(body);
       list.append(li);
     }
@@ -98,21 +128,13 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
     if (r.ask) {
       const ask = el('div', 'gc-ask');
       ask.append(
-        el('b', undefined, 'If it isn\'t there, a friendly ask for the team'),
+        el('b', undefined, "If it isn't anywhere on the goal page, a friendly ask for the team"),
         el('p', undefined, `"${r.ask}"`),
       );
       out!.append(ask);
     }
 
     window.plausible?.('tool_completed', { props: { tool_id: TOOL_ID, locale, outcome: r.rating } });
-
-    // Summaries only into the deep link (D3): the rating, never the goal text.
-    const save = root.querySelector<HTMLAnchorElement>('[data-gc-save]');
-    if (save) {
-      const url = new URL(save.href);
-      const ctx = { v: 1, kind: 'tool', tool_id: TOOL_ID, inputs_summary: 'one IEP goal', result_summary: r.rating };
-      url.searchParams.set('wp_ctx', base64url(JSON.stringify(ctx)));
-      save.href = url.toString();
-    }
+    setSaveContext(r.rating);
   }
 }

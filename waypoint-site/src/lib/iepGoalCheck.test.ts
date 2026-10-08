@@ -92,6 +92,92 @@ describe('golden — well-written goals are never marked deficient', () => {
   });
 });
 
+/**
+ * Golden set A2 — every wording the second adversarial review reproduced as a
+ * false "not spotted" (school-year ranges, all-caps months, seasons, ordinals,
+ * on-task intervals, reduction goals, continue-to, leading conditions, "as
+ * indicated by", a second "will" in one sentence). All five must be spotted.
+ */
+describe('golden A2 — review-reproduced complete goals', () => {
+  it.each([
+ "By the end of the 2026-2027 school year, during toileting routines, Sam will independently use the restroom with 100% accuracy on 5 consecutive days as measured by staff checklist.",
+ "By the end of the 2026–27 school year, when given a grade-level passage, Sam will read 90 wcpm as measured by DIBELS.",
+ "Within the next 12 months, given a visual schedule, Sam will transition within 2 minutes in 4 of 5 opportunities, as measured by staff data.",
+ "By JUNE 2027, when given a writing prompt, Sam will write 5 sentences, as measured by work samples.",
+ "by june 2027, during independent work, Sam will complete 4 of 5 math problems, as measured by teacher data.",
+ "By spring 2027, during small group, Sam will answer 4 of 5 questions, as measured by teacher probes.",
+ "By the end of the first trimester, during recess, Sam will join a game 3 times per week, as measured by staff observation.",
+ "By 3rd quarter, in the general education classroom, Sam will ask for help 3 times per day, per teacher report.",
+ "By Sam's next annual IEP, given a field of 3, Sam will identify the main idea in 4 of 5 trials, as measured by teacher data.",
+ "By the conclusion of this IEP, during transitions, Sam will follow a 2-step direction in 80% of opportunities, as measured by staff data.",
+ "By 6-15-2027, given a passage, Sam will retell 3 key events in 4 of 5 trials, as measured by teacher records.",
+ "By 06.15.2027, given a passage, Sam will retell 3 key events in 4 of 5 trials, as measured by teacher records.",
+ "By May 2027, during independent work, Sam will be on task for 80% of intervals, as measured by teacher data.",
+ "By May 2027, during whole-group instruction, Sam will be seated in his chair for 15 minutes, as measured by staff data.",
+ "By May 2027, at recess, Sam will decrease tantrums to fewer than 2 per week, as measured by staff logs.",
+ "By May 2027, during transitions, Sam will reduce elopement to zero incidents per week, as measured by staff data.",
+ "By May 2027, given grade-level text, Sam will increase fluency from 60 wcpm to ninety wcpm, as measured by DIBELS.",
+ "By May 2027, during snack, Sam will continue to use his AAC device to request items in 4 of 5 opportunities, as measured by SLP data.",
+ "By the end of the IEP period, using manipulatives, Sam will count objects up to 20 with 1:1 correspondence in 4/5 trials as measured by teacher data.",
+ "By May 2027, with sentence starters, Sam will write a 3-sentence paragraph in 4 of 5 trials, as measured by work samples.",
+ "By May 2027, with 1 verbal prompt, Sam will start a task within 2 minutes in 4 of 5 trials, as measured by staff data.",
+ "By May 2027, with fading adult prompts, Sam will pack his backpack in 4 of 5 days, as measured by staff checklist.",
+ "By May 2027, after reading a grade-level passage, Sam will answer 4 of 5 questions, as measured by teacher probes.",
+ "By May 2027, when Sam becomes frustrated, Sam will request a break in 4 of 5 opportunities, as measured by staff data.",
+ "By May 2027, when it is time to transition, Sam will move to the next activity within 1 minute in 80% of opportunities, as measured by staff data.",
+ "By May 2027, in a 1:1 setting, Sam will produce /s/ in words with 80% accuracy, as measured by SLP data.",
+ "By May 2027, in the presence of peers, Sam will greet a peer 3 times per day, as measured by staff observation.",
+ "By May 2027, in response to a peer greeting, Sam will respond verbally in 4 of 5 opportunities, as measured by staff data.",
+ "By May 2027, at the sentence level, Sam will use regular past tense in 80% of opportunities, as measured by SLP probes.",
+ "By May 2027, given a passage, Sam will answer 4 of 5 questions, as indicated by teacher data.",
+ "By May 2027, given a passage, Sam will answer 4 of 5 questions, as shown by work samples.",
+ "By May 2027, given a passage, Sam will answer 4 of 5 questions, as noted in teacher records.",
+ "By May 2027, given a passage, Sam will answer 4 of 5 questions by teacher observation.",
+ "By May 2027, given a passage, Sam will answer 4 of 5 questions (teacher observation).",
+ "By May 2027, given a passage, Sam will answer 4 of 5 questions. Data will be collected weekly by the SLP.",
+ "By May 2027, given a passage, Sam will answer 4 of 5 questions, according to the SLP.",
+ "By May 2027, with staff support, the teacher will provide a visual schedule and Sam will request a break in 4 of 5 trials as measured by staff data.",
+  ])('%s', (goal) => {
+    expect(checked(goal).parts.filter((p) => !p.present).map((p) => p.id)).toEqual([]);
+  });
+});
+
+/**
+ * Golden set B — the other error direction: a goal missing a part must keep
+ * it missing, or a parent is told a goal is complete and never asks.
+ */
+describe('golden B — a missing part stays missing', () => {
+  it.each([
+ ["By May 2027, Sam will write a paragraph with an accuracy of 80%, as measured by work samples.","conditions"],
+ ["By May 2027, Sam will spell words with one hundred percent accuracy, as measured by teacher data.","conditions"],
+ ["By May 2027, Sam will answer questions in 4 of 5 trials with the SLP measuring progress through probes.","conditions"],
+ ["During the 2026-27 school year, Sam will answer 4 of 5 questions, as measured by teacher data.","conditions"],
+ ["By May 2027, Sam will answer 4 of 5 questions, with data collected during the year by the teacher.","conditions"],
+ ["Sam will answer questions by marking the picture in 4 of 5 trials.","timeframe"],
+ ["Given a passage read by the teacher, Maya will retell it in 4 of 5 trials.","timeframe"],
+ ["Sam will be aware of his emotions.","skill"],
+ ["Sam will continue to improve his reading.","skill"],
+ ["By May 2027, Sam will read charts and graphs.","measurement"],
+ ["Sam will improve reading by 50%.","skill"],
+  ] as Array<[string, GoalPartId]>)('%s → %s not spotted', (goal, id) => {
+    expect(presentIds(goal)).not.toContain(id);
+  });
+});
+
+describe('declined input', () => {
+  it.each([
+    'Maya reads well.',
+    'Baseline: As of 9/2026, Sam completes 2 of 5 tasks independently, per teacher data.',
+    'The district provides 30 minutes of speech therapy 2 times per week.',
+  ])('declines text with no "will"/"shall" as not a goal: %j', (g) => {
+    expect(checkGoal(g)).toEqual({ kind: 'not-a-goal' });
+  });
+
+  it('reads a short English goal for a child with an accented name', () => {
+    expect(checkGoal('Sofía Núñez will read 90 wcpm per DIBELS.')!.kind).toBe('checked');
+  });
+});
+
 describe('timeframe', () => {
   it.each([
     'By June 2027, Maya will write a paragraph.',
@@ -191,7 +277,6 @@ describe('observable skill', () => {
     'Maya will utilize appropriate coping skills.',
     'Maya will work towards grade-level reading.',
     'By May 2027, Maya will have improved her behavior by 50%.',
-    'Maya reads well.',
   ])('flags no observable skill in %j', (g) => {
     expect(presentIds(g)).not.toContain('skill');
   });
@@ -340,6 +425,7 @@ describe('privacy guard — the goal check never sends what a parent pastes', ()
     path.join(here, 'iepGoalCheck.ts'),
     path.join(here, 'iepGoalCheckUi.ts'),
     path.join(here, '..', 'components', 'GoalCheck.astro'),
+    path.join(here, 'appLinks.ts'),
   ];
   const FORBIDDEN = [
     /\bfetch\s*\(/,
@@ -352,6 +438,10 @@ describe('privacy guard — the goal check never sends what a parent pastes', ()
     /document\.cookie/,
     /\bimport\s*\(/,
     /<form\b/,
+    /new\s+Image\b/,
+    /location\.(?:assign|replace|href\s*=)/,
+    /window\.open\b/,
+    /postMessage\b/,
   ];
 
   it.each(FILES)('%s contains no network, storage, or form submission', (file) => {

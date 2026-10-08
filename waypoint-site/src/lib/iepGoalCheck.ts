@@ -43,11 +43,16 @@ export interface GoalNotEnglish {
   kind: 'not-english';
 }
 
+/** Text with no "will"/"shall" (a baseline, a services line) is declined, not rated. */
+export interface GoalNotAGoal {
+  kind: 'not-a-goal';
+}
+
 export const MIN_GOAL_LENGTH = 15;
 export const MAX_GOAL_LENGTH = 2000;
 
 const NUM_WORD =
-  '(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)';
+  '(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)';
 const NUMBER = `(?:\\d+(?:\\.\\d+)?|${NUM_WORD})`;
 /** Capitalised month names only, so "Maya", "marking", "decoding" never read as dates. */
 const MONTHS =
@@ -91,14 +96,19 @@ export const GOAL_PARTS: readonly GoalPart[] = [
 const TIMEFRAME_I = new RegExp(
   [
     // "in 12 months", "within one year", "over the next 36 weeks"
-    `\\b(?:in|within|over the next|in the next|after)\\s+${NUMBER}\\s+(?:school\\s+|calendar\\s+|instructional\\s+)?(?:years?|months?|weeks?)\\b`,
+    `\\b(?:in|within|within the next|over the next|in the next|after)\\s+${NUMBER}\\s+(?:school\\s+|calendar\\s+|instructional\\s+)?(?:years?|months?|weeks?)\\b`,
     // "by the end of the IEP year", "by her annual review", "by the next IEP meeting",
     // "by the end of the IEP" — but never "by the IEP team"
-    `\\b(?:by|before|on or before|until|through|within)\\s+(?:the\\s+)?(?:end of\\s+(?:the\\s+)?)?(?:(?:her|his|their|the|next|current|this|annual)\\s+)*(?:school year|IEP(?:\\s+(?:year|meeting|review|date|period|term|cycle))?(?!\\s+(?:team|members?|case|manager|coordinator))\\b|annual (?:review|IEP|goal date)|review|year|semester|trimester|quarter|grading period|reporting period|progress report)\\b`,
+    `\\b(?:by|before|on or before|until|through|within)\\s+(?:the\\s+)?(?:(?:end|conclusion|close) of\\s+(?:the\\s+)?)?(?:(?:her|his|their|the|next|current|this|annual|[a-z]+'s|first|second|third|fourth|final|last|\\d(?:st|nd|rd|th)|20\\d\\d\\s*[-\u2013/]\\s*(?:20)?\\d\\d)\\s+)*(?:school year|IEP(?:\\s+(?:year|meeting|review|date|period|term|cycle))?(?!\\s+(?:team|members?|case|manager|coordinator))\\b|annual (?:review|IEP|goal date)|review|year|semester|trimester|quarter|grading period|reporting period|progress report)\\b`,
     // "by 2027", "during the 2026-27 school year"
     `\\b(?:by|before|during|in|through)\\s+(?:the\\s+)?20\\d\\d\\b`,
-    // numeric dates: 6/15/2027, 6/2027
+    // seasons: "by spring 2027", "by the end of spring semester"
+    `\\b(?:by|before|in|until|through|end of)\\s+(?:the\\s+)?(?:spring|summer|fall|autumn|winter)\\s+(?:of\\s+)?(?:20\\d\\d|semester|term|trimester|quarter|break)\\b`,
+    // months in ANY case, but only with a day or year after them ("by JUNE 2027")
+    `\\b(?:by|before|in|until|through|end of|on or before)\\s+(?:the end of\\s+)?(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec)\\.?\\s+(?:\\d{1,2}(?:st|nd|rd|th)?,?\\s+)?(?:of\\s+)?(?:20\\d\\d|\\d{1,2}(?:st|nd|rd|th)?)\\b`,
+    // numeric dates: 6/15/2027, 6-15-2027, 06.15.2027, 6/2027
     `\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b`,
+    `\\b\\d{1,2}[-.]\\d{1,2}[-.](?:20)?\\d\\d\\b`,
     `\\b\\d{1,2}/20\\d\\d\\b`,
     // short date after a deadline word: "by 6/27"
     `\\b(?:by|before|on|until)\\s+\\d{1,2}/\\d{2}\\b`,
@@ -118,17 +128,25 @@ const TIMEFRAME_MONTH = new RegExp(
 const CONDITIONS = new RegExp(
   [
     '\\bgiven\\b',
-    '\\b(?:when|if|while)\\s+(?:\\w+ly\\s+)?(?:given|presented|asked|provided|shown|prompted|offered|faced|frustrated|upset|transitioning|working|reading|writing|playing)\\b',
+    "\\b(?:when|if|while)\\s+(?:[\\w']+\\s+){0,3}?(?:becomes?|is|gets|feels|given|presented|asked|provided|shown|prompted|offered|faced|frustrated|upset|transitioning|working|reading|writing|playing|stuck)\\b",
     '\\bupon\\s+(?:arrival|entering|entry|request|being|a|an|the)\\b',
-    '\\busing\\s+(?:an?|the|her|his|their|visual|assistive|graphic|picture|written)\\b',
-    '\\bduring\\b',
-    '\\bafter\\s+(?:a|an|the|being|lunch|recess)\\b',
+    // "using manipulatives" — but "using teacher data" is a measurement, not a condition
+    '\\busing\\s+(?:an?\\s+|the\\s+|her\\s+|his\\s+|their\\s+)?(?!(?:teacher|staff|weekly|daily|curriculum|progress)?[\\s-]*(?:data|probes?|observations?|records?|checklists?|rubrics?|reports?)\\b)[a-z-]{3,}',
+    // "during independent work" — but "during the 2026-27 school year" is a timeframe
+    '\\bduring\\b(?!\\s+(?:the\\s+)?(?:20\\d\\d|(?:[\\w-]+\\s+){0,2}(?:school\\s+)?year)\\b)',
+    '\\bafter\\s+(?:[a-z]+ing|a|an|the|being|lunch|recess)\\b',
+    '\\bin\\s+(?:a\\s+)?(?:1:1|one-on-one|one-to-one|individual)\\b',
+    '\\bin the presence of\\b',
+    '\\bin response to\\b',
+    '\\bat the (?:word|sentence|paragraph|phrase|conversation) level\\b',
     '\\bfollowing\\s+(?:a|an|the)\\s+(?:[a-z-]+\\s+)?(?:model|prompt|demonstration|cue|break|request|mini-lesson)\\b',
     `\\bacross\\s+(?:\\d+\\s+|${NUM_WORD}\\s+|all\\s+|multiple\\s+)?(?:school\\s+)?(?:settings|environments|classes|subjects|activities|staff|adults|school)\\b`,
     '\\bat\\s+(?:recess|lunch|arrival|dismissal|school|home|circle time|transitions?|the start|the beginning)\\b',
     '\\bon the (?:playground|bus|school bus)\\b',
     '\\bin\\s+(?:the\\s+|a\\s+)?(?:general education|classroom|class|small[- ]group|large[- ]group|whole[- ]group|lunch|recess|community|home|speech|OT|PT|therapy|occupational therapy|resource|RSP|SDC|structured)\\b',
-    '\\bwith(?:out)?\\s+(?:an?\\s+|the\\s+)?(?:visual|verbal|gestural|adult|teacher|peer|graphic|picture|written|minimal|no\\b|one\\b|a\\b|an\\b|the\\b|prompts?|cues?|supports?|access|assistive|calculator|manipulatives|scaffold|check)',
+    // "with a visual timer", "with 1 verbal prompt", "with fading adult prompts" —
+    // never "with an accuracy of", "with one hundred percent", "with the SLP"
+    `\\bwith(?:out)?\\s+(?:an?\\s+|the\\s+|her\\s+|his\\s+|their\\s+)?(?:(?:\\d+|${NUM_WORD}|no more than \\d+|fewer than \\d+)\\s+)?(?:(?:fading|faded|minimal|moderate|maximum|no)\\s+)?(?:visual|verbal|gestural|physical|adult|teacher|staff|peer|graphic|picture|written|sentence starters?|sentence frames?|word banks?|prompts?|cues?|supports?|access|assistive|calculators?|manipulatives|scaffold\\w*|check\\w*|models?|timers?|schedules?|fidgets?|breaks?|accommodations?|AAC|devices?|reminders?)\\b`,
     '\\bfrom\\s+(?:a|an)\\s+(?:field|choice|set|list|bank|menu|array)\\s+of\\b',
   ].join('|'),
   'i',
@@ -140,14 +158,11 @@ const CONDITIONS = new RegExp(
 const VAGUE_VERBS = new Set([
   'understand',
   'develop',
-  'learn',
   'know',
-  'be',
   'become',
   'appreciate',
   'gain',
   'enhance',
-  'continue',
   'feel',
   'grow',
   'progress',
@@ -178,10 +193,19 @@ const JUDGEMENT_OBJECT =
   /^(?:an?\s+|the\s+|their\s+|his\s+|her\s+)?(?:appropriate|positive|good|age[- ]appropriate|expected|acceptable|improved|better|understanding|knowledge|improvement|growth|progress|awareness|competence|mastery|appreciation|skills?)\b/i;
 const ABILITY_TO = /^(?:an?\s+|the\s+|their\s+|his\s+|her\s+)?(?:ability|capacity)\s+to\s+([a-z]+)/i;
 const HAS_NUMBER = new RegExp(`\\b${NUMBER}\\b`, 'i');
+const TO_TARGET = new RegExp(`\\bto\\s+(?:${NUMBER}|zero|fewer|no more|less|at least|a maximum)\\b`, 'i');
+const BE_OBSERVABLE = /^(?:on[- ]task|seated|in (?:his |her |their )?(?:seat|assigned area|line)|present|prepared|ready|engaged)\b/i;
 
 function observableVerb(verb: string, rest: string): boolean {
   if (VAGUE_VERBS.has(verb)) return false;
-  if (CHANGE_VERBS.has(verb)) return /\bto\s+\d/i.test(rest);
+  if (CHANGE_VERBS.has(verb)) return TO_TARGET.test(rest);
+  // "continue to use", "learn to tie": judge the verb after "to"
+  if (verb === 'continue' || verb === 'learn') {
+    const next = /^to\s+([a-z]+)\s*(.*)$/i.exec(rest);
+    return next ? observableVerb(next[1].toLowerCase(), next[2]) : false;
+  }
+  // "be on task for 80% of intervals", "be seated" — observable; "be aware" is not
+  if (verb === 'be') return BE_OBSERVABLE.test(rest) || HAS_NUMBER.test(rest);
   if (verb === 'work') return !/^(?:on|toward|towards)\b/i.test(rest);
   if (verb === 'make') return !/^(?:\w+\s+)?(?:progress|gains?|improvements?|growth)\b/i.test(rest);
   if (verb === 'have') {
@@ -201,7 +225,7 @@ function observableVerb(verb: string, rest: string): boolean {
 function hasObservableSkill(goal: string): boolean {
   // "will [, when given X,] [adverb] [be able to] VERB …" and the "shall" form.
   const re =
-    /\b(?:will|shall)\b\s*(?:,[^,.;]{1,80},\s*)?(?:[a-z]+ly\s+)?(?:be able to\s+(?:[a-z]+ly\s+)?)?([a-z]+)([^.;]*)/gi;
+    /\b(?:will|shall)\b\s*(?:,[^,.;]{1,80},\s*)?(?:[a-z]+ly\s+)?(?:be able to\s+(?:[a-z]+ly\s+)?)?([a-z]+)([^.;]*?)(?=\b(?:will|shall)\b|[.;]|$)/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(goal)) !== null) {
     if (observableVerb(m[1].toLowerCase(), m[2].trim())) return true;
@@ -228,7 +252,11 @@ const MEASURE_NOUN =
 
 const MEASUREMENT = new RegExp(
   [
-    '\\b(?:measured|documented|recorded|evidenced|determined|monitored|tracked|assessed|observed|charted|graphed|reported|verified|collected|evaluated)\\s+(?:by|in|on|through|using|via|with|from)\\b',
+    '\\b(?:measured|documented|recorded|evidenced|determined|monitored|tracked|assessed|observed|charted|graphed|reported|verified|collected|evaluated|indicated|shown|noted|kept|maintained)\\s+(?:[a-z]+ly\\s+)?(?:by|in|on|through|using|via|with|from)\\b',
+    `\\bby\\s+(?:[\\w-]+\\s+){0,2}(?:observations?|data|probes?|work samples?|records?|checklists?|rubrics?|assessments?|reports?)\\b`,
+    '\\((?:[\\w-]+\\s+){0,3}(?:observations?|data|probes?|records?|checklists?|rubrics?|reports?|samples?)\\)',
+    '\\bdata\\s+(?:will\\s+be\\s+)?(?:collected|recorded|kept|tracked|charted)\\b',
+    '\\baccording to (?:the\\s+)?(?:teacher|SLP|OT|PT|case manager|staff|therapist|aide)\\b',
     `\\b(?:according to|based on|per|via|through|using|from)\\s+(?:[\\w-]+\\s+){0,3}${MEASURE_NOUN}\\b`,
     '\\bprogress monitoring\\b',
     '\\b(?:DIBELS|CBM|running records?|curriculum[- ]based measur\\w+)\\b',
@@ -239,7 +267,9 @@ const MEASUREMENT = new RegExp(
 // ─── Language ───────────────────────────────────────────────────────────────
 
 const EN_WORDS = /\b(?:the|will|shall|and|to|of|by|with|when|given|her|his|their|in|a|an)\b/gi;
-const ES_WORDS = /\b(?:el|la|los|las|de|del|que|y|para|con|según|cuando|dado|dada|su|sus|en|un|una|por)\b|[áéíóúñ¿¡]/gi;
+const ES_WORDS = /\b(?:el|la|los|las|de|del|que|y|para|con|según|cuando|dado|dada|su|sus|en|un|una|por)\b|[¿¡]/gi;
+/** Lowercase-initial words with an accent ("responderá"); capitalized ones are usually names. */
+const ES_ACCENTED = /(?<![\p{L}])[a-zà-ÿ]*[áéíóúñ][a-zà-ÿ]*/gu;
 
 /**
  * Whether the text reads as Spanish (or another non-English language) rather
@@ -251,8 +281,21 @@ const ES_WORDS = /\b(?:el|la|los|las|de|del|que|y|para|con|según|cuando|dado|da
  */
 export function looksNotEnglish(goal: string): boolean {
   const en = goal.match(EN_WORDS)?.length ?? 0;
-  const es = goal.match(ES_WORDS)?.length ?? 0;
+  const es = (goal.match(ES_WORDS)?.length ?? 0) + (goal.match(ES_ACCENTED)?.length ?? 0);
   return es >= 3 && es > en;
+}
+
+/**
+ * A clause before "<subject> will" — "By May 2027, using manipulatives, Sam
+ * will …" — is a condition, once any timeframe segment is set aside.
+ */
+function hasLeadingCondition(goal: string): boolean {
+  const m = /^(.{3,160}?),\s*(?:the student|student|[A-Z][\p{L}'-]+|he|she|they)\s+(?:will|shall)\b/u.exec(goal);
+  if (!m) return false;
+  return m[1]
+    .split(',')
+    .map((seg) => seg.trim())
+    .some((seg) => seg.split(/\s+/).length >= 2 && !TIMEFRAME_I.test(seg) && !TIMEFRAME_MONTH.test(seg));
 }
 
 /**
@@ -287,17 +330,18 @@ export function joinPhrases(items: readonly string[]): string {
  * Checks one IEP annual goal for the five parts of a measurable goal.
  *
  * @param raw - The goal as pasted by a parent.
- * @returns The result; `not-english` when the rules cannot read it; null when
- *   the text is too short to be a goal.
+ * @returns The result; `not-english` when the rules cannot read it;
+ *   `not-a-goal` when there is no "will"/"shall"; null when too short.
  */
-export function checkGoal(raw: string): GoalCheckResult | GoalNotEnglish | null {
+export function checkGoal(raw: string): GoalCheckResult | GoalNotEnglish | GoalNotAGoal | null {
   const goal = normalizeGoal(raw).slice(0, MAX_GOAL_LENGTH);
   if (goal.length < MIN_GOAL_LENGTH) return null;
   if (looksNotEnglish(goal)) return { kind: 'not-english' };
+  if (!/\b(?:will|shall)\b/i.test(goal)) return { kind: 'not-a-goal' };
 
   const present: Record<GoalPartId, boolean> = {
     timeframe: TIMEFRAME_I.test(goal) || TIMEFRAME_MONTH.test(goal),
-    conditions: CONDITIONS.test(goal),
+    conditions: CONDITIONS.test(goal) || hasLeadingCondition(goal),
     skill: hasObservableSkill(goal),
     criterion: CRITERION.test(goal),
     measurement: MEASUREMENT.test(goal),
@@ -315,9 +359,3 @@ export function checkGoal(raw: string): GoalCheckResult | GoalNotEnglish | null 
   return { kind: 'checked', rating, found, parts, ask, looksLikeSeveralGoals: goalSentences >= 3 };
 }
 
-/** Display words for each rating — shared by the page and the homepage embed. */
-export const RATING_LABEL: Record<GoalRating, string> = {
-  strong: 'All five parts spotted',
-  adequate: 'Some parts not spotted',
-  'needs-work': 'Most parts not spotted',
-};
