@@ -1,0 +1,284 @@
+---
+/**
+ * "See it work" — five app screens behind a WAI-ARIA tablist (initiative 013).
+ * Sample family is fictional ("Maya"); never a real family's data.
+ *
+ * Progressive: without JS every panel renders, stacked, and the tab row stays
+ * hidden; the script reveals the tabs and shows one panel at a time.
+ *
+ * No Free/Premium tags on purpose: the site's pricing page and the app's
+ * entitlements disagree on which tier carries several of these features, so
+ * the page points to /pricing/ instead of restating either.
+ */
+import PhoneFrame from './PhoneFrame.astro';
+import '../../styles/showcase.css';
+
+const panels = [
+  { id: 'ask', tab: 'Ask the Navigator' },
+  { id: 'draft', tab: 'Draft the email' },
+  { id: 'iep', tab: 'IEP analysis' },
+  { id: 'plan', tab: 'Your action plan' },
+  { id: 'stack', tab: 'Benefits stack' },
+];
+---
+
+<div class="showcase" data-showcase>
+  <div class="tabs" role="tablist" aria-label="App features" data-tablist hidden>
+    {
+      panels.map((p, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`sc-tab-${p.id}`}
+          aria-controls={`sc-panel-${p.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+        >
+          {p.tab}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="panel" id="sc-panel-ask" role="tabpanel" aria-labelledby="sc-tab-ask">
+    <PhoneFrame
+      tab="Learn"
+      appBar="Waypoint Navigator"
+      label="Sample Navigator answer: a parent asks about a behavior assessment, and the answer separates their right, something good to know, and something to watch out for, each with its citation, then offers to draft the request."
+    >
+      <div class="ms-tone"><span class="on">Collaborative</span><span>Assertive</span><span>Advocacy</span></div>
+      <div class="ms-me">Can I ask for a behavior assessment before the next IEP meeting?</div>
+      <div class="ms-ai">Yes, and you don't have to wait for the meeting. Put the request in writing so the timeline starts.</div>
+      <div class="ms-note ms-right"><b>YOUR RIGHT</b>You can ask for an IEP meeting at any time. Once the district receives your written request, it holds the meeting within 30 days, not counting breaks over five school days (Ed Code §56343.5).</div>
+      <div class="ms-note ms-know"><b>GOOD TO KNOW</b>A written request for an assessment starts a separate clock: an assessment plan within 15 calendar days (Ed Code §56321).</div>
+      <div class="ms-note ms-watch"><b>WATCH OUT</b>If the team says no, ask for that answer in writing.</div>
+      <div class="ms-btn">Want me to draft that request? ›</div>
+    </PhoneFrame>
+    <div class="copy">
+      <h3>Ask anything. Get the answer and the law behind it.</h3>
+      <ul>
+        <li>Plain-language answers that know your child's age, diagnosis, county, and Regional Center.</li>
+        <li>Each answer separates <b>your right</b>, <b>good to know</b>, and <b>watch out</b>, with the citation for each.</li>
+        <li>It starts collaborative. You decide if and when the tone firms up.</li>
+        <li>One tap turns an answer into a drafted letter or a step on your plan.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="panel" id="sc-panel-draft" role="tabpanel" aria-labelledby="sc-tab-draft">
+    <PhoneFrame
+      appBar="Letters & Drafts"
+      label="Sample drafted email: a warm request to a case manager for a full evaluation, marked ready to send, with Copy and Open in Mail buttons."
+    >
+      <div style="font-weight:700;font-size:12.5px">Your draft. Edit anything, then send.</div>
+      <div class="ms-ok">✓ No blanks left. Ready to send.</div>
+      <div class="ms-letter">
+        <p>Hi Ms. Lopez,</p>
+        <p>I'm hoping we can get Maya a full evaluation: behavior (an FBA), social-emotional, and speech. Her anxiety is showing up a lot at school, and we'd like to understand what's behind it so her plan fits her. Could you send me an assessment plan to sign?</p>
+        <p>Happy to talk anytime. Thank you!</p>
+      </div>
+      <div class="ms-meta">To: Ms. Lopez (case.manager@district.example)<br />Subject: Assessment request for Maya</div>
+      <div class="ms-row"><div class="ms-btn">Copy</div><div class="ms-btn ms-outline">Open in Mail</div></div>
+    </PhoneFrame>
+    <div class="copy">
+      <h3>The friendly email, already written.</h3>
+      <ul>
+        <li>Pick a letter and a tone: <b>friendly and warm</b>, <b>professional</b>, or <b>strong and direct</b>.</li>
+        <li>Filled in with your child's details and the right person's name. Blanks are flagged before you send.</li>
+        <li>Sending it starts the clock, and Waypoint keeps track of the reply.</li>
+        <li>It always goes out under your name, after you've read it.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="panel" id="sc-panel-iep" role="tabpanel" aria-labelledby="sc-tab-iep">
+    <PhoneFrame
+      appBar="IEP Review"
+      label="Sample IEP analysis: goals rated strong, adequate, or weak, a plain-language bottom line, the good news, and what to ask the team about."
+    >
+      <div class="ms-stats"><div class="s1"><b>1</b>Strong</div><div class="s2"><b>2</b>Adequate</div><div class="s3"><b>1</b>Weak</div><div class="s4"><b>4</b>Total</div></div>
+      <div class="ms-bottomline"><small>THE BOTTOM LINE</small>Maya met two goals and reads at grade level. The team listed five areas of need, and the plan has goals for four.</div>
+      <div class="ms-good"><b>The good news</b><ul><li>Reading grew a full level this fall</li><li>Met her group-participation goal</li></ul></div>
+      <div class="ms-gap"><b>Ask the team about</b><ul><li>A goal for the sensory needs in present levels</li><li>A way to measure the writing goal</li></ul></div>
+      <div class="ms-row"><div class="ms-btn">Meeting prep</div><div class="ms-btn ms-outline">Compare to last year</div></div>
+    </PhoneFrame>
+    <div class="copy">
+      <h3>Upload the IEP. Get the bottom line.</h3>
+      <ul>
+        <li>Every goal rated strong, adequate, or weak, with the reason.</li>
+        <li>Flags needs listed in present levels that have no goal attached.</li>
+        <li>Compares this year's IEP to last year's and builds your meeting-prep questions.</li>
+        <li>Tracks the goals through the year.</li>
+      </ul>
+      <p class="try"><a href="#iep-check">Try the free single-goal check first →</a></p>
+    </div>
+  </div>
+
+  <div class="panel" id="sc-panel-plan" role="tabpanel" aria-labelledby="sc-tab-plan">
+    <PhoneFrame
+      tab="Plan"
+      appBar="Waypoint Plan"
+      label="Sample action plan: progress so far, then the next three steps across benefits, school, and the Regional Center, each with its priority and progress."
+    >
+      <div class="ms-ring"><div><b>18%</b>Complete</div><div><b>12</b>To do</div><div><b>2</b>In progress</div><div><b>3</b>Done</div></div>
+      <div class="ms-muted">Start here: your next 3 steps. One at a time is the plan.</div>
+      <div class="ms-card"><div class="ms-title" style="margin-top:0">Apply for IHSS</div><span class="ms-muted">Benefits · High</span><div class="ms-bar"><i style="width:25%"></i></div><span class="ms-muted">2 of 8 steps done</span></div>
+      <div class="ms-card"><div class="ms-title" style="margin-top:0">Ask for typing and speech-to-text as writing accommodations</div><span class="ms-muted">School · High</span></div>
+      <div class="ms-card"><div class="ms-title" style="margin-top:0">Request an IPP review meeting</div><span class="ms-muted">Regional Center · Medium</span></div>
+    </PhoneFrame>
+    <div class="copy">
+      <h3>One plan across every system.</h3>
+      <ul>
+        <li>School, Regional Center, Medi-Cal, IHSS, and SSI in one list, sorted by what matters next.</li>
+        <li>Each step breaks into small pieces you can check off.</li>
+        <li>Due dates come from the law and from your own records.</li>
+        <li>Save anything from a Navigator answer straight to the plan.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="panel" id="sc-panel-stack" role="tabpanel" aria-labelledby="sc-tab-stack">
+    <PhoneFrame
+      tab="Journey"
+      appBar="Resource Stack"
+      label="Sample benefits stack: benefit layers in order, showing which ones the family already has, which is in progress, and which comes next."
+    >
+      <div class="ms-layer"><h5>SSI cash benefit <span>Later</span></h5>Parent income stops counting after your child turns 18.</div>
+      <div class="ms-builds">▲ builds on</div>
+      <div class="ms-layer ms-next"><h5>Self-Determination budget <span>Next</span></h5>A budget you direct, for the gaps below.</div>
+      <div class="ms-builds">▲ builds on</div>
+      <div class="ms-layer"><h5>IHSS paid care hours <span>In progress</span></h5>Pays a caregiver, which can be you.</div>
+      <div class="ms-builds">▲ builds on</div>
+      <div class="ms-layer"><h5>Medi-Cal <span>Have it</span></h5>Through institutional deeming.</div>
+    </PhoneFrame>
+    <div class="copy">
+      <h3>See which benefits you have, and what comes next.</h3>
+      <ul>
+        <li>Benefit layers in an order that protects what each one pays for.</li>
+        <li>Each layer shows the rule behind it and the step that unlocks it.</li>
+        <li>Built from your child's age, diagnosis, and what you already have.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-showcase]').forEach((root) => {
+    const list = root.querySelector<HTMLElement>('[data-tablist]');
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    if (!list || tabs.length === 0) return;
+    const select = (tab: HTMLButtonElement, focus: boolean) => {
+      for (const t of tabs) {
+        const on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = document.getElementById(t.getAttribute('aria-controls') ?? '');
+        if (panel) panel.hidden = !on;
+      }
+      if (focus) tab.focus();
+    };
+    list.hidden = false;
+    root.classList.add('is-tabbed');
+    select(tabs[0], false);
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(t, false));
+      t.addEventListener('keydown', (e) => {
+        const n = tabs.length;
+        const next =
+          e.key === 'ArrowRight' ? tabs[(i + 1) % n]
+          : e.key === 'ArrowLeft' ? tabs[(i - 1 + n) % n]
+          : e.key === 'Home' ? tabs[0]
+          : e.key === 'End' ? tabs[n - 1]
+          : null;
+        if (!next) return;
+        e.preventDefault();
+        select(next, true);
+      });
+    });
+  });
+</script>
+
+<style>
+  .tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 2px 8px;
+    margin-bottom: 22px;
+  }
+  .tabs[hidden] {
+    display: none;
+  }
+  .tabs button {
+    flex: none;
+    border: 1.5px solid var(--color-border-strong);
+    background: var(--color-panel);
+    border-radius: 999px;
+    padding: 9px 16px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--color-ink);
+    cursor: pointer;
+  }
+  .tabs button[aria-selected='true'] {
+    background: var(--color-pine);
+    border-color: var(--color-pine);
+    color: #fff;
+  }
+  .tabs button:focus-visible {
+    outline: 3px solid var(--color-pine);
+    outline-offset: 2px;
+  }
+  .panel {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+  }
+  .panel[hidden] {
+    display: none;
+  }
+  .showcase:not(.is-tabbed) .panel + .panel {
+    margin-top: 48px;
+  }
+  @media (max-width: 860px) {
+    .panel {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 26px;
+    }
+  }
+  .copy {
+    min-width: 0;
+  }
+  .copy h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.55rem;
+    line-height: 1.2;
+    margin: 0 0 12px;
+  }
+  .copy ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .copy li {
+    position: relative;
+    padding-left: 24px;
+  }
+  .copy li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--color-sage-ink);
+    font-weight: 800;
+  }
+  .try {
+    margin: 16px 0 0;
+    font-weight: 700;
+  }
+</style>
