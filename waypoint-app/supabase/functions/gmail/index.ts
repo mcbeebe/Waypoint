@@ -25,6 +25,7 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { b64url, buildRawMessage } from '../_shared/mime.ts';
+import { threadOrganization } from '../_shared/threadOrg.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -261,12 +262,23 @@ serve(async (req) => {
         })
         .eq('id', communicationId);
     } else if (family?.id) {
+      // A reply sent from the paper trail takes its thread's label (see
+      // _shared/threadOrg.ts); a message with no thread is left unlabelled.
+      let organization: string | null = null;
+      const loggedThread = sent.threadId ?? threadId;
+      if (loggedThread) {
+        const { data: threadRows } = await userClient
+          .from('communications')
+          .select('direction, organization, sent_at, occurred_at')
+          .eq('gmail_thread_id', loggedThread);
+        organization = threadOrganization(threadRows ?? []);
+      }
       await userClient.from('communications').insert({
         family_id: family.id,
         kind: 'email',
         subject: replySubject || subject,
         body: messageBody,
-        organization: 'regional_center',
+        organization,
         contact: to,
         status: 'sent',
         sent_at: new Date().toISOString(),
@@ -283,7 +295,7 @@ serve(async (req) => {
   if (action === 'sync') {
     const { data: tracked } = await userClient
       .from('communications')
-      .select('gmail_thread_id, family_id')
+      .select('gmail_thread_id, family_id, direction, organization, sent_at, occurred_at')
       .not('gmail_thread_id', 'is', null)
       .eq('direction', 'outgoing')
       .order('created_at', { ascending: false })
@@ -316,13 +328,16 @@ serve(async (req) => {
         if (!text) continue;
         const fam = tracked?.find((t) => t.gmail_thread_id === threadId)?.family_id;
         if (!fam) continue;
+        const organization = threadOrganization(
+          (tracked ?? []).filter((t) => t.gmail_thread_id === threadId)
+        );
         const receivedAt = new Date(Number(msg.internalDate ?? Date.now())).toISOString();
         const { error: insertErr } = await userClient.from('communications').insert({
           family_id: fam,
           kind: 'email',
           subject: header(msg.payload, 'Subject') || '(no subject)',
           body: text,
-          organization: 'regional_center',
+          organization,
           contact: from,
           status: 'sent',
           sent_at: receivedAt,

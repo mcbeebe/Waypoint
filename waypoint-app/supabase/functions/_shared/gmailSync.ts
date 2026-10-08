@@ -13,6 +13,7 @@
  * No CI covers Edge Functions — test by hand against a live project.
  */
 import type { createClient } from 'jsr:@supabase/supabase-js@2';
+import { threadOrganization, type ThreadRow } from './threadOrg.ts';
 
 type Supabase = ReturnType<typeof createClient>;
 
@@ -100,15 +101,14 @@ async function syncFamily(
 
   const { data: tracked } = await supabase
     .from('communications')
-    .select('gmail_thread_id')
+    .select('gmail_thread_id, direction, organization, sent_at, occurred_at')
     .eq('family_id', familyId)
     .eq('direction', 'outgoing')
     .not('gmail_thread_id', 'is', null)
     .order('created_at', { ascending: false })
     .limit(THREADS_PER_ACCOUNT);
-  const threadIds = [
-    ...new Set(((tracked ?? []) as { gmail_thread_id: string }[]).map((t) => t.gmail_thread_id)),
-  ];
+  const trackedRows = (tracked ?? []) as (ThreadRow & { gmail_thread_id: string })[];
+  const threadIds = [...new Set(trackedRows.map((t) => t.gmail_thread_id))];
   if (threadIds.length === 0) return 0;
 
   const { data: known } = await supabase
@@ -128,6 +128,10 @@ async function syncFamily(
     });
     if (!resp.ok) continue;
     const thread = await resp.json();
+    // Mirrors functions/gmail "sync": the reply takes its thread's label.
+    const organization = threadOrganization(
+      trackedRows.filter((t) => t.gmail_thread_id === threadId)
+    );
     for (const msg of thread.messages ?? []) {
       if (knownIds.has(msg.id)) continue;
       const from = header(msg.payload, 'From');
@@ -141,7 +145,7 @@ async function syncFamily(
         kind: 'email',
         subject: header(msg.payload, 'Subject') || '(no subject)',
         body: text,
-        organization: 'regional_center',
+        organization,
         contact: from,
         status: 'sent',
         sent_at: receivedAt,
