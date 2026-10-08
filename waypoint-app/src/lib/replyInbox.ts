@@ -102,34 +102,32 @@ export function findUnansweredReply(
 /**
  * How long a reply can be "new". Matches migration 062's backfill, and also
  * covers replies synced late — a weeks-old message pulled in after Gmail is
- * reconnected is part of the record, not news.
+ * reconnected is part of the record, not news. One window for every surface:
+ * the Home strip and the paper trail's NEW marker never disagree.
  */
 export const NEW_REPLY_DAYS = 14;
 
 /**
- * Whether the family has yet to open this synced reply (062). Migrations are
- * applied by hand, so the app cannot assume 062: before it, rows simply have
- * no `read_at` key, and treating that as "unread" would pin every reply to
- * Home with no way to clear it — so an absent key is never unread.
+ * Whether this synced reply is new to the family (062): not opened, and from
+ * the last NEW_REPLY_DAYS. Migrations are applied by hand, so the app cannot
+ * assume 062: before it, rows simply have no `read_at` key, and treating that
+ * as "unread" would pin every reply with no way to clear it — so an absent
+ * key is never new.
  */
-export function isUnreadReply(c: Communication): boolean {
-  return c.direction === 'incoming' && !!c.gmail_thread_id && 'read_at' in c && c.read_at == null;
+export function isUnreadReply(c: Communication, now: Date): boolean {
+  if (c.direction !== 'incoming' || !c.gmail_thread_id || !('read_at' in c) || c.read_at != null) {
+    return false;
+  }
+  return new Date(when(c)).getTime() >= now.getTime() - NEW_REPLY_DAYS * 24 * 60 * 60 * 1000;
 }
 
 /**
- * Replies the family has not opened and not answered, from the last
- * NEW_REPLY_DAYS, newest first — what the Home "New reply" strip announces.
- * Answering a reply from Waypoint clears it even if it was never opened,
- * matching the One Thing reply card.
+ * Replies new to the family and not yet answered, newest first — what the
+ * Home "New reply" strip announces. Answering a reply from Waypoint clears it
+ * even if it was never opened, matching the One Thing reply card.
  */
 export function unreadReplies(communications: Communication[], now: Date): UnansweredReply[] {
-  const since = now.getTime() - NEW_REPLY_DAYS * 24 * 60 * 60 * 1000;
   return trackedReplies(communications)
-    .filter(
-      (c) =>
-        isUnreadReply(c) &&
-        new Date(when(c)).getTime() >= since &&
-        !isAnswered(c, communications)
-    )
+    .filter((c) => isUnreadReply(c, now) && !isAnswered(c, communications))
     .map(toUnanswered);
 }

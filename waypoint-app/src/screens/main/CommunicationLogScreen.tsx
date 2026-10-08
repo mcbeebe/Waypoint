@@ -86,7 +86,7 @@ export default function CommunicationLogScreen() {
   useEffect(() => {
     if (!expandedId) return;
     const item = communications.find((c) => c.id === expandedId);
-    if (item && isUnreadReply(item)) void markRead(item.id);
+    if (item && isUnreadReply(item, new Date())) void markRead(item.id);
   }, [expandedId, communications, markRead]);
   const [showAdd, setShowAdd] = useState(false);
 
@@ -156,7 +156,7 @@ export default function CommunicationLogScreen() {
 
   const openReply = useCallback(
     (item: Communication) => {
-      if (isUnreadReply(item)) void markRead(item.id);
+      if (isUnreadReply(item, new Date())) void markRead(item.id);
       const thread = communications
         .filter((c) => c.gmail_thread_id && c.gmail_thread_id === item.gmail_thread_id)
         .sort((a, b) => (a.sent_at ?? a.occurred_at).localeCompare(b.sent_at ?? b.occurred_at));
@@ -181,7 +181,10 @@ export default function CommunicationLogScreen() {
     () => communications.filter((c) => c.direction === 'incoming').length,
     [communications]
   );
-  const unreadCount = useMemo(() => communications.filter(isUnreadReply).length, [communications]);
+  const unreadCount = useMemo(
+    () => communications.filter((c) => isUnreadReply(c, new Date())).length,
+    [communications]
+  );
 
   /** Share the whole (filtered) log as plain text — hearing/advocate prep */
   const handleShareLog = useCallback(async () => {
@@ -314,7 +317,7 @@ export default function CommunicationLogScreen() {
             style={styles.entry}
             onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
             accessibilityRole="button"
-            accessibilityLabel={`${isUnreadReply(item) ? 'New reply, unread. ' : ''}${KIND_CONFIG[item.kind].label}: ${item.subject}`}
+            accessibilityLabel={`${isUnreadReply(item, new Date()) ? 'New reply, unread. ' : ''}${KIND_CONFIG[item.kind].label}: ${item.subject}`}
           >
             <View style={styles.entryTop}>
               <Text style={styles.entryEmoji}>{KIND_CONFIG[item.kind].emoji}</Text>
@@ -336,7 +339,7 @@ export default function CommunicationLogScreen() {
                       <Text style={styles.replyBadgeText}>REPLY</Text>
                     </View>
                   )}
-                  {isUnreadReply(item) && (
+                  {isUnreadReply(item, new Date()) && (
                     <View style={styles.unreadBadge} testID={`unread-${item.id}`}>
                       <Text style={[styles.unreadBadgeText, { fontSize: Math.round(10 * scale) }]}>NEW</Text>
                     </View>

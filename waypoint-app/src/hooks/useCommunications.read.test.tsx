@@ -9,6 +9,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 const h = vi.hoisted(() => ({
   rows: [] as any[],
   updates: [] as unknown[],
+  writeFails: false,
 }));
 
 vi.mock('@/lib/supabase', () => {
@@ -23,7 +24,12 @@ vi.mock('@/lib/supabase', () => {
   const update = (v: unknown) => {
     h.updates.push(v);
     // The write is still in flight: the database keeps read_at null.
-    const chain: any = { eq: () => chain, is: () => chain, then: (r: any) => Promise.resolve({ error: null }).then(r) };
+    const chain: any = {
+      eq: () => chain,
+      is: () => chain,
+      select: () => chain,
+      then: (r: any) => Promise.resolve(h.writeFails ? { data: null, error: { message: 'offline' } } : { data: [{ id: 'r1' }], error: null }).then(r),
+    };
     return chain;
   };
   return { supabase: { from: () => ({ select, update }) } };
@@ -40,6 +46,7 @@ const reply = (over: Record<string, unknown> = {}) => ({
 beforeEach(() => {
   resetSessionReads();
   h.updates = [];
+  h.writeFails = false;
   h.rows = [reply()];
 });
 
@@ -61,6 +68,18 @@ describe('useCommunications read state', () => {
       await home.result.current.refetch();
     });
     expect(home.result.current.communications[0].read_at).toBeTruthy();
+  });
+
+  it('a write that failed is not remembered — the reply is new again on the next load', async () => {
+    h.writeFails = true;
+    const trail = renderHook(() => useCommunications('fam1'));
+    await waitFor(() => expect(trail.result.current.communications).toHaveLength(1));
+    await act(async () => {
+      expect(await trail.result.current.markRead('r1')).toBe(false);
+    });
+    const home = renderHook(() => useCommunications('fam1'));
+    await waitFor(() => expect(home.result.current.communications).toHaveLength(1));
+    expect(home.result.current.communications[0].read_at).toBeNull();
   });
 
   it('opening it again writes nothing; a pre-062 row is never written', async () => {

@@ -22,6 +22,7 @@ import {
   Linking,
   Modal,
   ActivityIndicator,
+  AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -218,12 +219,23 @@ function HomeScreenInner({
   const refetchCommsRef = useRef(refetchComms);
   refetchCommsRef.current = refetchComms;
   const commsFocusedOnce = useRef(false);
+  // The strip's clock ("NEW REPLY · TODAY", the 14-day window): re-read on
+  // focus and when the app returns to the foreground, so Home left open
+  // overnight does not still say "today" about yesterday's reply.
+  const [stripNow, setStripNow] = useState(() => new Date());
   useFocusEffect(
     useCallback(() => {
       if (commsFocusedOnce.current) void refetchCommsRef.current();
       commsFocusedOnce.current = true;
+      setStripNow(new Date());
     }, [])
   );
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') setStripNow(new Date());
+    });
+    return () => sub.remove();
+  }, []);
   const [menuOpen, setMenuOpen] = useState(false);
   // Home search (owner, Aug 31 2026): the composer is a real search now — type
   // a worry and get the guide, the article, or the AI, right where you land.
@@ -400,10 +412,10 @@ function HomeScreenInner({
         : replyStrip({
             communications,
             leadingItemId: triage.item?.id ?? null,
-            now: new Date(),
+            now: stripNow,
             locale: funnelLocale,
           }),
-    [commsLoading, communications, triage.item?.id, funnelLocale]
+    [commsLoading, communications, triage.item?.id, funnelLocale, stripNow]
   );
 
   // Keep the device's scheduled reminders in step with the plan (phase 7). When

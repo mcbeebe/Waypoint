@@ -20,7 +20,7 @@ function reply(over: Partial<Communication> = {}): Communication {
   return comm({
     direction: 'incoming', contact: 'Dana Reyes <dana@example.org>',
     subject: 'Re: IPP Meeting Request — Teddy Rivera',
-    body: 'Yep, I am planning on working on this in the next couple of days.',
+    body: 'Thanks for the note — I’ll look into it and follow up by Friday.',
     sent_at: '2026-10-08T17:01:09Z', occurred_at: '2026-10-08T17:01:09Z', ...over,
   });
 }
@@ -46,17 +46,18 @@ describe('unread replies', () => {
     const { read_at: _drop, ...pre062 } = reply();
     void _drop;
     const rows = [pre062 as Communication];
-    expect(isUnreadReply(rows[0])).toBe(false);
+    expect(isUnreadReply(rows[0], NOW)).toBe(false);
     expect(unreadReplies(rows, NOW)).toEqual([]);
     expect(strip(rows)).toBeNull();
   });
 
   it('outgoing rows, untracked notes and hand-logged incoming entries are never "new replies"', () => {
-    expect(isUnreadReply(comm({}))).toBe(false);
-    expect(isUnreadReply(reply({ gmail_thread_id: null }))).toBe(false);
+    expect(isUnreadReply(comm({}), NOW)).toBe(false);
+    expect(isUnreadReply(reply({ gmail_thread_id: null }), NOW)).toBe(false);
   });
 
   it('a reply older than two weeks is the record, not news — even if synced today', () => {
+    expect(isUnreadReply(reply({ sent_at: '2026-09-20T09:00:00Z', occurred_at: '2026-09-20T09:00:00Z' }), NOW)).toBe(false);
     const late = reply({ sent_at: '2026-09-20T09:00:00Z', occurred_at: '2026-09-20T09:00:00Z' });
     expect(unreadReplies([late], NOW)).toEqual([]);
     const edge = reply({ sent_at: '2026-09-25T09:00:00Z', occurred_at: '2026-09-25T09:00:00Z' });
@@ -77,7 +78,7 @@ describe('replyStrip', () => {
     expect(s.count).toBe(1);
     expect(s.kicker).toBe('NEW REPLY · TODAY');
     expect(s.title).toBe('Dana Reyes replied');
-    expect(s.detail).toBe('“Yep, I am planning on working on this in the next couple of days.”');
+    expect(s.detail).toBe('“Thanks for the note — I’ll look into it and follow up by Friday.”');
     expect(s.cta).toBe('Read');
     expect(s.params).toEqual({ filter: 'replies', highlightId: r.id });
   });

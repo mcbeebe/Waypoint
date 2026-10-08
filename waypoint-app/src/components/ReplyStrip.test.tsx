@@ -9,9 +9,9 @@ const model: ReplyStripModel = {
   count: 1,
   kicker: 'NEW REPLY · TODAY',
   title: 'Dana Reyes replied',
-  detail: '“Yep, I am planning on working on this in the next couple of days.”',
+  detail: '“Thanks for the note — I’ll look into it and follow up by Friday.”',
   cta: 'Read',
-  accessibilityLabel: 'Dana Reyes replied. “Yep…”. Opens your paper trail.',
+  accessibilityLabel: 'Dana Reyes replied. “Thanks…”. Opens your paper trail.',
   params: { filter: 'replies', highlightId: 'r1' },
 };
 

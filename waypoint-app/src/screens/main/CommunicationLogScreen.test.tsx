@@ -4,7 +4,7 @@
  * records it as read. The hook is stubbed; the screen is real.
  */
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 const h = vi.hoisted(() => ({
@@ -59,9 +59,17 @@ import CommunicationLogScreen from './CommunicationLogScreen';
 import { routeParams } from '../../../vitest.setup.ui';
 
 beforeEach(() => {
+  // "New" is a 14-day window: pin the clock (Date only — RTL's waitFor keeps
+  // real timers) so the fixtures are always fresh, whenever CI runs.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-10-08T18:42:00Z'));
   h.markRead = vi.fn(async () => true);
   h.rows = [comm({ id: 'o1' }), reply()];
   for (const k of Object.keys(routeParams)) delete routeParams[k];
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe('Paper Trail read state', () => {
@@ -98,6 +106,13 @@ describe('Paper Trail read state', () => {
     expect(screen.queryByRole('button', { name: /Email: IPP Meeting Request/ })).toBeNull();
     // The reply is expanded: its body is on screen.
     expect(screen.getByText('Body')).toBeTruthy();
+  });
+
+  it('a reply older than two weeks carries no NEW marker and is not counted', () => {
+    h.rows = [comm({ id: 'o1' }), reply({ occurred_at: '2026-09-01T09:00:00Z', sent_at: '2026-09-01T09:00:00Z' })];
+    render(<CommunicationLogScreen />);
+    expect(screen.queryByTestId('unread-r1')).toBeNull();
+    expect(screen.getByText('💬 Replies')).toBeTruthy();
   });
 
   it('before migration 062 there is no read state: no marker, no count, no write', () => {

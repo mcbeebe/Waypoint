@@ -15,7 +15,7 @@
 --
 -- The app tolerates this migration being unapplied: with no read_at on the
 -- rows it fetches, the strip and the dot stay off (lib/replyInbox.ts
--- `hasReadState`), and marking read is a no-op.
+-- `isUnreadReply`), and marking read is a no-op.
 --
 -- Backfill, ONCE: replies already answered on their thread, or older than 14
 -- days (lib/replyInbox.ts NEW_REPLY_DAYS), start read — otherwise applying

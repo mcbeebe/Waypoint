@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const h = vi.hoisted(() => ({
   calls: [] as [string, ...unknown[]][],
   error: null as { message: string } | null,
+  matched: [{ id: 'r1' }] as { id: string }[],
   throws: false,
 }));
 
@@ -16,7 +17,9 @@ vi.mock('@/lib/supabase', () => {
     update: (v: unknown) => (h.calls.push(['update', v]), chain),
     eq: (c: string, v: unknown) => (h.calls.push(['eq', c, v]), chain),
     is: (c: string, v: unknown) => (h.calls.push(['is', c, v]), chain),
-    then: (resolve: (v: unknown) => unknown) => Promise.resolve({ error: h.error }).then(resolve),
+    select: (c: string) => (h.calls.push(['select', c]), chain),
+    then: (resolve: (v: unknown) => unknown) =>
+      Promise.resolve({ data: h.error ? null : h.matched, error: h.error }).then(resolve),
   };
   return {
     supabase: {
@@ -34,6 +37,7 @@ import { markReplyRead } from './useCommunications';
 beforeEach(() => {
   h.calls = [];
   h.error = null;
+  h.matched = [{ id: 'r1' }];
   h.throws = false;
 });
 
@@ -47,6 +51,12 @@ describe('markReplyRead', () => {
     expect(h.calls).toContainEqual(['eq', 'id', 'r1']);
     expect(h.calls).toContainEqual(['eq', 'direction', 'incoming']);
     expect(h.calls).toContainEqual(['is', 'read_at', null]);
+    expect(h.calls).toContainEqual(['select', 'id']);
+  });
+
+  it('is false when no row was stamped — already read, hidden by RLS, or gone', async () => {
+    h.matched = [];
+    expect(await markReplyRead('r1')).toBe(false);
   });
 
   it('reports a failed write — e.g. 062 not applied — without throwing', async () => {
