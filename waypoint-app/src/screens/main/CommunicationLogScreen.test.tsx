@@ -15,7 +15,7 @@ const h = vi.hoisted(() => ({
 function comm(over: Record<string, unknown>) {
   return {
     id: 'c?', family_id: 'fam1', child_id: null, kind: 'email', direction: 'outgoing',
-    contact: null, organization: 'school', subject: 'IPP Meeting Request — Teddy Beebe',
+    contact: null, organization: 'school', subject: 'IPP Meeting Request — Teddy Rivera',
     body: 'Body', template_key: null, status: 'sent', sent_at: '2026-10-07T20:13:00Z',
     occurred_at: '2026-10-07T20:13:00Z', gmail_thread_id: 't1', gmail_message_id: 'm1',
     request_id: null, read_at: null, created_at: '2026-10-07T20:13:00Z',
@@ -24,13 +24,13 @@ function comm(over: Record<string, unknown>) {
 }
 const reply = (over: Record<string, unknown> = {}) =>
   comm({
-    id: 'r1', direction: 'incoming', subject: 'Re: IPP Meeting Request — Teddy Beebe',
-    contact: 'Caitriona Leonard <c@x.com>', gmail_message_id: 'm2',
+    id: 'r1', direction: 'incoming', subject: 'Re: IPP Meeting Request — Teddy Rivera',
+    contact: 'Dana Reyes <d@x.com>', gmail_message_id: 'm2',
     occurred_at: '2026-10-08T17:01:09Z', sent_at: '2026-10-08T17:01:09Z', ...over,
   });
 
 vi.mock('@/hooks/useFamily', () => ({
-  useFamily: () => ({ family: { id: 'fam1', parent_first_name: 'Mike' } }),
+  useFamily: () => ({ family: { id: 'fam1', parent_first_name: 'Sam' } }),
   useChildren: () => ({ children: [] }),
 }));
 vi.mock('@/hooks/useRequests', () => ({ useRequests: () => ({ requests: [] }) }));

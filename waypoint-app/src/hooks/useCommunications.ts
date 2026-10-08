@@ -197,6 +197,30 @@ export async function markCommunicationSent(id: string): Promise<boolean> {
 }
 
 /**
+ * Replies opened in THIS session, id → when. Home and the paper trail each
+ * hold their own copy of the trail, so without this a quick Back could beat
+ * the write: Home's refetch reads the row before the UPDATE lands and the
+ * strip announces a reply the parent just read. Every instance overlays it
+ * on what it fetches. A write that truly failed shows the reply as new again
+ * on the next launch — honest, and nothing is lost.
+ */
+const readThisSession = new Map<string, string>();
+
+/** Overlay this session's opens onto fetched rows (pre-062 rows have no key and are left alone). */
+export function withSessionReads(rows: Communication[]): Communication[] {
+  if (readThisSession.size === 0) return rows;
+  return rows.map((c) => {
+    const at = readThisSession.get(c.id);
+    return at && 'read_at' in c && c.read_at == null ? { ...c, read_at: at } : c;
+  });
+}
+
+/** Test seam: forget this session's opens. */
+export function resetSessionReads(): void {
+  readThisSession.clear();
+}
+
+/**
  * Stamp a synced reply as opened (062). Only the first open counts, so a
  * re-open never moves the time. Returns false when the write did not land —
  * including on a database where 062 is not applied yet, where the app keeps
@@ -235,7 +259,7 @@ export function useCommunications(familyId: string) {
         .order('occurred_at', { ascending: false })
         .limit(200);
       if (dbError) throw new Error(dbError.message);
-      setCommunications((data as Communication[]) ?? []);
+      setCommunications(withSessionReads((data as Communication[]) ?? []));
       setError(null);
     } catch (err) {
       setError(friendlyErrorMessage(err, "Couldn't load your paper trail."));
@@ -316,10 +340,16 @@ export function useCommunications(familyId: string) {
    */
   const markRead = useCallback(async (id: string): Promise<boolean> => {
     const target = communications.find((c) => c.id === id);
-    if (!target || target.direction !== 'incoming' || !('read_at' in target) || target.read_at) {
+    // readThisSession also catches a second call before React re-renders
+    // (a tap and the hand-off effect in the same tick).
+    if (
+      !target || target.direction !== 'incoming' || !('read_at' in target) ||
+      target.read_at || readThisSession.has(id)
+    ) {
       return false;
     }
     const now = new Date().toISOString();
+    readThisSession.set(id, now);
     setCommunications((prev) => prev.map((c) => (c.id === id ? { ...c, read_at: now } : c)));
     return markReplyRead(id);
   }, [communications]);

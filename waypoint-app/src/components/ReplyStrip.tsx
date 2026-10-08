@@ -79,7 +79,8 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: brand.urgent,
+    // pine, not urgent: urgent is reserved for a blown legal clock (theme.ts).
+    backgroundColor: brand.pine,
     borderWidth: 2,
     borderColor: brand.pineTint,
   },

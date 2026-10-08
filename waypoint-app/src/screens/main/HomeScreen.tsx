@@ -212,12 +212,17 @@ function HomeScreenInner({
   // paper trail would otherwise keep its "New reply" strip here until the
   // next cold start. Re-read the trail whenever Home regains focus (the
   // mount itself already loaded it).
+  // The callback is stable on purpose: useFocusEffect re-runs it whenever its
+  // identity changes, and refetch's identity changes when the family loads —
+  // which would fetch the trail twice on every cold start.
+  const refetchCommsRef = useRef(refetchComms);
+  refetchCommsRef.current = refetchComms;
   const commsFocusedOnce = useRef(false);
   useFocusEffect(
     useCallback(() => {
-      if (commsFocusedOnce.current) void refetchComms();
+      if (commsFocusedOnce.current) void refetchCommsRef.current();
       commsFocusedOnce.current = true;
-    }, [refetchComms])
+    }, [])
   );
   const [menuOpen, setMenuOpen] = useState(false);
   // Home search (owner, Aug 31 2026): the composer is a real search now — type

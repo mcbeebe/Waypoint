@@ -104,7 +104,7 @@ elsewhere. The description below is historical.
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
 - **Current state (2026-09-21):** the flagship product. 63 migrations, nine
   Edge Functions in production, 45 screens under `main/` plus auth /
-  onboarding / staff / legal, and a 149-file / 1844-test vitest suite across
+  onboarding / staff / legal, and a 150-file / 1844-test vitest suite across
   four projects. (This line previously read "Auth scaffolding… no screens
   beyond onboarding exist yet.")
 
@@ -113,7 +113,7 @@ elsewhere. The description below is historical.
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
 npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
-npm test            # vitest, FOUR projects, 149 files (163 runs) — CI gate
+npm test            # vitest, FOUR projects, 150 files (164 runs) — CI gate
 npm run build:web   # expo export + postbuild — CI gate (prod bundle)
 npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
 ```

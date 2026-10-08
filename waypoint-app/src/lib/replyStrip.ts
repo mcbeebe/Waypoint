@@ -42,7 +42,7 @@ function picker(locale: FunnelLocale) {
 export function replyStrip(input: ReplyStripInput): ReplyStripModel | null {
   const L = picker(input.locale);
   const leading = input.leadingItemId?.startsWith('reply:') ? input.leadingItemId.slice(6) : null;
-  const unread = unreadReplies(input.communications).filter((u) => u.reply.id !== leading);
+  const unread = unreadReplies(input.communications, input.now).filter((u) => u.reply.id !== leading);
   if (unread.length === 0) return null;
 
   const [first] = unread;

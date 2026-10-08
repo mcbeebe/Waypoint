@@ -17,33 +17,44 @@
 -- rows it fetches, the strip and the dot stay off (lib/replyInbox.ts
 -- `hasReadState`), and marking read is a no-op.
 --
--- Backfill: replies already answered on their thread, or older than 14 days,
--- start read — otherwise applying this would greet every family with every
--- reply they have ever received as "new".
+-- Backfill, ONCE: replies already answered on their thread, or older than 14
+-- days (lib/replyInbox.ts NEW_REPLY_DAYS), start read — otherwise applying
+-- this would greet every family with every reply they ever received as
+-- "new". It runs only in the transaction that ADDS the column: a re-run must
+-- never stamp a reply the family genuinely has not opened yet. A backfilled
+-- read_at is the reply's arrival time — "treated as read on arrival", not a
+-- recorded open; nothing reads the value, only whether it is null.
 --
--- Additive and idempotent; safe to re-run.
+-- Safe to re-run: a second run finds the column and changes nothing.
 -- Rollback: alter table public.communications drop column read_at;
 
-alter table public.communications
-  add column if not exists read_at timestamptz;
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+     where table_schema = 'public' and table_name = 'communications' and column_name = 'read_at'
+  ) then
+    alter table public.communications add column read_at timestamptz;
+
+    update public.communications c
+       set read_at = coalesce(c.sent_at, c.occurred_at)
+     where c.direction = 'incoming'
+       and (
+         c.occurred_at < now() - interval '14 days'
+         or exists (
+           select 1 from public.communications o
+            where o.direction = 'outgoing'
+              and o.family_id = c.family_id
+              and o.gmail_thread_id = c.gmail_thread_id
+              and coalesce(o.sent_at, o.occurred_at) > coalesce(c.sent_at, c.occurred_at)
+         )
+       );
+  end if;
+end
+$$;
 
 comment on column public.communications.read_at is
-  'When the family opened this incoming reply (Home "New reply" strip, paper-trail unread dot). Null = unread. Not the same as answered.';
-
-update public.communications c
-   set read_at = coalesce(c.sent_at, c.occurred_at)
- where c.direction = 'incoming'
-   and c.read_at is null
-   and (
-     c.occurred_at < now() - interval '14 days'
-     or exists (
-       select 1 from public.communications o
-        where o.direction = 'outgoing'
-          and o.family_id = c.family_id
-          and o.gmail_thread_id = c.gmail_thread_id
-          and coalesce(o.sent_at, o.occurred_at) > coalesce(c.sent_at, c.occurred_at)
-     )
-   );
+  'When the family opened this incoming reply (Home "New reply" strip, paper-trail unread dot). Null = unread. Not the same as answered. Rows backfilled by 062 carry their arrival time.';
 
 -- Home asks "any unread replies for this family?" on every load.
 create index if not exists communications_unread_incoming_idx

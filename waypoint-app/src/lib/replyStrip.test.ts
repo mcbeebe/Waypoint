@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { replyStrip } from './replyStrip';
-import { hasReadState, isUnreadReply, unreadReplies } from './replyInbox';
+import { isUnreadReply, unreadReplies } from './replyInbox';
 import type { Communication } from '@/hooks/useCommunications';
 
 let seq = 0;
@@ -18,8 +18,8 @@ function comm(over: Partial<Communication>): Communication {
 }
 function reply(over: Partial<Communication> = {}): Communication {
   return comm({
-    direction: 'incoming', contact: 'Caitriona Leonard <c@embracingautismservices.com>',
-    subject: 'Re: IPP Meeting Request — Teddy Beebe',
+    direction: 'incoming', contact: 'Dana Reyes <dana@example.org>',
+    subject: 'Re: IPP Meeting Request — Teddy Rivera',
     body: 'Yep, I am planning on working on this in the next couple of days.',
     sent_at: '2026-10-08T17:01:09Z', occurred_at: '2026-10-08T17:01:09Z', ...over,
   });
@@ -32,23 +32,22 @@ describe('unread replies', () => {
   it('an unopened reply on a tracked thread is unread; opening it clears it', () => {
     const letter = comm({});
     const r = reply();
-    expect(unreadReplies([letter, r]).map((u) => u.reply.id)).toEqual([r.id]);
-    expect(unreadReplies([letter, { ...r, read_at: '2026-10-08T18:00:00Z' }])).toEqual([]);
+    expect(unreadReplies([letter, r], NOW).map((u) => u.reply.id)).toEqual([r.id]);
+    expect(unreadReplies([letter, { ...r, read_at: '2026-10-08T18:00:00Z' }], NOW)).toEqual([]);
   });
 
   it('answering a reply clears it even if it was never opened', () => {
     const r = reply();
     const answer = comm({ sent_at: '2026-10-08T19:00:00Z', occurred_at: '2026-10-08T19:00:00Z' });
-    expect(unreadReplies([r, answer])).toEqual([]);
+    expect(unreadReplies([r, answer], NOW)).toEqual([]);
   });
 
   it('before migration 062, nothing is unread — a reply is never pinned with no way to clear it', () => {
     const { read_at: _drop, ...pre062 } = reply();
     void _drop;
     const rows = [pre062 as Communication];
-    expect(hasReadState(rows)).toBe(false);
     expect(isUnreadReply(rows[0])).toBe(false);
-    expect(unreadReplies(rows)).toEqual([]);
+    expect(unreadReplies(rows, NOW)).toEqual([]);
     expect(strip(rows)).toBeNull();
   });
 
@@ -57,10 +56,17 @@ describe('unread replies', () => {
     expect(isUnreadReply(reply({ gmail_thread_id: null }))).toBe(false);
   });
 
+  it('a reply older than two weeks is the record, not news — even if synced today', () => {
+    const late = reply({ sent_at: '2026-09-20T09:00:00Z', occurred_at: '2026-09-20T09:00:00Z' });
+    expect(unreadReplies([late], NOW)).toEqual([]);
+    const edge = reply({ sent_at: '2026-09-25T09:00:00Z', occurred_at: '2026-09-25T09:00:00Z' });
+    expect(unreadReplies([edge], NOW).length).toBe(1);
+  });
+
   it('newest first', () => {
     const older = reply({ id: 'old', sent_at: '2026-10-06T09:00:00Z', occurred_at: '2026-10-06T09:00:00Z', gmail_thread_id: 'a' });
     const newer = reply({ id: 'new', gmail_thread_id: 'b' });
-    expect(unreadReplies([older, newer]).map((u) => u.reply.id)).toEqual(['new', 'old']);
+    expect(unreadReplies([older, newer], NOW).map((u) => u.reply.id)).toEqual(['new', 'old']);
   });
 });
 
@@ -70,7 +76,7 @@ describe('replyStrip', () => {
     const s = strip([comm({}), r])!;
     expect(s.count).toBe(1);
     expect(s.kicker).toBe('NEW REPLY · TODAY');
-    expect(s.title).toBe('Caitriona Leonard replied');
+    expect(s.title).toBe('Dana Reyes replied');
     expect(s.detail).toBe('“Yep, I am planning on working on this in the next couple of days.”');
     expect(s.cta).toBe('Read');
     expect(s.params).toEqual({ filter: 'replies', highlightId: r.id });
@@ -80,10 +86,10 @@ describe('replyStrip', () => {
     const a = reply({ id: 'a', gmail_thread_id: 'a' });
     const b = reply({ id: 'b', gmail_thread_id: 'b', contact: 'Lilia <l@rceb.org>', sent_at: '2026-10-07T09:00:00Z', occurred_at: '2026-10-07T09:00:00Z' });
     const c = reply({ id: 'c', gmail_thread_id: 'c', contact: 'Front Desk <fd@x.org>', sent_at: '2026-10-06T09:00:00Z', occurred_at: '2026-10-06T09:00:00Z' });
-    expect(strip([a, b])!.detail).toBe('Caitriona Leonard and 1 other');
+    expect(strip([a, b])!.detail).toBe('Dana Reyes and 1 other');
     const s = strip([a, b, c])!;
     expect(s.title).toBe('3 new replies');
-    expect(s.detail).toBe('Caitriona Leonard and 2 others');
+    expect(s.detail).toBe('Dana Reyes and 2 others');
     expect(s.kicker).toBe('NEW REPLIES');
     expect(s.params).toEqual({ filter: 'replies' });
   });
@@ -100,7 +106,7 @@ describe('replyStrip', () => {
   it('quotes a short reply whole, marks a cut one, and falls back to the subject when empty', () => {
     expect(strip([reply({ body: 'OK.' })])!.detail).toBe('“OK.”');
     expect(strip([reply({ body: 'x'.repeat(200) })])!.detail).toBe(`“${'x'.repeat(140)}…”`);
-    expect(strip([reply({ body: '' })])!.detail).toBe('Re: IPP Meeting Request — Teddy Beebe');
+    expect(strip([reply({ body: '' })])!.detail).toBe('Re: IPP Meeting Request — Teddy Rivera');
   });
 
   it('a reply from yesterday says so', () => {

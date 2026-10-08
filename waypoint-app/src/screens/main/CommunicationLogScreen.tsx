@@ -38,6 +38,7 @@ import { usePremiumGuard } from '@/hooks/usePremiumGuard';
 import EmptyState from '@/components/EmptyState';
 import { SkeletonCard } from '@/components/ui';
 import { brand, colors, fonts, spacing, radii } from '@/lib/theme';
+import { useTextScale } from '@/lib/textSize';
 
 function formatWhen(iso: string): string {
   const d = new Date(iso);
@@ -46,6 +47,8 @@ function formatWhen(iso: string): string {
 
 export default function CommunicationLogScreen() {
   const { guard } = usePremiumGuard();
+  // The NEW marker follows the family's text size, unlike a fixed-size badge.
+  const { scale } = useTextScale();
   const { family } = useFamily();
   const { showToast } = useToast();
   const {
@@ -335,7 +338,7 @@ export default function CommunicationLogScreen() {
                   )}
                   {isUnreadReply(item) && (
                     <View style={styles.unreadBadge} testID={`unread-${item.id}`}>
-                      <Text style={styles.unreadBadgeText}>NEW</Text>
+                      <Text style={[styles.unreadBadgeText, { fontSize: Math.round(10 * scale) }]}>NEW</Text>
                     </View>
                   )}
                 </View>
@@ -575,15 +578,15 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
     letterSpacing: 0.5,
   },
-  // Unread reply (062). White on brand.urgent clears AA at this size.
+  // Unread reply (062). pine, not urgent — urgent is reserved for a blown
+  // legal clock (theme.ts); white on pine clears AA.
   unreadBadge: {
-    backgroundColor: brand.urgent,
+    backgroundColor: brand.pine,
     borderRadius: radii.sm,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   unreadBadgeText: {
-    fontSize: 9,
     color: colors.white,
     fontWeight: fonts.weights.bold as '700',
     letterSpacing: 0.5,
