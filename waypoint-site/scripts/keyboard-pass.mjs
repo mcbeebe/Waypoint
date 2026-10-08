@@ -39,6 +39,7 @@ const PAGES = [
   '/',
   '/tools/ssi-deeming-calculator/',
   '/tools/regional-center-finder/',
+  '/tools/iep-goal-check/',
   '/guides/benefits/ihss-protective-supervision/',
   '/start/',
   '/search/',
@@ -53,6 +54,7 @@ const ALWAYS_BUILT = new Set([
   '/',
   '/tools/ssi-deeming-calculator/',
   '/tools/regional-center-finder/',
+  '/tools/iep-goal-check/',
   '/search/',
 ]);
 const PRODUCTION = process.argv.includes('--production');
@@ -331,6 +333,24 @@ try {
       failures.push('/tools/regional-center-finder/: Enter on the focused button produced no match');
     }
   }
+
+  // The goal check: type a goal, Tab to the run button, press Enter — the
+  // rating must appear without a mouse.
+  await page.goto(`${base}/tools/iep-goal-check/`, { waitUntil: 'load' });
+  const goalInput = await page.$('[data-gc-input]');
+  if (!goalInput) {
+    failures.push('/tools/iep-goal-check/: the goal textarea is missing');
+  } else {
+    await goalInput.focus();
+    await page.keyboard.type('Maya will improve her reading skills.');
+    await page.focus('[data-gc-run]');
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(250);
+    const badge = (await page.textContent('[data-gc-result] .gc-badge').catch(() => null))?.trim() ?? '';
+    if (!badge) {
+      failures.push('/tools/iep-goal-check/: Enter on the focused button produced no rating');
+    }
+  }
 } finally {
   await browser.close();
   server.close();
@@ -342,5 +362,5 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  `PASS: keyboard pass — ${pagesWalked} pages walked with real Tab presses; skip link first, no traps, every control reachable with a visible focus ring, both tools completable without a mouse.`,
+  `PASS: keyboard pass — ${pagesWalked} pages walked with real Tab presses; skip link first, no traps, every control reachable with a visible focus ring, every tool completable without a mouse.`,
 );

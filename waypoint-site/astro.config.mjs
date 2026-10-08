@@ -32,8 +32,10 @@ export default defineConfig({
             // 2026-09-10 once all 21 Regional Center pages published — this
             // filter must keep tracking each tool's noindex state.
             // /accessibility/ is out until its review is signed off (see the page).
+            // /tools/iep-goal-check/ likewise, until the owner signs off its copy
+            // (initiative 013) — lift with the page's noindex.
             filter: (page) =>
-              ![`${SITE}/404/`, `${SITE}/search/`, `${SITE}/accessibility/`].includes(page),
+              ![`${SITE}/404/`, `${SITE}/search/`, `${SITE}/accessibility/`, `${SITE}/tools/iep-goal-check/`].includes(page),
           }),
         ]),
   ],
