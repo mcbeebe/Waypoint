@@ -16,6 +16,9 @@ const FILES = [
   ...readdirSync(showcaseDir).map((f) => path.join(showcaseDir, f)),
   path.join(src, 'pages', 'index.astro'),
   path.join(src, 'components', 'GoalCheck.astro'),
+  path.join(src, 'components', 'OneLoop.astro'),
+  path.join(src, 'components', 'GuideVsApp.astro'),
+  path.join(src, 'components', 'WithoutWith.astro'),
   path.join(src, 'lib', 'iepGoalCheckUi.ts'),
 ];
 /** File text with code comments removed: the guard checks what ships as copy. */
@@ -59,6 +62,15 @@ describe('showcase copy guard', () => {
       /\bcalendar (?:export|sync)\b/i,
       /\b\d[\d,]*\+?\s+(?:families|parents|users)\b/i,
       /\bHIPAA\b/,
+      // The app has no Early Start, Medi-Cal, IHSS or SSI request clock
+      // (waypoint-app/src/lib/requestClocks.ts), and no Notice of Action clock.
+      /\btrack of every clock\b/i,
+      /\bwatches your specific 60-day window\b/i,
+      // Nothing is drafted ahead of time: Home offers "Draft the follow-up".
+      /\balready drafted\b/i,
+      // "Nothing you type leaves" is false once a parent carries a summary
+      // into the app; the tools say what actually stays.
+      /\bnothing you type\b/i,
     ];
     for (const re of BANNED) expect(text, `${path.basename(f)} matched ${re}`).not.toMatch(re);
   });
@@ -66,7 +78,30 @@ describe('showcase copy guard', () => {
   it('agency status is framed neutrally (CLAUDE.md tone rule)', () => {
     for (const f of FILES) {
       const text = read(f);
-      expect(text, path.basename(f)).not.toMatch(/\b(?:missed the deadline|they owe you|failed to respond|ignored your|demand(?:s|ed)?\b)/i);
+      expect(text, path.basename(f)).not.toMatch(/\b(?:missed the deadline|they owe you|failed to respond|ignored your|demand(?:s|ed)?\b|the other side|stalls?\b)/i);
+    }
+  });
+
+  it('the 30-day aid-paid-pending rule states one condition, not two (WIC §4715)', () => {
+    // The regional-centers guide removed "before the change takes effect" on
+    // 2026-09-08: §4715 asks only that the appeal be filed within 30 days of
+    // receiving the notice. The homepage demo brought it back once; never again.
+    for (const f of FILES) expect(read(f), path.basename(f)).not.toMatch(/before the change takes effect/i);
+  });
+
+  it('every clock on a hero card is one the app actually runs', () => {
+    // Home triage can only show a request clock the app defines. The hero
+    // must not show one it doesn't (an Early Start 45-day card did, once).
+    const clocks = readFileSync(path.join(src, '..', '..', 'waypoint-app', 'src', 'lib', 'requestClocks.ts'), 'utf8');
+    const appCitations = new Set([...clocks.matchAll(/citation:\s*'([^']+)'/g)].map((m) => m[1]));
+    expect(appCitations.size).toBeGreaterThan(0);
+    const hero = read(path.join(showcaseDir, 'HeroFamilies.astro'));
+    const cites = [...hero.matchAll(/cite:\s*'([^']*)'/g)].map((m) => m[1]).filter(Boolean);
+    expect(cites.length).toBeGreaterThan(0);
+    for (const c of cites) expect(appCitations.has(c), `hero cites ${c}, which no app clock uses`).toBe(true);
+    // And every clock card uses the app's own kicker, not an invented one.
+    for (const pill of hero.matchAll(/pill:\s*'([^']+)'/g)) {
+      expect(pill[1]).toMatch(/^(?:CLOCK RUNNING · \d+ DAYS LEFT|COMING UP · \d+ DAYS|DUE TODAY)$/);
     }
   });
 });

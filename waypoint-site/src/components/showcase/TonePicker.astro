@@ -57,12 +57,13 @@ const tones = [
   </div>
   {
     tones.map((t, i) => (
-      <div class="tone-letter" data-letter={t.id} hidden={i !== 0} aria-live="polite">
+      <div class="tone-letter" data-letter={t.id} hidden={i !== 0}>
         <span class="tone-label">Sample draft · {t.name}</span>
         {t.body.map((para) => <p>{para}</p>)}
       </div>
     ))
   }
+  <p class="ms-sr" aria-live="polite" data-tone-status></p>
 </div>
 
 <script>
@@ -70,6 +71,7 @@ const tones = [
   // control reachable by Tab); arrow keys move between them as well.
   document.querySelectorAll<HTMLElement>('[data-tone]').forEach((root) => {
     const radios = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="radio"]'));
+    const status = root.querySelector<HTMLElement>('[data-tone-status]');
     const select = (r: HTMLButtonElement, focus: boolean) => {
       for (const x of radios) {
         const on = x === r;
@@ -77,6 +79,8 @@ const tones = [
         const letter = root.querySelector<HTMLElement>(`[data-letter="${x.dataset.toneId}"]`);
         if (letter) letter.hidden = !on;
       }
+      // Un-hiding a letter is not announced; this line is.
+      if (status) status.textContent = `Showing the ${r.querySelector('b')?.textContent ?? ''} draft.`;
       if (focus) r.focus();
     };
     radios.forEach((r, i) => {

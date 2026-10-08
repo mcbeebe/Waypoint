@@ -88,19 +88,19 @@ const timeline = [
   {
     when: 'Day 0',
     title: 'You send the request',
-    body: 'Waypoint drafts it and you send it. The district now has 15 calendar days to send an assessment plan.',
+    body: 'Waypoint drafts it and you send it. Once the district receives it, it has 15 calendar days to send an assessment plan, not counting school breaks over five school days.',
   },
   {
-    when: 'Day 12',
-    title: 'A heads-up',
-    body: 'Nothing back yet. A gentle note on Home, with nothing you need to do today.',
-    note: 'The assessment plan is due in 3 days. Nothing has come in yet.',
+    when: 'Day 5',
+    title: 'On Home, with the date',
+    body: 'In the days before it is due, Home shows when the answer is due, with a follow-up one tap away if you want it.',
+    note: "Clock running · 10 days left. An answer on Maya's evaluation request is due Oct 16.",
   },
   {
     when: 'Day 16',
     title: 'The answer is past due',
-    body: 'It moves to the top of Home, with a friendly follow-up already drafted.',
-    note: "An answer on Maya's assessment plan is past due. Want to send a quick follow-up?",
+    body: 'It moves to the top of Home, with a friendly follow-up one tap away.',
+    note: "An answer on Maya's evaluation request is past due. A follow-up that cites the date is the next step.",
   },
   {
     when: 'If needed',
@@ -116,7 +116,7 @@ const worksWith = [
   { title: 'Gmail', body: 'Send from your own address. Replies come back into Waypoint, next to the request they answer.' },
   { title: 'Your mail app', body: 'Not using Gmail? Open any draft in the mail app you already use.' },
   { title: 'PDFs and photos', body: 'Upload a report, a notice, or an IEP as a PDF or a photo of the page.' },
-  { title: 'Home, every day', body: 'Every clock you start shows on Home, so you see what is due before it is due.' },
+  { title: 'Home, every day', body: 'Every clock you start comes up on Home in the days before it is due.' },
 ];
 
 const tools = [
@@ -140,7 +140,7 @@ const faq = [
   },
   {
     q: 'What happens to what I type?',
-    a: 'The free tools on this site run in your browser, and nothing you type into them is sent to us. This site uses cookieless analytics and no ad tech.',
+    a: 'The free tools on this site run in your browser. What you type stays there unless you choose to carry a summary into the app. This site uses cookieless analytics and no ad tech.',
     link: { href: '/privacy/', label: 'Read the privacy page' },
   },
   {
@@ -171,8 +171,8 @@ const faq = [
         <h1>The next step for your child, <em>before you have to ask.</em></h1>
         <p class="lede">
           Waypoint reads your child's IEP, answers your questions with the law behind them, drafts
-          the friendly email, and keeps track of every clock: Regional Center, school, Medi-Cal,
-          IHSS, and SSI.
+          the friendly email, and keeps track of the Regional Center and school clocks you start,
+          plus the dates you add.
         </p>
         <div class="hero-actions">
           <a class="btn on-dark" href={heroHref} data-wp-event="app_signup_click" data-wp-props={heroProps}>
@@ -280,7 +280,7 @@ const faq = [
         <h2>Ask anything. Get the answer and the law behind it.</h2>
         <ul class="ticks">
           <li>Plain-language answers that know your child's age, diagnosis, county, and Regional Center.</li>
-          <li>Each answer separates your right, what's good to know, and what to watch out for, with the citation for each.</li>
+          <li>Each answer separates your right, what's good to know, and what to watch out for, and cites the law where it applies.</li>
           <li>One tap turns an answer into a drafted letter or a step on your plan.</li>
         </ul>
       </div>
@@ -328,8 +328,8 @@ const faq = [
         <div class="card waypoint">
           <h3>Waypoint</h3>
           <p>
-            A drafted assessment-request letter in your name, the 15-day clock it starts, the
-            calendar reminder for day 16 — and the fallback script if the district stalls.
+            A drafted assessment-request letter in your name, the 15-day clock it starts, a
+            card on Home if no plan has come by day 16 — and a friendly follow-up, one tap away.
           </p>
         </div>
       </div>
@@ -424,7 +424,7 @@ const faq = [
       <div class="try-free">
         <div class="try-copy">
           <h2>Try it free</h2>
-          <p>Free tools built on the same rules as the app. No sign-up, and nothing you type leaves your browser.</p>
+          <p>Free tools built on the same rules as the app. No sign-up, and what you type stays in your browser unless you choose to carry it into the app.</p>
         </div>
         <div class="try-tools">
           {

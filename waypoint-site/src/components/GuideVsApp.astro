@@ -10,9 +10,9 @@ interface Props {
 }
 const { limit } = Astro.props;
 const rows = [
-  { guideTag: 'A guide says', guide: 'The assessment plan is due 15 calendar days after your written request.', appTag: 'The app', app: 'Starts that clock the day you send the request, and alerts you three days before it runs out.' },
+  { guideTag: 'A guide says', guide: 'The assessment plan is due 15 calendar days after the district receives your written request.', appTag: 'The app', app: 'Starts that clock when you log the request, and puts it on Home in the days before it is due.' },
   { guideTag: 'A guide gives you', guide: 'A letter template you fill in yourself, print, and mail.', appTag: 'The app', app: "Drafts it filled in with your child's name, diagnosis, district, and the date — ready to send." },
-  { guideTag: 'A guide explains', guide: 'What a Notice of Action is, and that you have 60 days to appeal.', appTag: 'The app', app: 'Stores yours, watches your specific 60-day window, and reminds you before it closes.' },
+  { guideTag: 'A guide explains', guide: 'What a Notice of Action is, and that you have 60 days to appeal.', appTag: 'The app', app: 'Keeps yours with your documents, and the Navigator walks you through your options and the dates that count.' },
   { guideTag: 'A search or a Facebook group', guide: "Answers a stranger's situation, from three years ago, in a different county.", appTag: "Waypoint's AI Navigator", app: "Answers yours — in English or Spanish, cited to the same statutes as this site, at 2am if that's when you're up." },
 ].slice(0, limit);
 ---

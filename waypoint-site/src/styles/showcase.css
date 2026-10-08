@@ -1,6 +1,8 @@
 /*
- * Mock app screens inside <PhoneFrame> (initiative 013). Every class is
- * prefixed `ms-` so nothing here can collide with real page components.
+ * Showcase styles for the homepage (initiative 013), global so Astro does
+ * not stamp a data-astro-cid attribute on every element. Mock app screens use
+ * the `ms-` prefix; the demos use `phone`, `nav-`, `fam-` and `tone-`, none of
+ * which any real page component uses.
  * Colors come from the brand tokens in global.css.
  */
 .ms-card {
@@ -23,12 +25,7 @@
 .ms-pill.ms-soon {
   background: var(--color-amber-soft);
   color: var(--color-amber);
-}
-.ms-pill.ms-late {
-  background: var(--color-urgent-tint);
-  color: var(--color-urgent);
-}
-.ms-title {
+}.ms-title {
   font-weight: 700;
   font-size: 14px;
   margin: 7px 0 3px;
@@ -95,91 +92,7 @@
   border-radius: 999px;
   padding: 2px 7px;
   font-size: 9.5px;
-}
-.ms-me {
-  background: var(--color-pine);
-  color: #fff;
-  border-radius: 12px 12px 2px 12px;
-  padding: 7px 9px;
-  margin-left: auto;
-  max-width: 82%;
-}
-.ms-ai {
-  background: var(--color-panel);
-  border-radius: 12px 12px 12px 2px;
-  padding: 8px 9px;
-  max-width: 94%;
-  border: 1px solid var(--color-border);
-}
-.ms-note {
-  border-radius: 9px;
-  padding: 7px 9px;
-  font-size: 10.5px;
-}
-.ms-note b {
-  display: block;
-  font-size: 8.5px;
-  letter-spacing: 0.08em;
-}
-.ms-note.ms-right {
-  background: var(--color-pine-tint);
-}
-.ms-note.ms-right b {
-  color: var(--color-pine-deep);
-}
-.ms-note.ms-know {
-  background: var(--color-amber-soft);
-}
-.ms-note.ms-know b {
-  color: var(--color-amber);
-}
-.ms-note.ms-watch {
-  background: var(--color-urgent-tint);
-}
-.ms-note.ms-watch b {
-  color: var(--color-urgent);
-}
-.ms-tone {
-  display: flex;
-  gap: 4px;
-  font-size: 9.5px;
-}
-.ms-tone span {
-  border-radius: 999px;
-  padding: 3px 7px;
-  background: var(--color-border);
-}
-.ms-tone .on {
-  background: var(--color-pine);
-  color: #fff;
-}
-.ms-ok {
-  background: var(--color-sage-tint);
-  color: var(--color-sage-ink);
-  border-radius: 8px;
-  padding: 5px 8px;
-  font-size: 10.5px;
-}
-.ms-letter {
-  background: var(--color-panel);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 9px;
-  font-size: 10.8px;
-  line-height: 1.5;
-}
-.ms-letter p {
-  margin: 0 0 6px;
-}
-.ms-meta {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 9.8px;
-  color: var(--color-ink-soft);
-  background: var(--color-panel);
-}
-.ms-stats {
+}.ms-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
@@ -240,65 +153,6 @@
   margin: 3px 0 0;
   padding-left: 14px;
 }
-.ms-ring {
-  display: flex;
-  justify-content: space-around;
-  text-align: center;
-  background: var(--color-panel);
-  padding: 7px;
-  border-radius: 10px;
-  font-size: 9.5px;
-  color: var(--color-ink-soft);
-}
-.ms-ring b {
-  display: block;
-  font-size: 15px;
-  color: var(--color-ink);
-}
-.ms-bar {
-  height: 4px;
-  background: var(--color-border);
-  border-radius: 4px;
-  margin: 5px 0;
-}
-.ms-bar i {
-  display: block;
-  height: 100%;
-  background: var(--color-sage);
-  border-radius: 4px;
-}
-.ms-layer {
-  background: var(--color-panel);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 7px 9px;
-  font-size: 10.5px;
-}
-.ms-layer.ms-next {
-  border: 2px solid var(--color-pine);
-}
-.ms-layer h5 {
-  margin: 0 0 2px;
-  font-size: 11.5px;
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-}
-.ms-layer h5 span {
-  font-size: 8.5px;
-  font-weight: 700;
-  border-radius: 999px;
-  padding: 2px 6px;
-  background: var(--color-pine-tint);
-  color: var(--color-pine-deep);
-  white-space: nowrap;
-}
-.ms-builds {
-  text-align: center;
-  font-size: 9px;
-  color: var(--color-ink-soft);
-}
-
 /* ── PhoneFrame (moved from a scoped <style>: scoped styles stamp a data-astro-cid
    attribute on every element, which was a quarter of the homepage HTML) ── */
   .phone {
@@ -484,9 +338,6 @@
     gap: 8px;
     align-items: flex-start;
   }
-  .nav-end[hidden] {
-    display: none;
-  }
   .nav-end p {
     margin: 0;
     font-weight: 700;
@@ -627,3 +478,35 @@
     font-size: 13px;
     margin-top: 4px;
   }
+  .fam-law {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+/* Screen-reader-only live line (HeroFamilies, TonePicker, NavigatorDemo). */
+.ms-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+/* Without JS the demos' buttons would do nothing, so hide them: the hero shows
+   its first family, the tone picker its first letter, and the Navigator demo
+   its first answer (a <noscript>) plus the Start free link. */
+@media (scripting: none) {
+  .fam-tabs,
+  .tone-choices,
+  .nav-chips,
+  .nav-hint {
+    display: none;
+  }
+}
+/* The demo's closing CTA waits for all three questions, but only where the
+   script can run them; without JS it shows (not `hidden`: the global
+   [hidden] reset is !important and cannot be overridden). */
+@media (scripting: enabled) {
+  .nav-end-wait {
+    display: none;
+  }
+}
