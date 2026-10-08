@@ -85,6 +85,14 @@ export type HomeStackParamList = {
          * the first Save/Send silently no-ops instead of writing it.
          */
         draftBodyUnlogged?: boolean;
+        /**
+         * The paper-trail row `draftBody` came from. Without it the screen
+         * could neither revise that row nor send it through Gmail — the send
+         * needs a row to mark, and a reopened, unedited draft never wrote one.
+         */
+        draftId?: string;
+        /** That row's subject, so a reopened letter keeps the one it had. */
+        draftSubject?: string;
         /** Lever letters launched from a case stamp their log entry with it. */
         requestId?: string;
         /** The draft flow pre-sets the tone the parent chose in the questions. */

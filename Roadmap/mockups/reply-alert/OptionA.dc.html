@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; font-family: "Hanken Grotesk", -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .serif { font-family: Newsreader, Georgia, serif; }
+    .card { background: #FFFFFF; border: 2px solid #0F766E; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .kick { align-self: flex-start; border-radius: 6px; padding: 3px 8px; font-size: 10.5px; font-weight: 800; letter-spacing: 0.9px; }
+    .btn { min-height: 46px; border-radius: 12px; background: #0F766E; color: #FFFFFF; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+    .meta { font-size: 12px; color: #6D6555; }
+    .tag { position: absolute; background: #1B2A4A; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 1px; border-radius: 6px; padding: 2px 8px; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1000px; background: #F5F1E9; box-sizing: border-box; padding: 20px 16px; color: #22303A; position: relative">
+  <div style="font-size: 11px; font-weight: 800; letter-spacing: 2px; color: #22303A">WAYPOINT</div>
+  <div class="serif" style="font-size: 26px; font-weight: 600; color: #22303A; margin: 4px 0 14px 0">Good morning, Sam</div>
+  <div class="card">
+    <div class="kick" style="background: #FBEADD; color: #C2410C">OVERDUE — 43 DAYS AGO</div>
+    <div style="font-size: 19px; font-weight: 800; color: #22303A">Apply for IHSS (In-Home Supportive Services)</div>
+    <div style="font-size: 13.5px; color: #55606B">Because this was due Aug 26 and isn&rsquo;t checked off yet. It&rsquo;s on your plan.</div>
+    <div class="btn">Open this action</div>
+    <div style="font-size: 13px; color: #55606B; font-weight: 600">Not today — show the next thing</div>
+  </div>
+
+  <!-- NEW: the reply strip. Shown whenever an unread reply exists that is not already the One Thing. -->
+  <div style="margin-top: 12px; background: #E6F1EF; border: 1.5px solid #0F766E; border-radius: 14px; padding: 12px 14px; display: flex; gap: 12px; align-items: center">
+    <div style="position: relative; width: 36px; height: 36px; border-radius: 18px; background: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F766E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><polyline points="3 7 12 13 21 7"></polyline></svg>
+      <div style="position: absolute; top: 0; right: 0; width: 10px; height: 10px; border-radius: 5px; background: #C2410C; border: 2px solid #E6F1EF"></div>
+    </div>
+    <div style="flex: 1; min-width: 0">
+      <div style="font-size: 10.5px; font-weight: 800; letter-spacing: 0.9px; color: #0F766E">NEW REPLY · TODAY</div>
+      <div style="font-size: 15px; font-weight: 700; color: #22303A">Dana Reyes replied</div>
+      <div style="font-size: 12.5px; color: #55606B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">&ldquo;Thanks for the note &mdash; I&rsquo;ll look into it and follow up by Friday.&rdquo;</div>
+    </div>
+    <div style="font-size: 14px; font-weight: 700; color: #0F766E; flex-shrink: 0">Read&nbsp;›</div>
+  </div>
+  <div class="meta" style="margin-top: 6px; padding-left: 4px">Two or more: &ldquo;3 new replies · Dana Reyes and 2 others&rdquo; → opens Paper Trail filtered to replies.</div>
+
+  <div style="margin-top: 18px; font-size: 18px; font-weight: 700" class="serif">Got something on your mind?</div>
+  <div style="margin-top: 8px; height: 52px; border-radius: 14px; background: #FFFFFF; border: 1px solid #EAE3D5"></div>
+  <div style="margin-top: 18px; border: 1px solid #EAE3D5; border-radius: 14px; background: #FFFFFF; padding: 14px; font-size: 15px; font-weight: 600; color: #22303A">My action plan →</div>
+  <div class="meta" style="margin-top: 12px">● Gmail checked 11:42 AM · Clocks counted from your records</div>
+
+  <div style="margin-top: 22px; background: #FFFFFF; border: 1px dashed #E2D8C4; border-radius: 12px; padding: 12px; font-size: 12.5px; color: #55606B; line-height: 1.5">
+    <b style="color:#22303A">Tap “Read ›”</b> → Paper Trail, that reply expanded and scrolled into view. From there: <i>Draft a reply</i> (existing AI button) or nothing. Opening it marks it read, so the strip clears.<br><br>
+    <b style="color:#22303A">Ladder untouched.</b> Overdue IHSS stays the One Thing; the reply is announced, not promoted. If the reply IS the One Thing, the strip hides (no double-announce).
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

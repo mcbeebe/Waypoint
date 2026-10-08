@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { buildLadderSheet } from './homeCard';
 import {
   triageHome,
   sensorLine,
@@ -542,6 +543,13 @@ describe('a draft is work you left, not work you abandoned', () => {
     const r = triageHome(base({ drafts: [draft('2026-08-28T18:00:00Z')] }));
     expect(r.item?.action.params?.draftBody).toBe('Dear…');
   });
+
+  it('carries the row and its subject, so resuming revises that row and keeps the subject', () => {
+    // Without the id, Letters could neither update the saved draft nor send
+    // it through Gmail; without the subject it fell back to the template title.
+    const r = triageHome(base({ drafts: [draft('2026-08-28T18:00:00Z')] }));
+    expect(r.item?.action.params).toMatchObject({ draftId: 'd9', draftSubject: 'Records' });
+  });
 });
 
 describe('child-scoped state never answers for a sibling', () => {
@@ -622,6 +630,59 @@ describe('Home describes the status, not an actor who failed (owner decision)', 
     const item = triageHome(base({ requests: [soon] })).queue.find((i) => i.cls === 'clock')!;
     expect(item.title).toMatch(/is due/);
     expect(item.title).not.toMatch(/owe/);
+  });
+
+  it('a reply says one arrived — never that the family owes an answer', () => {
+    // "I'll let you know when it's done" is a reply too. The sync cannot tell
+    // it from a "no", so no reply surface on Home may claim the ball is with
+    // the family, or name an agency that is waiting on them.
+    const owes = new RegExp(
+      [
+        'ball is in your court', 'your turn', 'waiting (on|for) you', '\\bowes?\\b',
+        'pelota', 'le toca', 'espera su respuesta', 'están esperando', '\\ble deben\\b',
+        'đến lượt quý vị', 'chờ quý vị', 'đợi quý vị', 'Họ nợ',
+      ].join('|'),
+      'i'
+    );
+    // A sender named Lowe must not trip the guard; the case title branch runs too.
+    const r = req({ communication_id: 'o', title: 'Standing frame' });
+    const origin = comm({ id: 'o', gmail_thread_id: 't', gmail_message_id: 'm1', request_id: r.id });
+    const onCase = comm({
+      direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'Pat Lowe <p@x.com>',
+      sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
+    });
+    const stray = comm({
+      direction: 'incoming', gmail_thread_id: 's', gmail_message_id: 'm3', contact: 'Dana <d@x.com>',
+      sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
+    });
+    for (const loc of ['en', 'es', 'vi'] as const) {
+      for (const input of [{ requests: [r], communications: [origin, onCase] }, { communications: [stray] }]) {
+        const result = triageHome(base({ ...input, locale: loc }));
+        const item = result.queue.find((i) => i.cls === 'reply')!;
+        const rung = buildLadderSheet({ result, locale: loc }).rows.find((x) => x.cls === 'reply')!;
+        for (const text of [item.kicker, item.title, item.why, rung.name]) {
+          expect(text).not.toMatch(owes);
+        }
+      }
+    }
+  });
+
+  it('a reply card says why it is here, and quotes without inventing a cut', () => {
+    const at = { sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z' };
+    const reply = (body: string) =>
+      comm({ direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'C <d@x.com>', body, ...at });
+    const why = (body: string, locale: 'en' | 'es' | 'vi') =>
+      triageHome(base({ communications: [reply(body)], locale })).queue.find((i) => i.cls === 'reply')!.why;
+    const opens = { en: /^Because a reply came in/, es: /^Porque llegó una respuesta/, vi: /^Vì có thư trả lời/ };
+    for (const loc of ['en', 'es', 'vi'] as const) {
+      expect(why('', loc)).toMatch(opens[loc]);
+      // No body: no dangling quote, and one space between the sentences.
+      expect(why('', loc)).not.toMatch(/“|  /);
+      // A short reply is quoted whole — no "…" claiming words were dropped.
+      expect(why('OK.', loc)).toContain('“OK.”');
+      // A long one is cut, and says so.
+      expect(why('x'.repeat(200), loc)).toContain(`${'x'.repeat(140)}…”`);
+    }
   });
 
   it('never claims an outcome it has no data for', () => {

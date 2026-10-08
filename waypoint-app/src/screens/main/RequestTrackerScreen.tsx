@@ -172,7 +172,7 @@ export default function RequestTrackerScreen() {
         {unansweredReply && (
           <View style={styles.replyChip}>
             <Text style={styles.replyChipText} numberOfLines={2}>
-              💬 They replied: “{unansweredReply.subject}” — open the case to respond
+              💬 A reply came in: “{unansweredReply.subject}” — open the case to read it
             </Text>
           </View>
         )}

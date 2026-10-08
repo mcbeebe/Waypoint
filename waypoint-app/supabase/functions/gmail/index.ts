@@ -25,6 +25,7 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { b64url, buildRawMessage } from '../_shared/mime.ts';
+import { threadOrganization } from '../_shared/threadOrg.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -261,12 +262,25 @@ serve(async (req) => {
         })
         .eq('id', communicationId);
     } else if (family?.id) {
+      // A reply sent from the paper trail takes its thread's label (see
+      // _shared/threadOrg.ts); a message with no thread is left unlabelled.
+      let organization: string | null = null;
+      const loggedThread = sent.threadId ?? threadId;
+      if (loggedThread) {
+        const { data: threadRows } = await userClient
+          .from('communications')
+          .select('id, direction, organization, created_at, occurred_at')
+          .eq('family_id', family.id)
+          .eq('gmail_thread_id', loggedThread)
+          .eq('direction', 'outgoing');
+        organization = threadOrganization(threadRows ?? []);
+      }
       await userClient.from('communications').insert({
         family_id: family.id,
         kind: 'email',
         subject: replySubject || subject,
         body: messageBody,
-        organization: 'regional_center',
+        organization,
         contact: to,
         status: 'sent',
         sent_at: new Date().toISOString(),
@@ -296,6 +310,17 @@ serve(async (req) => {
       .select('gmail_message_id')
       .not('gmail_message_id', 'is', null);
     const knownIds = new Set((known ?? []).map((k) => k.gmail_message_id as string));
+    // Every outgoing row on these threads — not only the 25 newest — so a
+    // thread's founding letter is found however long ago it was sent.
+    const { data: threadRows, error: threadErr } = await userClient
+      .from('communications')
+      .select('id, family_id, gmail_thread_id, direction, organization, created_at, occurred_at')
+      .eq('direction', 'outgoing')
+      .in('gmail_thread_id', threadIds);
+    // Without the founders every reply would be saved unlabelled — and a
+    // saved message is never re-synced, so the gap would be permanent. Skip
+    // this run instead; the next one retries.
+    if (threadErr) return json({ newReplies: 0 });
     const selfEmail = (account.google_email ?? '').toLowerCase();
 
     let newReplies = 0;
@@ -316,13 +341,16 @@ serve(async (req) => {
         if (!text) continue;
         const fam = tracked?.find((t) => t.gmail_thread_id === threadId)?.family_id;
         if (!fam) continue;
+        const organization = threadOrganization(
+          (threadRows ?? []).filter((t) => t.gmail_thread_id === threadId && t.family_id === fam)
+        );
         const receivedAt = new Date(Number(msg.internalDate ?? Date.now())).toISOString();
         const { error: insertErr } = await userClient.from('communications').insert({
           family_id: fam,
           kind: 'email',
           subject: header(msg.payload, 'Subject') || '(no subject)',
           body: text,
-          organization: 'regional_center',
+          organization,
           contact: from,
           status: 'sent',
           sent_at: receivedAt,

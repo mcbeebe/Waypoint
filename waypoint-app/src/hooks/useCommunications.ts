@@ -6,6 +6,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyErrorMessage } from '@/lib/netRetry';
+import { forgetSessionRead, hasSessionRead, noteSessionRead, withSessionReads } from '@/lib/sessionReads';
+
+export { resetSessionReads } from '@/lib/sessionReads';
 
 export type CommunicationKind = 'letter' | 'email' | 'call' | 'meeting' | 'note';
 /** Written but not confirmed sent, vs confirmed out the door (032) */
@@ -31,6 +34,12 @@ export interface Communication {
   gmail_message_id: string | null;
   /** The tracked family_request this entry serves (047); null = unattached */
   request_id: string | null;
+  /**
+   * When the family opened this incoming reply (062); null = unread. ABSENT
+   * (not null) on a database where 062 has not been applied — see
+   * `isUnreadReply` in lib/replyInbox.ts.
+   */
+  read_at?: string | null;
   created_at: string;
 }
 
@@ -132,6 +141,51 @@ export async function attachCommunicationToRequest(
   }
 }
 
+/** What happened to an in-place revision — see updateCommunicationDraft. */
+export type DraftUpdateResult =
+  /** The draft row now holds the revision. */
+  | 'updated'
+  /** No draft row to revise: it was sent, belongs to a Gmail draft, or is gone. */
+  | 'not_draft'
+  /** The request failed — nothing is known about the row. */
+  | 'error';
+
+/**
+ * Revise a letter that is still a DRAFT in place — one letter, one row.
+ * Logging each revision as a new row left the pre-edit text behind as an
+ * unsent draft, which Home then surfaced as "Finish the letter you started"
+ * for a letter the parent had already sent.
+ *
+ * Only a plain draft is rewritten: never a sent row, and never one tied to a
+ * Gmail thread (a draft saved to the parent's Gmail Drafts has its own life
+ * there — rewriting the row would orphan it). `error` is kept apart from
+ * `not_draft` so a network blip is treated as a failed save, not as licence
+ * to log a second row beside the first.
+ */
+export async function updateCommunicationDraft(
+  id: string,
+  fields: Pick<NewCommunication, 'subject' | 'body' | 'contact' | 'organization'>
+): Promise<DraftUpdateResult> {
+  try {
+    const { data, error } = await supabase
+      .from('communications')
+      .update({
+        subject: fields.subject,
+        body: fields.body ?? null,
+        contact: fields.contact ?? null,
+        organization: fields.organization ?? null,
+      })
+      .eq('id', id)
+      .eq('status', 'draft')
+      .is('gmail_thread_id', null)
+      .select('id');
+    if (error) return 'error';
+    return (data?.length ?? 0) > 0 ? 'updated' : 'not_draft';
+  } catch {
+    return 'error';
+  }
+}
+
 /** Mark a logged draft as actually sent. Returns false if it didn't stick. */
 export async function markCommunicationSent(id: string): Promise<boolean> {
   try {
@@ -140,6 +194,28 @@ export async function markCommunicationSent(id: string): Promise<boolean> {
       .update({ status: 'sent', sent_at: new Date().toISOString() })
       .eq('id', id);
     return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Stamp a synced reply as opened (062). Only the first open counts, so a
+ * re-open never moves the time. Returns true only when a row was actually
+ * stamped — false for a failed request, a row already read, a row RLS hides,
+ * or a database where 062 is not applied yet (where the app keeps read state
+ * off entirely: see `isUnreadReply` in lib/replyInbox.ts).
+ */
+export async function markReplyRead(id: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('communications')
+      .update({ read_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('direction', 'incoming')
+      .is('read_at', null)
+      .select('id');
+    return !error && (data?.length ?? 0) > 0;
   } catch {
     return false;
   }
@@ -164,7 +240,7 @@ export function useCommunications(familyId: string) {
         .order('occurred_at', { ascending: false })
         .limit(200);
       if (dbError) throw new Error(dbError.message);
-      setCommunications((data as Communication[]) ?? []);
+      setCommunications(withSessionReads((data as Communication[]) ?? []));
       setError(null);
     } catch (err) {
       setError(friendlyErrorMessage(err, "Couldn't load your paper trail."));
@@ -237,6 +313,32 @@ export function useCommunications(familyId: string) {
     return ok;
   }, [refetch]);
 
+  /**
+   * Record that the family opened a reply — optimistic, so the unread dot and
+   * the Home strip clear at once; a failed write leaves it unread on the
+   * next load (lib/sessionReads.ts). A no-op for anything already read, and on a pre-062
+   * database (no `read_at` key), where there is no read state to change.
+   */
+  const markRead = useCallback(async (id: string): Promise<boolean> => {
+    const target = communications.find((c) => c.id === id);
+    // The session record also catches a second call before React re-renders
+    // (a tap and the hand-off effect in the same tick).
+    if (
+      !target || target.direction !== 'incoming' || !('read_at' in target) ||
+      target.read_at || hasSessionRead(id)
+    ) {
+      return false;
+    }
+    const now = new Date().toISOString();
+    noteSessionRead(id, now);
+    setCommunications((prev) => prev.map((c) => (c.id === id ? { ...c, read_at: now } : c)));
+    const ok = await markReplyRead(id);
+    // A write that did not land is not remembered: the next load shows the
+    // reply as new again rather than hiding it for the rest of the session.
+    if (!ok) forgetSessionRead(id);
+    return ok;
+  }, [communications]);
+
   return {
     communications,
     loading,
@@ -245,5 +347,6 @@ export function useCommunications(familyId: string) {
     addCommunication,
     deleteCommunication,
     markSent,
+    markRead,
   };
 }

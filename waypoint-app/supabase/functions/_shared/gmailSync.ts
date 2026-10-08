@@ -13,6 +13,7 @@
  * No CI covers Edge Functions — test by hand against a live project.
  */
 import type { createClient } from 'jsr:@supabase/supabase-js@2';
+import { threadOrganization, type ThreadRow } from './threadOrg.ts';
 
 type Supabase = ReturnType<typeof createClient>;
 
@@ -121,6 +122,19 @@ async function syncFamily(
   );
   const self = selfEmail.toLowerCase();
 
+  // Every outgoing row on these threads, so each reply can take its thread
+  // founder's label (_shared/threadOrg.ts) — mirrors functions/gmail "sync".
+  const { data: outgoing, error: outgoingErr } = await supabase
+    .from('communications')
+    .select('id, gmail_thread_id, direction, organization, created_at, occurred_at')
+    .eq('family_id', familyId)
+    .eq('direction', 'outgoing')
+    .in('gmail_thread_id', threadIds);
+  // A saved reply is never re-synced, so syncing without the founders would
+  // leave its label empty for good. Skip this family's run; the next retries.
+  if (outgoingErr) return 0;
+  const threadRows = (outgoing ?? []) as (ThreadRow & { gmail_thread_id: string })[];
+
   let newReplies = 0;
   for (const threadId of threadIds) {
     const resp = await fetch(`${GMAIL_API}/threads/${threadId}?format=full`, {
@@ -128,6 +142,9 @@ async function syncFamily(
     });
     if (!resp.ok) continue;
     const thread = await resp.json();
+    const organization = threadOrganization(
+      threadRows.filter((t) => t.gmail_thread_id === threadId)
+    );
     for (const msg of thread.messages ?? []) {
       if (knownIds.has(msg.id)) continue;
       const from = header(msg.payload, 'From');
@@ -141,7 +158,7 @@ async function syncFamily(
         kind: 'email',
         subject: header(msg.payload, 'Subject') || '(no subject)',
         body: text,
-        organization: 'regional_center',
+        organization,
         contact: from,
         status: 'sent',
         sent_at: receivedAt,
