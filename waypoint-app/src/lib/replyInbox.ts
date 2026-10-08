@@ -12,7 +12,11 @@ export interface UnansweredReply {
   senderName: string;
   /** First ~140 chars of the body for the Home card. */
   snippet: string;
+  /** True when the body ran past the snippet, so the card shows "…". */
+  truncated: boolean;
 }
+
+const SNIPPET_LENGTH = 140;
 
 function nameOf(contact: string | null): string {
   if (!contact) return 'The agency';
@@ -74,10 +78,12 @@ export function findUnansweredReply(
         when(c) > when(reply)
     );
     if (!answered) {
+      const text = (reply.body ?? '').replace(/\s+/g, ' ').trim();
       return {
         reply,
         senderName: nameOf(reply.contact),
-        snippet: (reply.body ?? '').replace(/\s+/g, ' ').trim().slice(0, 140),
+        snippet: text.slice(0, SNIPPET_LENGTH),
+        truncated: text.length > SNIPPET_LENGTH,
       };
     }
   }
