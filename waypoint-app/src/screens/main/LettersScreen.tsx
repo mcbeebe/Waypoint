@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  ActivityIndicator,
   Platform,
   Linking,
 } from 'react-native';
@@ -23,6 +22,7 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { gmailStatus, gmailSend } from '@/lib/gmail';
 import { useToast } from '@/components/Toast';
 import AIConsentModal from '@/components/AIConsentModal';
+import GmailSendConfirmModal from '@/components/GmailSendConfirmModal';
 import Button from '@/components/Button';
 import {
   LETTER_TEMPLATES,
@@ -107,6 +107,20 @@ const SEND_GATE: Record<
   },
 };
 
+/**
+ * Under the Gmail send button. It sits beside "Open in Gmail", which only
+ * opens a compose window — this one sends by itself, and has to say so
+ * (owner feedback, 2026-10-07).
+ */
+const AUTO_SEND_NOTE: Record<FunnelLocale, (from: string | null) => string> = {
+  en: (from) =>
+    `Sends automatically from ${from ?? 'your Gmail'} — Gmail won’t open. You’ll get one last look before it goes.`,
+  es: (from) =>
+    `Se envía automáticamente desde ${from ?? 'su Gmail'} — Gmail no se abrirá. Podrá revisarlo una última vez antes de que salga.`,
+  vi: (from) =>
+    `Tự động gửi từ ${from ?? 'Gmail của quý vị'} — Gmail sẽ không mở ra. Quý vị sẽ được xem lại lần cuối trước khi gửi.`,
+};
+
 export default function LettersScreen() {
   const { family, updateFamily } = useFamily();
   const { children, updateChild } = useChildren(family?.id);
@@ -154,6 +168,9 @@ export default function LettersScreen() {
       setFilledFromRecords([]);
       setManualRecipient(null);
       setManualEmailInput('');
+      setSubjectEdit(null);
+      setAiSubject(null);
+      setExtraTo([]);
     }
     if (route.params?.question) {
       setQuestion(route.params.question);
@@ -182,6 +199,9 @@ export default function LettersScreen() {
     setFilledFromRecords([]);
     setManualRecipient(null);
     setManualEmailInput('');
+    setSubjectEdit(null);
+    setAiSubject(null);
+    setExtraTo([]);
     // Already in the log — don't duplicate it — UNLESS the caller says this
     // text was never logged in the first place (see draftBodyUnlogged on the
     // param type): a Navigator chat answer routed here has no prior row, and
@@ -236,6 +256,9 @@ export default function LettersScreen() {
     setSentMoment(null);
     setManualRecipient(null);
     setManualEmailInput('');
+    setSubjectEdit(null);
+    setAiSubject(result.subject ?? null);
+    setExtraTo([]);
     // Persistent note above the draft instead of a vanishing toast — a parent
     // reviewing the letter later can still see what came from their records.
     setFilledFromRecords(filled);
@@ -311,14 +334,26 @@ export default function LettersScreen() {
   // ── Send directly through the connected Gmail account (Aug 27) —
   // marks the draft sent, stores the thread id so replies sync back.
   const [gmailReady, setGmailReady] = useState(false);
+  const [gmailEmail, setGmailEmail] = useState<string | null>(null);
   const [gmailSending, setGmailSending] = useState(false);
+  // The button opens a last-look sheet; only its "Send now" sends (2026-10-07).
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [sendProblem, setSendProblem] = useState<string | null>(null);
   useEffect(() => {
-    if (Platform.OS === 'web') gmailStatus().then((s) => setGmailReady(s.gmail));
+    if (Platform.OS !== 'web') return;
+    gmailStatus().then((s) => {
+      setGmailReady(s.gmail);
+      setGmailEmail(s.email ?? null);
+    });
   }, []);
 
   /** The parent confirms it actually went out. */
   const handleMarkSent = useCallback(async () => {
-    const id = savedIdRef.current ?? (await saveDraftOnce());
+    // Not `savedIdRef.current ?? …`: once any version of this letter was
+    // saved, that short-circuit marked THAT row sent — the text from before
+    // the parent's last edits — and never logged what actually went out.
+    // saveDraftOnce returns the same id while the text is unchanged.
+    const id = await saveDraftOnce();
     if (!id) {
       showToast("Couldn't update the paper trail — please try again.", 'error');
       return;
@@ -460,6 +495,19 @@ export default function LettersScreen() {
    *  path that doesn't dead-end at "go save them first". */
   const [manualEmailInput, setManualEmailInput] = useState('');
   /**
+   * The subject is the parent's to set (owner feedback, 2026-10-07). It was
+   * only ever displayed, so a template-title fallback — "IPP Meeting
+   * Request — Teddy Beebe" on a note to a provider asking for a written
+   * recommendation — went out with no way to see it coming or fix it.
+   * `null` follows the computed subject; any edit, even clearing it, is
+   * the parent's own and is kept until the next letter.
+   */
+  const [subjectEdit, setSubjectEdit] = useState<string | null>(null);
+  /** The subject the model wrote for this draft, when ai-proxy sends one. */
+  const [aiSubject, setAiSubject] = useState<string | null>(null);
+  /** People added to the To line in the send sheet, beside the addressee. */
+  const [extraTo, setExtraTo] = useState<string[]>([]);
+  /**
    * Address the draft before handing it to the mail app: the letter names
    * its own subject and greets its recipient by name, and Key Contacts
    * knows the address — no reason to make the parent supply any of it.
@@ -467,12 +515,19 @@ export default function LettersScreen() {
   const outgoing = React.useMemo(() => {
     if (!draft || !template) return null;
     const { subject: draftSubject, body } = extractSubject(draft);
-    const subject = buildSubject({
-      draftSubject,
+    const computedSubject = buildSubject({
+      // A "Subject:" line the parent typed at the top of the draft is the
+      // most deliberate signal there is; the model's comes next.
+      draftSubject: draftSubject ?? aiSubject,
       templateTitle: template.title,
       childFirstName: primaryChild?.first_name,
       familyLastName: family?.parent_last_name,
     });
+    // What the subject field shows. A Gmail send uses exactly this, so the
+    // send sheet refuses to go while it is blank; the mail-app hand-off and
+    // the paper trail fall back to the computed subject instead.
+    const subjectField = subjectEdit ?? computedSubject;
+    const subject = subjectField.trim() || computedSubject;
     const autoRecipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
     const recipient: RecipientMatch =
       autoRecipient.contact || !manualRecipient
@@ -481,9 +536,9 @@ export default function LettersScreen() {
     outgoingSubjectRef.current = subject;
     outgoingContactRef.current = recipient.contact?.name ?? null;
     outgoingOrgRef.current = (recipient.contact?.organization as CommunicationOrg | null) ?? null;
-    return { subject, body, recipient };
+    return { subject, subjectField, body, recipient };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, template, contacts, manualRecipient, primaryChild?.first_name, family?.parent_last_name]);
+  }, [draft, template, contacts, manualRecipient, subjectEdit, aiSubject, primaryChild?.first_name, family?.parent_last_name]);
 
   const target = outgoing
     ? composeTarget(
@@ -498,38 +553,59 @@ export default function LettersScreen() {
 
   // A letter with unfilled [BRACKET] blanks must not fire a direct send to an
   // agency (draft flow phase 9c). Copy and Open-in-mail stay available so the
-  // parent can still finish elsewhere.
+  // parent can still finish elsewhere. The subject counts: it is the first
+  // line the agency reads, and "[DATE]" there is no better than in the body.
+  const blankScanText = draft ? `${outgoing?.subjectField ?? ''}\n${draft}` : '';
   const blanksLeft = useMemo(
-    () => (draft ? analyzeBlanks(draft, letterProfile).remaining.length : 0),
-    [draft, letterProfile]
+    () => (blankScanText ? analyzeBlanks(blankScanText, letterProfile).remaining.length : 0),
+    [blankScanText, letterProfile]
   );
 
+  const openSendSheet = useCallback(() => {
+    setSendProblem(null);
+    setConfirmOpen(true);
+  }, []);
+
+  /** "Send now" in the sheet — the only path that sends through Gmail. */
   const handleSendWithGmail = useCallback(async () => {
     const to = outgoing?.recipient.contact?.email;
-    if (!draft || !to || gmailSending) return;
+    if (!draft || !outgoing || !to || gmailSending) return;
+    // The sheet shows this field and sends exactly it — never a fallback the
+    // parent did not see.
+    const subject = outgoing.subjectField.trim();
+    if (!subject) return;
     // Defense in depth — the button is disabled while blanks remain, but never
     // send "[DATE]" straight to an agency even if that guard is bypassed.
-    if (!sendReadiness(draft, letterProfile, true).canSend) {
+    if (!sendReadiness(`${subject}\n${outgoing.body}`, letterProfile, true).canSend) {
       showToast(sendGate.toast, 'error');
       return;
     }
     setGmailSending(true);
+    setSendProblem(null);
     try {
-      const id = savedIdRef.current ?? (await saveDraftOnce());
+      // The edited subject is what the paper trail records for this send.
+      outgoingSubjectRef.current = subject;
+      const id = await saveDraftOnce();
       if (!id) {
-        showToast("Couldn't save the draft — please try again.", 'error');
+        const msg = "Couldn't save the draft — please try again.";
+        setSendProblem(msg);
+        showToast(msg, 'error');
         return;
       }
       const result = await gmailSend({
-        to,
-        subject: outgoing?.subject ?? '',
-        body: draft,
+        to: [to, ...extraTo].join(', '),
+        subject,
+        // The body without a leading "Subject:" line — Gmail has its own.
+        body: outgoing.body,
         communicationId: id,
       });
       if (!result.ok) {
-        showToast(result.error ?? 'Gmail send failed — try Open in Gmail instead.', 'error');
+        const msg = result.error ?? 'Gmail send failed — try Open in Gmail instead.';
+        setSendProblem(msg);
+        showToast(msg, 'error');
         return;
       }
+      setConfirmOpen(false);
       // The function marked the row sent + stored thread ids; run the
       // sent moment + clock tracking exactly as a manual send would.
       await handleMarkSent();
@@ -537,7 +613,7 @@ export default function LettersScreen() {
     } finally {
       setGmailSending(false);
     }
-  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate]);
+  }, [draft, outgoing, extraTo, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate]);
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
@@ -567,6 +643,9 @@ export default function LettersScreen() {
     setFilledFromRecords([]);
     setManualRecipient(null);
     setManualEmailInput('');
+    setSubjectEdit(null);
+    setAiSubject(null);
+    setExtraTo([]);
     setTemplate(null);
     setQuestion('');
     setChatGuidance(null);
@@ -587,6 +666,28 @@ export default function LettersScreen() {
         }}
         onDecline={() => setShowConsent(false)}
       />
+      {outgoing?.recipient.contact?.email ? (
+        <GmailSendConfirmModal
+          visible={confirmOpen}
+          locale={funnelLocale}
+          fromEmail={gmailEmail}
+          primary={{
+            name: outgoing.recipient.contact.name,
+            email: outgoing.recipient.contact.email,
+          }}
+          extraTo={extraTo}
+          onChangeExtraTo={setExtraTo}
+          subject={outgoing.subjectField}
+          onChangeSubject={setSubjectEdit}
+          body={outgoing.body}
+          contacts={emailableContacts}
+          sending={gmailSending}
+          blockedReason={blanksLeft > 0 ? sendGate.toast : null}
+          problem={sendProblem}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={handleSendWithGmail}
+        />
+      ) : null}
 
       <ScrollView contentContainerStyle={styles.content}>
         {!template ? (
@@ -707,7 +808,7 @@ export default function LettersScreen() {
               // Blanks left after the profile fill: show what's still needed,
               // and separate "we could remember this for you" from the ones
               // only the parent can answer (dates, times, specifics).
-              const { remaining, fixableInProfile } = analyzeBlanks(draft, letterProfile);
+              const { remaining, fixableInProfile } = analyzeBlanks(blankScanText, letterProfile);
               if (remaining.length === 0) {
                 return (
                   <View style={styles.blanksDone}>
@@ -782,10 +883,17 @@ export default function LettersScreen() {
                     </TouchableOpacity>
                   )}
                 </View>
-                <Text style={styles.addressLine} numberOfLines={2}>
-                  <Text style={styles.addressLabel}>Subject: </Text>
-                  {outgoing.subject}
-                </Text>
+                <View style={styles.subjectRow}>
+                  <Text style={[styles.addressLine, styles.addressLabel]}>Subject: </Text>
+                  <TextInput
+                    style={styles.subjectInput}
+                    value={outgoing.subjectField}
+                    onChangeText={setSubjectEdit}
+                    placeholder="Add a subject"
+                    placeholderTextColor={colors.mid}
+                    accessibilityLabel="Email subject"
+                  />
+                </View>
                 {!outgoing.recipient.contact && (
                   <>
                     {emailableContacts.length > 0 && (
@@ -866,25 +974,25 @@ export default function LettersScreen() {
               <>
                 <TouchableOpacity
                   style={[styles.gmailSendBtn, blanksLeft > 0 && styles.gmailSendBtnDisabled]}
-                  onPress={handleSendWithGmail}
+                  onPress={openSendSheet}
                   disabled={gmailSending || blanksLeft > 0}
                   accessibilityRole="button"
                   accessibilityState={{ disabled: gmailSending || blanksLeft > 0 }}
                   accessibilityLabel={
                     blanksLeft > 0
                       ? sendGate.a11y(blanksLeft)
-                      : 'Send this letter now through your connected Gmail'
+                      : 'Review and send this letter through your connected Gmail'
                   }
                 >
-                  {gmailSending ? (
-                    <ActivityIndicator size="small" color={colors.white} />
-                  ) : (
-                    <Text style={styles.gmailSendText}>
-                      📨 Send now with Gmail — replies tracked
-                    </Text>
-                  )}
+                  <Text style={styles.gmailSendText}>
+                    📨 Send now with Gmail — replies tracked
+                  </Text>
                 </TouchableOpacity>
-                {blanksLeft > 0 && <Text style={styles.sendGateHint}>{sendGate.hint(blanksLeft)}</Text>}
+                {blanksLeft > 0 ? (
+                  <Text style={styles.sendGateHint}>{sendGate.hint(blanksLeft)}</Text>
+                ) : (
+                  <Text style={styles.autoSendNote}>{AUTO_SEND_NOTE[funnelLocale](gmailEmail)}</Text>
+                )}
               </>
             )}
             <View style={styles.actionRow}>
@@ -1273,6 +1381,27 @@ const styles = StyleSheet.create({
   },
   gmailSendText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   gmailSendBtnDisabled: { backgroundColor: colors.mid, opacity: 0.6 },
+  autoSendNote: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginTop: -spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  subjectRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  subjectInput: {
+    flex: 1,
+    backgroundColor: colors.light,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    minHeight: 32,
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+  },
   aiProvenance: {
     fontSize: fonts.sizes.sm,
     color: colors.mid,

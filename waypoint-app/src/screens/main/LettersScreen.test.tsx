@@ -32,7 +32,16 @@ const h = vi.hoisted(() => ({
   createRequest: vi.fn(async (input: any) => ({ id: 'req2', ...input })),
   attach: vi.fn(async () => true),
   contacts: [] as any[],
-  logCommunication: vi.fn(async (_familyId: string, _input: Record<string, unknown>) => 'comm1'),
+  // A fresh id per write, so a test can tell WHICH paper-trail row was sent.
+  commSeq: 0,
+  logCommunication: vi.fn(async (_familyId: string, _input: Record<string, unknown>) => ''),
+  markSent: vi.fn(async (_id: string) => true),
+  gmail: { gmail: false, email: null as string | null },
+  gmailSend: vi.fn(async (_input: Record<string, unknown>) => ({ ok: true }) as { ok: boolean; error?: string }),
+  generated: { draft: 'Dear Service Coordinator, I am requesting an IPP review.' } as {
+    draft: string;
+    subject?: string;
+  },
 }));
 
 vi.mock('@/hooks/useFamily', () => ({
@@ -54,13 +63,13 @@ vi.mock('@/hooks/useContacts', () => ({ useContacts: () => ({ contacts: h.contac
 vi.mock('@/hooks/useCommunications', () => ({
   useCommunications: () => ({ communications: [], refetch: vi.fn() }),
   logCommunication: h.logCommunication,
-  markCommunicationSent: async () => true,
+  markCommunicationSent: h.markSent,
   attachCommunicationToRequest: h.attach,
 }));
 
 vi.mock('@/lib/gmail', () => ({
-  gmailStatus: async () => ({ gmail: false }),
-  gmailSend: async () => ({ ok: true }),
+  gmailStatus: async () => h.gmail,
+  gmailSend: h.gmailSend,
 }));
 
 vi.mock('@/lib/analytics', () => ({ trackDraftUsed: vi.fn() }));
@@ -68,7 +77,7 @@ vi.mock('@/lib/analytics', () => ({ trackDraftUsed: vi.fn() }));
 // Real templates and tone options; only the network draft is stubbed.
 vi.mock('@/lib/letters', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/letters')>()),
-  generateLetter: async () => ({ draft: 'Dear Service Coordinator, I am requesting an IPP review.' }),
+  generateLetter: async () => h.generated,
 }));
 
 import LettersScreen from './LettersScreen';
@@ -91,7 +100,14 @@ beforeEach(() => {
   delete routeParams.requestId;
   h.createRequest.mockClear();
   h.attach.mockClear();
-  h.logCommunication.mockClear();
+  h.commSeq = 0;
+  h.logCommunication.mockReset();
+  h.logCommunication.mockImplementation(async () => `comm${++h.commSeq}`);
+  h.markSent.mockClear();
+  h.gmail = { gmail: false, email: null };
+  h.gmailSend.mockReset();
+  h.gmailSend.mockImplementation(async () => ({ ok: true }));
+  h.generated = { draft: 'Dear Service Coordinator, I am requesting an IPP review.' };
   h.contacts = [];
 });
 
@@ -322,5 +338,195 @@ describe('draftBody logging assumption — already-logged vs. fresh text', () =>
       body: 'Some text handed to Letters from elsewhere.',
       status: 'draft',
     });
+  });
+});
+
+/**
+ * "Send now with Gmail" used to send on one tap, beside an "Open in Gmail"
+ * that only opens a compose window — and with a subject the parent could see
+ * but not change. The owner sent a note to a provider that way (2026-10-07)
+ * under "IPP Meeting Request — Teddy Beebe", a template title that had
+ * nothing to do with it. These pin the fix: the button says it sends by
+ * itself, opens a last look instead of sending, and what that sheet shows —
+ * recipients, subject, body — is exactly what reaches gmailSend.
+ */
+describe('sending through Gmail', () => {
+  const DRAFT = 'Dear Service Coordinator, I am requesting an IPP review.';
+
+  beforeEach(() => {
+    h.gmail = { gmail: true, email: 'mike@example.com' };
+    h.contacts = [
+      { id: 'k1', name: 'Pat Nguyen', email: 'pat@rceb.org', role: 'Service Coordinator', organization: 'regional_center' },
+      { id: 'k2', name: 'Jenn Beebe', email: 'jenn@example.com', role: 'Parent', organization: 'other' },
+    ];
+  });
+
+  /** Generate a draft and wait for the Gmail button to appear. */
+  async function draftReadyToSend() {
+    render(<LettersScreen />);
+    fireEvent.click(screen.getByRole('button', { name: /Generate Draft/i }));
+    return screen.findByLabelText('Review and send this letter through your connected Gmail');
+  }
+
+  /** The open send sheet, found by its title. */
+  async function openSheet() {
+    fireEvent.click(await draftReadyToSend());
+    const title = await screen.findByText('Send this email now?');
+    return title.parentElement as HTMLElement;
+  }
+
+  it('says it sends by itself, and the button opens a last look instead of sending', async () => {
+    const button = await draftReadyToSend();
+    expect(screen.getByText(/Sends automatically from mike@example\.com — Gmail won’t open/)).toBeTruthy();
+
+    fireEvent.click(button);
+    const sheet = (await screen.findByText('Send this email now?')).parentElement as HTMLElement;
+    expect(within(sheet).getByText(/goes out right away from your Gmail — there’s no undo/)).toBeTruthy();
+    expect(within(sheet).getByText('mike@example.com')).toBeTruthy();
+    expect(within(sheet).getByText('Pat Nguyen <pat@rceb.org>')).toBeTruthy();
+    expect(within(sheet).getByText(DRAFT)).toBeTruthy();
+    expect(h.gmailSend).not.toHaveBeenCalled();
+
+    fireEvent.click(within(sheet).getByLabelText('Go back'));
+    // react-native-web unmounts a faded-out Modal on the browser's
+    // `animationend`, which jsdom never fires — so fire it, on the animated
+    // wrapper (the only ancestor whose handler acts on its own target).
+    for (let el: HTMLElement | null = sheet; el; el = el.parentElement) fireEvent.animationEnd(el);
+    await waitFor(() => expect(screen.queryByText('Send this email now?')).toBeNull());
+    expect(h.gmailSend).not.toHaveBeenCalled();
+  });
+
+  it('shows the subject as a field, and the subject the parent sets is the one sent', async () => {
+    await draftReadyToSend();
+    const field = screen.getByLabelText('Email subject') as HTMLInputElement;
+    // No subject from the model → the template fallback, now visible AND editable.
+    expect(field.value).toBe('IPP Meeting Request — Teddy');
+    fireEvent.change(field, { target: { value: 'Follow-up on Teddy’s IPP review' } });
+
+    fireEvent.click(screen.getByLabelText('Review and send this letter through your connected Gmail'));
+    const sheet = (await screen.findByText('Send this email now?')).parentElement as HTMLElement;
+    const sheetField = within(sheet).getByLabelText(
+      'Subject of the email you are about to send'
+    ) as HTMLInputElement;
+    // One subject, two places to edit it — the sheet starts from the screen's.
+    expect(sheetField.value).toBe('Follow-up on Teddy’s IPP review');
+    fireEvent.change(sheetField, { target: { value: 'Request: Teddy’s IPP review meeting' } });
+
+    fireEvent.click(within(sheet).getByLabelText('Send now'));
+    await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+    expect(h.gmailSend.mock.calls[0][0]).toMatchObject({
+      to: 'pat@rceb.org',
+      subject: 'Request: Teddy’s IPP review meeting',
+      body: DRAFT,
+    });
+    // …and the paper trail records the subject that went out.
+    expect(h.logCommunication.mock.calls[0][1]).toMatchObject({
+      subject: 'Request: Teddy’s IPP review meeting',
+    });
+  });
+
+  it('uses the subject the model wrote for this letter over the template title', async () => {
+    h.generated = { draft: DRAFT, subject: 'Written recommendation for Teddy’s 1:1 support' };
+    await draftReadyToSend();
+    expect((screen.getByLabelText('Email subject') as HTMLInputElement).value).toBe(
+      'Written recommendation for Teddy’s 1:1 support'
+    );
+  });
+
+  it('never sends a "Subject:" line inside the email body', async () => {
+    h.generated = { draft: `Subject: Teddy — IPP review\n\n${DRAFT}` };
+    const sheet = await openSheet();
+    fireEvent.click(within(sheet).getByLabelText('Send now'));
+    await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+    expect(h.gmailSend.mock.calls[0][0]).toMatchObject({ subject: 'Teddy — IPP review', body: DRAFT });
+  });
+
+  it('adds people to the To line — typed, or a Key Contact by name — and sends only those still listed', async () => {
+    const sheet = await openSheet();
+    const add = within(sheet).getByLabelText('Add someone to the To line');
+    const addButton = within(sheet).getByLabelText('Add to To');
+
+    // The addressee is already on the letter, so is never offered again.
+    fireEvent.change(add, { target: { value: 'pat' } });
+    expect(within(sheet).queryByLabelText('Add Pat Nguyen to the To line')).toBeNull();
+
+    fireEvent.change(add, { target: { value: 'jen' } });
+    fireEvent.click(within(sheet).getByLabelText('Add Jenn Beebe to the To line'));
+    expect(within(sheet).getByText('jenn@example.com')).toBeTruthy();
+
+    // Two addresses in one entry would add someone the list never showed.
+    fireEvent.change(add, { target: { value: 'a@x.com, b@y.com' } });
+    expect(addButton.getAttribute('aria-disabled')).toBe('true');
+
+    fireEvent.change(add, { target: { value: 'advocate@example.org' } });
+    fireEvent.click(addButton);
+    expect(within(sheet).getByText('advocate@example.org')).toBeTruthy();
+
+    fireEvent.click(within(sheet).getByLabelText('Remove jenn@example.com'));
+    expect(within(sheet).queryByText('jenn@example.com')).toBeNull();
+
+    fireEvent.click(within(sheet).getByLabelText('Send now'));
+    await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+    expect(h.gmailSend.mock.calls[0][0]).toMatchObject({ to: 'pat@rceb.org, advocate@example.org' });
+  });
+
+  it('will not send with a blank subject, or a [BRACKET] left in it', async () => {
+    const sheet = await openSheet();
+    const field = within(sheet).getByLabelText('Subject of the email you are about to send');
+    const send = within(sheet).getByLabelText('Send now');
+
+    fireEvent.change(field, { target: { value: '   ' } });
+    expect(send.getAttribute('aria-disabled')).toBe('true');
+    expect(within(sheet).getByText('Add a subject first.')).toBeTruthy();
+
+    fireEvent.change(field, { target: { value: 'IPP review on [DATE]' } });
+    expect(send.getAttribute('aria-disabled')).toBe('true');
+    expect(within(sheet).getByText(/Fill the blanks in the draft first/)).toBeTruthy();
+
+    fireEvent.click(send);
+    expect(h.gmailSend).not.toHaveBeenCalled();
+  });
+
+  it('a failed send keeps the sheet open and says why', async () => {
+    h.gmailSend.mockImplementation(async () => ({ ok: false, error: 'Gmail said no' }));
+    const sheet = await openSheet();
+    fireEvent.click(within(sheet).getByLabelText('Send now'));
+    expect(await within(sheet).findByText('Gmail said no')).toBeTruthy();
+    expect(screen.getByText('Send this email now?')).toBeTruthy();
+    expect(h.markSent).not.toHaveBeenCalled();
+  });
+
+  it('a letter edited after it was saved logs and sends the text that actually went out', async () => {
+    await draftReadyToSend();
+    fireEvent.click(screen.getByLabelText('Save this draft'));
+    await waitFor(() => expect(h.logCommunication).toHaveBeenCalledTimes(1));
+
+    const edited = `${DRAFT} Could we meet the week of October 20?`;
+    fireEvent.change(screen.getByDisplayValue(DRAFT), { target: { value: edited } });
+    fireEvent.click(screen.getByLabelText('Review and send this letter through your connected Gmail'));
+    const sheet = (await screen.findByText('Send this email now?')).parentElement as HTMLElement;
+    fireEvent.click(within(sheet).getByLabelText('Send now'));
+
+    await waitFor(() => expect(h.markSent).toHaveBeenCalled());
+    // The edited text is its own row, and THAT row is the one marked sent —
+    // not the pre-edit draft that happened to be saved first.
+    expect(h.logCommunication).toHaveBeenCalledTimes(2);
+    expect(h.logCommunication.mock.calls[1][1]).toMatchObject({ body: edited });
+    expect(h.gmailSend.mock.calls[0][0]).toMatchObject({ communicationId: 'comm2', body: edited });
+    expect(h.markSent).toHaveBeenCalledWith('comm2');
+  });
+
+  it('so does "Mark as sent" — an edit after saving is the row that gets marked', async () => {
+    await draftReadyToSend();
+    fireEvent.click(screen.getByLabelText('Save this draft'));
+    await waitFor(() => expect(h.logCommunication).toHaveBeenCalledTimes(1));
+
+    const edited = `${DRAFT} Thursdays work best for us.`;
+    fireEvent.change(screen.getByDisplayValue(DRAFT), { target: { value: edited } });
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+
+    await waitFor(() => expect(h.markSent).toHaveBeenCalled());
+    expect(h.logCommunication.mock.calls[1][1]).toMatchObject({ body: edited });
+    expect(h.markSent).toHaveBeenCalledWith('comm2');
   });
 });

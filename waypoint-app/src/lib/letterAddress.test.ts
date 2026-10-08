@@ -3,6 +3,9 @@ import {
   extractSubject,
   buildSubject,
   pickRecipient,
+  isEmailAddress,
+  addRecipient,
+  MAX_RECIPIENTS,
   type AddressContact,
 } from './letterAddress';
 
@@ -98,5 +101,65 @@ describe('pickRecipient', () => {
   it('returns nothing rather than guessing wrong', () => {
     expect(pickRecipient('Hi Taylor,\n\nHello.', CONTACTS).reason).toBe('none');
     expect(pickRecipient(DRAFT, []).to).toEqual([]);
+  });
+});
+
+describe('isEmailAddress', () => {
+  it('accepts a plain address', () => {
+    expect(isEmailAddress('jenn@example.com')).toBe(true);
+    expect(isEmailAddress('  caitriona@embracingautismservices.com ')).toBe(true);
+    expect(isEmailAddress('first.last+rc@sub.example.org')).toBe(true);
+  });
+
+  it('rejects anything that could carry a second recipient or a header', () => {
+    // Extra recipients are joined into one To header — these would each
+    // address someone the parent never saw in the list.
+    expect(isEmailAddress('a@x.com, b@y.com')).toBe(false);
+    expect(isEmailAddress('a@x.com;b@y.com')).toBe(false);
+    expect(isEmailAddress('Jenn <jenn@example.com>')).toBe(false);
+    expect(isEmailAddress('a@x.com\r\nBcc: c@z.com')).toBe(false);
+    expect(isEmailAddress('a@x.com\nb@y.com')).toBe(false);
+  });
+
+  it('rejects what is not an address at all', () => {
+    for (const bad of ['', 'jenn', 'jenn@', '@example.com', 'jenn@example', 'jenn@@example.com', 'jenn@example.c']) {
+      expect(isEmailAddress(bad)).toBe(false);
+    }
+  });
+});
+
+describe('addRecipient', () => {
+  it('adds a trimmed address to the end', () => {
+    expect(addRecipient(['a@x.com'], '  jenn@example.com ')).toEqual({
+      added: true,
+      list: ['a@x.com', 'jenn@example.com'],
+    });
+  });
+
+  it('will not add the addressee, or anyone already on the letter, twice', () => {
+    expect(addRecipient([], 'Caitriona@Example.com', ['caitriona@example.com'])).toMatchObject({
+      added: false,
+      reason: 'duplicate',
+    });
+    expect(addRecipient(['jenn@example.com'], 'JENN@example.com')).toMatchObject({
+      added: false,
+      reason: 'duplicate',
+    });
+  });
+
+  it('refuses an invalid address and leaves the list alone', () => {
+    const list = ['a@x.com'];
+    const result = addRecipient(list, 'b@y.com, c@z.com');
+    expect(result).toMatchObject({ added: false, reason: 'invalid' });
+    expect(result.list).toBe(list);
+  });
+
+  it(`stops at ${MAX_RECIPIENTS} people, the addressee included`, () => {
+    const full = Array.from({ length: MAX_RECIPIENTS - 1 }, (_, i) => `p${i}@x.com`);
+    expect(addRecipient(full, 'one-more@x.com', ['addressee@x.com'])).toMatchObject({
+      added: false,
+      reason: 'full',
+    });
+    expect(addRecipient(full.slice(1), 'one-more@x.com', ['addressee@x.com']).added).toBe(true);
   });
 });

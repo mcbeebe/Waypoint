@@ -31,9 +31,19 @@ export interface GenerateLetterOptions {
   language?: string;
 }
 
-export async function generateLetter(
-  options: GenerateLetterOptions
-): Promise<{ draft: string | null; error?: string }> {
+export interface GeneratedLetter {
+  draft: string | null;
+  /**
+   * The subject the model wrote for THIS letter, split off server-side so the
+   * draft body stays clean. Absent from older ai-proxy deploys — callers fall
+   * back to `buildSubject`.
+   */
+  subject?: string | null;
+  error?: string;
+}
+
+/** Draft a letter through the ai-proxy 'draft' action. */
+export async function generateLetter(options: GenerateLetterOptions): Promise<GeneratedLetter> {
   try {
     const headers = await getAuthHeaders();
     const response = await fetch(EDGE_FN_URL, {
@@ -49,7 +59,9 @@ export async function generateLetter(
       return { draft: null, error: `Draft failed (${response.status})` };
     }
     const data = await response.json();
-    return { draft: data.draft ?? null };
+    const subject =
+      typeof data.subject === 'string' && data.subject.trim() ? data.subject.trim() : null;
+    return { draft: data.draft ?? null, subject };
   } catch (err) {
     return { draft: null, error: err instanceof Error ? err.message : 'Draft failed' };
   }
