@@ -349,18 +349,35 @@ export default function LettersScreen() {
     const contact = outgoingContactRef.current ?? undefined;
     const meta = [subject, contact ?? '', organization].join('\u0000');
     const id = savedIdRef.current;
-    const unchanged = loggedDraftRef.current === draft && loggedMetaRef.current === meta;
-    if (id && unchanged && !(opts?.fresh && savedSentRef.current)) return id;
-    // Handed over as already logged but with no row to revise: never
-    // duplicate it (the reopen rule this screen has always kept).
-    if (!id && loggedDraftRef.current === draft) return null;
+    const sameText = loggedDraftRef.current === draft;
+
+    if (id && savedSentRef.current) {
+      // It went out. Picking who it went to, or tidying the subject, after
+      // the fact is not a new letter — only new text, or a deliberate second
+      // send, is. (Treating those as revisions logged a duplicate DRAFT of a
+      // sent letter, which Home then asked the parent to finish.)
+      if (sameText && !opts?.fresh) return id;
+    } else if (id) {
+      if (sameText && loggedMetaRef.current === meta) return id;
+      loggedDraftRef.current = draft;
+      loggedMetaRef.current = meta;
+      const revised = await updateCommunicationDraft(id, { subject, body: draft, contact, organization });
+      if (revised === 'updated') return id;
+      if (revised === 'error') {
+        // A failed save, not a reason to log a second row beside this one.
+        loggedDraftRef.current = null;
+        loggedMetaRef.current = null;
+        return null;
+      }
+      // 'not_draft': sent from somewhere else, or gone — it needs its own row.
+    } else if (sameText) {
+      // Handed over as already logged but with no row to revise: never
+      // duplicate it (the reopen rule this screen has always kept).
+      return null;
+    }
 
     loggedDraftRef.current = draft;
     loggedMetaRef.current = meta;
-    if (id && !savedSentRef.current) {
-      if (await updateCommunicationDraft(id, { subject, body: draft, contact, organization })) return id;
-      // Gone, or sent from somewhere else — log it as its own row below.
-    }
     const newId = await logCommunication(family.id, {
       kind: 'letter',
       subject,
@@ -587,7 +604,9 @@ export default function LettersScreen() {
     // send sheet refuses to go while it is blank; the mail-app hand-off and
     // the paper trail fall back to the computed subject instead.
     const subjectField = subjectEdit ?? computedSubject;
-    const subject = subjectField.trim() || computedSubject;
+    // The same normalization the Gmail send applies, so the paper trail and
+    // the send never disagree about whether the subject changed.
+    const subject = oneLine(subjectField) ?? computedSubject;
     const autoRecipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
     const recipient: RecipientMatch =
       autoRecipient.contact || !manualRecipient
@@ -666,6 +685,10 @@ export default function LettersScreen() {
         showToast(msg, 'error');
         return;
       }
+      // The function already marked the row sent. Remember that even if the
+      // client-side mark below fails, or a second send would reuse this row
+      // and overwrite its thread — losing the first email's replies.
+      savedSentRef.current = true;
       setConfirmOpen(false);
       // The function marked the row sent + stored thread ids; run the
       // sent moment + clock tracking exactly as a manual send would.
@@ -740,7 +763,7 @@ export default function LettersScreen() {
           subject={outgoing.subjectField}
           onChangeSubject={setSubjectEdit}
           body={outgoing.body}
-          alreadySent={markedSent && loggedDraftRef.current === draft}
+          alreadySent={savedSentRef.current && loggedDraftRef.current === draft}
           sending={gmailSending}
           blockedReason={blanksLeft > 0 ? sendGate.toast : null}
           problem={sendProblem}

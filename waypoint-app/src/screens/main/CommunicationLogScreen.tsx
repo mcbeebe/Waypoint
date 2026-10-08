@@ -372,7 +372,12 @@ export default function CommunicationLogScreen() {
                             {
                               template: item.template_key ?? 'general',
                               draftBody: item.body,
-                              draftId: item.id,
+                              // Only a plain letter is Letters' to revise and
+                              // send as itself. An email row may hold a draft
+                              // in the parent's Gmail; it reopens as text.
+                              ...(item.kind === 'letter' && !item.gmail_thread_id
+                                ? { draftId: item.id }
+                                : {}),
                               draftSubject: item.subject,
                             }
                           )

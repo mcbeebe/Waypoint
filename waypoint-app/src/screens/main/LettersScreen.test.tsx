@@ -36,7 +36,10 @@ const h = vi.hoisted(() => ({
   commSeq: 0,
   logCommunication: vi.fn(async (_familyId: string, _input: Record<string, unknown>) => ''),
   markSent: vi.fn(async (_id: string) => true),
-  updateDraft: vi.fn(async (_id: string, _fields: Record<string, unknown>) => true),
+  updateDraft: vi.fn(
+    async (_id: string, _fields: Record<string, unknown>) =>
+      'updated' as 'updated' | 'not_draft' | 'error'
+  ),
   gmail: { gmail: false, email: null as string | null },
   gmailSend: vi.fn(async (_input: Record<string, unknown>) => ({ ok: true }) as { ok: boolean; error?: string }),
   generated: { draft: 'Dear Service Coordinator, I am requesting an IPP review.' } as {
@@ -106,7 +109,8 @@ beforeEach(() => {
   h.logCommunication.mockReset();
   h.logCommunication.mockImplementation(async () => `comm${++h.commSeq}`);
   h.markSent.mockClear();
-  h.updateDraft.mockClear();
+  h.updateDraft.mockReset();
+  h.updateDraft.mockImplementation(async () => 'updated');
   h.gmail = { gmail: false, email: null };
   h.gmailSend.mockReset();
   h.gmailSend.mockImplementation(async () => ({ ok: true }));
@@ -524,6 +528,33 @@ describe('sending through Gmail', () => {
     expect(h.markSent).not.toHaveBeenCalled();
   });
 
+  it('Escape cannot close the sheet while it is sending', async () => {
+    let finish: (v: { ok: boolean }) => void = () => undefined;
+    h.gmailSend.mockImplementation(
+      () => new Promise<{ ok: boolean }>((resolve) => { finish = resolve; })
+    );
+    const sheet = await openSheet();
+    settleModal(sheet); // active (listening for Escape) once shown
+    fireEvent.click(within(sheet).getByLabelText('Send now'));
+    await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+
+    fireEvent.keyUp(document, { key: 'Escape' });
+    settleModal(sheet);
+    expect(screen.getByText('Send this email now?')).toBeTruthy();
+
+    finish({ ok: true });
+    await waitFor(() => expect(h.markSent).toHaveBeenCalled());
+  });
+
+  it('announces why Send now is off, as it changes', async () => {
+    const sheet = await openSheet();
+    fireEvent.change(within(sheet).getByLabelText('Subject of the email you are about to send'), {
+      target: { value: '' },
+    });
+    const reason = within(sheet).getByText('Add a subject first.');
+    expect(reason.closest('[aria-live="polite"]')).toBeTruthy();
+  });
+
   /**
    * One letter is one paper-trail row. Logging every revision as its own row
    * left the pre-edit text behind as an unsent draft — which Home then put at
@@ -585,7 +616,7 @@ describe('sending through Gmail', () => {
     });
 
     it('a row that can no longer be revised is logged fresh, not lost', async () => {
-      h.updateDraft.mockImplementation(async () => false); // e.g. already sent elsewhere
+      h.updateDraft.mockImplementation(async () => 'not_draft'); // e.g. sent from elsewhere
       await draftReadyToSend();
       fireEvent.click(screen.getByLabelText('Save this draft'));
       await waitFor(() => expect(h.logCommunication).toHaveBeenCalledTimes(1));
@@ -597,7 +628,65 @@ describe('sending through Gmail', () => {
       await waitFor(() => expect(h.markSent).toHaveBeenCalled());
       expect(h.logCommunication.mock.calls[1][1]).toMatchObject({ body: edited });
       expect(h.markSent).toHaveBeenCalledWith('comm2');
-      h.updateDraft.mockImplementation(async () => true);
+    });
+
+    it('a revision that failed to save is a failed save — never a second row beside the first', async () => {
+      await draftReadyToSend();
+      fireEvent.click(screen.getByLabelText('Save this draft'));
+      await waitFor(() => expect(h.logCommunication).toHaveBeenCalledTimes(1));
+
+      h.updateDraft.mockImplementationOnce(async () => 'error'); // a network blip
+      const edited = `${DRAFT} One more thing.`;
+      fireEvent.change(screen.getByDisplayValue(DRAFT), { target: { value: edited } });
+      const sheet = await openSheetFromButton();
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+
+      expect(await within(sheet).findByText(/Couldn't save the draft/)).toBeTruthy();
+      expect(h.gmailSend).not.toHaveBeenCalled();
+      expect(h.logCommunication).toHaveBeenCalledTimes(1);
+
+      // The next tap tries the revision again, against the same row.
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+      await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+      expect(h.updateDraft).toHaveBeenLastCalledWith('comm1', expect.objectContaining({ body: edited }));
+      expect(h.gmailSend.mock.calls[0][0]).toMatchObject({ communicationId: 'comm1' });
+      expect(h.logCommunication).toHaveBeenCalledTimes(1);
+    });
+
+    it('after "Mark as sent", recording who it went to is not a new letter', async () => {
+      // No saved contact matches the draft, so nobody is picked yet.
+      h.contacts = [{ id: 'k2', name: 'Carol Guggino', email: 'carol@school.org', organization: 'school' }];
+      render(<LettersScreen />);
+      fireEvent.click(screen.getByRole('button', { name: /Generate Draft/i }));
+      await screen.findByRole('button', { name: /Mark this letter as sent/i });
+      fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+      await waitFor(() => expect(h.markSent).toHaveBeenCalledWith('comm1'));
+
+      // The parent records who it went to, then copies it for their notes.
+      fireEvent.click(screen.getByLabelText('Send to Carol Guggino'));
+      fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+      await waitFor(() => expect(clipboard.text).toBe(DRAFT));
+
+      // No duplicate DRAFT of a sent letter (Home would ask them to finish it),
+      // and the screen still knows it went out.
+      expect(h.logCommunication).toHaveBeenCalledTimes(1);
+      expect(h.updateDraft).not.toHaveBeenCalled();
+      expect(screen.queryByRole('button', { name: /Mark this letter as sent/i })).toBeNull();
+    });
+
+    it('a Gmail send whose client-side mark failed is still remembered as sent', async () => {
+      h.markSent.mockImplementationOnce(async () => false);
+      let sheet = await openSheet();
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+      await waitFor(() => expect(h.markSent).toHaveBeenCalledTimes(1));
+
+      // The function marked the row sent; a second send must not reuse it
+      // (that would overwrite its thread and drop the first email's replies).
+      sheet = await openSheetFromButton();
+      expect(within(sheet).getByText(/You already sent this letter/)).toBeTruthy();
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+      await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(2));
+      expect(h.gmailSend.mock.calls[1][0]).toMatchObject({ communicationId: 'comm2' });
     });
 
     it('after a send, Copy adds nothing — and a second send is its own row, with a warning', async () => {

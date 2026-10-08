@@ -132,18 +132,31 @@ export async function attachCommunicationToRequest(
   }
 }
 
+/** What happened to an in-place revision — see updateCommunicationDraft. */
+export type DraftUpdateResult =
+  /** The draft row now holds the revision. */
+  | 'updated'
+  /** No draft row to revise: it was sent, belongs to a Gmail draft, or is gone. */
+  | 'not_draft'
+  /** The request failed — nothing is known about the row. */
+  | 'error';
+
 /**
  * Revise a letter that is still a DRAFT in place — one letter, one row.
  * Logging each revision as a new row left the pre-edit text behind as an
  * unsent draft, which Home then surfaced as "Finish the letter you started"
- * for a letter the parent had already sent. Sent rows are never rewritten
- * (`status = 'draft'` is part of the match); false means nothing was updated
- * and the caller should log a new row instead.
+ * for a letter the parent had already sent.
+ *
+ * Only a plain draft is rewritten: never a sent row, and never one tied to a
+ * Gmail thread (a draft saved to the parent's Gmail Drafts has its own life
+ * there — rewriting the row would orphan it). `error` is kept apart from
+ * `not_draft` so a network blip is treated as a failed save, not as licence
+ * to log a second row beside the first.
  */
 export async function updateCommunicationDraft(
   id: string,
   fields: Pick<NewCommunication, 'subject' | 'body' | 'contact' | 'organization'>
-): Promise<boolean> {
+): Promise<DraftUpdateResult> {
   try {
     const { data, error } = await supabase
       .from('communications')
@@ -155,10 +168,12 @@ export async function updateCommunicationDraft(
       })
       .eq('id', id)
       .eq('status', 'draft')
+      .is('gmail_thread_id', null)
       .select('id');
-    return !error && (data?.length ?? 0) > 0;
+    if (error) return 'error';
+    return (data?.length ?? 0) > 0 ? 'updated' : 'not_draft';
   } catch {
-    return false;
+    return 'error';
   }
 }
 
