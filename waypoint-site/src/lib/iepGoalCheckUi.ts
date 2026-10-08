@@ -76,8 +76,9 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
     save.href = url.toString();
   };
 
-  // Examples are a demo, not a parent's goal: they emit no analytics at all,
-  // so completions never outnumber starts.
+  // Examples are a demo, not a parent's goal: checking one (by its button, or by
+  // Check while the example text is unchanged) emits no analytics, and its
+  // rating is not written into the save link.
   let fromExample = false;
   const complete = (outcome: string) => {
     if (!fromExample) window.plausible?.('tool_completed', { props: { tool_id: TOOL_ID, locale, outcome } });
@@ -90,7 +91,8 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
   }
 
   function render(example: boolean): void {
-    fromExample = example;
+    // An example, even re-checked with the button, is still a demo, not a parent's goal.
+    fromExample = example || Object.values(EXAMPLES).includes(input!.value);
     const r = checkGoal(input!.value);
     out!.replaceChildren();
     if (!r) {
@@ -143,6 +145,6 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
     }
 
     complete(r.rating);
-    setSaveContext(r.rating);
+    setSaveContext(fromExample ? null : r.rating);
   }
 }
