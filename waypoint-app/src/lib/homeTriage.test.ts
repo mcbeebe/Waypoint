@@ -542,6 +542,13 @@ describe('a draft is work you left, not work you abandoned', () => {
     const r = triageHome(base({ drafts: [draft('2026-08-28T18:00:00Z')] }));
     expect(r.item?.action.params?.draftBody).toBe('Dear…');
   });
+
+  it('carries the row and its subject, so resuming revises that row and keeps the subject', () => {
+    // Without the id, Letters could neither update the saved draft nor send
+    // it through Gmail; without the subject it fell back to the template title.
+    const r = triageHome(base({ drafts: [draft('2026-08-28T18:00:00Z')] }));
+    expect(r.item?.action.params).toMatchObject({ draftId: 'd9', draftSubject: 'Records' });
+  });
 });
 
 describe('child-scoped state never answers for a sibling', () => {

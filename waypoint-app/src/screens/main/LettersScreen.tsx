@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  ActivityIndicator,
   Platform,
   Linking,
 } from 'react-native';
@@ -23,6 +22,7 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { gmailStatus, gmailSend } from '@/lib/gmail';
 import { useToast } from '@/components/Toast';
 import AIConsentModal from '@/components/AIConsentModal';
+import GmailSendConfirmModal from '@/components/GmailSendConfirmModal';
 import Button from '@/components/Button';
 import {
   LETTER_TEMPLATES,
@@ -45,6 +45,7 @@ import {
   logCommunication,
   markCommunicationSent,
   attachCommunicationToRequest,
+  updateCommunicationDraft,
 } from '@/hooks/useCommunications';
 import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
@@ -107,6 +108,29 @@ const SEND_GATE: Record<
   },
 };
 
+/**
+ * Under the Gmail send button. It sits beside "Open in Gmail", which only
+ * opens a compose window — this one sends by itself, and has to say so
+ * (owner feedback, 2026-10-07).
+ */
+const AUTO_SEND_NOTE: Record<FunnelLocale, (from: string | null) => string> = {
+  en: (from) =>
+    `Sends automatically from ${from ?? 'your Gmail'} — Gmail won’t open. You’ll get one last look before it goes.`,
+  es: (from) =>
+    `Se envía automáticamente desde ${from ?? 'su Gmail'} — Gmail no se abrirá. Podrá revisarlo una última vez antes de que salga.`,
+  vi: (from) =>
+    `Tự động gửi từ ${from ?? 'Gmail của quý vị'} — Gmail sẽ không mở ra. Quý vị sẽ được xem lại lần cuối trước khi gửi.`,
+};
+
+/**
+ * A subject is one header line. Any line break in one — from the model, or a
+ * saved row — would start a second header in the message Gmail sends.
+ */
+function oneLine(value: string | null | undefined): string | null {
+  const line = value?.replace(/\s+/g, ' ').trim();
+  return line ? line : null;
+}
+
 export default function LettersScreen() {
   const { family, updateFamily } = useFamily();
   const { children, updateChild } = useChildren(family?.id);
@@ -154,6 +178,17 @@ export default function LettersScreen() {
       setFilledFromRecords([]);
       setManualRecipient(null);
       setManualEmailInput('');
+      setSubjectEdit(null);
+      setAiSubject(null);
+      // A new letter is a new paper-trail row. (A draftBody hand-off, below,
+      // runs after this and points these back at the row it reopens.)
+      loggedDraftRef.current = null;
+      loggedMetaRef.current = null;
+      savedIdRef.current = null;
+      savedSentRef.current = false;
+      setSavedId(null);
+      setMarkedSent(false);
+      setSentMoment(null);
     }
     if (route.params?.question) {
       setQuestion(route.params.question);
@@ -175,20 +210,36 @@ export default function LettersScreen() {
   useEffect(() => {
     const saved = route.params?.draftBody;
     if (!saved) return;
-    setDraft(saved);
+    // A leading "Subject:" line belongs in the subject field, not the body —
+    // the Navigator's "Email This" hands over exactly that shape, and leaving
+    // it in the box put it in Copy, in the paper trail, and in the blank
+    // check after the parent had already fixed the subject.
+    const { subject: leading, body } = extractSubject(saved);
+    setDraft(body);
     // A reopened draft never went through fillKnownBlanks, so no records were
     // filled for THIS text — clear any note left from a prior generated draft,
     // or it would assert a false provenance over someone else's letter.
     setFilledFromRecords([]);
     setManualRecipient(null);
     setManualEmailInput('');
+    // A reopened letter keeps the subject it was saved with — not the
+    // template-title fallback the subject field exists to get away from.
+    setSubjectEdit(oneLine(route.params?.draftSubject) ?? leading ?? null);
+    setAiSubject(null);
     // Already in the log — don't duplicate it — UNLESS the caller says this
     // text was never logged in the first place (see draftBodyUnlogged on the
     // param type): a Navigator chat answer routed here has no prior row, and
     // marking it "already logged" made the first Save/Send a silent no-op —
     // saveDraftOnce short-circuits whenever this ref already equals `draft`.
-    loggedDraftRef.current = route.params?.draftBodyUnlogged ? null : saved;
-  }, [route.params?.draftBody, route.params?.draftBodyUnlogged]);
+    const unlogged = !!route.params?.draftBodyUnlogged;
+    loggedDraftRef.current = unlogged ? null : body;
+    loggedMetaRef.current = null;
+    // The row it came from, so an edit revises it and a send marks it. With
+    // no id, a reopened, unedited draft could never be sent through Gmail.
+    savedIdRef.current = unlogged ? null : route.params?.draftId ?? null;
+    savedSentRef.current = false;
+    setSavedId(savedIdRef.current);
+  }, [route.params?.draftBody, route.params?.draftBodyUnlogged, route.params?.draftId, route.params?.draftSubject]);
   const [tone, setTone] = useState<DraftTone>('professional');
   const [question, setQuestion] = useState('');
   const [draft, setDraft] = useState<string | null>(null);
@@ -229,13 +280,17 @@ export default function LettersScreen() {
     // Safety net: if the model bracketed something the profile already
     // knows, fill it in rather than making the parent type it again.
     const { text, filled } = fillKnownBlanks(result.draft, letterProfile);
-    setDraft(text);
+    // A "Subject:" line the model wrote goes to the subject field, not the body.
+    const { subject: leading, body } = extractSubject(text);
+    setDraft(body);
     // A regenerated draft is not the one that was sent — drop any prior
     // send confirmation so it can't linger over new, unsent text.
     setMarkedSent(false);
     setSentMoment(null);
     setManualRecipient(null);
     setManualEmailInput('');
+    setSubjectEdit(null);
+    setAiSubject(oneLine(result.subject) ?? leading ?? null);
     // Persistent note above the draft instead of a vanishing toast — a parent
     // reviewing the letter later can still see what came from their records.
     setFilledFromRecords(filled);
@@ -261,11 +316,16 @@ export default function LettersScreen() {
     complaint: 'other', general: 'other',
   };
 
-  // Each draft is saved to the paper trail once, as a DRAFT — writing a
-  // letter isn't the same as sending it, and the log shouldn't pretend
-  // otherwise until the parent says so.
+  // Each letter is ONE paper-trail row, saved as a DRAFT — writing a letter
+  // isn't the same as sending it, and the log shouldn't pretend otherwise
+  // until the parent says so. A revision updates that row while it is still
+  // a draft; once it has gone out, a changed letter is a new one.
   const loggedDraftRef = React.useRef<string | null>(null);
+  /** Subject, addressee and organization as last logged — a change is a revision. */
+  const loggedMetaRef = React.useRef<string | null>(null);
   const savedIdRef = React.useRef<string | null>(null);
+  /** The row at savedIdRef has gone out, so it is never rewritten. */
+  const savedSentRef = React.useRef(false);
   // Filled from `outgoing` below so the log shows the real subject line
   const outgoingSubjectRef = React.useRef<string | null>(null);
   const [savedId, setSavedId] = useState<string | null>(null);
@@ -275,27 +335,69 @@ export default function LettersScreen() {
   // the new letter lands on the same thread instead of starting a stray one.
   const routeRequestId = route.params?.requestId ?? null;
 
-  const saveDraftOnce = useCallback(async (): Promise<string | null> => {
+  /**
+   * The row for the letter on screen, written or revised as needed.
+   * `fresh` is a second send of a letter that already went out: it gets its
+   * own row, so the first send keeps its Gmail thread (and its replies).
+   */
+  const saveDraftOnce = useCallback(async (opts?: { fresh?: boolean }): Promise<string | null> => {
     if (!draft || !template || !family?.id) return null;
-    if (loggedDraftRef.current === draft) return savedIdRef.current;
+    const subject = outgoingSubjectRef.current ?? template.title;
+    // Who it actually went to beats the template's default — a records
+    // request to the RC should log as Regional Center, not School
+    const organization = outgoingOrgRef.current ?? ORG_BY_TEMPLATE[template.key] ?? 'other';
+    const contact = outgoingContactRef.current ?? undefined;
+    const meta = [subject, contact ?? '', organization].join('\u0000');
+    const id = savedIdRef.current;
+    const sameText = loggedDraftRef.current === draft;
+
+    if (id && savedSentRef.current) {
+      // It went out. Picking who it went to, or tidying the subject, after
+      // the fact is not a new letter — only new text, or a deliberate second
+      // send, is. (Treating those as revisions logged a duplicate DRAFT of a
+      // sent letter, which Home then asked the parent to finish.)
+      if (sameText && !opts?.fresh) return id;
+    } else if (id) {
+      if (sameText && loggedMetaRef.current === meta) return id;
+      loggedDraftRef.current = draft;
+      loggedMetaRef.current = meta;
+      const revised = await updateCommunicationDraft(id, { subject, body: draft, contact, organization });
+      if (revised === 'updated') return id;
+      if (revised === 'error') {
+        // A failed save, not a reason to log a second row beside this one.
+        loggedDraftRef.current = null;
+        loggedMetaRef.current = null;
+        return null;
+      }
+      // 'not_draft': sent from somewhere else, or gone — it needs its own row.
+    } else if (sameText) {
+      // Handed over as already logged but with no row to revise: never
+      // duplicate it (the reopen rule this screen has always kept).
+      return null;
+    }
+
     loggedDraftRef.current = draft;
-    const id = await logCommunication(family.id, {
+    loggedMetaRef.current = meta;
+    const newId = await logCommunication(family.id, {
       kind: 'letter',
-      subject: outgoingSubjectRef.current ?? template.title,
+      subject,
       body: draft,
       template_key: template.key,
-      // Who it actually went to beats the template's default — a records
-      // request to the RC should log as Regional Center, not School
-      organization:
-        outgoingOrgRef.current ?? ORG_BY_TEMPLATE[template.key] ?? 'other',
-      contact: outgoingContactRef.current ?? undefined,
+      organization,
+      contact,
       status: 'draft',
       request_id: routeRequestId ?? undefined,
     });
-    savedIdRef.current = id;
-    setSavedId(id);
+    if (!newId) {
+      // Let the next tap try again instead of believing this was saved.
+      loggedDraftRef.current = null;
+      loggedMetaRef.current = null;
+    }
+    savedIdRef.current = newId;
+    savedSentRef.current = false;
+    setSavedId(newId);
     setMarkedSent(false);
-    return id;
+    return newId;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, template, family?.id, routeRequestId]);
 
@@ -311,19 +413,31 @@ export default function LettersScreen() {
   // ── Send directly through the connected Gmail account (Aug 27) —
   // marks the draft sent, stores the thread id so replies sync back.
   const [gmailReady, setGmailReady] = useState(false);
+  const [gmailEmail, setGmailEmail] = useState<string | null>(null);
   const [gmailSending, setGmailSending] = useState(false);
+  // The button opens a last-look sheet; only its "Send now" sends (2026-10-07).
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [sendProblem, setSendProblem] = useState<string | null>(null);
   useEffect(() => {
-    if (Platform.OS === 'web') gmailStatus().then((s) => setGmailReady(s.gmail));
+    if (Platform.OS !== 'web') return;
+    gmailStatus().then((s) => {
+      setGmailReady(s.gmail);
+      setGmailEmail(s.email ?? null);
+    });
   }, []);
 
   /** The parent confirms it actually went out. */
   const handleMarkSent = useCallback(async () => {
-    const id = savedIdRef.current ?? (await saveDraftOnce());
+    // Not `savedIdRef.current ?? …`: once any version of this letter was
+    // saved, that short-circuit marked THAT row sent with the text from before
+    // the parent's last edits. saveDraftOnce revises the row first.
+    const id = await saveDraftOnce();
     if (!id) {
       showToast("Couldn't update the paper trail — please try again.", 'error');
       return;
     }
     const ok = await markCommunicationSent(id);
+    if (ok) savedSentRef.current = true;
     setMarkedSent(ok);
     if (!ok) {
       showToast("Couldn't mark it sent.", 'error');
@@ -460,6 +574,17 @@ export default function LettersScreen() {
    *  path that doesn't dead-end at "go save them first". */
   const [manualEmailInput, setManualEmailInput] = useState('');
   /**
+   * The subject is the parent's to set (owner feedback, 2026-10-07). It was
+   * only ever displayed, so a template-title fallback — "IPP Meeting
+   * Request — Teddy Beebe" on a note to a provider asking for a written
+   * recommendation — went out with no way to see it coming or fix it.
+   * `null` follows the computed subject; any edit, even clearing it, is
+   * the parent's own and is kept until the next letter.
+   */
+  const [subjectEdit, setSubjectEdit] = useState<string | null>(null);
+  /** The subject the model wrote for this draft, when ai-proxy sends one. */
+  const [aiSubject, setAiSubject] = useState<string | null>(null);
+  /**
    * Address the draft before handing it to the mail app: the letter names
    * its own subject and greets its recipient by name, and Key Contacts
    * knows the address — no reason to make the parent supply any of it.
@@ -467,12 +592,21 @@ export default function LettersScreen() {
   const outgoing = React.useMemo(() => {
     if (!draft || !template) return null;
     const { subject: draftSubject, body } = extractSubject(draft);
-    const subject = buildSubject({
-      draftSubject,
+    const computedSubject = buildSubject({
+      // A "Subject:" line the parent typed at the top of the draft is the
+      // most deliberate signal there is; the model's comes next.
+      draftSubject: draftSubject ?? aiSubject,
       templateTitle: template.title,
       childFirstName: primaryChild?.first_name,
       familyLastName: family?.parent_last_name,
     });
+    // What the subject field shows. A Gmail send uses exactly this, so the
+    // send sheet refuses to go while it is blank; the mail-app hand-off and
+    // the paper trail fall back to the computed subject instead.
+    const subjectField = subjectEdit ?? computedSubject;
+    // The same normalization the Gmail send applies, so the paper trail and
+    // the send never disagree about whether the subject changed.
+    const subject = oneLine(subjectField) ?? computedSubject;
     const autoRecipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
     const recipient: RecipientMatch =
       autoRecipient.contact || !manualRecipient
@@ -481,9 +615,9 @@ export default function LettersScreen() {
     outgoingSubjectRef.current = subject;
     outgoingContactRef.current = recipient.contact?.name ?? null;
     outgoingOrgRef.current = (recipient.contact?.organization as CommunicationOrg | null) ?? null;
-    return { subject, body, recipient };
+    return { subject, subjectField, body, recipient };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, template, contacts, manualRecipient, primaryChild?.first_name, family?.parent_last_name]);
+  }, [draft, template, contacts, manualRecipient, subjectEdit, aiSubject, primaryChild?.first_name, family?.parent_last_name]);
 
   const target = outgoing
     ? composeTarget(
@@ -498,38 +632,64 @@ export default function LettersScreen() {
 
   // A letter with unfilled [BRACKET] blanks must not fire a direct send to an
   // agency (draft flow phase 9c). Copy and Open-in-mail stay available so the
-  // parent can still finish elsewhere.
+  // parent can still finish elsewhere. The subject counts: it is the first
+  // line the agency reads, and "[DATE]" there is no better than in the body.
+  const blankScanText = draft ? `${outgoing?.subjectField ?? ''}\n${outgoing?.body ?? draft}` : '';
   const blanksLeft = useMemo(
-    () => (draft ? analyzeBlanks(draft, letterProfile).remaining.length : 0),
-    [draft, letterProfile]
+    () => (blankScanText ? analyzeBlanks(blankScanText, letterProfile).remaining.length : 0),
+    [blankScanText, letterProfile]
   );
 
+  const openSendSheet = useCallback(() => {
+    setSendProblem(null);
+    setConfirmOpen(true);
+  }, []);
+
+  /** "Send now" in the sheet — the only path that sends through Gmail. */
   const handleSendWithGmail = useCallback(async () => {
     const to = outgoing?.recipient.contact?.email;
-    if (!draft || !to || gmailSending) return;
+    if (!draft || !outgoing || !to || gmailSending) return;
+    // The sheet shows this field and sends exactly it — never a fallback the
+    // parent did not see.
+    const subject = oneLine(outgoing.subjectField);
+    if (!subject) return;
     // Defense in depth — the button is disabled while blanks remain, but never
     // send "[DATE]" straight to an agency even if that guard is bypassed.
-    if (!sendReadiness(draft, letterProfile, true).canSend) {
+    if (!sendReadiness(`${subject}\n${outgoing.body}`, letterProfile, true).canSend) {
       showToast(sendGate.toast, 'error');
       return;
     }
     setGmailSending(true);
+    setSendProblem(null);
     try {
-      const id = savedIdRef.current ?? (await saveDraftOnce());
+      // Revises the row first if the letter or its subject changed since it
+      // was saved, so the paper trail records what actually goes out.
+      outgoingSubjectRef.current = subject;
+      const id = await saveDraftOnce({ fresh: true });
       if (!id) {
-        showToast("Couldn't save the draft — please try again.", 'error');
+        const msg = "Couldn't save the draft — please try again.";
+        setSendProblem(msg);
+        showToast(msg, 'error');
         return;
       }
       const result = await gmailSend({
         to,
-        subject: outgoing?.subject ?? '',
-        body: draft,
+        subject,
+        // The body without a leading "Subject:" line — Gmail has its own.
+        body: outgoing.body,
         communicationId: id,
       });
       if (!result.ok) {
-        showToast(result.error ?? 'Gmail send failed — try Open in Gmail instead.', 'error');
+        const msg = result.error ?? 'Gmail send failed — try Open in Gmail instead.';
+        setSendProblem(msg);
+        showToast(msg, 'error');
         return;
       }
+      // The function already marked the row sent. Remember that even if the
+      // client-side mark below fails, or a second send would reuse this row
+      // and overwrite its thread — losing the first email's replies.
+      savedSentRef.current = true;
+      setConfirmOpen(false);
       // The function marked the row sent + stored thread ids; run the
       // sent moment + clock tracking exactly as a manual send would.
       await handleMarkSent();
@@ -559,7 +719,9 @@ export default function LettersScreen() {
 
   const reset = () => {
     loggedDraftRef.current = null;
+    loggedMetaRef.current = null;
     savedIdRef.current = null;
+    savedSentRef.current = false;
     setSavedId(null);
     setMarkedSent(false);
     setSentMoment(null);
@@ -567,6 +729,8 @@ export default function LettersScreen() {
     setFilledFromRecords([]);
     setManualRecipient(null);
     setManualEmailInput('');
+    setSubjectEdit(null);
+    setAiSubject(null);
     setTemplate(null);
     setQuestion('');
     setChatGuidance(null);
@@ -587,6 +751,26 @@ export default function LettersScreen() {
         }}
         onDecline={() => setShowConsent(false)}
       />
+      {outgoing?.recipient.contact?.email ? (
+        <GmailSendConfirmModal
+          visible={confirmOpen}
+          locale={funnelLocale}
+          fromEmail={gmailEmail}
+          primary={{
+            name: outgoing.recipient.contact.name,
+            email: outgoing.recipient.contact.email,
+          }}
+          subject={outgoing.subjectField}
+          onChangeSubject={setSubjectEdit}
+          body={outgoing.body}
+          alreadySent={savedSentRef.current && loggedDraftRef.current === draft}
+          sending={gmailSending}
+          blockedReason={blanksLeft > 0 ? sendGate.toast : null}
+          problem={sendProblem}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={handleSendWithGmail}
+        />
+      ) : null}
 
       <ScrollView contentContainerStyle={styles.content}>
         {!template ? (
@@ -707,7 +891,7 @@ export default function LettersScreen() {
               // Blanks left after the profile fill: show what's still needed,
               // and separate "we could remember this for you" from the ones
               // only the parent can answer (dates, times, specifics).
-              const { remaining, fixableInProfile } = analyzeBlanks(draft, letterProfile);
+              const { remaining, fixableInProfile } = analyzeBlanks(blankScanText, letterProfile);
               if (remaining.length === 0) {
                 return (
                   <View style={styles.blanksDone}>
@@ -782,10 +966,17 @@ export default function LettersScreen() {
                     </TouchableOpacity>
                   )}
                 </View>
-                <Text style={styles.addressLine} numberOfLines={2}>
-                  <Text style={styles.addressLabel}>Subject: </Text>
-                  {outgoing.subject}
-                </Text>
+                <View style={styles.subjectRow}>
+                  <Text style={[styles.addressLine, styles.addressLabel]}>Subject: </Text>
+                  <TextInput
+                    style={styles.subjectInput}
+                    value={outgoing.subjectField}
+                    onChangeText={setSubjectEdit}
+                    placeholder="Add a subject"
+                    placeholderTextColor={colors.mid}
+                    accessibilityLabel="Email subject"
+                  />
+                </View>
                 {!outgoing.recipient.contact && (
                   <>
                     {emailableContacts.length > 0 && (
@@ -866,25 +1057,25 @@ export default function LettersScreen() {
               <>
                 <TouchableOpacity
                   style={[styles.gmailSendBtn, blanksLeft > 0 && styles.gmailSendBtnDisabled]}
-                  onPress={handleSendWithGmail}
+                  onPress={openSendSheet}
                   disabled={gmailSending || blanksLeft > 0}
                   accessibilityRole="button"
                   accessibilityState={{ disabled: gmailSending || blanksLeft > 0 }}
                   accessibilityLabel={
                     blanksLeft > 0
                       ? sendGate.a11y(blanksLeft)
-                      : 'Send this letter now through your connected Gmail'
+                      : 'Review and send this letter through your connected Gmail'
                   }
                 >
-                  {gmailSending ? (
-                    <ActivityIndicator size="small" color={colors.white} />
-                  ) : (
-                    <Text style={styles.gmailSendText}>
-                      📨 Send now with Gmail — replies tracked
-                    </Text>
-                  )}
+                  <Text style={styles.gmailSendText}>
+                    📨 Send now with Gmail — replies tracked
+                  </Text>
                 </TouchableOpacity>
-                {blanksLeft > 0 && <Text style={styles.sendGateHint}>{sendGate.hint(blanksLeft)}</Text>}
+                {blanksLeft > 0 ? (
+                  <Text style={styles.sendGateHint}>{sendGate.hint(blanksLeft)}</Text>
+                ) : (
+                  <Text style={styles.autoSendNote}>{AUTO_SEND_NOTE[funnelLocale](gmailEmail)}</Text>
+                )}
               </>
             )}
             <View style={styles.actionRow}>
@@ -1273,6 +1464,27 @@ const styles = StyleSheet.create({
   },
   gmailSendText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   gmailSendBtnDisabled: { backgroundColor: colors.mid, opacity: 0.6 },
+  autoSendNote: {
+    fontSize: fonts.sizes.sm,
+    color: colors.mid,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginTop: -spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  subjectRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  subjectInput: {
+    flex: 1,
+    backgroundColor: colors.light,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    minHeight: 32,
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+  },
   aiProvenance: {
     fontSize: fonts.sizes.sm,
     color: colors.mid,

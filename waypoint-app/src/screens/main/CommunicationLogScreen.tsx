@@ -369,7 +369,17 @@ export default function CommunicationLogScreen() {
                         onPress={() =>
                           (navigation as never as { navigate: (n: string, p?: object) => void }).navigate(
                             'Letters',
-                            { template: item.template_key ?? 'general', draftBody: item.body }
+                            {
+                              template: item.template_key ?? 'general',
+                              draftBody: item.body,
+                              // Only a plain letter is Letters' to revise and
+                              // send as itself. An email row may hold a draft
+                              // in the parent's Gmail; it reopens as text.
+                              ...(item.kind === 'letter' && !item.gmail_thread_id
+                                ? { draftId: item.id }
+                                : {}),
+                              draftSubject: item.subject,
+                            }
                           )
                         }
                         accessibilityRole="button"
