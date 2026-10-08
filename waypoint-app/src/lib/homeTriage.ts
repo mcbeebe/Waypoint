@@ -631,7 +631,14 @@ function replyItem(
           `${senderName} respondió: ${reply.subject}`,
           `${senderName} đã trả lời: ${reply.subject}`
         ),
-    why: `${
+    // Provenance first, like every other rung. The copy states that a reply
+    // arrived, never that the family owes one: Home cannot tell an "I'll get
+    // back to you" from a "no" by the sync alone.
+    why: `${L(
+      'Because a reply came in on a thread you started.',
+      'Porque llegó una respuesta en un hilo que usted inició.',
+      'Vì có thư trả lời trong một chuỗi thư quý vị đã bắt đầu.'
+    )} ${
       unanswered.snippet
         ? L(
             `They wrote: “${unanswered.snippet}…” `,
@@ -640,16 +647,16 @@ function replyItem(
           )
         : ''
     }${L(
-      'Read it and decide whether it needs an answer. If it does, Waypoint drafts one with you — nothing sends until you press Send.',
-      'Léala y decida si necesita una respuesta. Si la necesita, Waypoint la redacta con usted — nada se envía hasta que usted pulse Enviar.',
-      'Hãy đọc và quyết định xem thư này có cần trả lời không. Nếu cần, Waypoint sẽ cùng quý vị soạn thư — không có gì được gửi cho đến khi quý vị bấm Gửi.'
+      'If it needs an answer, Waypoint drafts one with you — nothing sends until you press Send.',
+      'Si hace falta contestarla, Waypoint le ayuda a redactar la respuesta — nada se envía hasta que usted toque Enviar.',
+      'Nếu cần trả lời, Waypoint sẽ cùng quý vị soạn thư trả lời — không có gì được gửi cho đến khi quý vị bấm Gửi.'
     )}`,
     // Phase 9: the reply loop — the CTA drafts the answer rather than only
     // opening the thread. The reply id (and the owning request, when there is
     // one) ride along so the answer attaches to the same case.
     action: {
       kind: 'draft',
-      label: L('Draft your answer', 'Redactar su respuesta', 'Soạn câu trả lời'),
+      label: L('Read it and reply', 'Leer y responder', 'Đọc và trả lời'),
       params: owner
         ? { requestId: owner.id, replyId: reply.id }
         : { replyId: reply.id },

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { buildLadderSheet } from './homeCard';
 import {
   triageHome,
   sensorLine,
@@ -631,20 +632,35 @@ describe('Home describes the status, not an actor who failed (owner decision)', 
     expect(item.title).not.toMatch(/owe/);
   });
 
-  it('does not presume a reply needs an answer', () => {
-    // "I'll let you know when it's done" is a reply too — Home cannot tell
-    // from the sync whether the ball is with the family, so it says so.
+  it('a reply says one arrived — never that the family owes an answer', () => {
+    // "I'll let you know when it's done" is a reply too. The sync cannot tell
+    // it from a "no", so no reply surface on Home may claim the ball is with
+    // the family, or name an agency that is waiting on them.
+    const owes =
+      /ball is in your court|waiting on you|pelota|espera su respuesta|đến lượt quý vị|đang chờ quý vị|owes?\b|le deben|Họ nợ/i;
     const reply = comm({
       direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'Caitriona <c@x.com>',
-      body: "Yep, I'll let you know when I have it completed.",
       sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
     });
-    const decide = { en: /decide whether it needs an answer/, es: /decida si necesita/, vi: /có cần trả lời không/ };
     for (const loc of ['en', 'es', 'vi'] as const) {
-      const item = triageHome(base({ communications: [reply], locale: loc })).queue.find((i) => i.cls === 'reply')!;
-      expect(item.why).not.toMatch(/ball is in your court|pelota está en su tejado|giờ đến lượt quý vị/);
-      expect(item.why).toMatch(decide[loc]);
+      const result = triageHome(base({ communications: [reply], locale: loc }));
+      const item = result.queue.find((i) => i.cls === 'reply')!;
+      const rung = buildLadderSheet({ result, locale: loc }).rows.find((r) => r.cls === 'reply')!;
+      for (const text of [item.kicker, item.title, item.why, item.action.label, rung.name]) {
+        expect(text).not.toMatch(owes);
+      }
     }
+  });
+
+  it('a reply card says why it is here, like every other rung', () => {
+    const reply = comm({
+      direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', contact: 'Caitriona <c@x.com>',
+      body: '', sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
+    });
+    const item = triageHome(base({ communications: [reply] })).queue.find((i) => i.cls === 'reply')!;
+    expect(item.why).toMatch(/^Because a reply came in/);
+    // An empty body leaves no dangling "They wrote: “…”".
+    expect(item.why).not.toContain('They wrote');
   });
 
   it('never claims an outcome it has no data for', () => {
