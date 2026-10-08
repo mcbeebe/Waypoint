@@ -16,7 +16,7 @@ interface Props {
   idPrefix?: string;
 }
 const { slug, cta, idPrefix = 'gc' } = Astro.props;
-const saveHref = appStartUrl({ slug, cta });
+const saveHref = appStartUrl({ slug, cta, pillar: 'iep' });
 const saveProps = JSON.stringify({ slug, pillar: 'iep', locale: 'en', cta_id: cta, tool_id: 'iep-goal-check' });
 const inputId = `${idPrefix}-goal`;
 const hintId = `${idPrefix}-privacy`;
@@ -30,6 +30,10 @@ const hintId = `${idPrefix}-privacy`;
       data-gc-input
       rows="5"
       maxlength="2000"
+      spellcheck="false"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
       aria-describedby={hintId}
       placeholder="Example: By May 2027, when given a grade-level passage, Maya will answer 4 of 5 comprehension questions correctly, as measured by teacher-charted data."
     ></textarea>
@@ -40,18 +44,18 @@ const hintId = `${idPrefix}-privacy`;
     </div>
     <button class="btn" type="button" data-gc-run>Check this goal</button>
     <p class="gc-privacy" id={hintId}>
-      Runs entirely in your browser. Nothing you paste is sent to us or stored.
+      Runs entirely in your browser. Waypoint never receives or stores what you paste.
     </p>
   </div>
   <div class="gc-panel gc-result" data-gc-result aria-live="polite">
     <p class="gc-empty">
-      Your results appear here: the five parts a measurable goal names, which ones this goal has,
-      and a friendly way to ask the team for the rest.
+      Your results appear here: the five parts a measurable goal names, which ones we spotted in
+      this goal, and a friendly way to ask the team about the rest.
     </p>
   </div>
   <p class="gc-upsell">
-    <b>Want the whole IEP read?</b> Waypoint's app rates every goal, finds needs with no goal
-    attached, and builds your meeting-prep questions.{' '}
+    <b>Want the whole IEP read?</b> Waypoint's app rates every goal in the IEP, suggests stronger
+    wording, and builds your meeting-prep questions.{' '}
     <a href={saveHref} data-gc-save data-wp-event="app_signup_click" data-wp-props={saveProps}>Upload your IEP in the app →</a>
   </p>
 </div>
@@ -149,13 +153,10 @@ const hintId = `${idPrefix}-privacy`;
     background: var(--color-sage-tint);
     color: var(--color-sage-ink);
   }
-  .goal-check .gc-adequate {
+  .goal-check .gc-adequate,
+  .goal-check .gc-needs-work {
     background: var(--color-amber-soft);
     color: var(--color-amber);
-  }
-  .goal-check .gc-needs-work {
-    background: var(--color-urgent-tint);
-    color: var(--color-urgent);
   }
   .goal-check .gc-count {
     color: var(--color-ink-soft);
@@ -197,8 +198,8 @@ const hintId = `${idPrefix}-privacy`;
     color: var(--color-sage-ink);
   }
   .goal-check .gc-no .gc-ic {
-    background: var(--color-urgent-tint);
-    color: var(--color-urgent);
+    background: var(--color-amber-soft);
+    color: var(--color-amber);
   }
   .goal-check .gc-state {
     position: absolute;

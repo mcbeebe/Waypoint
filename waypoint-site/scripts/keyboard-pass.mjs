@@ -334,8 +334,8 @@ try {
     }
   }
 
-  // The goal check: type a goal, Tab to the run button, press Enter — the
-  // rating must appear without a mouse.
+  // The goal check: type a goal, Tab (real key presses) from the textarea to
+  // the run button, press Enter — the result must appear without a mouse.
   await page.goto(`${base}/tools/iep-goal-check/`, { waitUntil: 'load' });
   const goalInput = await page.$('[data-gc-input]');
   if (!goalInput) {
@@ -343,7 +343,12 @@ try {
   } else {
     await goalInput.focus();
     await page.keyboard.type('Maya will improve her reading skills.');
-    await page.focus('[data-gc-run]');
+    let onRun = false;
+    for (let i = 0; i < 6 && !onRun; i++) {
+      await page.keyboard.press('Tab');
+      onRun = await page.evaluate(() => document.activeElement?.matches('[data-gc-run]') ?? false);
+    }
+    if (!onRun) failures.push('/tools/iep-goal-check/: Tab from the goal box never reached the check button');
     await page.keyboard.press('Enter');
     await page.waitForTimeout(250);
     const badge = (await page.textContent('[data-gc-result] .gc-badge').catch(() => null))?.trim() ?? '';

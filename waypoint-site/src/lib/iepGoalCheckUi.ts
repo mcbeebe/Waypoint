@@ -6,6 +6,7 @@
  * guard in iepGoalCheck.test.ts.
  */
 import { RATING_LABEL, checkGoal } from './iepGoalCheck';
+import { base64url } from './appLinks';
 
 export const TOOL_ID = 'iep-goal-check';
 
@@ -64,12 +65,17 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
     const r = checkGoal(input!.value);
     out!.replaceChildren();
     if (!r) {
-      out!.append(el('p', 'gc-empty', 'Paste a full goal first — usually one or two sentences that start with the child doing something.'));
+      out!.append(el('p', 'gc-empty', 'Paste a full goal first. Goals are usually one or two sentences about what your child will do.'));
+      return;
+    }
+    if (r.kind === 'not-english') {
+      out!.append(el('p', 'gc-empty', 'This check can only read goals written in English for now.'));
+      window.plausible?.('tool_completed', { props: { tool_id: TOOL_ID, locale, outcome: 'not-english' } });
       return;
     }
 
     const head = el('div', 'gc-verdict');
-    head.append(el('span', `gc-badge gc-${r.rating}`, RATING_LABEL[r.rating]), el('span', 'gc-count', `${r.found} of 5 parts found`));
+    head.append(el('span', `gc-badge gc-${r.rating}`, RATING_LABEL[r.rating]), el('span', 'gc-count', `${r.found} of 5 spotted`));
     out!.append(head);
 
     if (r.looksLikeSeveralGoals) {
@@ -79,11 +85,11 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
     const list = el('ul', 'gc-checks');
     for (const p of r.parts) {
       const li = el('li', p.present ? 'gc-yes' : 'gc-no');
-      li.append(el('span', 'gc-ic', p.present ? '✓' : '!'));
+      li.append(el('span', 'gc-ic', p.present ? '✓' : '?'));
       const body = el('span', 'gc-part');
       body.append(el('b', undefined, p.label));
-      body.append(el('span', 'gc-state', p.present ? ' — found' : ' — not found'));
-      if (!p.present) body.append(el('small', undefined, p.hint));
+      body.append(el('span', 'gc-state', p.present ? ' — spotted' : ' — not spotted'));
+      if (!p.present) body.append(el('small', undefined, `Not spotted. Check the goal for it: ${p.hint}`));
       li.append(body);
       list.append(li);
     }
@@ -91,7 +97,10 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
 
     if (r.ask) {
       const ask = el('div', 'gc-ask');
-      ask.append(el('b', undefined, 'A friendly ask for the team'), el('p', undefined, `"${r.ask}"`));
+      ask.append(
+        el('b', undefined, 'If it isn\'t there, a friendly ask for the team'),
+        el('p', undefined, `"${r.ask}"`),
+      );
       out!.append(ask);
     }
 
@@ -102,10 +111,7 @@ export function mountGoalCheck(root: HTMLElement, locale: 'en' | 'es' = 'en'): v
     if (save) {
       const url = new URL(save.href);
       const ctx = { v: 1, kind: 'tool', tool_id: TOOL_ID, inputs_summary: 'one IEP goal', result_summary: r.rating };
-      url.searchParams.set(
-        'wp_ctx',
-        btoa(JSON.stringify(ctx)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
-      );
+      url.searchParams.set('wp_ctx', base64url(JSON.stringify(ctx)));
       save.href = url.toString();
     }
   }
