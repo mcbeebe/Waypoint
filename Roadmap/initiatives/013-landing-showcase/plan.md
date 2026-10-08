@@ -14,9 +14,8 @@
   (Attune's ToolShell rule). Analytics events carry only `tool_id`,
   `locale`, and the rating — never the goal text.
 - `/tools/iep-goal-check/` page following the SSI calculator's shape;
-  Sources block for its citations (Ed Code §56345, §56343.5 — reusing the site's verified entries; no new orphan chips); noindex,
-  sitemap-excluded, and footer link hidden until the owner signs off the copy,
-  as /accessibility/ did.
+  Sources block for its citations (Ed Code §56345, §56343.5 — reusing the site's verified entries; no new orphan chips); indexable,
+  in the sitemap and footer from merge (owner decision 2026-10-08).
 - Registered in `axe-scan.mjs`, `keyboard-pass.mjs` (with an Enter-runs-it
   check). `tool-result` CTA reused — no taxonomy change.
 

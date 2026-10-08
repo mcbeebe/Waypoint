@@ -6,10 +6,9 @@
  * judges whether the goal is right for the child. The full AI IEP analysis
  * stays a Premium app feature and is offered as the next step.
  *
- * PENDING REVIEW: noindex here, filtered from the sitemap in
- * astro.config.mjs, and footer link hidden in SiteFooter.astro until the
- * owner signs off the page copy — the /accessibility/ pattern. Lift all
- * three together.
+ * Indexable from launch: owner decision 2026-10-08 — the page is reviewed in
+ * its PR and goes into search, the sitemap, and the footer when that PR
+ * merges.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
@@ -51,7 +50,6 @@ const parts = [
   title="Free IEP goal check — is this goal measurable? — Waypoint"
   description="Paste one goal from your child's IEP and see whether it names a timeframe, conditions, an observable skill, a target, and how it's measured. Free, private, nothing uploaded."
   pillar="iep"
-  noindex={true}
 >
   <PageHero
     eyebrow="Free tool · no email · nothing you paste is sent to Waypoint"
