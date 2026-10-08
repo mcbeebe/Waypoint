@@ -80,7 +80,7 @@ compact by design; the build checks scroll depth at 390 px before review.
 
 1. **Prices: decided.** Plus $9.99/mo or $99/yr; Pro $14.99/mo or $139/yr
    (read as Plus/Pro respectively — confirm).
-2. **What's free: pending** the feature table below.
+2. **What's free: decided** — the "Suggested" column below, as written (owner, 2026-10-08).
 3. **Spanish: plan it.** A Spanish-pages plan is added (PR 7). Until those
    pages ship, the site says "The app speaks Spanish" instead of "En español".
 4. **Hero families: approved** — just diagnosed (0–5), IEP years, benefits and
@@ -90,7 +90,7 @@ compact by design; the build checks scroll depth at 390 px before review.
 6. **Goal check indexing: lift at PR merge** — noindex, sitemap filter and
    hidden footer link removed in PR 1 itself.
 
-## Core features and tiers (for decision 2)
+## Core features and tiers (decided: the Suggested column)
 
 Today the app's paywall is **off** for everyone (`waypoint-app/src/lib/flags.ts`
 `paywall: false`, and its server twin `PAYWALL_ENFORCED = false` in `ai-proxy`):
