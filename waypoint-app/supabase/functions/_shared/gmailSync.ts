@@ -101,14 +101,15 @@ async function syncFamily(
 
   const { data: tracked } = await supabase
     .from('communications')
-    .select('gmail_thread_id, direction, organization, sent_at, occurred_at')
+    .select('gmail_thread_id')
     .eq('family_id', familyId)
     .eq('direction', 'outgoing')
     .not('gmail_thread_id', 'is', null)
     .order('created_at', { ascending: false })
     .limit(THREADS_PER_ACCOUNT);
-  const trackedRows = (tracked ?? []) as (ThreadRow & { gmail_thread_id: string })[];
-  const threadIds = [...new Set(trackedRows.map((t) => t.gmail_thread_id))];
+  const threadIds = [
+    ...new Set(((tracked ?? []) as { gmail_thread_id: string }[]).map((t) => t.gmail_thread_id)),
+  ];
   if (threadIds.length === 0) return 0;
 
   const { data: known } = await supabase
@@ -121,6 +122,16 @@ async function syncFamily(
   );
   const self = selfEmail.toLowerCase();
 
+  // Every outgoing row on these threads, so each reply can take its thread
+  // founder's label (_shared/threadOrg.ts) — mirrors functions/gmail "sync".
+  const { data: outgoing } = await supabase
+    .from('communications')
+    .select('gmail_thread_id, direction, organization, sent_at, occurred_at')
+    .eq('family_id', familyId)
+    .eq('direction', 'outgoing')
+    .in('gmail_thread_id', threadIds);
+  const threadRows = (outgoing ?? []) as (ThreadRow & { gmail_thread_id: string })[];
+
   let newReplies = 0;
   for (const threadId of threadIds) {
     const resp = await fetch(`${GMAIL_API}/threads/${threadId}?format=full`, {
@@ -128,9 +139,8 @@ async function syncFamily(
     });
     if (!resp.ok) continue;
     const thread = await resp.json();
-    // Mirrors functions/gmail "sync": the reply takes its thread's label.
     const organization = threadOrganization(
-      trackedRows.filter((t) => t.gmail_thread_id === threadId)
+      threadRows.filter((t) => t.gmail_thread_id === threadId)
     );
     for (const msg of thread.messages ?? []) {
       if (knownIds.has(msg.id)) continue;

@@ -17,32 +17,37 @@ describe('threadOrganization', () => {
     ).toBe('school');
   });
 
-  it('ignores incoming rows — their label was stamped, not chosen', () => {
+  it('the founding letter wins over a later reply stamped by the old send path', () => {
+    // Before the fix, a reply sent from the paper trail was an OUTGOING row
+    // hard-coded 'regional_center' — always newer than the founder.
     expect(
-      threadOrganization([{ direction: 'incoming', organization: 'regional_center' }])
+      threadOrganization([
+        { direction: 'outgoing', organization: 'regional_center', sent_at: '2026-10-03T00:00:00Z' },
+        { direction: 'outgoing', organization: 'school', sent_at: '2026-10-01T00:00:00Z' },
+      ])
+    ).toBe('school');
+  });
+
+  it('an unlabelled founder is null — it never falls through to a stamped later row', () => {
+    expect(
+      threadOrganization([
+        { direction: 'outgoing', organization: null, occurred_at: '2026-10-01T00:00:00Z' },
+        { direction: 'outgoing', organization: 'regional_center', occurred_at: '2026-10-05T00:00:00Z' },
+      ])
     ).toBeNull();
   });
 
-  it('the newest labelled outgoing row wins, by send time over log time', () => {
+  it('dates by send time first, then log time', () => {
     expect(
       threadOrganization([
-        { direction: 'outgoing', organization: 'school', sent_at: '2026-10-01T00:00:00Z', occurred_at: '2026-10-09T00:00:00Z' },
-        { direction: 'outgoing', organization: 'insurance', sent_at: '2026-10-05T00:00:00Z' },
+        { direction: 'outgoing', organization: 'school', sent_at: '2026-10-05T00:00:00Z', occurred_at: '2026-09-01T00:00:00Z' },
+        { direction: 'outgoing', organization: 'insurance', sent_at: '2026-10-02T00:00:00Z' },
       ])
     ).toBe('insurance');
   });
 
-  it('skips an unlabelled outgoing row rather than returning null over a labelled one', () => {
-    expect(
-      threadOrganization([
-        { direction: 'outgoing', organization: 'medical', occurred_at: '2026-10-01T00:00:00Z' },
-        { direction: 'outgoing', organization: null, occurred_at: '2026-10-05T00:00:00Z' },
-      ])
-    ).toBe('medical');
-  });
-
-  it('an empty or unlabelled thread is null', () => {
+  it('ignores incoming rows, and an empty thread is null', () => {
+    expect(threadOrganization([{ direction: 'incoming', organization: 'regional_center' }])).toBeNull();
     expect(threadOrganization([])).toBeNull();
-    expect(threadOrganization([{ direction: 'outgoing', organization: null }])).toBeNull();
   });
 });

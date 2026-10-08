@@ -270,7 +270,9 @@ serve(async (req) => {
         const { data: threadRows } = await userClient
           .from('communications')
           .select('direction, organization, sent_at, occurred_at')
-          .eq('gmail_thread_id', loggedThread);
+          .eq('family_id', family.id)
+          .eq('gmail_thread_id', loggedThread)
+          .eq('direction', 'outgoing');
         organization = threadOrganization(threadRows ?? []);
       }
       await userClient.from('communications').insert({
@@ -295,7 +297,7 @@ serve(async (req) => {
   if (action === 'sync') {
     const { data: tracked } = await userClient
       .from('communications')
-      .select('gmail_thread_id, family_id, direction, organization, sent_at, occurred_at')
+      .select('gmail_thread_id, family_id')
       .not('gmail_thread_id', 'is', null)
       .eq('direction', 'outgoing')
       .order('created_at', { ascending: false })
@@ -308,6 +310,13 @@ serve(async (req) => {
       .select('gmail_message_id')
       .not('gmail_message_id', 'is', null);
     const knownIds = new Set((known ?? []).map((k) => k.gmail_message_id as string));
+    // Every outgoing row on these threads — not only the 25 newest — so a
+    // thread's founding letter is found however long ago it was sent.
+    const { data: threadRows } = await userClient
+      .from('communications')
+      .select('family_id, gmail_thread_id, direction, organization, sent_at, occurred_at')
+      .eq('direction', 'outgoing')
+      .in('gmail_thread_id', threadIds);
     const selfEmail = (account.google_email ?? '').toLowerCase();
 
     let newReplies = 0;
@@ -329,7 +338,7 @@ serve(async (req) => {
         const fam = tracked?.find((t) => t.gmail_thread_id === threadId)?.family_id;
         if (!fam) continue;
         const organization = threadOrganization(
-          (tracked ?? []).filter((t) => t.gmail_thread_id === threadId)
+          (threadRows ?? []).filter((t) => t.gmail_thread_id === threadId && t.family_id === fam)
         );
         const receivedAt = new Date(Number(msg.internalDate ?? Date.now())).toISOString();
         const { error: insertErr } = await userClient.from('communications').insert({
