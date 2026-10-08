@@ -15,23 +15,43 @@ the live domain does not resolve from the build environment).
 
 ## Attune, section by section → Waypoint homepage
 
-| # | attune.coach | Waypoint version | Source screen |
-|---|---|---|---|
-| 1 | Hero: "Training that actually adapts to you." + sign-up + interactive card, tabs "Same morning, four different athletes" | Hero: "The next step for your child, before you have to ask." + Start free + phone card with tabs **"Same Monday, four different families"** (just diagnosed · IEP years · benefits · turning 18), each showing its Home heads-up | Home triage |
-| 2 | "How a morning works" — 4 numbered steps | **"How a week works"**: tell us what happened → Waypoint finds the next step → send the friendly ask → Waypoint watches the clock | — |
-| 3 | Dark band "Whatever you're training for" — 4 path cards + week-by-week chart with "Today" | Dark band **"Wherever you are"** — 4 path cards + the journey-by-age strip (0–3, 3–5, 5–13, 14–22) with "You are here" | Journey |
-| 4 | "A coach in your pocket" — scripted chat, Approve / Keep my plan | **"A navigator in your pocket"** — scripted (not live) chat, 3 sample questions; answer cards Your right / Good to know / Watch out; buttons Save as step / Draft the request; after 3 tries it ends in "Start free" | Navigator |
-| 5 | "Make it yours" — coach name + 17 personalities | **"Your tone, your call"** — Collaborative → Assertive → Advocacy; always starts collaborative (CLAUDE.md tone rule); live letter preview changes with the tone | Letters & Drafts |
-| 6 | — | **Free IEP goal check** inline + the IEP analysis screen as the upgrade | IEP Review |
-| 7 | — | **"Waypoint speaks first"** — Day 0 / 12 / 16 timeline, status-first wording | Home triage |
-| 8 | "Works with the gear you already wear" — Garmin, Strava, Apple Health | **"Works with what you already use"** — Gmail (replies come back in), your mail app, phone notifications, upload a PDF or photo. Verified in app code; no calendar export, so none claimed | — |
-| 9 | Dark "Try it before you're in" — 3 calculators | Dark **"Try it free"** — IEP goal check, SSI calculator, RC finder, template letters | — |
-| 10 | Founder quote + FAQ side by side | Mike's quote + **FAQ** (Is this legal advice? What does it cost? What happens to my data? Is it only for California? Spanish? Who's behind it?) | — |
-| 11 | Dark final band "Start training that adapts to you." | Dark final band: "Turn 'What do I do?' into 'Here's what to do next.'" + Start free | — |
+Owner direction (2026-10-08): keep the current site's Guides, Schools and
+Regional Centers, the Tell → Plan → Act → Track loop, and the comparison
+tables. They are placed below; nothing on the current site is removed (see
+"Nothing removed").
 
-Already built on a branch (PR 2 draft): sections 1 (without persona tabs),
-6, 7, 9 and 11, plus the tabbed feature showcase. The build replaces the
-tabs with sections 3–5 and 8 above.
+| # | attune.coach | Waypoint version | Kept from today | Source screen |
+|---|---|---|---|---|
+| 1 | Hero + interactive card, "Same morning, four different athletes" | Hero: "The next step for your child, before you have to ask." + Start free + phone with tabs **"Same Monday, four different families"**; stats row underneath (23 agencies, 21 Regional Centers, 13 diagnoses) | Stats row | Home triage |
+| 2 | "How a morning works" — 4 steps | **"One loop, every time something changes."** The Tell → Plan → Act → Track ring and its four cards, as one shared component | Loop (`/product/`) | — |
+| 3 | Dark "Whatever you're training for" — 4 path cards + chart | Dark **"Wherever you are"** — the six pillar cards (Regional Centers, School & IEPs, Money & benefits, Insurance & therapies, First steps 0–5, Free tools) linking to the real Guides, Schools and Regional Centers hubs and the 21 Regional Center pages; then the journey-by-age strip with "You are here" | Pillar cards | Journey |
+| 4 | "A coach in your pocket" — scripted chat | **"A navigator in your pocket"** — scripted chat (not live AI), 3 sample questions, ends at Start free | — | Navigator |
+| 5 | "Make it yours" — personalities | **"Your tone, your call"** — Collaborative → Assertive → Advocacy; letter preview changes with the tone | — | Letters & Drafts |
+| 6 | — | **"Why not just read the guides?"** — Without it / With Waypoint panels, then three guide-vs-app rows (full four on `/product/`) | Both comparisons | — |
+| 7 | — | **Free IEP goal check** + IEP analysis screen as the upgrade | — | IEP Review |
+| 8 | — | **"Waypoint speaks first"** — Day 0 / 12 / 16 timeline | — | Home triage |
+| 9 | "Works with the gear you already wear" | **"Works with what you already use"** — Gmail, your mail app, phone notifications, PDF or photo upload (verified in app code; no calendar export claimed) | — | — |
+| 10 | Dark "Try it before you're in" | Dark **"Try it free"** — IEP goal check, SSI calculator, RC finder, template letters | — | — |
+| 11 | Founder quote + FAQ | Mike's quote + FAQ | Founder quote | — |
+| 12 | Dark closing band | "Turn 'What do I do?' into 'Here's what to do next.'" + Start free | Closing line | — |
+
+Mobile length: twelve sections is long on a phone. Sections 2, 5 and 9 are
+compact by design; the build checks scroll depth at 390 px before review.
+
+## Nothing removed
+
+| Today | Where it goes |
+|---|---|
+| Menu: Start Here, The App, Guides, Free Tools, Schools, Regional Centers, Pricing, Search | Unchanged; "Free Tools" now opens the new hub |
+| Guides hub, Schools (IEP) hub, Regional Centers hub + 21 RC pages, answers, letters | Unchanged content; linked from homepage section 3; CTA boxes gain a small screen |
+| Homepage stats row | Under the hero ("2 languages" waits on decision 3) |
+| Homepage pillar cards (incl. "Publishing soon" gating) | Homepage section 3 |
+| Homepage "Without it / With Waypoint" and "Generic advice vs Waypoint" | Homepage section 6 |
+| `/product/` "Why not just read the guides?" (4 rows) | Stays on `/product/`; 3 rows also on the homepage |
+| `/product/` "Six things the app does that a page can't" | Stays; each feature gets its screen |
+| `/product/` "One loop, every time something changes" | Stays; also homepage section 2 (one shared component) |
+| Pricing "If money is tight" and "How we compare" table | Stay; numbers update after decisions 1–2 |
+| About, Start here, legal, search, accessibility | Unchanged |
 
 ## Rest of the site
 
@@ -40,7 +60,7 @@ tabs with sections 3–5 and 8 above.
 | IEP goal check `/tools/iep-goal-check/` | — | Built (PR 1), independently reviewed: 14 golden goals rate strong, false positives fixed, copy says "not spotted, check the goal" |
 | Free tools hub `/tools/` | No page; nav "Free Tools" opens the SSI calculator | New hub (Attune's "Try it before you're in" as a page); nav points here |
 | SSI calculator, RC finder | Working | Same result → "next step" block as the goal check |
-| The App `/product/` | Text-only feature grid | Full tour, feature by feature beside its screen: Navigator, letters, Home, plan, IEP review, Resource Stack, Self-Determination path, document vault; keep "Why not just read the guides?" |
+| The App `/product/` | Text-only feature grid | Keeps every section (comparison, six features, loop); each feature now sits beside its screen, plus Resource Stack and the Self-Determination path |
 | Pricing `/pricing/` | Plus $4.99 / Pro $9.99 | Match the app once decided; one "what's free" table |
 | Guides, answers, letters, RC pages | Text CTA box | CTA box gains a small matching screen (letter page → drafted email). Component change only, no content edits |
 | Header / footer | "Free Tools" → SSI calculator | "Free Tools" → `/tools/`; goal-check link once its review hold lifts |
@@ -70,7 +90,7 @@ tabs with sections 3–5 and 8 above.
 | # | PR | Depends on |
 |---|---|---|
 | 1 | IEP goal check (built, reviewed) | — |
-| 2 | Homepage, Attune-mapped sections 1–11 + guard tests | 1, decisions 4–5 |
+| 2 | Homepage, sections 1–12 + guard tests; shared loop and comparison components | 1, decisions 4–5 |
 | 3 | Free tools hub, nav, shared next-step block | 1 |
 | 4 | `/product/` full tour | 2 |
 | 5 | Pricing alignment | decisions 1–2 |
