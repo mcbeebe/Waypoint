@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { COMPLETE, STRIPPED } from './iepGoalCheck.fixtures';
+import { COMPLETE, HELDOUT_COMPLETE, HELDOUT_STRIPPED, STRIPPED } from './iepGoalCheck.fixtures';
 import {
   GOAL_PARTS,
   MAX_GOAL_LENGTH,
@@ -199,6 +199,48 @@ describe('independent corpus — complete goals (all five spotted)', () => {
 describe('independent corpus — stripped goals (the removed part stays not spotted)', () => {
   it.each(STRIPPED)('%s → %s', (goal, id) => {
     expect(presentIds(goal)).not.toContain(id);
+  });
+});
+
+describe('held-out corpus (fourth review) — complete goals', () => {
+  it.each(HELDOUT_COMPLETE.map((g) => [g.id, g.text]))('%s %s', (_id, goal) => {
+    expect(checked(goal).parts.filter((p) => !p.present).map((p) => p.id)).toEqual([]);
+  });
+});
+
+/** Known, documented misses: debatable edge cases, not silently dropped. */
+const KNOWN_FALSE_SPOTTED = new Set(['s62']);
+
+describe('held-out corpus (fourth review) — stripped goals', () => {
+  it.each(HELDOUT_STRIPPED.filter((g) => !KNOWN_FALSE_SPOTTED.has(g.id)).map((g) => [g.id, g.text, g.missing!] as const))(
+    '%s %s → %s not spotted',
+    (_id, goal, id) => {
+      const r = checkGoal(goal);
+      if (r && r.kind === 'checked') expect(r.parts.find((p) => p.id === id)!.present).toBe(false);
+    },
+  );
+
+  it('the known miss is still the only one (update KNOWN_FALSE_SPOTTED if it changes)', () => {
+    const misses = HELDOUT_STRIPPED.filter((g) => {
+      const r = checkGoal(g.text);
+      return r?.kind === 'checked' && r.parts.find((p) => p.id === g.missing)!.present;
+    }).map((g) => g.id);
+    expect(misses).toEqual([...KNOWN_FALSE_SPOTTED]);
+  });
+});
+
+describe('verb-first goals', () => {
+  it('reads "Annual goal: Increase…" as a goal instead of declining it', () => {
+    const r = checkGoal('Annual goal: Increase reading fluency to 90 wcpm by May 2027 as measured by DIBELS.');
+    expect(r!.kind).toBe('checked');
+  });
+
+  it('still declines a baseline with no goal label and no "will"', () => {
+    expect(checkGoal('Baseline: Sam reads 60 wcpm on a 2nd grade passage.')).toEqual({ kind: 'not-a-goal' });
+  });
+
+  it('does not count an IEP header date as the timeframe', () => {
+    expect(presentIds('IEP date 10/14/2026. Given a passage, Sam will answer 4 of 5 questions, as measured by teacher data.')).not.toContain('timeframe');
   });
 });
 

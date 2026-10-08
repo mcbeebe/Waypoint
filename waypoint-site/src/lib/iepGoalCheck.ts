@@ -107,6 +107,7 @@ const TIMEFRAME_I = new RegExp(
     `\\bover the course of (?:the|this) (?:IEP|school year|year)\\b`,
     `\\bannually\\b`,
     // grade milestones, typical of transition goals: "by the end of 11th grade"
+    `\\b(?:by|before) the end of (?:the )?(?:preschool|pre-k|kindergarten|transitional kindergarten|TK)(?: year)?\\b`,
     `\\b(?:by|before) the end of (?:\\d{1,2}(?:st|nd|rd|th)|first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth)\\s+grade\\b`,
     `\\bupon (?:the )?completion of (?:\\d{1,2}(?:st|nd|rd|th)|eleventh|twelfth)\\s+grade\\b`,
     // "by next May", even typed in lower case — "next" makes it a date, never the verb "may"
@@ -115,10 +116,9 @@ const TIMEFRAME_I = new RegExp(
     `\\b(?:by|before|in|until|through|end of)\\s+(?:the\\s+)?(?:spring|summer|fall|autumn|winter)\\s+(?:of\\s+)?(?:20\\d\\d|semester|term|trimester|quarter|break)\\b`,
     // months in ANY case, but only with a day or year after them ("by JUNE 2027")
     `\\b(?:by|before|in|until|through|end of|on or before)\\s+(?:the end of\\s+)?(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec)\\.?\\s+(?:\\d{1,2}(?:st|nd|rd|th)?,?\\s+)?(?:of\\s+)?(?:20\\d\\d|\\d{1,2}(?:st|nd|rd|th)?)\\b`,
-    // numeric dates: 6/15/2027, 6-15-2027, 06.15.2027, 6/2027
-    `\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b`,
-    `\\b\\d{1,2}[-.]\\d{1,2}[-.](?:20)?\\d\\d\\b`,
-    `\\b\\d{1,2}/20\\d\\d\\b`,
+    // numeric dates (6/15/2027, 6-15-2027, 06.15.2027, 6/2027) — only after a
+    // deadline word or a date field, never "IEP date 10/14/2026" or a baseline date
+    `\\b(?:by|before|until|through|on or before|no later than|target(?: date)?|timeline|due(?: date)?|date of mastery|end date)\\s*:?\\s+(?:\\d{1,2}/\\d{1,2}/\\d{2,4}|\\d{1,2}[-.]\\d{1,2}[-.](?:20)?\\d\\d|\\d{1,2}/20\\d\\d)\\b`,
     // short date after a deadline word: "by 6/27"
     `\\b(?:by|before|on|until)\\s+\\d{1,2}/\\d{2}\\b`,
   ].join('|'),
@@ -138,11 +138,11 @@ const CONDITIONS = new RegExp(
   [
     // "given a passage" — but not "will be given 30 minutes of speech" (a service)
     '(?<!\\b(?:be|been|being|is|are)\\s)\\bgiven\\b',
-    "\\b(?:when|if|while)\\s+(?:[\\w']+\\s+){0,3}?(?:becomes?|is|gets|feels|given|presented|asked|provided|shown|prompted|offered|faced|frustrated|upset|transitioning|working|reading|writing|playing|stuck)\\b",
+    "\\b(?:when|if|while)\\s+(?:[\\w']+\\s+){0,3}?(?:becomes?|is|gets|feels|needs|wants|given|presented|asked|provided|shown|prompted|offered|faced|frustrated|upset|transitioning|working|reading|writing|playing|stuck)\\b",
     '\\bupon\\s+(?:arrival|entering|entry|request|being|a|an|the)\\b',
     // "using manipulatives" — a named support. "using correct punctuation" is part of
     // the skill; a lead-in "Using X," is caught by hasLeadingCondition instead.
-    '\\busing\\s+(?:an?\\s+|the\\s+|her\\s+|his\\s+|their\\s+)?(?:manipulatives|calculators?|graphic organizers?|visuals?|visual \\w+|AAC|(?:speech-generating |communication )?devices?|picture \\w+|word banks?|sentence (?:starters?|frames?)|assistive technology|timers?|schedules?|number lines?|hundreds charts?|token (?:charts?|boards?)|fidgets?|headphones|text-to-speech|speech-to-text|keyboards?|slant boards?|adapted \\w+|models?|templates?|notes|break cards?|first-then \\w+)\\b',
+    '\\busing\\s+(?:an?\\s+|the\\s+|her\\s+|his\\s+|their\\s+)?(?:manipulatives|calculators?|graphic organizers?|visuals?|visual \\w+|AAC|(?:speech-generating |communication )?devices?|picture \\w+|word banks?|sentence (?:starters?|frames?)|assistive technology|timers?|schedules?|number lines?|hundreds charts?|token (?:charts?|boards?)|fidgets?|headphones|text-to-speech|speech-to-text|keyboards?|slant boards?|adapted \\w+|models?|templates?|notes|break cards?|first-then \\w+|(?:[\\w-]+ )?checklists?)\\b',
     // "during independent work" — but "during the 2026-27 school year" is a timeframe
     '\\bduring\\b(?!\\s+(?:the\\s+)?(?:20\\d\\d|(?:[\\w-]+\\s+){0,2}(?:school\\s+)?year)\\b)',
     '\\bafter\\s+(?:[a-z]+ing|a|an|the|being|lunch|recess)\\b',
@@ -172,6 +172,7 @@ const CONDITIONS = new RegExp(
 /** Verbs that describe a hoped-for change or a service, not something a teacher can see the child do. */
 const VAGUE_VERBS = new Set([
   'understand',
+  'enjoy',
   'master',
   'comprehend',
   'achieve',
@@ -229,6 +230,8 @@ function observableVerb(verb: string, rest: string): boolean {
   // "be on task for 80% of intervals", "be seated" — observable; "be aware",
   // "be more independent", "be given/provided" (a service) are not
   if (verb === 'be') return BE_OBSERVABLE.test(rest);
+  if (verb === 'engage') return !/^(?:appropriately|positively|meaningfully|more|better)\b/i.test(rest);
+  if (verb === 'build') return !/^(?:(?:her|his|their|the)\s+)?(?:[\w-]+\s+){0,2}(?:strength|skills?|confidence|endurance|tolerance|awareness|capacity)\b/i.test(rest);
   if (verb === 'work') return !/^(?:on|toward|towards|to improve|to increase|to develop|to become)\b/i.test(rest);
   if (verb === 'make') return !/^(?:\w+\s+)?(?:progress|gains?|improvements?|growth)\b/i.test(rest);
   if (verb === 'have') {
@@ -265,7 +268,7 @@ function hasObservableSkill(goal: string): boolean {
 
 const CRITERION = new RegExp(
   [
-    `(?<!\\bgoal\\s+#?)\\b${NUMBER}\\s*(?:%|percent\\b|out of\\s+${NUMBER}\\b|of\\s+${NUMBER}\\b|consecutive\\b|trials?\\b|opportunities\\b|attempts?\\b|minutes?\\b|seconds?\\b|hours?\\b|times?\\b|words?\\b|sentences?\\b|paragraphs?\\b|days?\\b|sessions?\\b|data points?\\b|probes?\\b|steps?\\b|problems?\\b|questions?\\b|correct\\b|incidents?\\b|occurrences?\\b|episodes?\\b|intervals?\\b|prompts?\\b|points?\\b|c?wc?pm\\b|per\\s+(?:day|week|hour|class|period|session|minute)\\b|or\\s+(?:higher|better|more|fewer|less|above|below)\\b)`,
+    `(?<!\\bgoal\\s+#?)(?<!\\b(?:administered|measured|collected|assessed|monitored|probed|reviewed|checked|recorded|reported)\\s+(?:[a-z]+\\s+){0,2})\\b${NUMBER}\\s*(?:%|percent\\b|out of\\s+${NUMBER}\\b|of\\s+${NUMBER}\\b|consecutive\\b|trials?\\b|opportunities\\b|attempts?\\b|minutes?\\b|seconds?\\b|hours?\\b|times?\\b|words?\\b|sentences?\\b|paragraphs?\\b|days?\\b|sessions?\\b|data points?\\b|probes?\\b|steps?\\b|problems?\\b|questions?\\b|correct\\b|incidents?\\b|occurrences?\\b|episodes?\\b|intervals?\\b|prompts?\\b|points?\\b|c?wc?pm\\b|per\\s+(?:day|week|hour|class|period|session|minute)\\b|or\\s+(?:higher|better|more|fewer|less|above|below)\\b)`,
     `\\b(?:at least|no more than|fewer than|less than|more than|a minimum of|a maximum of|score of|scores? of at least|rating of)\\s+${NUMBER}\\b`,
     // a fraction like 4/5 — but not a short date after "by 6/27"
     '(?<!(?:[Bb]y|[Bb]efore|[Oo]n|[Uu]ntil|[Tt]hrough)\\s)\\b\\d{1,2}\\s*/\\s*\\d{1,2}\\b(?!\\s*/)',
@@ -280,10 +283,13 @@ const MEASURE_NOUN =
 
 const MEASUREMENT = new RegExp(
   [
-    '\\b(?:measured|documented|recorded|evidenced|determined|monitored|tracked|assessed|observed|charted|graphed|reported|verified|collected|evaluated)\\s+(?:[a-z]+ly\\s+)?(?:by|in|on|through|using|via|with|from)\\b',
+    '\\b(?:measured|documented|recorded|evidenced|determined|monitored|tracked|assessed|observed|charted|graphed|reported|verified|collected|evaluated|scored|checked|graded|rated)\\s+(?:[a-z]+ly\\s+)?(?:by|in|on|through|using|via|with|from)\\b',
+    // active voice, as parents and some districts write it: "the counselor keeps a
+    // log", "OT will keep data", "her teacher tracks this on a progress chart"
+    `\\b(?:teachers?|aides?|SLP|OT|PT|(?:job )?coach(?:es)?|counselors?|staff|case managers?|para(?:educator|professional)s?|therapists?|specialists?|coordinators?|psychologists?)\\s+(?:will\\s+)?(?:tracks?|records?|keeps?|takes?|collects?|charts?|logs?|notes?|writes?)\\b[^.;]{0,50}?\\b(?:data|logs?|notes|charts?|sheets?|records?|tally|checklists?|probes?)\\b`,
     '\\bas\\s+(?:indicated|shown|noted|kept|maintained)\\s+(?:by|in|on|through)\\b',
     `\\bby\\s+(?:[\\w-]+\\s+){0,2}(?:observations?|data|probes?|work samples?|records?|checklists?|rubrics?|assessments?|reports?)\\b`,
-    '\\((?:[\\w-]+\\s+){0,3}(?:observations?|data|probes?|records?|checklists?|rubrics?|reports?|samples?)\\)',
+    '\\((?:[\\w-]+[\\s,]+){0,3}(?:observations?|data|probes?|records?|checklists?|rubrics?|reports?|samples?)(?:[\\s,]+[\\w-]+){0,4}\\)',
     '\\bdata\\s+(?:will\\s+be\\s+)?(?:collected|recorded|kept|tracked|charted)\\b',
     '\\baccording to (?:the\\s+)?(?:teacher|SLP|OT|PT|case manager|staff|therapist|aide)\\b',
     `\\b(?:according to|based on|per|via|through|using|from)\\s+(?:[\\w-]+\\s+){0,3}${MEASURE_NOUN}\\b`,
@@ -318,6 +324,9 @@ export function looksNotEnglish(goal: string): boolean {
   const es = (goal.match(ES_WORDS)?.length ?? 0) + (goal.match(ES_ACCENTED)?.length ?? 0);
   return es >= 3 && es > en;
 }
+
+/** "Annual goal: Increase …" / "Goal 2: Given a passage, read …" — a goal label, then a verb. */
+const VERB_FIRST = /^(?:annual\s+)?goal\s*(?:#?\s*\d+)?\s*[:.-]\s*((?:[^,.;:]{3,80},\s*)*)([A-Za-z][a-z]+\b.*)$/i;
 
 /** A lead-in counts as a condition only if it opens like one ("Using X,", "In class,"). */
 const LEAD_CONDITION_START =
@@ -383,7 +392,12 @@ export function checkGoal(raw: string): GoalCheckResult | GoalNotEnglish | GoalN
   const goal = normalizeGoal(raw).slice(0, MAX_GOAL_LENGTH);
   if (goal.length < MIN_GOAL_LENGTH) return null;
   if (looksNotEnglish(goal)) return { kind: 'not-english' };
-  if (!/\b(?:will|shall)\b/i.test(goal)) return { kind: 'not-a-goal' };
+  if (!/\b(?:will|shall)\b/i.test(goal)) {
+    const verbFirst = VERB_FIRST.exec(goal);
+    if (!verbFirst) return { kind: 'not-a-goal' };
+    // Read "Annual goal: Increase…" as "The student will increase…"
+    return checkGoal(`${verbFirst[1]}The student will ${verbFirst[2].charAt(0).toLowerCase()}${verbFirst[2].slice(1)}`);
+  }
 
   const present: Record<GoalPartId, boolean> = {
     timeframe: TIMEFRAME_I.test(goal) || TIMEFRAME_MONTH.test(goal),

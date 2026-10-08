@@ -340,9 +340,15 @@ try {
   // the goal must never appear in any request URL or body, the deep link, a
   // cookie, or browser storage.
   const SENTINEL = 'Zqxsentinel';
-  // Encoded forms too: a leak through base64/base64url or URL-encoding must not slip by.
-  const b64 = Buffer.from(SENTINEL).toString('base64').slice(0, 8);
-  const needles = [SENTINEL, b64, b64.replace(/\+/g, '-').replace(/\//g, '_'), encodeURIComponent(SENTINEL)];
+  // Encoded forms too. Base64 output depends on where the text starts relative to
+  // a 3-byte boundary, so build the needle for all three alignments (dropping the
+  // characters the prefix bytes touch), in both base64 and base64url.
+  const needles = [SENTINEL];
+  for (const pad of ['', 'x', 'xx']) {
+    const enc = Buffer.from(pad + SENTINEL).toString('base64');
+    const core = enc.slice(Math.ceil((pad.length * 4) / 3) + (pad.length ? 1 : 0), enc.length - 4);
+    if (core.length >= 6) needles.push(core, core.replace(/\+/g, '-').replace(/\//g, '_'));
+  }
   const hasNeedle = (v) => needles.some((n) => v.includes(n));
   const leaks = [];
   const onRequest = (req) => {
@@ -379,7 +385,7 @@ try {
     if (!summary) {
       failures.push('/tools/iep-goal-check/: Enter on the focused button produced no result');
     }
-    const stored = await page.evaluate((s) => {
+    const stored = await page.evaluate((ns) => {
       const hrefs = [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href') ?? '');
       let storage = '';
       try {
@@ -388,8 +394,8 @@ try {
         /* storage blocked — nothing stored */
       }
       const analytics = [...(window.__wpAnalytics ?? []), JSON.stringify(window.dataLayer ?? [])];
-      return [...hrefs, ...analytics, document.cookie, storage, location.href].some((v) => v.includes(s));
-    }, SENTINEL);
+      return [...hrefs, ...analytics, document.cookie, storage, location.href].some((v) => ns.some((n) => v.includes(n)));
+    }, needles);
     if (stored) failures.push('/tools/iep-goal-check/: the pasted goal reached analytics, a link, a cookie, the URL, or storage');
     // The deep link's wp_ctx is base64url JSON: decode it and allow exactly the
     // summary fields, with the fixed summary text — never anything typed.
