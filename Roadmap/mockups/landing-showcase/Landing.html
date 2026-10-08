@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landing Showcase Mockup</title>
+<meta name="color-scheme" content="light">
+<style>
+  /* Tokens mirror waypoint-site/src/styles/global.css */
+  :root {
+    --paper:#f5f1e9; --panel:#ffffff; --cream:#fbf6ec; --ink:#22303a; --ink-soft:#55606b; --ink-faint:#6d6555;
+    --border:#eae3d5; --border-strong:#e2d8c4; --pine:#0f766e; --pine-deep:#115e56; --pine-tint:#e6f1ef;
+    --sage:#0e9e6e; --sage-ink:#047857; --sage-tint:#e7f5ee; --urgent:#c2410c; --urgent-tint:#fbeadd;
+    --amber:#b45309; --amber-soft:#fdf3e3; --amber-border:#f3dfb6; --navy:#1f2a44; --sky:#3f8fb0; --sky-tint:#e3f0f7;
+    --display: 'Newsreader', Georgia, 'Times New Roman', serif;
+    --sans: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); -webkit-font-smoothing:antialiased; line-height:1.5; }
+  a { color:var(--pine); }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 16px; }
+  .eyebrow { font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--pine); }
+  h1,h2,h3 { font-family:var(--display); font-weight:500; margin:0; }
+  h2 { font-size:clamp(1.6rem,3.6vw,2.3rem); line-height:1.15; margin:8px 0 10px; }
+  .sub { color:var(--ink-soft); max-width:62ch; margin:0 0 24px; }
+  .btn { display:inline-block; padding:13px 20px; border-radius:12px; font-weight:700; text-decoration:none; font-size:15px; border:0; cursor:pointer; font-family:inherit; }
+  .btn.solid { background:var(--pine); color:#fff; }
+  .btn.light { background:#fff; color:var(--pine-deep); }
+  .btn.ghost { background:transparent; color:#eef6f1; border:1.5px solid rgba(255,255,255,.45); }
+  .btn.outline { background:#fff; color:var(--pine); border:1.5px solid var(--pine); }
+  section { padding:64px 0; }
+  .on-white { background:#fff; }
+
+  /* mockup-only annotation */
+  .note { background:#fff7d6; border:1px dashed #d9b100; color:#5c4a00; font-size:12.5px; padding:8px 12px; border-radius:8px; margin:0 0 18px; }
+  .note b { letter-spacing:.04em; }
+  .kicker { background:#22303a; color:#fff; font-size:12px; padding:8px 16px; text-align:center; }
+
+  /* header */
+  header { background:#fff; border-bottom:1px solid var(--border); }
+  header .wrap { display:flex; align-items:center; justify-content:space-between; height:60px; gap:12px; }
+  .brand { display:flex; align-items:center; gap:8px; font-family:var(--display); font-size:21px; font-weight:600; color:var(--ink); text-decoration:none; }
+  nav.links { display:flex; gap:20px; font-size:14px; }
+  nav.links a { color:var(--ink-soft); text-decoration:none; }
+  @media (max-width:760px){ nav.links{display:none;} }
+
+  /* hero */
+  .hero { background:linear-gradient(165deg,#22303a 0%,#123f39 55%,#0f766e 135%); color:#eef6f1; padding:56px 0 64px; }
+  .hero-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:center; }
+  .hero h1 { font-size:clamp(2rem,4.6vw,3.1rem); line-height:1.1; color:#fff; margin:12px 0 14px; }
+  .hero h1 em { font-style:normal; color:#a9efe0; }
+  .hero .lede { color:#d3e7de; font-size:1.08rem; max-width:52ch; margin:0 0 24px; }
+  .hero .eyebrow { color:#9fe8db; }
+  .hero-actions { display:flex; gap:12px; flex-wrap:wrap; }
+  .cta-note { font-size:13px; color:#9fc5b9; margin-top:10px; }
+  .feature-chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+  .feature-chips span { font-size:12.5px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); padding:5px 10px; border-radius:999px; color:#e6f4ef; }
+  @media (max-width:860px){ .hero-grid{grid-template-columns:1fr;} }
+
+  /* phone frame */
+  .phone { width:300px; max-width:100%; margin:0 auto; background:#111; border-radius:36px; padding:10px; box-shadow:0 30px 60px rgba(0,0,0,.35); }
+  .screen { background:var(--paper); border-radius:28px; overflow:hidden; height:560px; display:flex; flex-direction:column; font-size:12px; color:var(--ink); }
+  .screen .bar { height:26px; display:flex; justify-content:center; align-items:center; font-size:10px; color:var(--ink-soft); }
+  .screen .scroll { flex:1; overflow:hidden; padding:8px 12px; }
+  .tabbar { display:flex; justify-content:space-around; border-top:1px solid var(--border); background:#fff; padding:7px 0 10px; font-size:9.5px; color:var(--ink-soft); }
+  .tabbar .on { color:var(--sky); font-weight:700; }
+  .appbar { display:flex; align-items:center; gap:6px; background:var(--cream); padding:10px 12px; font-weight:700; font-size:13px; border-bottom:1px solid var(--border); }
+
+  /* in-phone components */
+  .triage { background:#fff; border:2px solid var(--pine); border-radius:14px; padding:12px; }
+  .pill { display:inline-block; font-size:9.5px; font-weight:800; letter-spacing:.08em; padding:3px 8px; border-radius:6px; }
+  .pill.due { background:var(--amber-soft); color:var(--amber); }
+  .pill.red { background:#fde2e1; color:#b42318; }
+  .triage h4 { font-size:15px; margin:8px 0 4px; font-family:var(--sans); }
+  .triage p { color:var(--ink-soft); margin:0 0 10px; font-size:11.5px; }
+  .tbtn { background:var(--pine); color:#fff; border-radius:9px; padding:9px; text-align:center; font-weight:700; font-size:12px; }
+  .tlink { color:var(--ink-faint); font-size:11px; margin-top:9px; }
+  .askbox { background:#e6efed; border-radius:14px; padding:10px; margin-top:12px; }
+  .askbox .field { background:#fff; border:1px solid var(--border); border-radius:10px; padding:9px; color:#8a8f94; display:flex; justify-content:space-between; align-items:center; }
+  .askbox .field b { background:var(--pine); color:#fff; padding:4px 8px; border-radius:7px; font-size:10.5px; }
+  .chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .chips span { background:#fff; border:1px solid var(--border); border-radius:999px; padding:3px 8px; font-size:10px; }
+  .status-line { color:var(--amber); font-size:10.5px; margin-top:10px; }
+
+  .bubble-me { background:var(--pine); color:#fff; border-radius:12px 12px 2px 12px; padding:8px 10px; margin-left:auto; max-width:80%; width:fit-content; }
+  .bubble-ai { background:#fff; border-radius:12px 12px 12px 2px; padding:9px 10px; margin:8px 0; max-width:92%; box-shadow:0 1px 0 var(--border); }
+  .rcard { border-radius:10px; padding:8px 10px; margin:6px 0; font-size:10.8px; }
+  .rcard b { display:block; font-size:9px; letter-spacing:.08em; margin-bottom:2px; }
+  .rcard.right { background:#e6efed; } .rcard.right b { color:var(--pine-deep); }
+  .rcard.know { background:#fbf1cf; } .rcard.know b { color:var(--amber); }
+  .rcard.watch { background:#f9e1e1; } .rcard.watch b { color:#b42318; }
+  .tone { display:flex; gap:4px; margin:4px 0 8px; font-size:9.5px; }
+  .tone span { border-radius:999px; padding:3px 7px; background:#efe9dd; }
+  .tone span.on { background:var(--pine); color:#fff; }
+
+  .letter { background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px; font-size:11px; line-height:1.5; }
+  .ok-bar { background:#e3f5e6; color:#1f7a35; border-radius:8px; padding:6px 8px; font-size:10.5px; margin-bottom:8px; }
+  .meta { border:1px solid var(--border); border-radius:8px; padding:6px 8px; margin-top:6px; font-size:10px; color:var(--ink-soft); background:#fff; }
+  .rowbtns { display:flex; gap:6px; margin-top:8px; }
+  .rowbtns span { flex:1; text-align:center; border-radius:8px; padding:8px; font-weight:700; font-size:11px; }
+
+  .stats4 { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:8px 0; text-align:center; }
+  .stats4 div { border-radius:999px; aspect-ratio:1; display:flex; flex-direction:column; justify-content:center; font-size:9px; color:var(--ink-soft); }
+  .stats4 b { font-size:16px; color:var(--ink); }
+  .bottomline { background:var(--navy); color:#fff; border-radius:10px; padding:10px; font-size:11.5px; font-weight:600; }
+  .bottomline small { display:block; color:#7fd3c4; font-size:8.5px; letter-spacing:.12em; margin-bottom:3px; }
+  .goodnews { background:#eef8f2; border-left:3px solid var(--sage); border-radius:8px; padding:8px 10px; margin-top:8px; font-size:10.5px; }
+  .gap { background:var(--amber-soft); border-left:3px solid var(--amber); border-radius:8px; padding:8px 10px; margin-top:8px; font-size:10.5px; }
+
+  .plancard { background:#fff; border-radius:10px; padding:10px; margin-bottom:8px; border-left:3px solid var(--sky); }
+  .plancard h5 { margin:0 0 5px; font-size:12px; }
+  .prog { height:4px; background:#efe9dd; border-radius:4px; margin:6px 0; } .prog i { display:block; height:100%; background:var(--sage); border-radius:4px; }
+  .ring { display:flex; justify-content:space-around; text-align:center; background:#fff; padding:8px; border-radius:10px; margin-bottom:8px; font-size:9.5px; color:var(--ink-soft); }
+  .ring b { display:block; font-size:16px; color:var(--ink); }
+
+  .layer { background:#fff; border:1px solid var(--border); border-radius:10px; padding:8px 10px; margin:4px 0; font-size:10.5px; }
+  .layer.next { border:2px solid var(--sky); }
+  .layer.prog { border-left:4px solid #e3a03a; }
+  .layer h5 { margin:0 0 3px; font-size:12px; display:flex; justify-content:space-between; }
+  .layer h5 span { font-size:9px; font-weight:700; border-radius:999px; padding:2px 7px; background:var(--sky-tint); color:var(--sky); }
+  .builds { text-align:center; font-size:9px; color:var(--ink-soft); }
+
+  /* IEP goal check */
+  .tool { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media (max-width:860px){ .tool{grid-template-columns:1fr;} }
+  .panel { background:#fff; border:1px solid var(--border); border-radius:16px; padding:22px; }
+  textarea { width:100%; min-height:130px; border:1.5px solid var(--border-strong); border-radius:12px; padding:12px; font:inherit; font-size:15px; resize:vertical; background:var(--cream); }
+  textarea:focus { outline:3px solid var(--pine-tint); border-color:var(--pine); }
+  label.lbl { font-weight:700; display:block; margin-bottom:8px; }
+  .examples { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px; }
+  .examples button { background:var(--pine-tint); color:var(--pine-deep); border:0; border-radius:999px; padding:6px 12px; font:inherit; font-size:13px; cursor:pointer; }
+  .privacy { font-size:13px; color:var(--ink-soft); margin-top:12px; display:flex; gap:8px; }
+  .verdict { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .verdict .badge { font-weight:800; padding:6px 12px; border-radius:999px; font-size:14px; }
+  .badge.strong { background:var(--sage-tint); color:var(--sage-ink); }
+  .badge.adequate { background:#fdf3d0; color:#8a5a00; }
+  .badge.weak { background:#fde2e1; color:#b42318; }
+  .checks { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+  .checks li { display:flex; gap:10px; font-size:14.5px; }
+  .checks .ic { flex:none; width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:12px; }
+  .ic.y { background:var(--sage-tint); color:var(--sage-ink); } .ic.n { background:var(--urgent-tint); color:var(--urgent); }
+  .checks small { display:block; color:var(--ink-soft); font-size:13px; }
+  .upsell { margin-top:18px; background:var(--pine-tint); border-radius:12px; padding:14px; font-size:14px; }
+  .placeholder { color:var(--ink-soft); font-size:14.5px; }
+  .cite { font-size:12px; color:var(--ink-faint); margin-top:12px; }
+
+  /* showcase */
+  .tabs { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:24px; scrollbar-width:none; }
+  .tabs button { flex:none; border:1.5px solid var(--border-strong); background:#fff; border-radius:999px; padding:9px 16px; font:inherit; font-weight:600; font-size:14px; cursor:pointer; color:var(--ink); }
+  .tabs button[aria-selected="true"] { background:var(--pine); border-color:var(--pine); color:#fff; }
+  .show { display:grid; grid-template-columns:340px 1fr; gap:48px; align-items:center; }
+  @media (max-width:860px){ .show{grid-template-columns:minmax(0,1fr); gap:28px;} }
+  .show > * { min-width:0; }
+  .show h3 { font-size:1.7rem; margin-bottom:10px; }
+  .show ul { padding-left:0; list-style:none; display:flex; flex-direction:column; gap:12px; }
+  .show li { position:relative; padding-left:24px; } .show li::before { content:"✓"; position:absolute; left:0; color:var(--sage-ink); font-weight:800; }
+  .pane[hidden] { display:none; }
+  .free-tag { display:inline-block; font-size:11px; font-weight:800; letter-spacing:.06em; background:var(--sage-tint); color:var(--sage-ink); padding:3px 8px; border-radius:6px; margin-left:6px; vertical-align:middle; }
+  .paid-tag { display:inline-block; font-size:11px; font-weight:800; letter-spacing:.06em; background:var(--sky-tint); color:var(--sky); padding:3px 8px; border-radius:6px; margin-left:6px; vertical-align:middle; }
+
+  /* proactive timeline */
+  .timeline { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; position:relative; }
+  @media (max-width:860px){ .timeline{grid-template-columns:1fr;} }
+  .tstep { background:#fff; border:1px solid var(--border); border-radius:14px; padding:16px; }
+  .tstep .day { font-size:12px; font-weight:800; letter-spacing:.08em; color:var(--pine); }
+  .tstep h4 { font-family:var(--display); font-weight:500; font-size:1.15rem; margin:6px 0; }
+  .tstep p { margin:0; color:var(--ink-soft); font-size:14px; }
+  .tstep .push { margin-top:10px; background:var(--paper); border-radius:10px; padding:8px 10px; font-size:12.5px; }
+  .tstep .push b { display:block; font-size:11px; color:var(--ink-faint); }
+
+  /* free help grid */
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:860px){ .grid3{grid-template-columns:1fr;} }
+  .card { background:#fff; border:1px solid var(--border); border-radius:14px; padding:20px; }
+  .card h3 { font-size:1.2rem; margin-bottom:6px; }
+  .card p { color:var(--ink-soft); font-size:14.5px; margin:0 0 10px; }
+  .card a { font-weight:700; font-size:14px; text-decoration:none; }
+
+  .final { background:var(--pine); color:#fff; border-radius:20px; padding:36px; text-align:center; }
+  .final h2 { color:#fff; }
+  .final p { color:#d9efe9; }
+  footer { padding:28px 0 60px; font-size:13px; color:var(--ink-soft); text-align:center; }
+</style>
+</head>
+<body>
+<div class="kicker">MOCKUP · landing-page showcase · not built · fictional child “Maya” — no real family data</div>
+
+<header>
+  <div class="wrap">
+    <a class="brand" href="#">
+      <svg width="28" height="22" viewBox="0 0 62 48" aria-hidden="true"><rect x="24" y="35.4" width="26" height="4.4" rx="2.2" fill="#0E9E6E"/><circle cx="54" cy="37.6" r="5.6" fill="#0E9E6E"/><path d="M22 44 C 22 44 6 28.2 6 18.2 C 6 9.25 13.16 2 22 2 C 30.84 2 38 9.25 38 18.2 C 38 28.2 22 44 22 44 Z" fill="#22303A"/><circle cx="22" cy="17.6" r="6.3" fill="#0F766E"/></svg>
+      Waypoint
+    </a>
+    <nav class="links"><a href="#iep-check">Free IEP check</a><a href="#see-it">See it work</a><a href="#free-help">Free guides</a><a href="#">Pricing</a></nav>
+    <a class="btn solid" href="#" style="padding:9px 14px;font-size:14px;">Start free</a>
+  </div>
+</header>
+
+<!-- 1 · HERO -->
+<div class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">For California families</span>
+      <h1>The next step for your child — <em>before you have to ask.</em></h1>
+      <p class="lede">Waypoint reads your child's IEP, answers your questions with the law behind them, drafts the friendly email, and watches every clock — Regional Center, school, Medi-Cal, IHSS, SSI.</p>
+      <div class="hero-actions">
+        <a class="btn light" href="#">Start free →</a>
+        <a class="btn ghost" href="#iep-check">Check an IEP goal — free, no signup</a>
+      </div>
+      <div class="cta-note">Free to start · no credit card · en español</div>
+      <div class="feature-chips"><span>AI Navigator</span><span>Letter drafts</span><span>Deadline reminders</span><span>IEP analysis</span><span>Action plan</span></div>
+    </div>
+    <div>
+      <div class="phone" role="img" aria-label="Waypoint Home screen: a heads-up that the school's assessment plan is due in 3 days, with a button to open it">
+        <div class="screen">
+          <div class="bar">app.waypointchild.com</div>
+          <div class="scroll">
+            <div class="triage">
+              <span class="pill due">HEADS-UP · DUE IN 3 DAYS</span>
+              <h4>The school's assessment plan is due Friday</h4>
+              <p>You asked for an evaluation on Oct 1. The district has 15 days to send a plan (Ed Code §56321). Nothing's in yet.</p>
+              <div class="tbtn">See what to do if it doesn't come</div>
+              <div class="tlink">Not today — show the next thing</div>
+            </div>
+            <div style="font-weight:700;font-size:14px;margin:14px 0 2px;">Got something on your mind?</div>
+            <div class="askbox">
+              <div class="field">Ask or search — “they said no”… <b>✦ Ask</b></div>
+              <div class="chips"><span>They said no</span><span>Read my IEP</span><span>Respite</span><span>Sibling support</span></div>
+            </div>
+            <div class="triage" style="border:1px solid var(--border);margin-top:12px;">
+              <span class="pill red">PAST DUE · 6 DAYS</span>
+              <h4 style="font-size:13px;">Apply for IHSS</h4>
+              <p style="margin:0">It's on your plan — 2 of 8 steps done.</p>
+            </div>
+          </div>
+          <div class="tabbar"><span class="on">Home</span><span>Journey</span><span>Learn</span><span>Tools</span><span>Plan</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2 · FREE IEP GOAL CHECK -->
+<section id="iep-check" class="on-white">
+  <div class="wrap">
+    <p class="note"><b>DECISION NEEDED:</b> this inline tool is <b>client-only</b> (rule-based, no AI, nothing leaves the browser). The full AI IEP analysis is the app's Premium feature today — see the plan for options.</p>
+    <span class="eyebrow">Free tool · no signup · nothing uploaded</span>
+    <h2>Is this IEP goal actually measurable?</h2>
+    <p class="sub">Paste one annual goal from your child's IEP. In a few seconds you'll see whether it says what will be measured, how well, by when — and what to ask the team to add.</p>
+    <div class="tool">
+      <div class="panel">
+        <label class="lbl" for="goal">Paste one IEP goal</label>
+        <textarea id="goal" placeholder="e.g. By May 2027, when given a grade-level passage, Maya will answer 4 of 5 comprehension questions correctly in 3 of 4 trials, as measured by teacher-charted data."></textarea>
+        <div class="examples" aria-label="Try an example">
+          <button type="button" data-ex="Maya will improve her reading skills.">Try a vague goal</button>
+          <button type="button" data-ex="By May 2027, when given a grade-level passage, Maya will answer 4 of 5 comprehension questions correctly in 3 of 4 trials, as measured by teacher-charted data.">Try a strong goal</button>
+        </div>
+        <button class="btn solid" id="run" type="button">Check this goal</button>
+        <div class="privacy"><span aria-hidden="true">🔒</span><span>Runs entirely in your browser. We never see or store what you paste.</span></div>
+      </div>
+      <div class="panel" aria-live="polite" id="result">
+        <p class="placeholder">Your results will appear here — five things every measurable goal should name.</p>
+      </div>
+    </div>
+    <p class="cite">Federal and California law require each IEP to include measurable annual goals — 34 CFR §300.320(a)(2); Ed Code §56345(a)(2). Educational information, not legal advice.</p>
+  </div>
+</section>
+
+<!-- 3 · SEE IT WORK -->
+<section id="see-it">
+  <div class="wrap">
+    <span class="eyebrow">See it work</span>
+    <h2>What Waypoint does once you're in</h2>
+    <p class="sub">Real screens, sample family. Tap through.</p>
+    <div class="tabs" role="tablist" aria-label="App features">
+      <button role="tab" aria-selected="true" aria-controls="p-ask" id="t-ask">Ask the Navigator</button>
+      <button role="tab" aria-selected="false" aria-controls="p-draft" id="t-draft" tabindex="-1">Draft the email</button>
+      <button role="tab" aria-selected="false" aria-controls="p-iep" id="t-iep" tabindex="-1">IEP analysis</button>
+      <button role="tab" aria-selected="false" aria-controls="p-plan" id="t-plan" tabindex="-1">Your action plan</button>
+      <button role="tab" aria-selected="false" aria-controls="p-stack" id="t-stack" tabindex="-1">Benefits stack</button>
+    </div>
+
+    <!-- Ask -->
+    <div class="pane show" role="tabpanel" id="p-ask" aria-labelledby="t-ask">
+      <div class="phone"><div class="screen">
+        <div class="bar">Waypoint Navigator</div>
+        <div class="scroll">
+          <div class="tone"><span class="on">🤝 Collaborative</span><span>Assertive</span><span>Advocacy</span></div>
+          <div class="bubble-me">Can I ask for a behavior assessment at the IEP meeting?</div>
+          <div class="bubble-ai">Yes — and you don't have to wait for the meeting. Put it in writing now so the timeline starts.</div>
+          <div class="rcard right"><b>YOUR RIGHT</b>You can request an IEP meeting at any time; the district must hold it within 30 days of your written request (Ed Code §56343.5).</div>
+          <div class="rcard know"><b>GOOD TO KNOW</b>Asking for the assessment in writing starts a separate 15-day clock for an assessment plan (Ed Code §56321).</div>
+          <div class="rcard watch"><b>WATCH OUT</b>If the team declines, ask for Prior Written Notice — it keeps your record and your options.</div>
+          <div class="tbtn" style="margin-top:6px;">Want me to draft that request? ›</div>
+        </div>
+        <div class="tabbar"><span>Home</span><span>Journey</span><span class="on">Learn</span><span>Tools</span><span>Plan</span></div>
+      </div></div>
+      <div>
+        <h3>Ask anything — get the answer and the law behind it <span class="free-tag">FREE · 30/MO</span></h3>
+        <ul>
+          <li>Plain-language answers that know your child's age, diagnosis, county, and Regional Center.</li>
+          <li>Every answer separates <b>your right</b>, <b>good to know</b>, and <b>watch out</b> — each with its citation.</li>
+          <li>Starts collaborative. You choose when the tone firms up.</li>
+          <li>One tap turns an answer into a drafted letter or a step on your plan.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Draft -->
+    <div class="pane show" role="tabpanel" id="p-draft" aria-labelledby="t-draft" hidden>
+      <div class="phone"><div class="screen">
+        <div class="appbar">← Letters &amp; Drafts</div>
+        <div class="scroll">
+          <div style="font-weight:700;font-size:13px;margin-bottom:4px;">Your draft — edit anything, then send</div>
+          <div class="ok-bar">✅ No blanks left — ready to send</div>
+          <div class="letter">Hi Ms. Lopez,<br><br>I'm hoping we can get Maya a full evaluation — behavior (an FBA), social-emotional, and speech. Her anxiety is showing up a lot at school, and we'd really like to understand what's driving it so her plan fits her. Could you send me an assessment plan to sign?<br><br>Happy to talk anytime.<br>Thanks so much!</div>
+          <div class="meta">To: Ms. Lopez (case.manager@district.example)<br>Subject: Assessment request — Maya</div>
+          <div class="rowbtns"><span style="background:var(--pine);color:#fff;">Copy</span><span style="border:1.5px solid var(--pine);color:var(--pine);">Open in Mail</span></div>
+        </div>
+        <div class="tabbar"><span class="on">Home</span><span>Journey</span><span>Learn</span><span>Tools</span><span>Plan</span></div>
+      </div></div>
+      <div>
+        <h3>The friendly email, already written <span class="free-tag">CORE LETTERS FREE</span></h3>
+        <ul>
+          <li>Pick a letter, pick a tone — <b>Friendly &amp; warm</b>, <b>Professional</b>, or <b>Strong &amp; direct</b>.</li>
+          <li>Filled in with your child's details and the right person's name. Blanks are flagged before you send.</li>
+          <li>Sending it starts the clock — Waypoint tracks the reply for you.</li>
+          <li>Always goes out under your name, after you read it.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- IEP -->
+    <div class="pane show" role="tabpanel" id="p-iep" aria-labelledby="t-iep" hidden>
+      <div class="phone"><div class="screen">
+        <div class="appbar">← IEP Review</div>
+        <div class="scroll">
+          <div class="stats4"><div style="background:#e7f5ee"><b>1</b>Strong</div><div style="background:#fdf3d0"><b>2</b>Adequate</div><div style="background:#fde2e1"><b>1</b>Weak</div><div style="background:#f1efe9"><b>4</b>Total</div></div>
+          <div class="bottomline"><small>THE BOTTOM LINE</small>Maya met two goals and reads at grade level — but the team listed five areas of need and the plan has goals for only four.</div>
+          <div class="goodnews"><b>🟢 The good news</b><br>• Reading grew a full level this fall<br>• Met her group-participation goal</div>
+          <div class="gap"><b>🟠 Ask the team about</b><br>• No goal for the sensory needs listed in present levels<br>• Writing goal has no way to measure it</div>
+          <div class="rowbtns"><span style="background:var(--sky);color:#fff;">Meeting prep</span><span style="border:1.5px solid var(--sky);color:var(--sky);">Compare to last year</span></div>
+        </div>
+        <div class="tabbar"><span class="on">Home</span><span>Journey</span><span>Learn</span><span>Tools</span><span>Plan</span></div>
+      </div></div>
+      <div>
+        <h3>Upload the IEP. Get the bottom line. <span class="paid-tag">PREMIUM*</span></h3>
+        <ul>
+          <li>Every goal rated strong, adequate, or weak — and why.</li>
+          <li>Flags needs named in present levels that have no goal attached.</li>
+          <li>Compares this year to last year, and builds your meeting-prep questions.</li>
+          <li>Tracks goals through the year in your IEP Hub.</li>
+        </ul>
+        <p class="note" style="margin-top:10px;">* Tier label depends on the owner decision in the plan (Premium today per <code>entitlements.ts</code>).</p>
+      </div>
+    </div>
+
+    <!-- Plan -->
+    <div class="pane show" role="tabpanel" id="p-plan" aria-labelledby="t-plan" hidden>
+      <div class="phone"><div class="screen">
+        <div class="appbar">Waypoint Plan</div>
+        <div class="scroll">
+          <div class="ring"><div><b style="color:var(--sage)">18%</b>Complete</div><div><b>12</b>To do</div><div><b>2</b>In progress</div><div><b>3</b>Done</div></div>
+          <div style="color:var(--ink-soft);font-size:10.5px;margin-bottom:6px;">Start here — your next 3 steps. One at a time is the plan.</div>
+          <div class="plancard"><h5>Apply for IHSS</h5><span style="font-size:10px;color:var(--ink-soft)">Benefits · High</span><div class="prog"><i style="width:25%"></i></div><span style="font-size:10px;color:#b42318">Past due · Sep 30</span></div>
+          <div class="plancard"><h5>Ask for typing and speech-to-text as writing accommodations</h5><span style="font-size:10px;color:var(--ink-soft)">IEP / School · High</span></div>
+          <div class="plancard"><h5>Request the IPP meeting (30-day clock)</h5><span style="font-size:10px;color:var(--ink-soft)">Regional Center · Medium</span></div>
+        </div>
+        <div class="tabbar"><span>Home</span><span>Journey</span><span>Learn</span><span>Tools</span><span class="on">Plan</span></div>
+      </div></div>
+      <div>
+        <h3>One plan for every system <span class="free-tag">FREE</span></h3>
+        <ul>
+          <li>School, Regional Center, Medi-Cal, IHSS, SSI — one list, sorted by what matters next.</li>
+          <li>Each step breaks into small, checkable pieces.</li>
+          <li>Due dates come from the law, not guesses — and from your own records.</li>
+          <li>Save anything from a Navigator answer straight to the plan.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Stack -->
+    <div class="pane show" role="tabpanel" id="p-stack" aria-labelledby="t-stack" hidden>
+      <div class="phone"><div class="screen">
+        <div class="appbar">← Resource Stack</div>
+        <div class="scroll">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><span style="font-size:9.5px;font-weight:800;letter-spacing:.1em;color:var(--sky)">MAYA'S STACK</span><span style="background:var(--navy);color:#fff;border-radius:999px;padding:3px 8px;font-size:10px;">Using 3 of 6</span></div>
+          <div class="layer"><h5>6 · SSI cash benefit <span style="background:#f1efe9;color:var(--ink-soft)">Later</span></h5>Parent income stops counting the month after 18.</div>
+          <div class="builds">▲ builds on</div>
+          <div class="layer next"><h5>5 · Self-Determination budget <span>Next unlock</span></h5>A budget you direct, for the gaps below.</div>
+          <div class="builds">▲ builds on</div>
+          <div class="layer prog"><h5>4 · IHSS paid care hours <span style="background:#fdf0dc;color:var(--amber)">In progress</span></h5>Pays a caregiver — including you.</div>
+          <div class="builds">▲ builds on</div>
+          <div class="layer"><h5>3 · Medi-Cal (institutional deeming) <span style="background:var(--sage-tint);color:var(--sage-ink)">Secured</span></h5></div>
+        </div>
+        <div class="tabbar"><span>Home</span><span class="on">Journey</span><span>Learn</span><span>Tools</span><span>Plan</span></div>
+      </div></div>
+      <div>
+        <h3>See which benefits you're using — and what's next <span class="free-tag">FREE</span></h3>
+        <ul>
+          <li>Six benefit layers, in the order that protects your budget.</li>
+          <li>Each layer shows the rule behind it and the step that unlocks it.</li>
+          <li>Built from your child's age, diagnosis, and what you already have.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · PROACTIVE -->
+<section class="on-white">
+  <div class="wrap">
+    <span class="eyebrow">Smart reminders</span>
+    <h2>Waypoint speaks first.</h2>
+    <p class="sub">Most tools wait for you to remember. Waypoint knows which clock your request started — and checks in before it runs out.</p>
+    <div class="timeline">
+      <div class="tstep"><div class="day">DAY 0</div><h4>You send the request</h4><p>Waypoint drafts it; you send it. The 15-day assessment-plan clock starts.</p></div>
+      <div class="tstep"><div class="day">DAY 12</div><h4>A heads-up</h4><p>Nothing back yet. A gentle note — no action needed today.</p><div class="push"><b>Waypoint · 9:00 AM</b>The assessment plan is due Friday. Nothing in yet.</div></div>
+      <div class="tstep"><div class="day">DAY 16</div><h4>The answer is past due</h4><p>It moves to the top of Home, with a friendly follow-up already drafted.</p><div class="push"><b>Waypoint · 9:00 AM</b>An answer on Maya's assessment plan is past due. Want a quick follow-up?</div></div>
+      <div class="tstep"><div class="day">IF NEEDED</div><h4>Firmer, step by step</h4><p>Only if asks go unanswered does the tone firm up — and only when you choose.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · FREE HELP -->
+<section id="free-help">
+  <div class="wrap">
+    <span class="eyebrow">Free help, right now</span>
+    <h2>Start with where you are today</h2>
+    <p class="sub">Every guide, tool, and letter on this site is free — no email required.</p>
+    <div class="grid3">
+      <div class="card"><h3>IEP goal check</h3><p>Paste a goal, see if it's measurable — and what to ask for.</p><a href="#iep-check">Check a goal →</a></div>
+      <div class="card"><h3>SSI deeming calculator</h3><p>See how parent income counts for a child's SSI.</p><a href="#">Try the calculator →</a></div>
+      <div class="card"><h3>Regional Center finder</h3><p>Find your Regional Center by county.</p><a href="#">Find yours →</a></div>
+      <div class="card"><h3>Regional Centers</h3><p>Eligibility, the 120-day clock, IPP meetings, respite, appeals.</p><a href="#">Pillar guide →</a></div>
+      <div class="card"><h3>School &amp; IEPs</h3><p>Request an evaluation, IEP vs 504, the dispute ladder — with letters.</p><a href="#">Get the letter →</a></div>
+      <div class="card"><h3>Money &amp; benefits</h3><p>Medi-Cal deeming, IHSS protective supervision, SSI for children.</p><a href="#">Explore benefits →</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · FOUNDER + CTA -->
+<section style="padding-top:0;">
+  <div class="wrap">
+    <div class="final">
+      <h2>Turn “What do I do?” into “Here's what to do next.”</h2>
+      <p>Built by a parent of two boys in Oakland who spent hundreds of hours learning the system.</p>
+      <a class="btn light" href="#">Start free →</a>
+      <p style="font-size:13px;margin-top:10px;">Free to start · no credit card</p>
+    </div>
+  </div>
+</section>
+<footer>Mockup · Roadmap/mockups/landing-showcase · sample family is fictional</footer>
+
+<script>
+  // Tabs (WAI-ARIA tablist with arrow keys)
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function select(t) {
+    tabs.forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); x.tabIndex = on ? 0 : -1;
+      document.getElementById(x.getAttribute('aria-controls')).hidden = !on; });
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => select(t));
+    t.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const n = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+      select(n); n.focus();
+    });
+  });
+
+  // IEP goal check — rule-based sketch of the proposed client-only checker
+  const CHECKS = [
+    { id:'time', label:'A timeframe', hint:'When should this be met? e.g. "By May 2027" or "within one year".',
+      re:/\b(by|within|before|end of)\b.{0,25}(\d{4}|year|month|week|semester|trimester|annual|IEP)|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{4}/i },
+    { id:'cond', label:'The conditions', hint:'Under what circumstances? e.g. "when given a grade-level passage", "with a visual schedule".',
+      re:/\b(given|when (given|presented|asked|provided)|with(out)? (a|an|the|visual|verbal|adult|prompt)|during|in (the )?(classroom|general education|small group))/i },
+    { id:'beh', label:'An observable skill', hint:'Something you can see or count — "will write", "will answer", "will request a break" — not "will improve" or "will understand".',
+      re:/\bwill\s+(?!improve|understand|increase|develop|learn|know|be (able|aware)|demonstrate (an )?(understanding|improvement))\w+/i },
+    { id:'crit', label:'How well — a number', hint:'A target you can measure: "4 of 5", "80% accuracy", "in 3 of 4 trials", "for 10 minutes".',
+      re:/\d+\s*(%|percent|of\s*\d+|out of\s*\d+|trials|opportunities|minutes|times|consecutive|words|sentences)/i },
+    { id:'meas', label:'How it will be measured', hint:'Who tracks it and how — "as measured by teacher data", "work samples", "observation".',
+      re:/\b(measured by|as measured|data|probes?|observations?|work samples?|charts?|records?|rubric|assessment)\b/i },
+  ];
+  const ta = document.getElementById('goal'), out = document.getElementById('result');
+  document.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => { ta.value = b.dataset.ex; run(); }));
+  document.getElementById('run').addEventListener('click', run);
+  function esc(s){ return s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+  function run() {
+    const g = ta.value.trim();
+    if (g.length < 10) { out.innerHTML = '<p class="placeholder">Paste a full goal first — usually one or two sentences.</p>'; return; }
+    const res = CHECKS.map(c => ({...c, ok:c.re.test(g)}));
+    const n = res.filter(r => r.ok).length;
+    const [cls, word] = n >= 5 ? ['strong','Strong'] : n >= 3 ? ['adequate','Adequate'] : ['weak','Needs work'];
+    const missing = res.filter(r => !r.ok);
+    out.innerHTML = `
+      <div class="verdict"><span class="badge ${cls}">${word}</span><span>${n} of 5 parts found</span></div>
+      <ul class="checks">${res.map(r => `<li><span class="ic ${r.ok?'y':'n'}">${r.ok?'✓':'!'}</span><span><b>${esc(r.label)}</b>${r.ok?'':`<small>${esc(r.hint)}</small>`}</span></li>`).join('')}</ul>
+      ${missing.length ? `<p style="margin:14px 0 0;font-size:14px;"><b>A friendly ask for the team:</b> "Could we add ${missing.map(m=>m.label.toLowerCase()).join(', ')} to this goal so we can all see progress the same way?"</p>` : ''}
+      <div class="upsell"><b>Want the whole IEP read?</b> Waypoint's app rates every goal, finds needs with no goal attached, and builds your meeting-prep list. <a href="#">Upload your IEP →</a></div>`;
+  }
+</script>
+</body>
+</html>
