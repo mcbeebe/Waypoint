@@ -30,13 +30,14 @@ import {
   type CommunicationKind,
 } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
+import { isUnreadReply } from '@/lib/replyInbox';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useToast } from '@/components/Toast';
 import { showConfirm } from '@/lib/dialogs';
 import { usePremiumGuard } from '@/hooks/usePremiumGuard';
 import EmptyState from '@/components/EmptyState';
 import { SkeletonCard } from '@/components/ui';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { brand, colors, fonts, spacing, radii } from '@/lib/theme';
 
 function formatWhen(iso: string): string {
   const d = new Date(iso);
@@ -48,7 +49,7 @@ export default function CommunicationLogScreen() {
   const { family } = useFamily();
   const { showToast } = useToast();
   const {
-    communications, loading, addCommunication, deleteCommunication, markSent, refetch,
+    communications, loading, addCommunication, deleteCommunication, markSent, markRead, refetch,
   } = useCommunications(family?.id ?? '');
   // Case-file chips: an entry that serves a tracked request links to its case.
   const { requests } = useRequests(family?.id);
@@ -57,15 +58,33 @@ export default function CommunicationLogScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   // A tracker row's "view the letter" lands here with the entry pre-expanded;
-  // the Home reply card lands here with the reply composer already open.
+  // the Home reply card lands here with the reply composer already open; the
+  // Home "New reply" strip lands on the Replies filter, its reply expanded.
   const routeParams = route.params as
-    | { highlightId?: string; openReplyId?: string }
+    | { highlightId?: string; openReplyId?: string; filter?: 'replies' }
     | undefined;
   const highlightId = routeParams?.highlightId ?? routeParams?.openReplyId ?? null;
   const openReplyId = routeParams?.openReplyId ?? null;
+  const routeFilter = routeParams?.filter ?? null;
 
-  const [filter, setFilter] = useState<CommunicationKind | 'all' | 'drafts'>('all');
+  const [filter, setFilter] = useState<CommunicationKind | 'all' | 'drafts' | 'replies'>(
+    routeFilter ?? 'all'
+  );
   const [expandedId, setExpandedId] = useState<string | null>(highlightId);
+  // Arriving again on a screen that is already mounted (Home strip → Back →
+  // strip) re-applies the hand-off instead of keeping the last view.
+  useEffect(() => {
+    if (routeFilter) setFilter(routeFilter);
+    if (highlightId) setExpandedId(highlightId);
+  }, [routeFilter, highlightId]);
+
+  // Opening a reply is reading it (062): the unread marker here and the Home
+  // strip clear. Runs when the hand-off's reply arrives with the data, too.
+  useEffect(() => {
+    if (!expandedId) return;
+    const item = communications.find((c) => c.id === expandedId);
+    if (item && isUnreadReply(item)) void markRead(item.id);
+  }, [expandedId, communications, markRead]);
   const [showAdd, setShowAdd] = useState(false);
 
   // ── Gmail: connection status, reply sync, in-thread reply modal ──
@@ -134,18 +153,20 @@ export default function CommunicationLogScreen() {
 
   const openReply = useCallback(
     (item: Communication) => {
+      if (isUnreadReply(item)) void markRead(item.id);
       const thread = communications
         .filter((c) => c.gmail_thread_id && c.gmail_thread_id === item.gmail_thread_id)
         .sort((a, b) => (a.sent_at ?? a.occurred_at).localeCompare(b.sent_at ?? b.occurred_at));
       setReplyThread(thread.length > 0 ? thread : [item]);
     },
-    [communications]
+    [communications, markRead]
   );
 
   const filtered = useMemo(() => {
     if (filter === 'all') return communications;
     // Unsent drafts are the ones that need chasing, so they get their own view
     if (filter === 'drafts') return communications.filter((c) => c.status === 'draft');
+    if (filter === 'replies') return communications.filter((c) => c.direction === 'incoming');
     return communications.filter((c) => c.kind === filter);
   }, [communications, filter]);
 
@@ -153,6 +174,11 @@ export default function CommunicationLogScreen() {
     () => communications.filter((c) => c.status === 'draft').length,
     [communications]
   );
+  const replyCount = useMemo(
+    () => communications.filter((c) => c.direction === 'incoming').length,
+    [communications]
+  );
+  const unreadCount = useMemo(() => communications.filter(isUnreadReply).length, [communications]);
 
   /** Share the whole (filtered) log as plain text — hearing/advocate prep */
   const handleShareLog = useCallback(async () => {
@@ -206,6 +232,13 @@ export default function CommunicationLogScreen() {
               label={`✍️ Drafts (${draftCount})`}
               active={filter === 'drafts'}
               onPress={() => setFilter('drafts')}
+            />
+          )}
+          {replyCount > 0 && (
+            <FilterPill
+              label={unreadCount > 0 ? `💬 Replies (${unreadCount} new)` : '💬 Replies'}
+              active={filter === 'replies'}
+              onPress={() => setFilter('replies')}
             />
           )}
           {(Object.keys(KIND_CONFIG) as CommunicationKind[]).map((k) => (
@@ -278,7 +311,7 @@ export default function CommunicationLogScreen() {
             style={styles.entry}
             onPress={() => setExpandedId(expandedId === item.id ? null : item.id)}
             accessibilityRole="button"
-            accessibilityLabel={`${KIND_CONFIG[item.kind].label}: ${item.subject}`}
+            accessibilityLabel={`${isUnreadReply(item) ? 'New reply, unread. ' : ''}${KIND_CONFIG[item.kind].label}: ${item.subject}`}
           >
             <View style={styles.entryTop}>
               <Text style={styles.entryEmoji}>{KIND_CONFIG[item.kind].emoji}</Text>
@@ -298,6 +331,11 @@ export default function CommunicationLogScreen() {
                   {item.direction === 'incoming' && (
                     <View style={styles.replyBadge}>
                       <Text style={styles.replyBadgeText}>REPLY</Text>
+                    </View>
+                  )}
+                  {isUnreadReply(item) && (
+                    <View style={styles.unreadBadge} testID={`unread-${item.id}`}>
+                      <Text style={styles.unreadBadgeText}>NEW</Text>
                     </View>
                   )}
                 </View>
@@ -534,6 +572,19 @@ const styles = StyleSheet.create({
   replyBadgeText: {
     fontSize: 9,
     color: '#0369A1',
+    fontWeight: fonts.weights.bold as '700',
+    letterSpacing: 0.5,
+  },
+  // Unread reply (062). White on brand.urgent clears AA at this size.
+  unreadBadge: {
+    backgroundColor: brand.urgent,
+    borderRadius: radii.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  unreadBadgeText: {
+    fontSize: 9,
+    color: colors.white,
     fontWeight: fonts.weights.bold as '700',
     letterSpacing: 0.5,
   },

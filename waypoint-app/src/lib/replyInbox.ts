@@ -63,29 +63,65 @@ export function formatThreadForDraft(thread: Communication[]): string {
     .join('\n\n');
 }
 
+function isAnswered(reply: Communication, communications: Communication[]): boolean {
+  return communications.some(
+    (c) =>
+      c.direction === 'outgoing' &&
+      c.gmail_thread_id === reply.gmail_thread_id &&
+      when(c) > when(reply)
+  );
+}
+
+function toUnanswered(reply: Communication): UnansweredReply {
+  const text = (reply.body ?? '').replace(/\s+/g, ' ').trim();
+  return {
+    reply,
+    senderName: nameOf(reply.contact),
+    snippet: text.slice(0, SNIPPET_LENGTH),
+    truncated: text.length > SNIPPET_LENGTH,
+  };
+}
+
+/** Synced replies on tracked threads, newest first. */
+function trackedReplies(communications: Communication[]): Communication[] {
+  return communications
+    .filter((c) => c.direction === 'incoming' && c.gmail_thread_id)
+    .sort((a, b) => when(b).localeCompare(when(a)));
+}
+
 /** The newest incoming reply not yet answered on its thread, if any. */
 export function findUnansweredReply(
   communications: Communication[]
 ): UnansweredReply | null {
-  const incoming = communications
-    .filter((c) => c.direction === 'incoming' && c.gmail_thread_id)
-    .sort((a, b) => when(b).localeCompare(when(a)));
-  for (const reply of incoming) {
-    const answered = communications.some(
-      (c) =>
-        c.direction === 'outgoing' &&
-        c.gmail_thread_id === reply.gmail_thread_id &&
-        when(c) > when(reply)
-    );
-    if (!answered) {
-      const text = (reply.body ?? '').replace(/\s+/g, ' ').trim();
-      return {
-        reply,
-        senderName: nameOf(reply.contact),
-        snippet: text.slice(0, SNIPPET_LENGTH),
-        truncated: text.length > SNIPPET_LENGTH,
-      };
-    }
+  for (const reply of trackedReplies(communications)) {
+    if (!isAnswered(reply, communications)) return toUnanswered(reply);
   }
   return null;
+}
+
+/**
+ * Whether this database records read state at all (migration 062). Migrations
+ * are applied by hand, so the app cannot assume it: before 062 the rows simply
+ * have no `read_at` key, and treating that as "unread" would pin every reply
+ * to Home with no way to clear it. Absent → the strip and the dot stay off.
+ */
+export function hasReadState(communications: Communication[]): boolean {
+  return communications.some((c) => 'read_at' in c);
+}
+
+/** Whether the family has yet to open this synced reply. */
+export function isUnreadReply(c: Communication): boolean {
+  return c.direction === 'incoming' && !!c.gmail_thread_id && 'read_at' in c && c.read_at == null;
+}
+
+/**
+ * Replies the family has not opened and not answered, newest first — what the
+ * Home "New reply" strip announces. Answering a reply from Waypoint clears it
+ * here even if it was never opened, matching the One Thing reply card.
+ */
+export function unreadReplies(communications: Communication[]): UnansweredReply[] {
+  if (!hasReadState(communications)) return [];
+  return trackedReplies(communications)
+    .filter((c) => isUnreadReply(c) && !isAnswered(c, communications))
+    .map(toUnanswered);
 }

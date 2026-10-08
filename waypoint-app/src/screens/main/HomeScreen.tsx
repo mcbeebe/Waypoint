@@ -9,7 +9,7 @@
  * this screen renders the sheet and reading overlay it drives.
  */
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -41,6 +41,8 @@ import { registerPushToken, unregisterPushToken } from '@/lib/pushTokens';
 import NotificationPrimingSheet from '@/components/NotificationPrimingSheet';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
 import OneThingCard, { LaterList } from '@/components/OneThingCard';
+import ReplyStrip from '@/components/ReplyStrip';
+import { replyStrip } from '@/lib/replyStrip';
 import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { useDraftFlow } from '@/hooks/useDraftFlow';
@@ -204,7 +206,19 @@ function HomeScreenInner({
     loading: commsLoading,
     error: commsError,
     refetch: refetchComms,
+    markRead: markReplyRead,
   } = useCommunications(family?.id ?? '');
+  // Home stays mounted under the screens it opens, so a reply read in the
+  // paper trail would otherwise keep its "New reply" strip here until the
+  // next cold start. Re-read the trail whenever Home regains focus (the
+  // mount itself already loaded it).
+  const commsFocusedOnce = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (commsFocusedOnce.current) void refetchComms();
+      commsFocusedOnce.current = true;
+    }, [refetchComms])
+  );
   const [menuOpen, setMenuOpen] = useState(false);
   // Home search (owner, Aug 31 2026): the composer is a real search now — type
   // a worry and get the guide, the article, or the AI, right where you land.
@@ -372,6 +386,21 @@ function HomeScreenInner({
     notificationsEnabled: promiseKeepable,
   });
 
+  // The "New reply" strip: unread replies other than the one the card leads
+  // with. Hidden while the trail loads, so it never flashes a stale count.
+  const stripModel = useMemo(
+    () =>
+      commsLoading
+        ? null
+        : replyStrip({
+            communications,
+            leadingItemId: triage.item?.id ?? null,
+            now: new Date(),
+            locale: funnelLocale,
+          }),
+    [commsLoading, communications, triage.item?.id, funnelLocale]
+  );
+
   // Keep the device's scheduled reminders in step with the plan (phase 7). When
   // notifications are on, sync the policy's set; when off, clear everything.
   // Runs on any change to the date-bearing data or the prefs.
@@ -462,6 +491,10 @@ function HomeScreenInner({
 
   const actOnItem = (item: TriageItem) => {
     void markActed(item.id);
+    // Acting on the reply card reads the reply (062), so the strip and the
+    // paper trail's unread marker don't announce it a second time.
+    const replyId = item.cls === 'reply' ? item.action.params?.replyId : undefined;
+    if (typeof replyId === 'string') void markReplyRead(replyId);
     // A draftable card opens the question sheet over Home instead of leaving it.
     if (item.action.kind === 'draft') {
       void openDraftFlow(item);
@@ -640,6 +673,14 @@ function HomeScreenInner({
               <Text style={styles.notice} accessibilityRole="alert">
                 {notice}
               </Text>
+            )}
+            {/* Unread replies, announced without changing what leads Home
+                (Roadmap/mockups/reply-alert, option A). */}
+            {stripModel && (
+              <ReplyStrip
+                model={stripModel}
+                onOpen={(m) => (navigation as any).navigate('CommunicationLog', m.params)}
+              />
             )}
             {/* The invitation + the real search. Type a worry right where you
                 land and the library answers first — a guide, an article, or the
