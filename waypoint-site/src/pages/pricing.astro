@@ -1,15 +1,16 @@
 ---
 /**
- * Pricing. ONE paid tier, Premium: $9.99/month or $99/year, first month free
+ * Pricing. ONE paid tier, Premium: $9.99/month or $99/year, first 30 days free
  * (owner decision 2026-10-08: "one price tier right now bc the offerings
  * aren't split"). This supersedes D13 (2026-09-06: Plus $4.99 / Pro $9.99,
  * 3-month trial), which the app never implemented: the app has always had a
  * single Premium tier (waypoint-app/src/lib/entitlements.ts).
  *
  * The figures must move in lockstep with the app's PRICE_* constants and the
- * Stripe prices: src/lib/pricingSync.test.ts fails the build's tests if this
- * page shows a price the app doesn't charge. The feature lists mirror the
- * app's FREE_FEATURES / PREMIUM_FEATURES. The competitor comparison stays
+ * Stripe Payment Links: src/lib/pricingSync.test.ts (vitest, run by the site
+ * CI job, which also triggers on entitlements.ts) fails if this page shows a
+ * price, trial or Premium feature the app doesn't define. The Premium list is
+ * exactly the app's PREMIUM_FEATURES — what the paywall actually gates. The competitor comparison stays
  * drafts-only until its details are verified (launch checklist row 25).
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -31,12 +32,12 @@ const premium = planLink('premium');
 
 <BaseLayout
   title="Waypoint pricing — free to start, honest when you need more"
-  description="Every Waypoint guide, tool, and letter is free forever. The app is free to start; Premium is $9.99/month or $99/year, and your first month is free."
+  description="Every Waypoint guide, tool, and letter is free forever. The app is free to start; Premium is $9.99/month or $99/year, and the first 30 days are free."
 >
   <PageHero
     eyebrow="Pricing"
     title="Free to start. Honest when you need more."
-    lede="Everything on this site — every guide, tool, and letter — stays free forever. The app is where Waypoint goes from telling you what to do to doing it with you: tracking deadlines, drafting letters, keeping the plan. Most of that is free too. Premium adds the rest — and your first month is free."
+    lede="Everything on this site — every guide, tool, and letter — stays free forever. The app is where Waypoint goes from telling you what to do to doing it with you: tracking deadlines, drafting letters, keeping the plan. Most of that is free too. Premium adds the rest — and its first 30 days are free."
   />
 
   <div class="section">
@@ -51,6 +52,7 @@ const premium = planLink('premium');
             <li>Request tracker with the legal clocks</li>
             <li>Starter action plan and deadlines</li>
             <li>Core letters, drafted for you</li>
+            <li>Expense tracking and your document binder</li>
             <li>No credit card</li>
           </ul>
           <a class="btn" href={free.href} data-wp-event="app_signup_click" data-wp-props={free.props}>Start free</a>
@@ -59,22 +61,23 @@ const premium = planLink('premium');
           <span class="plan">PREMIUM</span>
           <div class="amount">$9.99<small>/mo</small></div>
           <ul>
-            <li><b>First month free</b></li>
-            <li>Or $99 billed yearly — two months free</li>
+            <li><b>First 30 days free</b></li>
+            <li>Or $99 billed yearly (save over $20)</li>
             <li>Everything in Free, plus:</li>
             <li>Unlimited AI Navigator</li>
             <li>IEP document analysis and goal tracking</li>
-            <li>Letters with sending history</li>
-            <li>Document binder and export</li>
-            <li>Expense tracking and tax reports</li>
+            <li>Tax reports from your expenses</li>
+            <li>Paper-trail export</li>
+            <li>Document sharing links</li>
             <li>Multi-child support</li>
           </ul>
-          <a class="btn" href={premium.href} data-wp-event="app_signup_click" data-wp-props={premium.props}>Try Premium free →</a>
+          <a class="btn" href={premium.href} data-wp-event="app_signup_click" data-wp-props={premium.props}>Start with Premium →</a>
         </div>
       </div>
       <p class="trial-note">
-        Premium's first month is free on either plan. Cancel anytime during that month and pay
-        nothing — and the free tier stays free either way.
+        Premium's first 30 days are free on either plan. After that it renews at $9.99 a month or
+        $99 a year until you cancel. Cancel before day 30 and you pay nothing — and the free tier
+        stays free either way.
       </p>
     </div>
   </div>
@@ -125,7 +128,7 @@ const premium = planLink('premium');
       <div class="table-wrap">
         <table class="data">
           <tr><th><span class="sr-only">Feature</span></th><th>Waypoint Premium</th><th>Undivided membership</th></tr>
-          <tr><td>Price</td><td><b>$9.99/mo</b> ($99/yr) · first month free</td><td>$19/mo ($149/yr)</td></tr>
+          <tr><td>Price</td><td><b>$9.99/mo</b> ($99/yr) · first 30 days free</td><td>$19/mo ($149/yr)</td></tr>
           <tr><td>AI access</td><td><b>24/7 — including on the free tier</b></td><td>Behind the paywall</td></tr>
           <tr><td>Free content gates</td><td><b>Zero</b> — every guide and letter is open</td><td>Lead magnets require name, email, phone</td></tr>
           <tr><td>Human navigators</td><td>No — software plus your real-life team</td><td>Yes — 2 navigator video sessions</td></tr>
@@ -159,7 +162,7 @@ const premium = planLink('premium');
     <div class="container narrow">
       <HandoffCTA
         heading="Start free. Upgrade only if it earns it."
-        body="Ask your first questions, run the eligibility tools, and see the plan Waypoint builds — and if you want Premium, your first month is free."
+        body="Ask your first questions, run the eligibility tools, and see the plan Waypoint builds — and if you want Premium, its first 30 days are free."
         action="Create your free account →"
         slug="pricing"
         cta="pricing-card"

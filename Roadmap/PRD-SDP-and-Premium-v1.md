@@ -88,6 +88,7 @@ Waypoint's family app becomes a free, eligibility-first funnel that converts Cal
 
 - **E1.** As Devon, I can see exactly what free includes forever and what Premium adds, and buy Premium on the web in under 2 minutes.
   *AC:* pricing page with feature table; Stripe (web/PWA) checkout — no native IAP in v1; $99/yr launch, $14.99/mo secondary (test to $149/yr); 30-day money-back; receipts and cancellation self-serve.
+  *Amended 2026-10-08 (owner decision):* one tier, Premium — **$9.99/mo or $99/yr, first 30 days free** — replaces "$14.99/mo secondary" and the 30-day money-back. Source of truth: `waypoint-app/src/lib/entitlements.ts`; the site's /pricing/ is held to it by `waypoint-site/src/lib/pricingSync.test.ts`. The E3 feature list is also narrowed there to what the paywall actually gates (expenses, the binder and the paper-trail log stay free).
 - **E2.** As any family, my entitlement is sponsor-aware: Premium features are free when a sponsor covers me (facilitation client now; district/employer/licensee doors later).
   *AC:* `entitlements` table (family, tier, sponsor_type, source, period); facilitation clients auto-entitled; UI shows "Included with your facilitation — you pay $0."
 - **E3.** As Devon, Premium unlocks: unlimited Navigator, IEP document analysis + goal tracking, letter generation with sending history, document binder + export, expense/tax reports, multi-child.

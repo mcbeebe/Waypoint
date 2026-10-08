@@ -5,10 +5,14 @@ on:
     paths:
       - 'waypoint-site/**'
       - '.github/workflows/site.yml'
+      # pricingSync.test.ts reads the app's prices: a price change there
+      # must re-run the site's tests, or the site drifts silently.
+      - 'waypoint-app/src/lib/entitlements.ts'
   push:
     branches: [main]
     paths:
       - 'waypoint-site/**'
+      - 'waypoint-app/src/lib/entitlements.ts'
   schedule:
     # Monday 15:00 UTC — the freshness sweep. Network-dependent checks live
     # here, never in the blocking gates: a flaky .gov host must not be able

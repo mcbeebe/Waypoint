@@ -113,7 +113,9 @@ describe('tier copy', () => {
     const c = gateCopy('IEP document analysis');
     expect(c.body).toContain('free forever');
     expect(c.body).toContain('$99/year');
-    expect(c.body).toContain('first month is free');
+    expect(c.body).toContain('$9.99/month');
+    expect(c.body).toContain('first 30 days are free');
+    expect(c.body).toContain('renews until you cancel');
     expect(c.body).not.toMatch(/money-back|guarantee/);
   });
 

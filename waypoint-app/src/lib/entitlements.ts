@@ -96,24 +96,32 @@ export const FREE_FEATURES = [
   `Waypoint Navigator* — ${FREE_NAVIGATOR_MONTHLY_LIMIT} messages/month`,
 ] as const;
 
+/**
+ * Exactly what the paywall gates (PremiumGate / usePremiumGuard call sites
+ * and the ai-proxy cap). Expenses, the document binder and the paper-trail
+ * log are FREE — only the items below are Premium. The marketing site's
+ * /pricing/ card mirrors this list.
+ */
 export const PREMIUM_FEATURES = [
   'Unlimited Waypoint Navigator*',
   'IEP document analysis + goal tracking',
-  'Letter generation with sending history',
-  'Document binder + export',
-  'Expense tracking + tax reports',
+  'Tax reports from your expenses',
+  'Paper-trail export',
+  'Document sharing links',
   'Multi-child support',
 ] as const;
 
 /**
  * One paid tier, Premium (owner decision 2026-10-08, superseding the site's
  * Plus/Pro D13 figures): $99/year as the lead offer, $9.99/month secondary.
- * waypoint-site/src/lib/pricingSync.test.ts reads these two constants and
- * fails if the marketing site's pricing page shows anything else.
+ * waypoint-site/src/lib/pricingSync.test.ts reads these constants (and
+ * FREE_TRIAL_DAYS, FREE_NAVIGATOR_MONTHLY_LIMIT) and fails if the marketing
+ * site shows anything else. The real charge lives in the Stripe Payment Links
+ * (.env.example) — they must match these before the paywall turns on.
  */
 export const PRICE_ANNUAL_CENTS = 9900;
 export const PRICE_MONTHLY_CENTS = 999;
-/** Free trial on either plan, in days ("first month free"). Must match the Stripe prices' trial. */
+/** Free trial on either plan, in days ("first month free"). Must match the trial set on both Stripe Payment Links. */
 export const FREE_TRIAL_DAYS = 30;
 
 /** Value explanation shown at a gate — never a dead end (E3). */
@@ -121,6 +129,6 @@ export function gateCopy(feature: string): { title: string; body: string } {
   return {
     title: `${feature} is a Premium feature`,
     body:
-      `Your free plan keeps everything you already use — eligibility results, the process map, your action plan, and the request tracker, free forever. Premium adds ${feature.toLowerCase()} and more for $${(PRICE_ANNUAL_CENTS / 100).toFixed(0)}/year, and your first month is free.`,
+      `Your free plan keeps everything you already use — eligibility results, the process map, your action plan, and the request tracker, free forever. Premium adds ${feature.toLowerCase()} and more for $${(PRICE_ANNUAL_CENTS / 100).toFixed(0)}/year or $${(PRICE_MONTHLY_CENTS / 100).toFixed(2)}/month. The first ${FREE_TRIAL_DAYS} days are free; after that it renews until you cancel.`,
   };
 }
