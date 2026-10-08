@@ -8,9 +8,11 @@
  * calendar days, assessment plan) and 17 CCR §52086 (Early Start 45 days).
  * Status-first wording per the CLAUDE.md tone rule — nobody "missed" anything.
  *
- * Without JS the first family renders and the tab row stays hidden.
+ * The tab row renders server-side (revealing it from script shifted the
+ * layout: CLS 0.25 in the perf budget). Without JS the first family shows.
  */
 import PhoneFrame from './PhoneFrame.astro';
+import '../../styles/showcase.css';
 
 const families = [
   {
@@ -69,120 +71,59 @@ const families = [
 ---
 
 <div class="families" data-families>
-  <div class="fam-tabs" role="tablist" aria-label="Sample families" data-tablist hidden>
+  <div class="fam-tabs" role="group" aria-label="Sample families" data-tablist>
     {
       families.map((f, i) => (
-        <button
-          type="button"
-          role="tab"
-          id={`fam-tab-${f.id}`}
-          aria-controls={`fam-panel-${f.id}`}
-          aria-selected={i === 0 ? 'true' : 'false'}
-          tabindex={i === 0 ? 0 : -1}
-        >
+        <button type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-fam={f.id} data-label={f.label}>
           {f.tab}
         </button>
       ))
     }
   </div>
-  {
-    families.map((f, i) => (
-      <div id={`fam-panel-${f.id}`} role="tabpanel" aria-labelledby={`fam-tab-${f.id}`} hidden={i !== 0} class="fam-panel">
-        <PhoneFrame label={f.label}>
+  <PhoneFrame label={families[0].label}>
+    {
+      families.map((f, i) => (
+        <div data-panel={f.id} hidden={i !== 0} class="fam-panel">
           <div class="ms-card ms-hero">
             <span class={`ms-pill ${f.pillKind}`}>{f.pill}</span>
             <div class="ms-title">{f.title}</div>
             <div class="ms-muted">{f.body}</div>
             <div class="ms-btn">{f.button}</div>
-            <div class="ms-muted" style="margin-top:7px">Not today, show the next thing</div>
+            <div class="ms-muted fam-later">Not today, show the next thing</div>
           </div>
-          <div style="font-weight:700;font-size:13px;margin-top:4px">Got something on your mind?</div>
-          <div class="ms-ask">
-            <div class="ms-field">Ask or search: "they said no" <b>Ask</b></div>
-            <div class="ms-chips"><span>They said no</span><span>Read my IEP</span><span>Respite</span></div>
-          </div>
-          <div class="ms-card">
-            <div class="ms-title" style="font-size:12.5px;margin-top:0">{f.next}</div>
+          <div class="ms-card fam-next">
+            <div class="ms-title">{f.next}</div>
             <div class="ms-muted">{f.nextMeta}</div>
           </div>
-        </PhoneFrame>
-      </div>
-    ))
-  }
+        </div>
+      ))
+    }
+    <div class="fam-ask-label">Got something on your mind?</div>
+    <div class="ms-ask">
+      <div class="ms-field">Ask or search: "they said no" <b>Ask</b></div>
+      <div class="ms-chips"><span>They said no</span><span>Read my IEP</span><span>Respite</span></div>
+    </div>
+  </PhoneFrame>
 </div>
 
 <script>
+  // Toggle buttons, not tabs: the cards live inside the phone, which is one
+  // labelled image to assistive tech, so choosing a family swaps the cards AND
+  // the phone's spoken description. Every button stays in the Tab order.
   document.querySelectorAll<HTMLElement>('[data-families]').forEach((root) => {
-    const list = root.querySelector<HTMLElement>('[data-tablist]');
-    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
-    if (!list || tabs.length === 0) return;
-    const select = (tab: HTMLButtonElement, focus: boolean) => {
-      for (const t of tabs) {
-        const on = t === tab;
-        t.setAttribute('aria-selected', String(on));
-        t.tabIndex = on ? 0 : -1;
-        const panel = document.getElementById(t.getAttribute('aria-controls') ?? '');
-        if (panel) panel.hidden = !on;
-      }
-      if (focus) tab.focus();
-    };
-    list.hidden = false;
-    tabs.forEach((t, i) => {
-      t.addEventListener('click', () => select(t, false));
-      t.addEventListener('keydown', (e) => {
-        const n = tabs.length;
-        const next =
-          e.key === 'ArrowRight' ? tabs[(i + 1) % n]
-          : e.key === 'ArrowLeft' ? tabs[(i - 1 + n) % n]
-          : e.key === 'Home' ? tabs[0]
-          : e.key === 'End' ? tabs[n - 1]
-          : null;
-        if (!next) return;
-        e.preventDefault();
-        select(next, true);
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-fam]'));
+    const phone = root.querySelector<HTMLElement>('[role="img"]');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        for (const b of buttons) {
+          const on = b === btn;
+          b.setAttribute('aria-pressed', String(on));
+          const panel = root.querySelector<HTMLElement>(`[data-panel="${b.dataset.fam}"]`);
+          if (panel) panel.hidden = !on;
+        }
+        if (phone && btn.dataset.label) phone.setAttribute('aria-label', btn.dataset.label);
       });
     });
   });
 </script>
 
-<style>
-  .families {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-  }
-  .fam-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px;
-  }
-  .fam-tabs[hidden] {
-    display: none;
-  }
-  .fam-tabs button {
-    border: 1.5px solid rgba(255, 255, 255, 0.35);
-    background: transparent;
-    color: #eef6f1;
-    border-radius: 999px;
-    padding: 7px 13px;
-    font: inherit;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .fam-tabs button[aria-selected='true'] {
-    background: #ffffff;
-    border-color: #ffffff;
-    color: var(--color-pine-deep);
-  }
-  .fam-tabs button:focus-visible {
-    outline: 3px solid #a9efe0;
-    outline-offset: 2px;
-  }
-  .fam-panel[hidden] {
-    display: none;
-  }
-</style>

@@ -9,6 +9,7 @@
  * plan within 15 calendar days) and §56500.4 (prior written notice).
  * Sample family is fictional.
  */
+import '../../styles/showcase.css';
 const tones = [
   {
     id: 'collab',
@@ -47,7 +48,7 @@ const tones = [
   <div class="tone-choices" role="radiogroup" aria-label="Letter tone">
     {
       tones.map((t, i) => (
-        <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-tone-id={t.id}>
+        <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-tone-id={t.id}>
           <b>{t.name}</b>
           <span>{t.when}</span>
         </button>
@@ -65,13 +66,14 @@ const tones = [
 </div>
 
 <script>
+  // Every option stays in the Tab order (the site's keyboard gate requires every
+  // control reachable by Tab); arrow keys move between them as well.
   document.querySelectorAll<HTMLElement>('[data-tone]').forEach((root) => {
     const radios = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="radio"]'));
     const select = (r: HTMLButtonElement, focus: boolean) => {
       for (const x of radios) {
         const on = x === r;
         x.setAttribute('aria-checked', String(on));
-        x.tabIndex = on ? 0 : -1;
         const letter = root.querySelector<HTMLElement>(`[data-letter="${x.dataset.toneId}"]`);
         if (letter) letter.hidden = !on;
       }
@@ -93,71 +95,3 @@ const tones = [
   });
 </script>
 
-<style>
-  .tone {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    min-width: 0;
-  }
-  .tone-choices {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-  }
-  @media (max-width: 560px) {
-    .tone-choices {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-  .tone-choices button {
-    text-align: left;
-    border: 1.5px solid var(--color-border-strong);
-    background: var(--color-panel);
-    border-radius: 12px;
-    padding: 10px 12px;
-    font: inherit;
-    color: var(--color-ink);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .tone-choices button span {
-    font-size: 0.8rem;
-    color: var(--color-ink-soft);
-  }
-  .tone-choices button[aria-checked='true'] {
-    border-color: var(--color-pine);
-    background: var(--color-pine-tint);
-  }
-  .tone-choices button:focus-visible {
-    outline: 3px solid var(--color-pine);
-    outline-offset: 2px;
-  }
-  .tone-letter {
-    background: var(--color-panel);
-    border: 1px solid var(--color-border);
-    border-radius: 14px;
-    padding: 16px 18px;
-    font-size: 0.95rem;
-  }
-  .tone-letter[hidden] {
-    display: none;
-  }
-  .tone-letter p {
-    margin: 0 0 10px;
-  }
-  .tone-letter p:last-child {
-    margin-bottom: 0;
-  }
-  .tone-label {
-    display: block;
-    font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-ink-faint);
-    margin-bottom: 8px;
-  }
-</style>

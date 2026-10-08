@@ -454,22 +454,24 @@ const faq = [
       </div>
       <div class="faq">
         <h2>Questions</h2>
-        {
-          faq.map((f) => (
-            <details>
-              <summary>{f.q}</summary>
-              <p>
-                {f.a}
-                {f.link && (
-                  <>
-                    {' '}
-                    <a href={f.link.href}>{f.link.label} →</a>
-                  </>
-                )}
-              </p>
-            </details>
-          ))
-        }
+        <dl>
+          {
+            faq.map((f) => (
+              <div class="qa">
+                <dt>{f.q}</dt>
+                <dd>
+                  {f.a}
+                  {f.link && (
+                    <>
+                      {' '}
+                      <a href={f.link.href}>{f.link.label} →</a>
+                    </>
+                  )}
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
       </div>
     </div>
   </div>
@@ -901,20 +903,18 @@ const faq = [
   .faq h2 {
     margin-top: 0;
   }
-  .faq details {
+  .faq dl {
+    margin: 0;
+  }
+  .faq .qa {
     border-bottom: 1px solid var(--color-border);
     padding: 12px 0;
   }
-  .faq summary {
+  .faq dt {
     font-weight: 700;
-    cursor: pointer;
   }
-  .faq summary:focus-visible {
-    outline: 3px solid var(--color-pine);
-    outline-offset: 2px;
-  }
-  .faq details p {
-    margin: 8px 0 0;
+  .faq dd {
+    margin: 6px 0 0;
     color: var(--color-ink-soft);
   }
 </style>
