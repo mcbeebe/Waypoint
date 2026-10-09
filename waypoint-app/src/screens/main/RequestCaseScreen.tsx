@@ -394,7 +394,7 @@ export default function RequestCaseScreen() {
               style={styles.logBtn}
               onPress={() => setShowAddThread(true)}
               accessibilityRole="button"
-              accessibilityLabel="Add an email you already sent, from Gmail, to this request"
+              accessibilityLabel="Add an email thread from Gmail to this request"
             >
               <Text style={styles.logBtnText}>+ Add an email</Text>
             </Pressable>

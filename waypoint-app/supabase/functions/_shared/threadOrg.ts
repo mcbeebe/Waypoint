@@ -20,10 +20,12 @@
  * a thread is exactly the kind of stamped reply above. Unlabelled is honest;
  * wrong is not.
  *
- * The one exception: a thread with NO outgoing row at all. Before initiative
- * 014 no such thread was ever followed, so none carries a stamped label; now
- * the family can add a thread the agency started (PR D), and its rows carry
- * the label the family picked when adding it. Its earliest row founds it.
+ * The one exception: a thread with NO outgoing row at all. The family can now
+ * add a thread the agency started (initiative 014, PR D), and its rows carry
+ * the label picked when adding it, so its earliest row founds it. The other
+ * way to get such a thread is to delete the letter that started it while
+ * keeping its replies; those replies keep whatever label they were synced
+ * with. Production had no such thread when this shipped (checked 2026-10-09).
  *
  *
  * Plain TypeScript with no Deno APIs, so vitest loads it directly

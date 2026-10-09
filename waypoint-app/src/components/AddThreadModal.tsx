@@ -7,7 +7,7 @@
  * older kind; today's links cannot be read by any app, so the sheet says so
  * and offers search instead of failing quietly (Roadmap/mockups/reply-followups).
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -72,10 +72,16 @@ export default function AddThreadModal({
   const [org, setOrg] = useState<CommunicationOrg | null>(null);
   const [requestId, setRequestId] = useState<string | null>(presetRequestId ?? null);
   const [adding, setAdding] = useState(false);
+  // Bumped on every opening and every find: a result that arrives after the
+  // sheet was closed and reopened, or after a newer find, is dropped.
+  const generation = useRef(0);
 
   // Each opening starts clean; a case's request is preselected.
   useEffect(() => {
     if (!visible) return;
+    generation.current += 1;
+    setFinding(false);
+    setAdding(false);
     setInput('');
     setError(null);
     setCandidates(null);
@@ -86,10 +92,12 @@ export default function AddThreadModal({
 
   const find = async () => {
     if (!input.trim() || finding) return;
+    const mine = ++generation.current;
     setFinding(true);
     setError(null);
     setCandidates(null);
     const result = await gmailFindThreads(input);
+    if (mine !== generation.current) return;
     setFinding(false);
     if (result.ok) {
       setCandidates(result.candidates);
@@ -104,8 +112,10 @@ export default function AddThreadModal({
 
   const add = async () => {
     if (!picked || !org || adding) return;
+    const mine = generation.current;
     setAdding(true);
     const result = await gmailImportThread({ threadId: picked.threadId, organization: org, requestId });
+    if (mine !== generation.current) return;
     setAdding(false);
     if (result.ok) {
       onAdded(result.imported);
@@ -136,7 +146,7 @@ export default function AddThreadModal({
               <>
                 <Text style={styles.title}>Add an email thread</Text>
                 <Text style={styles.body}>
-                  Connect Gmail to add threads. Waypoint only reads the threads you add, and the replies to them.
+                  Connect Gmail to add threads. Waypoint reads your Gmail only to search when you ask it to here, and to follow the threads you add.
                 </Text>
                 <TouchableOpacity
                   style={styles.primaryBtn}
@@ -171,7 +181,11 @@ export default function AddThreadModal({
                   ))}
                 </View>
 
-                {requests.length > 0 && (
+                {presetRequestId ? (
+                  <Text style={styles.meta}>
+                    {`Filed under ${requests.find((r) => r.id === presetRequestId)?.title ?? 'this request'}`}
+                  </Text>
+                ) : requests.length > 0 && (
                   <>
                     <Text style={styles.fieldLabel}>Part of a request? (optional)</Text>
                     <View style={styles.pillRow}>

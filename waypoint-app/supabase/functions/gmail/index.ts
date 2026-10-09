@@ -33,9 +33,16 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { b64url, buildRawMessage, parseCc, isEmailAddress, MAX_CC } from '../_shared/mime.ts';
 import { threadOrganization } from '../_shared/threadOrg.ts';
-import { ccForStorage, headerValues, isMissingCcColumn, otherRecipients } from '../_shared/recipients.ts';
+import {
+  ccForStorage,
+  headerValues,
+  isMissingCcColumn,
+  missingOptionalColumn,
+  otherRecipients,
+} from '../_shared/recipients.ts';
 import {
   MAX_FIND_RESULTS,
+  MAX_IMPORT_MESSAGES,
   isThreadId,
   parseGmailInput,
   planImport,
@@ -384,6 +391,7 @@ serve(async (req) => {
       .in('gmail_thread_id', ids);
     const tracked = new Set<string>((trackedRows ?? []).map((r: { gmail_thread_id: string }) => r.gmail_thread_id));
 
+    let unreachable = 0;
     const candidates = (
       await Promise.all(
         ids.map(async (id): Promise<ThreadCandidate | null> => {
@@ -391,7 +399,12 @@ serve(async (req) => {
             `${GMAIL_API}/threads/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
             { headers: gmailHeaders }
           );
-          if (!resp.ok) return null;
+          // 404: not a thread in this mailbox — simply no match. Anything else
+          // (429, 5xx) is Gmail not answering, which "no matches" would hide.
+          if (!resp.ok) {
+            if (resp.status !== 404) unreachable++;
+            return null;
+          }
           const thread = await resp.json();
           const messages = (thread.messages ?? []).map(toImportMessage);
           const lastSnippet = thread.messages?.[thread.messages.length - 1]?.snippet ?? '';
@@ -405,6 +418,9 @@ serve(async (req) => {
         })
       )
     ).filter((c): c is ThreadCandidate => c !== null);
+    if (candidates.length === 0 && unreachable > 0) {
+      return json({ error: 'Gmail didn’t answer just now — try again in a minute.' }, 502);
+    }
     return json({ candidates });
   }
 
@@ -451,11 +467,17 @@ serve(async (req) => {
     }).map((r) => ({ ...r, family_id: family.id }));
     if (rows.length === 0) return json({ imported: 0 });
 
-    let { error: insertErr } = await userClient.from('communications').insert(rows);
-    if (isMissingCcColumn(insertErr)) {
-      ({ error: insertErr } = await userClient
-        .from('communications')
-        .insert(rows.map(({ cc: _cc, ...rest }) => rest)));
+    // Columns from migrations that may not be applied yet: drop the one the
+    // database names and retry, so a late migration costs that column, never
+    // the thread. Bounded by the list, and only for a missing-column error.
+    const optional = ['cc', 'settled_at', 'read_at', 'request_id'];
+    let payload: Record<string, unknown>[] = rows;
+    let { error: insertErr } = await userClient.from('communications').insert(payload);
+    for (let tries = 0; insertErr && tries < optional.length; tries++) {
+      const missing = missingOptionalColumn(insertErr, optional);
+      if (!missing) break;
+      payload = payload.map(({ [missing]: _dropped, ...rest }) => rest);
+      ({ error: insertErr } = await userClient.from('communications').insert(payload));
     }
     if (insertErr) return json({ error: "Couldn't add the thread — try again." }, 500);
     return json({ imported: rows.length });
@@ -464,15 +486,22 @@ serve(async (req) => {
   // ── Sync replies on tracked threads ──────────────────────────────
   if (action === 'sync') {
     // Every thread with a stored row, not only ones sent from Waypoint — an
-    // added thread may have been started by the agency (014 PR D). Mirrors
+    // added thread may have been started by the agency (014 PR D). Rows are
+    // over-fetched and the newest distinct threads kept; an added thread
+    // writes up to MAX_IMPORT_MESSAGES rows at once, so the window holds at
+    // least 25 such threads before any could be crowded out. Mirrors
     // _shared/gmailSync.ts.
+    const TRACKED_THREADS = 25;
     const { data: tracked } = await userClient
       .from('communications')
       .select('gmail_thread_id, family_id')
       .not('gmail_thread_id', 'is', null)
       .order('created_at', { ascending: false })
-      .limit(200);
-    const threadIds = [...new Set((tracked ?? []).map((t) => t.gmail_thread_id as string))].slice(0, 25);
+      .limit(TRACKED_THREADS * MAX_IMPORT_MESSAGES);
+    const threadIds = [...new Set((tracked ?? []).map((t) => t.gmail_thread_id as string))].slice(
+      0,
+      TRACKED_THREADS
+    );
     if (threadIds.length === 0) return json({ newReplies: 0 });
 
     const { data: known } = await userClient

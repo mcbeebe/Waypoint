@@ -15,6 +15,7 @@
 import type { createClient } from 'jsr:@supabase/supabase-js@2';
 import { threadOrganization, type ThreadRow } from './threadOrg.ts';
 import { headerValues, isMissingCcColumn, otherRecipients } from './recipients.ts';
+import { MAX_IMPORT_MESSAGES } from './threadImport.ts';
 
 type Supabase = ReturnType<typeof createClient>;
 
@@ -102,15 +103,17 @@ async function syncFamily(
 
   // Every thread with a stored row is followed — not only threads the family
   // sent from Waypoint: a thread added from Gmail (014 PR D) may have been
-  // started by the agency. Rows over-fetched, then the newest distinct
-  // threads kept, so one busy thread cannot crowd out the rest.
+  // started by the agency. Rows are over-fetched and the newest distinct
+  // threads kept; an added thread writes up to MAX_IMPORT_MESSAGES rows at
+  // once, so the window holds THREADS_PER_ACCOUNT such threads before any
+  // could be crowded out.
   const { data: tracked } = await supabase
     .from('communications')
     .select('gmail_thread_id')
     .eq('family_id', familyId)
     .not('gmail_thread_id', 'is', null)
     .order('created_at', { ascending: false })
-    .limit(THREADS_PER_ACCOUNT * 8);
+    .limit(THREADS_PER_ACCOUNT * MAX_IMPORT_MESSAGES);
   const threadIds = [
     ...new Set(((tracked ?? []) as { gmail_thread_id: string }[]).map((t) => t.gmail_thread_id)),
   ].slice(0, THREADS_PER_ACCOUNT);

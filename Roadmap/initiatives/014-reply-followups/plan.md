@@ -82,7 +82,15 @@ which the API accepts.
   - a sheet with three steps: find → pick → confirm, with "When you press
     Add" steps (`sendSteps`-style, en/es/vi);
   - an opaque-link explainer and a not-connected state.
-- **No migration.** It does touch an Edge Function and the sync, so it needs
+- **Migration 065 (`communications.settled_at`) moved up from PR C.** The
+  adversarial review showed that a "recorded long after it arrived" rule on
+  Home would also hide genuinely late-synced replies, and that only Home
+  applied it, so the case screen and the request tracker disagreed. Imported
+  history is now *settled* at import, and every surface skips settled
+  messages: Home's reply card, the reply strip, the case screen, and the
+  tracker badges. PR C adds only the "✓ Nothing to answer" UI on the same
+  column.
+- It touches an Edge Function, the sync and a migration, so it needs
   `/adversary` and the owner's go.
 
 ## PR B: replies keep the people copied (`feat/reply-all`)
@@ -99,7 +107,8 @@ which the API accepts.
 
 ## PR C: "Nothing to answer" (`feat/reply-settled`)
 
-- **Migration 065** adds `communications.settled_at timestamptz`.
+- **Migration 065** (`communications.settled_at`) ships in PR D; this PR
+  adds the action on it.
 - **`replyInbox.ts`:** a settled reply counts as answered for
   `findUnansweredReply` and `unreadReplies`, and its unread state clears too.
   A **new** reply on the same thread is a different row, so it still

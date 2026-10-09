@@ -90,28 +90,23 @@ function trackedReplies(communications: Communication[]): Communication[] {
 }
 
 /**
- * Whether a reply entered the paper trail long after it arrived — a thread
- * the family added from Gmail (initiative 014), or a reply synced weeks late
- * after Gmail was reconnected. Either way it is part of the record, not
- * news: the same NEW_REPLY_DAYS rule as the NEW marker, measured from
- * arrival to recording rather than to now.
+ * Whether an incoming message needs no answer (065): history brought in by
+ * adding a thread from Gmail, or one the family marked "Nothing to answer".
+ * Absent on a database without 065 — then nothing is settled.
  */
-function recordedAsHistory(c: Communication): boolean {
-  const arrived = new Date(when(c)).getTime();
-  const recorded = new Date(c.created_at).getTime();
-  if (Number.isNaN(arrived) || Number.isNaN(recorded)) return false;
-  return recorded - arrived > NEW_REPLY_DAYS * 24 * 60 * 60 * 1000;
+export function isSettled(c: Pick<Communication, 'settled_at'>): boolean {
+  return c.settled_at != null;
 }
 
 /**
- * The newest incoming reply not yet answered on its thread, if any. A reply
- * recorded as history (see recordedAsHistory) never takes the Home card.
+ * The newest incoming reply not yet answered on its thread, if any. A
+ * settled message never takes the Home card.
  */
 export function findUnansweredReply(
   communications: Communication[]
 ): UnansweredReply | null {
   for (const reply of trackedReplies(communications)) {
-    if (recordedAsHistory(reply)) continue;
+    if (isSettled(reply)) continue;
     if (!isAnswered(reply, communications)) return toUnanswered(reply);
   }
   return null;
@@ -146,6 +141,6 @@ export function isUnreadReply(c: Communication, now: Date): boolean {
  */
 export function unreadReplies(communications: Communication[], now: Date): UnansweredReply[] {
   return trackedReplies(communications)
-    .filter((c) => isUnreadReply(c, now) && !isAnswered(c, communications))
+    .filter((c) => isUnreadReply(c, now) && !isSettled(c) && !isAnswered(c, communications))
     .map(toUnanswered);
 }

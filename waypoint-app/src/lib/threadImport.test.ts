@@ -49,6 +49,15 @@ describe('parseGmailInput', () => {
       id: '18c2f3a9b0d1e2f3',
     });
     expect(parseGmailInput(' 18c2f3a9b0d1e2f3 ')).toEqual({ kind: 'thread', id: '18c2f3a9b0d1e2f3' });
+    expect(parseGmailInput('https://mail.google.com/mail/u/0/?ik=x&view=pt&permthid=thread-f%3A1784256312533705459')).toEqual({
+      kind: 'thread',
+      id: '18c2f3a9b0d1e2f3',
+    });
+  });
+
+  it('a claim or case number typed alone is searched for, not taken as a thread id', () => {
+    expect(parseGmailInput('123456789012')).toEqual({ kind: 'search', q: '123456789012' });
+    expect(parseGmailInput('1234567890123456')).toEqual({ kind: 'search', q: '1234567890123456' });
   });
 
   it('reads the decimal thread-f form, and treats thread-a links (what Gmail hands apps) as unreadable', () => {
@@ -153,11 +162,42 @@ describe('planImport', () => {
     expect(planImport({ ...base, messages, knownIds: new Set(['a']) })).toEqual([]);
   });
 
-  it('keeps only the newest messages of a very long thread', () => {
+  it('a very long thread keeps its first message — the ask — and the newest after it', () => {
     const messages = Array.from({ length: 70 }, (_, i) => msg({ id: `m${i}`, internalDate: NOW.getTime() - (70 - i) * 60_000 }));
     const rows = planImport({ ...base, messages });
     expect(rows).toHaveLength(MAX_IMPORT_MESSAGES);
-    expect(rows[0].gmail_message_id).toBe('m20');
+    expect(rows[0].gmail_message_id).toBe('m0');
+    expect(rows[1].gmail_message_id).toBe('m21');
+    expect(rows[rows.length - 1].gmail_message_id).toBe('m69');
+  });
+
+  it('never imports a Gmail draft as a sent letter, nor anything in the trash (adversarial review)', () => {
+    const rows = planImport({
+      ...base,
+      messages: [
+        msg({ id: 'ask', internalDate: NOW.getTime() - 3 * DAY }),
+        msg({ id: 'draft', internalDate: NOW.getTime() - 1 * DAY, from: SELF, labelIds: ['DRAFT'] }),
+        msg({ id: 'binned', internalDate: NOW.getTime() - 2 * DAY, labelIds: ['TRASH'] }),
+      ],
+    });
+    expect(rows.map((r) => r.gmail_message_id)).toEqual(['ask']);
+    // So the agency's message is still the newest — and still news.
+    expect(rows[0]).toMatchObject({ read_at: null, settled_at: null });
+  });
+
+  it('history is settled as well as read, so no screen asks for an answer to it (065)', () => {
+    const rows = planImport({
+      ...base,
+      messages: [
+        msg({ id: 'old', internalDate: NOW.getTime() - 30 * DAY }),
+        msg({ id: 'mine', internalDate: NOW.getTime() - 20 * DAY, labelIds: ['SENT'], from: SELF }),
+        msg({ id: 'new', internalDate: NOW.getTime() - 2 * DAY }),
+      ],
+    });
+    const by = Object.fromEntries(rows.map((r) => [r.gmail_message_id, r]));
+    expect(by.old).toMatchObject({ read_at: NOW.toISOString(), settled_at: NOW.toISOString() });
+    expect(by.mine).toMatchObject({ read_at: null, settled_at: null });
+    expect(by.new).toMatchObject({ read_at: null, settled_at: null });
   });
 
   it('uses the same 14-day window as the app’s NEW marker', () => {
@@ -186,6 +226,20 @@ describe('summarizeThread', () => {
       snippet: 'Thanks — I’ll check the calendar & get back to you'.replace('’', "'"),
       alreadyTracked: false,
     });
+  });
+
+  it('counts and attributes only delivered messages — a draft is not "yours, newest"', () => {
+    const c = summarizeThread({
+      threadId: 't1',
+      snippet: '',
+      self: SELF,
+      tracked: new Set(),
+      messages: [
+        { from: 'Ana <ana@rc.org>', subject: 'Consent form', internalDate: 1, labelIds: ['INBOX'] },
+        { from: SELF, subject: 'Re: Consent form', internalDate: 2, labelIds: ['DRAFT'] },
+      ],
+    });
+    expect(c).toMatchObject({ messageCount: 1, lastFrom: 'Ana', lastFromFamily: false });
   });
 
   it('marks a thread already in the paper trail, and an empty thread is skipped', () => {

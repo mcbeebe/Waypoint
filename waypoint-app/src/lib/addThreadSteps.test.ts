@@ -11,7 +11,7 @@ describe('addThreadSteps', () => {
     expect(steps).toEqual([
       'All 4 messages are copied into your Paper Trail under Regional Center. Nothing is sent, and nothing changes in Gmail.',
       'Waypoint checks the thread for new replies, and they show on Home.',
-      'The newest message is from Ana Rivera and hasn’t been answered yet, so it shows on Home now as a reply.',
+      'The newest message is from Ana Rivera and hasn’t been answered yet, so it shows on Home as a new reply.',
     ]);
   });
 
@@ -29,7 +29,7 @@ describe('addThreadSteps', () => {
       /^Its message is copied/
     );
     expect(addThreadSteps({ ...base, messageCount: 80, lastFromFamily: true, lastAt: '2026-10-08T00:00:00Z' })[0]).toMatch(
-      /^The newest 50 of its 80 messages are copied/
+      /^Its first message and the newest 49 of 80 are copied/
     );
   });
 

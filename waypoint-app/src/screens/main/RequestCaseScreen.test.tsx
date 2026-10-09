@@ -216,7 +216,7 @@ describe('the Case file button', () => {
 describe('Add an email (014 PR D)', () => {
   it('opens the add-a-thread sheet from the case', async () => {
     render(<RequestCaseScreen />);
-    const btn = await screen.findByRole('button', { name: /Add an email you already sent, from Gmail, to this request/ });
+    const btn = await screen.findByRole('button', { name: /Add an email thread from Gmail to this request/ });
     fireEvent.click(btn);
     expect(screen.getByText(/Connect Gmail to add threads/)).toBeTruthy();
   });

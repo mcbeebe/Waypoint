@@ -81,7 +81,7 @@ describe('AddThreadModal', () => {
     fireEvent.click(screen.getByLabelText('This thread is with Regional Center'));
     const steps = screen.getByTestId('add-thread-steps').textContent ?? '';
     expect(steps).toContain('All 4 messages are copied into your Paper Trail under Regional Center. Nothing is sent');
-    expect(steps).toContain('shows on Home now as a reply');
+    expect(steps).toContain('shows on Home as a new reply');
 
     fireEvent.click(screen.getByLabelText('File under IPP review meeting'));
     fireEvent.click(screen.getByLabelText('Add this thread to your paper trail'));
@@ -110,11 +110,13 @@ describe('AddThreadModal', () => {
     expect(await screen.findByText('Add this thread?')).toBeTruthy();
   });
 
-  it('opened from a case, the thread is filed under that request', async () => {
+  it('opened from a case, the thread is filed under that request — no "No" to contradict the toast', async () => {
     h.find.mockResolvedValue({ ok: true, candidates: [candidate()] });
     render(<AddThreadModal {...props} presetRequestId="req1" />);
     await search('IPP');
     fireEvent.click(await screen.findByLabelText('Add IPP Meeting Request — Jordan Lee, 4 messages'));
+    expect(screen.getByText('Filed under IPP review meeting')).toBeTruthy();
+    expect(screen.queryByLabelText('Not part of a request')).toBeNull();
     fireEvent.click(screen.getByLabelText('This thread is with School'));
     fireEvent.click(screen.getByLabelText('Add this thread to your paper trail'));
     await waitFor(() => expect(h.importThread).toHaveBeenCalledWith(expect.objectContaining({ requestId: 'req1', organization: 'school' })));
@@ -144,5 +146,19 @@ describe('AddThreadModal', () => {
     fireEvent.click(screen.getByLabelText('Connect Gmail'));
     expect(props.onConnectGmail).toHaveBeenCalled();
     expect(screen.queryByLabelText('Find in Gmail')).toBeNull();
+  });
+
+  it('a search still running when the sheet closes cannot fill the reopened sheet (adversarial review)', async () => {
+    let resolve!: (v: unknown) => void;
+    h.find.mockReturnValue(new Promise((r) => (resolve = r)));
+    const { rerender } = render(<AddThreadModal {...props} />);
+    await search('https://mail.google.com/mail/u/0/#inbox/18c2f3a9b0d1e2f3');
+    rerender(<AddThreadModal {...props} visible={false} />);
+    rerender(<AddThreadModal {...props} visible />);
+    resolve({ ok: true, candidates: [candidate()] });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(screen.queryByText('Add this thread?')).toBeNull();
+    expect(screen.queryByText(/match/)).toBeNull();
+    expect((screen.getByLabelText('Gmail link or words from the email') as HTMLInputElement).value).toBe('');
   });
 });

@@ -22,9 +22,11 @@ export function addThreadSteps(input: {
   now: Date;
 }): string[] {
   const { messageCount: n, orgLabel } = input;
+  // `messageCount` counts delivered messages only — drafts and trash are
+  // never copied (the server skips them, and so does the count).
   const copied =
     n > ADD_THREAD_MAX_MESSAGES
-      ? `The newest ${ADD_THREAD_MAX_MESSAGES} of its ${n} messages are copied`
+      ? `Its first message and the newest ${ADD_THREAD_MAX_MESSAGES - 1} of ${n} are copied`
       : n === 1
         ? 'Its message is copied'
         : `All ${n} messages are copied`;
@@ -37,7 +39,7 @@ export function addThreadSteps(input: {
     steps.push('The newest message is yours, so nothing new shows on Home until a reply comes in.');
   } else if (ageMs <= NEW_REPLY_DAYS * 24 * 60 * 60 * 1000) {
     steps.push(
-      `The newest message is from ${input.lastFrom} and hasn’t been answered yet, so it shows on Home now as a reply.`
+      `The newest message is from ${input.lastFrom} and hasn’t been answered yet, so it shows on Home as a new reply.`
     );
   } else {
     steps.push(

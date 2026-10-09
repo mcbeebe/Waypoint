@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { findUnansweredReply } from './replyInbox';
+import { findUnansweredReply, unreadReplies } from './replyInbox';
 import type { Communication } from '@/hooks/useCommunications';
 
 function comm(over: Partial<Communication>): Communication {
@@ -74,32 +74,35 @@ describe('findUnansweredReply', () => {
   });
 });
 
-describe('a reply recorded long after it arrived is history, not news (014)', () => {
-  it('an old message brought in by adding a thread never takes the Home card', () => {
-    expect(
-      findUnansweredReply([
-        comm({
-          direction: 'incoming',
-          sent_at: '2026-07-01T09:00:00Z',
-          occurred_at: '2026-07-01T09:00:00Z',
-          created_at: '2026-10-09T18:00:00Z',
-        }),
-      ])
-    ).toBeNull();
+describe('a settled message needs no answer (065, initiative 014)', () => {
+  it('history brought in by adding a thread never takes the Home card or the strip', () => {
+    const settled = comm({
+      direction: 'incoming',
+      sent_at: '2026-07-01T09:00:00Z',
+      read_at: null,
+      settled_at: '2026-10-09T18:00:00Z',
+    });
+    expect(findUnansweredReply([settled])).toBeNull();
+    expect(unreadReplies([settled], new Date('2026-07-02T09:00:00Z'))).toEqual([]);
   });
 
-  it('a fresh reply on that same added thread still does', () => {
+  it('the unsettled newest message on that added thread still does', () => {
     const r = findUnansweredReply([
-      comm({ id: 'old', direction: 'incoming', sent_at: '2026-07-01T09:00:00Z', created_at: '2026-10-09T18:00:00Z' }),
-      comm({ id: 'new', direction: 'incoming', sent_at: '2026-10-08T09:00:00Z', created_at: '2026-10-09T18:00:00Z' }),
+      comm({ id: 'old', direction: 'incoming', sent_at: '2026-07-01T09:00:00Z', settled_at: '2026-10-09T18:00:00Z' }),
+      comm({ id: 'new', direction: 'incoming', sent_at: '2026-10-08T09:00:00Z', settled_at: null }),
     ]);
     expect(r?.reply.id).toBe('new');
   });
 
-  it('a reply synced within the window is news as before', () => {
+  it('a reply synced weeks late is still news — lateness alone settles nothing (adversarial review)', () => {
     const r = findUnansweredReply([
-      comm({ direction: 'incoming', sent_at: '2026-09-01T09:00:00Z', created_at: '2026-09-14T09:00:00Z' }),
+      comm({ direction: 'incoming', sent_at: '2026-09-01T09:00:00Z', created_at: '2026-09-20T09:00:00Z' }),
     ]);
+    expect(r).not.toBeNull();
+  });
+
+  it('before 065 the key is absent and nothing is settled', () => {
+    const r = findUnansweredReply([comm({ direction: 'incoming', sent_at: '2026-09-01T09:00:00Z' })]);
     expect(r).not.toBeNull();
   });
 });
