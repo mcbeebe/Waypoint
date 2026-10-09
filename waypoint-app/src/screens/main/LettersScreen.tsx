@@ -1388,6 +1388,8 @@ export default function LettersScreen() {
                     onChangeText={setSubjectEdit}
                     placeholder="Add a subject"
                     placeholderTextColor={colors.mid}
+                    // The gmail function refuses a longer subject (mime.ts MAX_SUBJECT_CHARS).
+                    maxLength={250}
                     accessibilityLabel="Email subject"
                   />
                 </View>

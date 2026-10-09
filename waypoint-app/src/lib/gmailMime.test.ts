@@ -19,6 +19,8 @@ import {
   isEmailAddress,
   MAX_CC,
   encodeHeader,
+  oneHeaderLine,
+  MAX_SUBJECT_CHARS,
   b64,
   b64url,
 } from '../../supabase/functions/_shared/mime';
@@ -28,7 +30,8 @@ function readMessage(raw: string): { headers: Record<string, string>; body: stri
   const split = raw.indexOf('\r\n\r\n');
   if (split === -1) throw new Error('no header/body separator — the body is not a body');
   const headers: Record<string, string> = {};
-  for (const line of raw.slice(0, split).split('\r\n')) {
+  // Unfold first (RFC 5322 \2.2.3): a folded header is one header.
+  for (const line of raw.slice(0, split).replace(/\r\n[ \t]/g, ' ').split('\r\n')) {
     const at = line.indexOf(': ');
     if (at > 0) headers[line.slice(0, at)] = line.slice(at + 2);
   }
@@ -153,7 +156,7 @@ describe('a long non-ASCII subject, folded', () => {
 
   for (const subject of SUBJECTS) {
     it(JSON.stringify(subject.slice(0, 32)), () => {
-      const raw = buildRawMessage({ to: 'a\b.com', subject, body: BODY });
+      const raw = buildRawMessage({ to: 'a@b.com', subject, body: BODY });
       const lines = subjectLines(raw);
       // Every line within 76, every word within 75…
       for (const line of lines) expect(line.length).toBeLessThanOrEqual(76);
@@ -172,16 +175,40 @@ describe('a long non-ASCII subject, folded', () => {
   }
 
   it('leaves a short or plain-ASCII subject on one line', () => {
-    expect(subjectLines(buildRawMessage({ to: 'a\b.com', subject: 'IPP review — Maya', body: BODY }))).toHaveLength(1);
+    expect(subjectLines(buildRawMessage({ to: 'a@b.com', subject: 'IPP review — Maya', body: BODY }))).toHaveLength(1);
     const ascii = 'x'.repeat(120);
-    expect(subjectLines(buildRawMessage({ to: 'a\b.com', subject: ascii, body: BODY }))).toEqual([`Subject: ${ascii}`]);
+    expect(subjectLines(buildRawMessage({ to: 'a@b.com', subject: ascii, body: BODY }))).toEqual([`Subject: ${ascii}`]);
   });
 
   it('never lets a line break in the subject start a header of its own', () => {
-    for (const subject of ['Hello\r\nBcc: spy\example.com', 'Hé\nBcc: spy\example.com']) {
-      const head = buildRawMessage({ to: 'a\b.com', subject, body: BODY }).split('\r\n\r\n')[0];
-      expect(head.split('\r\n').some((line) => /^bcc:/i.test(line))).toBe(false);
+    // Plain-ASCII subjects go into the header as written, so this is the path
+    // that could inject — with CRLF, a bare LF or a bare CR alike.
+    for (const subject of ['Hello\r\nBcc: spy@example.com', 'Hello\nBcc: spy@example.com', 'Hello\rBcc: spy@example.com', 'Hé\nBcc: spy@example.com']) {
+      const head = buildRawMessage({ to: 'a@b.com', subject, body: BODY }).split('\r\n\r\n')[0];
+      expect(head.split(/\r\n|\r|\n/).some((line) => /^bcc:/i.test(line))).toBe(false);
     }
+  });
+
+  it('turns every control or line-separator character into a space, so the header is one line', () => {
+    const controls = [0, 7, 9, 11, 12, 27, 0x7f, 0x85, 0x2028, 0x2029].map((c) => String.fromCharCode(c));
+    for (const c of controls) {
+      expect(oneHeaderLine(`IPP${c}review`)).toBe('IPP review');
+      expect(decodeHeader(encodeHeader(`IPP${c}revisión`))).toBe('IPP revisión');
+    }
+  });
+
+  it('ends a folded word just after a space where it can — never mid-word when a space fits', () => {
+    const subject = 'Solicitud de reunión del IPP para María José Hernández — evaluación de servicios';
+    const words = encodeHeader(subject).split('\r\n ');
+    const texts = words.map((w) => Buffer.from(w.slice(10, -2), 'base64').toString('utf8'));
+    for (const text of texts.slice(0, -1)) expect(text.endsWith(' ')).toBe(true);
+    expect(texts.join('')).toBe(subject);
+  });
+
+  it('keeps even the longest allowed plain subject inside RFC 5322’s 998-character line', () => {
+    const longest = 'x'.repeat(MAX_SUBJECT_CHARS);
+    const [line] = subjectLines(buildRawMessage({ to: 'a@b.com', subject: longest, body: BODY }));
+    expect(line.length).toBeLessThanOrEqual(998);
   });
 });
 

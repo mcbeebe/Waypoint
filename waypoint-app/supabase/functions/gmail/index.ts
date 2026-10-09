@@ -31,7 +31,15 @@
  */
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { b64url, buildRawMessage, parseCc, isEmailAddress, MAX_CC } from '../_shared/mime.ts';
+import {
+  b64url,
+  buildRawMessage,
+  parseCc,
+  isEmailAddress,
+  MAX_CC,
+  oneHeaderLine,
+  MAX_SUBJECT_CHARS,
+} from '../_shared/mime.ts';
 import { threadOrganization } from '../_shared/threadOrg.ts';
 import {
   ccForStorage,
@@ -199,7 +207,10 @@ serve(async (req) => {
   if (action === 'send' || action === 'draft') {
     const asDraft = action === 'draft';
     const to = String(body.to ?? '').trim();
-    const subject = String(body.subject ?? '').trim();
+    // One line, normalized on the way in: the subject stored in the paper
+    // trail is then exactly the subject sent (mime.ts would flatten it anyway).
+    const subject = oneHeaderLine(String(body.subject ?? ''));
+    if (subject.length > MAX_SUBJECT_CHARS) return json({ error: 'subject too long' }, 400);
     const messageBody = String(body.body ?? '');
     const communicationId = (body.communicationId as string) || null;
     const replyToCommunicationId = (body.replyToCommunicationId as string) || null;
@@ -242,7 +253,7 @@ serve(async (req) => {
             .join(' ');
         }
         if (!replySubject) {
-          const base = (prior?.subject ?? '').replace(/^(re:\s*)+/i, '');
+          const base = oneHeaderLine(prior?.subject ?? '').replace(/^(re:\s*)+/i, '');
           replySubject = base ? `Re: ${base}` : 'Re:';
         }
       }
