@@ -16,6 +16,7 @@ import HandoffCTA from '../components/HandoffCTA.astro';
 import OneLoop from '../components/OneLoop.astro';
 import GuideVsApp from '../components/GuideVsApp.astro';
 import WithoutWith from '../components/WithoutWith.astro';
+import PhoneFrame from '../components/showcase/PhoneFrame.astro';
 import { appStartUrl } from '../lib/appLinks';
 
 const heroHref = appStartUrl({ slug: 'product', cta: 'product-hero' });
@@ -87,37 +88,109 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
   <div class="section" id="inside" style="background:var(--color-paper);">
     <div class="container">
       <span class="eyebrow">What's actually inside</span>
-      <h2 class="h">Six things the app does that a page can't</h2>
-      <div class="grid-3 feature-grid">
-        <div class="card">
-          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
-          <h3>AI Navigator</h3>
-          <p>Ask anything about your case, 24/7. Every answer cites the statute behind it — the same sourcing standard as this site.</p>
+      <h2 class="h">A tour of what the app does, one screen at a time.</h2>
+      <p class="sub">
+        Every screen below is a sample with a fictional family, built from what the app actually
+        shows.
+      </p>
+
+      <div class="tour">
+        <div class="tour-row">
+          <PhoneFrame label="Sample Navigator answer about an assessment request, with Your right and Watch out cards." appBar="Navigator">
+            <div class="tour-q">Can I ask for an assessment before the next IEP meeting?</div>
+            <div class="ms-card">Yes. Put the request in writing so the timeline starts.</div>
+            <div class="ms-card tour-right"><b>YOUR RIGHT</b> An assessment plan within 15 calendar days of the district receiving it (Ed Code §56321).</div>
+            <div class="ms-card tour-watch"><b>WATCH OUT</b> If the district says no, ask for that in writing.</div>
+          </PhoneFrame>
+          <div class="tour-copy">
+            <span class="tour-step">1 · AI Navigator</span>
+            <h3>Ask anything about your child's services</h3>
+            <p>
+              It knows your child's age, diagnosis, county and Regional Center. Each answer
+              separates your right, what's good to know and what to watch out for, and cites the law
+              where it applies. 30 messages a month are free; Premium is unlimited.
+            </p>
+          </div>
         </div>
-        <div class="card">
-          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></div>
-          <h3>Your action plan</h3>
-          <p>Built from your child's age, diagnosis, and county — not a generic checklist. Updated every time something changes.</p>
+
+        <div class="tour-row tour-flip">
+          <PhoneFrame label="Sample Home card: the answer on Maya's evaluation request is due in 4 days, with a follow-up one tap away.">
+            <div class="ms-card ms-hero">
+              <span class="ms-pill ms-soon">CLOCK RUNNING — 4 DAYS LEFT</span>
+              <div class="ms-title">An answer on Special education evaluation request is due Oct 16</div>
+              <div class="ms-muted">Because you asked on Oct 1 and the law gives them a fixed window. <b>Ed Code §56321</b></div>
+              <div class="ms-btn">Draft the follow-up</div>
+              <div class="ms-muted tour-later">Not today — show the next thing</div>
+            </div>
+          </PhoneFrame>
+          <div class="tour-copy">
+            <span class="tour-step">2 · Home</span>
+            <h3>One thing for today, before you have to ask</h3>
+            <p>
+              Home watches the Regional Center and school clocks your requests start, plus the dates
+              you add. In the days before an answer is due it says so, with a follow-up one tap
+              away. Not today? It shows the next thing.
+            </p>
+          </div>
         </div>
-        <div class="card">
-          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
-          <h3>Deadline tracking</h3>
-          <p>Every clock the law puts on your case — the 15-day, the 60-day, the 45-day — watched, with an alert before it runs out.</p>
+
+        <div class="tour-row">
+          <PhoneFrame label="Sample follow-up email in the Friendly and Warm tone, with Send now with Gmail and Open in Mail app buttons." appBar="Letters" tab="Tools">
+            <div class="ms-chips tour-tones"><span class="on">Friendly &amp; Warm</span><span>Professional &amp; Clear</span><span>Strong &amp; Direct</span></div>
+            <div class="ms-card tour-letter">
+              Hi Ms. Lopez, I wanted to check in on Maya's assessment plan. I sent my request on
+              October 1. Could you let me know when it might be ready?
+            </div>
+            <div class="ms-btn">📨 Send now with Gmail — replies tracked</div>
+            <div class="ms-btn ms-outline">Open in Mail app</div>
+          </PhoneFrame>
+          <div class="tour-copy">
+            <span class="tour-step">3 · Letters</span>
+            <h3>The friendly email, already written</h3>
+            <p>
+              Requests and follow-ups, filled in with your child's name, the date and the citation.
+              The first ask is friendly; you choose when to firm it up. Send it with your
+              own Gmail and replies show up next to the request, or open it in any mail app. Drafts
+              in English, Spanish or Vietnamese.
+            </p>
+          </div>
         </div>
-        <div class="card">
-          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
-          <h3>Document vault</h3>
-          <p>Every NOA, IEP, and report, in one place — findable in seconds instead of a shoebox or a group chat thread.</p>
+
+        <div class="tour-row tour-flip">
+          <PhoneFrame label="Sample IEP review: three goals rated Strong, Adequate and Weak, with suggested wording." appBar="IEP review" tab="Tools">
+            <div class="ms-title">Maya's IEP · 3 goals</div>
+            <div class="ms-card tour-goal"><span>Reading fluency</span><b class="g-strong">Strong</b></div>
+            <div class="ms-card tour-goal"><span>Written expression</span><b class="g-ok">Adequate</b></div>
+            <div class="ms-card tour-goal"><span>Self-regulation</span><b class="g-weak">Weak</b></div>
+            <div class="ms-muted tour-suggest">Suggested wording: "…as measured by weekly teacher data."</div>
+          </PhoneFrame>
+          <div class="tour-copy">
+            <span class="tour-step">4 · Documents and IEP review</span>
+            <h3>Every report in one place, and the IEP read for you</h3>
+            <p>
+              Upload a PDF or a photo of the page. Premium reads an IEP, rates each goal, suggests
+              stronger wording, compares it with last year's when you add that one too, and builds
+              your meeting questions.
+            </p>
+          </div>
         </div>
-        <div class="card">
-          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg></div>
-          <h3>Letter drafting</h3>
-          <p>Requests, appeals, and follow-ups — pre-filled with your case details and ready to send, not a blank template.</p>
-        </div>
-        <div class="card">
-          <div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6 6-6"></path><path d="M5 16h14"></path></svg></div>
-          <h3>Letters in your language</h3>
-          <p>Drafts in English, Spanish, or Vietnamese, ready to send. More of the app's screens are being translated.</p>
+
+        <div class="tour-row">
+          <PhoneFrame label="Sample plan: four school steps, one checked off." appBar="Your plan · School" tab="Plan">
+            <div class="ms-card tour-step-row tour-done">Ask for an evaluation in writing</div>
+            <div class="ms-card tour-step-row">Ask for typing as a writing accommodation</div>
+            <div class="ms-card tour-step-row">Request last year's progress reports</div>
+            <div class="ms-card tour-step-row">Make my meeting list</div>
+          </PhoneFrame>
+          <div class="tour-copy">
+            <span class="tour-step">5 · Your plan</span>
+            <h3>A plan built for your child, not a generic checklist</h3>
+            <p>
+              Steps from your child's age, diagnosis and where things stand with the Regional
+              Center, school and insurance. Save a step from a Navigator answer, and check them off
+              as you go.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -217,16 +290,141 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
     color: var(--color-pine);
   }
 
-  /* feature grid */
-  .feature-grid .icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: var(--color-pine-tint);
+  /* tour: sample screen beside each feature, alternating sides */
+  .tour {
     display: flex;
+    flex-direction: column;
+    gap: 56px;
+    margin-top: 36px;
+  }
+  .tour-row {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 48px;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 14px;
+  }
+  .tour-flip {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+  .tour-flip > :global(.phone) {
+    order: 2;
+  }
+  /* The tour's screens are short; the homepage's 560px phone left them half empty. */
+  .tour :global(.phone-screen) {
+    height: 420px;
+  }
+  .tour-step {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-pine);
+  }
+  .tour-copy h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin: 8px 0 10px;
+  }
+  .tour-copy p {
+    margin: 0;
+    max-width: 52ch;
+  }
+  .tour-q {
+    align-self: flex-end;
+    background: var(--color-pine);
+    color: #fff;
+    border-radius: 12px 12px 2px 12px;
+    padding: 8px 10px;
+    font-size: 11px;
+    margin-left: 30px;
+  }
+  .tour-right,
+  .tour-watch,
+  .tour-letter {
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  .tour-right {
+    background: var(--color-sage-tint);
+  }
+  .tour-watch {
+    background: var(--color-amber-soft);
+  }
+  .tour-right b,
+  .tour-watch b {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    display: block;
+  }
+  .tour-tones .on {
+    background: var(--color-pine);
+    border-color: var(--color-pine);
+    color: #fff;
+  }
+  .tour-later {
+    text-align: center;
+    margin-top: 7px;
+  }
+  .tour-goal {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+  .tour-goal b {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 5px;
+  }
+  .g-strong {
+    background: var(--color-sage-tint);
+    color: var(--color-pine-deep);
+  }
+  .g-ok {
+    background: var(--color-amber-soft);
+    color: var(--color-amber);
+  }
+  .g-weak {
+    background: var(--color-urgent-tint);
+    /* Darker than --color-urgent: that is 4.41:1 on its tint at 10px (axe). */
+    color: #9a3412;
+  }
+  .tour-suggest {
+    font-style: italic;
+  }
+  .tour-step-row {
+    font-size: 11px;
+    padding-left: 26px;
+    position: relative;
+  }
+  .tour-step-row::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    margin-top: -6px;
+    border: 1.5px solid var(--color-pine);
+    border-radius: 3px;
+  }
+  .tour-done {
+    color: var(--color-ink-soft);
+    text-decoration: line-through;
+  }
+  .tour-done::before {
+    background: var(--color-pine);
+  }
+  @media (max-width: 800px) {
+    .tour-row,
+    .tour-flip {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 20px;
+      justify-items: center;
+    }
+    .tour-flip > :global(.phone) {
+      order: 0;
+    }
   }
 
   /* trust strip */
