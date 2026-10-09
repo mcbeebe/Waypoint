@@ -44,6 +44,15 @@ Owner-approved plan, 2026-10-07:
     adversarial review found it fights the draft prompt's own rules (the warm
     tone's opening, the LANGUAGE line's "write the ENTIRE draft in …"), and any
     parsing miss left a literal "Subject: …" in a letter a family sends.
+  - **Template routing (same PR):** the chat prompt's `[[DRAFT: key | offer]]`
+    instruction listed the keys with no word on when each applies, so a note to
+    a provider in an IPP-heavy conversation got `ipp_review_request`. It now says
+    what each key formally asks, and of whom. It sends any message to a provider,
+    and anything uncertain, to `general`. `draftKeyPrompt.test.ts` keeps every
+    taught key a real template.
+- **The app-side guard (its own PR, draft-flow lane):** when a letter's addressee
+  is saved under a different organization than its template addresses, the send
+  asks "Did this go to the Regional Center?" before starting any legal clock.
 
 ## Non-goals
 
@@ -51,9 +60,6 @@ Owner-approved plan, 2026-10-07:
   original plan. Both were dropped on 2026-10-09:
   - Cc shipped separately (#313, initiative 014).
   - The owner confirmed initiative 014's ruling that every reply counts as an answer.
-- **Fixing the Navigator's template routing** (a provider note sent as an IPP
-  request). That's a separate task: it also opens a statutory clock that should
-  not exist.
 - **Re-subjecting letters already saved.** Reopened drafts keep their saved
   subject (#305).
 
