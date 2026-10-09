@@ -89,11 +89,29 @@ function trackedReplies(communications: Communication[]): Communication[] {
     .sort((a, b) => when(b).localeCompare(when(a)));
 }
 
-/** The newest incoming reply not yet answered on its thread, if any. */
+/**
+ * Whether a reply entered the paper trail long after it arrived — a thread
+ * the family added from Gmail (initiative 014), or a reply synced weeks late
+ * after Gmail was reconnected. Either way it is part of the record, not
+ * news: the same NEW_REPLY_DAYS rule as the NEW marker, measured from
+ * arrival to recording rather than to now.
+ */
+function recordedAsHistory(c: Communication): boolean {
+  const arrived = new Date(when(c)).getTime();
+  const recorded = new Date(c.created_at).getTime();
+  if (Number.isNaN(arrived) || Number.isNaN(recorded)) return false;
+  return recorded - arrived > NEW_REPLY_DAYS * 24 * 60 * 60 * 1000;
+}
+
+/**
+ * The newest incoming reply not yet answered on its thread, if any. A reply
+ * recorded as history (see recordedAsHistory) never takes the Home card.
+ */
 export function findUnansweredReply(
   communications: Communication[]
 ): UnansweredReply | null {
   for (const reply of trackedReplies(communications)) {
+    if (recordedAsHistory(reply)) continue;
     if (!isAnswered(reply, communications)) return toUnanswered(reply);
   }
   return null;

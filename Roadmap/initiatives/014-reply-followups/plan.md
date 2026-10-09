@@ -37,8 +37,16 @@ Gmail API thread ID, and the API never returns them
 ([googleworkspace/cli#858](https://github.com/googleworkspace/cli/issues/858);
 [InboxSDK group](https://groups.google.com/g/inboxsdk/c/wlHOY4TeR2o)).
 Older-style links (`#inbox/<16 hex chars>`) carry the legacy hex thread ID,
-which the API accepts. To verify in the build: one real link of each kind
-against the owner's own Gmail.
+which the API accepts.
+
+**Verified in the build (2026-10-09, against the owner's own Gmail, read-only):**
+- API thread ids are 16 hex characters (e.g. `1a11…cee3`).
+- The `viewUrl` that the Gmail API itself returns is
+  `#all/thread-a:r-<signed decimal>`. That number is not the thread id in any
+  base, so `thread-a` links are opaque too.
+- `#…/thread-f:<decimal>` is the thread id in decimal (IMAP X-GM-THRID), so it
+  is converted. A wrong guess can only find nothing, because the function
+  opens the id rather than trusting it.
 
 - **`_shared/gmailLink.ts` + app mirror `src/lib/gmailLink.ts`** (held equal by
   a mirror test, like `letterAddress`): `parseGmailInput(text)` returns one of:

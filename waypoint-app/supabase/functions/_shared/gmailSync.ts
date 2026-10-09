@@ -100,17 +100,20 @@ async function syncFamily(
 ): Promise<number> {
   const gmailHeaders = { Authorization: `Bearer ${accessToken}` };
 
+  // Every thread with a stored row is followed — not only threads the family
+  // sent from Waypoint: a thread added from Gmail (014 PR D) may have been
+  // started by the agency. Rows over-fetched, then the newest distinct
+  // threads kept, so one busy thread cannot crowd out the rest.
   const { data: tracked } = await supabase
     .from('communications')
     .select('gmail_thread_id')
     .eq('family_id', familyId)
-    .eq('direction', 'outgoing')
     .not('gmail_thread_id', 'is', null)
     .order('created_at', { ascending: false })
-    .limit(THREADS_PER_ACCOUNT);
+    .limit(THREADS_PER_ACCOUNT * 8);
   const threadIds = [
     ...new Set(((tracked ?? []) as { gmail_thread_id: string }[]).map((t) => t.gmail_thread_id)),
-  ];
+  ].slice(0, THREADS_PER_ACCOUNT);
   if (threadIds.length === 0) return 0;
 
   const { data: known } = await supabase
@@ -123,13 +126,12 @@ async function syncFamily(
   );
   const self = selfEmail.toLowerCase();
 
-  // Every outgoing row on these threads, so each reply can take its thread
-  // founder's label (_shared/threadOrg.ts) — mirrors functions/gmail "sync".
+  // Every row on these threads, so each reply can take its thread founder's
+  // label (_shared/threadOrg.ts) — mirrors functions/gmail "sync".
   const { data: outgoing, error: outgoingErr } = await supabase
     .from('communications')
     .select('id, gmail_thread_id, direction, organization, created_at, occurred_at')
     .eq('family_id', familyId)
-    .eq('direction', 'outgoing')
     .in('gmail_thread_id', threadIds);
   // A saved reply is never re-synced, so syncing without the founders would
   // leave its label empty for good. Skip this family's run; the next retries.

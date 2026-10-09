@@ -58,8 +58,22 @@ describe('threadOrganization', () => {
     expect(threadOrganization([...rows].reverse())).toBe('insurance');
   });
 
-  it('ignores incoming rows, and an empty thread is null', () => {
-    expect(threadOrganization([{ direction: 'incoming', organization: 'regional_center' }])).toBeNull();
+  it('ignores incoming rows whenever the thread has an outgoing one, and an empty thread is null', () => {
+    expect(
+      threadOrganization([
+        { direction: 'incoming', organization: 'regional_center', created_at: '2026-10-01T00:00:00Z' },
+        { direction: 'outgoing', organization: null, created_at: '2026-10-02T00:00:00Z' },
+      ])
+    ).toBeNull();
     expect(threadOrganization([])).toBeNull();
+  });
+
+  it('a thread the agency started, added from Gmail, takes its earliest row’s label (014 PR D)', () => {
+    expect(
+      threadOrganization([
+        { id: 'b', direction: 'incoming', organization: 'school', created_at: '2026-10-09T18:00:00Z' },
+        { id: 'a', direction: 'incoming', organization: 'school', created_at: '2026-10-09T18:00:00Z' },
+      ])
+    ).toBe('school');
   });
 });

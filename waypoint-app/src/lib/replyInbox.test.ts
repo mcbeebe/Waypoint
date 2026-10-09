@@ -73,3 +73,33 @@ describe('findUnansweredReply', () => {
     expect(findUnansweredReply([])).toBeNull();
   });
 });
+
+describe('a reply recorded long after it arrived is history, not news (014)', () => {
+  it('an old message brought in by adding a thread never takes the Home card', () => {
+    expect(
+      findUnansweredReply([
+        comm({
+          direction: 'incoming',
+          sent_at: '2026-07-01T09:00:00Z',
+          occurred_at: '2026-07-01T09:00:00Z',
+          created_at: '2026-10-09T18:00:00Z',
+        }),
+      ])
+    ).toBeNull();
+  });
+
+  it('a fresh reply on that same added thread still does', () => {
+    const r = findUnansweredReply([
+      comm({ id: 'old', direction: 'incoming', sent_at: '2026-07-01T09:00:00Z', created_at: '2026-10-09T18:00:00Z' }),
+      comm({ id: 'new', direction: 'incoming', sent_at: '2026-10-08T09:00:00Z', created_at: '2026-10-09T18:00:00Z' }),
+    ]);
+    expect(r?.reply.id).toBe('new');
+  });
+
+  it('a reply synced within the window is news as before', () => {
+    const r = findUnansweredReply([
+      comm({ direction: 'incoming', sent_at: '2026-09-01T09:00:00Z', created_at: '2026-09-14T09:00:00Z' }),
+    ]);
+    expect(r).not.toBeNull();
+  });
+});
