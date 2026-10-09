@@ -72,3 +72,18 @@ describe('url encoding', () => {
     expect(gmailComposeUrl({ ...OPTS, to: 'teacher@school.org' })).toContain('to=teacher%40school.org');
   });
 });
+
+describe('Cc in the hand-off to a mail app (owner ask, 2026-10-09)', () => {
+  const opts = { to: 'sc@rceb.org', cc: ['sam@example.org', 'adv@example.org'], subject: 'S', body: 'B' };
+  it('mailto carries the copied addresses', () => {
+    const url = new URL(mailtoUrl(opts));
+    expect(url.searchParams.get('cc')).toBe('sam@example.org,adv@example.org');
+  });
+  it('Gmail compose carries them too', () => {
+    expect(new URL(gmailComposeUrl(opts)).searchParams.get('cc')).toBe('sam@example.org,adv@example.org');
+  });
+  it('no cc parameter when nobody is copied', () => {
+    expect(mailtoUrl({ ...opts, cc: [] })).not.toMatch(/cc=/);
+    expect(gmailComposeUrl({ ...opts, cc: undefined })).not.toMatch(/cc=/);
+  });
+});

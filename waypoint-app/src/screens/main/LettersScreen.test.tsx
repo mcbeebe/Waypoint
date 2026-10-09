@@ -446,6 +446,84 @@ describe('sending through Gmail', () => {
     for (let el: HTMLElement | null = inside; el; el = el.parentElement) fireEvent.animationEnd(el);
   }
 
+  describe('Cc (owner ask, 2026-10-09)', () => {
+    beforeEach(() => {
+      h.contacts = [
+        { id: 'k1', name: 'Pat Nguyen', email: 'pat@rceb.org', role: 'Service Coordinator', organization: 'regional_center' },
+        { id: 'k2', name: 'Sam Rivera', email: 'sam@example.org', role: 'Spouse', organization: 'other' },
+      ];
+    });
+
+    it('copies a Key Contact or a typed address, shows them everywhere, and sends them', async () => {
+      await draftReadyToSend();
+      expect(screen.getByText('No one')).toBeTruthy();
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: 'advocate@example.org' } });
+      fireEvent.click(screen.getByLabelText('Add to Cc'));
+
+      // The steps name who is copied, and say their replies count too.
+      expect(screen.getByText(/to Pat Nguyen, copying Sam Rivera and advocate@example\.org — Gmail/)).toBeTruthy();
+      expect(screen.getByText(/including people you copied/)).toBeTruthy();
+      expect(screen.getByText(/counts as a reply: Waypoint treats it like an answer and holds off on follow-up nudges/)).toBeTruthy();
+
+      const sheet = await openSheetFromButton();
+      expect(within(sheet).getByText('Sam Rivera <sam@example.org>')).toBeTruthy();
+      expect(within(sheet).getByText('advocate@example.org')).toBeTruthy();
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+      await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+      expect(h.gmailSend.mock.calls[0][0]).toMatchObject({
+        to: 'pat@rceb.org',
+        cc: ['sam@example.org', 'advocate@example.org'],
+      });
+    });
+
+    it('refuses what is not one address, and a removed person is not sent', async () => {
+      await draftReadyToSend();
+      fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: 'a@x.com, b@y.com' } });
+      fireEvent.click(screen.getByLabelText('Add to Cc'));
+      expect(screen.getByText('That doesn’t look like one email address.')).toBeTruthy();
+
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      fireEvent.click(screen.getByLabelText('Remove Sam Rivera from Cc'));
+      expect(screen.getByText('No one')).toBeTruthy();
+      const sheet = await openSheetFromButton();
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+      await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+      expect(h.gmailSend.mock.calls[0][0]).toMatchObject({ cc: [] });
+    });
+
+    it('an address typed but not added stops the send instead of being dropped', async () => {
+      await draftReadyToSend();
+      fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: 'sam@example.org' } });
+      fireEvent.click(screen.getByLabelText(BUTTON));
+      expect(screen.getByText(/Tap Add to copy that address, or clear it/)).toBeTruthy();
+      expect(screen.queryByText('Send this email now?')).toBeNull();
+      expect(h.gmailSend).not.toHaveBeenCalled();
+    });
+
+    it('a copied person made the addressee stays off Cc when the addressee changes back', async () => {
+      await draftReadyToSend();
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      fireEvent.click(screen.getByLabelText('Change who this goes to'));
+      fireEvent.click(screen.getByLabelText('Send to Sam Rivera'));
+      fireEvent.click(screen.getByLabelText('Change who this goes to'));
+      fireEvent.click(screen.getByLabelText('Send to Pat Nguyen'));
+      expect(screen.getByText('No one')).toBeTruthy();
+    });
+
+    it('the addressee is never also copied', async () => {
+      await draftReadyToSend();
+      fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: 'PAT@rceb.org' } });
+      fireEvent.click(screen.getByLabelText('Add to Cc'));
+      expect(screen.getByText('They’re already on this email.')).toBeTruthy();
+      // And a copied person who becomes the addressee drops off the Cc line.
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      fireEvent.click(screen.getByLabelText('Change who this goes to'));
+      fireEvent.click(screen.getByLabelText('Send to Sam Rivera'));
+      expect(screen.getByText('No one')).toBeTruthy();
+    });
+  });
+
   describe('"When you press Send" says what THIS send does', () => {
     const liveIpp = h.requests;
     afterEach(() => {

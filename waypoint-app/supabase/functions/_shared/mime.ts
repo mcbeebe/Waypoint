@@ -67,6 +67,8 @@ export function encodeHeader(value: string): string {
 
 export interface RawMessageInput {
   to: string;
+  /** Copied recipients — already validated by `parseCc`. Empty → no header. */
+  cc?: string[];
   subject: string;
   body: string;
   /** Threading, when replying. Omitted headers are dropped, not blanked. */
@@ -84,6 +86,7 @@ export interface RawMessageInput {
 export function buildRawMessage(input: RawMessageInput): string {
   const headers = [
     `To: ${input.to}`,
+    input.cc && input.cc.length > 0 ? `Cc: ${input.cc.join(', ')}` : '',
     `Subject: ${encodeHeader(input.subject || '(no subject)')}`,
     input.inReplyTo ? `In-Reply-To: ${input.inReplyTo}` : '',
     input.references ? `References: ${input.references}` : '',
@@ -93,4 +96,44 @@ export function buildRawMessage(input: RawMessageInput): string {
   ].filter((line) => line !== '');
 
   return [...headers, '', wrap76(b64(input.body))].join('\r\n');
+}
+
+/** Most people a letter may copy: a spouse, an advocate, a supervisor — not a list. */
+export const MAX_CC = 5;
+
+/**
+ * One plain address, nothing else. Cc addresses are joined into one header,
+ * so a comma, an angle bracket or a line break inside one would smuggle in a
+ * second recipient — or a second header (Bcc:, say).
+ */
+// The local part may hold an apostrophe (o'brien@district.org); the whole
+// address must be printable ASCII, since it goes into a raw header unencoded.
+const EMAIL_RE = /^[^\s@,;:<>()[\]\\"]+@[^\s@,;:<>()[\]\\"']+\.[^\s@,;:<>()[\]\\"'.]{2,}$/;
+const PRINTABLE_ASCII = /^[\x21-\x7e]+$/;
+
+/** Whether `value` is one plain email address. */
+export function isEmailAddress(value: string): boolean {
+  const v = value.trim();
+  return PRINTABLE_ASCII.test(v) && EMAIL_RE.test(v);
+}
+
+/**
+ * The Cc list a send request carries, or null when it must be refused: not an
+ * array of strings, an entry that is not one plain address, or more than
+ * MAX_CC. Duplicates (and the To address itself) are dropped, case-insensitively,
+ * because mail servers compare that way.
+ */
+export function parseCc(raw: unknown, to: string): string[] | null {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw)) return null;
+  const seen = new Set([to.trim().toLowerCase()]);
+  const out: string[] = [];
+  for (const entry of raw) {
+    if (typeof entry !== 'string' || !isEmailAddress(entry)) return null;
+    const email = entry.trim();
+    if (seen.has(email.toLowerCase())) continue;
+    seen.add(email.toLowerCase());
+    out.push(email);
+  }
+  return out.length > MAX_CC ? null : out;
 }

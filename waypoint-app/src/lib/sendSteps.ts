@@ -18,6 +18,8 @@ export interface SendStepsInput {
   from: string | null;
   /** The recipient as shown on the To line ("Lilia Talavera"). */
   toName: string;
+  /** Who is copied, as shown on the Cc line. */
+  cc?: string[];
   /**
    * What tracking this send starts:
    * - 'clock': a new tracked request with a statutory timeline of `clockDays`
@@ -39,7 +41,18 @@ function picker(locale: FunnelLocale) {
 export function sendSteps(input: SendStepsInput): { title: string; steps: string[] } {
   const L = picker(input.locale);
   const from = input.from ?? L('your Gmail', 'su Gmail', 'Gmail của quý vị');
-  const to = input.toName;
+  const cc = input.cc ?? [];
+  const list = (names: string[]) =>
+    names.length <= 1
+      ? names.join('')
+      : `${names.slice(0, -1).join(', ')} ${L('and', 'y', 'và')} ${names[names.length - 1]}`;
+  const to = cc.length
+    ? L(
+        `${input.toName}, copying ${list(cc)}`,
+        `${input.toName}, con copia a ${list(cc)}`,
+        `${input.toName}, đồng gửi cho ${list(cc)}`
+      )
+    : input.toName;
 
   const steps = [
     L(
@@ -89,12 +102,20 @@ export function sendSteps(input: SendStepsInput): { title: string; steps: string
     );
   }
 
+  // Every reply on the thread counts — including one from someone copied
+  // (owner decision, 2026-10-09) — so when anyone is copied, say so.
   steps.push(
-    L(
-      'When a reply comes in on this email, it shows on Home.',
-      'Cuando llegue una respuesta a este correo, aparecerá en Inicio.',
-      'Khi có thư trả lời cho email này, thư sẽ hiện trên Trang chủ.'
-    )
+    cc.length
+      ? L(
+          'When anyone on this email replies — including people you copied — it shows on Home, and Waypoint treats it as an answer to this request.',
+          'Cuando alguien en este correo responda — incluidas las personas en copia — aparecerá en Inicio, y Waypoint lo tratará como respuesta a esta solicitud.',
+          'Khi bất kỳ ai trong email này trả lời — kể cả người được đồng gửi — thư sẽ hiện trên Trang chủ, và Waypoint xem đó là câu trả lời cho yêu cầu này.'
+        )
+      : L(
+          'When a reply comes in on this email, it shows on Home.',
+          'Cuando llegue una respuesta a este correo, aparecerá en Inicio.',
+          'Khi có thư trả lời cho email này, thư sẽ hiện trên Trang chủ.'
+        )
   );
 
   return {
