@@ -20,7 +20,8 @@ const card = ctaScreenCard(Astro.props.kind);
 <div class="cta-screen" role="img" aria-label={card.label}>
   <div class="cta-screen-in" aria-hidden="true">
     {card.to && <div class="cs-meta">{card.to}</div>}
-    {card.pill && <div class:list={['cs-pill', card.pillTone]}>{card.pill}</div>}
+    {card.ask && <div class="cs-ask">{card.ask}</div>}
+    {card.pill && <div class="cs-pill">{card.pill}</div>}
     <div class="cs-title">{card.title}</div>
     {card.body && <div class:list={['cs-body', card.boxed && 'cs-boxed']}>{card.body}</div>}
     {card.cite && <div class="cs-meta">{card.cite}</div>}
@@ -49,16 +50,20 @@ const card = ctaScreenCard(Astro.props.kind);
   .cs-pill {
     align-self: flex-start;
     font-weight: 700;
-    font-size: 9px;
+    font-size: 10px;
     letter-spacing: 0.04em;
     padding: 2px 6px;
     border-radius: 5px;
     background: var(--color-amber-soft);
     color: var(--color-amber);
   }
-  .cs-pill.cs-today {
-    background: var(--color-pine-tint);
-    color: var(--color-pine-deep);
+  .cs-ask {
+    align-self: flex-end;
+    background: var(--color-pine);
+    color: #ffffff;
+    border-radius: 10px 10px 2px 10px;
+    padding: 6px 8px;
+    margin-left: 18px;
   }
   .cs-title {
     font-size: 11px;

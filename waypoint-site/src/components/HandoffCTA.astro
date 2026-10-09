@@ -5,7 +5,7 @@
  * app_signup_click via the delegated listener in BaseLayout.
  */
 import { appStartUrl, type CtaId, type Pillar, type WpCtx } from '../lib/appLinks';
-import { ctaScreenFor } from '../lib/ctaScreen';
+import { ctaScreenFor, type CtaScreenKind } from '../lib/ctaScreen';
 import CtaScreen from './CtaScreen.astro';
 
 interface Props {
@@ -25,6 +25,9 @@ interface Props {
    * component's 40+ callers don't need it: it exists for the homepage's
    * primary conversion CTAs. */
   note?: string;
+  /** Override the sample screen the CTA id and pillar would pick, or 'none'
+   * for a page whose topic that screen would not match. */
+  screen?: CtaScreenKind | 'none';
 }
 const {
   heading,
@@ -37,6 +40,7 @@ const {
   ctx,
   checklist = false,
   note,
+  screen: screenProp,
 } = Astro.props;
 const href = appStartUrl({ slug, cta, pillar, locale, ctx });
 const props = JSON.stringify({
@@ -47,7 +51,7 @@ const props = JSON.stringify({
 });
 // Content pages (guides, Regional Center pages, letters) show a sample app
 // screen that matches the page; every other box stays text-only.
-const screen = ctaScreenFor(cta, pillar);
+const screen = screenProp === 'none' ? null : (screenProp ?? ctaScreenFor(cta, pillar));
 ---
 
 <div class:list={['handoff', screen && 'handoff-with-screen']}>
