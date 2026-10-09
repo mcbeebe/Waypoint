@@ -19,6 +19,7 @@ const FILES = [
   path.join(src, 'components', 'OneLoop.astro'),
   path.join(src, 'components', 'GuideVsApp.astro'),
   path.join(src, 'components', 'WithoutWith.astro'),
+  path.join(src, 'pages', 'tools', 'index.astro'),
   path.join(src, 'lib', 'iepGoalCheckUi.ts'),
   path.join(src, 'lib', 'ctaScreen.ts'),
   path.join(src, 'components', 'CtaScreen.astro'),

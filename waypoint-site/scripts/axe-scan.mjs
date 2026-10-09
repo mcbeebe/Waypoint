@@ -51,6 +51,7 @@ const REQUIRED = [
   '/answers/does-my-child-need-ssi-to-get-ihss/',
   '/letters/iep-evaluation-request/',
   '/regional-centers/east-bay/',
+  '/tools/',
   '/tools/ssi-deeming-calculator/',
   '/tools/regional-center-finder/',
   '/tools/iep-goal-check/',
@@ -68,6 +69,7 @@ const REQUIRED = [
 const ALWAYS_BUILT = new Set([
   '/',
   '/guides/',
+  '/tools/',
   '/tools/ssi-deeming-calculator/',
   '/tools/regional-center-finder/',
   '/tools/iep-goal-check/',

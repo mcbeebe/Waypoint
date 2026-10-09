@@ -40,6 +40,18 @@ export interface Communication {
    * `isUnreadReply` in lib/replyInbox.ts.
    */
   read_at?: string | null;
+  /**
+   * Who else was on the email, as plain addresses (064): the chosen Cc on an
+   * outgoing row; everyone but the family and the sender on a synced reply.
+   * Null = none recorded. ABSENT on a database where 064 is not applied.
+   */
+  cc?: string[] | null;
+  /**
+   * When an incoming message was marked as needing no answer (065): history
+   * brought in by adding a thread, or "Nothing to answer". ABSENT on a
+   * database without 065 — then nothing is settled.
+   */
+  settled_at?: string | null;
   created_at: string;
 }
 
@@ -194,6 +206,27 @@ export async function markCommunicationSent(id: string): Promise<boolean> {
       .update({ status: 'sent', sent_at: new Date().toISOString() })
       .eq('id', id);
     return !error;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Record who a letter copied (064) on its paper-trail row. The Gmail path
+ * stores it server-side; this covers the mail-app hand-off, where the row is
+ * marked sent from the app. Best-effort and never throws: a database without
+ * 064 returns false and the letter's row is untouched.
+ */
+export async function recordCommunicationCc(id: string, cc: readonly string[]): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('communications')
+      // Lowercased, the convention the gmail function and the sync store in.
+      .update({ cc: cc.length > 0 ? cc.map((e) => e.trim().toLowerCase()) : null })
+      .eq('id', id)
+      .select('id');
+    if (error) return false;
+    return (data?.length ?? 0) > 0;
   } catch {
     return false;
   }

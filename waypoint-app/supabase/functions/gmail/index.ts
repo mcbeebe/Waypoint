@@ -11,13 +11,20 @@
  *
  * Actions:
  *   - "status": { connected, gmail, email } — whether Gmail scopes are held
- *   - "send":   { to, subject, body, communicationId?, replyToCommunicationId? }
+ *   - "send":   { to, cc?, subject, body, communicationId?, replyToCommunicationId? }
  *               Sends via the Gmail API. Replies thread properly
  *               (threadId + In-Reply-To/References). Updates/creates the
- *               paper-trail row with thread + message ids.
+ *               paper-trail row with thread + message ids and the Cc (064).
+ *   - "find":   { input } — a Gmail link or search words. Lists up to 10
+ *               threads to add ({ candidates }), or { error: 'opaque_link' }
+ *               for a link the Gmail API cannot open (014 PR D).
+ *   - "import": { threadId, organization, requestId? } — copies a thread's
+ *               messages into the paper trail so sync follows it.
+ *               Returns { imported }.
  *   - "sync":   pulls new messages on every tracked thread, inserts
  *               incoming replies into communications (idempotent on
- *               gmail_message_id). Returns { newReplies }.
+ *               gmail_message_id), with everyone else on each reply as
+ *               its cc (064). Returns { newReplies }.
  *
  * Secrets required: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (already set
  * for google-auth; Supabase secrets are project-wide).
@@ -26,6 +33,23 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { b64url, buildRawMessage, parseCc, isEmailAddress, MAX_CC } from '../_shared/mime.ts';
 import { threadOrganization } from '../_shared/threadOrg.ts';
+import {
+  ccForStorage,
+  headerValues,
+  isMissingCcColumn,
+  missingOptionalColumn,
+  otherRecipients,
+} from '../_shared/recipients.ts';
+import {
+  MAX_FIND_RESULTS,
+  MAX_IMPORT_MESSAGES,
+  isThreadId,
+  parseGmailInput,
+  planImport,
+  summarizeThread,
+  type ImportMessage,
+  type ThreadCandidate,
+} from '../_shared/threadImport.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -258,20 +282,28 @@ serve(async (req) => {
     const sent = asDraft ? { ...(result.message ?? {}), draftId: result.id } : result;
 
     // Paper trail: update the existing draft row, or record the reply
+    // Who was copied (064). Every write below that names cc is retried
+    // without it on a database where 064 is not applied yet: a late
+    // migration costs the Cc, never the paper-trail row.
+    const ccStored = ccForStorage(cc);
     if (communicationId) {
-      await userClient
+      const fields = {
+        // A draft is NOT a send. The row stays a draft and sent_at stays
+        // null; the thread id is stored anyway so reply-sync can follow the
+        // thread the moment the parent sends it from Gmail.
+        status: asDraft ? 'draft' : 'sent',
+        ...(asDraft ? {} : { sent_at: new Date().toISOString() }),
+        gmail_thread_id: sent.threadId ?? null,
+        gmail_message_id: sent.id ?? null,
+        direction: 'outgoing',
+      };
+      const { error: updateErr } = await userClient
         .from('communications')
-        .update({
-          // A draft is NOT a send. The row stays a draft and sent_at stays
-          // null; the thread id is stored anyway so reply-sync can follow the
-          // thread the moment the parent sends it from Gmail.
-          status: asDraft ? 'draft' : 'sent',
-          ...(asDraft ? {} : { sent_at: new Date().toISOString() }),
-          gmail_thread_id: sent.threadId ?? null,
-          gmail_message_id: sent.id ?? null,
-          direction: 'outgoing',
-        })
+        .update({ ...fields, cc: ccStored })
         .eq('id', communicationId);
+      if (isMissingCcColumn(updateErr)) {
+        await userClient.from('communications').update(fields).eq('id', communicationId);
+      }
     } else if (family?.id) {
       // A reply sent from the paper trail takes its thread's label (see
       // _shared/threadOrg.ts); a message with no thread is left unlabelled.
@@ -282,11 +314,10 @@ serve(async (req) => {
           .from('communications')
           .select('id, direction, organization, created_at, occurred_at')
           .eq('family_id', family.id)
-          .eq('gmail_thread_id', loggedThread)
-          .eq('direction', 'outgoing');
+          .eq('gmail_thread_id', loggedThread);
         organization = threadOrganization(threadRows ?? []);
       }
-      await userClient.from('communications').insert({
+      const row = {
         family_id: family.id,
         kind: 'email',
         subject: replySubject || subject,
@@ -298,22 +329,179 @@ serve(async (req) => {
         gmail_thread_id: sent.threadId ?? null,
         gmail_message_id: sent.id ?? null,
         direction: 'outgoing',
-      });
+      };
+      const { error: insertErr } = await userClient
+        .from('communications')
+        .insert({ ...row, cc: ccStored });
+      if (isMissingCcColumn(insertErr)) await userClient.from('communications').insert(row);
     }
 
     return json({ ok: true, threadId: sent.threadId ?? null, messageId: sent.id ?? null });
   }
 
+  // ── Add an existing Gmail thread (initiative 014, PR D) ──────────
+  // The rules are pure and tested (_shared/threadImport.ts); this is only
+  // the Gmail and database I/O around them.
+  const ORGS = ['regional_center', 'school', 'insurance', 'medical', 'other'];
+  const selfAddress = account.google_email ?? '';
+
+  const toImportMessage = (msg: {
+    id?: string;
+    internalDate?: string;
+    labelIds?: string[];
+    payload?: GmailPayload;
+  }): ImportMessage => ({
+    id: msg.id ?? '',
+    internalDate: Number(msg.internalDate ?? 0),
+    from: header(msg.payload, 'From'),
+    to: headerValues(msg.payload?.headers, 'To'),
+    cc: headerValues(msg.payload?.headers, 'Cc'),
+    subject: header(msg.payload, 'Subject'),
+    text: extractText(msg.payload),
+    labelIds: msg.labelIds ?? [],
+  });
+
+  if (action === 'find') {
+    if (!family?.id) return json({ error: 'No family profile' }, 400);
+    const parsed = parseGmailInput(String(body.input ?? '').slice(0, 2000));
+    if (parsed.kind === 'empty') return json({ candidates: [] });
+    if (parsed.kind === 'opaque') return json({ error: 'opaque_link', reason: parsed.reason }, 422);
+
+    let ids: string[];
+    let snippets = new Map<string, string>();
+    if (parsed.kind === 'thread') {
+      ids = [parsed.id];
+    } else {
+      const listResp = await fetch(
+        `${GMAIL_API}/threads?maxResults=${MAX_FIND_RESULTS}&q=${encodeURIComponent(parsed.q)}`,
+        { headers: gmailHeaders }
+      );
+      if (!listResp.ok) return json({ error: `Gmail search failed (${listResp.status})` }, 502);
+      const list = await listResp.json();
+      const threads = (list.threads ?? []) as { id: string; snippet?: string }[];
+      ids = threads.map((t) => t.id).filter((id) => isThreadId(id));
+      snippets = new Map(threads.map((t) => [t.id, t.snippet ?? '']));
+    }
+    if (ids.length === 0) return json({ candidates: [] });
+
+    const { data: trackedRows } = await userClient
+      .from('communications')
+      .select('gmail_thread_id')
+      .eq('family_id', family.id)
+      .in('gmail_thread_id', ids);
+    const tracked = new Set<string>((trackedRows ?? []).map((r: { gmail_thread_id: string }) => r.gmail_thread_id));
+
+    let unreachable = 0;
+    const candidates = (
+      await Promise.all(
+        ids.map(async (id): Promise<ThreadCandidate | null> => {
+          const resp = await fetch(
+            `${GMAIL_API}/threads/${id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
+            { headers: gmailHeaders }
+          );
+          // 404: not a thread in this mailbox — simply no match. Anything else
+          // (429, 5xx) is Gmail not answering, which "no matches" would hide.
+          if (!resp.ok) {
+            if (resp.status !== 404) unreachable++;
+            return null;
+          }
+          const thread = await resp.json();
+          const messages = (thread.messages ?? []).map(toImportMessage);
+          const lastSnippet = thread.messages?.[thread.messages.length - 1]?.snippet ?? '';
+          return summarizeThread({
+            threadId: id,
+            messages,
+            snippet: snippets.get(id) || lastSnippet,
+            self: selfAddress,
+            tracked,
+          });
+        })
+      )
+    ).filter((c): c is ThreadCandidate => c !== null);
+    if (candidates.length === 0 && unreachable > 0) {
+      return json({ error: 'Gmail didn’t answer just now — try again in a minute.' }, 502);
+    }
+    return json({ candidates });
+  }
+
+  if (action === 'import') {
+    if (!family?.id) return json({ error: 'No family profile' }, 400);
+    const threadId = String(body.threadId ?? '').toLowerCase();
+    const organization = String(body.organization ?? '');
+    const requestId = (body.requestId as string) || null;
+    if (!isThreadId(threadId)) return json({ error: 'Not a Gmail thread id' }, 400);
+    if (!ORGS.includes(organization)) return json({ error: 'Pick who this thread is with' }, 400);
+    if (requestId) {
+      // RLS scopes this to the caller's family: a request id from anywhere
+      // else simply is not found.
+      const { data: owned } = await userClient
+        .from('family_requests')
+        .select('id')
+        .eq('id', requestId)
+        .maybeSingle();
+      if (!owned) return json({ error: 'That request was not found' }, 400);
+    }
+
+    const resp = await fetch(`${GMAIL_API}/threads/${threadId}?format=full`, { headers: gmailHeaders });
+    if (resp.status === 404) return json({ error: 'That thread is not in your Gmail' }, 404);
+    if (!resp.ok) return json({ error: `Gmail read failed (${resp.status})` }, 502);
+    const thread = await resp.json();
+
+    const { data: known, error: knownErr } = await userClient
+      .from('communications')
+      .select('gmail_message_id')
+      .eq('family_id', family.id)
+      .eq('gmail_thread_id', threadId)
+      .not('gmail_message_id', 'is', null);
+    // Without the known ids an import could duplicate rows — refuse instead.
+    if (knownErr) return json({ error: "Couldn't check your paper trail — try again." }, 500);
+
+    const rows = planImport({
+      threadId,
+      messages: (thread.messages ?? []).map(toImportMessage),
+      self: selfAddress,
+      knownIds: new Set<string>((known ?? []).map((k: { gmail_message_id: string }) => k.gmail_message_id)),
+      organization,
+      requestId,
+      now: new Date(),
+    }).map((r) => ({ ...r, family_id: family.id }));
+    if (rows.length === 0) return json({ imported: 0 });
+
+    // Columns from migrations that may not be applied yet: drop the one the
+    // database names and retry, so a late migration costs that column, never
+    // the thread. Bounded by the list, and only for a missing-column error.
+    const optional = ['cc', 'settled_at', 'read_at', 'request_id'];
+    let payload: Record<string, unknown>[] = rows;
+    let { error: insertErr } = await userClient.from('communications').insert(payload);
+    for (let tries = 0; insertErr && tries < optional.length; tries++) {
+      const missing = missingOptionalColumn(insertErr, optional);
+      if (!missing) break;
+      payload = payload.map(({ [missing]: _dropped, ...rest }) => rest);
+      ({ error: insertErr } = await userClient.from('communications').insert(payload));
+    }
+    if (insertErr) return json({ error: "Couldn't add the thread — try again." }, 500);
+    return json({ imported: rows.length });
+  }
+
   // ── Sync replies on tracked threads ──────────────────────────────
   if (action === 'sync') {
+    // Every thread with a stored row, not only ones sent from Waypoint — an
+    // added thread may have been started by the agency (014 PR D). Rows are
+    // over-fetched and the newest distinct threads kept; an added thread
+    // writes up to MAX_IMPORT_MESSAGES rows at once, so the window holds at
+    // least 25 such threads before any could be crowded out. Mirrors
+    // _shared/gmailSync.ts.
+    const TRACKED_THREADS = 25;
     const { data: tracked } = await userClient
       .from('communications')
       .select('gmail_thread_id, family_id')
       .not('gmail_thread_id', 'is', null)
-      .eq('direction', 'outgoing')
       .order('created_at', { ascending: false })
-      .limit(25);
-    const threadIds = [...new Set((tracked ?? []).map((t) => t.gmail_thread_id as string))];
+      .limit(TRACKED_THREADS * MAX_IMPORT_MESSAGES);
+    const threadIds = [...new Set((tracked ?? []).map((t) => t.gmail_thread_id as string))].slice(
+      0,
+      TRACKED_THREADS
+    );
     if (threadIds.length === 0) return json({ newReplies: 0 });
 
     const { data: known } = await userClient
@@ -321,12 +509,11 @@ serve(async (req) => {
       .select('gmail_message_id')
       .not('gmail_message_id', 'is', null);
     const knownIds = new Set((known ?? []).map((k) => k.gmail_message_id as string));
-    // Every outgoing row on these threads — not only the 25 newest — so a
-    // thread's founding letter is found however long ago it was sent.
+    // Every row on these threads — not only the newest — so a thread's
+    // founding letter is found however long ago it was sent.
     const { data: threadRows, error: threadErr } = await userClient
       .from('communications')
       .select('id, family_id, gmail_thread_id, direction, organization, created_at, occurred_at')
-      .eq('direction', 'outgoing')
       .in('gmail_thread_id', threadIds);
     // Without the founders every reply would be saved unlabelled — and a
     // saved message is never re-synced, so the gap would be permanent. Skip
@@ -356,7 +543,7 @@ serve(async (req) => {
           (threadRows ?? []).filter((t) => t.gmail_thread_id === threadId && t.family_id === fam)
         );
         const receivedAt = new Date(Number(msg.internalDate ?? Date.now())).toISOString();
-        const { error: insertErr } = await userClient.from('communications').insert({
+        const row = {
           family_id: fam,
           kind: 'email',
           subject: header(msg.payload, 'Subject') || '(no subject)',
@@ -369,7 +556,20 @@ serve(async (req) => {
           gmail_thread_id: threadId,
           gmail_message_id: msg.id,
           direction: 'incoming',
+        };
+        // Everyone else on the reply (064) — who a reply-all would copy.
+        const others = otherRecipients({
+          to: headerValues(msg.payload?.headers, 'To'),
+          cc: headerValues(msg.payload?.headers, 'Cc'),
+          from,
+          self: selfEmail,
         });
+        let { error: insertErr } = await userClient
+          .from('communications')
+          .insert({ ...row, cc: others });
+        if (isMissingCcColumn(insertErr)) {
+          ({ error: insertErr } = await userClient.from('communications').insert(row));
+        }
         if (!insertErr) {
           knownIds.add(msg.id);
           newReplies++;

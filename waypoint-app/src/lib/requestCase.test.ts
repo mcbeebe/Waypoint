@@ -230,6 +230,19 @@ describe('escalation — silence climbs, conversation never does', () => {
     expect(buildRequestCase(r, [reply, note, sent], 'en', NOW).unansweredReply).toBeNull();
   });
 
+  it('a settled message (history from an added thread) is not waiting on anyone, so the ladder resumes (065)', () => {
+    const r = req({ communication_id: 'o' });
+    const o = comm({ id: 'o', gmail_thread_id: 't', gmail_message_id: 'm1' });
+    const reply = comm({
+      direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2',
+      sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
+      settled_at: '2026-08-29T09:00:00Z',
+    });
+    const c = buildRequestCase(r, [o, reply], 'en', NOW);
+    expect(c.unansweredReply).toBeNull();
+    expect(buildRequestCase(r, [o, { ...reply, settled_at: null }], 'en', NOW).unansweredReply).not.toBeNull();
+  });
+
   it('drafts never advance the stage', () => {
     const draft = comm({ template_key: 'dds_4731_complaint', status: 'draft' });
     expect(deriveStage([{ communication: draft, when: draft.occurred_at, role: 'formal', linkage: 'request_id', provenance: 'contemporaneous' }])).toBe('ask');

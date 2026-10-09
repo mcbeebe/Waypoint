@@ -39,6 +39,8 @@ import { REQUEST_TYPE_LABELS } from '@/lib/requestClocks';
 import { exportRequestDossier } from '@/lib/requestDossier';
 import { gmailStatus } from '@/lib/gmail';
 import GmailReplyModal from '@/components/GmailReplyModal';
+import AddThreadModal from '@/components/AddThreadModal';
+import { connectGmailWeb } from '@/lib/googleAuth';
 import Citation from '@/components/Citation';
 import AddEntryModal, { KIND_CONFIG, ORG_LABELS } from '@/components/AddEntryModal';
 import { useToast } from '@/components/Toast';
@@ -173,6 +175,7 @@ export default function RequestCaseScreen() {
   const [pre047, setPre047] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showLog, setShowLog] = useState(false);
+  const [showAddThread, setShowAddThread] = useState(false);
   const [replyThread, setReplyThread] = useState<Communication[] | null>(null);
   const [gmailConnected, setGmailConnected] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -386,6 +389,16 @@ export default function RequestCaseScreen() {
           >
             <Text style={styles.logBtnText}>+ Log a call</Text>
           </Pressable>
+          {Platform.OS === 'web' && (
+            <Pressable
+              style={styles.logBtn}
+              onPress={() => setShowAddThread(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Add an email thread from Gmail to this request"
+            >
+              <Text style={styles.logBtnText}>+ Add an email</Text>
+            </Pressable>
+          )}
           <Pressable
             style={styles.logBtn}
             disabled={exporting}
@@ -547,6 +560,25 @@ export default function RequestCaseScreen() {
             await load();
           }
           return !!id;
+        }}
+      />
+
+      <AddThreadModal
+        visible={showAddThread}
+        onClose={() => setShowAddThread(false)}
+        gmailConnected={gmailConnected}
+        onConnectGmail={async () => {
+          const r = await connectGmailWeb('/');
+          if (!r.success) showToast(r.error ?? "Couldn't start the Google connection.", 'error');
+        }}
+        requests={[{ id: request.id, title: request.title }]}
+        presetRequestId={request.id}
+        onAdded={async (imported) => {
+          showToast(
+            imported > 0 ? 'Added to this case and your paper trail' : 'That thread is already in your paper trail.',
+            'success'
+          );
+          await load();
         }}
       />
 

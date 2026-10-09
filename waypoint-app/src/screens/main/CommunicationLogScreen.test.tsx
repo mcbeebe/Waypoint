@@ -34,6 +34,9 @@ vi.mock('@/hooks/useFamily', () => ({
   useChildren: () => ({ children: [] }),
 }));
 vi.mock('@/hooks/useRequests', () => ({ useRequests: () => ({ requests: [] }) }));
+vi.mock('@/hooks/useContacts', () => ({
+  useContacts: () => ({ contacts: [{ id: 'k2', name: 'Sam Rivera', email: 'sam@example.org' }] }),
+}));
 vi.mock('@/hooks/useCommunications', () => ({
   useCommunications: () => ({
     communications: h.rows,
@@ -125,5 +128,32 @@ describe('Paper Trail read state', () => {
     expect(screen.getByText('💬 Replies')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /Email: Re: IPP Meeting/ }));
     expect(h.markRead).not.toHaveBeenCalled();
+  });
+});
+
+describe('Paper Trail records who else was on an email (064)', () => {
+  it('an opened letter shows its Cc, named from Key Contacts', () => {
+    h.rows = [comm({ id: 'o1', cc: ['sam@example.org', 'advocate@example.org'] }), reply()];
+    render(<CommunicationLogScreen />);
+    expect(screen.queryByText(/^Cc:/)).toBeNull(); // only once opened
+    fireEvent.click(screen.getByRole('button', { name: /Email: IPP Meeting Request/ }));
+    expect(screen.getByText('Cc: Sam Rivera, advocate@example.org')).toBeTruthy();
+  });
+
+  it('a reply lists everyone else on it, and a row with none recorded shows nothing', () => {
+    h.rows = [comm({ id: 'o1' }), reply({ cc: ['sam@example.org'] })];
+    render(<CommunicationLogScreen />);
+    fireEvent.click(screen.getByRole('button', { name: /Email: IPP Meeting Request/ }));
+    expect(screen.queryByText(/^Cc:/)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Email: Re: IPP Meeting/ }));
+    expect(screen.getByText('Also on this email: Sam Rivera')).toBeTruthy();
+  });
+});
+
+describe('Add an email thread (014 PR D)', () => {
+  it('the toolbar opens the sheet, which offers the Gmail connection when there is none', () => {
+    render(<CommunicationLogScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an email thread from Gmail' }));
+    expect(screen.getByText(/Connect Gmail to add threads/)).toBeTruthy();
   });
 });

@@ -14,6 +14,8 @@
  */
 import type { createClient } from 'jsr:@supabase/supabase-js@2';
 import { threadOrganization, type ThreadRow } from './threadOrg.ts';
+import { headerValues, isMissingCcColumn, otherRecipients } from './recipients.ts';
+import { MAX_IMPORT_MESSAGES } from './threadImport.ts';
 
 type Supabase = ReturnType<typeof createClient>;
 
@@ -99,17 +101,22 @@ async function syncFamily(
 ): Promise<number> {
   const gmailHeaders = { Authorization: `Bearer ${accessToken}` };
 
+  // Every thread with a stored row is followed — not only threads the family
+  // sent from Waypoint: a thread added from Gmail (014 PR D) may have been
+  // started by the agency. Rows are over-fetched and the newest distinct
+  // threads kept; an added thread writes up to MAX_IMPORT_MESSAGES rows at
+  // once, so the window holds THREADS_PER_ACCOUNT such threads before any
+  // could be crowded out.
   const { data: tracked } = await supabase
     .from('communications')
     .select('gmail_thread_id')
     .eq('family_id', familyId)
-    .eq('direction', 'outgoing')
     .not('gmail_thread_id', 'is', null)
     .order('created_at', { ascending: false })
-    .limit(THREADS_PER_ACCOUNT);
+    .limit(THREADS_PER_ACCOUNT * MAX_IMPORT_MESSAGES);
   const threadIds = [
     ...new Set(((tracked ?? []) as { gmail_thread_id: string }[]).map((t) => t.gmail_thread_id)),
-  ];
+  ].slice(0, THREADS_PER_ACCOUNT);
   if (threadIds.length === 0) return 0;
 
   const { data: known } = await supabase
@@ -122,13 +129,12 @@ async function syncFamily(
   );
   const self = selfEmail.toLowerCase();
 
-  // Every outgoing row on these threads, so each reply can take its thread
-  // founder's label (_shared/threadOrg.ts) — mirrors functions/gmail "sync".
+  // Every row on these threads, so each reply can take its thread founder's
+  // label (_shared/threadOrg.ts) — mirrors functions/gmail "sync".
   const { data: outgoing, error: outgoingErr } = await supabase
     .from('communications')
     .select('id, gmail_thread_id, direction, organization, created_at, occurred_at')
     .eq('family_id', familyId)
-    .eq('direction', 'outgoing')
     .in('gmail_thread_id', threadIds);
   // A saved reply is never re-synced, so syncing without the founders would
   // leave its label empty for good. Skip this family's run; the next retries.
@@ -153,7 +159,7 @@ async function syncFamily(
       const text = extractText(msg.payload).slice(0, 20_000);
       if (!text) continue;
       const receivedAt = new Date(Number(msg.internalDate ?? Date.now())).toISOString();
-      const { error } = await supabase.from('communications').insert({
+      const row = {
         family_id: familyId,
         kind: 'email',
         subject: header(msg.payload, 'Subject') || '(no subject)',
@@ -166,7 +172,19 @@ async function syncFamily(
         gmail_thread_id: threadId,
         gmail_message_id: msg.id,
         direction: 'incoming',
+      };
+      // Everyone else on the reply (064); retried without it pre-064 so a
+      // late migration never costs the reply itself.
+      const others = otherRecipients({
+        to: headerValues(msg.payload?.headers, 'To'),
+        cc: headerValues(msg.payload?.headers, 'Cc'),
+        from,
+        self: selfEmail,
       });
+      let { error } = await supabase.from('communications').insert({ ...row, cc: others });
+      if (isMissingCcColumn(error)) {
+        ({ error } = await supabase.from('communications').insert(row));
+      }
       if (!error) {
         knownIds.add(msg.id);
         newReplies++;

@@ -23,6 +23,7 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { gmailStatus, gmailSyncReplies, autoSyncReplies, type GmailStatus } from '@/lib/gmail';
 import { connectGmailWeb } from '@/lib/googleAuth';
 import GmailReplyModal from '@/components/GmailReplyModal';
+import AddThreadModal from '@/components/AddThreadModal';
 import AddEntryModal, { KIND_CONFIG, ORG_LABELS } from '@/components/AddEntryModal';
 import {
   useCommunications,
@@ -30,6 +31,8 @@ import {
   type CommunicationKind,
 } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
+import { useContacts } from '@/hooks/useContacts';
+import { ccLine } from '@/lib/ccLine';
 import { isUnreadReply } from '@/lib/replyInbox';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useToast } from '@/components/Toast';
@@ -56,6 +59,7 @@ export default function CommunicationLogScreen() {
   } = useCommunications(family?.id ?? '');
   // Case-file chips: an entry that serves a tracked request links to its case.
   const { requests } = useRequests(family?.id);
+  const { contacts } = useContacts(family?.id);
   const { children } = useChildren(family?.id);
   const primaryChild = children.find((c) => c.is_primary) ?? children[0];
   const navigation = useNavigation();
@@ -89,6 +93,7 @@ export default function CommunicationLogScreen() {
     if (item && isUnreadReply(item, new Date())) void markRead(item.id);
   }, [expandedId, communications, markRead]);
   const [showAdd, setShowAdd] = useState(false);
+  const [showAddThread, setShowAddThread] = useState(false);
 
   // ── Gmail: connection status, reply sync, in-thread reply modal ──
   const [gmail, setGmail] = useState<GmailStatus>({ connected: false, gmail: false, email: null });
@@ -277,6 +282,17 @@ export default function CommunicationLogScreen() {
             </TouchableOpacity>
           )}
           {Platform.OS === 'web' && (
+            <TouchableOpacity
+              style={styles.gmailBtn}
+              onPress={() => setShowAddThread(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Add an email thread from Gmail"
+            >
+              <Ionicons name="add" size={14} color={colors.teal} />
+              <Text style={styles.gmailBtnText}>Add email thread</Text>
+            </TouchableOpacity>
+          )}
+          {Platform.OS === 'web' && (
             gmail.gmail ? (
               <TouchableOpacity
                 style={styles.gmailBtn}
@@ -363,6 +379,10 @@ export default function CommunicationLogScreen() {
             </View>
             {expandedId === item.id && (
               <>
+                {(() => {
+                  const line = ccLine(item, contacts);
+                  return line ? <Text style={styles.ccLine}>{line}</Text> : null;
+                })()}
                 {item.body ? <Text style={styles.entryText}>{item.body}</Text> : null}
                 {(() => {
                   const linked = item.request_id
@@ -470,6 +490,28 @@ export default function CommunicationLogScreen() {
           showToast(ok ? 'Added to your paper trail' : "Couldn't save — try again.", ok ? 'success' : 'error');
           if (ok) setShowAdd(false);
           return ok;
+        }}
+      />
+
+      <AddThreadModal
+        visible={showAddThread}
+        onClose={() => setShowAddThread(false)}
+        gmailConnected={gmail.gmail}
+        onConnectGmail={async () => {
+          const r = await connectGmailWeb('/');
+          if (!r.success) showToast(r.error ?? "Couldn't start the Google connection.", 'error');
+        }}
+        requests={requests
+          .filter((r) => r.status === 'requested' || r.status === 'in_progress')
+          .map((r) => ({ id: r.id, title: r.title }))}
+        onAdded={(imported) => {
+          refetch();
+          showToast(
+            imported > 0
+              ? `Added ${imported} message${imported === 1 ? '' : 's'} to your paper trail.`
+              : 'That thread is already in your paper trail.',
+            'success'
+          );
         }}
       />
 
@@ -642,6 +684,11 @@ const styles = StyleSheet.create({
   },
   reopenText: { fontSize: fonts.sizes.xs, color: colors.dark },
   entryMeta: { fontSize: fonts.sizes.xs, color: colors.mid, marginTop: 2 },
+  ccLine: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    marginTop: spacing.sm,
+  },
   entryText: {
     fontSize: fonts.sizes.xs,
     color: colors.dark,
