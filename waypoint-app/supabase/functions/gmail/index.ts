@@ -11,13 +11,14 @@
  *
  * Actions:
  *   - "status": { connected, gmail, email } — whether Gmail scopes are held
- *   - "send":   { to, subject, body, communicationId?, replyToCommunicationId? }
+ *   - "send":   { to, cc?, subject, body, communicationId?, replyToCommunicationId? }
  *               Sends via the Gmail API. Replies thread properly
  *               (threadId + In-Reply-To/References). Updates/creates the
- *               paper-trail row with thread + message ids.
+ *               paper-trail row with thread + message ids and the Cc (064).
  *   - "sync":   pulls new messages on every tracked thread, inserts
  *               incoming replies into communications (idempotent on
- *               gmail_message_id). Returns { newReplies }.
+ *               gmail_message_id), with everyone else on each reply as
+ *               its cc (064). Returns { newReplies }.
  *
  * Secrets required: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET (already set
  * for google-auth; Supabase secrets are project-wide).
@@ -26,6 +27,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { b64url, buildRawMessage, parseCc, isEmailAddress, MAX_CC } from '../_shared/mime.ts';
 import { threadOrganization } from '../_shared/threadOrg.ts';
+import { ccForStorage, isMissingCcColumn, otherRecipients } from '../_shared/recipients.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -258,20 +260,28 @@ serve(async (req) => {
     const sent = asDraft ? { ...(result.message ?? {}), draftId: result.id } : result;
 
     // Paper trail: update the existing draft row, or record the reply
+    // Who was copied (064). Every write below that names cc is retried
+    // without it on a database where 064 is not applied yet: a late
+    // migration costs the Cc, never the paper-trail row.
+    const ccStored = ccForStorage(cc);
     if (communicationId) {
-      await userClient
+      const fields = {
+        // A draft is NOT a send. The row stays a draft and sent_at stays
+        // null; the thread id is stored anyway so reply-sync can follow the
+        // thread the moment the parent sends it from Gmail.
+        status: asDraft ? 'draft' : 'sent',
+        ...(asDraft ? {} : { sent_at: new Date().toISOString() }),
+        gmail_thread_id: sent.threadId ?? null,
+        gmail_message_id: sent.id ?? null,
+        direction: 'outgoing',
+      };
+      const { error: updateErr } = await userClient
         .from('communications')
-        .update({
-          // A draft is NOT a send. The row stays a draft and sent_at stays
-          // null; the thread id is stored anyway so reply-sync can follow the
-          // thread the moment the parent sends it from Gmail.
-          status: asDraft ? 'draft' : 'sent',
-          ...(asDraft ? {} : { sent_at: new Date().toISOString() }),
-          gmail_thread_id: sent.threadId ?? null,
-          gmail_message_id: sent.id ?? null,
-          direction: 'outgoing',
-        })
+        .update({ ...fields, cc: ccStored })
         .eq('id', communicationId);
+      if (isMissingCcColumn(updateErr)) {
+        await userClient.from('communications').update(fields).eq('id', communicationId);
+      }
     } else if (family?.id) {
       // A reply sent from the paper trail takes its thread's label (see
       // _shared/threadOrg.ts); a message with no thread is left unlabelled.
@@ -286,7 +296,7 @@ serve(async (req) => {
           .eq('direction', 'outgoing');
         organization = threadOrganization(threadRows ?? []);
       }
-      await userClient.from('communications').insert({
+      const row = {
         family_id: family.id,
         kind: 'email',
         subject: replySubject || subject,
@@ -298,7 +308,11 @@ serve(async (req) => {
         gmail_thread_id: sent.threadId ?? null,
         gmail_message_id: sent.id ?? null,
         direction: 'outgoing',
-      });
+      };
+      const { error: insertErr } = await userClient
+        .from('communications')
+        .insert({ ...row, cc: ccStored });
+      if (isMissingCcColumn(insertErr)) await userClient.from('communications').insert(row);
     }
 
     return json({ ok: true, threadId: sent.threadId ?? null, messageId: sent.id ?? null });
@@ -356,7 +370,7 @@ serve(async (req) => {
           (threadRows ?? []).filter((t) => t.gmail_thread_id === threadId && t.family_id === fam)
         );
         const receivedAt = new Date(Number(msg.internalDate ?? Date.now())).toISOString();
-        const { error: insertErr } = await userClient.from('communications').insert({
+        const row = {
           family_id: fam,
           kind: 'email',
           subject: header(msg.payload, 'Subject') || '(no subject)',
@@ -369,7 +383,20 @@ serve(async (req) => {
           gmail_thread_id: threadId,
           gmail_message_id: msg.id,
           direction: 'incoming',
+        };
+        // Everyone else on the reply (064) — who a reply-all would copy.
+        const others = otherRecipients({
+          to: header(msg.payload, 'To'),
+          cc: header(msg.payload, 'Cc'),
+          from,
+          self: selfEmail,
         });
+        let { error: insertErr } = await userClient
+          .from('communications')
+          .insert({ ...row, cc: others });
+        if (isMissingCcColumn(insertErr)) {
+          ({ error: insertErr } = await userClient.from('communications').insert(row));
+        }
         if (!insertErr) {
           knownIds.add(msg.id);
           newReplies++;

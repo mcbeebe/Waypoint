@@ -37,6 +37,7 @@ const h = vi.hoisted(() => ({
   commSeq: 0,
   logCommunication: vi.fn(async (_familyId: string, _input: Record<string, unknown>) => ''),
   markSent: vi.fn(async (_id: string) => true),
+  recordCc: vi.fn(async (_id: string, _cc: readonly string[]) => true),
   updateDraft: vi.fn(
     async (_id: string, _fields: Record<string, unknown>) =>
       'updated' as 'updated' | 'not_draft' | 'error'
@@ -69,6 +70,7 @@ vi.mock('@/hooks/useCommunications', () => ({
   useCommunications: () => ({ communications: [], refetch: vi.fn() }),
   logCommunication: h.logCommunication,
   markCommunicationSent: h.markSent,
+  recordCommunicationCc: h.recordCc,
   updateCommunicationDraft: h.updateDraft,
   attachCommunicationToRequest: h.attach,
 }));
@@ -112,6 +114,7 @@ beforeEach(() => {
   h.logCommunication.mockReset();
   h.logCommunication.mockImplementation(async () => `comm${++h.commSeq}`);
   h.markSent.mockClear();
+  h.recordCc.mockClear();
   h.updateDraft.mockReset();
   h.updateDraft.mockImplementation(async () => 'updated');
   h.gmail = { gmail: false, email: null };
@@ -509,6 +512,29 @@ describe('sending through Gmail', () => {
       fireEvent.click(screen.getByLabelText('Change who this goes to'));
       fireEvent.click(screen.getByLabelText('Send to Pat Nguyen'));
       expect(screen.getByText('No one')).toBeTruthy();
+    });
+
+    it('"Mark as sent" after the mail-app hand-off records who was copied (064)', async () => {
+      await draftReadyToSend();
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+      await waitFor(() => expect(h.recordCc).toHaveBeenCalledTimes(1));
+      expect(h.recordCc).toHaveBeenCalledWith('comm1', ['sam@example.org']);
+    });
+
+    it('nothing is recorded app-side when nobody was copied, or when Gmail sent it', async () => {
+      await draftReadyToSend();
+      fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+      await waitFor(() => expect(h.markSent).toHaveBeenCalled());
+      expect(h.recordCc).not.toHaveBeenCalled();
+
+      // The Gmail path: the gmail function stores the Cc with the send.
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      const sheet = await openSheetFromButton();
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+      await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(h.markSent).toHaveBeenCalledTimes(2));
+      expect(h.recordCc).not.toHaveBeenCalled();
     });
 
     it('the addressee is never also copied', async () => {

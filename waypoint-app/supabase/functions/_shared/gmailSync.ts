@@ -14,6 +14,7 @@
  */
 import type { createClient } from 'jsr:@supabase/supabase-js@2';
 import { threadOrganization, type ThreadRow } from './threadOrg.ts';
+import { isMissingCcColumn, otherRecipients } from './recipients.ts';
 
 type Supabase = ReturnType<typeof createClient>;
 
@@ -153,7 +154,7 @@ async function syncFamily(
       const text = extractText(msg.payload).slice(0, 20_000);
       if (!text) continue;
       const receivedAt = new Date(Number(msg.internalDate ?? Date.now())).toISOString();
-      const { error } = await supabase.from('communications').insert({
+      const row = {
         family_id: familyId,
         kind: 'email',
         subject: header(msg.payload, 'Subject') || '(no subject)',
@@ -166,7 +167,19 @@ async function syncFamily(
         gmail_thread_id: threadId,
         gmail_message_id: msg.id,
         direction: 'incoming',
+      };
+      // Everyone else on the reply (064); retried without it pre-064 so a
+      // late migration never costs the reply itself.
+      const others = otherRecipients({
+        to: header(msg.payload, 'To'),
+        cc: header(msg.payload, 'Cc'),
+        from,
+        self: selfEmail,
       });
+      let { error } = await supabase.from('communications').insert({ ...row, cc: others });
+      if (isMissingCcColumn(error)) {
+        ({ error } = await supabase.from('communications').insert(row));
+      }
       if (!error) {
         knownIds.add(msg.id);
         newReplies++;

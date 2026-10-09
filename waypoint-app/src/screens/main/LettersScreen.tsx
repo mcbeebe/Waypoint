@@ -44,6 +44,7 @@ import { trackDraftUsed } from '@/lib/analytics';
 import {
   logCommunication,
   markCommunicationSent,
+  recordCommunicationCc,
   attachCommunicationToRequest,
   updateCommunicationDraft,
 } from '@/hooks/useCommunications';
@@ -492,7 +493,11 @@ export default function LettersScreen() {
    * 'untracked' (sent and logged, but the tracked request couldn't be opened)
    * — so the Gmail send never reports a success it didn't have.
    */
-  const handleMarkSent = useCallback(async (): Promise<'ok' | 'not_saved' | 'untracked'> => {
+  // `copied`: the Cc of a letter handed to the mail app, recorded on its row
+  // (064). The Gmail path passes nothing — the gmail function stores its Cc.
+  const handleMarkSent = useCallback(async (
+    copied: readonly string[] = []
+  ): Promise<'ok' | 'not_saved' | 'untracked'> => {
     // Not `savedIdRef.current ?? …`: once any version of this letter was
     // saved, that short-circuit marked THAT row sent with the text from before
     // the parent's last edits. saveDraftOnce revises the row first.
@@ -503,6 +508,7 @@ export default function LettersScreen() {
     }
     const ok = await markCommunicationSent(id);
     if (ok) savedSentRef.current = true;
+    if (ok && copied.length > 0) void recordCommunicationCc(id, copied);
     setMarkedSent(ok);
     if (!ok) {
       showToast("Couldn't mark it sent.", 'error');
@@ -1488,7 +1494,7 @@ export default function LettersScreen() {
                     )}
                     <TouchableOpacity
                       style={styles.trackSentButton}
-                      onPress={handleMarkSent}
+                      onPress={() => handleMarkSent(ccList)}
                       accessibilityRole="button"
                       accessibilityLabel="Mark this letter as sent"
                     >
