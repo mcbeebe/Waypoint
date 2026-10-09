@@ -99,6 +99,13 @@ describe('site pricing matches the app', () => {
     expect(pricing).toContain(`${appConst('FREE_NAVIGATOR_MONTHLY_LIMIT')} AI Navigator messages a month`);
   });
 
+  it('the /product/ tour states the same free Navigator allowance', () => {
+    const product = read('pages/product.astro');
+    const stated = [...product.matchAll(/(\d+) (?:AI Navigator )?messages a month/g)].map((m) => Number(m[1]));
+    expect(stated.length).toBeGreaterThan(0);
+    for (const n of stated) expect(n).toBe(appConst('FREE_NAVIGATOR_MONTHLY_LIMIT'));
+  });
+
   it('the page discloses that Premium renews until cancelled, at the app’s prices', () => {
     expect(pricing.replace(/\s+/g, ' ')).toContain(`renews at ${monthly} a month or ${annual} a year until you cancel`);
   });
