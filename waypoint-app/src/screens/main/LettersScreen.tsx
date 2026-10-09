@@ -55,6 +55,7 @@ import type { FunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
 import { deadlineFor, statutoryDays } from '@/lib/requestClocks';
 import { sendSteps, type SendStepsInput } from '@/lib/sendSteps';
+import { addCc, MAX_CC } from '@/lib/letterAddress';
 import { useTextScale } from '@/lib/textSize';
 import { localDayISO } from '@/lib/dateOnly';
 import type { RequestDeadline } from '@/lib/requestClocks';
@@ -188,6 +189,9 @@ export default function LettersScreen() {
       setFilledFromRecords([]);
       setManualRecipient(null);
       setChoosingRecipient(false);
+      setCc([]);
+      setCcInput('');
+      setCcError(null);
       setManualEmailInput('');
       setSubjectEdit(null);
       setAiSubject(null);
@@ -233,6 +237,9 @@ export default function LettersScreen() {
     setFilledFromRecords([]);
     setManualRecipient(null);
     setChoosingRecipient(false);
+    setCc([]);
+    setCcInput('');
+    setCcError(null);
     setManualEmailInput('');
     // A reopened letter keeps the subject it was saved with — not the
     // template-title fallback the subject field exists to get away from.
@@ -301,6 +308,9 @@ export default function LettersScreen() {
     setSentMoment(null);
     setManualRecipient(null);
     setChoosingRecipient(false);
+    setCc([]);
+    setCcInput('');
+    setCcError(null);
     setManualEmailInput('');
     setSubjectEdit(null);
     setAiSubject(oneLine(result.subject) ?? leading ?? null);
@@ -584,6 +594,12 @@ export default function LettersScreen() {
   // letter's agency) — the parent wants someone else, so show the chooser
   // instead of the match until they pick (owner ask, 2026-10-09).
   const [choosingRecipient, setChoosingRecipient] = useState(false);
+  // Cc (owner ask, 2026-10-09): people copied on a Gmail send or the mail-app
+  // hand-off. Every reply on the thread counts as a reply, theirs included
+  // (owner decision) — the Cc line and the send steps say so.
+  const [cc, setCc] = useState<string[]>([]);
+  const [ccInput, setCcInput] = useState('');
+  const [ccError, setCcError] = useState<string | null>(null);
   // The "When you press Send" steps follow the family's text size.
   const { scale: textScale } = useTextScale();
   /** Typed-address fallback (below): a saved-contact chip is not the only
@@ -639,10 +655,39 @@ export default function LettersScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, template, contacts, manualRecipient, choosingRecipient, subjectEdit, aiSubject, primaryChild?.first_name, family?.parent_last_name]);
 
+  // Never copy the addressee — they may have been picked after being copied.
+  const toEmail = outgoing?.recipient.contact?.email?.toLowerCase() ?? null;
+  const ccList = useMemo(() => cc.filter((e) => e.toLowerCase() !== toEmail), [cc, toEmail]);
+  const ccName = useCallback(
+    (email: string) =>
+      emailableContacts.find((c) => c.email?.toLowerCase() === email.toLowerCase())?.name ?? email,
+    [emailableContacts]
+  );
+  const addToCc = useCallback(
+    (value: string) => {
+      const result = addCc(ccList, value, toEmail);
+      if (!result.added) {
+        setCcError(
+          result.reason === 'invalid'
+            ? 'That doesn’t look like one email address.'
+            : result.reason === 'duplicate'
+              ? 'They’re already on this email.'
+              : `You can copy up to ${MAX_CC} people.`
+        );
+        return;
+      }
+      setCc(result.list);
+      setCcInput('');
+      setCcError(null);
+    },
+    [ccList, toEmail]
+  );
+
   const target = outgoing
     ? composeTarget(
         {
           to: outgoing.recipient.to[0],
+          cc: ccList,
           subject: outgoing.subject,
           body: outgoing.body,
         },
@@ -714,6 +759,7 @@ export default function LettersScreen() {
       }
       const result = await gmailSend({
         to,
+        cc: ccList,
         subject,
         // The body without a leading "Subject:" line — Gmail has its own.
         body: outgoing.body,
@@ -742,7 +788,7 @@ export default function LettersScreen() {
     } finally {
       setGmailSending(false);
     }
-  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate, funnelLocale]);
+  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate, funnelLocale, ccList]);
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
@@ -774,6 +820,9 @@ export default function LettersScreen() {
     setFilledFromRecords([]);
     setManualRecipient(null);
     setChoosingRecipient(false);
+    setCc([]);
+    setCcInput('');
+    setCcError(null);
     setManualEmailInput('');
     setSubjectEdit(null);
     setAiSubject(null);
@@ -806,6 +855,7 @@ export default function LettersScreen() {
             name: outgoing.recipient.contact.name,
             email: outgoing.recipient.contact.email,
           }}
+          cc={ccList.map((e) => ({ name: ccName(e), email: e }))}
           subject={outgoing.subjectField}
           onChangeSubject={setSubjectEdit}
           body={outgoing.body}
@@ -1034,6 +1084,88 @@ export default function LettersScreen() {
                       The letter still greets {outgoing.autoRecipient.contact.name} — update the greeting above if it’s going to someone else.
                     </Text>
                   )}
+                <View style={styles.ccBlock}>
+                  <View style={styles.ccRow}>
+                    <Text style={[styles.addressLine, styles.addressLabel]}>Cc: </Text>
+                    {ccList.length === 0 && <Text style={styles.ccNone}>No one</Text>}
+                    {ccList.map((email) => (
+                      <View key={email} style={styles.ccChip}>
+                        <Text style={styles.ccChipText}>{ccName(email)}</Text>
+                        <TouchableOpacity
+                          onPress={() => setCc(ccList.filter((e) => e !== email))}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Remove ${ccName(email)} from Cc`}
+                        >
+                          <Text style={styles.ccChipRemove}>×</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                  {ccList.length < MAX_CC && (
+                    <>
+                      {(() => {
+                        const offer = emailableContacts
+                          .filter(
+                            (c) =>
+                              c.email!.toLowerCase() !== toEmail &&
+                              !ccList.some((e) => e.toLowerCase() === c.email!.toLowerCase())
+                          )
+                          .slice(0, 4);
+                        return offer.length > 0 ? (
+                          <View style={styles.ccOffer}>
+                            {offer.map((c) => (
+                              <TouchableOpacity
+                                key={c.id}
+                                style={styles.ccOfferChip}
+                                onPress={() => addToCc(c.email!)}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Copy ${c.name}`}
+                              >
+                                <Text style={styles.ccOfferText}>+ {c.name}{c.role ? ` · ${c.role}` : ''}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        ) : null;
+                      })()}
+                      <View style={styles.manualEmailRow}>
+                        <TextInput
+                          style={styles.manualEmailInput}
+                          value={ccInput}
+                          onChangeText={(v) => {
+                            setCcInput(v);
+                            setCcError(null);
+                          }}
+                          onSubmitEditing={() => addToCc(ccInput)}
+                          placeholder="Copy someone — type an email"
+                          placeholderTextColor={colors.mid}
+                          keyboardType="email-address"
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                          accessibilityLabel="Cc email address"
+                        />
+                        <TouchableOpacity
+                          style={[styles.manualEmailButton, !ccInput.trim() && styles.manualEmailButtonDisabled]}
+                          disabled={!ccInput.trim()}
+                          onPress={() => addToCc(ccInput)}
+                          accessibilityRole="button"
+                          accessibilityState={{ disabled: !ccInput.trim() }}
+                          accessibilityLabel="Add to Cc"
+                        >
+                          <Text style={styles.manualEmailButtonText}>Add</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
+                  )}
+                  {ccError ? (
+                    <Text style={styles.greetingWarning} accessibilityRole="alert">{ccError}</Text>
+                  ) : null}
+                  {ccList.length > 0 && (
+                    <Text style={styles.addressHint}>
+                      A reply from anyone you copy shows up as a reply, too.
+                    </Text>
+                  )}
+                </View>
                 <View style={styles.subjectRow}>
                   <Text style={[styles.addressLine, styles.addressLabel]}>Subject: </Text>
                   <TextInput
@@ -1129,6 +1261,7 @@ export default function LettersScreen() {
                     locale: funnelLocale,
                     from: gmailEmail,
                     toName: contact.name || contact.email!,
+                    cc: ccList.map(ccName),
                     ...sendTracking,
                   });
                   return (
@@ -1579,6 +1712,30 @@ const styles = StyleSheet.create({
   sendStepRow: { flexDirection: 'row', gap: 6 },
   sendStepNum: { color: brand.ink, fontWeight: fonts.weights.bold, minWidth: 16 },
   sendStepText: { flex: 1, color: brand.ink },
+  ccBlock: { gap: 6, paddingVertical: 4 },
+  ccRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  ccNone: { fontSize: fonts.sizes.sm, color: colors.mid },
+  ccChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: brand.pineTint,
+    borderRadius: radii.full,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  ccChipText: { fontSize: fonts.sizes.sm, color: brand.pineDeep, fontWeight: fonts.weights.semibold },
+  ccChipRemove: { fontSize: fonts.sizes.md, color: brand.inkSoft, fontWeight: fonts.weights.bold },
+  ccOffer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  ccOfferChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.full,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    backgroundColor: colors.white,
+  },
+  ccOfferText: { fontSize: fonts.sizes.sm, color: colors.dark },
   greetingWarning: { fontSize: fonts.sizes.sm, color: semantic.warning, lineHeight: 18, marginTop: 2 },
   subjectRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   subjectInput: {

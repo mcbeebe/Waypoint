@@ -13,6 +13,8 @@
 
 export interface ComposeOptions {
   to?: string;
+  /** Copied recipients, already validated (lib/letterAddress addCc). */
+  cc?: string[];
   subject: string;
   body: string;
 }
@@ -40,6 +42,7 @@ export function isMobileBrowser(env: ComposeEnv): boolean {
 /** mailto: with the subject/body encoded. */
 export function mailtoUrl(opts: ComposeOptions): string {
   const params = new URLSearchParams();
+  if (opts.cc && opts.cc.length > 0) params.set('cc', opts.cc.join(','));
   params.set('subject', opts.subject);
   // RFC 2368 requires CRLF (%0D%0A) for line breaks in mailto bodies —
   // Gmail's iOS handler drops lone \n (%0A) and flattens the draft into
@@ -54,6 +57,7 @@ export function mailtoUrl(opts: ComposeOptions): string {
 export function gmailComposeUrl(opts: ComposeOptions): string {
   const params = new URLSearchParams({ view: 'cm', fs: '1', su: opts.subject, body: opts.body });
   if (opts.to) params.set('to', opts.to);
+  if (opts.cc && opts.cc.length > 0) params.set('cc', opts.cc.join(','));
   return `https://mail.google.com/mail/?${params.toString()}`;
 }
 

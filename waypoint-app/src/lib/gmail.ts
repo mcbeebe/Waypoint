@@ -46,6 +46,8 @@ export async function gmailStatus(): Promise<GmailStatus> {
 
 export interface GmailSendInput {
   to: string;
+  /** Copied recipients — plain addresses, at most MAX_CC (checked again server-side). */
+  cc?: string[];
   subject: string;
   body: string;
   /** Existing paper-trail row to mark sent + attach thread ids to. */

@@ -52,3 +52,23 @@ describe('sendSteps', () => {
     expect(statutoryDays('other')).toBeNull();
   });
 });
+
+describe('sendSteps with Cc', () => {
+  const base = { locale: 'en' as const, from: 'parent@gmail.com', toName: 'Lilia Talavera', tracking: 'none' as const };
+  it('names everyone copied, in plain English', () => {
+    expect(sendSteps({ ...base, cc: ['Sam'] }).steps[1]).toBe(
+      'It’s sent automatically from parent@gmail.com to Lilia Talavera, copying Sam — Gmail won’t open — and shows up in your Sent folder.'
+    );
+    expect(sendSteps({ ...base, cc: ['Sam', 'Dr. Patel', 'ana@x.org'] }).steps[1]).toMatch(
+      /copying Sam, Dr\. Patel and ana@x\.org — Gmail/
+    );
+  });
+  it('says a copied person’s reply counts as a reply (owner decision: every reply counts)', () => {
+    expect(sendSteps({ ...base, cc: ['Sam'] }).steps.at(-1)).toMatch(/including people you copied/);
+    expect(sendSteps(base).steps.at(-1)).not.toMatch(/copied/);
+  });
+  it('translates the Cc wording', () => {
+    expect(sendSteps({ ...base, locale: 'es', cc: ['Sam', 'Ana'] }).steps[1]).toMatch(/con copia a Sam y Ana/);
+    expect(sendSteps({ ...base, locale: 'vi', cc: ['Sam', 'Ana'] }).steps[1]).toMatch(/đồng gửi cho Sam và Ana/);
+  });
+});

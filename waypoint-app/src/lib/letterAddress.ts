@@ -126,3 +126,39 @@ export function pickRecipient(
 
   return { to: [], contact: null, reason: 'none' };
 }
+
+/**
+ * Most people a letter may copy. Mirrors MAX_CC in
+ * supabase/functions/_shared/mime.ts, which re-checks every send
+ * (letterAddress.mirror.test.ts holds the two together).
+ */
+export const MAX_CC = 5;
+
+/**
+ * One plain address, nothing else. Cc addresses are joined into one header,
+ * so a comma, an angle bracket or a line break inside one would smuggle in a
+ * second recipient — or a second header.
+ */
+const EMAIL_RE = /^[^\s@,;:<>()[\]\\"']+@[^\s@,;:<>()[\]\\"']+\.[^\s@,;:<>()[\]\\"'.]{2,}$/;
+
+/** Whether `value` is one plain email address. */
+export function isEmailAddress(value: string): boolean {
+  return EMAIL_RE.test(value.trim());
+}
+
+export type AddCcResult =
+  | { added: true; list: string[] }
+  | { added: false; list: string[]; reason: 'invalid' | 'duplicate' | 'full' };
+
+/**
+ * Add `input` to the Cc list. `to` is the addressee — copying them too is a
+ * duplicate. Case-insensitive, because mail servers are.
+ */
+export function addCc(list: string[], input: string, to: string | null): AddCcResult {
+  const email = input.trim();
+  if (!isEmailAddress(email)) return { added: false, list, reason: 'invalid' };
+  const taken = [...list, ...(to ? [to] : [])].map((e) => e.toLowerCase());
+  if (taken.includes(email.toLowerCase())) return { added: false, list, reason: 'duplicate' };
+  if (list.length >= MAX_CC) return { added: false, list, reason: 'full' };
+  return { added: true, list: [...list, email] };
+}

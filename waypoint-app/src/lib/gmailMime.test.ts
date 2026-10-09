@@ -15,6 +15,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildRawMessage,
+  parseCc,
+  isEmailAddress,
+  MAX_CC,
   encodeHeader,
   b64,
   b64url,
@@ -134,5 +137,42 @@ describe('the two base64 flavours are not interchangeable', () => {
     ).toString('utf8');
     expect(back).toBe(raw);
     expect(readMessage(back).body).toBe(BODY);
+  });
+});
+
+describe('Cc (owner ask, 2026-10-09)', () => {
+  const headers = (raw: string) => raw.split('\r\n\r\n')[0].split('\r\n');
+
+  it('adds one Cc header with every copied address — and none when nobody is copied', () => {
+    const withCc = headers(buildRawMessage({ to: 'sc@rceb.org', cc: ['sam@example.org', 'adv@example.org'], subject: 'S', body: 'B' }));
+    expect(withCc).toContain('Cc: sam@example.org, adv@example.org');
+    expect(headers(buildRawMessage({ to: 'sc@rceb.org', cc: [], subject: 'S', body: 'B' })).some((h) => h.startsWith('Cc:'))).toBe(false);
+    expect(headers(buildRawMessage({ to: 'sc@rceb.org', subject: 'S', body: 'B' })).some((h) => h.startsWith('Cc:'))).toBe(false);
+  });
+
+  it('parseCc accepts plain addresses, trims, and drops duplicates and the To address', () => {
+    expect(parseCc(undefined, 'sc@rceb.org')).toEqual([]);
+    expect(parseCc([' sam@example.org ', 'SAM@example.org', 'SC@rceb.org'], 'sc@rceb.org')).toEqual(['sam@example.org']);
+  });
+
+  it('parseCc refuses anything that could smuggle a recipient or a header', () => {
+    for (const bad of [
+      'a@x.com\r\nBcc: c@z.com',
+      'a@x.com, b@y.com',
+      'Sam <sam@example.org>',
+      'not an email',
+      '',
+    ]) {
+      expect(parseCc([bad], 'sc@rceb.org')).toBeNull();
+      expect(isEmailAddress(bad)).toBe(false);
+    }
+    expect(parseCc('sam@example.org', 'sc@rceb.org')).toBeNull(); // not an array
+    expect(parseCc([42], 'sc@rceb.org')).toBeNull();
+  });
+
+  it(`parseCc refuses more than ${MAX_CC} copied addresses`, () => {
+    const many = Array.from({ length: MAX_CC + 1 }, (_, i) => `p${i}@example.org`);
+    expect(parseCc(many.slice(0, MAX_CC), 'sc@rceb.org')).toHaveLength(MAX_CC);
+    expect(parseCc(many, 'sc@rceb.org')).toBeNull();
   });
 });

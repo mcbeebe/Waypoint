@@ -6,7 +6,7 @@
  * one does not wait. The owner sent a letter that way (2026-10-07) with a subject
  * line that had nothing to do with it — a subject they were never shown and
  * could not change. So the button now opens this sheet. It shows exactly what
- * will go out — from, to, subject, body — and lets the parent fix the subject
+ * will go out — from, to, cc, subject, body — and lets the parent fix the subject
  * before anything is sent.
  *
  * Presentational and controlled: LettersScreen owns the subject and the send,
@@ -34,6 +34,8 @@ export interface GmailSendConfirmModalProps {
   fromEmail: string | null;
   /** Who the letter is addressed to — chosen on the draft screen. */
   primary: { name: string; email: string };
+  /** Copied recipients — chosen on the draft screen; shown here so the last look is complete. */
+  cc?: { name: string; email: string }[];
   subject: string;
   onChangeSubject: (next: string) => void;
   /** The exact body that will be sent. */
@@ -60,6 +62,7 @@ const COPY: Record<
     from: string;
     yourGmail: string;
     to: string;
+    cc: string;
     subject: string;
     subjectA11y: string;
     message: string;
@@ -75,6 +78,7 @@ const COPY: Record<
     from: 'From',
     yourGmail: 'your Gmail',
     to: 'To',
+    cc: 'Cc',
     subject: 'Subject',
     subjectA11y: 'Subject of the email you are about to send',
     message: 'Message',
@@ -89,6 +93,7 @@ const COPY: Record<
     from: 'De',
     yourGmail: 'su Gmail',
     to: 'Para',
+    cc: 'Cc',
     subject: 'Asunto',
     subjectA11y: 'Asunto del correo que está por enviar',
     message: 'Mensaje',
@@ -103,6 +108,7 @@ const COPY: Record<
     from: 'Từ',
     yourGmail: 'Gmail của quý vị',
     to: 'Đến',
+    cc: 'Đồng gửi',
     subject: 'Tiêu đề',
     subjectA11y: 'Tiêu đề của email quý vị sắp gửi',
     message: 'Nội dung',
@@ -119,6 +125,7 @@ export default function GmailSendConfirmModal({
   locale,
   fromEmail,
   primary,
+  cc = [],
   subject,
   onChangeSubject,
   body,
@@ -172,6 +179,21 @@ export default function GmailSendConfirmModal({
                 </View>
               </View>
             </View>
+
+            {cc.length > 0 && (
+              <View style={styles.line}>
+                <Text style={styles.lineLabel}>{copy.cc}</Text>
+                <View style={[styles.lineBody, styles.chips]}>
+                  {cc.map((p) => (
+                    <View key={p.email} style={styles.chip}>
+                      <Text style={styles.chipText}>
+                        {p.name && p.name !== p.email ? `${p.name} <${p.email}>` : p.email}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
 
             <View style={styles.line}>
               <Text style={styles.lineLabel}>{copy.subject}</Text>
