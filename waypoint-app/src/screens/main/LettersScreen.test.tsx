@@ -475,6 +475,19 @@ describe('sending through Gmail', () => {
         expect(h.toast).toHaveBeenCalledWith(expect.stringMatching(/couldn’t start tracking it/), 'error')
       );
       expect(h.toast).not.toHaveBeenCalledWith(expect.stringMatching(/^Sent through Gmail — replies will sync/), 'success');
+      // And no statutory date for a request that was never opened.
+      expect(screen.queryByText(/Their deadline/)).toBeNull();
+    });
+
+    it('a send whose paper-trail mark fails points to "Mark as sent", the real recovery', async () => {
+      h.markSent.mockImplementation(async () => false);
+      const sheet = await openSheet();
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+      await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+      await waitFor(() =>
+        expect(h.toast).toHaveBeenCalledWith(expect.stringMatching(/Tap “Mark as sent” below to start tracking/), 'error')
+      );
+      h.markSent.mockImplementation(async () => true);
     });
   });
 
@@ -484,7 +497,7 @@ describe('sending through Gmail', () => {
     // then exactly who it is from and to, the paper trail, and the reply.
     expect(screen.getByText('WHEN YOU PRESS SEND')).toBeTruthy();
     expect(screen.getByText(/one last time — nothing goes until you confirm/)).toBeTruthy();
-    expect(screen.getByText(/It’s sent from mike@example\.com to Pat Nguyen/)).toBeTruthy();
+    expect(screen.getByText(/It’s sent automatically from mike@example\.com to Pat Nguyen — Gmail won’t open/)).toBeTruthy();
     expect(screen.getByText(/A copy is saved to your Paper Trail/)).toBeTruthy();
     expect(screen.getByText(/When a reply comes in on this email, it shows on Home/)).toBeTruthy();
 

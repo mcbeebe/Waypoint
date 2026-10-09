@@ -9,7 +9,7 @@ describe('sendSteps', () => {
     const { title, steps } = sendSteps({ ...base, tracking: 'none' });
     expect(title).toBe('WHEN YOU PRESS SEND');
     expect(steps[0]).toMatch(/one last time — nothing goes until you confirm/);
-    expect(steps[1]).toBe('It’s sent from parent@gmail.com to Lilia Talavera, and shows up in your Gmail Sent folder.');
+    expect(steps[1]).toBe('It’s sent automatically from parent@gmail.com to Lilia Talavera — Gmail won’t open — and shows up in your Sent folder.');
     expect(steps.at(-1)).toMatch(/reply comes in .* shows on Home/);
   });
 
@@ -32,7 +32,7 @@ describe('sendSteps', () => {
   });
 
   it('falls back to "your Gmail" when the address is unknown', () => {
-    expect(sendSteps({ ...base, from: null, tracking: 'none' }).steps[1]).toMatch(/^It’s sent from your Gmail to/);
+    expect(sendSteps({ ...base, from: null, tracking: 'none' }).steps[1]).toMatch(/^It’s sent automatically from your Gmail to/);
   });
 
   it('is translated in every step, with the same structure', () => {

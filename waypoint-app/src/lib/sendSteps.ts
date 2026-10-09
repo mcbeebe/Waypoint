@@ -48,9 +48,9 @@ export function sendSteps(input: SendStepsInput): { title: string; steps: string
       'Quý vị sẽ xem lại toàn bộ email lần cuối — không có gì được gửi cho đến khi quý vị xác nhận.'
     ),
     L(
-      `It’s sent from ${from} to ${to}, and shows up in your Gmail Sent folder.`,
-      `Se envía desde ${from} a ${to}, y aparece en la carpeta Enviados de su Gmail.`,
-      `Email được gửi từ ${from} đến ${to}, và sẽ có trong thư mục Đã gửi của Gmail.`
+      `It’s sent automatically from ${from} to ${to} — Gmail won’t open — and shows up in your Sent folder.`,
+      `Se envía automáticamente desde ${from} a ${to} — Gmail no se abrirá — y aparece en su carpeta Enviados.`,
+      `Email được tự động gửi từ ${from} đến ${to} — Gmail sẽ không mở ra — và sẽ có trong thư mục Đã gửi.`
     ),
   ];
 

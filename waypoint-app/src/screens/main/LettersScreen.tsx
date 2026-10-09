@@ -86,6 +86,28 @@ const RECORDS_NOTE: Record<'en' | 'es' | 'vi', string> = {
 };
 
 /** Send-gate copy (draft flow 9c-2), trilingual like the rest of this flow. */
+/**
+ * After a Gmail send that went out but wasn't fully recorded. The email is
+ * gone either way, so the message says so — and names the recovery: the
+ * paper-trail row is already sent (the function marks it), so 'not_saved'
+ * means the follow-up steps (the tracked request, the sent moment) didn't
+ * run, and "Mark as sent" runs them.
+ */
+const SEND_RECORD_FAILED: Record<FunnelLocale, Record<'not_saved' | 'untracked', string>> = {
+  en: {
+    not_saved: 'Sent through Gmail — but Waypoint couldn’t finish recording it. Tap “Mark as sent” below to start tracking.',
+    untracked: 'Sent through Gmail — but Waypoint couldn’t start tracking it. Add it in Request Tracker.',
+  },
+  es: {
+    not_saved: 'Enviado por Gmail — pero Waypoint no pudo terminar de registrarlo. Toque “Mark as sent” abajo para empezar el seguimiento.',
+    untracked: 'Enviado por Gmail — pero Waypoint no pudo empezar a seguirlo. Agréguelo en Request Tracker.',
+  },
+  vi: {
+    not_saved: 'Đã gửi qua Gmail — nhưng Waypoint chưa ghi nhận xong. Bấm “Mark as sent” bên dưới để bắt đầu theo dõi.',
+    untracked: 'Đã gửi qua Gmail — nhưng Waypoint chưa thể bắt đầu theo dõi. Hãy thêm trong Request Tracker.',
+  },
+};
+
 const SEND_GATE: Record<
   'en' | 'es' | 'vi',
   { toast: string; a11y: (n: number) => string; hint: (n: number) => string }
@@ -394,7 +416,7 @@ export default function LettersScreen() {
 
   // The sent moment (owner feedback): a send deserves a congratulation,
   // the next step, and honest expectations — plus automatic clock tracking.
-  const { requests, createRequest } = useRequests(family?.id);
+  const { requests, loading: requestsLoading, createRequest } = useRequests(family?.id);
   const [sentMoment, setSentMoment] = useState<{
     next: SentNext;
     deadline: RequestDeadline | null;
@@ -508,7 +530,8 @@ export default function LettersScreen() {
     // Request Tracker shows for the same request: re-sending an open ask does
     // not restart its clock, and a founding send anchors on the family's local
     // day (the UTC slice is tomorrow every evening in California).
-    const deadline = track
+    // No statutory date for a request that was never opened.
+    const deadline = track && tracked
       ? deadlineFor(track.requestType, clockAnchorFor(joined, sentAt), sentAt)
       : null;
     setSentMoment({ next, deadline, tracked });
@@ -649,10 +672,13 @@ export default function LettersScreen() {
       requests
     );
     if (plan.mode === 'case' || plan.mode === 'join') return { tracking: 'case' };
+    // Until the family's requests load, "found" may really be a join — so
+    // claim only what is certain.
+    if (requestsLoading) return { tracking: 'none' };
     if (plan.mode === 'none') return { tracking: 'none' };
     const days = statutoryDays(plan.track.requestType);
     return days ? { tracking: 'clock', clockDays: days } : { tracking: 'tracked' };
-  }, [template, routeRequestId, primaryChild?.first_name, locale, route.params?.trackTitle, requests]);
+  }, [template, routeRequestId, primaryChild?.first_name, locale, route.params?.trackTitle, requests, requestsLoading]);
 
   const openSendSheet = useCallback(() => {
     setSendProblem(null);
@@ -711,17 +737,12 @@ export default function LettersScreen() {
         showToast('Sent through Gmail — replies will sync to your paper trail.', 'success');
       } else {
         // The email is gone either way — say so, and what didn't follow.
-        showToast(
-          recorded === 'untracked'
-            ? 'Sent through Gmail — but Waypoint couldn’t start tracking it. Add it in Request Tracker.'
-            : 'Sent through Gmail — but Waypoint couldn’t record it. Check your Paper Trail.',
-          'error'
-        );
+        showToast(SEND_RECORD_FAILED[funnelLocale][recorded], 'error');
       }
     } finally {
       setGmailSending(false);
     }
-  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate]);
+  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate, funnelLocale]);
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
