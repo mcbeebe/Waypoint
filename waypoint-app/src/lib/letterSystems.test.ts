@@ -2,11 +2,18 @@
  * A template's legal clock runs against the agency it addresses. On
  * 2026-10-07 a note to a provider, routed through the IPP template, opened a
  * 30-day Regional Center clock for a request nobody made. These pin when a
- * send counts as reaching its template's system — and that a mismatch is put
- * to the parent as a question, never decided silently either way.
+ * letter counts as reaching its template's system, and the question put to
+ * the parent when it doesn't — asked, never decided silently either way.
  */
 import { describe, it, expect } from 'vitest';
-import { reachesTemplateSystem, clockCheckCopy, ORG_BY_TEMPLATE } from './letterSystems';
+import {
+  reachesTemplateSystem,
+  anyReachesTemplateSystem,
+  clockCheckCopy,
+  ORG_BY_TEMPLATE,
+} from './letterSystems';
+import { LETTER_TEMPLATES } from './lettersCatalog';
+import { sentNextFor } from './sentNext';
 
 describe('reachesTemplateSystem', () => {
   it('a Regional Center request reaches only the Regional Center', () => {
@@ -28,8 +35,6 @@ describe('reachesTemplateSystem', () => {
   });
 
   it('an unknown recipient (a typed address) is not second-guessed', () => {
-    // Nothing contradicts the letter's own wording — this is how every send
-    // behaved before the check existed.
     expect(reachesTemplateSystem('ipp_review_request', null)).toBe(true);
     expect(reachesTemplateSystem('ipp_review_request', undefined)).toBe(true);
   });
@@ -39,46 +44,76 @@ describe('reachesTemplateSystem', () => {
     expect(reachesTemplateSystem('complaint', 'school')).toBe(true);
     expect(reachesTemplateSystem('no_such_template', 'school')).toBe(true);
   });
+});
 
-  it('every template the Letters catalog sends has a system', () => {
-    // A template missing here would silently skip the check.
-    for (const key of ['ipp_review_request', 'noa_request', 'rc_timeline_followup', 'sdp_info_request',
-      'medi_cal_deeming', 'ipp_need_request', 'delivery_plan_request', 'assessment_request',
-      'progress_data_request', 'records_request']) {
-      expect(ORG_BY_TEMPLATE[key]).toBeTruthy();
-    }
+describe('anyReachesTemplateSystem', () => {
+  it('a copied Service Coordinator puts the request in the Regional Center’s hands', () => {
+    expect(anyReachesTemplateSystem('ipp_review_request', 'medical', ['regional_center'])).toBe(true);
+  });
+
+  it('a copied person of unknown organization proves nothing', () => {
+    expect(anyReachesTemplateSystem('ipp_review_request', 'medical', [null, undefined])).toBe(false);
+    expect(anyReachesTemplateSystem('ipp_review_request', 'medical', ['school'])).toBe(false);
   });
 });
 
+describe('every template that tracks a request', () => {
+  // Derived from the catalog, so a new tracked template cannot silently skip
+  // the check by missing from ORG_BY_TEMPLATE.
+  const tracked = LETTER_TEMPLATES.map((t) => t.key).filter((key) => sentNextFor(key)?.track);
+
+  it('is covered', () => {
+    expect(tracked.length).toBeGreaterThan(5);
+  });
+
+  for (const key of tracked) {
+    it(`${key} names the system it writes to, and can ask about it`, () => {
+      expect(['regional_center', 'school']).toContain(ORG_BY_TEMPLATE[key]);
+      expect(clockCheckCopy(key, 'Dana Whitfield', 'medical', null)).not.toBeNull();
+    });
+  }
+});
+
 describe('clockCheckCopy', () => {
-  it('says what the letter is and where it went — and asks', () => {
-    const c = clockCheckCopy('ipp_review_request', 'Dana Whitfield', 'medical');
-    expect(c.question).toBe('Did this go to the Regional Center?');
-    expect(c.explain).toContain('went to Dana Whitfield, saved in your contacts under Medical');
-    expect(c.explain).toContain('only when the request reaches the Regional Center');
+  it('says what the letter is and where it is going — and asks', () => {
+    const c = clockCheckCopy('ipp_review_request', 'Dana Whitfield', 'medical', 30)!;
+    expect(c.question).toBe('Is this a request to the Regional Center?');
+    expect(c.explain).toContain('addressed to Dana Whitfield, saved in your contacts under “Medical”');
+    expect(c.yes).toBe('Yes — track the 30-day deadline');
+  });
+
+  it('promises a deadline only when the request has one', () => {
+    expect(clockCheckCopy('records_request', 'Dana', 'medical', null)!.yes).toBe('Yes — track it');
   });
 
   it('names the right system', () => {
-    expect(clockCheckCopy('assessment_request', 'Pat', 'medical').question).toBe(
-      'Did this go to the school district?'
+    expect(clockCheckCopy('assessment_request', 'Pat', 'medical', null)!.question).toBe(
+      'Is this a request to the school district?'
     );
-    expect(clockCheckCopy('records_request', 'Pat', 'medical').question).toBe(
-      'Did this go to the Regional Center or the school district?'
+    expect(clockCheckCopy('records_request', 'Pat', 'medical', null)!.question).toBe(
+      'Is this a request to the Regional Center or the school district?'
     );
   });
 
-  it('never says anyone did anything wrong (escalation tone rule)', () => {
-    const c = clockCheckCopy('ipp_review_request', 'Dana Whitfield', 'medical');
-    const all = Object.values(c).join(' ');
-    expect(all).not.toMatch(/\b(wrong|mistake|error|failed|misrouted)\b/i);
+  it('asks nothing rather than naming the wrong agency', () => {
+    expect(clockCheckCopy('appeal_letter', 'Pat', 'medical', null)).toBeNull();
+    expect(clockCheckCopy('general', 'Pat', 'medical', null)).toBeNull();
+  });
+
+  it('never says anyone did anything wrong, in any language (escalation tone rule)', () => {
+    for (const locale of ['en', 'es', 'vi'] as const) {
+      const all = Object.values(clockCheckCopy('ipp_review_request', 'Dana', 'medical', 30, locale)!).join(' ');
+      expect(all).not.toMatch(/\b(wrong|mistake|error|failed|misrouted|equivoc|culpa)\w*/i);
+      expect(all).not.toMatch(/\bsai\b|\blỗi\b/);
+    }
   });
 
   it('speaks the family’s language, with the contact form’s own organization names', () => {
-    const es = clockCheckCopy('ipp_review_request', 'Dana', 'medical', 'es');
-    expect(es.question).toBe('¿Esto fue al Centro Regional?');
-    expect(es.explain).toContain('una solicitud al Centro Regional');
+    const es = clockCheckCopy('ipp_review_request', 'Dana', 'medical', 30, 'es')!;
+    expect(es.question).toBe('¿Es esta una solicitud al Centro Regional?');
+    expect(es.explain).toContain('en la categoría «Médico»');
     expect(es.explain).not.toMatch(/\ba el\b/); // "a" + "el" contracts to "al"
-    expect(es.explain).toContain('Médico');
-    expect(clockCheckCopy('ipp_review_request', 'Dana', 'school', 'vi').explain).toContain('Trường học');
+    expect(es.noClock).toMatch(/^Guardada/); // la carta
+    expect(clockCheckCopy('ipp_review_request', 'Dana', 'school', null, 'vi')!.explain).toContain('Trường học');
   });
 });

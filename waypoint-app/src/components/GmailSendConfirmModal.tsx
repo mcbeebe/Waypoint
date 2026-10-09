@@ -50,6 +50,15 @@ export interface GmailSendConfirmModalProps {
   blockedReason: string | null;
   /** A failed send comes back here, so the parent is told why. */
   problem: string | null;
+  /**
+   * Asked when the letter is addressed outside the system its template is
+   * written to (letterSystems.ts): is this really that request? Send now
+   * stays off until it is answered — after the send would be too late, and
+   * an unanswered question must never quietly decide a legal deadline.
+   */
+  clockQuestion?: { question: string; explain: string; yes: string; no: string } | null;
+  clockAnswer?: 'yes' | 'no' | null;
+  onClockAnswer?: (answer: 'yes' | 'no') => void;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -133,12 +142,16 @@ export default function GmailSendConfirmModal({
   sending,
   blockedReason,
   problem,
+  clockQuestion = null,
+  clockAnswer = null,
+  onClockAnswer,
   onCancel,
   onConfirm,
 }: GmailSendConfirmModalProps) {
   const copy = COPY[locale];
   const needsSubject = !subject.trim();
-  const blocked = sending || needsSubject || !!blockedReason;
+  const needsClockAnswer = !!clockQuestion && !clockAnswer;
+  const blocked = sending || needsSubject || !!blockedReason || needsClockAnswer;
   const addressee =
     primary.name && primary.name !== primary.email
       ? `${primary.name} <${primary.email}>`
@@ -210,6 +223,28 @@ export default function GmailSendConfirmModal({
             <ScrollView style={styles.preview} contentContainerStyle={styles.previewInner}>
               <Text style={styles.previewText}>{body}</Text>
             </ScrollView>
+
+            {clockQuestion ? (
+              <View style={styles.clockBox} accessibilityRole="radiogroup" accessibilityLabel={clockQuestion.question}>
+                <Text style={styles.clockQuestion}>{clockQuestion.question}</Text>
+                <Text style={styles.clockExplain}>{clockQuestion.explain}</Text>
+                {(['yes', 'no'] as const).map((answer) => (
+                  <TouchableOpacity
+                    key={answer}
+                    style={[styles.clockOption, clockAnswer === answer && styles.clockOptionOn]}
+                    onPress={() => onClockAnswer?.(answer)}
+                    disabled={sending}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: clockAnswer === answer, disabled: sending }}
+                    accessibilityLabel={clockQuestion[answer]}
+                  >
+                    <Text style={[styles.clockOptionText, clockAnswer === answer && styles.clockOptionTextOn]}>
+                      {clockAnswer === answer ? '●' : '○'} {clockQuestion[answer]}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
           </ScrollView>
 
           {/* Announced as they appear: a screen-reader user who taps Send now
@@ -324,6 +359,32 @@ const styles = StyleSheet.create({
   preview: { backgroundColor: brand.paper, borderRadius: radii.md, maxHeight: 220 },
   previewInner: { padding: spacing.md },
   previewText: { fontSize: fonts.sizes.sm, color: brand.ink, lineHeight: 19 },
+  clockBox: {
+    backgroundColor: semantic.warningBg,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    gap: 6,
+    marginTop: spacing.xs,
+  },
+  clockQuestion: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold as '700',
+    color: brand.ink,
+  },
+  clockExplain: { fontSize: fonts.sizes.xs, color: brand.inkSoft, lineHeight: 17 },
+  clockOption: {
+    borderWidth: 1,
+    borderColor: brand.border,
+    backgroundColor: brand.panel,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  clockOptionOn: { borderColor: brand.pine, backgroundColor: brand.pineTint },
+  clockOptionText: { fontSize: fonts.sizes.sm, color: brand.ink },
+  clockOptionTextOn: { fontWeight: fonts.weights.semibold as '600' },
   resend: {
     fontSize: fonts.sizes.xs,
     color: semantic.warning,
