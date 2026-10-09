@@ -339,6 +339,10 @@ export default function LettersScreen() {
     const { text, filled } = fillKnownBlanks(result.draft, letterProfile);
     // A "Subject:" line the model wrote goes to the subject field, not the body.
     const { subject: leading, body } = extractSubject(text);
+    // The subject ai-proxy wrote gets the same safety net: "[Child Name]" in
+    // it is no more the parent's job to type than in the body.
+    const modelSubject = oneLine(result.subject);
+    const filledSubject = modelSubject ? fillKnownBlanks(modelSubject, letterProfile) : null;
     setDraft(body);
     // A regenerated draft is not the one that was sent — drop any prior
     // send confirmation so it can't linger over new, unsent text.
@@ -351,10 +355,10 @@ export default function LettersScreen() {
     setCcError(null);
     setManualEmailInput('');
     setSubjectEdit(null);
-    setAiSubject(oneLine(result.subject) ?? leading ?? null);
+    setAiSubject(filledSubject?.text ?? leading ?? null);
     // Persistent note above the draft instead of a vanishing toast — a parent
     // reviewing the letter later can still see what came from their records.
-    setFilledFromRecords(filled);
+    setFilledFromRecords([...new Set([...filled, ...(filledSubject?.filled ?? [])])]);
     if (family?.id) {
       // Anonymous usage analytics (fire-and-forget)
       trackDraftUsed(family.id, template.key, family.regional_center ?? undefined);
@@ -1083,7 +1087,7 @@ export default function LettersScreen() {
                     )}
                   </View>
                   <Text style={styles.blanksHint}>
-                    Edit them right here in the draft, or in your email app before you send.
+                    Edit them right here in the draft or the subject line, or in your email app before you send.
                     {fixableInProfile.length > 0
                       ? ` ${fixableInProfile.length} of these (${fixableInProfile
                           .map((f) => f.label.toLowerCase())
