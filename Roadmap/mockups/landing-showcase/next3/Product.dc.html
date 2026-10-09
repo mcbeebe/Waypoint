@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The app tour</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&amp;family=Hanken+Grotesk:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0f766e}a:hover{color:#115e56}
+</style>
+</helmet>
+<div style="font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #22303a; background: #f5f1e9">
+  <section style="background: linear-gradient(165deg, #22303a 0%, #123f39 60%, #0f766e 140%); color: #eef6f1">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 56px 24px">
+      <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: #a9efe0">THE WAYPOINT APP</div>
+      <h1 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 48px; line-height: 1.08; margin: 12px 0 14px; max-width: 780px">A tour of what the app does, one screen at a time.</h1>
+      <p style="font-size: 18px; line-height: 1.55; max-width: 660px; margin: 0; color: #d6e7e2">Every screen below is a sample with a fictional family, built from what the app actually shows.</p>
+    </div>
+  </section>
+
+  <div style="max-width: 1120px; margin: 0 auto; padding: 18px 24px 0; font-size: 13px; color: #55606b">Kept from today's page, unchanged: "Without Waypoint, you're the one doing the searching", "Why not just read the guides?" (all 4 rows) and "One loop, every time something changes". They sit above and below the tour.</div>
+
+  <section style="max-width: 1120px; margin: 0 auto; padding: 32px 24px; display: flex; flex-direction: column; gap: 36px">
+
+    <div style="display: flex; flex-wrap: wrap; gap: 36px; align-items: center">
+      <div role="img" aria-label="Sample Navigator answer about an assessment request, with Your right, Good to know and Watch out cards" style="flex: 0 1 280px; background: #22303a; border-radius: 30px; padding: 10px">
+        <div aria-hidden="true" style="background: #fbf6ec; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; line-height: 1.45">
+          <div style="align-self: flex-end; background: #0f766e; color: #ffffff; border-radius: 12px; padding: 8px 10px; max-width: 85%">Can I ask for an assessment before the next IEP meeting?</div>
+          <div style="background: #ffffff; border-radius: 12px; padding: 8px 10px">Yes. Put the request in writing so the timeline starts.</div>
+          <div style="background: #e6f1ef; border-radius: 10px; padding: 8px 10px"><b style="display: block; font-size: 10px; letter-spacing: 0.08em; color: #115e56">YOUR RIGHT</b>An assessment plan within 15 calendar days of the district receiving it (Ed Code §56321).</div>
+          <div style="background: #fdf3e3; border-radius: 10px; padding: 8px 10px"><b style="display: block; font-size: 10px; letter-spacing: 0.08em; color: #b45309">WATCH OUT</b>If the district says no, ask for that in writing.</div>
+        </div>
+      </div>
+      <div style="flex: 999 1 420px; min-width: 0">
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #0f766e">1 · AI NAVIGATOR</div>
+        <h2 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 32px; margin: 8px 0 10px">Ask anything about your child's services</h2>
+        <p style="margin: 0; line-height: 1.6; color: #55606b; max-width: 560px">It knows your child's age, diagnosis, county and Regional Center. Each answer separates your right, what's good to know and what to watch out for, and cites the law where it applies. 30 messages a month are free; Premium is unlimited.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap-reverse; gap: 36px; align-items: center">
+      <div style="flex: 999 1 420px; min-width: 0">
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #0f766e">2 · HOME</div>
+        <h2 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 32px; margin: 8px 0 10px">One thing for today, before you have to ask</h2>
+        <p style="margin: 0; line-height: 1.6; color: #55606b; max-width: 560px">Home watches the Regional Center and school clocks your requests start, plus the dates you add. In the days before an answer is due it says so, with a follow-up one tap away. Not today? It shows the next thing.</p>
+      </div>
+      <div role="img" aria-label="Sample Home card: clock running, 4 days left on Maya's evaluation request" style="flex: 0 1 280px; background: #22303a; border-radius: 30px; padding: 10px">
+        <div aria-hidden="true" style="background: #fbf6ec; border-radius: 22px; padding: 14px; font-size: 12px; line-height: 1.45">
+          <div style="background: #ffffff; border: 1.5px solid #0f766e; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+            <span style="align-self: flex-start; background: #fdf3e3; color: #b45309; font-weight: 700; font-size: 10px; letter-spacing: 0.06em; padding: 3px 7px; border-radius: 6px">CLOCK RUNNING · 4 DAYS LEFT</span>
+            <b style="font-size: 13.5px">An answer on Maya's evaluation request is due Oct 16</b>
+            <span style="color: #55606b">Because you asked on Oct 1 and the law gives them a fixed window. <b>Ed Code §56321</b></span>
+            <span style="background: #0f766e; color: #ffffff; border-radius: 9px; padding: 8px; text-align: center; font-weight: 700">Draft the follow-up</span>
+            <span style="color: #55606b">Not today — show the next thing</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 36px; align-items: center">
+      <div role="img" aria-label="Sample follow-up letter in the Collaborative tone, with Send from Gmail and Open in Mail buttons" style="flex: 0 1 280px; background: #22303a; border-radius: 30px; padding: 10px">
+        <div aria-hidden="true" style="background: #fbf6ec; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; line-height: 1.5">
+          <div style="display: flex; gap: 6px; font-size: 10.5px; font-weight: 700"><span style="background: #0f766e; color: #ffffff; padding: 4px 8px; border-radius: 99px">Collaborative</span><span style="background: #ffffff; padding: 4px 8px; border-radius: 99px">Assertive</span><span style="background: #ffffff; padding: 4px 8px; border-radius: 99px">Advocacy</span></div>
+          <div style="background: #ffffff; border-radius: 10px; padding: 10px">Hi Ms. Lopez, I wanted to check in on Maya's assessment plan. I sent my request on October 1. Could you let me know when it might be ready?</div>
+          <span style="background: #0f766e; color: #ffffff; border-radius: 9px; padding: 8px; text-align: center; font-weight: 700">Send from Gmail</span>
+          <span style="background: #ffffff; border: 1px solid #e2d8c4; border-radius: 9px; padding: 8px; text-align: center; font-weight: 700">Open in Mail</span>
+        </div>
+      </div>
+      <div style="flex: 999 1 420px; min-width: 0">
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #0f766e">3 · LETTERS</div>
+        <h2 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 32px; margin: 8px 0 10px">The friendly email, already written</h2>
+        <p style="margin: 0; line-height: 1.6; color: #55606b; max-width: 560px">Requests and follow-ups, filled in with your child's name, the date and the citation. The first ask is always collaborative; you choose when to firm it up. Send from your own Gmail and replies come back next to the request, or open it in any mail app. Drafts in English, Spanish or Vietnamese.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap-reverse; gap: 36px; align-items: center">
+      <div style="flex: 999 1 420px; min-width: 0">
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #0f766e">4 · DOCUMENTS AND IEP REVIEW</div>
+        <h2 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 32px; margin: 8px 0 10px">Every report in one place, and the IEP read for you</h2>
+        <p style="margin: 0; line-height: 1.6; color: #55606b; max-width: 560px">Upload a PDF or a photo of the page. Premium reads an IEP, rates each goal, suggests stronger wording, compares it with last year's and builds your meeting questions.</p>
+      </div>
+      <div role="img" aria-label="Sample IEP review: three goals rated Strong, Adequate and Weak" style="flex: 0 1 280px; background: #22303a; border-radius: 30px; padding: 10px">
+        <div aria-hidden="true" style="background: #fbf6ec; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 7px; font-size: 12px">
+          <b style="font-size: 13.5px">Maya's IEP · 3 goals</b>
+          <div style="background: #ffffff; border-radius: 10px; padding: 9px; display: flex; justify-content: space-between; gap: 8px"><span>Reading fluency</span><b style="color: #047857">Strong</b></div>
+          <div style="background: #ffffff; border-radius: 10px; padding: 9px; display: flex; justify-content: space-between; gap: 8px"><span>Written expression</span><b style="color: #b45309">Adequate</b></div>
+          <div style="background: #ffffff; border-radius: 10px; padding: 9px; display: flex; justify-content: space-between; gap: 8px"><span>Self-regulation</span><b style="color: #c2410c">Weak</b></div>
+          <div style="background: #e6f1ef; border-radius: 10px; padding: 9px; line-height: 1.45">Suggested wording: "…as measured by weekly teacher data."</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 36px; align-items: center">
+      <div role="img" aria-label="Sample plan: four steps, one checked off" style="flex: 0 1 280px; background: #22303a; border-radius: 30px; padding: 10px">
+        <div aria-hidden="true" style="background: #fbf6ec; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 7px; font-size: 12px">
+          <b style="font-size: 13.5px">Your plan · School</b>
+          <div style="background: #ffffff; border-radius: 10px; padding: 9px; color: #55606b; text-decoration: line-through">Ask for an evaluation in writing</div>
+          <div style="background: #ffffff; border-radius: 10px; padding: 9px">Ask for typing as a writing accommodation</div>
+          <div style="background: #ffffff; border-radius: 10px; padding: 9px">Request last year's progress reports</div>
+          <div style="background: #ffffff; border-radius: 10px; padding: 9px">Make my meeting list</div>
+        </div>
+      </div>
+      <div style="flex: 999 1 420px; min-width: 0">
+        <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.12em; color: #0f766e">5 · YOUR PLAN</div>
+        <h2 style="font-family: 'Newsreader', Georgia, serif; font-weight: 500; font-size: 32px; margin: 8px 0 10px">A plan built for your child, not a generic checklist</h2>
+        <p style="margin: 0; line-height: 1.6; color: #55606b; max-width: 560px">Steps from your child's age, diagnosis and where things stand with the Regional Center, school and insurance. Save a step from a Navigator answer, and check them off as you go.</p>
+      </div>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #eae3d5; border-radius: 16px; padding: 24px; display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between">
+      <div style="max-width: 640px"><b style="font-size: 20px">Free to start. Premium is $9.99 a month or $99 a year.</b><div style="color: #55606b; margin-top: 4px; line-height: 1.5">The first 30 days of Premium are free, and it's always free if your child gets SSI or money is tight.</div></div>
+      <a href="#" style="background: #0f766e; color: #ffffff; text-decoration: none; font-weight: 700; padding: 12px 18px; border-radius: 10px; min-height: 44px; box-sizing: border-box; display: inline-flex; align-items: center">Start free →</a>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
