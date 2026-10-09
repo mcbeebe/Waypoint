@@ -19,11 +19,6 @@ interface Props {
 }
 const { title, description, locale = 'en', noindex = false, pillar, ogSlug, ogType } = Astro.props;
 const isProd = (process.env.VERCEL_ENV ?? 'production') === 'production';
-// GA4: second, additional tracker alongside Plausible (D3 "Providers"). The
-// Measurement ID is committed, not a secret — gtag.js publishes it in the
-// markup of every page. GA_MEASUREMENT_ID overrides it for a separate
-// property. Preview/dev never reach it: isProd gates the tag, not this value.
-const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
 ---
 
 <!doctype html>
@@ -54,23 +49,9 @@ const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
     {
       isProd && (
         <>
-          {/* External, not inline: the CSP blocks inline scripts. The init file
-              also mirrors every event to GA4. See public/plausible-init.js. */}
+          {/* External, not inline: the CSP blocks inline scripts. See public/plausible-init.js. */}
           <script is:inline src="/plausible-init.js" />
           <script async src="https://plausible.io/js/pa-oWUSFlebFmKz0lRdhJ6_x.js" />
-        </>
-      )
-    }
-    {/* GA4: second, additional tracker per D3 "Providers" — loads only when
-        GA_MEASUREMENT_ID is configured, same production-only gate as Plausible.
-        Google Signals / ad personalization stay off, and Consent Mode defaults
-        to denied so no cookies are set (privacy policy: "no cookies"). */}
-    {
-      isProd && gaMeasurementId && (
-        <>
-          {/* External, not inline: the CSP blocks inline scripts. See public/ga-init.js. */}
-          <script is:inline src="/ga-init.js" data-ga-id={gaMeasurementId} />
-          <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`} />
         </>
       )
     }
@@ -84,7 +65,7 @@ const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
     <SiteFooter />
     {/* Vercel Web Analytics: page views only, for the hosting dashboard
         (D3 "Providers"). No event goes through it — every window.plausible
-        call still fans out to Plausible + the GA4 mirror. The component's
+        call still goes to Plausible. The component's
         script stays an external file because astro.config sets
         assetsInlineLimit: 0 (Astro would otherwise inline a chunk this small,
         and the CSP — script-src 'self', no 'unsafe-inline' — would kill it);
@@ -97,8 +78,22 @@ const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
         instead. */}
     <Analytics />
     <script>
-      // window.plausible (queue + GA4 mirror) is defined in public/plausible-init.js,
+      // window.plausible (the queue stub) is defined in public/plausible-init.js,
       // production only; every call here stays optional-chained for preview/dev.
+
+      // Cleanup for returning visitors (keep until 2028-10, the cookies' own
+      // expiry): Google Analytics ran on production from 2026-10-02 (the CSP
+      // fix that first let it execute) until its removal on 2026-10-09, and set
+      // _ga / _ga_<id> with a two-year life. Expire them on every domain form
+      // gtag may have used, so the browser matches the policy's "No cookies".
+      for (const c of document.cookie.split(';')) {
+        const name = c.split('=')[0].trim();
+        if (!name.startsWith('_ga')) continue;
+        const gone = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+        document.cookie = gone;
+        document.cookie = `${gone}; domain=${location.hostname}`;
+        document.cookie = `${gone}; domain=.${location.hostname.replace(/^www\./, '')}`;
+      }
 
       // Delegated analytics per docs/analytics-taxonomy.md (D3).
       // app_signup_click: any element carrying data-wp-event fires its event

@@ -393,7 +393,7 @@ try {
       } catch {
         /* storage blocked — nothing stored */
       }
-      const analytics = [...(window.__wpAnalytics ?? []), JSON.stringify(window.dataLayer ?? [])];
+      const analytics = [...(window.__wpAnalytics ?? [])];
       return [...hrefs, ...analytics, document.cookie, storage, location.href].some((v) => ns.some((n) => v.includes(n)));
     }, needles);
     if (stored) failures.push('/tools/iep-goal-check/: the pasted goal reached analytics, a link, a cookie, the URL, or storage');

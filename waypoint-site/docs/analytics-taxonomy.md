@@ -9,35 +9,24 @@ same change.
 
 ## Providers
 
-**Plausible remains the source of truth** for the event taxonomy below and for
-the north star metric. **GA4 is a second, additional tracker** (added 2026-09,
-site-only) for acquisition/audience reporting Plausible doesn't cover — it is
-not a replacement and does not change any event name, prop, or the north star
-definition. Every event listed below fires to both providers: `BaseLayout.astro`
-mirrors each `window.plausible(...)` call to `gtag('event', ...)` with the same
-name and props at a single dispatch point, so no per-event code exists in two
-places. GA4 loads only when `VERCEL_ENV === 'production'`, the same gate as
-Plausible — that gate, not the ID, is what keeps preview/branch QA traffic out
-of the property. Google Signals / ad personalization are left off in both the
-GA4 property config and the per-call `gtag('config', ...)` options, matching
-the privacy posture Plausible was chosen for. Since 2026-10 `public/ga-init.js`
-also declares a Consent Mode default of `denied` for every storage type before
-`config`, so gtag.js sets no `_ga`/`_ga_*` cookies and sends cookieless pings
-(a fresh random id per page load). That is what makes the privacy policy's "no
-cookies" promise true; the cost is that GA4 user and session metrics are
-modeled or unattributed, while page views and the events below still arrive.
-Granting `analytics_storage` is a privacy-policy change, not a config tweak.
-Enhanced Measurement is a GA4 property setting that no code here controls:
-its "outbound clicks" option would send `link_url` — the `/start` href,
-`wp_ctx` payload included — to Google. It must stay OFF in the property
-(Admin → Data streams → Enhanced measurement); the owner checks it, the repo
-cannot.
+**Plausible is the source of truth** for the event taxonomy below and for the
+north star metric. Every event listed below fires through `window.plausible`
+and nowhere else.
 
-The Measurement ID is **committed in `BaseLayout.astro`**, not held in an env
-var: gtag.js publishes it in the markup of every page, so it is public by
-construction and there is nothing to protect. This is deliberate — it keeps the
-production tag working without a deploy-time secret. `GA_MEASUREMENT_ID`
-overrides it when a build needs to point at a different property.
+**GA4 was tried and removed.** Added mid-September 2026 as a second tracker
+for acquisition/audience reporting (PRs #278, #285), it never sent a hit until
+the CSP fix (PR #297) merged on the evening of 2026-10-02 PT, then set `_ga` /
+`_ga_<id>` cookies on every visitor for a week while the privacy policy
+promised "No cookies". PR #304 (2026-10-09) switched it to consent-denied
+cookieless mode; the owner then decided to remove it outright the same day
+(the PR that deletes `public/ga-init.js`): under the site's zero-gates rule it
+could only ever run consent-denied, where Google's standard reports are
+modeled from cookieless pings and thin, and "Google Analytics" sat badly
+beside "no ad tech" in the policy. `BaseLayout.astro` keeps expiring the
+leftover `_ga*` cookies until their own two-year life runs out (2028-10). Do
+not re-add a Google tag without changing the privacy policy first — note also
+that GA4's Enhanced Measurement "outbound clicks" default would send the
+`/start` deep link, `wp_ctx` payload included, to Google.
 
 **Vercel Web Analytics is a page-view counter only** (added 2026-10, site-only:
 `<Analytics />` from `@vercel/analytics/astro` in `BaseLayout.astro`). It
@@ -45,8 +34,7 @@ exists for the hosting dashboard and carries no event from this document — no
 `track()` call anywhere on the site, and none may be added without changing
 this contract first. It is not gated to production: Vercel tags every view
 with its environment, so preview traffic is filtered in the dashboard rather
-than kept out. It changes nothing above: Plausible stays the source of truth
-and GA4 the mirror.
+than kept out. It changes nothing above: Plausible stays the source of truth.
 
 ## Site-side events (Plausible, cookieless, data-domain: waypointchild.com)
 
@@ -89,8 +77,8 @@ Tested explicitly per auth path; re-verified in the monthly reconciliation.
 
 ## App-side events (same Plausible data-domain + Supabase)
 
-GA4 mirroring is site-only for now — waypoint-app has no web analytics
-surface, so app-side events below stay Plausible + Supabase only.
+waypoint-app has no web analytics surface, so app-side events below stay
+Plausible + Supabase only.
 
 | Event | Props | Fires when |
 |---|---|---|
