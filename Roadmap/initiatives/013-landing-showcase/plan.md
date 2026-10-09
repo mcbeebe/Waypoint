@@ -29,6 +29,23 @@
 - "Waypoint speaks first" timeline in neutral, status-first wording.
 - Free-help grid adds the goal check; existing pillars kept.
 
+## PRs 3, 4 and 6 — tools hub, /product/ tour, guide CTA screens
+
+Owner go on the mockups 2026-10-09 ("Looks great. Please proceed"). Design
+canvas: https://claude.ai/artifact/AqXtMuoLSdJxeg6xqTYHau; source files on
+`design/landing-showcase-mockup` under `Roadmap/mockups/landing-showcase/next3/`.
+
+- **PR 3 (`feat/tools-hub`)**: `/tools/` lists every free tool; header "Free
+  Tools", the footer and the homepage's free-tools card open it.
+  `toolsHub.test.ts` fails if any route under `src/pages/tools/` lacks a card.
+  The hub does not claim the app reads a tool's result: a tool link's
+  `wp_ctx` is stored only as attribution (`waypoint-app/src/lib/attribution.ts`).
+- **PR 6 (`feat/cta-screens`)**: `HandoffCTA` gains a small sample screen
+  matched to the page's pillar or page type, using only cards the app can
+  produce. Component change only; hidden below 720 px.
+- **PR 4 (`feat/product-tour`)**: `/product/` features sit beside sample
+  screens; corrects the live "15/60/45-day clock … alert" claim.
+
 ## Verification
 
 `npm run gates` from `waypoint-site/` on each PR; screenshots at 390 and

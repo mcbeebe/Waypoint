@@ -42,7 +42,7 @@ const trialDays = appConst('FREE_TRIAL_DAYS');
 const pricing = read('pages/pricing.astro');
 /** The drafts-only comparison quotes a competitor's own price; that cell alone is exempt. */
 const COMPETITOR_CELL = '<td>$19/mo ($149/yr)</td>';
-const PAGES = ['pages/pricing.astro', 'pages/product.astro', 'pages/index.astro'];
+const PAGES = ['pages/pricing.astro', 'pages/product.astro', 'pages/index.astro', 'pages/tools/index.astro'];
 
 describe('site pricing matches the app', () => {
   it('the Premium card shows the app’s monthly and yearly prices', () => {

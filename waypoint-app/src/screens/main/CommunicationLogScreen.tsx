@@ -23,6 +23,7 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { gmailStatus, gmailSyncReplies, autoSyncReplies, type GmailStatus } from '@/lib/gmail';
 import { connectGmailWeb } from '@/lib/googleAuth';
 import GmailReplyModal from '@/components/GmailReplyModal';
+import AddThreadModal from '@/components/AddThreadModal';
 import AddEntryModal, { KIND_CONFIG, ORG_LABELS } from '@/components/AddEntryModal';
 import {
   useCommunications,
@@ -92,6 +93,7 @@ export default function CommunicationLogScreen() {
     if (item && isUnreadReply(item, new Date())) void markRead(item.id);
   }, [expandedId, communications, markRead]);
   const [showAdd, setShowAdd] = useState(false);
+  const [showAddThread, setShowAddThread] = useState(false);
 
   // ── Gmail: connection status, reply sync, in-thread reply modal ──
   const [gmail, setGmail] = useState<GmailStatus>({ connected: false, gmail: false, email: null });
@@ -277,6 +279,17 @@ export default function CommunicationLogScreen() {
               accessibilityLabel="Share this log"
             >
               <Ionicons name="share-outline" size={16} color={colors.teal} />
+            </TouchableOpacity>
+          )}
+          {Platform.OS === 'web' && (
+            <TouchableOpacity
+              style={styles.gmailBtn}
+              onPress={() => setShowAddThread(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Add an email thread from Gmail"
+            >
+              <Ionicons name="add" size={14} color={colors.teal} />
+              <Text style={styles.gmailBtnText}>Add email thread</Text>
             </TouchableOpacity>
           )}
           {Platform.OS === 'web' && (
@@ -477,6 +490,28 @@ export default function CommunicationLogScreen() {
           showToast(ok ? 'Added to your paper trail' : "Couldn't save — try again.", ok ? 'success' : 'error');
           if (ok) setShowAdd(false);
           return ok;
+        }}
+      />
+
+      <AddThreadModal
+        visible={showAddThread}
+        onClose={() => setShowAddThread(false)}
+        gmailConnected={gmail.gmail}
+        onConnectGmail={async () => {
+          const r = await connectGmailWeb('/');
+          if (!r.success) showToast(r.error ?? "Couldn't start the Google connection.", 'error');
+        }}
+        requests={requests
+          .filter((r) => r.status === 'requested' || r.status === 'in_progress')
+          .map((r) => ({ id: r.id, title: r.title }))}
+        onAdded={(imported) => {
+          refetch();
+          showToast(
+            imported > 0
+              ? `Added ${imported} message${imported === 1 ? '' : 's'} to your paper trail.`
+              : 'That thread is already in your paper trail.',
+            'success'
+          );
         }}
       />
 

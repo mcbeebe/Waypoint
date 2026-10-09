@@ -21,6 +21,7 @@ import type { Communication } from '@/hooks/useCommunications';
 import { deadlineFor } from '@/lib/requestClocks';
 import type { RequestDeadline, RequestType } from '@/lib/requestClocks';
 import { sentNextFor } from '@/lib/sentNext';
+import { isSettled } from '@/lib/replyInbox';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { ToolBadge } from '@/lib/toolsCatalog';
 
@@ -255,13 +256,15 @@ function lastOutgoingSent(events: CaseEvent[]): CaseEvent | null {
  * The newest incoming item with no SENT outgoing response after it. A
  * private note or an unsent draft never "answers" the agency — only
  * something that actually went to them (letter, email, call, meeting) does.
+ * A settled message (065 — history from an added thread, or "Nothing to
+ * answer") is not waiting on anyone, the same rule Home's reply card keeps.
  */
 function unansweredReplyOf(events: CaseEvent[]): Communication | null {
   let reply: Communication | null = null;
   for (const e of events) {
     const c = e.communication;
     if (c.direction === 'incoming') {
-      reply = c;
+      if (!isSettled(c)) reply = c;
     } else if (reply && c.status === 'sent' && c.kind !== 'note') {
       reply = null;
     }

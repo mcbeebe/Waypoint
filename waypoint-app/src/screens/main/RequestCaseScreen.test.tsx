@@ -11,7 +11,7 @@
  */
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 
 const h = vi.hoisted(() => ({
   request: {
@@ -210,5 +210,14 @@ describe('the Case file button', () => {
     await waitFor(() =>
       expect(screen.getByLabelText(/1 item on record/)).toBeTruthy()
     );
+  });
+});
+
+describe('Add an email (014 PR D)', () => {
+  it('opens the add-a-thread sheet from the case', async () => {
+    render(<RequestCaseScreen />);
+    const btn = await screen.findByRole('button', { name: /Add an email thread from Gmail to this request/ });
+    fireEvent.click(btn);
+    expect(screen.getByText(/Connect Gmail to add threads/)).toBeTruthy();
   });
 });

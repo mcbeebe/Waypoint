@@ -637,9 +637,9 @@ function replyItem(
     // arrived, never that the family owes one: Home cannot tell an "I'll get
     // back to you" from a "no" by the sync alone.
     why: `${L(
-      'Because a reply came in on a thread you started.',
-      'Porque llegó una respuesta en un hilo que usted inició.',
-      'Vì có thư trả lời trong một chuỗi thư quý vị đã bắt đầu.'
+      'Because a reply came in on a thread you’re tracking.',
+      'Porque llegó una respuesta en un hilo que usted sigue.',
+      'Vì có thư trả lời trong một chuỗi thư quý vị đang theo dõi.'
     )} ${
       unanswered.snippet
         ? L(

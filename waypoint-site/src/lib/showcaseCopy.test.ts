@@ -19,8 +19,12 @@ const FILES = [
   path.join(src, 'components', 'OneLoop.astro'),
   path.join(src, 'components', 'GuideVsApp.astro'),
   path.join(src, 'components', 'WithoutWith.astro'),
+  path.join(src, 'pages', 'tools', 'index.astro'),
   path.join(src, 'lib', 'iepGoalCheckUi.ts'),
   path.join(src, 'pages', 'product.astro'),
+  path.join(src, 'lib', 'ctaScreen.ts'),
+  path.join(src, 'components', 'CtaScreen.astro'),
+  path.join(src, 'components', 'HandoffCTA.astro'),
 ];
 /** File text with code comments removed: the guard checks what ships as copy. */
 const read = (f: string) =>
@@ -125,7 +129,7 @@ describe('showcase copy guard', () => {
     }
     // And every clock card uses the app's own kicker, not an invented one.
     for (const pill of hero.matchAll(/pill:\s*'([^']+)'/g)) {
-      expect(pill[1]).toMatch(/^(?:CLOCK RUNNING · \d+ DAYS LEFT|COMING UP · \d+ DAYS|DUE TODAY)$/);
+      expect(pill[1]).toMatch(/^(?:CLOCK RUNNING — \d+ DAYS LEFT|COMING UP — \d+ DAYS|DUE TODAY)$/);
     }
   });
 });

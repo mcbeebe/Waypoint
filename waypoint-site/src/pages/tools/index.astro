@@ -1,0 +1,176 @@
+---
+/**
+ * Free tools hub (initiative 013, PR 3; mockup approved by the owner
+ * 2026-10-09). One page that lists every free tool, so the header's "Free
+ * Tools" link no longer drops a parent straight into the SSI calculator.
+ *
+ * Every claim here is what the tool itself shows today. The tools run in the
+ * browser. The next-step block says what the app does for the same question;
+ * it does not promise the app reads a tool's result (the app records a tool
+ * link's summary only as attribution — waypoint-app/src/lib/attribution.ts).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import HandoffCTA from '../../components/HandoffCTA.astro';
+import { visibleContentUrls } from '../../lib/content';
+
+const urls = await visibleContentUrls();
+const lettersHref = '/letters/iep-evaluation-request/';
+
+/** The three always-built tools, in the order a newly diagnosed family meets them. */
+const tools = [
+  {
+    kicker: 'Schools · about a minute',
+    title: 'IEP goal check',
+    body: "Paste one annual goal from your child's IEP. See which of the five parts of a measurable goal we spot, and a friendly question to ask the team if one is missing.",
+    sample: 'We spotted 4 of 5 parts in the goal text.',
+    href: '/tools/iep-goal-check/',
+    action: 'Check a goal',
+  },
+  {
+    kicker: 'Benefits · a few minutes',
+    title: 'SSI deeming calculator',
+    body: "Estimate whether your child could qualify for SSI while living at home, and how your household income counts toward it.",
+    sample: 'An estimate with the main steps shown.',
+    href: '/tools/ssi-deeming-calculator/',
+    action: 'Run the estimate',
+  },
+  {
+    kicker: 'Regional Centers · 30 seconds',
+    title: 'Regional Center finder',
+    body: "Pick your county and see which of California's 21 Regional Centers serve it, and how the intake clock works.",
+    sample: 'Your county → the center that serves it.',
+    href: '/tools/regional-center-finder/',
+    action: 'Find your Regional Center',
+  },
+];
+---
+
+<BaseLayout
+  title="Free tools for California families — Waypoint"
+  description="Free tools for California families of children with disabilities: an IEP goal check, an SSI deeming calculator, and a Regional Center finder. No sign-up, no email."
+>
+  <PageHero
+    eyebrow="Free tools"
+    title="Real help, right now. No sign-up, no email."
+    lede="Check an IEP goal, see how SSI counts your income, and find your Regional Center. The tools run in your browser."
+  />
+
+  <div class="section">
+    <div class="container">
+      <ul class="tool-grid" role="list">
+        {
+          tools.map((t) => (
+            <li class="card tool-card">
+              <span class="tool-kicker">{t.kicker}</span>
+              <h2>{t.title}</h2>
+              <p>{t.body}</p>
+              <p class="tool-sample">{t.sample}</p>
+              <a class="btn" href={t.href}>
+                {t.action} <span aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      {
+        urls.has(lettersHref) && (
+          <div class="letters-strip">
+            <div>
+              <h2>Template letter</h2>
+              <p>
+                A ready-to-copy evaluation request, and the 15-day clock it starts. Free, no email.
+              </p>
+            </div>
+            <a class="link" href={lettersHref}>
+              Get the evaluation request letter <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        )
+      }
+    </div>
+  </div>
+
+  <div class="section on-white">
+    <div class="container narrow">
+      <span class="eyebrow">After a result</span>
+      <h2>Want Waypoint to keep it going?</h2>
+      <p class="sub">
+        The tools answer one question. The app keeps going: ask the Navigator about your child's
+        situation, track the clocks your requests start, and draft the letters.
+      </p>
+      <HandoffCTA
+        heading="Start free. Upgrade only if it earns it."
+        body="Free to start, no credit card. Premium is always free if your child gets SSI or money is tight."
+        action="Start free →"
+        slug="tools"
+        cta="hub-footer"
+      />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .tool-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .tool-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .tool-card h2 {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    margin: 0;
+  }
+  .tool-card p {
+    margin: 0;
+    color: var(--color-ink-soft);
+    line-height: 1.55;
+  }
+  .tool-kicker {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-pine);
+  }
+  .tool-card .tool-sample {
+    background: var(--color-pine-tint);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--color-ink);
+    font-size: 0.92rem;
+  }
+  .tool-card .btn {
+    margin-top: auto;
+    align-self: flex-start;
+  }
+  .letters-strip {
+    margin-top: 20px;
+    background: var(--color-cream);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 14px;
+    padding: 20px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .letters-strip h2 {
+    font-size: 1.1rem;
+    margin: 0 0 4px;
+  }
+  .letters-strip p {
+    margin: 0;
+    color: var(--color-ink-soft);
+    max-width: 640px;
+  }
+</style>

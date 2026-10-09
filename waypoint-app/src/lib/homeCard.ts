@@ -70,9 +70,11 @@ function ladderName(cls: TriageClass, locale: FunnelLocale): string {
       return L('A legal deadline that has passed', 'Un plazo legal ya vencido', 'Thời hạn luật định đã qua');
     case 'reply':
       return L(
-        'A reply came in on a thread you started',
-        'Llegó una respuesta en un hilo que usted inició',
-        'Có thư trả lời trong một chuỗi thư quý vị đã bắt đầu'
+        // Not "a thread you started": a thread added from Gmail (initiative
+        // 014) may have been started by the agency.
+        'A reply came in on a thread you’re tracking',
+        'Llegó una respuesta en un hilo que usted sigue',
+        'Có thư trả lời trong một chuỗi thư quý vị đang theo dõi'
       );
     case 'today':
       return L('Something happening today', 'Algo que ocurre hoy', 'Việc diễn ra hôm nay');

@@ -99,18 +99,28 @@ export function ccForStorage(cc: readonly string[] | null | undefined): string[]
 }
 
 /**
- * Whether a write failed only because migration 064 is not applied yet.
- * PostgREST reports an unknown insert/update column as PGRST204 ("Could not
- * find the 'cc' column of 'communications' in the schema cache"); Postgres
- * itself as 42703 ("column \"cc\" ... does not exist"). The caller retries
- * without `cc`, so a late migration costs the Cc and never the email.
+ * Which of `candidates` a write failed on because its migration is not
+ * applied yet, or null. PostgREST reports an unknown insert/update column as
+ * PGRST204 ("Could not find the 'cc' column of 'communications' in the schema
+ * cache"); Postgres itself as 42703 ("column \"cc\" ... does not exist"). The
+ * caller retries without that column, so a late migration costs the column's
+ * value and never the row. Any other failure returns null and is not retried.
  */
-export function isMissingCcColumn(
-  error: { code?: string | null; message?: string | null } | null | undefined
-): boolean {
-  if (!error) return false;
+export function missingOptionalColumn(
+  error: { code?: string | null; message?: string | null } | null | undefined,
+  candidates: readonly string[]
+): string | null {
+  if (!error) return null;
   const message = error.message ?? '';
   const codeMatches = error.code === 'PGRST204' || error.code === '42703';
   const textMatches = /schema cache|does not exist|could not find/i.test(message);
-  return (codeMatches || textMatches) && /['"]cc['"]|\bcc\b/.test(message);
+  if (!codeMatches && !textMatches) return null;
+  return candidates.find((c) => new RegExp(`['"]${c}['"]|\\b${c}\\b`).test(message)) ?? null;
+}
+
+/** Whether a write failed only because migration 064 (communications.cc) is not applied yet. */
+export function isMissingCcColumn(
+  error: { code?: string | null; message?: string | null } | null | undefined
+): boolean {
+  return missingOptionalColumn(error, ['cc']) === 'cc';
 }
