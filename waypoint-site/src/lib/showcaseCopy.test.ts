@@ -19,6 +19,7 @@ const FILES = [
   path.join(src, 'components', 'OneLoop.astro'),
   path.join(src, 'components', 'GuideVsApp.astro'),
   path.join(src, 'components', 'WithoutWith.astro'),
+  path.join(src, 'pages', 'tools', 'index.astro'),
   path.join(src, 'lib', 'iepGoalCheckUi.ts'),
 ];
 /** File text with code comments removed: the guard checks what ships as copy. */
