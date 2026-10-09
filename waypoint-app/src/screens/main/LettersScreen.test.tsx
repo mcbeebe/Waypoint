@@ -248,7 +248,26 @@ describe('addressing a draft neither the greeting nor the template can match', (
     });
   });
 
-  it('offers a way to change a manual pick, unlike an auto-matched greeting', () => {
+  it('an auto-matched recipient can be changed too, and the pick replaces the match', () => {
+    h.contacts = [
+      { id: 'k1', name: 'Keri Waller', email: 'keri@acrc.org', role: 'Case Manager', organization: 'regional_center' },
+      { id: 'k2', name: 'Sam Rivera', email: 'sam@example.org', role: 'Advocate', organization: 'other' },
+    ];
+    render(<LettersScreen />);
+    // Waypoint matches Sam by the letter's own organization — no tap needed.
+    expect(screen.getByText(/Sam Rivera \(sam@example\.org\)/)).toBeTruthy();
+    expect(screen.queryByLabelText('Send to Keri Waller')).toBeNull();
+    // It used to offer no way out of an automatic match.
+    fireEvent.click(screen.getByLabelText('Change who this goes to'));
+    expect(screen.getByText(/Choose who this goes to/i)).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Send to Keri Waller'));
+    expect(screen.getByText(/Keri Waller \(keri@acrc\.org\)/)).toBeTruthy();
+    expect(screen.queryByText(/Sam Rivera \(sam@example\.org\)/)).toBeNull();
+    // And the parent can still change their own pick.
+    expect(screen.getByLabelText('Change who this goes to')).toBeTruthy();
+  });
+
+  it('offers a way to change a manual pick', () => {
     h.contacts = [
       { id: 'k1', name: 'Keri Waller', email: 'keri@acrc.org', role: 'Case Manager', organization: 'regional_center' },
     ];
@@ -405,7 +424,13 @@ describe('sending through Gmail', () => {
 
   it('says it sends by itself, and the button opens a last look instead of sending', async () => {
     await draftReadyToSend();
-    expect(screen.getByText(/Sends automatically from mike@example\.com — Gmail won’t open/)).toBeTruthy();
+    // "When you press Send" — read BEFORE the tap: the last look comes first,
+    // then exactly who it is from and to, the paper trail, and the reply.
+    expect(screen.getByText('WHEN YOU PRESS SEND')).toBeTruthy();
+    expect(screen.getByText(/one last time — nothing goes until you confirm/)).toBeTruthy();
+    expect(screen.getByText(/It’s sent from mike@example\.com to Pat Nguyen/)).toBeTruthy();
+    expect(screen.getByText(/A copy is saved to your Paper Trail/)).toBeTruthy();
+    expect(screen.getByText(/When a reply comes in on this email, it shows on Home/)).toBeTruthy();
 
     const sheet = await openSheetFromButton();
     expect(within(sheet).getByText(/goes out right away from your Gmail — there’s no undo/)).toBeTruthy();

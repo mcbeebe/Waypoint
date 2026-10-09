@@ -52,6 +52,11 @@ const CLOCKS: Partial<Record<RequestType, RequestClock>> = {
   },
 };
 
+/** Days the law allows for this kind of request, or null when it sets none. */
+export function statutoryDays(type: RequestType): number | null {
+  return CLOCKS[type]?.days ?? null;
+}
+
 export interface RequestDeadline {
   dueOn: string; // ISO date
   daysRemaining: number; // negative = overdue

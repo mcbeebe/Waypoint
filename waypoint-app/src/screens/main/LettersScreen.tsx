@@ -53,12 +53,13 @@ import { sentNextFor, trackFor, clockAnchorFor } from '@/lib/sentNext';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
-import { deadlineFor } from '@/lib/requestClocks';
+import { deadlineFor, statutoryDays } from '@/lib/requestClocks';
+import { sendSteps, type SendStepsInput } from '@/lib/sendSteps';
 import { localDayISO } from '@/lib/dateOnly';
 import type { RequestDeadline } from '@/lib/requestClocks';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { brand, colors, fonts, spacing, radii } from '@/lib/theme';
 
 /**
  * "Filled from your records" note (draft flow 9c), trilingual. Deliberately
@@ -106,20 +107,6 @@ const SEND_GATE: Record<
     hint: (n) =>
       `Điền ${n} chỗ trống ở trên — rồi nút Gửi sẽ bật. Quý vị vẫn có thể Sao chép hoặc mở trong ứng dụng email để hoàn tất.`,
   },
-};
-
-/**
- * Under the Gmail send button. It sits beside "Open in Gmail", which only
- * opens a compose window — this one sends by itself, and has to say so
- * (owner feedback, 2026-10-07).
- */
-const AUTO_SEND_NOTE: Record<FunnelLocale, (from: string | null) => string> = {
-  en: (from) =>
-    `Sends automatically from ${from ?? 'your Gmail'} — Gmail won’t open. You’ll get one last look before it goes.`,
-  es: (from) =>
-    `Se envía automáticamente desde ${from ?? 'su Gmail'} — Gmail no se abrirá. Podrá revisarlo una última vez antes de que salga.`,
-  vi: (from) =>
-    `Tự động gửi từ ${from ?? 'Gmail của quý vị'} — Gmail sẽ không mở ra. Quý vị sẽ được xem lại lần cuối trước khi gửi.`,
 };
 
 /**
@@ -177,6 +164,7 @@ export default function LettersScreen() {
       // New template → the previous draft's records note is no longer true.
       setFilledFromRecords([]);
       setManualRecipient(null);
+      setChoosingRecipient(false);
       setManualEmailInput('');
       setSubjectEdit(null);
       setAiSubject(null);
@@ -221,6 +209,7 @@ export default function LettersScreen() {
     // or it would assert a false provenance over someone else's letter.
     setFilledFromRecords([]);
     setManualRecipient(null);
+    setChoosingRecipient(false);
     setManualEmailInput('');
     // A reopened letter keeps the subject it was saved with — not the
     // template-title fallback the subject field exists to get away from.
@@ -288,6 +277,7 @@ export default function LettersScreen() {
     setMarkedSent(false);
     setSentMoment(null);
     setManualRecipient(null);
+    setChoosingRecipient(false);
     setManualEmailInput('');
     setSubjectEdit(null);
     setAiSubject(oneLine(result.subject) ?? leading ?? null);
@@ -569,6 +559,10 @@ export default function LettersScreen() {
    * instead of trying to guess when an edit is "different enough" to clear).
    */
   const [manualRecipient, setManualRecipient] = useState<AddressContact | null>(null);
+  // "Change" on a recipient Waypoint matched (from the greeting or the
+  // letter's agency) — the parent wants someone else, so show the chooser
+  // instead of the match until they pick (owner ask, 2026-10-09).
+  const [choosingRecipient, setChoosingRecipient] = useState(false);
   /** Typed-address fallback (below): a saved-contact chip is not the only
    *  way to address this — anyone not yet in Key Contacts still needs a
    *  path that doesn't dead-end at "go save them first". */
@@ -608,16 +602,19 @@ export default function LettersScreen() {
     // the send never disagree about whether the subject changed.
     const subject = oneLine(subjectField) ?? computedSubject;
     const autoRecipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
-    const recipient: RecipientMatch =
-      autoRecipient.contact || !manualRecipient
-        ? autoRecipient
-        : { to: [manualRecipient.email!], contact: manualRecipient, reason: 'manual' };
+    // The parent's own pick always wins; a "Change" with no pick yet shows
+    // the chooser; otherwise Waypoint's match stands.
+    const recipient: RecipientMatch = manualRecipient
+      ? { to: [manualRecipient.email!], contact: manualRecipient, reason: 'manual' }
+      : choosingRecipient
+        ? { to: [], contact: null, reason: 'none' }
+        : autoRecipient;
     outgoingSubjectRef.current = subject;
     outgoingContactRef.current = recipient.contact?.name ?? null;
     outgoingOrgRef.current = (recipient.contact?.organization as CommunicationOrg | null) ?? null;
     return { subject, subjectField, body, recipient };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, template, contacts, manualRecipient, subjectEdit, aiSubject, primaryChild?.first_name, family?.parent_last_name]);
+  }, [draft, template, contacts, manualRecipient, choosingRecipient, subjectEdit, aiSubject, primaryChild?.first_name, family?.parent_last_name]);
 
   const target = outgoing
     ? composeTarget(
@@ -639,6 +636,26 @@ export default function LettersScreen() {
     () => (blankScanText ? analyzeBlanks(blankScanText, letterProfile).remaining.length : 0),
     [blankScanText, letterProfile]
   );
+
+  // What a send of THIS letter will start, decided exactly as
+  // handleMarkSent decides it — so "When you press Send" never promises a
+  // deadline the send won't open (a re-send joins the live request instead).
+  const sendTracking = useMemo((): Pick<SendStepsInput, 'tracking' | 'clockDays'> => {
+    if (!template) return { tracking: 'none' };
+    if (routeRequestId) return { tracking: 'case' };
+    const track = trackFor(
+      sentNextFor(template.key, primaryChild?.first_name, toFunnelLocale(locale)),
+      routeRequestId
+    );
+    if (!track) return { tracking: 'none' };
+    const title = route.params?.trackTitle || track.title;
+    const live = requests.some(
+      (r) => r.title === title && (r.status === 'requested' || r.status === 'in_progress')
+    );
+    if (live) return { tracking: 'case' };
+    const days = statutoryDays(track.requestType);
+    return days ? { tracking: 'clock', clockDays: days } : { tracking: 'tracked' };
+  }, [template, routeRequestId, primaryChild?.first_name, locale, route.params?.trackTitle, requests]);
 
   const openSendSheet = useCallback(() => {
     setSendProblem(null);
@@ -728,6 +745,7 @@ export default function LettersScreen() {
     setDraft(null);
     setFilledFromRecords([]);
     setManualRecipient(null);
+    setChoosingRecipient(false);
     setManualEmailInput('');
     setSubjectEdit(null);
     setAiSubject(null);
@@ -956,9 +974,12 @@ export default function LettersScreen() {
                         : `${outgoing.recipient.contact.name} (${outgoing.recipient.contact.email})`
                       : 'Choose who this goes to, or add the address in your email app'}
                   </Text>
-                  {outgoing.recipient.reason === 'manual' && (
+                  {outgoing.recipient.contact && (
                     <TouchableOpacity
-                      onPress={() => setManualRecipient(null)}
+                      onPress={() => {
+                        setManualRecipient(null);
+                        setChoosingRecipient(true);
+                      }}
                       accessibilityRole="button"
                       accessibilityLabel="Change who this goes to"
                     >
@@ -1055,6 +1076,26 @@ export default function LettersScreen() {
 
             {gmailReady && outgoing?.recipient.contact?.email && (
               <>
+                {(() => {
+                  const contact = outgoing.recipient.contact;
+                  const { title, steps } = sendSteps({
+                    locale: funnelLocale,
+                    from: gmailEmail,
+                    toName: contact.name || contact.email!,
+                    ...sendTracking,
+                  });
+                  return (
+                    <View style={styles.sendSteps} accessible accessibilityLabel={`${title}. ${steps.join(' ')}`}>
+                      <Text style={styles.sendStepsTitle}>{title}</Text>
+                      {steps.map((step, i) => (
+                        <View key={i} style={styles.sendStepRow}>
+                          <Text style={styles.sendStepNum}>{i + 1}.</Text>
+                          <Text style={styles.sendStepText}>{step}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  );
+                })()}
                 <TouchableOpacity
                   style={[styles.gmailSendBtn, blanksLeft > 0 && styles.gmailSendBtnDisabled]}
                   onPress={openSendSheet}
@@ -1071,10 +1112,8 @@ export default function LettersScreen() {
                     📨 Send now with Gmail — replies tracked
                   </Text>
                 </TouchableOpacity>
-                {blanksLeft > 0 ? (
+                {blanksLeft > 0 && (
                   <Text style={styles.sendGateHint}>{sendGate.hint(blanksLeft)}</Text>
-                ) : (
-                  <Text style={styles.autoSendNote}>{AUTO_SEND_NOTE[funnelLocale](gmailEmail)}</Text>
                 )}
               </>
             )}
@@ -1464,14 +1503,27 @@ const styles = StyleSheet.create({
   },
   gmailSendText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   gmailSendBtnDisabled: { backgroundColor: colors.mid, opacity: 0.6 },
-  autoSendNote: {
-    fontSize: fonts.sizes.sm,
-    color: colors.mid,
-    textAlign: 'center',
-    lineHeight: 18,
-    marginTop: -spacing.xs,
+  // "When you press Send" (lib/sendSteps.ts) — read before the tap, so it
+  // sits above the button and in the brand's pine, not a warning colour.
+  sendSteps: {
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: brand.pine,
+    borderRadius: radii.md,
+    padding: spacing.md,
     marginBottom: spacing.sm,
+    gap: 4,
   },
+  sendStepsTitle: {
+    fontSize: fonts.sizes.xs + 1,
+    fontWeight: fonts.weights.extrabold,
+    letterSpacing: 0.8,
+    color: brand.pine,
+    marginBottom: 2,
+  },
+  sendStepRow: { flexDirection: 'row', gap: 6 },
+  sendStepNum: { fontSize: fonts.sizes.md, color: brand.ink, fontWeight: fonts.weights.bold, minWidth: 16 },
+  sendStepText: { flex: 1, fontSize: fonts.sizes.md, color: brand.ink, lineHeight: 20 },
   subjectRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   subjectInput: {
     flex: 1,
