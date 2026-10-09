@@ -1081,6 +1081,36 @@ describe('a letter addressed outside the system its template writes to', () => {
     expect(h.markSent).not.toHaveBeenCalled();
   });
 
+  it('a previous letter’s Cc never counts for a regenerated one', async () => {
+    const open = vi.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    h.contacts = [DANA, PAT];
+    await generate();
+    fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: PAT.email } });
+    fireEvent.click(screen.getByLabelText('Add to Cc'));
+    fireEvent.click(screen.getByText(/^Open in (Gmail|Mail app)$/));
+    await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+    // A new letter: the old hand-off (with Pat on Cc) is not this one's.
+    fireEvent.click(screen.getByText('‹ Change tone or details'));
+    fireEvent.click(screen.getByRole('button', { name: /Generate Draft/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Mark this letter as sent/i }));
+    expect(screen.getByText(QUESTION)).toBeTruthy();
+    expect(h.createRequest).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it('changing who it goes to closes the question, and the send decides afresh', async () => {
+    h.contacts = [DANA, PAT];
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    expect(screen.getByText(QUESTION)).toBeTruthy();
+    // The question's own prompt: it is addressed to the wrong person.
+    fireEvent.click(screen.getByLabelText('Change who this goes to'));
+    fireEvent.click(screen.getByLabelText('Send to Pat Nguyen'));
+    expect(screen.queryByText(QUESTION)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+  });
+
   it('a decision made at the tap stands — recipients loading during the save never turn it into "no"', async () => {
     h.contacts = []; // still loading: nobody known, so no question
     let finishSave: (id: string) => void = () => undefined;

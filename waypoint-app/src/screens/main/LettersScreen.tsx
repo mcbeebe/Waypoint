@@ -242,6 +242,7 @@ export default function LettersScreen() {
       setManualRecipient(null);
       setChoosingRecipient(false);
       setCc([]);
+      handedOffCcRef.current = null;
       setCcInput('');
       setCcError(null);
       setManualEmailInput('');
@@ -292,6 +293,7 @@ export default function LettersScreen() {
     setManualRecipient(null);
     setChoosingRecipient(false);
     setCc([]);
+    handedOffCcRef.current = null;
     setCcInput('');
     setCcError(null);
     setManualEmailInput('');
@@ -365,6 +367,7 @@ export default function LettersScreen() {
     setManualRecipient(null);
     setChoosingRecipient(false);
     setCc([]);
+    handedOffCcRef.current = null;
     setCcInput('');
     setCcError(null);
     setManualEmailInput('');
@@ -881,6 +884,14 @@ export default function LettersScreen() {
   /** The Gmail send's decision: Gmail sends exactly the Cc chips. */
   const gmailDecision = useMemo(() => decideClock(ccList), [decideClock, ccList]);
 
+  // The inline question is about one addressee: change who the letter goes to
+  // (the natural reply to "it's addressed to Dana, saved under Medical") and it
+  // closes, so "Mark as sent" decides afresh instead of answering for Dana.
+  const addresseeKey = `${outgoing?.recipient.contact?.email ?? ''}|${outgoing?.recipient.contact?.organization ?? ''}`;
+  useEffect(() => {
+    setPendingClock(null);
+  }, [addresseeKey]);
+
   // What a send of THIS letter will start — from the same decision
   // handleMarkSent acts on, so "When you press Send" never promises a
   // deadline the send won't open (a re-send joins the live request instead).
@@ -1064,7 +1075,11 @@ export default function LettersScreen() {
           clockAnswer={clockAnswer}
           onClockAnswer={setClockAnswer}
           problem={sendProblem}
-          onCancel={() => setConfirmOpen(false)}
+          onCancel={() => {
+            setConfirmOpen(false);
+            // An answer belongs to the send it was given for.
+            setClockAnswer(null);
+          }}
           onConfirm={handleSendWithGmail}
         />
       ) : null}
