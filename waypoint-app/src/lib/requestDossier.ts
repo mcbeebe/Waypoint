@@ -23,6 +23,7 @@
 // Platform modules (react-native, expo-*) are imported lazily inside
 // exportRequestDossier so the builders stay unit-testable under node.
 import type { RequestCase, CaseEvent } from '@/lib/requestCase';
+import { ccLine } from '@/lib/ccLine';
 import { REQUEST_TYPE_LABELS } from '@/lib/requestClocks';
 
 export interface DossierOptions {
@@ -120,6 +121,13 @@ function provenanceLineFor(e: CaseEvent): string {
   return PROVENANCE_TEXT[e.provenance];
 }
 
+// Who else was on the email (064), as addresses: a case file is evidence,
+// so it states what the record holds rather than a contact-book name.
+function pushCc(lines: string[], e: CaseEvent): void {
+  const line = ccLine(e.communication, []);
+  if (line) lines.push(`  ${line}`);
+}
+
 /** Plain-text dossier — the share-sheet / clipboard rendering. */
 export function buildRequestDossierText(kase: RequestCase, opts: DossierOptions): string {
   const r = kase.request;
@@ -148,6 +156,7 @@ export function buildRequestDossierText(kase: RequestCase, opts: DossierOptions)
   }
   for (const e of core) {
     lines.push(`- ${fmt(e.when)} · ${describeEvent(e)} [${provenanceLineFor(e)}]`);
+    pushCc(lines, e);
     if (e.communication.body) lines.push(`  ${e.communication.body.slice(0, 400)}`);
   }
   if (thread.length > 0) {
@@ -155,6 +164,7 @@ export function buildRequestDossierText(kase: RequestCase, opts: DossierOptions)
     lines.push(`SAME EMAIL THREAD (${thread.length} item${thread.length === 1 ? '' : 's'} — linked by thread, not individually stamped)`);
     for (const e of thread) {
       lines.push(`- ${fmt(e.when)} · ${describeEvent(e)} [${provenanceLineFor(e)}]`);
+      pushCc(lines, e);
     }
   }
   lines.push('');
@@ -184,9 +194,11 @@ function eventRow(e: CaseEvent): string {
   const body = c.body
     ? `<div class="body">${esc(c.body.slice(0, 600))}${c.body.length > 600 ? '…' : ''}</div>`
     : '';
+  const line = ccLine(c, []);
+  const cc = line ? `<div class="cc">${esc(line)}</div>` : '';
   return `<tr>
 <td class="date">${esc(fmt(e.when))}</td>
-<td>${esc(describeEvent(e))}${body}</td>
+<td>${esc(describeEvent(e))}${cc}${body}</td>
 <td class="prov">${esc(provenanceLineFor(e))}</td>
 </tr>`;
 }
@@ -212,6 +224,7 @@ export function renderRequestDossierHtml(kase: RequestCase, opts: DossierOptions
   .date{white-space:nowrap;color:#1B2A4A;font-weight:600}
   .prov{font-size:12px;color:#5B6B7C;white-space:normal}
   .body{margin-top:4px;font-size:12.5px;color:#374151;white-space:pre-wrap}
+  .cc{margin-top:2px;font-size:12px;color:#5B6B7C}
   .overdue{color:#DC2626;font-weight:700}
   .foot{margin-top:36px;font-size:12px;color:#5B6B7C;border-top:1px solid #DDE3E6;padding-top:12px}
   .hash{font-family:ui-monospace,monospace;word-break:break-all}

@@ -1,0 +1,77 @@
+{
+  "artboards": [
+    {
+      "file": "Home.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 820,
+      "title": "(c) Home reply card \u00b7 \u201cNothing to answer\u201d",
+      "is_interactive": false
+    },
+    {
+      "file": "Trail.dc.html",
+      "x": 430,
+      "y": 0,
+      "w": 390,
+      "h": 820,
+      "title": "(a) Paper Trail records Cc \u00b7 (c) settled badge + undo",
+      "is_interactive": false
+    },
+    {
+      "file": "Reply.dc.html",
+      "x": 860,
+      "y": 0,
+      "w": 390,
+      "h": 820,
+      "title": "(b) Paper Trail reply keeps the people copied",
+      "is_interactive": false
+    },
+    {
+      "file": "AddFind.dc.html",
+      "x": 0,
+      "y": 900,
+      "w": 390,
+      "h": 820,
+      "title": "(d) Add an email thread \u00b7 search your Gmail",
+      "is_interactive": false
+    },
+    {
+      "file": "AddConfirm.dc.html",
+      "x": 430,
+      "y": 900,
+      "w": 390,
+      "h": 820,
+      "title": "(d) Confirm \u00b7 label, request, what Add does",
+      "is_interactive": false
+    },
+    {
+      "file": "AddLink.dc.html",
+      "x": 860,
+      "y": 900,
+      "w": 390,
+      "h": 820,
+      "title": "(d) A pasted link Gmail won't let us open \u00b7 not connected",
+      "is_interactive": false
+    }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "x": 0,
+      "y": 860,
+      "w": 1250,
+      "text": "OWNER ASK, 2026-10-09 \u2014 \u201cYes to all\u201d to three follow-ups to Letters Cc (#313): (a) record who was copied, (b) replies keep the copied people, (c) a way to tell Home a reply needs no answer. All names here are invented."
+    },
+    {
+      "id": "add",
+      "x": 0,
+      "y": 1760,
+      "w": 1250,
+      "text": "OWNER ASK, 2026-10-09: add a thread to the app by URL. Owner picked: paste a link OR search \u00b7 an unanswered newest message from the last 14 days shows on Home \u00b7 built after PR A."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}

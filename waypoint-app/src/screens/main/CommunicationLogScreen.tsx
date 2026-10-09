@@ -30,6 +30,8 @@ import {
   type CommunicationKind,
 } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
+import { useContacts } from '@/hooks/useContacts';
+import { ccLine } from '@/lib/ccLine';
 import { isUnreadReply } from '@/lib/replyInbox';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useToast } from '@/components/Toast';
@@ -56,6 +58,7 @@ export default function CommunicationLogScreen() {
   } = useCommunications(family?.id ?? '');
   // Case-file chips: an entry that serves a tracked request links to its case.
   const { requests } = useRequests(family?.id);
+  const { contacts } = useContacts(family?.id);
   const { children } = useChildren(family?.id);
   const primaryChild = children.find((c) => c.is_primary) ?? children[0];
   const navigation = useNavigation();
@@ -363,6 +366,10 @@ export default function CommunicationLogScreen() {
             </View>
             {expandedId === item.id && (
               <>
+                {(() => {
+                  const line = ccLine(item, contacts);
+                  return line ? <Text style={styles.ccLine}>{line}</Text> : null;
+                })()}
                 {item.body ? <Text style={styles.entryText}>{item.body}</Text> : null}
                 {(() => {
                   const linked = item.request_id
@@ -642,6 +649,11 @@ const styles = StyleSheet.create({
   },
   reopenText: { fontSize: fonts.sizes.xs, color: colors.dark },
   entryMeta: { fontSize: fonts.sizes.xs, color: colors.mid, marginTop: 2 },
+  ccLine: {
+    fontSize: fonts.sizes.xs,
+    color: colors.mid,
+    marginTop: spacing.sm,
+  },
   entryText: {
     fontSize: fonts.sizes.xs,
     color: colors.dark,

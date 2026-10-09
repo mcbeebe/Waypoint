@@ -15,6 +15,7 @@
  * This file runs at the machine's zone, so it asserts only what holds in any.)
  */
 import React from 'react';
+import { Linking } from 'react-native';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 
@@ -37,6 +38,7 @@ const h = vi.hoisted(() => ({
   commSeq: 0,
   logCommunication: vi.fn(async (_familyId: string, _input: Record<string, unknown>) => ''),
   markSent: vi.fn(async (_id: string) => true),
+  recordCc: vi.fn(async (_id: string, _cc: readonly string[]) => true),
   updateDraft: vi.fn(
     async (_id: string, _fields: Record<string, unknown>) =>
       'updated' as 'updated' | 'not_draft' | 'error'
@@ -69,6 +71,7 @@ vi.mock('@/hooks/useCommunications', () => ({
   useCommunications: () => ({ communications: [], refetch: vi.fn() }),
   logCommunication: h.logCommunication,
   markCommunicationSent: h.markSent,
+  recordCommunicationCc: h.recordCc,
   updateCommunicationDraft: h.updateDraft,
   attachCommunicationToRequest: h.attach,
 }));
@@ -112,6 +115,7 @@ beforeEach(() => {
   h.logCommunication.mockReset();
   h.logCommunication.mockImplementation(async () => `comm${++h.commSeq}`);
   h.markSent.mockClear();
+  h.recordCc.mockClear();
   h.updateDraft.mockReset();
   h.updateDraft.mockImplementation(async () => 'updated');
   h.gmail = { gmail: false, email: null };
@@ -509,6 +513,39 @@ describe('sending through Gmail', () => {
       fireEvent.click(screen.getByLabelText('Change who this goes to'));
       fireEvent.click(screen.getByLabelText('Send to Pat Nguyen'));
       expect(screen.getByText('No one')).toBeTruthy();
+    });
+
+    it('"Mark as sent" after the mail-app hand-off records the Cc that hand-off carried (064)', async () => {
+      const open = vi.spyOn(Linking, 'openURL').mockResolvedValue(true);
+      await draftReadyToSend();
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      fireEvent.click(screen.getByText(/^Open in (Gmail|Mail app)$/));
+      await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+      expect(decodeURIComponent(String(open.mock.calls[0][0]))).toContain('sam@example.org');
+      // Chips changed after the hand-off do not rewrite what went out.
+      fireEvent.click(screen.getByLabelText('Remove Sam Rivera from Cc'));
+      fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+      await waitFor(() => expect(h.recordCc).toHaveBeenCalledTimes(1));
+      expect(h.recordCc).toHaveBeenCalledWith('comm1', ['sam@example.org']);
+      open.mockRestore();
+    });
+
+    it('a Cc on screen is not recorded for a letter that was copied, printed or faxed instead', async () => {
+      await draftReadyToSend();
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+      await waitFor(() => expect(h.markSent).toHaveBeenCalled());
+      expect(h.recordCc).not.toHaveBeenCalled();
+    });
+
+    it('a Gmail send records nothing app-side — the gmail function stores its Cc', async () => {
+      await draftReadyToSend();
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      const sheet = await openSheetFromButton();
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+      await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(h.markSent).toHaveBeenCalledTimes(1));
+      expect(h.recordCc).not.toHaveBeenCalled();
     });
 
     it('the addressee is never also copied', async () => {

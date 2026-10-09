@@ -225,3 +225,45 @@ describe('renderRequestDossierHtml', () => {
     expect(buildRequestDossierText(kase, OPTS)).toContain('No written items are linked');
   });
 });
+
+describe('who else was on each email (064)', () => {
+  function caseWithCc() {
+    const r = req({ communication_id: 'origin' });
+    const origin = comm({
+      id: 'origin',
+      subject: 'Requesting an IPP meeting',
+      gmail_thread_id: 't1',
+      gmail_message_id: 'm1',
+      cc: ['sam@example.org'],
+      occurred_at: '2026-07-01T10:00:00Z',
+      created_at: '2026-07-01T10:00:00Z',
+    });
+    const reply = comm({
+      direction: 'incoming',
+      subject: 'Re: Requesting an IPP meeting',
+      gmail_thread_id: 't1',
+      gmail_message_id: 'm2',
+      cc: ['sam@example.org', 'supervisor@<rc>.org'],
+      occurred_at: '2026-07-10T09:00:00Z',
+      created_at: '2026-07-10T09:05:00Z',
+    });
+    return buildRequestCase(r, [origin, reply], 'en', NOW);
+  }
+
+  it('the text lists the Cc under the letter and everyone else under the reply, as addresses', () => {
+    const text = buildRequestDossierText(caseWithCc(), OPTS);
+    expect(text).toContain('  Cc: sam@example.org');
+    expect(text).toContain('  Also on this email: sam@example.org, supervisor@<rc>.org');
+  });
+
+  it('the HTML carries the same lines, escaped', () => {
+    const html = renderRequestDossierHtml(caseWithCc(), OPTS);
+    expect(html).toContain('<div class="cc">Cc: sam@example.org</div>');
+    expect(html).toContain('supervisor@&lt;rc&gt;.org');
+  });
+
+  it('a record with no Cc recorded adds no line', () => {
+    const { kase } = fullCase();
+    expect(buildRequestDossierText(kase, OPTS)).not.toMatch(/Cc:|Also on this email/);
+  });
+});
