@@ -56,13 +56,61 @@ function wrap76(value: string): string {
   return (value.match(/.{1,76}/g) ?? []).join('\r\n');
 }
 
+/** RFC 2047 §2: an encoded-word is at most 75 characters long. */
+const MAX_ENCODED_WORD = 75;
+/** RFC 2047 §2: a header line that holds encoded-words is at most 76 characters. */
+const MAX_ENCODED_LINE = 76;
+/** "=?UTF-8?B?" + "?=" around each word's base64. */
+const WORD_OVERHEAD = 12;
+
+/** The most UTF-8 bytes whose base64 fits within `chars` characters. */
+function bytesFitting(chars: number): number {
+  return Math.floor(chars / 4) * 3;
+}
+
 /**
  * A header value, RFC 2047 encoded only when it needs to be. Padded, because
  * an encoded-word is standard base64, not base64url.
+ *
+ * A long non-ASCII value is split into several encoded-words — each at most
+ * 75 characters, each holding whole characters (never half of a UTF-8
+ * sequence) — folded onto continuation lines so no line passes 76. Decoders
+ * drop the whitespace BETWEEN adjacent encoded-words (RFC 2047 §6.2), so the
+ * recipient sees the original text. One word of any length used to be sent:
+ * Gmail is lenient, but a stricter server (a Regional Center's, a district's)
+ * may show the raw "=?UTF-8?B?…" or mangle it — and the subjects this app
+ * writes, with an em-dash and a child's name, routinely run past 45 bytes.
+ *
+ * `prefixLength` is the "Subject: " already on the first line. Line breaks in
+ * the value are flattened first: a header value is one line, and a CR/LF in
+ * it would start a header of the caller's choosing.
  */
-export function encodeHeader(value: string): string {
+export function encodeHeader(value: string, prefixLength = 0): string {
+  const flat = value.replace(/[\r\n]+/g, ' ');
   // eslint-disable-next-line no-control-regex
-  return /[^\x00-\x7F]/.test(value) ? `=?UTF-8?B?${b64(value)}?=` : value;
+  if (!/[^\x00-\x7F]/.test(flat)) return flat;
+
+  const encoder = new TextEncoder();
+  const words: string[] = [];
+  let budget = bytesFitting(Math.min(MAX_ENCODED_WORD, MAX_ENCODED_LINE - prefixLength) - WORD_OVERHEAD);
+  let chunk = '';
+  let chunkBytes = 0;
+  for (const char of flat) {
+    // Iterating a string yields whole code points, so a word never ends
+    // mid-character.
+    const size = encoder.encode(char).length;
+    if (chunk && chunkBytes + size > budget) {
+      words.push(`=?UTF-8?B?${b64(chunk)}?=`);
+      chunk = '';
+      chunkBytes = 0;
+      // Continuation lines start with one space of folding whitespace.
+      budget = bytesFitting(Math.min(MAX_ENCODED_WORD, MAX_ENCODED_LINE - 1) - WORD_OVERHEAD);
+    }
+    chunk += char;
+    chunkBytes += size;
+  }
+  if (chunk) words.push(`=?UTF-8?B?${b64(chunk)}?=`);
+  return words.join('\r\n ');
 }
 
 export interface RawMessageInput {
@@ -87,7 +135,7 @@ export function buildRawMessage(input: RawMessageInput): string {
   const headers = [
     `To: ${input.to}`,
     input.cc && input.cc.length > 0 ? `Cc: ${input.cc.join(', ')}` : '',
-    `Subject: ${encodeHeader(input.subject || '(no subject)')}`,
+    `Subject: ${encodeHeader(input.subject || '(no subject)', 'Subject: '.length)}`,
     input.inReplyTo ? `In-Reply-To: ${input.inReplyTo}` : '',
     input.references ? `References: ${input.references}` : '',
     'MIME-Version: 1.0',

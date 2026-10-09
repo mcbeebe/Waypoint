@@ -36,6 +36,23 @@ function readMessage(raw: string): { headers: Record<string, string>; body: stri
   return { headers, body: Buffer.from(encoded, 'base64').toString('utf8') };
 }
 
+/** The Subject header as sent: its first line and any folded continuations. */
+function subjectLines(raw: string): string[] {
+  const head = raw.slice(0, raw.indexOf('\r\n\r\n')).split('\r\n');
+  const start = head.findIndex((l) => l.startsWith('Subject: '));
+  const out = [head[start]];
+  for (let i = start + 1; i < head.length && /^[ \t]/.test(head[i]); i++) out.push(head[i]);
+  return out;
+}
+
+/** What a mail client shows: unfold, then decode adjacent encoded-words as one run (RFC 2047 §6.2). */
+function decodeHeader(value: string): string {
+  return value
+    .replace(/\r\n[ \t]/g, ' ')
+    .replace(/(=\?UTF-8\?B\?[^?]*\?=)\s+(?==\?UTF-8\?B\?)/gi, '$1')
+    .replace(/=\?UTF-8\?B\?([^?]*)\?=/gi, (_, b64: string) => Buffer.from(b64, 'base64').toString('utf8'));
+}
+
 const BODY = "Hi Lilia,\n\nThank you again for your ongoing support with Teddy's respite services.";
 
 describe('the message that actually arrives', () => {
@@ -102,17 +119,69 @@ describe('encodeHeader', () => {
     expect(encodeHeader('IPP Addendum Request')).toBe('IPP Addendum Request');
   });
 
-  it('produces a PADDED encoded-word for the em-dash this app loves', () => {
+  it('produces PADDED encoded-words for the em-dash this app loves', () => {
     // The old version reused the unpadded base64url helper, so any subject
     // with an em-dash — which is most subjects the AI proposes — became a
     // malformed RFC 2047 word.
     const subject = 'IPP Addendum Request — Home-Based Life Skills OT';
-    const encoded = encodeHeader(subject);
-    expect(encoded.startsWith('=?UTF-8?B?')).toBe(true);
-    const payload = encoded.slice('=?UTF-8?B?'.length, -'?='.length);
-    expect(payload.length % 4).toBe(0);
-    expect(payload).not.toMatch(/[-_]/); // standard base64, not base64url
-    expect(Buffer.from(payload, 'base64').toString('utf8')).toBe(subject);
+    const words = encodeHeader(subject).split('\r\n ');
+    for (const word of words) {
+      expect(word.startsWith('=?UTF-8?B?')).toBe(true);
+      const payload = word.slice('=?UTF-8?B?'.length, -'?='.length);
+      expect(payload.length % 4).toBe(0);
+      expect(payload).not.toMatch(/[-_]/); // standard base64, not base64url
+    }
+    expect(decodeHeader(encodeHeader(subject))).toBe(subject);
+  });
+});
+
+/**
+ * RFC 2047 caps an encoded-word at 75 characters, and a line holding them at
+ * 76. One word of any length was sent: Gmail shrugs, but a stricter server — a
+ * Regional Center's, a district's — may show "=?UTF-8?B?…" raw, or garble it.
+ * The subjects this app writes (an em-dash, a child's name, Spanish or
+ * Vietnamese) routinely run past the ~45 bytes one word can hold.
+ */
+describe('a long non-ASCII subject, folded', () => {
+  const SUBJECTS = [
+    'Written recommendation for 1:1 support — Maya Lopez',
+    'Solicitud de reunión del IPP para María José Hernández — evaluación de servicios',
+    'Yêu cầu họp IPP cho con của chúng tôi — đánh giá lại dịch vụ hỗ trợ',
+    `IPP review ${String.fromCodePoint(0x1f389)} ${String.fromCodePoint(0x1f600).repeat(30)}`,
+    `${'x'.repeat(200)} — ${'é'.repeat(100)}`,
+  ];
+
+  for (const subject of SUBJECTS) {
+    it(JSON.stringify(subject.slice(0, 32)), () => {
+      const raw = buildRawMessage({ to: 'a\b.com', subject, body: BODY });
+      const lines = subjectLines(raw);
+      // Every line within 76, every word within 75…
+      for (const line of lines) expect(line.length).toBeLessThanOrEqual(76);
+      const words = lines.join(' ').match(/=\?UTF-8\?B\?[^?]*\?=/g) ?? [];
+      expect(words.length).toBeGreaterThan(1);
+      for (const word of words) {
+        expect(word.length).toBeLessThanOrEqual(75);
+        // …each holding whole characters: it decodes on its own, strictly.
+        const payload = word.slice('=?UTF-8?B?'.length, -'?='.length);
+        expect(() => new TextDecoder('utf-8', { fatal: true }).decode(Buffer.from(payload, 'base64'))).not.toThrow();
+      }
+      // …and a mail client reassembles exactly what was written.
+      expect(decodeHeader(lines.join('\r\n').replace(/^Subject: /, ''))).toBe(subject);
+      expect(readMessage(raw).body).toBe(BODY);
+    });
+  }
+
+  it('leaves a short or plain-ASCII subject on one line', () => {
+    expect(subjectLines(buildRawMessage({ to: 'a\b.com', subject: 'IPP review — Maya', body: BODY }))).toHaveLength(1);
+    const ascii = 'x'.repeat(120);
+    expect(subjectLines(buildRawMessage({ to: 'a\b.com', subject: ascii, body: BODY }))).toEqual([`Subject: ${ascii}`]);
+  });
+
+  it('never lets a line break in the subject start a header of its own', () => {
+    for (const subject of ['Hello\r\nBcc: spy\example.com', 'Hé\nBcc: spy\example.com']) {
+      const head = buildRawMessage({ to: 'a\b.com', subject, body: BODY }).split('\r\n\r\n')[0];
+      expect(head.split('\r\n').some((line) => /^bcc:/i.test(line))).toBe(false);
+    }
   });
 });
 
