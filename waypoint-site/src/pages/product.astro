@@ -96,10 +96,10 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
 
       <div class="tour">
         <div class="tour-row">
-          <PhoneFrame label="Sample Navigator answer about an assessment request, with Your right and Watch out cards." appBar="Navigator">
+          <PhoneFrame label="Sample Navigator answer about an assessment request, with Your right and Watch out cards." appBar="Waypoint Navigator" tab="Learn">
             <div class="tour-q">Can I ask for an assessment before the next IEP meeting?</div>
             <div class="ms-card">Yes. Put the request in writing so the timeline starts.</div>
-            <div class="ms-card tour-right"><b>YOUR RIGHT</b> An assessment plan within 15 calendar days of the district receiving it (Ed Code §56321).</div>
+            <div class="ms-card tour-right"><b>YOUR RIGHT</b> Once the district receives your written request, it has 15 days to send an assessment plan, not counting school breaks over five school days (Ed Code §56321).</div>
             <div class="ms-card tour-watch"><b>WATCH OUT</b> If the district says no, ask for that in writing.</div>
           </PhoneFrame>
           <div class="tour-copy">
@@ -121,6 +121,7 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
               <div class="ms-muted">Because you asked on Oct 1 and the law gives them a fixed window. <b>Ed Code §56321</b></div>
               <div class="ms-btn">Draft the follow-up</div>
               <div class="ms-muted tour-later">Not today — show the next thing</div>
+              <div class="ms-muted tour-later">Back in 3 days</div>
             </div>
           </PhoneFrame>
           <div class="tour-copy">
@@ -135,60 +136,61 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
         </div>
 
         <div class="tour-row">
-          <PhoneFrame label="Sample follow-up email in the Friendly and Warm tone, with Send now with Gmail and Open in Mail app buttons." appBar="Letters" tab="Tools">
-            <div class="ms-chips tour-tones"><span class="on">Friendly &amp; Warm</span><span>Professional &amp; Clear</span><span>Strong &amp; Direct</span></div>
+          <PhoneFrame label="Sample drafted follow-up email to the school, with Send now with Gmail, Open in Mail app and Copy buttons." appBar="Letters & Drafts">
+            <div class="ms-muted tour-back">‹ Change tone or details</div>
             <div class="ms-card tour-letter">
               Hi Ms. Lopez, I wanted to check in on Maya's assessment plan. I sent my request on
               October 1. Could you let me know when it might be ready?
             </div>
             <div class="ms-btn">📨 Send now with Gmail — replies tracked</div>
-            <div class="ms-btn ms-outline">Open in Mail app</div>
+            <div class="ms-row"><div class="ms-btn ms-outline">Open in Mail app</div><div class="ms-btn">Copy</div></div>
           </PhoneFrame>
           <div class="tour-copy">
             <span class="tour-step">3 · Letters</span>
-            <h3>The friendly email, already written</h3>
+            <h3>The friendly email, drafted in seconds</h3>
             <p>
-              Requests and follow-ups, filled in with your child's name, the date and the citation.
-              The first ask is friendly; you choose when to firm it up. Send it with your
-              own Gmail and replies show up next to the request, or open it in any mail app. Drafts
-              in English, Spanish or Vietnamese.
+              Requests, follow-ups and appeals. Pick the letter and the tone, and the app drafts it
+              with your child's details in about 10 to 20 seconds; anything it doesn't know is left
+              in brackets for you to fill. The first ask is friendly, and firmer tones cite the law.
+              Send it with your own Gmail and replies show up next to the request, or open it in any
+              mail app. Drafts in English, Spanish or Vietnamese.
             </p>
           </div>
         </div>
 
         <div class="tour-row tour-flip">
-          <PhoneFrame label="Sample IEP review: three goals rated Strong, Adequate and Weak, with suggested wording." appBar="IEP review" tab="Tools">
+          <PhoneFrame label="Sample IEP review: three goals rated Strong, Adequate and Weak, with suggested wording." appBar="IEP Review">
             <div class="ms-title">Maya's IEP · 3 goals</div>
             <div class="ms-card tour-goal"><span>Reading fluency</span><b class="g-strong">Strong</b></div>
             <div class="ms-card tour-goal"><span>Written expression</span><b class="g-ok">Adequate</b></div>
             <div class="ms-card tour-goal"><span>Self-regulation</span><b class="g-weak">Weak</b></div>
-            <div class="ms-muted tour-suggest">Suggested wording: "…as measured by weekly teacher data."</div>
+            <div class="ms-muted tour-suggest"><b>Suggested Improvement</b> "…as measured by weekly teacher data."</div>
           </PhoneFrame>
           <div class="tour-copy">
             <span class="tour-step">4 · Documents and IEP review</span>
             <h3>Every report in one place, and the IEP read for you</h3>
             <p>
-              Upload a PDF or a photo of the page. Premium reads an IEP, rates each goal, suggests
-              stronger wording, compares it with last year's when you add that one too, and builds
+              The document binder is free: upload a PDF or a photo of the page. Premium reads an
+              IEP, rates each goal, suggests stronger wording, compares it with last year's when you add that one too, and builds
               your meeting questions.
             </p>
           </div>
         </div>
 
         <div class="tour-row">
-          <PhoneFrame label="Sample plan: four school steps, one checked off." appBar="Your plan · School" tab="Plan">
-            <div class="ms-card tour-step-row tour-done">Ask for an evaluation in writing</div>
-            <div class="ms-card tour-step-row">Ask for typing as a writing accommodation</div>
-            <div class="ms-card tour-step-row">Request last year's progress reports</div>
-            <div class="ms-card tour-step-row">Make my meeting list</div>
+          <PhoneFrame label="Sample plan: three school steps, one checked off." appBar="Waypoint Plan" tab="Plan">
+            <div class="ms-muted">🏫 IEP / School</div>
+            <div class="ms-card tour-step-row tour-done">Get a formal evaluation for your child</div>
+            <div class="ms-card tour-step-row">Request school district evaluation (in writing)</div>
+            <div class="ms-card tour-step-row">Send written request for IEP meeting</div>
           </PhoneFrame>
           <div class="tour-copy">
             <span class="tour-step">5 · Your plan</span>
             <h3>A plan built for your child, not a generic checklist</h3>
             <p>
               Steps from your child's age, diagnosis and where things stand with the Regional
-              Center, school and insurance. Save a step from a Navigator answer, and check them off
-              as you go.
+              Center, school and insurance, closed out when they no longer fit as that changes. Save a
+              step from a Navigator answer, and check them off as you go.
             </p>
           </div>
         </div>
@@ -311,7 +313,8 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
   }
   /* The tour's screens are short; the homepage's 560px phone left them half empty. */
   .tour :global(.phone-screen) {
-    height: 420px;
+    height: auto;
+    min-height: 420px;
   }
   .tour-step {
     font-size: 0.78rem;
@@ -349,18 +352,20 @@ const heroProps = JSON.stringify({ slug: 'product', locale: 'en', cta_id: 'produ
     background: var(--color-sage-tint);
   }
   .tour-watch {
-    background: var(--color-amber-soft);
+    background: var(--color-urgent-tint);
+  }
+  .tour-watch b {
+    color: #9a3412;
+  }
+  .tour-back {
+    color: var(--color-pine);
+    font-weight: 700;
   }
   .tour-right b,
   .tour-watch b {
     font-size: 9px;
     letter-spacing: 0.08em;
     display: block;
-  }
-  .tour-tones .on {
-    background: var(--color-pine);
-    border-color: var(--color-pine);
-    color: #fff;
   }
   .tour-later {
     text-align: center;

@@ -69,9 +69,10 @@ describe('showcase copy guard', () => {
       /\bwatches your specific 60-day window\b/i,
       // Nothing is drafted ahead of time: Home offers "Draft the follow-up".
       /\balready drafted\b/i,
-      // The app runs 15-, 30- and 120-day request clocks only (/product/
-      // once promised "the 15-day, the 60-day, the 45-day").
-      /\b(?:60|45)-day\b/i,
+      // The app has no Early Start 45-day clock (/product/ once promised
+      // "the 15-day, the 60-day, the 45-day"). The 60-day Ed Code §56344
+      // estimate is real: the IEP hub calendars it (iepDeadlines.ts).
+      /\b45[- ]day\b|\bforty[- ]five[- ]day\b/i,
       // "Nothing you type leaves" is false once a parent carries a summary
       // into the app; the tools say what actually stays.
       /\bnothing you type\b/i,
@@ -108,9 +109,19 @@ describe('showcase copy guard', () => {
     const tourCites = [...tour.matchAll(/fixed window\. <b>([^<]+)<\/b>/g)].map((m) => m[1]);
     expect(tourCites.length).toBeGreaterThan(0);
     for (const c of tourCites) expect(appCitations.has(c), `/product/ cites ${c}, which no app clock uses`).toBe(true);
-    // The app's own kicker, with its em dash (homeTriage.ts), not the hero's middle dot.
-    for (const pill of tour.matchAll(/class="ms-pill[^"]*">([^<]+)</g)) {
-      expect(pill[1]).toMatch(/^(?:CLOCK RUNNING — \d+ DAYS LEFT|COMING UP — \d+ DAYS|DUE TODAY)$/);
+    // The tour's Home card is a request clock: the app's own kicker, with its
+    // em dash (homeTriage.ts), and dates that add up to the clock it cites.
+    const clockDays = new Map([...clocks.matchAll(/days:\s*(\d+),\s*citation:\s*'([^']+)'/g)].map((m) => [m[2], Number(m[1])]));
+    const cards = [...tour.matchAll(/<span class="ms-pill[^"]*">([^<]+)<\/span>\s*<div class="ms-title">An answer on .+? is due (\w{3} \d{1,2})<\/div>\s*<div class="ms-muted">Because you asked on (\w{3} \d{1,2}) and the law gives them a fixed window\. <b>([^<]+)<\/b>/g)];
+    expect(cards.length).toBe((tour.match(/class="ms-pill/g) ?? []).length);
+    expect(cards.length).toBeGreaterThan(0);
+    const day = (d: string) => new Date(`${d} 2026 12:00 UTC`).getTime();
+    for (const [, pill, due, asked, cite] of cards) {
+      const left = Number(pill.match(/^CLOCK RUNNING — (\d+) DAYS LEFT$/)?.[1]);
+      expect(left, pill).toBeGreaterThan(0);
+      expect((day(due) - day(asked)) / 86_400_000, cite).toBe(clockDays.get(cite));
+      // "Today" on every showcase screen is Monday, Oct 12, 2026.
+      expect((day(due) - day('Oct 12')) / 86_400_000).toBe(left);
     }
     // And every clock card uses the app's own kicker, not an invented one.
     for (const pill of hero.matchAll(/pill:\s*'([^']+)'/g)) {
