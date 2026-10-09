@@ -1296,7 +1296,7 @@ Memory kinds:
 - "gap": something this family appears to be missing or unaware of that could help them (unclaimed benefit, unused right, missing document)
 
 Rules:
-- Each memory ONE sentence, under 200 characters, self-contained, in third person ("Teddy's IEP meeting is set for October").
+- Each memory ONE sentence, under 200 characters, self-contained, in third person (e.g. "Their child's IEP meeting is set for October"). Name the child as the parent or an existing memory does; never invent a name or take one from these instructions.
 - Only genuinely NEW information not already covered by an existing memory. Return an empty list when nothing durable was said — most small exchanges contain nothing worth remembering.
 - If an existing memory is now obsolete or contradicted, list its id in "archive".
 - NEVER store: medical advice, transient chit-chat, anything the parent asked to keep private, or full names of third parties (role labels are fine).

@@ -738,9 +738,9 @@ export default function LettersScreen() {
   const [manualEmailInput, setManualEmailInput] = useState('');
   /**
    * The subject is the parent's to set (owner feedback, 2026-10-07). It was
-   * only ever displayed, so a template-title fallback — "IPP Meeting
-   * Request — Teddy Beebe" on a note to a provider asking for a written
-   * recommendation — went out with no way to see it coming or fix it.
+   * only ever displayed, so a template-title fallback ("IPP Meeting
+   * Request — <child>") went out on a note to a provider with no way to see
+   * it coming or fix it.
    * `null` follows the computed subject; any edit, even clearing it, is
    * the parent's own and is kept until the next letter.
    */
