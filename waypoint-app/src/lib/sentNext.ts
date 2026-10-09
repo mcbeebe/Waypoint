@@ -421,3 +421,38 @@ export function sentNextFor(
       return null;
   }
 }
+
+/** What a send of this letter does to request tracking — decided once. */
+export type TrackingPlan<R> =
+  /** Launched from a case: that request already owns the thread and clock. */
+  | { mode: 'case' }
+  /** The same ask is still open: the letter joins it; its clock keeps running. */
+  | { mode: 'join'; request: R }
+  /** A new tracked request is opened, its clock anchored on the send. */
+  | { mode: 'found'; track: NonNullable<SentNext['track']>; title: string }
+  /** Saved to the paper trail only. */
+  | { mode: 'none' };
+
+/**
+ * The tracking decision for a send — shared by the Letters screen's "When you
+ * press Send" note and the send itself, so the note can never promise a clock
+ * the send won't open (a hand-copied mirror of this drifted in review).
+ *
+ * @param titleOverride a caller's per-ask title (the IPP-need letter, one per
+ *   support), which keeps distinct asks on distinct requests.
+ */
+export function planTracking<R extends { title: string; status: string }>(
+  next: SentNext | null,
+  presetRequestId: string | null | undefined,
+  titleOverride: string | null | undefined,
+  requests: R[]
+): TrackingPlan<R> {
+  if (presetRequestId) return { mode: 'case' };
+  const track = trackFor(next, presetRequestId);
+  if (!track) return { mode: 'none' };
+  const title = titleOverride || track.title;
+  const live = requests.find(
+    (r) => r.title === title && (r.status === 'requested' || r.status === 'in_progress')
+  );
+  return live ? { mode: 'join', request: live } : { mode: 'found', track, title };
+}

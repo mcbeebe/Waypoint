@@ -29,7 +29,8 @@ const h = vi.hoisted(() => ({
       status: 'requested',
     },
   ] as any[],
-  createRequest: vi.fn(async (input: any) => ({ id: 'req2', ...input })),
+  createRequest: vi.fn(async (input: any) => ({ id: 'req2', ...input }) as any),
+  toast: vi.fn((_message: string, _type?: string) => {}),
   attach: vi.fn(async () => true),
   contacts: [] as any[],
   // A fresh id per write, so a test can tell WHICH paper-trail row was sent.
@@ -78,6 +79,7 @@ vi.mock('@/lib/gmail', () => ({
 }));
 
 vi.mock('@/lib/analytics', () => ({ trackDraftUsed: vi.fn() }));
+vi.mock('@/components/Toast', () => ({ useToast: () => ({ showToast: h.toast }) }));
 
 // Real templates and tone options; only the network draft is stubbed.
 vi.mock('@/lib/letters', async (importOriginal) => ({
@@ -104,6 +106,7 @@ beforeEach(() => {
   routeParams.template = 'ipp_review_request';
   delete routeParams.requestId;
   h.createRequest.mockClear();
+  h.toast.mockClear();
   h.attach.mockClear();
   h.commSeq = 0;
   h.logCommunication.mockReset();
@@ -267,6 +270,27 @@ describe('addressing a draft neither the greeting nor the template can match', (
     expect(screen.getByLabelText('Change who this goes to')).toBeTruthy();
   });
 
+  it('a Change can be taken back, and a greeting match warns when re-addressed', () => {
+    routeParams.draftBody = 'Hi Keri, could we set up a time to talk about the reauthorization?';
+    h.contacts = [
+      { id: 'k1', name: 'Keri Waller', email: 'keri@acrc.org', role: 'Case Manager', organization: 'regional_center' },
+      { id: 'k2', name: 'Sam Rivera', email: 'sam@example.org', role: 'Advocate', organization: 'school' },
+    ];
+    render(<LettersScreen />);
+    // Matched from the greeting.
+    expect(screen.getByText(/Keri Waller \(keri@acrc\.org\)/)).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText('Change who this goes to'));
+    fireEvent.click(screen.getByLabelText('Keep Keri Waller'));
+    expect(screen.getByText(/Keri Waller \(keri@acrc\.org\)/)).toBeTruthy();
+    expect(screen.queryByText(/still greets/)).toBeNull();
+
+    fireEvent.click(screen.getByLabelText('Change who this goes to'));
+    fireEvent.click(screen.getByLabelText('Send to Sam Rivera'));
+    expect(screen.getByText(/Sam Rivera \(sam@example\.org\)/)).toBeTruthy();
+    expect(screen.getByText(/The letter still greets Keri Waller/)).toBeTruthy();
+  });
+
   it('offers a way to change a manual pick', () => {
     h.contacts = [
       { id: 'k1', name: 'Keri Waller', email: 'keri@acrc.org', role: 'Case Manager', organization: 'regional_center' },
@@ -421,6 +445,38 @@ describe('sending through Gmail', () => {
   function settleModal(inside: HTMLElement) {
     for (let el: HTMLElement | null = inside; el; el = el.parentElement) fireEvent.animationEnd(el);
   }
+
+  describe('"When you press Send" says what THIS send does', () => {
+    const liveIpp = h.requests;
+    afterEach(() => {
+      h.requests = liveIpp;
+      h.createRequest.mockImplementation(async (input: any) => ({ id: 'req2', ...input }));
+    });
+
+    it('a founding send names the legal timeline it starts', async () => {
+      h.requests = [];
+      await draftReadyToSend();
+      expect(screen.getByText(/starts tracking the 30-day legal timeline for this request/)).toBeTruthy();
+    });
+
+    it('a re-send of an open ask joins its case instead — no new timeline promised', async () => {
+      await draftReadyToSend(); // req1 is a live IPP request
+      expect(screen.getByText(/added to this request’s case file/)).toBeTruthy();
+      expect(screen.queryByText(/legal timeline/)).toBeNull();
+    });
+
+    it('a send whose tracking fails says so, instead of reporting success', async () => {
+      h.requests = [];
+      h.createRequest.mockImplementation(async () => null);
+      const sheet = await openSheet();
+      fireEvent.click(within(sheet).getByLabelText('Send now'));
+      await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
+      await waitFor(() =>
+        expect(h.toast).toHaveBeenCalledWith(expect.stringMatching(/couldn’t start tracking it/), 'error')
+      );
+      expect(h.toast).not.toHaveBeenCalledWith(expect.stringMatching(/^Sent through Gmail — replies will sync/), 'success');
+    });
+  });
 
   it('says it sends by itself, and the button opens a last look instead of sending', async () => {
     await draftReadyToSend();

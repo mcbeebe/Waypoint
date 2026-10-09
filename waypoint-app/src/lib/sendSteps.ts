@@ -20,7 +20,9 @@ export interface SendStepsInput {
   toName: string;
   /**
    * What tracking this send starts:
-   * - 'clock': a new tracked request with a legal deadline of `clockDays`
+   * - 'clock': a new tracked request with a statutory timeline of `clockDays`
+   *   (what the days measure differs — a meeting held, a plan sent — so the
+   *   copy names the timeline, never "a deadline for an answer")
    * - 'tracked': a new tracked request, no statutory deadline
    * - 'case': the letter belongs to a request already being tracked
    * - 'none': saved to the paper trail only
@@ -56,9 +58,9 @@ export function sendSteps(input: SendStepsInput): { title: string; steps: string
   if (input.tracking === 'clock' && days) {
     steps.push(
       L(
-        `A copy is saved to your Paper Trail, and Waypoint starts tracking the ${days}-day deadline for an answer.`,
-        `Se guarda una copia en su registro de comunicaciones, y Waypoint empieza a seguir el plazo de ${days} días para recibir respuesta.`,
-        `Một bản sao được lưu vào nhật ký liên lạc, và Waypoint bắt đầu theo dõi thời hạn ${days} ngày để được trả lời.`
+        `A copy is saved to your Paper Trail, and Waypoint starts tracking the ${days}-day legal timeline for this request.`,
+        `Se guarda una copia en su registro de comunicaciones, y Waypoint empieza a seguir el plazo legal de ${days} días para esta solicitud.`,
+        `Một bản sao được lưu vào nhật ký liên lạc, và Waypoint bắt đầu theo dõi thời hạn luật định ${days} ngày cho yêu cầu này.`
       )
     );
   } else if (input.tracking === 'tracked' || (input.tracking === 'clock' && !days)) {

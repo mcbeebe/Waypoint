@@ -15,12 +15,14 @@ describe('sendSteps', () => {
 
   it('names the legal deadline only when this send starts one', () => {
     const clock = sendSteps({ ...base, tracking: 'clock', clockDays: statutoryDays('ipp_meeting') });
-    expect(clock.steps[2]).toMatch(/30-day deadline/);
+    expect(clock.steps[2]).toMatch(/30-day legal timeline for this request/);
+    // Not "for an answer": the IPP clock is a meeting held, the IEP one a plan sent.
+    expect(clock.steps[2]).not.toMatch(/answer/);
     for (const tracking of ['tracked', 'case', 'none'] as const) {
-      expect(sendSteps({ ...base, tracking }).steps.join(' ')).not.toMatch(/deadline/);
+      expect(sendSteps({ ...base, tracking }).steps.join(' ')).not.toMatch(/timeline|deadline/);
     }
     // A clock-type request whose law sets no deadline must not invent one.
-    expect(sendSteps({ ...base, tracking: 'clock', clockDays: null }).steps.join(' ')).not.toMatch(/deadline|day/);
+    expect(sendSteps({ ...base, tracking: 'clock', clockDays: null }).steps.join(' ')).not.toMatch(/timeline|deadline|day/);
   });
 
   it('a letter from an open case says it joins that case file, not a new request', () => {
