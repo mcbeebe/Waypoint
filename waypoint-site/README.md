@@ -12,8 +12,8 @@ root — **port it, don't redesign it**. The plan of record is
   build; `status: published` requires a completed review block.
 - **Analytics + deep links (D3):** `docs/analytics-taxonomy.md`. Every event
   and `wp_*` param comes from that doc — change the doc first, in its own PR.
-  Vercel Web Analytics counts page views alongside Plausible and GA4 but
-  carries no events.
+  Vercel Web Analytics counts page views alongside Plausible but carries
+  no events.
 - **Benefit figures (D4):** `src/data/benefit-constants.json` only. Current-year
   values ship `null` until verified; consumers must render a pending state.
 
