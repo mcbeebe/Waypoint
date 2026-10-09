@@ -20,6 +20,9 @@ const FILES = [
   path.join(src, 'components', 'GuideVsApp.astro'),
   path.join(src, 'components', 'WithoutWith.astro'),
   path.join(src, 'lib', 'iepGoalCheckUi.ts'),
+  path.join(src, 'lib', 'ctaScreen.ts'),
+  path.join(src, 'components', 'CtaScreen.astro'),
+  path.join(src, 'components', 'HandoffCTA.astro'),
 ];
 /** File text with code comments removed: the guard checks what ships as copy. */
 const read = (f: string) =>
