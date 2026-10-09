@@ -147,6 +147,15 @@ describe('escalation — silence climbs, conversation never does', () => {
     expect(c.provenanceLine).toContain('logged in Waypoint');
   });
 
+  it('an RC assessment case dates itself from intake, not from an ask', () => {
+    // For rc_assessment the stored date is the intake (requestClocks: the
+    // 120 days of W&I §4643 run from intake), so "Asked May 6" would be false.
+    const r = req({ request_type: 'rc_assessment', channel: 'phone', requested_on: '2026-05-06', created_at: '2026-08-29T09:00:00Z' });
+    expect(buildRequestCase(r, [], 'en', NOW).provenanceLine).toBe('Intake May 6');
+    expect(buildRequestCase(r, [], 'es', NOW).provenanceLine).toMatch(/^Admisión 6/);
+    expect(buildRequestCase(r, [], 'en', NOW).deadline?.dueOn).toBe('2026-09-03');
+  });
+
   it('a months-stale phone ask advises a fresh written ask, not escalation', () => {
     const r = req({ channel: 'phone', requested_on: '2026-03-01', created_at: '2026-08-29T09:00:00Z' });
     const c = buildRequestCase(r, [], 'en', NOW);

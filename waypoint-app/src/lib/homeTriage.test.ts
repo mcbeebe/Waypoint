@@ -721,3 +721,31 @@ describe('isResumableDraft', () => {
     expect(TRIAGE_RANK.resume).toBeLessThan(TRIAGE_RANK.crisis);
   });
 });
+
+describe('what a clock runs from', () => {
+  // W&I §4643 runs the 120-day assessment clock from intake, which can come
+  // weeks after the ask (§4642). The card must not tell a family they asked
+  // on the day that was really their intake.
+  const intake = (requested_on: string) => req({ request_type: 'rc_assessment', requested_on });
+
+  it('an RC assessment clock card names the intake date, in every locale', () => {
+    // May 6 + 120 days = Sep 3, five days after NOW (Aug 29).
+    const want = { en: /^Because your intake was on May 6 /, es: /^Porque su admisión fue el 6 may/, vi: /^Vì buổi tiếp nhận của quý vị là ngày 6/ };
+    for (const locale of ['en', 'es', 'vi'] as const) {
+      const card = triageHome(base({ requests: [intake('2026-05-06')], locale })).queue.find((i) => i.cls === 'clock');
+      expect(card, locale).toBeDefined();
+      expect(card!.why, locale).toMatch(want[locale]);
+      expect(card!.why).not.toMatch(/asked|pidió|đề nghị/);
+    }
+  });
+
+  it('an overdue RC assessment names the intake date too', () => {
+    const card = triageHome(base({ requests: [intake('2026-04-01')] })).queue.find((i) => i.cls === 'overdue');
+    expect(card!.why).toMatch(/^Because your intake was on Apr 1 and the law gave them until Jul 30\./);
+  });
+
+  it('request-anchored clocks still say when you asked', () => {
+    const card = triageHome(base({ requests: [req({ request_type: 'iep_evaluation', requested_on: '2026-08-20' })] })).queue.find((i) => i.cls === 'clock');
+    expect(card!.why).toMatch(/^Because you asked on Aug 20 /);
+  });
+});

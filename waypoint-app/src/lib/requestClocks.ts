@@ -15,9 +15,19 @@ export type RequestType =
   | 'iep_evaluation'
   | 'other';
 
+/**
+ * The date a clock runs from. Most run from the family's request; the
+ * Regional Center assessment clock runs from intake (W&I §4643: "following
+ * initial intake"), which itself can come weeks after the request. For an
+ * intake-anchored type, `requested_on` holds the intake date — the Request
+ * Tracker asks for that date, not the call.
+ */
+export type ClockAnchor = 'request' | 'intake';
+
 export interface RequestClock {
-  /** Days the law allows, from the request date. */
+  /** Days the law allows, from the anchor date. */
   days: number;
+  anchor: ClockAnchor;
   citation: string;
   label: string;
 }
@@ -37,16 +47,19 @@ export const REQUEST_LEVERS: Record<RequestType, { template: string; label: stri
 const CLOCKS: Partial<Record<RequestType, RequestClock>> = {
   rc_assessment: {
     days: 120,
+    anchor: 'intake',
     citation: 'W&I §4643',
     label: 'Assessment due within 120 days of intake (60 if delay is risky)',
   },
   ipp_meeting: {
     days: 30,
+    anchor: 'request',
     citation: 'W&I §4646.5(b)',
     label: 'Meeting must be held within 30 days of your request',
   },
   iep_evaluation: {
     days: 15,
+    anchor: 'request',
     citation: 'Ed Code §56321',
     label: 'Assessment plan due within 15 calendar days',
   },
@@ -55,6 +68,14 @@ const CLOCKS: Partial<Record<RequestType, RequestClock>> = {
 /** Days the law allows for this kind of request, or null when it sets none. */
 export function statutoryDays(type: RequestType): number | null {
   return CLOCKS[type]?.days ?? null;
+}
+
+/**
+ * What the stored date of a request means: the day the family asked, or —
+ * for the Regional Center assessment — the day of intake.
+ */
+export function clockAnchor(type: RequestType): ClockAnchor {
+  return CLOCKS[type]?.anchor ?? 'request';
 }
 
 export interface RequestDeadline {
