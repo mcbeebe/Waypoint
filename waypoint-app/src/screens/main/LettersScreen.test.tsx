@@ -947,3 +947,82 @@ describe('sending through Gmail', () => {
     });
   });
 });
+
+/**
+ * On 2026-10-07 the Navigator handed a note to a provider — asking her to put
+ * a 1:1 recommendation in writing — to Letters as an IPP meeting request.
+ * Sending it opened an "IPP review meeting request" with a 30-day Regional
+ * Center clock, and a sent moment saying the RC now owed a meeting. A
+ * template's clock runs against the agency it addresses, so when the
+ * addressee is saved under another organization the app asks first. It
+ * never decides silently: a Service Coordinator saved under the contact
+ * form's default ("School") must not lose a real deadline either.
+ * (Invented names: this repository is public.)
+ */
+describe('a letter addressed outside the system its template writes to', () => {
+  const NOTE = 'Hi Dana,\n\nCould you put your recommendation for 1:1 support in writing?\n\nThanks so much,';
+  const LIVE = h.requests;
+
+  beforeEach(() => {
+    h.requests = []; // no live request to join — a send would found one
+    h.generated = { draft: NOTE };
+    h.contacts = [
+      { id: 'p1', name: 'Dana Whitfield', email: 'dana@clinic.example', role: 'BCBA', organization: 'medical' },
+    ];
+  });
+
+  afterEach(() => {
+    h.requests = LIVE;
+  });
+
+  async function generateAndMarkSent() {
+    render(<LettersScreen />);
+    fireEvent.click(screen.getByRole('button', { name: /Generate Draft/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Mark this letter as sent/i }));
+  }
+
+  it('asks before starting a clock — and starts none on "no"', async () => {
+    await generateAndMarkSent();
+    expect(await screen.findByText('Did this go to the Regional Center?')).toBeTruthy();
+    expect(screen.getByText(/went to Dana Whitfield, saved in your contacts under Medical/)).toBeTruthy();
+    // Nothing tracked, joined or claimed while the question is open.
+    expect(h.createRequest).not.toHaveBeenCalled();
+    expect(h.attach).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Their deadline/)).toBeNull();
+
+    fireEvent.click(screen.getByLabelText('No — just keep the record'));
+    expect(screen.queryByText('Did this go to the Regional Center?')).toBeNull();
+    expect(screen.getByText(/Marked as sent/)).toBeTruthy();
+    expect(h.createRequest).not.toHaveBeenCalled();
+    expect(h.toast).toHaveBeenCalledWith(
+      'Saved to your paper trail. No deadline is being tracked for it.',
+      'success'
+    );
+  });
+
+  it('"yes" starts exactly the clock a send to the Regional Center would', async () => {
+    await generateAndMarkSent();
+    fireEvent.click(await screen.findByLabelText('Yes — track the deadline'));
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+    expect(h.createRequest.mock.calls[0][0]).toMatchObject({ request_type: 'ipp_meeting' });
+    expect(await screen.findByText(/Their deadline/)).toBeTruthy();
+  });
+
+  it('a contact saved under the Regional Center goes straight through, no question', async () => {
+    h.generated = { draft: 'Hi Pat,\n\nI am requesting an IPP review meeting for Teddy.' };
+    h.contacts = [
+      { id: 'k1', name: 'Pat Nguyen', email: 'pat@rc.example', role: 'Service Coordinator', organization: 'regional_center' },
+    ];
+    await generateAndMarkSent();
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText('Did this go to the Regional Center?')).toBeNull();
+  });
+
+  it('promises no deadline before the send, either', async () => {
+    h.gmail = { gmail: true, email: 'parent@example.com' };
+    render(<LettersScreen />);
+    fireEvent.click(screen.getByRole('button', { name: /Generate Draft/i }));
+    const steps = await screen.findByTestId('send-steps');
+    expect(steps.textContent).not.toMatch(/legal timeline|starts tracking/);
+  });
+});

@@ -50,6 +50,7 @@ import {
 } from '@/hooks/useCommunications';
 import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
+import { ORG_BY_TEMPLATE, reachesTemplateSystem, clockCheckCopy } from '@/lib/letterSystems';
 import { sentNextFor, clockAnchorFor, planTracking } from '@/lib/sentNext';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
@@ -242,6 +243,7 @@ export default function LettersScreen() {
       setSavedId(null);
       setMarkedSent(false);
       setSentMoment(null);
+      setClockCheck(null);
     }
     if (route.params?.question) {
       setQuestion(route.params.question);
@@ -344,6 +346,7 @@ export default function LettersScreen() {
     // send confirmation so it can't linger over new, unsent text.
     setMarkedSent(false);
     setSentMoment(null);
+    setClockCheck(null);
     setManualRecipient(null);
     setChoosingRecipient(false);
     setCc([]);
@@ -360,22 +363,6 @@ export default function LettersScreen() {
       trackDraftUsed(family.id, template.key, family.regional_center ?? undefined);
     }
   }, [template, tone, question, chatGuidance, hasAIConsent, locale, showToast, family, letterProfile]);
-
-  /** Which system this letter targets — paper trail + recipient lookup */
-  const ORG_BY_TEMPLATE: Partial<Record<string, CommunicationOrg>> = {
-    appeal_letter: 'insurance', ihss_appeal: 'other',
-    rc_request: 'regional_center', dds_4731_complaint: 'regional_center',
-    ipp_review_request: 'regional_center', noa_request: 'regional_center',
-    rc_timeline_followup: 'regional_center', sdp_info_request: 'regional_center',
-    medi_cal_deeming: 'regional_center', delivery_plan_request: 'regional_center',
-    ipp_need_request: 'regional_center',
-    iep_email: 'school', iep_prep: 'school', assessment_request: 'school',
-    progress_data_request: 'school',
-    // records_request can go to either system — the actual recipient's
-    // organization (below) wins over this default
-    records_request: 'school', pwn_request: 'school', cde_complaint: 'school',
-    complaint: 'other', general: 'other',
-  };
 
   // Each letter is ONE paper-trail row, saved as a DRAFT — writing a letter
   // isn't the same as sending it, and the log shouldn't pretend otherwise
@@ -470,6 +457,18 @@ export default function LettersScreen() {
     deadline: RequestDeadline | null;
     tracked: boolean;
   } | null>(null);
+  /**
+   * A send whose addressee is saved under a different organization than the
+   * letter's template is written to (letterSystems.ts). Its clock waits on
+   * the parent's answer instead of a guess either way.
+   */
+  const [clockCheck, setClockCheck] = useState<{
+    id: string;
+    next: SentNext;
+    templateKey: string;
+    recipientName: string;
+    recipientOrg: CommunicationOrg;
+  } | null>(null);
 
   // ── Send directly through the connected Gmail account (Aug 27) —
   // marks the draft sent, stores the thread id so replies sync back.
@@ -488,46 +487,14 @@ export default function LettersScreen() {
   }, []);
 
   /**
-   * The parent confirms it actually went out. Resolves to what it managed:
-   * 'ok', 'not_saved' (the paper-trail row couldn't be saved or marked), or
-   * 'untracked' (sent and logged, but the tracked request couldn't be opened)
-   * — so the Gmail send never reports a success it didn't have.
+   * Start (or join) what a sent letter tracks, and show the sent moment.
+   * Runs straight after a send — or after the parent confirms the letter
+   * really went to the system its template addresses.
    */
-  // The Cc that was actually in the mail-app hand-off (064), set only when
-  // the email app opened with it. "Mark as sent" also confirms a letter that
-  // was copied, printed or faxed — none of which carried a Cc — so it records
-  // only what a hand-off carried, never the chips on screen.
-  const handedOffCcRef = React.useRef<string[] | null>(null);
-
-  // `recordHandOff`: the "Mark as sent" button. The Gmail path leaves it off —
-  // the gmail function stores the Cc it sent.
-  const handleMarkSent = useCallback(async (
-    opts: { recordHandOff?: boolean } = {}
-  ): Promise<'ok' | 'not_saved' | 'untracked'> => {
-    // Not `savedIdRef.current ?? …`: once any version of this letter was
-    // saved, that short-circuit marked THAT row sent with the text from before
-    // the parent's last edits. saveDraftOnce revises the row first.
-    const id = await saveDraftOnce();
-    if (!id) {
-      showToast("Couldn't update the paper trail — please try again.", 'error');
-      return 'not_saved';
-    }
-    const ok = await markCommunicationSent(id);
-    if (ok) savedSentRef.current = true;
-    const copied = opts.recordHandOff ? handedOffCcRef.current : null;
-    if (ok && copied && copied.length > 0) void recordCommunicationCc(id, copied);
-    setMarkedSent(ok);
-    if (!ok) {
-      showToast("Couldn't mark it sent.", 'error');
-      return 'not_saved';
-    }
-    const next = template
-      ? sentNextFor(template.key, primaryChild?.first_name, toFunnelLocale(locale))
-      : null;
-    if (!next) {
-      showToast('Marked as sent — saved to your paper trail', 'success');
-      return 'ok';
-    }
+  const trackSend = useCallback(async (
+    id: string,
+    next: SentNext
+  ): Promise<'ok' | 'untracked'> => {
     // Open the tracked request (once): the Request Tracker owns the clock
     // from here. An existing live row of the same title is not duplicated,
     // and a letter sent FROM a case never opens a second clock row.
@@ -596,7 +563,75 @@ export default function LettersScreen() {
       : null;
     setSentMoment({ next, deadline, tracked });
     return plan.mode === 'found' && !tracked ? 'untracked' : 'ok';
-  }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId, route.params?.trackTitle]);
+  }, [template, primaryChild, requests, createRequest, updateChild, routeRequestId, route.params?.trackTitle]);
+
+  /**
+   * The parent confirms it actually went out. Resolves to what it managed:
+   * 'ok', 'not_saved' (the paper-trail row couldn't be saved or marked), or
+   * 'untracked' (sent and logged, but the tracked request couldn't be opened)
+   * — so the Gmail send never reports a success it didn't have.
+   */
+  // The Cc that was actually in the mail-app hand-off (064), set only when
+  // the email app opened with it. "Mark as sent" also confirms a letter that
+  // was copied, printed or faxed — none of which carried a Cc — so it records
+  // only what a hand-off carried, never the chips on screen.
+  const handedOffCcRef = React.useRef<string[] | null>(null);
+
+  // `recordHandOff`: the "Mark as sent" button. The Gmail path leaves it off —
+  // the gmail function stores the Cc it sent.
+  const handleMarkSent = useCallback(async (
+    opts: { recordHandOff?: boolean } = {}
+  ): Promise<'ok' | 'not_saved' | 'untracked'> => {
+    // Not `savedIdRef.current ?? …`: once any version of this letter was
+    // saved, that short-circuit marked THAT row sent with the text from before
+    // the parent's last edits. saveDraftOnce revises the row first.
+    const id = await saveDraftOnce();
+    if (!id) {
+      showToast("Couldn't update the paper trail — please try again.", 'error');
+      return 'not_saved';
+    }
+    const ok = await markCommunicationSent(id);
+    if (ok) savedSentRef.current = true;
+    const copied = opts.recordHandOff ? handedOffCcRef.current : null;
+    if (ok && copied && copied.length > 0) void recordCommunicationCc(id, copied);
+    setMarkedSent(ok);
+    if (!ok) {
+      showToast("Couldn't mark it sent.", 'error');
+      return 'not_saved';
+    }
+    const next = template
+      ? sentNextFor(template.key, primaryChild?.first_name, toFunnelLocale(locale))
+      : null;
+    if (!next) {
+      showToast('Marked as sent — saved to your paper trail', 'success');
+      return 'ok';
+    }
+    // Addressed to someone saved under a different organization than this
+    // letter is written to (a provider note routed as an IPP request): ask
+    // before starting a clock or claiming one. See letterSystems.ts.
+    const recipientOrg = outgoingOrgRef.current;
+    if (template && recipientOrg && !reachesTemplateSystem(template.key, recipientOrg)) {
+      setSentMoment(null);
+      setClockCheck({
+        id,
+        next,
+        templateKey: template.key,
+        recipientName: outgoingContactRef.current ?? '',
+        recipientOrg,
+      });
+      return 'ok';
+    }
+    return trackSend(id, next);
+  }, [saveDraftOnce, showToast, template, primaryChild?.first_name, locale, trackSend]);
+
+  /** "Yes — track the deadline": the letter did reach its template's system. */
+  const confirmClock = useCallback(async () => {
+    const pending = clockCheck;
+    if (!pending) return;
+    setClockCheck(null);
+    const result = await trackSend(pending.id, pending.next);
+    if (result === 'untracked') showToast(SEND_RECORD_FAILED[funnelLocale].untracked, 'error');
+  }, [clockCheck, trackSend, showToast, funnelLocale]);
 
   const handleCopy = useCallback(async () => {
     if (!draft) return;
@@ -777,14 +812,21 @@ export default function LettersScreen() {
       route.params?.trackTitle,
       requests
     );
-    if (plan.mode === 'case' || plan.mode === 'join') return { tracking: 'case' };
+    // A letter launched from a case is filed in that case whoever it went to.
+    if (plan.mode === 'case') return { tracking: 'case' };
+    // Addressed outside the template's system: the send asks before tracking
+    // or joining anything, so it promises neither here.
+    if (!reachesTemplateSystem(template.key, outgoing?.recipient.contact?.organization as CommunicationOrg | null)) {
+      return { tracking: 'none' };
+    }
+    if (plan.mode === 'join') return { tracking: 'case' };
     // Until the family's requests load, "found" may really be a join — so
     // claim only what is certain.
     if (requestsLoading) return { tracking: 'none' };
     if (plan.mode === 'none') return { tracking: 'none' };
     const days = statutoryDays(plan.track.requestType);
     return days ? { tracking: 'clock', clockDays: days } : { tracking: 'tracked' };
-  }, [template, routeRequestId, primaryChild?.first_name, locale, route.params?.trackTitle, requests, requestsLoading]);
+  }, [template, outgoing?.recipient.contact?.organization, routeRequestId, primaryChild?.first_name, locale, route.params?.trackTitle, requests, requestsLoading]);
 
   const openSendSheet = useCallback(() => {
     if (ccPending) {
@@ -888,6 +930,7 @@ export default function LettersScreen() {
     setSavedId(null);
     setMarkedSent(false);
     setSentMoment(null);
+    setClockCheck(null);
     setDraft(null);
     setFilledFromRecords([]);
     setManualRecipient(null);
@@ -1473,6 +1516,45 @@ export default function LettersScreen() {
                     </Text>
                   </TouchableOpacity>
                 </View>
+              ) : markedSent && clockCheck && loggedDraftRef.current === draft ? (
+                (() => {
+                  const c = clockCheckCopy(
+                    clockCheck.templateKey,
+                    clockCheck.recipientName,
+                    clockCheck.recipientOrg,
+                    funnelLocale
+                  );
+                  return (
+                    <View style={styles.clockCheck} accessibilityLiveRegion="polite">
+                      <Text style={styles.trackSent}>
+                        ✅ {locale === 'es' ? 'Marcada como enviada' : locale === 'vi' ? 'Đã đánh dấu là đã gửi' : 'Marked as sent'}
+                      </Text>
+                      <Text style={styles.clockCheckQuestion}>{c.question}</Text>
+                      <Text style={styles.trackText}>{c.explain}</Text>
+                      <View style={styles.trackButtons}>
+                        <TouchableOpacity
+                          style={styles.trackSentButton}
+                          onPress={confirmClock}
+                          accessibilityRole="button"
+                          accessibilityLabel={c.yes}
+                        >
+                          <Text style={styles.trackSentButtonText}>{c.yes}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.trackSaveButton}
+                          onPress={() => {
+                            setClockCheck(null);
+                            showToast(c.noClock, 'success');
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={c.no}
+                        >
+                          <Text style={styles.trackSaveText}>{c.no}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  );
+                })()
               ) : markedSent && loggedDraftRef.current === draft ? (
                 <Text style={styles.trackSent}>
                   ✅ Marked as sent — it's in your paper trail
@@ -1916,6 +1998,12 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.semibold as '600',
   },
   trackButtons: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
+  clockCheck: { gap: spacing.sm },
+  clockCheckQuestion: {
+    fontSize: fonts.sizes.base,
+    color: colors.navy,
+    fontWeight: fonts.weights.bold as '700',
+  },
   trackSaveButton: {
     borderWidth: 1,
     borderColor: colors.border,
