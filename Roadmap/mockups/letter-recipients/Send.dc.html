@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><script src="./support.js"></script></head>
+<body>
+<x-dc>
+<helmet><style>
+  body { margin:0; font-family:"Hanken Grotesk",-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .box { background:#fff; border:1px solid #E2E8F0; border-radius:14px; padding:12px 14px; }
+  .lbl { font-size:12.5px; color:#64748B; font-weight:600; width:58px; flex-shrink:0; }
+  .row { display:flex; align-items:center; gap:8px; min-height:40px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; background:#E6F1EF; color:#115E56; border-radius:999px; padding:5px 10px; font-size:13px; font-weight:600; }
+  .x { color:#55606B; font-weight:700; }
+  .link { color:#0F766E; font-size:13px; font-weight:700; }
+  .field { flex:1; border:1px solid #E2E8F0; border-radius:10px; padding:8px 10px; font-size:14px; color:#22303A; }
+  .ph { color:#94A3B8; }
+  .note { font-size:12px; color:#6D6555; margin-top:4px; }
+</style></helmet>
+<div style="width:390px; min-height:1180px; background:#F8FAFC; padding:18px 16px; box-sizing:border-box; color:#334155">
+  <div style="font-size:21px; font-weight:800; color:#1B2A4A">Your draft — edit anything, then send</div>
+  <div style="margin-top:12px; background:#E7F5EE; color:#047857; border-radius:10px; padding:8px 12px; font-size:13px">✅ No blanks left — ready to send</div>
+  <div class="box" style="margin-top:12px; font-size:14.5px; line-height:1.55">Hi Lilia,<br><br>I'd like to request an IPP review meeting for Teddy… <span class="ph">(letter)</span></div>
+
+  <!-- Recipients -->
+  <div class="box" style="margin-top:12px">
+    <div class="row">
+      <div class="lbl">To</div>
+      <span class="chip">Lilia Talavera · ltalavera@rceb.org</span>
+      <span class="link" style="margin-left:auto">Change</span>
+    </div>
+    <div class="row" style="border-top:1px solid #F1F5F9">
+      <div class="lbl">Cc</div>
+      <span class="chip">Sam (spouse) <span class="x">✕</span></span>
+      <span class="link" style="margin-left:auto">+ Add</span>
+    </div>
+    <div class="row" style="padding-left:66px; flex-wrap:wrap; gap:6px">
+      <span style="font-size:12px; color:#6D6555">From Key Contacts:</span>
+      <span class="chip" style="background:#fff; border:1px solid #E2E8F0; color:#334155">Dr. Patel · pediatrician</span>
+      <span class="chip" style="background:#fff; border:1px solid #E2E8F0; color:#334155">Advocate</span>
+    </div>
+    <div class="row" style="padding-left:66px">
+      <div class="field"><span class="ph">or type an email address</span></div>
+      <div style="background:#0F766E; color:#fff; border-radius:10px; padding:8px 12px; font-weight:700; font-size:14px">Add</div>
+    </div>
+    <div class="row" style="border-top:1px solid #F1F5F9">
+      <div class="lbl">Subject</div>
+      <div class="field">IPP Meeting Request — Teddy Rivera</div>
+    </div>
+  </div>
+
+  <!-- What happens -->
+  <div style="margin-top:14px; background:#FFFFFF; border:1.5px solid #0F766E; border-radius:14px; padding:12px 14px">
+    <div style="font-size:11px; font-weight:800; letter-spacing:0.8px; color:#0F766E">WHEN YOU PRESS SEND</div>
+    <ol style="margin:8px 0 0 18px; padding:0; font-size:13.5px; line-height:1.55; color:#22303A">
+      <li>You'll see the whole email one last time — nothing goes until you confirm.</li>
+      <li>It's sent <b>from mcbeebe@gmail.com</b> to <b>Lilia Talavera</b>, copying <b>Sam</b>. It appears in your Gmail Sent folder.</li>
+      <li>A copy is saved to your <b>Paper Trail</b>, and Waypoint starts tracking the <b>30-day</b> deadline for the meeting.</li>
+      <li>When Lilia or anyone at <b>rceb.org</b> replies, it shows on <b>Home</b>. Replies from people you copied are saved too, but don't count as the Regional Center's answer.</li>
+    </ol>
+  </div>
+
+  <div style="margin-top:14px; background:#3B8EAF; color:#fff; border-radius:14px; padding:15px; text-align:center; font-weight:800; font-size:16px">📨 Send now with Gmail — replies tracked</div>
+  <div style="display:flex; gap:10px; margin-top:12px">
+    <div style="background:#2F6F66; color:#fff; border-radius:12px; padding:13px 22px; font-weight:700">Copy</div>
+    <div style="border:1.5px solid #2F6F66; color:#2F6F66; border-radius:12px; padding:13px 22px; font-weight:700">Open in Mail app</div>
+  </div>
+
+  <div style="margin-top:22px; background:#fff; border:1px dashed #E2D8C4; border-radius:12px; padding:12px; font-size:12.5px; line-height:1.5; color:#55606B">
+    <b style="color:#22303A">Change</b> works for any recipient, including a Key Contacts match.<br>
+    <b style="color:#22303A">Cc</b> is limited to 5 addresses, each checked as a single email.<br>
+    The <b style="color:#22303A">"When you press Send"</b> steps are built from this letter: the deadline line appears only when the letter starts a tracked clock. The confirm sheet repeats To and Cc, and both can be edited there too.
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

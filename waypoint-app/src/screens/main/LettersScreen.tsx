@@ -49,16 +49,18 @@ import {
 } from '@/hooks/useCommunications';
 import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
-import { sentNextFor, trackFor, clockAnchorFor } from '@/lib/sentNext';
+import { sentNextFor, clockAnchorFor, planTracking } from '@/lib/sentNext';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { SentNext } from '@/lib/sentNext';
-import { deadlineFor } from '@/lib/requestClocks';
+import { deadlineFor, statutoryDays } from '@/lib/requestClocks';
+import { sendSteps, type SendStepsInput } from '@/lib/sendSteps';
+import { useTextScale } from '@/lib/textSize';
 import { localDayISO } from '@/lib/dateOnly';
 import type { RequestDeadline } from '@/lib/requestClocks';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { HomeStackParamList } from '@/types/navigation';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { brand, colors, fonts, spacing, radii, semantic } from '@/lib/theme';
 
 /**
  * "Filled from your records" note (draft flow 9c), trilingual. Deliberately
@@ -84,6 +86,28 @@ const RECORDS_NOTE: Record<'en' | 'es' | 'vi', string> = {
 };
 
 /** Send-gate copy (draft flow 9c-2), trilingual like the rest of this flow. */
+/**
+ * After a Gmail send that went out but wasn't fully recorded. The email is
+ * gone either way, so the message says so — and names the recovery: the
+ * paper-trail row is already sent (the function marks it), so 'not_saved'
+ * means the follow-up steps (the tracked request, the sent moment) didn't
+ * run, and "Mark as sent" runs them.
+ */
+const SEND_RECORD_FAILED: Record<FunnelLocale, Record<'not_saved' | 'untracked', string>> = {
+  en: {
+    not_saved: 'Sent through Gmail — but Waypoint couldn’t finish recording it. Tap “Mark as sent” below to start tracking.',
+    untracked: 'Sent through Gmail — but Waypoint couldn’t start tracking it. Add it in Request Tracker.',
+  },
+  es: {
+    not_saved: 'Enviado por Gmail — pero Waypoint no pudo terminar de registrarlo. Toque “Mark as sent” abajo para empezar el seguimiento.',
+    untracked: 'Enviado por Gmail — pero Waypoint no pudo empezar a seguirlo. Agréguelo en Request Tracker.',
+  },
+  vi: {
+    not_saved: 'Đã gửi qua Gmail — nhưng Waypoint chưa ghi nhận xong. Bấm “Mark as sent” bên dưới để bắt đầu theo dõi.',
+    untracked: 'Đã gửi qua Gmail — nhưng Waypoint chưa thể bắt đầu theo dõi. Hãy thêm trong Request Tracker.',
+  },
+};
+
 const SEND_GATE: Record<
   'en' | 'es' | 'vi',
   { toast: string; a11y: (n: number) => string; hint: (n: number) => string }
@@ -106,20 +130,6 @@ const SEND_GATE: Record<
     hint: (n) =>
       `Điền ${n} chỗ trống ở trên — rồi nút Gửi sẽ bật. Quý vị vẫn có thể Sao chép hoặc mở trong ứng dụng email để hoàn tất.`,
   },
-};
-
-/**
- * Under the Gmail send button. It sits beside "Open in Gmail", which only
- * opens a compose window — this one sends by itself, and has to say so
- * (owner feedback, 2026-10-07).
- */
-const AUTO_SEND_NOTE: Record<FunnelLocale, (from: string | null) => string> = {
-  en: (from) =>
-    `Sends automatically from ${from ?? 'your Gmail'} — Gmail won’t open. You’ll get one last look before it goes.`,
-  es: (from) =>
-    `Se envía automáticamente desde ${from ?? 'su Gmail'} — Gmail no se abrirá. Podrá revisarlo una última vez antes de que salga.`,
-  vi: (from) =>
-    `Tự động gửi từ ${from ?? 'Gmail của quý vị'} — Gmail sẽ không mở ra. Quý vị sẽ được xem lại lần cuối trước khi gửi.`,
 };
 
 /**
@@ -177,6 +187,7 @@ export default function LettersScreen() {
       // New template → the previous draft's records note is no longer true.
       setFilledFromRecords([]);
       setManualRecipient(null);
+      setChoosingRecipient(false);
       setManualEmailInput('');
       setSubjectEdit(null);
       setAiSubject(null);
@@ -221,6 +232,7 @@ export default function LettersScreen() {
     // or it would assert a false provenance over someone else's letter.
     setFilledFromRecords([]);
     setManualRecipient(null);
+    setChoosingRecipient(false);
     setManualEmailInput('');
     // A reopened letter keeps the subject it was saved with — not the
     // template-title fallback the subject field exists to get away from.
@@ -288,6 +300,7 @@ export default function LettersScreen() {
     setMarkedSent(false);
     setSentMoment(null);
     setManualRecipient(null);
+    setChoosingRecipient(false);
     setManualEmailInput('');
     setSubjectEdit(null);
     setAiSubject(oneLine(result.subject) ?? leading ?? null);
@@ -403,7 +416,7 @@ export default function LettersScreen() {
 
   // The sent moment (owner feedback): a send deserves a congratulation,
   // the next step, and honest expectations — plus automatic clock tracking.
-  const { requests, createRequest } = useRequests(family?.id);
+  const { requests, loading: requestsLoading, createRequest } = useRequests(family?.id);
   const [sentMoment, setSentMoment] = useState<{
     next: SentNext;
     deadline: RequestDeadline | null;
@@ -426,29 +439,34 @@ export default function LettersScreen() {
     });
   }, []);
 
-  /** The parent confirms it actually went out. */
-  const handleMarkSent = useCallback(async () => {
+  /**
+   * The parent confirms it actually went out. Resolves to what it managed:
+   * 'ok', 'not_saved' (the paper-trail row couldn't be saved or marked), or
+   * 'untracked' (sent and logged, but the tracked request couldn't be opened)
+   * — so the Gmail send never reports a success it didn't have.
+   */
+  const handleMarkSent = useCallback(async (): Promise<'ok' | 'not_saved' | 'untracked'> => {
     // Not `savedIdRef.current ?? …`: once any version of this letter was
     // saved, that short-circuit marked THAT row sent with the text from before
     // the parent's last edits. saveDraftOnce revises the row first.
     const id = await saveDraftOnce();
     if (!id) {
       showToast("Couldn't update the paper trail — please try again.", 'error');
-      return;
+      return 'not_saved';
     }
     const ok = await markCommunicationSent(id);
     if (ok) savedSentRef.current = true;
     setMarkedSent(ok);
     if (!ok) {
       showToast("Couldn't mark it sent.", 'error');
-      return;
+      return 'not_saved';
     }
     const next = template
       ? sentNextFor(template.key, primaryChild?.first_name, toFunnelLocale(locale))
       : null;
     if (!next) {
       showToast('Marked as sent — saved to your paper trail', 'success');
-      return;
+      return 'ok';
     }
     // Open the tracked request (once): the Request Tracker owns the clock
     // from here. An existing live row of the same title is not duplicated,
@@ -462,49 +480,40 @@ export default function LettersScreen() {
     let joined: { requested_on: string } | null = null;
     const sentAt = new Date();
     const sentOn = localDayISO(sentAt);
-    const track = trackFor(next, routeRequestId);
-    // A template can serve several distinct asks (the IPP-need letter, one per
-    // support), so the caller can override the constant template title to keep
-    // each its own tracked thread — otherwise two different supports would
-    // collapse into one request and one clock.
-    const trackTitle = (track && route.params?.trackTitle) || track?.title;
-    if (routeRequestId) {
+    const plan = planTracking(next, routeRequestId, route.params?.trackTitle, requests);
+    // The celebration's deadline: the founded or joined request's clock (a
+    // case-launched letter shows none, exactly as before).
+    const track = plan.mode === 'found' ? plan.track : plan.mode === 'join' ? next.track : null;
+    if (plan.mode === 'case') {
       tracked = true; // the case that launched this letter already owns the clock
-    } else if (track) {
-      const existing = requests.find(
-        (r) =>
-          r.title === trackTitle &&
-          (r.status === 'requested' || r.status === 'in_progress')
-      );
-      if (existing) {
-        tracked = true;
-        // Re-sending from the catalog: the letter joins the live request's
-        // case thread — and its clock, which keeps running from the original
-        // ask. Best-effort, like the founding stamp.
-        joined = existing;
-        attachCommunicationToRequest(id, existing.id);
-      } else {
-        const created = await createRequest({
-          request_type: track.requestType,
-          title: trackTitle ?? track.title,
-          // The family's local day, not the UTC one: after 5pm Pacific the
-          // UTC slice is tomorrow, which would start the statutory clock a
-          // day late and show a request dated a day the family hasn't lived.
-          requested_on: sentOn,
-          child_id: primaryChild?.id ?? null,
-          channel: 'email',
-          notes: 'Sent via Waypoint Letters',
-          // Connect the clock to the letter that started it — the tracker
-          // and paper trail describe one event, not two.
-          communication_id: id,
-        });
-        tracked = !!created;
-        // The founding letter joins its own case thread (047) — the 045
-        // communication_id link above stays as the pre-047 fallback.
-        if (created) {
-          joined = created;
-          attachCommunicationToRequest(id, created.id);
-        }
+    } else if (plan.mode === 'join') {
+      tracked = true;
+      // Re-sending from the catalog: the letter joins the live request's
+      // case thread — and its clock, which keeps running from the original
+      // ask. Best-effort, like the founding stamp.
+      joined = plan.request;
+      attachCommunicationToRequest(id, plan.request.id);
+    } else if (plan.mode === 'found') {
+      const created = await createRequest({
+        request_type: plan.track.requestType,
+        title: plan.title,
+        // The family's local day, not the UTC one: after 5pm Pacific the
+        // UTC slice is tomorrow, which would start the statutory clock a
+        // day late and show a request dated a day the family hasn't lived.
+        requested_on: sentOn,
+        child_id: primaryChild?.id ?? null,
+        channel: 'email',
+        notes: 'Sent via Waypoint Letters',
+        // Connect the clock to the letter that started it — the tracker
+        // and paper trail describe one event, not two.
+        communication_id: id,
+      });
+      tracked = !!created;
+      // The founding letter joins its own case thread (047) — the 045
+      // communication_id link above stays as the pre-047 fallback.
+      if (created) {
+        joined = created;
+        attachCommunicationToRequest(id, created.id);
       }
     }
     // Sending the deeming letter IS applying — reflect it on the Resource
@@ -521,11 +530,13 @@ export default function LettersScreen() {
     // Request Tracker shows for the same request: re-sending an open ask does
     // not restart its clock, and a founding send anchors on the family's local
     // day (the UTC slice is tomorrow every evening in California).
-    const deadline = track
+    // No statutory date for a request that was never opened.
+    const deadline = track && tracked
       ? deadlineFor(track.requestType, clockAnchorFor(joined, sentAt), sentAt)
       : null;
     setSentMoment({ next, deadline, tracked });
-  }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId]);
+    return plan.mode === 'found' && !tracked ? 'untracked' : 'ok';
+  }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId, route.params?.trackTitle]);
 
   const handleCopy = useCallback(async () => {
     if (!draft) return;
@@ -569,6 +580,12 @@ export default function LettersScreen() {
    * instead of trying to guess when an edit is "different enough" to clear).
    */
   const [manualRecipient, setManualRecipient] = useState<AddressContact | null>(null);
+  // "Change" on a recipient Waypoint matched (from the greeting or the
+  // letter's agency) — the parent wants someone else, so show the chooser
+  // instead of the match until they pick (owner ask, 2026-10-09).
+  const [choosingRecipient, setChoosingRecipient] = useState(false);
+  // The "When you press Send" steps follow the family's text size.
+  const { scale: textScale } = useTextScale();
   /** Typed-address fallback (below): a saved-contact chip is not the only
    *  way to address this — anyone not yet in Key Contacts still needs a
    *  path that doesn't dead-end at "go save them first". */
@@ -608,16 +625,19 @@ export default function LettersScreen() {
     // the send never disagree about whether the subject changed.
     const subject = oneLine(subjectField) ?? computedSubject;
     const autoRecipient = pickRecipient(draft, contacts, ORG_BY_TEMPLATE[template.key]);
-    const recipient: RecipientMatch =
-      autoRecipient.contact || !manualRecipient
-        ? autoRecipient
-        : { to: [manualRecipient.email!], contact: manualRecipient, reason: 'manual' };
+    // The parent's own pick always wins; a "Change" with no pick yet shows
+    // the chooser; otherwise Waypoint's match stands.
+    const recipient: RecipientMatch = manualRecipient
+      ? { to: [manualRecipient.email!], contact: manualRecipient, reason: 'manual' }
+      : choosingRecipient
+        ? { to: [], contact: null, reason: 'none' }
+        : autoRecipient;
     outgoingSubjectRef.current = subject;
     outgoingContactRef.current = recipient.contact?.name ?? null;
     outgoingOrgRef.current = (recipient.contact?.organization as CommunicationOrg | null) ?? null;
-    return { subject, subjectField, body, recipient };
+    return { subject, subjectField, body, recipient, autoRecipient };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, template, contacts, manualRecipient, subjectEdit, aiSubject, primaryChild?.first_name, family?.parent_last_name]);
+  }, [draft, template, contacts, manualRecipient, choosingRecipient, subjectEdit, aiSubject, primaryChild?.first_name, family?.parent_last_name]);
 
   const target = outgoing
     ? composeTarget(
@@ -639,6 +659,26 @@ export default function LettersScreen() {
     () => (blankScanText ? analyzeBlanks(blankScanText, letterProfile).remaining.length : 0),
     [blankScanText, letterProfile]
   );
+
+  // What a send of THIS letter will start, decided exactly as
+  // handleMarkSent decides it — so "When you press Send" never promises a
+  // deadline the send won't open (a re-send joins the live request instead).
+  const sendTracking = useMemo((): Pick<SendStepsInput, 'tracking' | 'clockDays'> => {
+    if (!template) return { tracking: 'none' };
+    const plan = planTracking(
+      sentNextFor(template.key, primaryChild?.first_name, toFunnelLocale(locale)),
+      routeRequestId,
+      route.params?.trackTitle,
+      requests
+    );
+    if (plan.mode === 'case' || plan.mode === 'join') return { tracking: 'case' };
+    // Until the family's requests load, "found" may really be a join — so
+    // claim only what is certain.
+    if (requestsLoading) return { tracking: 'none' };
+    if (plan.mode === 'none') return { tracking: 'none' };
+    const days = statutoryDays(plan.track.requestType);
+    return days ? { tracking: 'clock', clockDays: days } : { tracking: 'tracked' };
+  }, [template, routeRequestId, primaryChild?.first_name, locale, route.params?.trackTitle, requests, requestsLoading]);
 
   const openSendSheet = useCallback(() => {
     setSendProblem(null);
@@ -692,12 +732,17 @@ export default function LettersScreen() {
       setConfirmOpen(false);
       // The function marked the row sent + stored thread ids; run the
       // sent moment + clock tracking exactly as a manual send would.
-      await handleMarkSent();
-      showToast('Sent through Gmail — replies will sync to your paper trail.', 'success');
+      const recorded = await handleMarkSent();
+      if (recorded === 'ok') {
+        showToast('Sent through Gmail — replies will sync to your paper trail.', 'success');
+      } else {
+        // The email is gone either way — say so, and what didn't follow.
+        showToast(SEND_RECORD_FAILED[funnelLocale][recorded], 'error');
+      }
     } finally {
       setGmailSending(false);
     }
-  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate]);
+  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate, funnelLocale]);
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
@@ -728,6 +773,7 @@ export default function LettersScreen() {
     setDraft(null);
     setFilledFromRecords([]);
     setManualRecipient(null);
+    setChoosingRecipient(false);
     setManualEmailInput('');
     setSubjectEdit(null);
     setAiSubject(null);
@@ -956,9 +1002,12 @@ export default function LettersScreen() {
                         : `${outgoing.recipient.contact.name} (${outgoing.recipient.contact.email})`
                       : 'Choose who this goes to, or add the address in your email app'}
                   </Text>
-                  {outgoing.recipient.reason === 'manual' && (
+                  {outgoing.recipient.contact && (
                     <TouchableOpacity
-                      onPress={() => setManualRecipient(null)}
+                      onPress={() => {
+                        setManualRecipient(null);
+                        setChoosingRecipient(true);
+                      }}
                       accessibilityRole="button"
                       accessibilityLabel="Change who this goes to"
                     >
@@ -966,6 +1015,25 @@ export default function LettersScreen() {
                     </TouchableOpacity>
                   )}
                 </View>
+                {choosingRecipient && !manualRecipient && outgoing.autoRecipient.contact && (
+                  <TouchableOpacity
+                    onPress={() => setChoosingRecipient(false)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Keep ${outgoing.autoRecipient.contact.name}`}
+                  >
+                    <Text style={styles.addressHint}>← Keep {outgoing.autoRecipient.contact.name}</Text>
+                  </TouchableOpacity>
+                )}
+                {/* Waypoint matched the recipient from the greeting; a new
+                    recipient still reads "Hi <the old name>". */}
+                {manualRecipient &&
+                  outgoing.autoRecipient.reason === 'greeting' &&
+                  outgoing.autoRecipient.contact &&
+                  outgoing.autoRecipient.contact.email?.toLowerCase() !== manualRecipient.email?.toLowerCase() && (
+                    <Text style={styles.greetingWarning} accessibilityRole="alert">
+                      The letter still greets {outgoing.autoRecipient.contact.name} — update the greeting above if it’s going to someone else.
+                    </Text>
+                  )}
                 <View style={styles.subjectRow}>
                   <Text style={[styles.addressLine, styles.addressLabel]}>Subject: </Text>
                   <TextInput
@@ -1055,6 +1123,35 @@ export default function LettersScreen() {
 
             {gmailReady && outgoing?.recipient.contact?.email && (
               <>
+                {(() => {
+                  const contact = outgoing.recipient.contact;
+                  const { title, steps } = sendSteps({
+                    locale: funnelLocale,
+                    from: gmailEmail,
+                    toName: contact.name || contact.email!,
+                    ...sendTracking,
+                  });
+                  return (
+                    <View style={styles.sendSteps} testID="send-steps">
+                      <Text
+                        style={[styles.sendStepsTitle, { fontSize: Math.round(12.5 * textScale) }]}
+                        accessibilityRole="header"
+                      >
+                        {title}
+                      </Text>
+                      {steps.map((step, i) => (
+                        <View key={i} style={styles.sendStepRow}>
+                          <Text style={[styles.sendStepNum, { fontSize: Math.round(14 * textScale), lineHeight: Math.round(20 * textScale) }]}>
+                            {i + 1}.
+                          </Text>
+                          <Text style={[styles.sendStepText, { fontSize: Math.round(14 * textScale), lineHeight: Math.round(20 * textScale) }]}>
+                            {step}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  );
+                })()}
                 <TouchableOpacity
                   style={[styles.gmailSendBtn, blanksLeft > 0 && styles.gmailSendBtnDisabled]}
                   onPress={openSendSheet}
@@ -1071,10 +1168,8 @@ export default function LettersScreen() {
                     📨 Send now with Gmail — replies tracked
                   </Text>
                 </TouchableOpacity>
-                {blanksLeft > 0 ? (
+                {blanksLeft > 0 && (
                   <Text style={styles.sendGateHint}>{sendGate.hint(blanksLeft)}</Text>
-                ) : (
-                  <Text style={styles.autoSendNote}>{AUTO_SEND_NOTE[funnelLocale](gmailEmail)}</Text>
                 )}
               </>
             )}
@@ -1464,14 +1559,27 @@ const styles = StyleSheet.create({
   },
   gmailSendText: { color: colors.white, fontSize: fonts.sizes.base, fontWeight: fonts.weights.bold },
   gmailSendBtnDisabled: { backgroundColor: colors.mid, opacity: 0.6 },
-  autoSendNote: {
-    fontSize: fonts.sizes.sm,
-    color: colors.mid,
-    textAlign: 'center',
-    lineHeight: 18,
-    marginTop: -spacing.xs,
+  // "When you press Send" (lib/sendSteps.ts) — read before the tap, so it
+  // sits above the button and in the brand's pine, not a warning colour.
+  sendSteps: {
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: brand.pine,
+    borderRadius: radii.md,
+    padding: spacing.md,
     marginBottom: spacing.sm,
+    gap: 4,
   },
+  sendStepsTitle: {
+    fontWeight: fonts.weights.extrabold,
+    letterSpacing: 0.8,
+    color: brand.pine,
+    marginBottom: 2,
+  },
+  sendStepRow: { flexDirection: 'row', gap: 6 },
+  sendStepNum: { color: brand.ink, fontWeight: fonts.weights.bold, minWidth: 16 },
+  sendStepText: { flex: 1, color: brand.ink },
+  greetingWarning: { fontSize: fonts.sizes.sm, color: semantic.warning, lineHeight: 18, marginTop: 2 },
   subjectRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   subjectInput: {
     flex: 1,

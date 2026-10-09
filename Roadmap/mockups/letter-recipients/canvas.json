@@ -1,0 +1,9 @@
+{
+  "artboards": [
+    { "file": "Send.dc.html", "x": 0, "y": 0, "w": 390, "h": 1180, "title": "Letters · editable To + Cc, and what Send does", "is_interactive": false }
+  ],
+  "annotations": [
+    { "id": "why", "x": 440, "y": 0, "w": 420, "text": "OWNER ASK, 2026-10-09 — edit the To and Cc lines, and a note that says exactly what happens on Send. To was only changeable when picked by hand; a Key-Contacts match had no Change link. Cc was built once and pulled (ace2c95) because reply sync can't tell a copied spouse's reply-all from the agency's." }
+  ],
+  "launch": { "view": "canvas" }
+}

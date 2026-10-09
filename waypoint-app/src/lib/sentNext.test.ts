@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sentNextFor, trackFor } from './sentNext';
+import { sentNextFor, trackFor, planTracking } from './sentNext';
 import { deadlineFor, REQUEST_TYPE_LABELS } from './requestClocks';
 
 const LEVER_TEMPLATES = [
@@ -102,5 +102,24 @@ describe('Spanish parity', () => {
   it('citations survive translation in the prose', () => {
     const es = sentNextFor('ipp_review_request', 'Teddy', 'es')!;
     expect(es.did).toContain('W&I §4646.5(b)');
+  });
+});
+
+describe('planTracking — one decision for the note and the send', () => {
+  const next = sentNextFor('ipp_review_request', 'Teddy');
+  const live = { id: 'r1', title: 'IPP review meeting request', status: 'requested' };
+  it('a case-launched letter stays on its case', () => {
+    expect(planTracking(next, 'req9', null, [live])).toEqual({ mode: 'case' });
+  });
+  it('a re-send of an open ask joins it; a closed one founds anew', () => {
+    expect(planTracking(next, null, null, [live])).toEqual({ mode: 'join', request: live });
+    expect(planTracking(next, null, null, [{ ...live, status: 'granted' }]).mode).toBe('found');
+  });
+  it('a per-ask title keeps distinct asks apart', () => {
+    const plan = planTracking(next, null, 'IPP: speech therapy', [live]);
+    expect(plan).toMatchObject({ mode: 'found', title: 'IPP: speech therapy' });
+  });
+  it('a template with no tracked request is paper trail only', () => {
+    expect(planTracking(null, null, null, [live])).toEqual({ mode: 'none' });
   });
 });
