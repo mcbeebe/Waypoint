@@ -215,7 +215,8 @@ export async function recordCommunicationCc(id: string, cc: readonly string[]): 
   try {
     const { data, error } = await supabase
       .from('communications')
-      .update({ cc: cc.length > 0 ? [...cc] : null })
+      // Lowercased, the convention the gmail function and the sync store in.
+      .update({ cc: cc.length > 0 ? cc.map((e) => e.trim().toLowerCase()) : null })
       .eq('id', id)
       .select('id');
     if (error) return false;

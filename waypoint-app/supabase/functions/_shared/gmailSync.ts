@@ -14,7 +14,7 @@
  */
 import type { createClient } from 'jsr:@supabase/supabase-js@2';
 import { threadOrganization, type ThreadRow } from './threadOrg.ts';
-import { isMissingCcColumn, otherRecipients } from './recipients.ts';
+import { headerValues, isMissingCcColumn, otherRecipients } from './recipients.ts';
 
 type Supabase = ReturnType<typeof createClient>;
 
@@ -171,8 +171,8 @@ async function syncFamily(
       // Everyone else on the reply (064); retried without it pre-064 so a
       // late migration never costs the reply itself.
       const others = otherRecipients({
-        to: header(msg.payload, 'To'),
-        cc: header(msg.payload, 'Cc'),
+        to: headerValues(msg.payload?.headers, 'To'),
+        cc: headerValues(msg.payload?.headers, 'Cc'),
         from,
         self: selfEmail,
       });

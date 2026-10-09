@@ -27,7 +27,7 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { b64url, buildRawMessage, parseCc, isEmailAddress, MAX_CC } from '../_shared/mime.ts';
 import { threadOrganization } from '../_shared/threadOrg.ts';
-import { ccForStorage, isMissingCcColumn, otherRecipients } from '../_shared/recipients.ts';
+import { ccForStorage, headerValues, isMissingCcColumn, otherRecipients } from '../_shared/recipients.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -386,8 +386,8 @@ serve(async (req) => {
         };
         // Everyone else on the reply (064) — who a reply-all would copy.
         const others = otherRecipients({
-          to: header(msg.payload, 'To'),
-          cc: header(msg.payload, 'Cc'),
+          to: headerValues(msg.payload?.headers, 'To'),
+          cc: headerValues(msg.payload?.headers, 'Cc'),
           from,
           self: selfEmail,
         });

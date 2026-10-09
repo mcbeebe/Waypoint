@@ -121,7 +121,6 @@ function provenanceLineFor(e: CaseEvent): string {
   return PROVENANCE_TEXT[e.provenance];
 }
 
-/** Plain-text dossier — the share-sheet / clipboard rendering. */
 // Who else was on the email (064), as addresses: a case file is evidence,
 // so it states what the record holds rather than a contact-book name.
 function pushCc(lines: string[], e: CaseEvent): void {
@@ -129,6 +128,7 @@ function pushCc(lines: string[], e: CaseEvent): void {
   if (line) lines.push(`  ${line}`);
 }
 
+/** Plain-text dossier — the share-sheet / clipboard rendering. */
 export function buildRequestDossierText(kase: RequestCase, opts: DossierOptions): string {
   const r = kase.request;
   const { core, thread } = splitDossierEvents(kase);

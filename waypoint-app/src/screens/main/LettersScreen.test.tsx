@@ -15,6 +15,7 @@
  * This file runs at the machine's zone, so it asserts only what holds in any.)
  */
 import React from 'react';
+import { Linking } from 'react-native';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 
@@ -514,26 +515,36 @@ describe('sending through Gmail', () => {
       expect(screen.getByText('No one')).toBeTruthy();
     });
 
-    it('"Mark as sent" after the mail-app hand-off records who was copied (064)', async () => {
+    it('"Mark as sent" after the mail-app hand-off records the Cc that hand-off carried (064)', async () => {
+      const open = vi.spyOn(Linking, 'openURL').mockResolvedValue(true);
       await draftReadyToSend();
       fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      fireEvent.click(screen.getByText(/^Open in (Gmail|Mail app)$/));
+      await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+      expect(decodeURIComponent(String(open.mock.calls[0][0]))).toContain('sam@example.org');
+      // Chips changed after the hand-off do not rewrite what went out.
+      fireEvent.click(screen.getByLabelText('Remove Sam Rivera from Cc'));
       fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
       await waitFor(() => expect(h.recordCc).toHaveBeenCalledTimes(1));
       expect(h.recordCc).toHaveBeenCalledWith('comm1', ['sam@example.org']);
+      open.mockRestore();
     });
 
-    it('nothing is recorded app-side when nobody was copied, or when Gmail sent it', async () => {
+    it('a Cc on screen is not recorded for a letter that was copied, printed or faxed instead', async () => {
       await draftReadyToSend();
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
       fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
       await waitFor(() => expect(h.markSent).toHaveBeenCalled());
       expect(h.recordCc).not.toHaveBeenCalled();
+    });
 
-      // The Gmail path: the gmail function stores the Cc with the send.
+    it('a Gmail send records nothing app-side — the gmail function stores its Cc', async () => {
+      await draftReadyToSend();
       fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
       const sheet = await openSheetFromButton();
       fireEvent.click(within(sheet).getByLabelText('Send now'));
       await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
-      await waitFor(() => expect(h.markSent).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(h.markSent).toHaveBeenCalledTimes(1));
       expect(h.recordCc).not.toHaveBeenCalled();
     });
 

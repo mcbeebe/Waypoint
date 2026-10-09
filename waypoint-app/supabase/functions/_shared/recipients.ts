@@ -8,44 +8,63 @@
 /** Most addresses stored for one email: enough for any real thread, bounded for a mass mailing. */
 export const MAX_RECORDED = 20;
 
-const ADDRESS_RE = /^[^\s@,;:<>()[\]\\"]+@[^\s@,;:<>()[\]\\"']+\.[^\s@,;:<>()[\]\\"'.]{2,}$/;
+// One address, found anywhere in a header once display names and comments
+// are gone. Printable ASCII only, like mime.ts: a header is not decoded here.
+const ADDRESS_FIND_RE = /[^\s@,;:<>()[\]\\"]+@[^\s@,;:<>()[\]\\"']+\.[^\s@,;:<>()[\]\\"'.]{2,}/g;
 
-/** Split a header on commas that are not inside a quoted display name or <…>. */
-function splitList(value: string): string[] {
-  const parts: string[] = [];
-  let current = '';
-  let quoted = false;
-  let angle = false;
-  for (const ch of value) {
-    if (ch === '"') quoted = !quoted;
-    else if (!quoted && ch === '<') angle = true;
-    else if (!quoted && ch === '>') angle = false;
-    if (ch === ',' && !quoted && !angle) {
-      parts.push(current);
-      current = '';
-    } else {
-      current += ch;
-    }
-  }
-  parts.push(current);
-  return parts;
+/**
+ * Every value of a header, joined — some mail servers emit To or Cc twice,
+ * and reading only the first would drop whoever is on the second.
+ */
+export function headerValues(
+  headers: readonly { name?: string; value?: string }[] | null | undefined,
+  name: string
+): string {
+  const wanted = name.toLowerCase();
+  return (headers ?? [])
+    .filter((h) => (h.name ?? '').toLowerCase() === wanted && h.value)
+    .map((h) => h.value as string)
+    .join(', ');
 }
 
 /**
  * The plain addresses in an address-list header (`To`, `Cc`, `From`),
- * lowercased, in order, without duplicates. `"Rivera, Ana" <ana@rc.org>` and
- * a bare `ana@rc.org` both yield `ana@rc.org`; anything that is not one plain
- * address (a group label, a garbled entry) is dropped rather than guessed at.
+ * lowercased, in order, without duplicates.
+ *
+ * It finds addresses rather than parsing the grammar, because a reply that
+ * silently loses a recipient is worse than one that stores none: quoted
+ * display names (escaped quotes and commas included) and (comments) are
+ * removed first, so an address-shaped display name is never counted, and
+ * then every address left is kept — inside or outside <…>, in a group
+ * (`Team: a@x.org, b@x.org;`), or after an unclosed bracket.
  */
 export function addressesIn(header: string | null | undefined): string[] {
   if (!header) return [];
+  const stripped = header
+    .replace(/"(?:[^"\\]|\\.)*"?/g, ' ')
+    .replace(/\((?:[^()\\]|\\.)*\)/g, ' ');
   const out: string[] = [];
-  for (const part of splitList(header)) {
-    const bracketed = part.match(/<([^<>]*)>/);
-    const candidate = (bracketed ? bracketed[1] : part).trim().toLowerCase();
-    if (ADDRESS_RE.test(candidate) && !out.includes(candidate)) out.push(candidate);
+  for (const match of stripped.match(ADDRESS_FIND_RE) ?? []) {
+    const address = match.toLowerCase();
+    if (!out.includes(address)) out.push(address);
   }
   return out;
+}
+
+/**
+ * The form two addresses compare in. Gmail ignores dots and anything after a
+ * `+` in the local part, and googlemail.com is gmail.com, so the family's
+ * own `j.doe+school@gmail.com` is still the family. Other domains compare
+ * exactly — their aliasing rules are their own.
+ */
+export function mailboxKey(address: string): string {
+  const lower = address.trim().toLowerCase();
+  const at = lower.lastIndexOf('@');
+  if (at < 0) return lower;
+  const domain = lower.slice(at + 1);
+  if (domain !== 'gmail.com' && domain !== 'googlemail.com') return lower;
+  const local = lower.slice(0, at).split('+')[0].replace(/\./g, '');
+  return `${local}@gmail.com`;
 }
 
 /**
@@ -60,17 +79,23 @@ export function otherRecipients(input: {
   from: string | null | undefined;
   self: string | null | undefined;
 }): string[] | null {
-  const exclude = new Set([...addressesIn(input.from), ...addressesIn(input.self)]);
+  const exclude = new Set([...addressesIn(input.from), ...addressesIn(input.self)].map(mailboxKey));
   const out: string[] = [];
   for (const address of [...addressesIn(input.to), ...addressesIn(input.cc)]) {
-    if (!exclude.has(address) && !out.includes(address)) out.push(address);
+    const key = mailboxKey(address);
+    if (exclude.has(key)) continue;
+    exclude.add(key); // a second spelling of someone already listed
+    out.push(address);
   }
   return out.length > 0 ? out.slice(0, MAX_RECORDED) : null;
 }
 
-/** A Cc list for storage: null for none, so an email with no Cc stores nothing. */
+/**
+ * A chosen Cc list for storage: lowercased like the synced side, so one
+ * column holds one convention, and null for none.
+ */
 export function ccForStorage(cc: readonly string[] | null | undefined): string[] | null {
-  return cc && cc.length > 0 ? cc.slice(0, MAX_RECORDED) : null;
+  return cc && cc.length > 0 ? cc.map((e) => e.trim().toLowerCase()) : null;
 }
 
 /**

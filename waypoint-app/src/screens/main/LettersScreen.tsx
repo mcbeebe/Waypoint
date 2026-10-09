@@ -493,10 +493,16 @@ export default function LettersScreen() {
    * 'untracked' (sent and logged, but the tracked request couldn't be opened)
    * — so the Gmail send never reports a success it didn't have.
    */
-  // `copied`: the Cc of a letter handed to the mail app, recorded on its row
-  // (064). The Gmail path passes nothing — the gmail function stores its Cc.
+  // The Cc that was actually in the mail-app hand-off (064), set only when
+  // the email app opened with it. "Mark as sent" also confirms a letter that
+  // was copied, printed or faxed — none of which carried a Cc — so it records
+  // only what a hand-off carried, never the chips on screen.
+  const handedOffCcRef = React.useRef<string[] | null>(null);
+
+  // `recordHandOff`: the "Mark as sent" button. The Gmail path leaves it off —
+  // the gmail function stores the Cc it sent.
   const handleMarkSent = useCallback(async (
-    copied: readonly string[] = []
+    opts: { recordHandOff?: boolean } = {}
   ): Promise<'ok' | 'not_saved' | 'untracked'> => {
     // Not `savedIdRef.current ?? …`: once any version of this letter was
     // saved, that short-circuit marked THAT row sent with the text from before
@@ -508,7 +514,8 @@ export default function LettersScreen() {
     }
     const ok = await markCommunicationSent(id);
     if (ok) savedSentRef.current = true;
-    if (ok && copied.length > 0) void recordCommunicationCc(id, copied);
+    const copied = opts.recordHandOff ? handedOffCcRef.current : null;
+    if (ok && copied && copied.length > 0) void recordCommunicationCc(id, copied);
     setMarkedSent(ok);
     if (!ok) {
       showToast("Couldn't mark it sent.", 'error');
@@ -862,6 +869,7 @@ export default function LettersScreen() {
     if (long) await Clipboard.setStringAsync(draft);
     try {
       await Linking.openURL(target.url);
+      handedOffCcRef.current = ccList;
       if (long) {
         showToast('Draft copied too — paste it if your email app cut it short.', 'info');
       }
@@ -869,9 +877,10 @@ export default function LettersScreen() {
       await Clipboard.setStringAsync(draft);
       showToast('Could not open your email app — the draft is copied, paste it there.', 'error');
     }
-  }, [draft, target, showToast, saveDraftOnce, ccPending, ccCopy]);
+  }, [draft, target, showToast, saveDraftOnce, ccPending, ccCopy, ccList]);
 
   const reset = () => {
+    handedOffCcRef.current = null;
     loggedDraftRef.current = null;
     loggedMetaRef.current = null;
     savedIdRef.current = null;
@@ -1494,7 +1503,7 @@ export default function LettersScreen() {
                     )}
                     <TouchableOpacity
                       style={styles.trackSentButton}
-                      onPress={() => handleMarkSent(ccList)}
+                      onPress={() => handleMarkSent({ recordHandOff: true })}
                       accessibilityRole="button"
                       accessibilityLabel="Mark this letter as sent"
                     >

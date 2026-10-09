@@ -8,11 +8,14 @@
 --
 --   outgoing rows: the Cc the family chose (validated by _shared/mime.ts
 --                  parseCc on the Gmail path, by lib/letterAddress.ts addCc
---                  on the mail-app hand-off path).
+--                  on the mail-app hand-off path — recorded only when the
+--                  email app actually opened with it).
 --   incoming rows: everyone else on the reply — its To and Cc minus the
 --                  family's own address and minus the sender
 --                  (_shared/recipients.ts otherRecipients). That is the list a
 --                  reply-all needs (PR B).
+--
+-- Addresses are stored lowercased on both sides.
 --
 -- Null means "not recorded": every row written before this migration, and
 -- every email with nobody else on it. No backfill — Gmail holds the history,
