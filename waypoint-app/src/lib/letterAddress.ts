@@ -139,11 +139,15 @@ export const MAX_CC = 5;
  * so a comma, an angle bracket or a line break inside one would smuggle in a
  * second recipient — or a second header.
  */
-const EMAIL_RE = /^[^\s@,;:<>()[\]\\"']+@[^\s@,;:<>()[\]\\"']+\.[^\s@,;:<>()[\]\\"'.]{2,}$/;
+// The local part may hold an apostrophe (o'brien@district.org); the whole
+// address must be printable ASCII, since it goes into a raw header unencoded.
+const EMAIL_RE = /^[^\s@,;:<>()[\]\\"]+@[^\s@,;:<>()[\]\\"']+\.[^\s@,;:<>()[\]\\"'.]{2,}$/;
+const PRINTABLE_ASCII = /^[\x21-\x7e]+$/;
 
 /** Whether `value` is one plain email address. */
 export function isEmailAddress(value: string): boolean {
-  return EMAIL_RE.test(value.trim());
+  const v = value.trim();
+  return PRINTABLE_ASCII.test(v) && EMAIL_RE.test(v);
 }
 
 export type AddCcResult =

@@ -24,7 +24,7 @@
  */
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { b64url, buildRawMessage, parseCc, MAX_CC } from '../_shared/mime.ts';
+import { b64url, buildRawMessage, parseCc, isEmailAddress, MAX_CC } from '../_shared/mime.ts';
 import { threadOrganization } from '../_shared/threadOrg.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
@@ -180,6 +180,9 @@ serve(async (req) => {
     const communicationId = (body.communicationId as string) || null;
     const replyToCommunicationId = (body.replyToCommunicationId as string) || null;
     if (!to || !messageBody) return json({ error: 'to and body are required' }, 400);
+    // One plain address: `to` goes into the To header as-is, so a line break
+    // in it would add a header (Bcc:, say). Cc gets the same check below.
+    if (!isEmailAddress(to)) return json({ error: 'The To address must be one plain email address.' }, 400);
     // Copied recipients (owner ask, 2026-10-09). Refused whole rather than
     // trimmed: a parent who copied someone must not have the letter go out
     // without them, silently.

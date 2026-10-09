@@ -109,6 +109,43 @@ const SEND_RECORD_FAILED: Record<FunnelLocale, Record<'not_saved' | 'untracked',
   },
 };
 
+/** The Cc line's own words (owner ask, 2026-10-09). */
+const CC_COPY: Record<
+  FunnelLocale,
+  { none: string; placeholder: string; invalid: string; duplicate: string; full: (n: number) => string; pending: string; replies: string }
+> = {
+  en: {
+    none: 'No one',
+    placeholder: 'Copy someone — type an email',
+    invalid: 'That doesn’t look like one email address.',
+    duplicate: 'They’re already on this email.',
+    full: (n) => `You can copy up to ${n} people.`,
+    pending: 'Tap Add to copy that address, or clear it — it isn’t on the email yet.',
+    replies:
+      'A reply from anyone you copy counts as a reply: Waypoint treats it like an answer and holds off on follow-up nudges for this request.',
+  },
+  es: {
+    none: 'Nadie',
+    placeholder: 'Copie a alguien — escriba un correo',
+    invalid: 'Eso no parece una sola dirección de correo.',
+    duplicate: 'Esa persona ya está en este correo.',
+    full: (n) => `Puede copiar a hasta ${n} personas.`,
+    pending: 'Toque Agregar para copiar esa dirección, o bórrela — todavía no está en el correo.',
+    replies:
+      'Una respuesta de cualquier persona en copia cuenta como respuesta: Waypoint la trata como contestación y no sugerirá seguimiento para esta solicitud por ahora.',
+  },
+  vi: {
+    none: 'Không ai',
+    placeholder: 'Đồng gửi cho ai đó — nhập email',
+    invalid: 'Đó không giống một địa chỉ email.',
+    duplicate: 'Người này đã có trong email.',
+    full: (n) => `Quý vị có thể đồng gửi tối đa ${n} người.`,
+    pending: 'Bấm Thêm để đồng gửi địa chỉ đó, hoặc xóa đi — địa chỉ đó chưa có trong email.',
+    replies:
+      'Thư trả lời từ bất kỳ người được đồng gửi nào cũng được tính là thư trả lời: Waypoint xem đó như câu trả lời và tạm không nhắc theo dõi yêu cầu này.',
+  },
+};
+
 const SEND_GATE: Record<
   'en' | 'es' | 'vi',
   { toast: string; a11y: (n: number) => string; hint: (n: number) => string }
@@ -663,16 +700,17 @@ export default function LettersScreen() {
       emailableContacts.find((c) => c.email?.toLowerCase() === email.toLowerCase())?.name ?? email,
     [emailableContacts]
   );
+  const ccCopy = CC_COPY[funnelLocale];
   const addToCc = useCallback(
     (value: string) => {
       const result = addCc(ccList, value, toEmail);
       if (!result.added) {
         setCcError(
           result.reason === 'invalid'
-            ? 'That doesn’t look like one email address.'
+            ? ccCopy.invalid
             : result.reason === 'duplicate'
-              ? 'They’re already on this email.'
-              : `You can copy up to ${MAX_CC} people.`
+              ? ccCopy.duplicate
+              : ccCopy.full(MAX_CC)
         );
         return;
       }
@@ -680,8 +718,18 @@ export default function LettersScreen() {
       setCcInput('');
       setCcError(null);
     },
-    [ccList, toEmail]
+    [ccList, toEmail, ccCopy]
   );
+  // Picking a copied person as the addressee takes them off the Cc line for
+  // good — so switching the addressee back doesn't quietly re-copy them.
+  useEffect(() => {
+    if (toEmail && cc.some((e) => e.toLowerCase() === toEmail)) {
+      setCc((prev) => prev.filter((e) => e.toLowerCase() !== toEmail));
+    }
+  }, [toEmail, cc]);
+  // An address typed but never added must not be silently left off: both
+  // the Gmail sheet and the mail-app hand-off stop and say so.
+  const ccPending = ccInput.trim().length > 0;
 
   const target = outgoing
     ? composeTarget(
@@ -726,9 +774,13 @@ export default function LettersScreen() {
   }, [template, routeRequestId, primaryChild?.first_name, locale, route.params?.trackTitle, requests, requestsLoading]);
 
   const openSendSheet = useCallback(() => {
+    if (ccPending) {
+      setCcError(ccCopy.pending);
+      return;
+    }
     setSendProblem(null);
     setConfirmOpen(true);
-  }, []);
+  }, [ccPending, ccCopy]);
 
   /** "Send now" in the sheet — the only path that sends through Gmail. */
   const handleSendWithGmail = useCallback(async () => {
@@ -792,6 +844,11 @@ export default function LettersScreen() {
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
+    if (ccPending) {
+      setCcError(ccCopy.pending);
+      showToast(ccCopy.pending, 'error');
+      return;
+    }
     await saveDraftOnce();
     // Long drafts can get truncated by a mail app's URL handling — put the
     // full text on the clipboard first so nothing is ever lost.
@@ -806,7 +863,7 @@ export default function LettersScreen() {
       await Clipboard.setStringAsync(draft);
       showToast('Could not open your email app — the draft is copied, paste it there.', 'error');
     }
-  }, [draft, target, showToast, saveDraftOnce]);
+  }, [draft, target, showToast, saveDraftOnce, ccPending, ccCopy]);
 
   const reset = () => {
     loggedDraftRef.current = null;
@@ -1087,7 +1144,7 @@ export default function LettersScreen() {
                 <View style={styles.ccBlock}>
                   <View style={styles.ccRow}>
                     <Text style={[styles.addressLine, styles.addressLabel]}>Cc: </Text>
-                    {ccList.length === 0 && <Text style={styles.ccNone}>No one</Text>}
+                    {ccList.length === 0 && <Text style={styles.ccNone}>{ccCopy.none}</Text>}
                     {ccList.map((email) => (
                       <View key={email} style={styles.ccChip}>
                         <Text style={styles.ccChipText}>{ccName(email)}</Text>
@@ -1137,7 +1194,7 @@ export default function LettersScreen() {
                             setCcError(null);
                           }}
                           onSubmitEditing={() => addToCc(ccInput)}
-                          placeholder="Copy someone — type an email"
+                          placeholder={ccCopy.placeholder}
                           placeholderTextColor={colors.mid}
                           keyboardType="email-address"
                           autoCapitalize="none"
@@ -1161,9 +1218,7 @@ export default function LettersScreen() {
                     <Text style={styles.greetingWarning} accessibilityRole="alert">{ccError}</Text>
                   ) : null}
                   {ccList.length > 0 && (
-                    <Text style={styles.addressHint}>
-                      A reply from anyone you copy shows up as a reply, too.
-                    </Text>
+                    <Text style={styles.addressHint}>{ccCopy.replies}</Text>
                   )}
                 </View>
                 <View style={styles.subjectRow}>

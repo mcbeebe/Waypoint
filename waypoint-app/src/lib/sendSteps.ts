@@ -107,9 +107,9 @@ export function sendSteps(input: SendStepsInput): { title: string; steps: string
   steps.push(
     cc.length
       ? L(
-          'When anyone on this email replies — including people you copied — it shows on Home as a reply.',
-          'Cuando alguien en este correo responda — incluidas las personas en copia — aparecerá en Inicio como respuesta.',
-          'Khi bất kỳ ai trong email này trả lời — kể cả người được đồng gửi — thư sẽ hiện trên Trang chủ như một thư trả lời.'
+          'When anyone on this email replies — including people you copied — it shows on Home, and Waypoint treats it as an answer to this request.',
+          'Cuando alguien en este correo responda — incluidas las personas en copia — aparecerá en Inicio, y Waypoint lo tratará como respuesta a esta solicitud.',
+          'Khi bất kỳ ai trong email này trả lời — kể cả người được đồng gửi — thư sẽ hiện trên Trang chủ, và Waypoint xem đó là câu trả lời cho yêu cầu này.'
         )
       : L(
           'When a reply comes in on this email, it shows on Home.',

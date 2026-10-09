@@ -64,7 +64,7 @@ describe('sendSteps with Cc', () => {
     );
   });
   it('says a copied person’s reply counts as a reply (owner decision: every reply counts)', () => {
-    expect(sendSteps({ ...base, cc: ['Sam'] }).steps.at(-1)).toMatch(/including people you copied/);
+    expect(sendSteps({ ...base, cc: ['Sam'] }).steps.at(-1)).toMatch(/including people you copied — it shows on Home, and Waypoint treats it as an answer/);
     expect(sendSteps(base).steps.at(-1)).not.toMatch(/copied/);
   });
   it('translates the Cc wording', () => {

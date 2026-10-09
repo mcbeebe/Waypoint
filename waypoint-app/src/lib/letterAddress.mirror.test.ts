@@ -10,6 +10,7 @@ import * as shipped from '../../supabase/functions/_shared/mime';
 
 const SAMPLES = [
   'sam@example.org', ' SAM@Example.org ', 'a.b+tag@sub.example.co', 'x@y.c', 'x@y.com.',
+  "o'brien@district.org", 'josé@x.com',
   'a@x.com\r\nBcc: c@z.com', 'a@x.com, b@y.com', 'Sam <sam@example.org>', 'not an email', '', '@x.com', 'a@',
 ];
 
@@ -39,5 +40,13 @@ describe('addCc', () => {
     const five = ['a@x.org', 'b@x.org', 'c@x.org', 'd@x.org', 'e@x.org'];
     expect(app.addCc(five, 'f@x.org', null)).toMatchObject({ added: false, reason: 'full' });
     expect(app.addCc([], ' sam@example.org ', null)).toEqual({ added: true, list: ['sam@example.org'] });
+  });
+});
+
+describe('the address rule', () => {
+  it("takes an apostrophe in the name part, refuses non-ASCII that would go into a raw header", () => {
+    expect(app.isEmailAddress("o'brien@district.org")).toBe(true);
+    expect(app.isEmailAddress('josé@x.com')).toBe(false);
+    expect(app.isEmailAddress("a@o'brien.org")).toBe(false);
   });
 });

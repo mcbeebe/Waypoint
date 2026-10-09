@@ -464,7 +464,7 @@ describe('sending through Gmail', () => {
       // The steps name who is copied, and say their replies count too.
       expect(screen.getByText(/to Pat Nguyen, copying Sam Rivera and advocate@example\.org — Gmail/)).toBeTruthy();
       expect(screen.getByText(/including people you copied/)).toBeTruthy();
-      expect(screen.getByText(/A reply from anyone you copy shows up as a reply, too/)).toBeTruthy();
+      expect(screen.getByText(/counts as a reply: Waypoint treats it like an answer and holds off on follow-up nudges/)).toBeTruthy();
 
       const sheet = await openSheetFromButton();
       expect(within(sheet).getByText('Sam Rivera <sam@example.org>')).toBeTruthy();
@@ -490,6 +490,25 @@ describe('sending through Gmail', () => {
       fireEvent.click(within(sheet).getByLabelText('Send now'));
       await waitFor(() => expect(h.gmailSend).toHaveBeenCalledTimes(1));
       expect(h.gmailSend.mock.calls[0][0]).toMatchObject({ cc: [] });
+    });
+
+    it('an address typed but not added stops the send instead of being dropped', async () => {
+      await draftReadyToSend();
+      fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: 'sam@example.org' } });
+      fireEvent.click(screen.getByLabelText(BUTTON));
+      expect(screen.getByText(/Tap Add to copy that address, or clear it/)).toBeTruthy();
+      expect(screen.queryByText('Send this email now?')).toBeNull();
+      expect(h.gmailSend).not.toHaveBeenCalled();
+    });
+
+    it('a copied person made the addressee stays off Cc when the addressee changes back', async () => {
+      await draftReadyToSend();
+      fireEvent.click(screen.getByLabelText('Copy Sam Rivera'));
+      fireEvent.click(screen.getByLabelText('Change who this goes to'));
+      fireEvent.click(screen.getByLabelText('Send to Sam Rivera'));
+      fireEvent.click(screen.getByLabelText('Change who this goes to'));
+      fireEvent.click(screen.getByLabelText('Send to Pat Nguyen'));
+      expect(screen.getByText('No one')).toBeTruthy();
     });
 
     it('the addressee is never also copied', async () => {
