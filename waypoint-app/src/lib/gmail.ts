@@ -93,6 +93,65 @@ export async function gmailDraft(
   }
 }
 
+/** A Gmail thread the "Add an email thread" sheet can offer (014 PR D). */
+export interface GmailThreadCandidate {
+  threadId: string;
+  subject: string;
+  /** Display names, oldest first; the family is "You". */
+  participants: string[];
+  messageCount: number;
+  /** ISO time of the newest message. */
+  lastAt: string;
+  lastFrom: string;
+  lastFromFamily: boolean;
+  snippet: string;
+  alreadyTracked: boolean;
+}
+
+/** What a find returned: threads to pick from, or why there are none. */
+export type GmailFindResult =
+  | { ok: true; candidates: GmailThreadCandidate[] }
+  /** A link the Gmail API cannot open — today's Gmail links, or not Gmail. */
+  | { ok: false; error: 'opaque_link'; reason: 'gmail_token' | 'not_gmail' }
+  | { ok: false; error: string };
+
+/**
+ * Find threads in the connected Gmail to add to the paper trail, from a
+ * Gmail link or search words. Never throws.
+ */
+export async function gmailFindThreads(input: string): Promise<GmailFindResult> {
+  try {
+    const resp = await authedPost(GMAIL_FN_URL, { action: 'find', input });
+    const data = await resp.json().catch(() => null);
+    if (data?.error === 'opaque_link') {
+      return { ok: false, error: 'opaque_link', reason: data.reason === 'not_gmail' ? 'not_gmail' : 'gmail_token' };
+    }
+    if (!resp.ok) return { ok: false, error: data?.error ?? `Search failed (${resp.status})` };
+    return { ok: true, candidates: (data?.candidates ?? []) as GmailThreadCandidate[] };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Search failed' };
+  }
+}
+
+/**
+ * Copy a Gmail thread into the paper trail under the chosen label (and,
+ * optionally, a request), so reply sync follows it. Never throws.
+ */
+export async function gmailImportThread(input: {
+  threadId: string;
+  organization: string;
+  requestId?: string | null;
+}): Promise<{ ok: true; imported: number } | { ok: false; error: string }> {
+  try {
+    const resp = await authedPost(GMAIL_FN_URL, { action: 'import', ...input });
+    const data = await resp.json().catch(() => null);
+    if (!resp.ok) return { ok: false, error: data?.error ?? `Couldn't add the thread (${resp.status})` };
+    return { ok: true, imported: Number(data?.imported ?? 0) };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Couldn't add the thread" };
+  }
+}
+
 /** Pull new replies on tracked threads into the paper trail. */
 export async function gmailSyncReplies(): Promise<{ ok: boolean; newReplies: number; error?: string }> {
   try {

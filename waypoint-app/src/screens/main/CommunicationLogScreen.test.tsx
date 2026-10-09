@@ -149,3 +149,11 @@ describe('Paper Trail records who else was on an email (064)', () => {
     expect(screen.getByText('Also on this email: Sam Rivera')).toBeTruthy();
   });
 });
+
+describe('Add an email thread (014 PR D)', () => {
+  it('the toolbar opens the sheet, which offers the Gmail connection when there is none', () => {
+    render(<CommunicationLogScreen />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add an email thread from Gmail' }));
+    expect(screen.getByText(/Connect Gmail to add threads/)).toBeTruthy();
+  });
+});

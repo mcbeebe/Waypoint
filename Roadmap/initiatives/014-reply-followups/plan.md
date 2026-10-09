@@ -37,8 +37,16 @@ Gmail API thread ID, and the API never returns them
 ([googleworkspace/cli#858](https://github.com/googleworkspace/cli/issues/858);
 [InboxSDK group](https://groups.google.com/g/inboxsdk/c/wlHOY4TeR2o)).
 Older-style links (`#inbox/<16 hex chars>`) carry the legacy hex thread ID,
-which the API accepts. To verify in the build: one real link of each kind
-against the owner's own Gmail.
+which the API accepts.
+
+**Verified in the build (2026-10-09, against the owner's own Gmail, read-only):**
+- API thread ids are 16 hex characters (e.g. `1a11…cee3`).
+- The `viewUrl` that the Gmail API itself returns is
+  `#all/thread-a:r-<signed decimal>`. That number is not the thread id in any
+  base, so `thread-a` links are opaque too.
+- `#…/thread-f:<decimal>` is the thread id in decimal (IMAP X-GM-THRID), so it
+  is converted. A wrong guess can only find nothing, because the function
+  opens the id rather than trusting it.
 
 - **`_shared/gmailLink.ts` + app mirror `src/lib/gmailLink.ts`** (held equal by
   a mirror test, like `letterAddress`): `parseGmailInput(text)` returns one of:
@@ -74,7 +82,15 @@ against the owner's own Gmail.
   - a sheet with three steps: find → pick → confirm, with "When you press
     Add" steps (`sendSteps`-style, en/es/vi);
   - an opaque-link explainer and a not-connected state.
-- **No migration.** It does touch an Edge Function and the sync, so it needs
+- **Migration 065 (`communications.settled_at`) moved up from PR C.** The
+  adversarial review showed that a "recorded long after it arrived" rule on
+  Home would also hide genuinely late-synced replies, and that only Home
+  applied it, so the case screen and the request tracker disagreed. Imported
+  history is now *settled* at import, and every surface skips settled
+  messages: Home's reply card, the reply strip, the case screen, and the
+  tracker badges. PR C adds only the "✓ Nothing to answer" UI on the same
+  column.
+- It touches an Edge Function, the sync and a migration, so it needs
   `/adversary` and the owner's go.
 
 ## PR B: replies keep the people copied (`feat/reply-all`)
@@ -91,7 +107,8 @@ against the owner's own Gmail.
 
 ## PR C: "Nothing to answer" (`feat/reply-settled`)
 
-- **Migration 065** adds `communications.settled_at timestamptz`.
+- **Migration 065** (`communications.settled_at`) ships in PR D; this PR
+  adds the action on it.
 - **`replyInbox.ts`:** a settled reply counts as answered for
   `findUnansweredReply` and `unreadReplies`, and its unread state clears too.
   A **new** reply on the same thread is a different row, so it still

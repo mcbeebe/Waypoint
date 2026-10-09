@@ -46,6 +46,12 @@ export interface Communication {
    * Null = none recorded. ABSENT on a database where 064 is not applied.
    */
   cc?: string[] | null;
+  /**
+   * When an incoming message was marked as needing no answer (065): history
+   * brought in by adding a thread, or "Nothing to answer". ABSENT on a
+   * database without 065 — then nothing is settled.
+   */
+  settled_at?: string | null;
   created_at: string;
 }
 

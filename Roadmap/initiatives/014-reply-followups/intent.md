@@ -1,6 +1,6 @@
 # 014 — Reply follow-ups: record Cc, reply-all, "nothing to answer", add a thread
 
-**Date:** 2026-10-09 · **Status:** draft — plan awaiting owner go
+**Date:** 2026-10-09 · **Status:** adopted — owner go 2026-10-09; PR A merged (#314)
 **Supersedes:** — · **Superseded-by:** —
 **Artifacts:** intent.md (this) → plan.md → PR A → PR D → PR B → PR C
 **Mockup:** `Roadmap/mockups/reply-followups/` (six artboards, invented names)
