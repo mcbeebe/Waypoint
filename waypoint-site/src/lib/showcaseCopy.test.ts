@@ -108,6 +108,14 @@ describe('showcase copy guard', () => {
     const cites = [...hero.matchAll(/cite:\s*'([^']*)'/g)].map((m) => m[1]).filter(Boolean);
     expect(cites.length).toBeGreaterThan(0);
     for (const c of cites) expect(appCitations.has(c), `hero cites ${c}, which no app clock uses`).toBe(true);
+    // W&I §4643 runs the assessment clock from intake, not from the ask: a
+    // card citing it says when intake was, never when the family asked.
+    const assessmentCards = [...hero.matchAll(/body:\s*'([^']*)',\s*cite:\s*'W&I §4643'/g)];
+    expect(assessmentCards.length).toBeGreaterThan(0);
+    for (const [, body] of assessmentCards) {
+      expect(body).toMatch(/^Because your intake was on /);
+      expect(body).not.toMatch(/\basked\b/);
+    }
     // The /product/ tour's Home card too: its citation sits in a <b> after the reason.
     const tour = read(path.join(src, 'pages', 'product.astro'));
     const tourCites = [...tour.matchAll(/fixed window\. <b>([^<]+)<\/b>/g)].map((m) => m[1]);

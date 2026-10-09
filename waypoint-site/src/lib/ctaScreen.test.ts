@@ -181,6 +181,9 @@ describe('CTA box copy', () => {
     // the IEP hub's 15- and 60-day estimates (iepDeadlines.ts). It has no
     // appeal or Notice of Action clock and no Early Start 45-day clock.
     expect(body).not.toMatch(/\bappeal deadlines?\b|\b45-day\b/i);
+    // Nor a tracker it doesn't have: the app tracks the clocks a family's
+    // requests start and the dates they add, not "every deadline".
+    expect(body).not.toMatch(/\bdeadline tracker\b|\bevery deadline tracked\b|\btracker for every\b/i);
   });
 
   it.each(bodies)('%s asks, never demands (CLAUDE.md tone rule)', (_f, body) => {
