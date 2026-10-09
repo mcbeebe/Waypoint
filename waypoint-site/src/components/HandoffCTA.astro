@@ -5,6 +5,8 @@
  * app_signup_click via the delegated listener in BaseLayout.
  */
 import { appStartUrl, type CtaId, type Pillar, type WpCtx } from '../lib/appLinks';
+import { ctaScreenFor, type CtaScreenKind } from '../lib/ctaScreen';
+import CtaScreen from './CtaScreen.astro';
 
 interface Props {
   heading: string;
@@ -23,6 +25,9 @@ interface Props {
    * component's 40+ callers don't need it: it exists for the homepage's
    * primary conversion CTAs. */
   note?: string;
+  /** Override the sample screen the CTA id and pillar would pick, or 'none'
+   * for a page whose topic that screen would not match. */
+  screen?: CtaScreenKind | 'none';
 }
 const {
   heading,
@@ -35,6 +40,7 @@ const {
   ctx,
   checklist = false,
   note,
+  screen: screenProp,
 } = Astro.props;
 const href = appStartUrl({ slug, cta, pillar, locale, ctx });
 const props = JSON.stringify({
@@ -43,20 +49,51 @@ const props = JSON.stringify({
   locale,
   cta_id: cta,
 });
+// Content pages (guides, Regional Center pages, letters) show a sample app
+// screen that matches the page; every other box stays text-only.
+const screen = screenProp === 'none' ? null : (screenProp ?? ctaScreenFor(cta, pillar));
 ---
 
-<div class="handoff">
-  <div><b>{heading}</b><span>{body}</span></div>
-  <div class="handoff-cta-wrap">
-    <a
-      class="btn on-dark"
-      href={href}
-      data-wp-event="app_signup_click"
-      data-wp-props={props}
-      data-checklist-cta={checklist || undefined}
-    >
-      {action}
-    </a>
-    {note && <p class="handoff-note">{note}</p>}
+<div class:list={['handoff', screen && 'handoff-with-screen']}>
+  <div class="handoff-main">
+    <div><b>{heading}</b><span>{body}</span></div>
+    <div class="handoff-cta-wrap">
+      <a
+        class="btn on-dark"
+        href={href}
+        data-wp-event="app_signup_click"
+        data-wp-props={props}
+        data-checklist-cta={checklist || undefined}
+      >
+        {action}
+      </a>
+      {note && <p class="handoff-note">{note}</p>}
+    </div>
   </div>
+  {screen && <CtaScreen kind={screen} />}
 </div>
+
+<style>
+  /* Without a screen the wrapper is transparent to layout, so the box is
+     exactly the two-part flex row it always was. */
+  .handoff-main {
+    display: contents;
+  }
+  .handoff-with-screen {
+    flex-wrap: nowrap;
+    gap: 22px;
+  }
+  .handoff-with-screen .handoff-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .handoff-with-screen .handoff-cta-wrap {
+    align-items: flex-start;
+  }
+  .handoff-with-screen .handoff-note {
+    text-align: left;
+  }
+</style>
