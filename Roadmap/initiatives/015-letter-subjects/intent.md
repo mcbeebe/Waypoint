@@ -46,13 +46,20 @@ Owner-approved plan, 2026-10-07:
     parsing miss left a literal "Subject: …" in a letter a family sends.
   - **Template routing (same PR):** the chat prompt's `[[DRAFT: key | offer]]`
     instruction listed the keys with no word on when each applies, so a note to
-    a provider in an IPP-heavy conversation got `ipp_review_request`. It now says
-    what each key formally asks, and of whom. It sends any message to a provider,
-    and anything uncertain, to `general`. `draftKeyPrompt.test.ts` keeps every
-    taught key a real template.
-- **The app-side guard (its own PR, draft-flow lane):** when a letter's addressee
-  is saved under a different organization than its template addresses, the send
-  asks "Did this go to the Regional Center?" before starting any legal clock.
+    a provider in an IPP-heavy conversation got `ipp_review_request`.
+    - A "Draft keys" section now teaches all 20 templates: what each formally
+      asks, of whom, and which start a legal clock (30-day IPP meeting, 15-day
+      assessment plan).
+    - Any professional outside the Regional Center and the school district, and
+      anything uncertain, goes to `general`.
+    - The trailer itself stays one line.
+    - `draftKeyPrompt.test.ts` pins every taught key ↔ every catalog template, and
+      the clock markers ↔ `statutoryDays`.
+- **The app-side guard (its own PR, draft-flow lane):** when nobody on a letter
+  is saved under the system its template addresses, the app asks "Is this a
+  request to the Regional Center?" *before* the letter is marked sent (in the
+  Gmail pop-up, or inline after "Mark as sent"). It starts or joins a tracked
+  request only on "yes". Unanswered, nothing is marked sent.
 
 ## Non-goals
 
