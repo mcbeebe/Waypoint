@@ -134,7 +134,7 @@ export function clockCheckCopy(
     explain: L(
       `It's written as a request to ${system}, but it's addressed to ${recipientName}, saved in your contacts under “${saved}”. Waypoint tracks a request only when it reaches ${system}.`,
       `Está escrita como una solicitud ${system}, pero va dirigida a ${recipientName} (contacto en la categoría «${saved}»). Waypoint sigue una solicitud solo cuando llega ${system}.`,
-      `Thư được viết như một yêu cầu gửi ${system}, nhưng được gửi đến ${recipientName} (liên hệ thuộc mục «${saved}»). Waypoint chỉ theo dõi yêu cầu khi nó được gửi đến ${system}.`
+      `Thư được viết như một yêu cầu gửi ${system}, nhưng được gửi đến ${recipientName} (liên hệ thuộc mục “${saved}”). Waypoint chỉ theo dõi yêu cầu khi nó được gửi đến ${system}.`
     ),
     yes: days
       ? L(`Yes — track the ${days}-day deadline`, `Sí — seguir el plazo de ${days} días`, `Có — theo dõi thời hạn ${days} ngày`)

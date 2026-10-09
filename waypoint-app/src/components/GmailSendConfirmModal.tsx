@@ -77,6 +77,7 @@ const COPY: Record<
     message: string;
     resend: string;
     needSubject: string;
+    needClockAnswer: string;
     back: string;
     send: string;
   }
@@ -93,6 +94,7 @@ const COPY: Record<
     message: 'Message',
     resend: 'You already sent this letter. Sending it again sends a second email.',
     needSubject: 'Add a subject first.',
+    needClockAnswer: 'Answer the question about the request first.',
     back: 'Go back',
     send: 'Send now',
   },
@@ -108,6 +110,7 @@ const COPY: Record<
     message: 'Mensaje',
     resend: 'Ya envió esta carta. Si la envía de nuevo, saldrá un segundo correo.',
     needSubject: 'Primero escriba un asunto.',
+    needClockAnswer: 'Primero responda la pregunta sobre la solicitud.',
     back: 'Volver',
     send: 'Enviar ahora',
   },
@@ -123,6 +126,7 @@ const COPY: Record<
     message: 'Nội dung',
     resend: 'Quý vị đã gửi thư này. Gửi lại sẽ gửi thêm một email nữa.',
     needSubject: 'Hãy nhập tiêu đề trước.',
+    needClockAnswer: 'Hãy trả lời câu hỏi về yêu cầu trước.',
     back: 'Quay lại',
     send: 'Gửi ngay',
   },
@@ -219,11 +223,6 @@ export default function GmailSendConfirmModal({
               />
             </View>
 
-            <Text style={styles.messageLabel}>{copy.message}</Text>
-            <ScrollView style={styles.preview} contentContainerStyle={styles.previewInner}>
-              <Text style={styles.previewText}>{body}</Text>
-            </ScrollView>
-
             {clockQuestion ? (
               <View style={styles.clockBox} accessibilityRole="radiogroup" accessibilityLabel={clockQuestion.question}>
                 <Text style={styles.clockQuestion}>{clockQuestion.question}</Text>
@@ -236,6 +235,8 @@ export default function GmailSendConfirmModal({
                     disabled={sending}
                     accessibilityRole="radio"
                     accessibilityState={{ checked: clockAnswer === answer, disabled: sending }}
+                    // react-native-web reads aria-checked, not accessibilityState.checked.
+                    aria-checked={clockAnswer === answer}
                     accessibilityLabel={clockQuestion[answer]}
                   >
                     <Text style={[styles.clockOptionText, clockAnswer === answer && styles.clockOptionTextOn]}>
@@ -245,6 +246,12 @@ export default function GmailSendConfirmModal({
                 ))}
               </View>
             ) : null}
+
+            <Text style={styles.messageLabel}>{copy.message}</Text>
+            <ScrollView style={styles.preview} contentContainerStyle={styles.previewInner}>
+              <Text style={styles.previewText}>{body}</Text>
+            </ScrollView>
+
           </ScrollView>
 
           {/* Announced as they appear: a screen-reader user who taps Send now
@@ -252,6 +259,7 @@ export default function GmailSendConfirmModal({
           <View accessibilityLiveRegion="polite">
             {alreadySent ? <Text style={styles.resend}>{copy.resend}</Text> : null}
             {needsSubject ? <Text style={styles.problem}>{copy.needSubject}</Text> : null}
+            {needsClockAnswer ? <Text style={styles.problem}>{copy.needClockAnswer}</Text> : null}
             {blockedReason ? <Text style={styles.problem}>{blockedReason}</Text> : null}
             {problem ? <Text style={styles.problem}>{problem}</Text> : null}
           </View>
@@ -364,7 +372,6 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     padding: spacing.md,
     gap: 6,
-    marginTop: spacing.xs,
   },
   clockQuestion: {
     fontSize: fonts.sizes.sm,

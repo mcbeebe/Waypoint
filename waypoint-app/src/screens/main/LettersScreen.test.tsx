@@ -1056,14 +1056,81 @@ describe('a letter addressed outside the system its template writes to', () => {
     expect(within(sheet).getByLabelText('Send now').getAttribute('aria-disabled')).toBe('true');
   });
 
-  it('a Service Coordinator on Cc counts — no question', async () => {
+  it('a Service Coordinator on the Cc that went out counts — no question', async () => {
+    const open = vi.spyOn(Linking, 'openURL').mockResolvedValue(true);
     h.contacts = [DANA, PAT];
     await generate();
     fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: PAT.email } });
     fireEvent.click(screen.getByLabelText('Add to Cc'));
+    fireEvent.click(screen.getByText(/^Open in (Gmail|Mail app)$/));
+    await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
     await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
     expect(screen.queryByText(QUESTION)).toBeNull();
+    open.mockRestore();
+  });
+
+  it('a Cc chip that never went out (Copy, print) does not count', async () => {
+    h.contacts = [DANA, PAT];
+    await generate();
+    fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: PAT.email } });
+    fireEvent.click(screen.getByLabelText('Add to Cc'));
+    fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    expect(screen.getByText(QUESTION)).toBeTruthy();
+    expect(h.markSent).not.toHaveBeenCalled();
+  });
+
+  it('a decision made at the tap stands — recipients loading during the save never turn it into "no"', async () => {
+    h.contacts = []; // still loading: nobody known, so no question
+    let finishSave: (id: string) => void = () => undefined;
+    h.logCommunication.mockImplementationOnce(
+      () => new Promise<string>((resolve) => { finishSave = resolve; })
+    );
+    const { rerender } = await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    // Contacts arrive mid-save: now the addressee would look like a mismatch.
+    h.contacts = [DANA];
+    rerender(<LettersScreen />);
+    finishSave('comm1');
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+    expect(h.toast).not.toHaveBeenCalledWith(expect.stringMatching(/isn’t tracking it/), 'success');
+  });
+
+  it('while it is being marked sent there is nothing to tap twice', async () => {
+    let finishSave: (id: string) => void = () => undefined;
+    h.logCommunication.mockImplementationOnce(
+      () => new Promise<string>((resolve) => { finishSave = resolve; })
+    );
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    fireEvent.click(screen.getByLabelText('Yes — track the 30-day deadline'));
+    expect(screen.getByText('Saving…')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Mark this letter as sent/i })).toBeNull();
+    finishSave('comm1');
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+    expect(h.markSent).toHaveBeenCalledTimes(1);
+  });
+
+  it('the question takes focus when it replaces the button that was tapped', async () => {
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    await waitFor(() => expect(document.activeElement?.textContent).toBe(QUESTION));
+  });
+
+  it('an answer is for one look — cancel the sheet and reopen, and it asks again', async () => {
+    h.gmail = { gmail: true, email: 'parent@example.com' };
+    await generate();
+    fireEvent.click(screen.getByLabelText('Review and send this letter through your connected Gmail'));
+    let sheet = (await screen.findByText('Send this email now?')).parentElement as HTMLElement;
+    const no = within(sheet).getByLabelText('No — just keep the record');
+    fireEvent.click(no);
+    expect(no.getAttribute('aria-checked')).toBe('true'); // announced, not just drawn
+    fireEvent.click(within(sheet).getByLabelText('Go back'));
+    fireEvent.click(screen.getByLabelText('Review and send this letter through your connected Gmail'));
+    sheet = (await screen.findAllByText('Send this email now?')).at(-1)!.parentElement as HTMLElement;
+    expect(within(sheet).getByLabelText('Send now').getAttribute('aria-disabled')).toBe('true');
+    expect(within(sheet).getByText('Answer the question about the request first.')).toBeTruthy();
   });
 
   it('a contact saved under the Regional Center goes straight through — and the steps say so', async () => {
@@ -1077,13 +1144,15 @@ describe('a letter addressed outside the system its template writes to', () => {
     expect(screen.queryByText(QUESTION)).toBeNull();
   });
 
-  it('a letter launched from a case is filed in its case — no question', async () => {
+  it('a letter launched from a case is filed in its case — no question, and no claims about the agency', async () => {
     routeParams.requestId = 'req1';
     await generate();
     fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
     await waitFor(() => expect(h.markSent).toHaveBeenCalled());
     expect(screen.queryByText(QUESTION)).toBeNull();
     expect(h.createRequest).not.toHaveBeenCalled();
+    expect(h.toast).toHaveBeenCalledWith('Marked as sent — filed in this request’s case.', 'success');
+    expect(screen.queryByText(/legal clock|WHAT HAPPENS NOW/)).toBeNull();
   });
 
   it('with nothing to track, it asks nothing — and claims nothing about the agency', async () => {
