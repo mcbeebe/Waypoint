@@ -721,3 +721,36 @@ describe('isResumableDraft', () => {
     expect(TRIAGE_RANK.resume).toBeLessThan(TRIAGE_RANK.crisis);
   });
 });
+
+describe('what an RC assessment clock runs from (W&I §4643)', () => {
+  it('a logged intake is named as intake, in every locale', () => {
+    // Intake May 6 + 120 = Sep 3, five days after NOW (Aug 29).
+    const r = req({ request_type: 'rc_assessment', requested_on: '2026-04-20', intake_on: '2026-05-06' });
+    const want = { en: /^Because your intake was on May 6 and the law gives them a fixed window\.$/, es: /^Porque su entrevista inicial fue el 6 may/, vi: /^Vì buổi tiếp nhận của quý vị là ngày 6/ };
+    for (const locale of ['en', 'es', 'vi'] as const) {
+      const card = triageHome(base({ requests: [r], locale })).queue.find((i) => i.cls === 'clock');
+      expect(card, locale).toBeDefined();
+      expect(card!.why, locale).toMatch(want[locale]);
+    }
+  });
+
+  it('with no intake logged, the card says the date is the latest the law allows', () => {
+    // Fri Apr 17 + 15 working days = Fri May 8 (latest lawful intake),
+    // + 120 days = Sep 5, inside Home's 10-day window from NOW (Aug 29).
+    const r = req({ request_type: 'rc_assessment', requested_on: '2026-04-17' });
+    const card = triageHome(base({ requests: [r] })).queue.find((i) => i.cls === 'clock');
+    expect(card!.title).toMatch(/is due Sep 5$/);
+    expect(card!.why).toBe('Because you asked on Apr 17, and counting the 15 working days the law allows for intake, this is the latest date the law gives them.');
+  });
+
+  it('an overdue assessment with intake logged cites intake and the date', () => {
+    const r = req({ request_type: 'rc_assessment', requested_on: '2026-03-20', intake_on: '2026-04-01' });
+    const card = triageHome(base({ requests: [r] })).queue.find((i) => i.cls === 'overdue');
+    expect(card!.why).toMatch(/^Because your intake was on Apr 1 and the law gave them until Jul 30\./);
+  });
+
+  it('request-anchored clocks are unchanged', () => {
+    const card = triageHome(base({ requests: [req({ request_type: 'iep_evaluation', requested_on: '2026-08-20' })] })).queue.find((i) => i.cls === 'clock');
+    expect(card!.why).toBe('Because you asked on Aug 20 and the law gives them a fixed window.');
+  });
+});

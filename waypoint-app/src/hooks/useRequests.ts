@@ -15,6 +15,11 @@ export interface FamilyRequest {
   request_type: RequestType;
   title: string;
   requested_on: string;
+  /**
+   * Day of Regional Center intake (066) — the RC assessment clock runs from
+   * it (W&I §4643). Null until logged, or undefined before 066 is applied.
+   */
+  intake_on?: string | null;
   channel: string | null;
   status: 'requested' | 'in_progress' | 'granted' | 'denied' | 'withdrawn';
   decided_on: string | null;
@@ -29,6 +34,8 @@ interface CreateRequestInput {
   request_type: RequestType;
   title: string;
   requested_on: string;
+  /** Only sent when the family entered one, so a pre-066 database still saves. */
+  intake_on?: string | null;
   child_id?: string | null;
   channel?: string | null;
   notes?: string | null;
@@ -69,15 +76,17 @@ export function useRequests(familyId: string | undefined) {
     async (input: CreateRequestInput): Promise<FamilyRequest | null> => {
       if (!familyId) return null;
       setError(null);
+      const { intake_on: intakeOn, ...rest } = input;
+      const row = intakeOn ? { ...rest, intake_on: intakeOn } : rest;
       let { data, error: insertError } = await supabase
         .from('family_requests')
-        .insert({ ...input, family_id: familyId })
+        .insert({ ...row, family_id: familyId })
         .select()
         .single();
       // Pre-migration-045 resilience: if the letter link column doesn't
       // exist yet, tracking the request still must succeed — retry bare.
       if (insertError && input.communication_id && /communication_id/.test(insertError.message)) {
-        const { communication_id: _dropped, ...bare } = input;
+        const { communication_id: _dropped, ...bare } = row;
         void _dropped;
         ({ data, error: insertError } = await supabase
           .from('family_requests')
@@ -123,5 +132,27 @@ export function useRequests(familyId: string | undefined) {
     []
   );
 
-  return { requests, loading, error, createRequest, updateStatus, refetch: fetchRequests };
+  /**
+   * Log (or clear) the day of Regional Center intake. Fails honestly — before
+   * migration 066 the column does not exist and nothing pretends to save.
+   */
+  const updateIntake = useCallback(
+    async (id: string, intakeOn: string | null): Promise<boolean> => {
+      setError(null);
+      const patch = { intake_on: intakeOn, updated_at: new Date().toISOString() };
+      const { error: updateError } = await supabase
+        .from('family_requests')
+        .update(patch)
+        .eq('id', id);
+      if (updateError) {
+        setError(updateError.message);
+        return false;
+      }
+      setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+      return true;
+    },
+    []
+  );
+
+  return { requests, loading, error, createRequest, updateStatus, updateIntake, refetch: fetchRequests };
 }

@@ -321,3 +321,44 @@ describe('locale parity', () => {
     }
   });
 });
+
+describe('an RC assessment runs from intake (W&I §4643)', () => {
+  it('never tells a family to "ask again" — a fresh ask restarts nothing', () => {
+    // Asked Apr 20 by phone, intake May 6: 120 days runs to Sep 3, five days
+    // after NOW. The stale-ask rung would have said "ask again, fresh".
+    const r = req({ request_type: 'rc_assessment', channel: 'phone', requested_on: '2026-04-20', intake_on: '2026-05-06', created_at: '2026-08-29T09:00:00Z' });
+    for (const locale of ['en', 'es', 'vi'] as const) {
+      const c = buildRequestCase(r, [], locale, NOW);
+      expect(c.deadline?.dueOn).toBe('2026-09-03');
+      expect(c.nextLever, locale).toBeNull();
+    }
+  });
+
+  it('with no intake logged and no written ask, it still offers no "make it real" ask', () => {
+    const r = req({ request_type: 'rc_assessment', channel: 'phone', requested_on: '2026-08-20', created_at: '2026-08-29T09:00:00Z' });
+    const c = buildRequestCase(r, [], 'en', NOW);
+    expect(c.deadline?.basis).toBe('latest');
+    expect(c.nextLever).toBeNull();
+  });
+
+  it('once the date has passed, the next move is the friendly follow-up', () => {
+    const r = req({ request_type: 'rc_assessment', channel: 'phone', requested_on: '2026-03-01', intake_on: '2026-03-10', created_at: '2026-08-29T09:00:00Z' });
+    const c = buildRequestCase(r, [], 'en', NOW);
+    expect(c.deadline?.overdue).toBe(true);
+    expect(c.nextLever?.template).toBe('rc_timeline_followup');
+    expect(c.nextLever?.reAskInstead).toBe(false);
+  });
+
+  it('keeps the ask and its logged disclosure, and adds intake beside it', () => {
+    const r = req({ request_type: 'rc_assessment', channel: 'phone', requested_on: '2026-04-20', intake_on: '2026-05-06', created_at: '2026-08-29T09:00:00Z' });
+    expect(buildRequestCase(r, [], 'en', NOW).provenanceLine).toBe('Asked by phone Apr 20 · logged in Waypoint Aug 29 · Intake May 6');
+    expect(buildRequestCase(r, [], 'es', NOW).provenanceLine).toMatch(/· Entrevista inicial 6/);
+  });
+
+  it('other request types ignore an intake date entirely', () => {
+    const r = req({ request_type: 'ipp_meeting', requested_on: '2026-08-20', intake_on: '2026-08-21' });
+    const c = buildRequestCase(r, [], 'en', NOW);
+    expect(c.provenanceLine).not.toMatch(/Intake/);
+    expect(c.deadline?.basis).toBe('request');
+  });
+});

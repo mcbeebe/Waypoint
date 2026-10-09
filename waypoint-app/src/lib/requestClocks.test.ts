@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deadlineFor, REQUEST_LEVERS } from './requestClocks';
+import { addWorkingDays, clockAnchor, deadlineFor, REQUEST_LEVERS } from './requestClocks';
 import { LETTER_TEMPLATES } from './lettersCatalog';
 
 describe('deadlineFor', () => {
@@ -20,15 +20,48 @@ describe('deadlineFor', () => {
     expect(d?.daysRemaining).toBe(-7);
   });
 
-  it('computes the 120-day RC assessment clock', () => {
+  it('runs the RC assessment from a logged intake (W&I §4643)', () => {
+    // Asked May 1, intake May 12: 120 days from intake is Sep 9.
+    const d = deadlineFor('rc_assessment', '2026-05-01', now, '2026-05-12');
+    expect(d?.dueOn).toBe('2026-09-09');
+    expect(d?.basis).toBe('intake');
+  });
+
+  it('with no intake logged, shows the latest date the law allows — never an earlier one', () => {
+    // Fri May 1 + 15 working days = Fri May 22 (latest lawful intake), + 120 = Sep 19.
     const d = deadlineFor('rc_assessment', '2026-05-01', now);
-    expect(d?.dueOn).toBe('2026-08-29');
-    expect(d?.overdue).toBe(false);
+    expect(d?.dueOn).toBe('2026-09-19');
+    expect(d?.basis).toBe('latest');
+    // Any real intake inside the window gives a date no later than this one.
+    for (const intake of ['2026-05-01', '2026-05-11', '2026-05-22']) {
+      expect(deadlineFor('rc_assessment', '2026-05-01', now, intake)!.dueOn <= d!.dueOn, intake).toBe(true);
+    }
+  });
+
+  it('ignores an intake date on a clock that runs from the request', () => {
+    const d = deadlineFor('ipp_meeting', '2026-08-01', now, '2026-08-10');
+    expect(d?.dueOn).toBe('2026-08-31');
+    expect(d?.basis).toBe('request');
   });
 
   it('returns null honestly when no statutory clock applies', () => {
     expect(deadlineFor('service_request', '2026-08-01', now)).toBeNull();
     expect(deadlineFor('reimbursement', '2026-08-01', now)).toBeNull();
+  });
+});
+
+describe('clockAnchor and addWorkingDays', () => {
+  it('runs the RC assessment from intake, everything else from the ask', () => {
+    expect(clockAnchor('rc_assessment')).toBe('intake');
+    for (const t of ['ipp_meeting', 'iep_evaluation', 'service_request', 'other'] as const) {
+      expect(clockAnchor(t), t).toBe('request');
+    }
+  });
+
+  it('counts Monday to Friday only', () => {
+    expect(addWorkingDays('2026-10-09', 1)).toBe('2026-10-12'); // Fri → Mon
+    expect(addWorkingDays('2026-10-10', 1)).toBe('2026-10-12'); // Sat → Mon
+    expect(addWorkingDays('2026-10-12', 15)).toBe('2026-11-02'); // three full weeks
   });
 });
 

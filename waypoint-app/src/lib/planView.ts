@@ -89,6 +89,8 @@ export interface PlanRequest {
   title: string;
   request_type: RequestType;
   requested_on: string;
+  /** RC intake day (066); the assessment clock runs from it when set. */
+  intake_on?: string | null;
   status: string;
 }
 
@@ -219,7 +221,7 @@ function waitingEntries(input: PlanInput): PlanEntry[] {
   const out: PlanEntry[] = [];
   for (const r of input.requests ?? []) {
     if (!OPEN_REQUEST_STATUSES.has(r.status)) continue;
-    const dl = deadlineFor(r.request_type, r.requested_on, input.now);
+    const dl = deadlineFor(r.request_type, r.requested_on, input.now, r.intake_on);
     if (!dl) continue;
     out.push({
       id: `clock:${r.id}`,

@@ -18,7 +18,7 @@
  */
 import type { FamilyRequest } from '@/hooks/useRequests';
 import type { Communication } from '@/hooks/useCommunications';
-import { deadlineFor } from '@/lib/requestClocks';
+import { clockAnchor, deadlineFor } from '@/lib/requestClocks';
 import type { RequestDeadline, RequestType } from '@/lib/requestClocks';
 import { sentNextFor } from '@/lib/sentNext';
 import { isSettled } from '@/lib/replyInbox';
@@ -315,6 +315,24 @@ function nextLeverFor(
     };
   }
 
+  // An RC assessment runs from intake (W&I §4643), not from the ask: a fresh
+  // written ask restarts nothing, and the clock is real without one. Nothing
+  // to send until the date passes; then the friendly follow-up.
+  if (!outgoing && clockAnchor(request.request_type) === 'intake') {
+    if (deadline?.overdue !== true) return null;
+    return {
+      template: FOLLOW_UP_TEMPLATE[request.request_type],
+      label: L('Send the friendly follow-up', 'Enviar el seguimiento amistoso', 'Gửi thư nhắc thân thiện'),
+      rung: 2,
+      reason: L(
+        'Their legal deadline has passed — a follow-up citing the date usually moves things in days.',
+        'Su plazo legal ya pasó — un seguimiento citando la fecha suele mover las cosas en días.',
+        'Thời hạn pháp lý của họ đã qua — thư nhắc nêu ngày thường làm mọi việc chuyển động trong vài ngày.'
+      ),
+      reAskInstead: false,
+    };
+  }
+
   // Nothing on record in writing yet (phone-tracked ask). The first written
   // move is always the friendly ask — never a denial-premised letter.
   if (!outgoing) {
@@ -401,7 +419,7 @@ export function buildRequestCase(
 ): RequestCase {
   const L = picker(locale);
   const events = threadFor(request, communications);
-  const deadline = deadlineFor(request.request_type, request.requested_on, now);
+  const deadline = deadlineFor(request.request_type, request.requested_on, now, request.intake_on);
   const stage = deriveStage(events);
   const unanswered = unansweredReplyOf(events);
 
@@ -437,6 +455,15 @@ export function buildRequestCase(
         `Đã đề nghị ${channelWord} ${fmt(asked)} · ghi vào Waypoint ${fmt(recorded)}`
       ).replace(/\s+/g, ' ').trim()
     : L(`Asked ${fmt(asked)}`, `Pedido ${fmt(asked)}`, `Đã đề nghị ${fmt(asked)}`);
+  // Intake is its own fact, logged beside the ask — never in place of it.
+  const intakeLine =
+    clockAnchor(request.request_type) === 'intake' && request.intake_on
+      ? L(
+          `Intake ${fmt(new Date(`${request.intake_on}T00:00:00`))}`,
+          `Entrevista inicial ${fmt(new Date(`${request.intake_on}T00:00:00`))}`,
+          `Tiếp nhận ${fmt(new Date(`${request.intake_on}T00:00:00`))}`
+        )
+      : null;
 
   return {
     request,
@@ -447,7 +474,7 @@ export function buildRequestCase(
     daysSilent,
     nextLever: nextLeverFor(request, events, stage, deadline, daysSilent, locale, now),
     backdated,
-    provenanceLine,
+    provenanceLine: intakeLine ? `${provenanceLine} · ${intakeLine}` : provenanceLine,
   };
 }
 

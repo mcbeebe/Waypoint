@@ -10,7 +10,7 @@
  * showed the thread-inferred ones too.
  */
 import React from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 
 const h = vi.hoisted(() => ({
@@ -33,6 +33,7 @@ const h = vi.hoisted(() => ({
   // is only inferred from the Gmail thread. The file contains all three.
   rows: [] as any[],
   requestIdErrors: null as string | null,
+  intakeSaves: [] as Array<[string, string | null]>,
 }));
 
 function comm(over: Record<string, unknown>) {
@@ -69,6 +70,10 @@ vi.mock('@/hooks/useRequests', () => ({
     requests: [h.request],
     loading: false,
     updateStatus: vi.fn(async () => true),
+    updateIntake: vi.fn(async (id: string, day: string | null) => {
+      h.intakeSaves.push([id, day]);
+      return true;
+    }),
     refetch: vi.fn(),
   }),
 }));
@@ -219,5 +224,39 @@ describe('Add an email (014 PR D)', () => {
     const btn = await screen.findByRole('button', { name: /Add an email thread from Gmail to this request/ });
     fireEvent.click(btn);
     expect(screen.getByText(/Connect Gmail to add threads/)).toBeTruthy();
+  });
+});
+
+describe('an RC assessment clock runs from intake (W&I §4643)', () => {
+  const ORIGINAL = { ...h.request };
+  afterEach(() => {
+    Object.assign(h.request, ORIGINAL);
+    delete h.request.intake_on;
+    h.intakeSaves = [];
+  });
+
+  it('with no intake logged, says the date is the latest the law allows and offers to log it', async () => {
+    Object.assign(h.request, { request_type: 'rc_assessment', requested_on: '2026-07-01' });
+    render(<RequestCaseScreen />);
+    await waitFor(() => expect(screen.getByText(/latest date the law allows/)).toBeTruthy());
+    expect(screen.getByText(/Had your intake\? Log the date/)).toBeTruthy();
+    // Never the ask-anchored note on this clock.
+    expect(screen.queryByText(/runs from the day you asked/)).toBeNull();
+    fireEvent.click(screen.getByText('Log intake date'));
+    await waitFor(() => expect(h.intakeSaves.length).toBe(1));
+    expect(h.intakeSaves[0][0]).toBe('req1');
+  });
+
+  it('with intake logged, says the 120 days run from it', async () => {
+    Object.assign(h.request, { request_type: 'rc_assessment', requested_on: '2026-07-01', intake_on: '2026-07-10' });
+    render(<RequestCaseScreen />);
+    await waitFor(() => expect(screen.getByText('The 120 days run from your intake date.')).toBeTruthy());
+    expect(screen.getByText('Intake logged: 2026-07-10')).toBeTruthy();
+  });
+
+  it('an IPP request shows no intake control', async () => {
+    render(<RequestCaseScreen />);
+    await waitFor(() => expect(screen.getByText(/Case file/)).toBeTruthy());
+    expect(screen.queryByText(/Log intake date/)).toBeNull();
   });
 });

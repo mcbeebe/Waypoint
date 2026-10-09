@@ -395,9 +395,32 @@ function clockItems(
   const open = requests.filter((r) => r.status === 'requested' || r.status === 'in_progress');
 
   for (const r of open) {
-    const dl = deadlineFor(r.request_type, r.requested_on, now);
+    const dl = deadlineFor(r.request_type, r.requested_on, now, r.intake_on);
     if (!dl) continue;
     const who = childName ? ` (${childName})` : '';
+    // Name what the clock runs from. An RC assessment runs from intake
+    // (W&I §4643); with no intake logged, the due date is the law's latest
+    // possible one, and the card says that is how it was counted.
+    const asked = fmtDay(`${r.requested_on}T12:00:00`, locale);
+    const since =
+      dl.basis === 'intake'
+        ? {
+            en: `your intake was on ${fmtDay(`${r.intake_on}T12:00:00`, locale)}`,
+            es: `su entrevista inicial fue el ${fmtDay(`${r.intake_on}T12:00:00`, locale)}`,
+            vi: `buổi tiếp nhận của quý vị là ngày ${fmtDay(`${r.intake_on}T12:00:00`, locale)}`,
+          }
+        : dl.basis === 'latest'
+          ? {
+              en: `you asked on ${asked}, and counting the 15 working days the law allows for intake`,
+              es: `pidió el ${asked}, y contando los 15 días hábiles que la ley permite para la entrevista inicial`,
+              vi: `quý vị đã đề nghị ngày ${asked}, và tính cả 15 ngày làm việc luật cho phép để tiếp nhận`,
+            }
+          : {
+              en: `you asked on ${asked}`,
+              es: `pidió el ${asked}`,
+              vi: `quý vị đã đề nghị ngày ${asked}`,
+            };
+    const join = dl.basis === 'latest' ? ',' : (locale === 'es' ? ' y' : locale === 'vi' ? ' và' : ' and');
     if (dl.overdue) {
       out.push({
         id: `overdue:${r.id}`,
@@ -417,9 +440,9 @@ function clockItems(
           `Câu trả lời về ${r.title}${who} đã quá hạn`
         ),
         why: L(
-          `Because you asked on ${fmtDay(`${r.requested_on}T12:00:00`, locale)} and the law gave them until ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A follow-up that cites the date is the next step.`,
-          `Porque pidió el ${fmtDay(`${r.requested_on}T12:00:00`, locale)} y la ley les daba hasta el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. El siguiente paso es un seguimiento que cite la fecha.`,
-          `Vì quý vị đã đề nghị ngày ${fmtDay(`${r.requested_on}T12:00:00`, locale)} và luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Bước tiếp theo là thư nhắc có nêu ngày.`
+          `Because ${since.en}${join} the law gave them until ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A follow-up that cites the date is the next step.`,
+          `Porque ${since.es}${join} la ley les daba hasta el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. El siguiente paso es un seguimiento que cite la fecha.`,
+          `Vì ${since.vi}${join} luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Bước tiếp theo là thư nhắc có nêu ngày.`
         ),
         citation: dl.citation,
         // Phase 9: the card produces a letter, not a request-file view. The
@@ -449,9 +472,15 @@ function clockItems(
           `Câu trả lời về ${r.title} đến hạn ngày ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}`
         ),
         why: L(
-          `Because you asked on ${fmtDay(`${r.requested_on}T12:00:00`, locale)} and the law gives them a fixed window.`,
-          `Porque pidió el ${fmtDay(`${r.requested_on}T12:00:00`, locale)} y la ley les da un plazo fijo.`,
-          `Vì quý vị đã đề nghị ngày ${fmtDay(`${r.requested_on}T12:00:00`, locale)} và luật cho họ một khoảng thời gian cố định.`
+          dl.basis === 'latest'
+            ? `Because ${since.en}, this is the latest date the law gives them.`
+            : `Because ${since.en} and the law gives them a fixed window.`,
+          dl.basis === 'latest'
+            ? `Porque ${since.es}, esta es la fecha más tardía que la ley les da.`
+            : `Porque ${since.es} y la ley les da un plazo fijo.`,
+          dl.basis === 'latest'
+            ? `Vì ${since.vi}, đây là ngày muộn nhất luật cho họ.`
+            : `Vì ${since.vi} và luật cho họ một khoảng thời gian cố định.`
         ),
         citation: dl.citation,
         action: {
@@ -1116,7 +1145,7 @@ export function triageHome(input: TriageInput): TriageResult {
 
   const nextClock = requests
     .filter((r) => r.status === 'requested' || r.status === 'in_progress')
-    .map((r) => deadlineFor(r.request_type, r.requested_on, now))
+    .map((r) => deadlineFor(r.request_type, r.requested_on, now, r.intake_on))
     .filter((d): d is NonNullable<typeof d> => d != null && !d.overdue)
     .sort((a, b) => a.daysRemaining - b.daysRemaining)[0] ?? null;
 

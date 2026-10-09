@@ -253,7 +253,7 @@ export default function PlanScreen() {
       })),
       requests: requests.map((r) => ({
         id: r.id, title: r.title, request_type: r.request_type,
-        requested_on: r.requested_on, status: r.status,
+        requested_on: r.requested_on, intake_on: r.intake_on, status: r.status,
       })),
       // Every deferral, titled or not — planView dedupes them against what
       // Plan already lists and drops the ones whose day has come.

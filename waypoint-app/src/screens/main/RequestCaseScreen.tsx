@@ -35,7 +35,9 @@ import {
   type CaseStage,
   type ProvenanceTier,
 } from '@/lib/requestCase';
-import { REQUEST_TYPE_LABELS } from '@/lib/requestClocks';
+import { clockAnchor, REQUEST_TYPE_LABELS } from '@/lib/requestClocks';
+import { localDayISO } from '@/lib/dateOnly';
+import DateInput from '@/components/DateInput';
 import { exportRequestDossier } from '@/lib/requestDossier';
 import { gmailStatus } from '@/lib/gmail';
 import GmailReplyModal from '@/components/GmailReplyModal';
@@ -162,6 +164,7 @@ export default function RequestCaseScreen() {
     requests,
     loading: requestsLoading,
     updateStatus,
+    updateIntake,
     refetch: refetchRequests,
   } = useRequests(family?.id);
   const { showToast } = useToast();
@@ -179,6 +182,7 @@ export default function RequestCaseScreen() {
   const [replyThread, setReplyThread] = useState<Communication[] | null>(null);
   const [gmailConnected, setGmailConnected] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [intakeDraft, setIntakeDraft] = useState('');
 
   useEffect(() => {
     if (Platform.OS === 'web') gmailStatus().then((s) => setGmailConnected(s.gmail));
@@ -302,11 +306,59 @@ export default function RequestCaseScreen() {
             <View style={styles.clockCitationRow}>
               <Citation citation={deadline.citation} locale={funnelLocale} />
             </View>
-            {kase?.backdated && (
+            {deadline.basis === 'latest' ? (
               <Text style={styles.clockNote}>
-                The clock runs from the day you asked — not the day it was logged.
+                Intake isn’t logged yet, so this is the latest date the law allows: your request,
+                plus 15 working days for intake, plus 120 days.
               </Text>
+            ) : deadline.basis === 'intake' ? (
+              <Text style={styles.clockNote}>The 120 days run from your intake date.</Text>
+            ) : (
+              kase?.backdated && (
+                <Text style={styles.clockNote}>
+                  The clock runs from the day you asked — not the day it was logged.
+                </Text>
+              )
             )}
+          </View>
+        )}
+        {/* RC assessment: the clock runs from intake (W&I §4643), logged here */}
+        {open && clockAnchor(request.request_type) === 'intake' && (
+          <View style={styles.intakeBox}>
+            <Text style={styles.intakeLabel}>
+              {request.intake_on
+                ? `Intake logged: ${request.intake_on}`
+                : 'Had your intake? Log the date — the 120 days run from it.'}
+            </Text>
+            <View style={styles.intakeRow}>
+              <View style={{ flex: 1 }}>
+                <DateInput
+                  value={intakeDraft || request.intake_on || localDayISO()}
+                  onChange={setIntakeDraft}
+                  accessibilityLabel="Your intake date"
+                  style={styles.intakeInput}
+                />
+              </View>
+              <Pressable
+                style={styles.intakeBtn}
+                accessibilityRole="button"
+                onPress={async () => {
+                  const day = intakeDraft || request.intake_on || localDayISO();
+                  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day > localDayISO()) {
+                    showToast('Pick the day your intake happened — not a future date.', 'info');
+                    return;
+                  }
+                  const ok = await updateIntake(request.id, day);
+                  showToast(
+                    ok ? 'Intake logged — the 120 days now run from it.' : "Couldn't save the intake date — try again.",
+                    ok ? 'success' : 'error'
+                  );
+                  if (ok) setIntakeDraft('');
+                }}
+              >
+                <Text style={styles.intakeBtnText}>{request.intake_on ? 'Update' : 'Log intake date'}</Text>
+              </Pressable>
+            </View>
           </View>
         )}
         {open && !deadline && (
@@ -639,6 +691,25 @@ const styles = StyleSheet.create({
   clockTextOverdue: { color: semantic.danger },
   clockCitationRow: { marginTop: spacing.xs },
   clockNote: { marginTop: 4, fontSize: fonts.sizes.xs, color: colors.mid },
+  intakeBox: { marginTop: spacing.sm, gap: spacing.xs },
+  intakeLabel: { fontSize: fonts.sizes.sm, color: colors.dark },
+  intakeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  intakeInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    fontSize: fonts.sizes.sm,
+    color: colors.dark,
+  },
+  intakeBtn: {
+    backgroundColor: colors.teal,
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  intakeBtnText: { color: '#fff', fontSize: fonts.sizes.sm, fontWeight: fonts.weights.semibold },
   noClock: { fontSize: fonts.sizes.sm, color: colors.mid },
   rungStrip: {
     flexDirection: 'row',

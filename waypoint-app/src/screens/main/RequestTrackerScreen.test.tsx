@@ -14,7 +14,7 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 
 const h = vi.hoisted(() => ({
   // One open IPP-meeting ask, made Aug 1 — 30 days later is Aug 31.
@@ -93,5 +93,25 @@ describe('the tracker clock', () => {
     render(<RequestTrackerScreen />);
     expect(screen.queryByText(/past the legal deadline/)).toBeNull();
     expect(screen.queryByText(/Due 2026-/)).toBeNull();
+  });
+});
+
+describe('the RC assessment form asks for intake beside the ask', () => {
+  it('keeps "When did you ask?" and offers an optional intake date only for an RC assessment', () => {
+    render(<RequestTrackerScreen />);
+    fireEvent.click(screen.getByText('+ Track a request'));
+    expect(screen.getByText('When did you ask?')).toBeTruthy();
+    expect(screen.queryByText(/Add your intake date/)).toBeNull();
+    fireEvent.click(screen.getByText('RC assessment / eligibility'));
+    expect(screen.getByText('When did you ask?')).toBeTruthy();
+    expect(screen.getByText(/The 120 days start at intake/)).toBeTruthy();
+    fireEvent.click(screen.getByText(/Add your intake date/));
+    expect(screen.getByText('Intake date')).toBeTruthy();
+  });
+
+  it('a card shows the ask and, once logged, the intake', () => {
+    h.requests = [{ id: 'req2', title: 'Eligibility assessment', request_type: 'rc_assessment', requested_on: '2026-04-20', intake_on: '2026-05-06', status: 'requested' }];
+    render(<RequestTrackerScreen />);
+    expect(screen.getByText(/asked 2026-04-20/).textContent).toContain('intake 2026-05-06');
   });
 });
