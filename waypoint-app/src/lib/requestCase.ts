@@ -18,7 +18,7 @@
  */
 import type { FamilyRequest } from '@/hooks/useRequests';
 import type { Communication } from '@/hooks/useCommunications';
-import { clockAnchor, deadlineFor } from '@/lib/requestClocks';
+import { deadlineFor } from '@/lib/requestClocks';
 import type { RequestDeadline, RequestType } from '@/lib/requestClocks';
 import { sentNextFor } from '@/lib/sentNext';
 import { isSettled } from '@/lib/replyInbox';
@@ -430,10 +430,7 @@ export function buildRequestCase(
       : request.channel === 'in_person' || request.channel === 'in person'
         ? L('in person', 'en persona', 'trực tiếp')
         : L('', '', '');
-  // For the RC assessment the stored date is intake, not the ask (requestClocks).
-  const provenanceLine = clockAnchor(request.request_type) === 'intake'
-    ? L(`Intake ${fmt(asked)}`, `Admisión ${fmt(asked)}`, `Tiếp nhận ${fmt(asked)}`)
-    : backdated
+  const provenanceLine = backdated
     ? L(
         `Asked ${channelWord} ${fmt(asked)} · logged in Waypoint ${fmt(recorded)}`,
         `Pedido ${channelWord} ${fmt(asked)} · registrado en Waypoint ${fmt(recorded)}`,

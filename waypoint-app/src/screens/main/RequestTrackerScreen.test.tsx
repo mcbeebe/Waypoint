@@ -14,7 +14,7 @@
  */
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
 const h = vi.hoisted(() => ({
   // One open IPP-meeting ask, made Aug 1 — 30 days later is Aug 31.
@@ -93,24 +93,5 @@ describe('the tracker clock', () => {
     render(<RequestTrackerScreen />);
     expect(screen.queryByText(/past the legal deadline/)).toBeNull();
     expect(screen.queryByText(/Due 2026-/)).toBeNull();
-  });
-});
-
-describe('the RC assessment clock runs from intake', () => {
-  it('the card dates an RC assessment by its intake, not an ask', () => {
-    h.requests = [{ id: 'req2', title: 'Eligibility assessment', request_type: 'rc_assessment', requested_on: '2026-05-06', status: 'requested' }];
-    render(<RequestTrackerScreen />);
-    expect(screen.getByText(/intake 2026-05-06/)).toBeTruthy();
-    expect(screen.queryByText(/asked 2026-05-06/)).toBeNull();
-  });
-
-  it('the form asks for the intake date once RC assessment is chosen', () => {
-    render(<RequestTrackerScreen />);
-    fireEvent.click(screen.getByText('+ Track a request'));
-    expect(screen.getByText('When did you ask?')).toBeTruthy();
-    fireEvent.click(screen.getByText('RC assessment / eligibility'));
-    expect(screen.getByText('When was your intake?')).toBeTruthy();
-    expect(screen.getByText(/start at intake, not when you first called/)).toBeTruthy();
-    expect(screen.queryByText('When did you ask?')).toBeNull();
   });
 });

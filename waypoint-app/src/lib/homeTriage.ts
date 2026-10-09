@@ -28,7 +28,7 @@ import type { FamilyRequest } from '@/hooks/useRequests';
 import type { Communication } from '@/hooks/useCommunications';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { RcStatus, IepStatus } from '@/types/database';
-import { clockAnchor, deadlineFor } from '@/lib/requestClocks';
+import { deadlineFor } from '@/lib/requestClocks';
 import { buildRequestCase, activeRequestForReply } from '@/lib/requestCase';
 import { findUnansweredReply } from '@/lib/replyInbox';
 import { deriveHomeInsight } from '@/lib/insights';
@@ -398,21 +398,6 @@ function clockItems(
     const dl = deadlineFor(r.request_type, r.requested_on, now);
     if (!dl) continue;
     const who = childName ? ` (${childName})` : '';
-    // What the clock runs from: the family's ask, or — for the RC
-    // assessment — intake (W&I §4643), which can come weeks after the ask.
-    const startedOn = fmtDay(`${r.requested_on}T12:00:00`, locale);
-    const since =
-      clockAnchor(r.request_type) === 'intake'
-        ? {
-            en: `your intake was on ${startedOn}`,
-            es: `su admisión fue el ${startedOn}`,
-            vi: `buổi tiếp nhận của quý vị là ngày ${startedOn}`,
-          }
-        : {
-            en: `you asked on ${startedOn}`,
-            es: `pidió el ${startedOn}`,
-            vi: `quý vị đã đề nghị ngày ${startedOn}`,
-          };
     if (dl.overdue) {
       out.push({
         id: `overdue:${r.id}`,
@@ -432,9 +417,9 @@ function clockItems(
           `Câu trả lời về ${r.title}${who} đã quá hạn`
         ),
         why: L(
-          `Because ${since.en} and the law gave them until ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A follow-up that cites the date is the next step.`,
-          `Porque ${since.es} y la ley les daba hasta el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. El siguiente paso es un seguimiento que cite la fecha.`,
-          `Vì ${since.vi} và luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Bước tiếp theo là thư nhắc có nêu ngày.`
+          `Because you asked on ${fmtDay(`${r.requested_on}T12:00:00`, locale)} and the law gave them until ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A follow-up that cites the date is the next step.`,
+          `Porque pidió el ${fmtDay(`${r.requested_on}T12:00:00`, locale)} y la ley les daba hasta el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. El siguiente paso es un seguimiento que cite la fecha.`,
+          `Vì quý vị đã đề nghị ngày ${fmtDay(`${r.requested_on}T12:00:00`, locale)} và luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Bước tiếp theo là thư nhắc có nêu ngày.`
         ),
         citation: dl.citation,
         // Phase 9: the card produces a letter, not a request-file view. The
@@ -464,9 +449,9 @@ function clockItems(
           `Câu trả lời về ${r.title} đến hạn ngày ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}`
         ),
         why: L(
-          `Because ${since.en} and the law gives them a fixed window.`,
-          `Porque ${since.es} y la ley les da un plazo fijo.`,
-          `Vì ${since.vi} và luật cho họ một khoảng thời gian cố định.`
+          `Because you asked on ${fmtDay(`${r.requested_on}T12:00:00`, locale)} and the law gives them a fixed window.`,
+          `Porque pidió el ${fmtDay(`${r.requested_on}T12:00:00`, locale)} y la ley les da un plazo fijo.`,
+          `Vì quý vị đã đề nghị ngày ${fmtDay(`${r.requested_on}T12:00:00`, locale)} và luật cho họ một khoảng thời gian cố định.`
         ),
         citation: dl.citation,
         action: {

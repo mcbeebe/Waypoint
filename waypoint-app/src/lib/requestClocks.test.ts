@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clockAnchor, deadlineFor, REQUEST_LEVERS } from './requestClocks';
+import { deadlineFor, REQUEST_LEVERS } from './requestClocks';
 import { LETTER_TEMPLATES } from './lettersCatalog';
 
 describe('deadlineFor', () => {
@@ -29,15 +29,6 @@ describe('deadlineFor', () => {
   it('returns null honestly when no statutory clock applies', () => {
     expect(deadlineFor('service_request', '2026-08-01', now)).toBeNull();
     expect(deadlineFor('reimbursement', '2026-08-01', now)).toBeNull();
-  });
-});
-
-describe('clockAnchor', () => {
-  it('runs the RC assessment from intake (W&I §4643), everything else from the ask', () => {
-    expect(clockAnchor('rc_assessment')).toBe('intake');
-    for (const t of ['ipp_meeting', 'iep_evaluation', 'service_request', 'other'] as const) {
-      expect(clockAnchor(t), t).toBe('request');
-    }
   });
 });
 

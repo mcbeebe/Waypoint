@@ -21,7 +21,6 @@ import { useCommunications } from '@/hooks/useCommunications';
 import { buildRequestCase } from '@/lib/requestCase';
 import { localDayISO } from '@/lib/dateOnly';
 import {
-  clockAnchor,
   deadlineFor,
   REQUEST_LEVERS,
   REQUEST_TYPE_LABELS,
@@ -87,8 +86,6 @@ export default function RequestTrackerScreen() {
 
   const [adding, setAdding] = useState(false);
   const [newType, setNewType] = useState<RequestType>('service_request');
-  // The RC assessment clock runs from intake, so the form asks for that date.
-  const intakeAnchored = clockAnchor(newType) === 'intake';
   const [newTitle, setNewTitle] = useState('');
   const [newAskedOn, setNewAskedOn] = useState(localDayISO());
   const [newChannel, setNewChannel] = useState('email');
@@ -129,9 +126,7 @@ export default function RequestTrackerScreen() {
       setNewAskedOn(today);
       setAdding(false);
       showToast(
-        clockAnchor(newType) === 'intake'
-          ? 'Tracking it — the 120 days run from your intake date.'
-          : askedOn < today
+        askedOn < today
           ? 'Tracking it — the legal clock runs from the day you asked.'
           : 'Tracking it — we watch the clock from here.',
         'success'
@@ -163,8 +158,7 @@ export default function RequestTrackerScreen() {
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>{item.title}</Text>
             <Text style={styles.cardMeta}>
-              {REQUEST_TYPE_LABELS[item.request_type]} ·{' '}
-              {clockAnchor(item.request_type) === 'intake' ? 'intake' : 'asked'} {item.requested_on}
+              {REQUEST_TYPE_LABELS[item.request_type]} · asked {item.requested_on}
             </Text>
           </View>
           <Pressable
@@ -294,23 +288,16 @@ export default function RequestTrackerScreen() {
               autoFocus
             />
             <View style={styles.whenRow}>
-              <Text style={styles.whenLabel}>
-                {intakeAnchored ? 'When was your intake?' : 'When did you ask?'}
-              </Text>
+              <Text style={styles.whenLabel}>When did you ask?</Text>
               <View style={{ flex: 1 }}>
                 <DateInput
                   value={newAskedOn}
                   onChange={setNewAskedOn}
-                  accessibilityLabel={intakeAnchored ? 'The date of your intake' : 'The date you asked'}
+                  accessibilityLabel="The date you asked"
                   style={styles.input}
                 />
               </View>
             </View>
-            {intakeAnchored && (
-              <Text style={styles.whenHint}>
-                The 120 days start at intake, not when you first called.
-              </Text>
-            )}
             <View style={styles.typeRow}>
               {CHANNEL_OPTIONS.map((c) => (
                 <Pressable
@@ -401,7 +388,6 @@ const styles = StyleSheet.create({
   },
   whenRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   whenLabel: { fontSize: fonts.sizes.sm, color: colors.mid, fontWeight: fonts.weights.semibold },
-  whenHint: { fontSize: fonts.sizes.sm, color: colors.mid, marginTop: -spacing.xs },
   backdateNote: { fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18 },
   lever: {
     minHeight: 44,
