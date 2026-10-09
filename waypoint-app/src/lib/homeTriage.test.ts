@@ -740,13 +740,20 @@ describe('what an RC assessment clock runs from (W&I §4643)', () => {
     const r = req({ request_type: 'rc_assessment', requested_on: '2026-04-17' });
     const card = triageHome(base({ requests: [r] })).queue.find((i) => i.cls === 'clock');
     expect(card!.title).toMatch(/is due Sep 5$/);
-    expect(card!.why).toBe('Because you asked on Apr 17, and counting the 15 working days the law allows for intake, this is the latest date the law gives them.');
+    expect(card!.why).toBe('Because you asked on Apr 17, and counting the 15 working days the law allows for intake, this is our estimate of the latest date the law gives them.');
   });
 
   it('an overdue assessment with intake logged cites intake and the date', () => {
     const r = req({ request_type: 'rc_assessment', requested_on: '2026-03-20', intake_on: '2026-04-01' });
     const card = triageHome(base({ requests: [r] })).queue.find((i) => i.cls === 'overdue');
     expect(card!.why).toMatch(/^Because your intake was on Apr 1 and the law gave them until Jul 30\./);
+  });
+
+  it('an estimated date that has passed asks for the dates, never cites the estimate as law', () => {
+    const r = req({ request_type: 'rc_assessment', requested_on: '2026-02-02' });
+    const card = triageHome(base({ requests: [r] })).queue.find((i) => i.cls === 'overdue');
+    expect(card!.why).toMatch(/our estimate of the latest date was .+ A friendly follow-up asking for the intake and assessment dates/);
+    expect(card!.why).not.toMatch(/the law gave them until/);
   });
 
   it('request-anchored clocks are unchanged', () => {

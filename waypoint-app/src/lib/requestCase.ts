@@ -319,7 +319,23 @@ function nextLeverFor(
   // written ask restarts nothing, and the clock is real without one. Nothing
   // to send until the date passes; then the friendly follow-up.
   if (!outgoing && clockAnchor(request.request_type) === 'intake') {
-    if (deadline?.overdue !== true) return null;
+    if (deadline?.overdue !== true) {
+      // Intake logged: the clock is running and there is nothing to send yet.
+      if (request.intake_on) return null;
+      // No intake yet and nothing in writing: a dated written ask is the
+      // family's proof of when they asked — the day intake counts from.
+      return {
+        template: FIRST_ASK_TEMPLATE[request.request_type],
+        label: L('Put the ask in writing — warmly', 'Ponga la petición por escrito — con calidez', 'Viết lời đề nghị ra văn bản — thân thiện'),
+        rung: 1,
+        reason: L(
+          'A dated written ask is your proof of when you asked — intake is due within 15 working days of it, and the 120 days run from intake.',
+          'Una petición escrita y fechada es su prueba de cuándo pidió — la entrevista inicial debe ocurrir dentro de 15 días hábiles, y los 120 días corren desde ella.',
+          'Đề nghị bằng văn bản có ghi ngày là bằng chứng quý vị đã đề nghị khi nào — buổi tiếp nhận phải diễn ra trong 15 ngày làm việc, và 120 ngày được tính từ buổi tiếp nhận.'
+        ),
+        reAskInstead: false,
+      };
+    }
     return {
       template: FOLLOW_UP_TEMPLATE[request.request_type],
       label: L('Send the friendly follow-up', 'Enviar el seguimiento amistoso', 'Gửi thư nhắc thân thiện'),

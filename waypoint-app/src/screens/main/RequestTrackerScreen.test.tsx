@@ -27,6 +27,7 @@ const h = vi.hoisted(() => ({
       status: 'requested' as string,
     },
   ] as any[],
+  created: [] as any[],
 }));
 
 vi.mock('@/hooks/useFamily', () => ({
@@ -37,7 +38,10 @@ vi.mock('@/hooks/useRequests', () => ({
     requests: h.requests,
     loading: false,
     error: null,
-    createRequest: async () => null,
+    createRequest: async (input: any) => {
+      h.created.push(input);
+      return { id: 'new', ...input };
+    },
     updateStatus: async () => true,
     refetch: async () => {},
   }),
@@ -113,5 +117,33 @@ describe('the RC assessment form asks for intake beside the ask', () => {
     h.requests = [{ id: 'req2', title: 'Eligibility assessment', request_type: 'rc_assessment', requested_on: '2026-04-20', intake_on: '2026-05-06', status: 'requested' }];
     render(<RequestTrackerScreen />);
     expect(screen.getByText(/asked 2026-04-20/).textContent).toContain('intake 2026-05-06');
+  });
+});
+
+describe('saving an RC assessment with its intake', () => {
+  it('saves the intake date it shows — today, if the parent opens the field and keeps it', async () => {
+    h.created = [];
+    render(<RequestTrackerScreen />);
+    fireEvent.click(screen.getByText('+ Track a request'));
+    fireEvent.click(screen.getByText('RC assessment / eligibility'));
+    fireEvent.change(screen.getByPlaceholderText(/What did you ask for/), { target: { value: 'Eligibility assessment' } });
+    fireEvent.click(screen.getByText(/Add your intake date/));
+    fireEvent.click(screen.getByText('Track it'));
+    await vi.waitFor(() => expect(h.created.length).toBe(1));
+    expect(h.created[0].request_type).toBe('rc_assessment');
+    expect(h.created[0].intake_on).toBe('2026-09-06'); // the faked "today"
+  });
+
+  it('removing the field saves no intake', async () => {
+    h.created = [];
+    render(<RequestTrackerScreen />);
+    fireEvent.click(screen.getByText('+ Track a request'));
+    fireEvent.click(screen.getByText('RC assessment / eligibility'));
+    fireEvent.change(screen.getByPlaceholderText(/What did you ask for/), { target: { value: 'Eligibility assessment' } });
+    fireEvent.click(screen.getByText(/Add your intake date/));
+    fireEvent.click(screen.getByText('Remove'));
+    fireEvent.click(screen.getByText('Track it'));
+    await vi.waitFor(() => expect(h.created.length).toBe(1));
+    expect(h.created[0].intake_on).toBeNull();
   });
 });

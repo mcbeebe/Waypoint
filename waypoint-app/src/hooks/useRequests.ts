@@ -83,6 +83,15 @@ export function useRequests(familyId: string | undefined) {
         .insert({ ...row, family_id: familyId })
         .select()
         .single();
+      // Pre-migration-066 resilience: the request itself must still save; the
+      // returned row has no intake_on, which tells the caller it wasn't kept.
+      if (insertError && intakeOn && /intake_on/.test(insertError.message)) {
+        ({ data, error: insertError } = await supabase
+          .from('family_requests')
+          .insert({ ...rest, family_id: familyId })
+          .select()
+          .single());
+      }
       // Pre-migration-045 resilience: if the letter link column doesn't
       // exist yet, tracking the request still must succeed — retry bare.
       if (insertError && input.communication_id && /communication_id/.test(insertError.message)) {
@@ -133,11 +142,12 @@ export function useRequests(familyId: string | undefined) {
   );
 
   /**
-   * Log (or clear) the day of Regional Center intake. Fails honestly — before
-   * migration 066 the column does not exist and nothing pretends to save.
+   * Log (or clear) the day of Regional Center intake. Fails honestly: before
+   * migration 066 the column does not exist, which is 'unsupported' — not a
+   * retryable error — and nothing pretends to save.
    */
   const updateIntake = useCallback(
-    async (id: string, intakeOn: string | null): Promise<boolean> => {
+    async (id: string, intakeOn: string | null): Promise<'ok' | 'unsupported' | 'error'> => {
       setError(null);
       const patch = { intake_on: intakeOn, updated_at: new Date().toISOString() };
       const { error: updateError } = await supabase
@@ -145,11 +155,12 @@ export function useRequests(familyId: string | undefined) {
         .update(patch)
         .eq('id', id);
       if (updateError) {
+        if (/intake_on/.test(updateError.message)) return 'unsupported';
         setError(updateError.message);
-        return false;
+        return 'error';
       }
       setRequests((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-      return true;
+      return 'ok';
     },
     []
   );

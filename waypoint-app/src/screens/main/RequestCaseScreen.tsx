@@ -300,16 +300,17 @@ export default function RequestCaseScreen() {
               ]}
             >
               {deadline.overdue
-                ? `⚠ ${-deadline.daysRemaining} days past the legal deadline (${deadline.dueOn})`
-                : `⏱ Due ${deadline.dueOn} · ${deadline.daysRemaining} days left`}
+                ? `⚠ ${-deadline.daysRemaining} days past ${deadline.basis === 'latest' ? 'the estimated latest date' : 'the legal deadline'} (${deadline.dueOn})`
+                : `⏱ ${deadline.basis === 'latest' ? 'Latest date, est.' : 'Due'} ${deadline.dueOn} · ${deadline.daysRemaining} days left`}
             </Text>
             <View style={styles.clockCitationRow}>
               <Citation citation={deadline.citation} locale={funnelLocale} />
             </View>
             {deadline.basis === 'latest' ? (
               <Text style={styles.clockNote}>
-                Intake isn’t logged yet, so this is the latest date the law allows: your request,
-                plus 15 working days for intake, plus 120 days.
+                Intake isn’t logged yet, so this is our estimate of the latest date the law allows:
+                your request, plus 15 working days for intake (state holidays skipped; the center
+                may close other days), plus 120 days.
               </Text>
             ) : deadline.basis === 'intake' ? (
               <Text style={styles.clockNote}>The 120 days run from your intake date.</Text>
@@ -348,12 +349,16 @@ export default function RequestCaseScreen() {
                     showToast('Pick the day your intake happened — not a future date.', 'info');
                     return;
                   }
-                  const ok = await updateIntake(request.id, day);
+                  const result = await updateIntake(request.id, day);
                   showToast(
-                    ok ? 'Intake logged — the 120 days now run from it.' : "Couldn't save the intake date — try again.",
-                    ok ? 'success' : 'error'
+                    result === 'ok'
+                      ? 'Intake logged — the 120 days now run from it.'
+                      : result === 'unsupported'
+                        ? 'Logging an intake date isn’t available yet — it comes with the next update.'
+                        : "Couldn't save the intake date — try again.",
+                    result === 'ok' ? 'success' : result === 'unsupported' ? 'info' : 'error'
                   );
-                  if (ok) setIntakeDraft('');
+                  if (result === 'ok') setIntakeDraft('');
                 }}
               >
                 <Text style={styles.intakeBtnText}>{request.intake_on ? 'Update' : 'Log intake date'}</Text>

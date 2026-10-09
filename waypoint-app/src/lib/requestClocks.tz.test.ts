@@ -46,9 +46,9 @@ describe('a statutory due date is the family’s calendar date', () => {
   });
 
   it('holds for the latest legal date when intake is not logged', () => {
-    // Mon Jan 5 + 15 working days = Mon Jan 26 (weekdays counted on the
-    // local calendar, never the UTC one), + 120 days = May 26.
-    expect(deadlineFor('rc_assessment', '2026-01-05', NOW)?.dueOn).toBe('2026-05-26');
+    // Mon Jan 5 + 15 working days, skipping MLK Day (Jan 19) = Tue Jan 27
+    // (counted on the local calendar, never the UTC one), + 120 days = May 27.
+    expect(deadlineFor('rc_assessment', '2026-01-05', NOW)?.dueOn).toBe('2026-05-27');
   });
 
   it('counts days remaining from the local day, not the UTC one', () => {

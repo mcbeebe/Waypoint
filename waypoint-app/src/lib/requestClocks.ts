@@ -104,18 +104,71 @@ function isoOf(d: Date): string {
   ).padStart(2, '0')}`;
 }
 
+/** The `nth` (1-based; -1 = last) `weekday` (0 = Sun) of a month, as ISO. */
+function nthWeekday(year: number, month: number, weekday: number, nth: number): string {
+  if (nth > 0) {
+    const d = new Date(year, month, 1);
+    d.setDate(1 + ((weekday - d.getDay() + 7) % 7) + (nth - 1) * 7);
+    return isoOf(d);
+  }
+  const d = new Date(year, month + 1, 0);
+  d.setDate(d.getDate() - ((d.getDay() - weekday + 7) % 7));
+  return isoOf(d);
+}
+
+/** A fixed-date holiday, moved to Friday or Monday when it falls on a weekend. */
+function observed(year: number, month: number, day: number): string {
+  const d = new Date(year, month, day);
+  if (d.getDay() === 6) d.setDate(d.getDate() - 1);
+  if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+  return isoOf(d);
+}
+
 /**
- * The local calendar date `n` working days (Mon–Fri) after `iso`. Weekends
- * only: a state holiday inside the window moves the real date later still,
- * which is why a date built on this is shown as the latest estimate.
+ * California state holidays (the Government Code's list, with Juneteenth)
+ * that fall on a fixed rule. A Regional Center is a private nonprofit and may close on
+ * other days, or work one of these, so a count built on them is still an
+ * estimate — but skipping a day only ever moves a date later, never earlier.
+ */
+function stateHolidays(year: number): Set<string> {
+  const thanksgiving = nthWeekday(year, 10, 4, 4);
+  const dayAfter = new Date(`${thanksgiving}T00:00:00`);
+  dayAfter.setDate(dayAfter.getDate() + 1);
+  return new Set([
+    observed(year, 0, 1), // New Year's Day
+    nthWeekday(year, 0, 1, 3), // Martin Luther King Jr. Day
+    nthWeekday(year, 1, 1, 3), // Presidents' Day
+    observed(year, 2, 31), // César Chávez Day
+    nthWeekday(year, 4, 1, -1), // Memorial Day
+    observed(year, 5, 19), // Juneteenth
+    observed(year, 6, 4), // Independence Day
+    nthWeekday(year, 8, 1, 1), // Labor Day
+    nthWeekday(year, 8, 5, 4), // Native American Day
+    observed(year, 10, 11), // Veterans Day
+    thanksgiving,
+    isoOf(dayAfter), // Day after Thanksgiving
+    observed(year, 11, 25), // Christmas Day
+  ]);
+}
+
+/**
+ * The local calendar date `n` working days after `iso`: weekdays that are
+ * not California state holidays. Offices can close on other days too, so a
+ * date built on this is shown to families as an estimate.
  */
 export function addWorkingDays(iso: string, n: number): string {
   const d = new Date(`${iso}T00:00:00`);
+  const holidays = new Map<number, Set<string>>();
+  const isHoliday = (day: Date) => {
+    const y = day.getFullYear();
+    if (!holidays.has(y)) holidays.set(y, stateHolidays(y));
+    return holidays.get(y)!.has(isoOf(day));
+  };
   let left = n;
   while (left > 0) {
     d.setDate(d.getDate() + 1);
     const wd = d.getDay();
-    if (wd !== 0 && wd !== 6) left -= 1;
+    if (wd !== 0 && wd !== 6 && !isHoliday(d)) left -= 1;
   }
   return isoOf(d);
 }

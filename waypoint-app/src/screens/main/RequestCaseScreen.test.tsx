@@ -72,7 +72,7 @@ vi.mock('@/hooks/useRequests', () => ({
     updateStatus: vi.fn(async () => true),
     updateIntake: vi.fn(async (id: string, day: string | null) => {
       h.intakeSaves.push([id, day]);
-      return true;
+      return 'ok';
     }),
     refetch: vi.fn(),
   }),

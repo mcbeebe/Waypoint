@@ -58,6 +58,16 @@ describe('clockAnchor and addWorkingDays', () => {
     }
   });
 
+  it('skips California state holidays, so the latest date is never early', () => {
+    // Wed Nov 18 2026: Thanksgiving (Nov 26) and the day after don't count.
+    expect(addWorkingDays('2026-11-18', 15)).toBe('2026-12-11');
+    expect(deadlineFor('rc_assessment', '2026-11-18', new Date('2026-11-20T12:00:00'))?.dueOn).toBe('2027-04-10');
+    // Mon Dec 14 2026: Christmas and New Year's Day don't count.
+    expect(addWorkingDays('2026-12-14', 15)).toBe('2027-01-06');
+    // A holiday on Saturday is observed Friday: Jul 4 2026 → Fri Jul 3.
+    expect(addWorkingDays('2026-07-02', 1)).toBe('2026-07-06');
+  });
+
   it('counts Monday to Friday only', () => {
     expect(addWorkingDays('2026-10-09', 1)).toBe('2026-10-12'); // Fri → Mon
     expect(addWorkingDays('2026-10-10', 1)).toBe('2026-10-12'); // Sat → Mon

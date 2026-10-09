@@ -33,6 +33,23 @@ export interface StaffSelf {
   orgName: string;
 }
 
+/**
+ * Open requests with their RC intake date, so staff rank a family by the
+ * same due date the family sees. Before migration 066 the column is missing:
+ * fall back to the ask date alone (the clock then shows its latest estimate).
+ */
+async function openRequests() {
+  const cols = 'family_id, request_type, requested_on, status';
+  const withIntake = await supabase
+    .from('family_requests')
+    .select(`${cols}, intake_on`)
+    .in('status', ['requested', 'in_progress']);
+  if (withIntake.error && /intake_on/.test(withIntake.error.message)) {
+    return supabase.from('family_requests').select(cols).in('status', ['requested', 'in_progress']);
+  }
+  return withIntake;
+}
+
 export function useStaffSelf() {
   const [self, setSelf] = useState<StaffSelf>({ staff: null, orgName: 'Waypoint' });
   const [loading, setLoading] = useState(true);
@@ -107,10 +124,7 @@ export function useCaseload(): UseCaseloadReturn {
           .from('service_events')
           .select('case_id, activity_type, minutes, occurred_on')
           .eq('activity_type', 'transition_099'),
-        supabase
-          .from('family_requests')
-          .select('family_id, request_type, requested_on, status')
-          .in('status', ['requested', 'in_progress']),
+        openRequests(),
       ]);
       const firstError = famRes.error || caseRes.error || eventRes.error || reqRes.error;
       if (firstError) {
@@ -143,7 +157,12 @@ export function useCaseload(): UseCaseloadReturn {
 
       const minDeadlineByFamily = new Map<string, number>();
       for (const r of reqRes.data ?? []) {
-        const d = deadlineFor(r.request_type as RequestType, r.requested_on, now);
+        const d = deadlineFor(
+          r.request_type as RequestType,
+          r.requested_on,
+          now,
+          (r as { intake_on?: string | null }).intake_on
+        );
         if (!d) continue;
         const cur = minDeadlineByFamily.get(r.family_id);
         if (cur === undefined || d.daysRemaining < cur)

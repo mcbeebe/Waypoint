@@ -420,7 +420,7 @@ function clockItems(
               es: `pidió el ${asked}`,
               vi: `quý vị đã đề nghị ngày ${asked}`,
             };
-    const join = dl.basis === 'latest' ? ',' : (locale === 'es' ? ' y' : locale === 'vi' ? ' và' : ' and');
+    const join = locale === 'es' ? ' y' : locale === 'vi' ? ' và' : ' and';
     if (dl.overdue) {
       out.push({
         id: `overdue:${r.id}`,
@@ -440,9 +440,15 @@ function clockItems(
           `Câu trả lời về ${r.title}${who} đã quá hạn`
         ),
         why: L(
-          `Because ${since.en}${join} the law gave them until ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A follow-up that cites the date is the next step.`,
-          `Porque ${since.es}${join} la ley les daba hasta el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. El siguiente paso es un seguimiento que cite la fecha.`,
-          `Vì ${since.vi}${join} luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Bước tiếp theo là thư nhắc có nêu ngày.`
+          dl.basis === 'latest'
+            ? `Because ${since.en}, our estimate of the latest date was ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A friendly follow-up asking for the intake and assessment dates is the next step.`
+            : `Because ${since.en}${join} the law gave them until ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. A follow-up that cites the date is the next step.`,
+          dl.basis === 'latest'
+            ? `Porque ${since.es}, nuestra estimación de la fecha más tardía era el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. El siguiente paso es un seguimiento amable que pida las fechas de la entrevista inicial y de la evaluación.`
+            : `Porque ${since.es}${join} la ley les daba hasta el ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. El siguiente paso es un seguimiento que cite la fecha.`,
+          dl.basis === 'latest'
+            ? `Vì ${since.vi}, ước tính ngày muộn nhất của chúng tôi là ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Bước tiếp theo là thư nhắc thân thiện hỏi ngày tiếp nhận và ngày đánh giá.`
+            : `Vì ${since.vi}${join} luật cho họ đến ${fmtDay(`${dl.dueOn}T12:00:00`, locale)}. Bước tiếp theo là thư nhắc có nêu ngày.`
         ),
         citation: dl.citation,
         // Phase 9: the card produces a letter, not a request-file view. The
@@ -473,13 +479,13 @@ function clockItems(
         ),
         why: L(
           dl.basis === 'latest'
-            ? `Because ${since.en}, this is the latest date the law gives them.`
+            ? `Because ${since.en}, this is our estimate of the latest date the law gives them.`
             : `Because ${since.en} and the law gives them a fixed window.`,
           dl.basis === 'latest'
-            ? `Porque ${since.es}, esta es la fecha más tardía que la ley les da.`
+            ? `Porque ${since.es}, esta es nuestra estimación de la fecha más tardía que la ley les da.`
             : `Porque ${since.es} y la ley les da un plazo fijo.`,
           dl.basis === 'latest'
-            ? `Vì ${since.vi}, đây là ngày muộn nhất luật cho họ.`
+            ? `Vì ${since.vi}, đây là ước tính của chúng tôi về ngày muộn nhất luật cho họ.`
             : `Vì ${since.vi} và luật cho họ một khoảng thời gian cố định.`
         ),
         citation: dl.citation,
