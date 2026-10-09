@@ -21,7 +21,7 @@ const sentNext = appFile('lib/sentNext.ts');
 
 /** Clock length in days, keyed by the citation the app attaches to it. */
 const CLOCK_DAYS = new Map(
-  [...clocks.matchAll(/days:\s*(\d+),\s*citation:\s*'([^']+)'/g)].map((m) => [m[2], Number(m[1])]),
+  [...clocks.matchAll(/days:\s*(\d+),\s*(?:anchor:\s*'[^']*',\s*)?citation:\s*'([^']+)'/g)].map((m) => [m[2], Number(m[1])]),
 );
 /** Titles the app gives the request a sent letter starts tracking. */
 const TRACKED_TITLES = new Set([...sentNext.matchAll(/track:\s*\{[^}]*title:\s*'([^']+)'/g)].map((m) => m[1]));
@@ -167,13 +167,22 @@ describe('sample screen cards', () => {
 });
 
 describe('CTA box copy', () => {
-  const boxes = CONTENT_FILES.flatMap((f) =>
-    [...readFileSync(f, 'utf8').matchAll(/<HandoffCTA[\s\S]*?\/>/g)].map((m) => [path.relative(contentDir, f), m[0]] as const),
+  /** Every .astro page under src/pages, where the marketing pages' boxes live. */
+  const astroPages = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const p = path.join(dir, e.name);
+      return e.isDirectory() ? astroPages(p) : e.name.endsWith('.astro') ? [p] : [];
+    });
+  const srcDir = path.join(site, 'src');
+  const boxes = [...CONTENT_FILES, ...astroPages(path.join(srcDir, 'pages'))].flatMap((f) =>
+    [...readFileSync(f, 'utf8').matchAll(/<HandoffCTA[\s\S]*?\/>/g)].map((m) => [path.relative(srcDir, f), m[0]] as const),
   );
   const bodies = boxes.map(([f, b]) => [f, b.match(/body="([^"]*)"/)?.[1] ?? ''] as const);
 
-  it('finds the boxes', () => {
-    expect(bodies.length).toBeGreaterThan(30);
+  it('finds the boxes, and reads every one of their bodies', () => {
+    expect(bodies.length).toBeGreaterThan(35);
+    // A body the guard can't read (body={…}) would pass every check below unseen.
+    for (const [f, body] of bodies) expect(body.length, `${f}: unreadable body`).toBeGreaterThan(0);
   });
 
   it.each(bodies)('%s promises no clock the app does not run', (_f, body) => {
@@ -183,7 +192,9 @@ describe('CTA box copy', () => {
     expect(body).not.toMatch(/\bappeal deadlines?\b|\b45-day\b/i);
     // Nor a tracker it doesn't have: the app tracks the clocks a family's
     // requests start and the dates they add, not "every deadline".
-    expect(body).not.toMatch(/\bdeadline tracker\b|\bevery deadline tracked\b|\btracker for every\b/i);
+    expect(body).not.toMatch(
+      /\bdeadlines?[- ]track|\bdeadlines? (?:are |get )?tracked\b|\btracks? (?:every|all)\b|\btracker for every\b|\ball (?:of )?your deadlines\b|\bevery deadline\b/i,
+    );
   });
 
   it.each(bodies)('%s asks, never demands (CLAUDE.md tone rule)', (_f, body) => {
