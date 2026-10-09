@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><script src="./support.js"></script></head>
+<body>
+<x-dc>
+<helmet><style>
+  body { margin:0; font-family:"Hanken Grotesk",-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .box { background:#fff; border:1px solid #E2E8F0; border-radius:14px; padding:12px 14px; }
+  .kick { font-size:11px; font-weight:800; letter-spacing:0.8px; color:#0F766E; }
+  .h { font-size:18px; font-weight:800; color:#1B2A4A; margin-top:6px; line-height:1.3; }
+  .p { font-size:13.5px; line-height:1.55; color:#22303A; margin-top:8px; }
+  .btn { background:#0F766E; color:#fff; border-radius:12px; padding:12px; font-weight:800; font-size:15px; text-align:center; }
+  .ghost { border:1.5px solid #0F766E; color:#0F766E; border-radius:12px; padding:11px; font-weight:700; font-size:14.5px; text-align:center; }
+  .link { color:#0F766E; font-size:13px; font-weight:700; }
+  .lbl { font-size:12.5px; color:#64748B; font-weight:600; width:58px; flex-shrink:0; }
+  .row { display:flex; align-items:center; gap:8px; min-height:40px; flex-wrap:wrap; }
+  .chip { display:inline-flex; align-items:center; gap:6px; background:#E6F1EF; color:#115E56; border-radius:999px; padding:5px 10px; font-size:13px; font-weight:600; }
+  .x { color:#55606B; font-weight:700; }
+  .note { font-size:12px; color:#6D6555; }
+  .tag { display:inline-block; font-size:11px; font-weight:800; border-radius:6px; padding:2px 7px; }
+  .callout { position:relative; background:#FFF7E6; border:1px dashed #B7791F; border-radius:10px; padding:6px 10px; font-size:12px; color:#7A4E0E; margin-top:8px; }
+</style></helmet>
+<div style="width:390px; min-height:820px; background:#F8FAFC; padding:18px 16px; box-sizing:border-box; color:#334155">
+  <div class="box">
+    <div style="font-size:18px; font-weight:800; color:#1B2A4A">Add this thread?</div>
+    <div style="font-weight:800; color:#1B2A4A; margin-top:10px">IPP Meeting Request — Jordan Lee</div>
+    <div class="note">4 messages · Sep 30 – Oct 8</div>
+
+    <div style="margin-top:12px; font-size:13px; font-weight:700; color:#334155">Who is this with?</div>
+    <div class="row">
+      <span class="chip" style="background:#0F766E; color:#fff">Regional Center</span>
+      <span class="chip" style="background:#fff;border:1px solid #E2E8F0;color:#334155">School</span>
+      <span class="chip" style="background:#fff;border:1px solid #E2E8F0;color:#334155">Insurance</span>
+      <span class="chip" style="background:#fff;border:1px solid #E2E8F0;color:#334155">Other</span>
+    </div>
+    <div style="margin-top:6px; font-size:13px; font-weight:700; color:#334155">Part of a request? <span class="note" style="font-weight:400">(optional)</span></div>
+    <div class="row"><div class="field" style="flex:1; border:1px solid #E2E8F0; border-radius:10px; padding:8px 10px; font-size:14px">IPP review meeting ▾</div></div>
+  </div>
+
+  <div style="margin-top:12px; background:#FFFFFF; border:1.5px solid #0F766E; border-radius:14px; padding:12px 14px">
+    <div class="kick">WHEN YOU PRESS ADD</div>
+    <ol style="margin:8px 0 0 18px; padding:0; font-size:13.5px; line-height:1.55; color:#22303A">
+      <li>All 4 messages are copied into your <b>Paper Trail</b> under <b>Regional Center</b>. Nothing is sent and nothing changes in Gmail.</li>
+      <li>Waypoint watches the thread. New replies show on <b>Home</b>.</li>
+      <li>The newest message is Ana's, from yesterday, and you haven't answered it yet, so it shows on Home now as a reply.</li>
+    </ol>
+  </div>
+  <div class="btn" style="margin-top:12px">Add to Paper Trail</div>
+  <div style="text-align:center; margin-top:10px"><span class="link">← Pick a different email</span></div>
+</div>
+</x-dc>
+</body>
+</html>
