@@ -50,10 +50,11 @@ import {
 } from '@/hooks/useCommunications';
 import type { CommunicationOrg } from '@/hooks/useCommunications';
 import { useRequests } from '@/hooks/useRequests';
+import { ORG_BY_TEMPLATE, anyReachesTemplateSystem, clockCheckCopy, type ClockCheckCopy } from '@/lib/letterSystems';
 import { sentNextFor, clockAnchorFor, planTracking } from '@/lib/sentNext';
 import { toFunnelLocale } from '@/lib/eligibility';
 import type { FunnelLocale } from '@/lib/eligibility';
-import type { SentNext } from '@/lib/sentNext';
+import type { SentNext, TrackingPlan } from '@/lib/sentNext';
 import { deadlineFor, statutoryDays } from '@/lib/requestClocks';
 import { sendSteps, type SendStepsInput } from '@/lib/sendSteps';
 import { addCc, MAX_CC } from '@/lib/letterAddress';
@@ -180,6 +181,19 @@ function oneLine(value: string | null | undefined): string | null {
   return line ? line : null;
 }
 
+/**
+ * Whether a send is addressed outside the system its template writes to, and
+ * what to ask about it (see letterSystems.ts and `decideClock` below).
+ */
+type ClockDecision = {
+  /** Something would be tracked, so the parent must say whether it IS that request. */
+  ask: boolean;
+  /** Nobody on the letter is saved under the template's system. */
+  mismatch: boolean;
+  copy: ClockCheckCopy | null;
+  plan: TrackingPlan<{ title: string; status: string }> | null;
+};
+
 export default function LettersScreen() {
   const { family, updateFamily } = useFamily();
   const { children, updateChild } = useChildren(family?.id);
@@ -228,6 +242,7 @@ export default function LettersScreen() {
       setManualRecipient(null);
       setChoosingRecipient(false);
       setCc([]);
+      handedOffCcRef.current = null;
       setCcInput('');
       setCcError(null);
       setManualEmailInput('');
@@ -242,6 +257,8 @@ export default function LettersScreen() {
       setSavedId(null);
       setMarkedSent(false);
       setSentMoment(null);
+      setClockAnswer(null);
+      setPendingClock(null);
     }
     if (route.params?.question) {
       setQuestion(route.params.question);
@@ -276,6 +293,7 @@ export default function LettersScreen() {
     setManualRecipient(null);
     setChoosingRecipient(false);
     setCc([]);
+    handedOffCcRef.current = null;
     setCcInput('');
     setCcError(null);
     setManualEmailInput('');
@@ -348,9 +366,12 @@ export default function LettersScreen() {
     // send confirmation so it can't linger over new, unsent text.
     setMarkedSent(false);
     setSentMoment(null);
+    setClockAnswer(null);
+    setPendingClock(null);
     setManualRecipient(null);
     setChoosingRecipient(false);
     setCc([]);
+    handedOffCcRef.current = null;
     setCcInput('');
     setCcError(null);
     setManualEmailInput('');
@@ -364,22 +385,6 @@ export default function LettersScreen() {
       trackDraftUsed(family.id, template.key, family.regional_center ?? undefined);
     }
   }, [template, tone, question, chatGuidance, hasAIConsent, locale, showToast, family, letterProfile]);
-
-  /** Which system this letter targets — paper trail + recipient lookup */
-  const ORG_BY_TEMPLATE: Partial<Record<string, CommunicationOrg>> = {
-    appeal_letter: 'insurance', ihss_appeal: 'other',
-    rc_request: 'regional_center', dds_4731_complaint: 'regional_center',
-    ipp_review_request: 'regional_center', noa_request: 'regional_center',
-    rc_timeline_followup: 'regional_center', sdp_info_request: 'regional_center',
-    medi_cal_deeming: 'regional_center', delivery_plan_request: 'regional_center',
-    ipp_need_request: 'regional_center',
-    iep_email: 'school', iep_prep: 'school', assessment_request: 'school',
-    progress_data_request: 'school',
-    // records_request can go to either system — the actual recipient's
-    // organization (below) wins over this default
-    records_request: 'school', pwn_request: 'school', cde_complaint: 'school',
-    complaint: 'other', general: 'other',
-  };
 
   // Each letter is ONE paper-trail row, saved as a DRAFT — writing a letter
   // isn't the same as sending it, and the log shouldn't pretend otherwise
@@ -474,6 +479,30 @@ export default function LettersScreen() {
     deadline: RequestDeadline | null;
     tracked: boolean;
   } | null>(null);
+  /**
+   * A letter addressed outside the system its template is written to (a
+   * provider note routed as an IPP request — letterSystems.ts) asks, BEFORE
+   * it is marked sent, whether it really is that request. Asked first so
+   * leaving the screen can never quietly cost a family a real deadline:
+   * unanswered, nothing is marked sent and the letter stays an unsent draft
+   * Home brings back. An unanswered question is never read as "no".
+   */
+  /** The Gmail sheet's answer — asked there, cleared each time it opens. */
+  const [clockAnswer, setClockAnswer] = useState<'yes' | 'no' | null>(null);
+  /**
+   * The question opened inline by "Mark as sent", holding the decision made
+   * at the tap — from the Cc that send actually carried, not the chips on
+   * screen — so nothing re-decides it after the save's network calls.
+   */
+  const [pendingClock, setPendingClock] = useState<ClockDecision | null>(null);
+  /** Focus moves to the question when it replaces the button that was tapped. */
+  const clockQuestionRef = React.useRef<View>(null);
+  useEffect(() => {
+    if (pendingClock) (clockQuestionRef.current as unknown as { focus?: () => void } | null)?.focus?.();
+  }, [pendingClock]);
+  /** A mark in flight: the "Did it go out?" prompt must not offer a second tap. */
+  const [marking, setMarking] = useState(false);
+  const markingRef = React.useRef(false);
 
   // ── Send directly through the connected Gmail account (Aug 27) —
   // marks the draft sent, stores the thread id so replies sync back.
@@ -492,46 +521,14 @@ export default function LettersScreen() {
   }, []);
 
   /**
-   * The parent confirms it actually went out. Resolves to what it managed:
-   * 'ok', 'not_saved' (the paper-trail row couldn't be saved or marked), or
-   * 'untracked' (sent and logged, but the tracked request couldn't be opened)
-   * — so the Gmail send never reports a success it didn't have.
+   * Start (or join) what a sent letter tracks, and show the sent moment.
+   * Runs straight after a send — or after the parent confirms the letter
+   * really went to the system its template addresses.
    */
-  // The Cc that was actually in the mail-app hand-off (064), set only when
-  // the email app opened with it. "Mark as sent" also confirms a letter that
-  // was copied, printed or faxed — none of which carried a Cc — so it records
-  // only what a hand-off carried, never the chips on screen.
-  const handedOffCcRef = React.useRef<string[] | null>(null);
-
-  // `recordHandOff`: the "Mark as sent" button. The Gmail path leaves it off —
-  // the gmail function stores the Cc it sent.
-  const handleMarkSent = useCallback(async (
-    opts: { recordHandOff?: boolean } = {}
-  ): Promise<'ok' | 'not_saved' | 'untracked'> => {
-    // Not `savedIdRef.current ?? …`: once any version of this letter was
-    // saved, that short-circuit marked THAT row sent with the text from before
-    // the parent's last edits. saveDraftOnce revises the row first.
-    const id = await saveDraftOnce();
-    if (!id) {
-      showToast("Couldn't update the paper trail — please try again.", 'error');
-      return 'not_saved';
-    }
-    const ok = await markCommunicationSent(id);
-    if (ok) savedSentRef.current = true;
-    const copied = opts.recordHandOff ? handedOffCcRef.current : null;
-    if (ok && copied && copied.length > 0) void recordCommunicationCc(id, copied);
-    setMarkedSent(ok);
-    if (!ok) {
-      showToast("Couldn't mark it sent.", 'error');
-      return 'not_saved';
-    }
-    const next = template
-      ? sentNextFor(template.key, primaryChild?.first_name, toFunnelLocale(locale))
-      : null;
-    if (!next) {
-      showToast('Marked as sent — saved to your paper trail', 'success');
-      return 'ok';
-    }
+  const trackSend = useCallback(async (
+    id: string,
+    next: SentNext
+  ): Promise<'ok' | 'untracked'> => {
     // Open the tracked request (once): the Request Tracker owns the clock
     // from here. An existing live row of the same title is not duplicated,
     // and a letter sent FROM a case never opens a second clock row.
@@ -600,7 +597,90 @@ export default function LettersScreen() {
       : null;
     setSentMoment({ next, deadline, tracked });
     return plan.mode === 'found' && !tracked ? 'untracked' : 'ok';
-  }, [saveDraftOnce, showToast, template, primaryChild, requests, createRequest, updateChild, locale, routeRequestId, route.params?.trackTitle]);
+  }, [template, primaryChild, requests, createRequest, updateChild, routeRequestId, route.params?.trackTitle]);
+
+  /**
+   * The parent confirms it actually went out. Resolves to what it managed:
+   * 'ok', 'not_saved' (the paper-trail row couldn't be saved or marked), or
+   * 'untracked' (sent and logged, but the tracked request couldn't be opened)
+   * — so the Gmail send never reports a success it didn't have.
+   */
+  // The Cc that was actually in the mail-app hand-off (064), set only when
+  // the email app opened with it. "Mark as sent" also confirms a letter that
+  // was copied, printed or faxed — none of which carried a Cc — so it records
+  // only what a hand-off carried, never the chips on screen.
+  const handedOffCcRef = React.useRef<string[] | null>(null);
+
+  // `recordHandOff`: the "Mark as sent" button. The Gmail path leaves it off —
+  // the gmail function stores the Cc it sent.
+  const markSentNow = useCallback(async (
+    opts: { recordHandOff?: boolean; decision: ClockDecision; clock?: 'yes' | 'no' }
+  ): Promise<'ok' | 'not_saved' | 'untracked'> => {
+    // Not `savedIdRef.current ?? …`: once any version of this letter was
+    // saved, that short-circuit marked THAT row sent with the text from before
+    // the parent's last edits. saveDraftOnce revises the row first.
+    const id = await saveDraftOnce();
+    if (!id) {
+      showToast("Couldn't update the paper trail — please try again.", 'error');
+      return 'not_saved';
+    }
+    const ok = await markCommunicationSent(id);
+    if (ok) savedSentRef.current = true;
+    const copied = opts.recordHandOff ? handedOffCcRef.current : null;
+    if (ok && copied && copied.length > 0) void recordCommunicationCc(id, copied);
+    setMarkedSent(ok);
+    if (!ok) {
+      showToast("Couldn't mark it sent.", 'error');
+      return 'not_saved';
+    }
+    const next = template
+      ? sentNextFor(template.key, primaryChild?.first_name, toFunnelLocale(locale))
+      : null;
+    if (!next) {
+      showToast('Marked as sent — saved to your paper trail', 'success');
+      return 'ok';
+    }
+    // Addressed outside the system this letter is written to (see
+    // letterSystems.ts), decided when the parent tapped — never re-read here,
+    // after the network calls above.
+    const { ask, mismatch, copy } = opts.decision;
+    const L = (en: string, es: string, vi: string) =>
+      funnelLocale === 'es' ? es : funnelLocale === 'vi' ? vi : en;
+    if (ask && opts.clock === 'no') {
+      showToast(copy?.noClock ?? L('Marked as sent — saved to your paper trail', 'Marcada como enviada — guardada en su expediente', 'Đã đánh dấu là đã gửi — đã lưu vào hồ sơ'), 'success');
+      return 'ok';
+    }
+    // Nothing to found or join (a follow-up, or a letter filed in its case),
+    // but the sent moment would still speak about an agency the letter never
+    // reached — say only where it is saved.
+    if (mismatch && !ask) {
+      showToast(
+        routeRequestId
+          ? L('Marked as sent — filed in this request’s case.', 'Marcada como enviada — archivada en el expediente de esta solicitud.', 'Đã đánh dấu là đã gửi — đã lưu vào hồ sơ của yêu cầu này.')
+          : L('Marked as sent — saved to your paper trail', 'Marcada como enviada — guardada en su expediente', 'Đã đánh dấu là đã gửi — đã lưu vào hồ sơ'),
+        'success'
+      );
+      return 'ok';
+    }
+    // "yes" — or a question that was never shown: an unanswered question is
+    // never read as "no", so the clock starts as it always did.
+    return trackSend(id, next);
+  }, [saveDraftOnce, showToast, template, primaryChild?.first_name, locale, trackSend, routeRequestId, funnelLocale]);
+
+  /** Mark it sent — once. A second tap while the first is saving is ignored. */
+  const handleMarkSent = useCallback(async (
+    opts: { recordHandOff?: boolean; decision: ClockDecision; clock?: 'yes' | 'no' }
+  ): Promise<'ok' | 'not_saved' | 'untracked'> => {
+    if (markingRef.current) return 'ok';
+    markingRef.current = true;
+    setMarking(true);
+    try {
+      return await markSentNow(opts);
+    } finally {
+      markingRef.current = false;
+      setMarking(false);
+    }
+  }, [markSentNow]);
 
   const handleCopy = useCallback(async () => {
     if (!draft) return;
@@ -770,25 +850,71 @@ export default function LettersScreen() {
     [blankScanText, letterProfile]
   );
 
-  // What a send of THIS letter will start, decided exactly as
-  // handleMarkSent decides it — so "When you press Send" never promises a
-  // deadline the send won't open (a re-send joins the live request instead).
-  const sendTracking = useMemo((): Pick<SendStepsInput, 'tracking' | 'clockDays'> => {
-    if (!template) return { tracking: 'none' };
+  /**
+   * Whether this letter, sent to its addressee plus `ccEmails`, is addressed
+   * outside the system its template writes to (nobody on it is saved under
+   * that system), and whether that leaves a request to found or join, which
+   * the parent must confirm first. ONE function, called with the Cc each send
+   * really carries: the Gmail sheet's (the chips — Gmail sends exactly those)
+   * and "Mark as sent"'s (whatever the mail-app hand-off carried; none for
+   * Copy or print).
+   */
+  const decideClock = useCallback((ccEmails: readonly string[]): ClockDecision => {
+    if (!template) return { ask: false, mismatch: false, copy: null, plan: null };
     const plan = planTracking(
       sentNextFor(template.key, primaryChild?.first_name, toFunnelLocale(locale)),
       routeRequestId,
       route.params?.trackTitle,
       requests
     );
-    if (plan.mode === 'case' || plan.mode === 'join') return { tracking: 'case' };
+    const contact = outgoing?.recipient.contact ?? null;
+    const addresseeOrg = (contact?.organization as CommunicationOrg | null | undefined) ?? null;
+    const ccOrgs = ccEmails.map(
+      (e) =>
+        (emailableContacts.find((c) => c.email?.toLowerCase() === e.toLowerCase())
+          ?.organization as CommunicationOrg | null | undefined) ?? null
+    );
+    const mismatch = !anyReachesTemplateSystem(template.key, addresseeOrg, ccOrgs);
+    const days = plan.mode === 'found' ? statutoryDays(plan.track.requestType) : null;
+    const copy =
+      mismatch && contact && addresseeOrg
+        ? clockCheckCopy(template.key, contact.name, addresseeOrg, days, funnelLocale)
+        : null;
+    // A case-launched letter is filed in its case whoever it went to; only a
+    // request this send would found or join is worth asking about.
+    const ask = mismatch && !!copy && (plan.mode === 'found' || plan.mode === 'join');
+    return { ask, mismatch, copy, plan };
+  }, [template, primaryChild?.first_name, locale, routeRequestId, route.params?.trackTitle, requests, outgoing?.recipient.contact, emailableContacts, funnelLocale]);
+  /** The Gmail send's decision: Gmail sends exactly the Cc chips. */
+  const gmailDecision = useMemo(() => decideClock(ccList), [decideClock, ccList]);
+
+  // The inline question is about one addressee: change who the letter goes to
+  // (the natural reply to "it's addressed to Dana, saved under Medical") and it
+  // closes, so "Mark as sent" decides afresh instead of answering for Dana.
+  const addresseeKey = `${outgoing?.recipient.contact?.email ?? ''}|${outgoing?.recipient.contact?.organization ?? ''}`;
+  useEffect(() => {
+    setPendingClock(null);
+  }, [addresseeKey]);
+
+  // What a send of THIS letter will start — from the same decision
+  // handleMarkSent acts on, so "When you press Send" never promises a
+  // deadline the send won't open (a re-send joins the live request instead).
+  const sendTracking = useMemo((): Pick<SendStepsInput, 'tracking' | 'clockDays'> => {
+    const { plan, mismatch, ask } = gmailDecision;
+    if (!plan) return { tracking: 'none' };
+    // A letter launched from a case is filed in that case whoever it went to.
+    if (plan.mode === 'case') return { tracking: 'case' };
+    // Outside the template's system: nothing is tracked unless the parent
+    // has said it IS that request.
+    if (mismatch && !(ask && clockAnswer === 'yes')) return { tracking: 'none' };
+    if (plan.mode === 'join') return { tracking: 'case' };
     // Until the family's requests load, "found" may really be a join — so
     // claim only what is certain.
     if (requestsLoading) return { tracking: 'none' };
     if (plan.mode === 'none') return { tracking: 'none' };
     const days = statutoryDays(plan.track.requestType);
     return days ? { tracking: 'clock', clockDays: days } : { tracking: 'tracked' };
-  }, [template, routeRequestId, primaryChild?.first_name, locale, route.params?.trackTitle, requests, requestsLoading]);
+  }, [gmailDecision, clockAnswer, requestsLoading]);
 
   const openSendSheet = useCallback(() => {
     if (ccPending) {
@@ -796,6 +922,9 @@ export default function LettersScreen() {
       return;
     }
     setSendProblem(null);
+    // An answer belongs to one look at one letter — a sheet cancelled and
+    // reopened (or a letter rewritten in between) is asked again.
+    setClockAnswer(null);
     setConfirmOpen(true);
   }, [ccPending, ccCopy]);
 
@@ -803,6 +932,12 @@ export default function LettersScreen() {
   const handleSendWithGmail = useCallback(async () => {
     const to = outgoing?.recipient.contact?.email;
     if (!draft || !outgoing || !to || gmailSending) return;
+    // The sheet holds Send now until the question is answered; never send
+    // with a legal deadline still undecided even if that guard is bypassed.
+    // Decided at this tap, carried through — never re-read after the send.
+    const decision = gmailDecision;
+    const answer = clockAnswer;
+    if (decision.ask && !answer) return;
     // The sheet shows this field and sends exactly it — never a fallback the
     // parent did not see.
     const subject = oneLine(outgoing.subjectField);
@@ -847,7 +982,7 @@ export default function LettersScreen() {
       setConfirmOpen(false);
       // The function marked the row sent + stored thread ids; run the
       // sent moment + clock tracking exactly as a manual send would.
-      const recorded = await handleMarkSent();
+      const recorded = await handleMarkSent({ decision, clock: answer ?? undefined });
       if (recorded === 'ok') {
         showToast('Sent through Gmail — replies will sync to your paper trail.', 'success');
       } else {
@@ -857,7 +992,7 @@ export default function LettersScreen() {
     } finally {
       setGmailSending(false);
     }
-  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate, funnelLocale, ccList]);
+  }, [draft, outgoing, gmailSending, saveDraftOnce, showToast, handleMarkSent, letterProfile, sendGate, funnelLocale, ccList, clockAnswer, gmailDecision]);
 
   const handleSend = useCallback(async () => {
     if (!draft || !target) return;
@@ -892,6 +1027,8 @@ export default function LettersScreen() {
     setSavedId(null);
     setMarkedSent(false);
     setSentMoment(null);
+    setClockAnswer(null);
+    setPendingClock(null);
     setDraft(null);
     setFilledFromRecords([]);
     setManualRecipient(null);
@@ -938,8 +1075,15 @@ export default function LettersScreen() {
           alreadySent={savedSentRef.current && loggedDraftRef.current === draft}
           sending={gmailSending}
           blockedReason={blanksLeft > 0 ? sendGate.toast : null}
+          clockQuestion={gmailDecision.ask ? gmailDecision.copy : null}
+          clockAnswer={clockAnswer}
+          onClockAnswer={setClockAnswer}
           problem={sendProblem}
-          onCancel={() => setConfirmOpen(false)}
+          onCancel={() => {
+            setConfirmOpen(false);
+            // An answer belongs to the send it was given for.
+            setClockAnswer(null);
+          }}
           onConfirm={handleSendWithGmail}
         />
       ) : null}
@@ -1479,7 +1623,44 @@ export default function LettersScreen() {
                 </View>
               ) : markedSent && loggedDraftRef.current === draft ? (
                 <Text style={styles.trackSent}>
-                  ✅ Marked as sent — it's in your paper trail
+                  ✅ {locale === 'es'
+                    ? 'Marcada como enviada — está en su expediente'
+                    : locale === 'vi'
+                      ? 'Đã đánh dấu là đã gửi — có trong hồ sơ của quý vị'
+                      : "Marked as sent — it's in your paper trail"}
+                </Text>
+              ) : pendingClock?.copy ? (
+                // Asked BEFORE marking it sent: leave without answering and the
+                // letter is still an unsent draft, not a request silently untracked.
+                <View style={styles.clockCheck}>
+                  <View ref={clockQuestionRef} focusable accessibilityRole="header">
+                    <Text style={styles.clockCheckQuestion}>{pendingClock.copy.question}</Text>
+                  </View>
+                  <Text style={styles.trackText}>{pendingClock.copy.explain}</Text>
+                  <View style={styles.trackButtons}>
+                    {(['yes', 'no'] as const).map((answer) => (
+                      <TouchableOpacity
+                        key={answer}
+                        style={answer === 'yes' ? styles.trackSentButton : styles.trackSaveButton}
+                        onPress={() => {
+                          const decision = pendingClock;
+                          setPendingClock(null);
+                          handleMarkSent({ recordHandOff: true, decision, clock: answer });
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={pendingClock.copy![answer]}
+                      >
+                        <Text style={answer === 'yes' ? styles.trackSentButtonText : styles.trackSaveText}>
+                          {pendingClock.copy![answer]}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ) : marking ? (
+                // A mark is saving: no "Did it go out?" to tap a second time.
+                <Text style={styles.trackText} accessibilityLiveRegion="polite">
+                  {locale === 'es' ? 'Guardando…' : locale === 'vi' ? 'Đang lưu…' : 'Saving…'}
                 </Text>
               ) : (
                 <>
@@ -1507,7 +1688,13 @@ export default function LettersScreen() {
                     )}
                     <TouchableOpacity
                       style={styles.trackSentButton}
-                      onPress={() => handleMarkSent({ recordHandOff: true })}
+                      onPress={() => {
+                        // Decided now, from the Cc this send really carried —
+                        // the mail-app hand-off's, or none for Copy or print.
+                        const decision = decideClock(handedOffCcRef.current ?? []);
+                        if (decision.ask) setPendingClock(decision);
+                        else handleMarkSent({ recordHandOff: true, decision });
+                      }}
                       accessibilityRole="button"
                       accessibilityLabel="Mark this letter as sent"
                     >
@@ -1920,6 +2107,12 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.semibold as '600',
   },
   trackButtons: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
+  clockCheck: { gap: spacing.sm },
+  clockCheckQuestion: {
+    fontSize: fonts.sizes.base,
+    color: colors.navy,
+    fontWeight: fonts.weights.bold as '700',
+  },
   trackSaveButton: {
     borderWidth: 1,
     borderColor: colors.border,
