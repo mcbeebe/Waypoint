@@ -145,8 +145,8 @@ export function deriveEligibility(
       factLabel: L('Decision clock', 'Plazo de decisión', 'Thời hạn quyết định'),
       factValue: L(
         'Assessment ≤120 days from intake',
-        'Evaluación ≤120 días desde la solicitud',
-        'Đánh giá ≤120 ngày kể từ khi nộp đơn'
+        'Evaluación ≤120 días desde la entrevista inicial',
+        'Đánh giá ≤120 ngày kể từ buổi tiếp nhận'
       ),
       citation: 'Lanterman Act, W&I §4512 · §4643',
       reviewedOn: REVIEWED,

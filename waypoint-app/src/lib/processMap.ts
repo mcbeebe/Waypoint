@@ -81,8 +81,8 @@ export function getRcStages(locale: FunnelLocale = 'en'): ProcessStage[] {
       citation: 'W&I §4643',
       clock: L(
         'Assessment within 120 days of intake — or 60 when delay is risky.',
-        'Evaluación dentro de 120 días desde la solicitud — o 60 si la demora es riesgosa.',
-        'Đánh giá trong 120 ngày kể từ khi nộp đơn — hoặc 60 ngày nếu trì hoãn gây rủi ro.'
+        'Evaluación dentro de 120 días desde la entrevista inicial — o 60 si la demora es riesgosa.',
+        'Đánh giá trong 120 ngày kể từ buổi tiếp nhận — hoặc 60 ngày nếu trì hoãn gây rủi ro.'
       ),
       leverTemplate: 'rc_timeline_followup',
       leverLabel: L(

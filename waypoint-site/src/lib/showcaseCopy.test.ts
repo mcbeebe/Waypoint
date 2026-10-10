@@ -19,7 +19,12 @@ const FILES = [
   path.join(src, 'components', 'OneLoop.astro'),
   path.join(src, 'components', 'GuideVsApp.astro'),
   path.join(src, 'components', 'WithoutWith.astro'),
+  path.join(src, 'pages', 'tools', 'index.astro'),
   path.join(src, 'lib', 'iepGoalCheckUi.ts'),
+  path.join(src, 'pages', 'product.astro'),
+  path.join(src, 'lib', 'ctaScreen.ts'),
+  path.join(src, 'components', 'CtaScreen.astro'),
+  path.join(src, 'components', 'HandoffCTA.astro'),
 ];
 /** File text with code comments removed: the guard checks what ships as copy. */
 const read = (f: string) =>
@@ -46,7 +51,7 @@ describe('showcase copy guard', () => {
     const names = [
       ...read(f).matchAll(/\b(?:Hi|Dear)\s+(?:(?:Ms|Mr|Mrs)\.\s+)?([A-Z][a-z]+)|\b(?:Ms|Mr|Mrs)\.\s+([A-Z][a-z]+)|\b([A-Z][a-z]{2,})(?:'s\b|\s+(?:will|turns|met|reads)\b)/g),
     ].map((m) => m[1] ?? m[2] ?? m[3]);
-    const NOT_PEOPLE = new Set(['Waypoint', 'Home', 'District', 'This', 'That', 'Every', 'Each', 'Goal', 'Student', 'Teacher', 'Center', 'California', 'Regional', 'School', 'County', 'Here', 'Who', 'What', 'There', 'Let', 'Today']);
+    const NOT_PEOPLE = new Set(['Waypoint', 'Home', 'District', 'This', 'That', 'Every', 'Each', 'Goal', 'Student', 'Teacher', 'Center', 'California', 'Regional', 'School', 'County', 'Here', 'Who', 'What', 'There', 'Let', 'Today', 'Nobody', 'Premium']);
     for (const n of names) if (!NOT_PEOPLE.has(n)) expect(ALLOWED_NAMES.has(n), `unexpected name: ${n}`).toBe(true);
   });
 
@@ -68,6 +73,10 @@ describe('showcase copy guard', () => {
       /\bwatches your specific 60-day window\b/i,
       // Nothing is drafted ahead of time: Home offers "Draft the follow-up".
       /\balready drafted\b/i,
+      // The app has no Early Start 45-day clock (/product/ once promised
+      // "the 15-day, the 60-day, the 45-day"). The 60-day Ed Code §56344
+      // estimate is real: the IEP hub calendars it (iepDeadlines.ts).
+      /\b45[- ]day\b|\bforty[- ]five[- ]day\b/i,
       // "Nothing you type leaves" is false once a parent carries a summary
       // into the app; the tools say what actually stays.
       /\bnothing you type\b/i,
@@ -99,9 +108,46 @@ describe('showcase copy guard', () => {
     const cites = [...hero.matchAll(/cite:\s*'([^']*)'/g)].map((m) => m[1]).filter(Boolean);
     expect(cites.length).toBeGreaterThan(0);
     for (const c of cites) expect(appCitations.has(c), `hero cites ${c}, which no app clock uses`).toBe(true);
+    // W&I §4643 runs the assessment clock from intake, not from the ask: a
+    // card citing it says when intake was, never when the family asked.
+    const assessmentCards = [...hero.matchAll(/body:\s*'([^']*)',\s*cite:\s*'W&I §4643'/g)];
+    expect(assessmentCards.length).toBeGreaterThan(0);
+    for (const [, body] of assessmentCards) {
+      expect(body).toMatch(/^Because your intake was on /);
+      expect(body).not.toMatch(/\basked\b/);
+    }
+    // And every hero clock card's dates add up: anchor + the clock it cites =
+    // the due date in its title, and due − today (Mon Oct 12) = its pill.
+    const heroDays = new Map([...clocks.matchAll(/days:\s*(\d+),\s*(?:anchor:\s*'[^']*',\s*)?citation:\s*'([^']+)'/g)].map((m) => [m[2], Number(m[1])]));
+    const heroDay = (d: string) => new Date(`${d} 2026 12:00 UTC`).getTime();
+    const heroCards = [...hero.matchAll(/pill:\s*'CLOCK RUNNING [^\d]*(\d+) DAYS LEFT',\s*title:\s*"[^"]*is due (\w{3} \d{1,2})",\s*body:\s*'Because (?:your intake was|you asked) on (\w{3} \d{1,2}) [^']*',\s*cite:\s*'([^']+)'/g)];
+    expect(heroCards.length).toBe((hero.match(/pill:\s*'CLOCK RUNNING/g) ?? []).length);
+    for (const [, left, due, start, cite] of heroCards) {
+      expect((heroDay(due) - heroDay(start)) / 86_400_000, cite).toBe(heroDays.get(cite));
+      expect((heroDay(due) - heroDay('Oct 12')) / 86_400_000, due).toBe(Number(left));
+    }
+    // The /product/ tour's Home card too: its citation sits in a <b> after the reason.
+    const tour = read(path.join(src, 'pages', 'product.astro'));
+    const tourCites = [...tour.matchAll(/fixed window\. <b>([^<]+)<\/b>/g)].map((m) => m[1]);
+    expect(tourCites.length).toBeGreaterThan(0);
+    for (const c of tourCites) expect(appCitations.has(c), `/product/ cites ${c}, which no app clock uses`).toBe(true);
+    // The tour's Home card is a request clock: the app's own kicker, with its
+    // em dash (homeTriage.ts), and dates that add up to the clock it cites.
+    const clockDays = new Map([...clocks.matchAll(/days:\s*(\d+),\s*(?:anchor:\s*'[^']*',\s*)?citation:\s*'([^']+)'/g)].map((m) => [m[2], Number(m[1])]));
+    const cards = [...tour.matchAll(/<span class="ms-pill[^"]*">([^<]+)<\/span>\s*<div class="ms-title">An answer on .+? is due (\w{3} \d{1,2})<\/div>\s*<div class="ms-muted">Because you asked on (\w{3} \d{1,2}) and the law gives them a fixed window\. <b>([^<]+)<\/b>/g)];
+    expect(cards.length).toBe((tour.match(/class="ms-pill/g) ?? []).length);
+    expect(cards.length).toBeGreaterThan(0);
+    const day = (d: string) => new Date(`${d} 2026 12:00 UTC`).getTime();
+    for (const [, pill, due, asked, cite] of cards) {
+      const left = Number(pill.match(/^CLOCK RUNNING — (\d+) DAYS LEFT$/)?.[1]);
+      expect(left, pill).toBeGreaterThan(0);
+      expect((day(due) - day(asked)) / 86_400_000, cite).toBe(clockDays.get(cite));
+      // "Today" on every showcase screen is Monday, Oct 12, 2026.
+      expect((day(due) - day('Oct 12')) / 86_400_000).toBe(left);
+    }
     // And every clock card uses the app's own kicker, not an invented one.
     for (const pill of hero.matchAll(/pill:\s*'([^']+)'/g)) {
-      expect(pill[1]).toMatch(/^(?:CLOCK RUNNING · \d+ DAYS LEFT|COMING UP · \d+ DAYS|DUE TODAY)$/);
+      expect(pill[1]).toMatch(/^(?:CLOCK RUNNING — \d+ DAYS LEFT|COMING UP — \d+ DAYS|DUE TODAY)$/);
     }
   });
 });

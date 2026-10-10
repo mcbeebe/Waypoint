@@ -660,6 +660,16 @@ describe('sending through Gmail', () => {
     });
   });
 
+  it('fills a blank the profile already knows in the model’s subject, as in the body', async () => {
+    h.generated = { draft: DRAFT, subject: "IPP review request — [Child's Name]" };
+    await draftReadyToSend();
+    expect((screen.getByLabelText('Email subject') as HTMLInputElement).value).toBe(
+      'IPP review request — Teddy'
+    );
+    // Nothing left to fill, so the send is not held for a blank the app knew.
+    expect(screen.getByLabelText(BUTTON).getAttribute('aria-disabled')).toBeNull();
+  });
+
   it('uses the subject the model wrote for this letter, on one line', async () => {
     h.generated = {
       draft: DRAFT,
@@ -945,5 +955,253 @@ describe('sending through Gmail', () => {
       expect(h.logCommunication).not.toHaveBeenCalled();
       await waitFor(() => expect(h.markSent).toHaveBeenCalledWith('row-7'));
     });
+  });
+});
+
+/**
+ * On 2026-10-07 the Navigator handed a note to a provider — asking her to put
+ * a recommendation in writing — to Letters as an IPP meeting request. Sending
+ * it opened an "IPP review meeting request" with a 30-day Regional Center
+ * clock, and a sent moment saying the RC now owed a meeting. A template's
+ * clock runs against the agency it addresses, so when nobody on the letter is
+ * saved under that agency the app asks — BEFORE the letter is marked sent, so
+ * that leaving without answering can never quietly cost a real deadline (a
+ * Service Coordinator saved under the contact form's default "School" is the
+ * case that must not lose one). (Invented names: this repository is public.)
+ */
+describe('a letter addressed outside the system its template writes to', () => {
+  const NOTE = 'Hi Dana,\n\nCould you put your recommendation in writing?\n\nThanks so much,';
+  const DANA = { id: 'p1', name: 'Dana Whitfield', email: 'dana@clinic.example', role: 'BCBA', organization: 'medical' };
+  const PAT = { id: 'k1', name: 'Pat Nguyen', email: 'pat@rc.example', role: 'Service Coordinator', organization: 'regional_center' };
+  const QUESTION = 'Is this a request to the Regional Center?';
+  const LIVE = h.requests;
+
+  beforeEach(() => {
+    h.requests = []; // no live request to join — a send would found one
+    h.generated = { draft: NOTE };
+    h.contacts = [DANA];
+  });
+
+  afterEach(() => {
+    h.requests = LIVE;
+  });
+
+  async function generate() {
+    const view = render(<LettersScreen />);
+    fireEvent.click(screen.getByRole('button', { name: /Generate Draft/i }));
+    await screen.findByRole('button', { name: /Mark this letter as sent/i });
+    return view;
+  }
+
+  it('asks before marking it sent — and leaving unanswered marks and tracks nothing', async () => {
+    const { unmount } = await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    expect(screen.getByText(QUESTION)).toBeTruthy();
+    expect(screen.getByText(/addressed to Dana Whitfield, saved in your contacts under “Medical”/)).toBeTruthy();
+    unmount();
+    // Still an unsent draft — Home brings it back — not a request silently untracked.
+    expect(h.markSent).not.toHaveBeenCalled();
+    expect(h.createRequest).not.toHaveBeenCalled();
+  });
+
+  it('"no" marks it sent and tracks nothing', async () => {
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    fireEvent.click(screen.getByLabelText('No — just keep the record'));
+    await waitFor(() => expect(h.markSent).toHaveBeenCalledTimes(1));
+    expect(h.createRequest).not.toHaveBeenCalled();
+    expect(h.attach).not.toHaveBeenCalled();
+    expect(screen.queryByText(/Their deadline/)).toBeNull();
+    expect(h.toast).toHaveBeenCalledWith(
+      'Saved to your paper trail. Waypoint isn’t tracking it as a request.',
+      'success'
+    );
+  });
+
+  it('"yes" marks it sent and starts the clock, dated the day it was sent', async () => {
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    fireEvent.click(screen.getByLabelText('Yes — track the 30-day deadline'));
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+    expect(h.createRequest.mock.calls[0][0]).toMatchObject({
+      request_type: 'ipp_meeting',
+      requested_on: '2026-09-06',
+    });
+    expect(await screen.findByText(/Their deadline/)).toBeTruthy();
+  });
+
+  it('through Gmail, Send now waits for the answer — and the answer is honored', async () => {
+    h.gmail = { gmail: true, email: 'parent@example.com' };
+    render(<LettersScreen />);
+    fireEvent.click(screen.getByRole('button', { name: /Generate Draft/i }));
+    // Before answering, the steps promise no deadline.
+    expect((await screen.findByTestId('send-steps')).textContent).not.toMatch(/legal timeline|starts tracking/);
+    fireEvent.click(screen.getByLabelText('Review and send this letter through your connected Gmail'));
+    const sheet = (await screen.findByText('Send this email now?')).parentElement as HTMLElement;
+    const send = within(sheet).getByLabelText('Send now');
+    expect(within(sheet).getByText(QUESTION)).toBeTruthy();
+    expect(send.getAttribute('aria-disabled')).toBe('true');
+
+    fireEvent.click(within(sheet).getByLabelText('No — just keep the record'));
+    expect(send.getAttribute('aria-disabled')).toBeNull();
+    fireEvent.click(send);
+    await waitFor(() => expect(h.markSent).toHaveBeenCalled());
+    expect(h.gmailSend).toHaveBeenCalledTimes(1);
+    expect(h.createRequest).not.toHaveBeenCalled();
+  });
+
+  it('changing who it goes to asks again — an answer is about these recipients', async () => {
+    h.gmail = { gmail: true, email: 'parent@example.com' };
+    await generate();
+    fireEvent.click(screen.getByLabelText('Review and send this letter through your connected Gmail'));
+    let sheet = (await screen.findByText('Send this email now?')).parentElement as HTMLElement;
+    fireEvent.click(within(sheet).getByLabelText('Yes — track the 30-day deadline'));
+    expect(within(sheet).getByLabelText('Send now').getAttribute('aria-disabled')).toBeNull();
+    fireEvent.click(within(sheet).getByLabelText('Go back'));
+
+    fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: 'advocate@example.org' } });
+    fireEvent.click(screen.getByLabelText('Add to Cc'));
+    fireEvent.click(screen.getByLabelText('Review and send this letter through your connected Gmail'));
+    sheet = (await screen.findAllByText('Send this email now?')).at(-1)!.parentElement as HTMLElement;
+    expect(within(sheet).getByLabelText('Send now').getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('a Service Coordinator on the Cc that went out counts — no question', async () => {
+    const open = vi.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    h.contacts = [DANA, PAT];
+    await generate();
+    fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: PAT.email } });
+    fireEvent.click(screen.getByLabelText('Add to Cc'));
+    fireEvent.click(screen.getByText(/^Open in (Gmail|Mail app)$/));
+    await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText(QUESTION)).toBeNull();
+    open.mockRestore();
+  });
+
+  it('a Cc chip that never went out (Copy, print) does not count', async () => {
+    h.contacts = [DANA, PAT];
+    await generate();
+    fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: PAT.email } });
+    fireEvent.click(screen.getByLabelText('Add to Cc'));
+    fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    expect(screen.getByText(QUESTION)).toBeTruthy();
+    expect(h.markSent).not.toHaveBeenCalled();
+  });
+
+  it('a previous letter’s Cc never counts for a regenerated one', async () => {
+    const open = vi.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    h.contacts = [DANA, PAT];
+    await generate();
+    fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: PAT.email } });
+    fireEvent.click(screen.getByLabelText('Add to Cc'));
+    fireEvent.click(screen.getByText(/^Open in (Gmail|Mail app)$/));
+    await waitFor(() => expect(open).toHaveBeenCalledTimes(1));
+    // A new letter: the old hand-off (with Pat on Cc) is not this one's.
+    fireEvent.click(screen.getByText('‹ Change tone or details'));
+    fireEvent.click(screen.getByRole('button', { name: /Generate Draft/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Mark this letter as sent/i }));
+    expect(screen.getByText(QUESTION)).toBeTruthy();
+    expect(h.createRequest).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
+  it('changing who it goes to closes the question, and the send decides afresh', async () => {
+    h.contacts = [DANA, PAT];
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    expect(screen.getByText(QUESTION)).toBeTruthy();
+    // The question's own prompt: it is addressed to the wrong person.
+    fireEvent.click(screen.getByLabelText('Change who this goes to'));
+    fireEvent.click(screen.getByLabelText('Send to Pat Nguyen'));
+    expect(screen.queryByText(QUESTION)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+  });
+
+  it('a decision made at the tap stands — recipients loading during the save never turn it into "no"', async () => {
+    h.contacts = []; // still loading: nobody known, so no question
+    let finishSave: (id: string) => void = () => undefined;
+    h.logCommunication.mockImplementationOnce(
+      () => new Promise<string>((resolve) => { finishSave = resolve; })
+    );
+    const { rerender } = await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    // Contacts arrive mid-save: now the addressee would look like a mismatch.
+    h.contacts = [DANA];
+    rerender(<LettersScreen />);
+    finishSave('comm1');
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+    expect(h.toast).not.toHaveBeenCalledWith(expect.stringMatching(/isn’t tracking it/), 'success');
+  });
+
+  it('while it is being marked sent there is nothing to tap twice', async () => {
+    let finishSave: (id: string) => void = () => undefined;
+    h.logCommunication.mockImplementationOnce(
+      () => new Promise<string>((resolve) => { finishSave = resolve; })
+    );
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    fireEvent.click(screen.getByLabelText('Yes — track the 30-day deadline'));
+    expect(screen.getByText('Saving…')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Mark this letter as sent/i })).toBeNull();
+    finishSave('comm1');
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+    expect(h.markSent).toHaveBeenCalledTimes(1);
+  });
+
+  it('the question takes focus when it replaces the button that was tapped', async () => {
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    await waitFor(() => expect(document.activeElement?.textContent).toBe(QUESTION));
+  });
+
+  it('an answer is for one look — cancel the sheet and reopen, and it asks again', async () => {
+    h.gmail = { gmail: true, email: 'parent@example.com' };
+    await generate();
+    fireEvent.click(screen.getByLabelText('Review and send this letter through your connected Gmail'));
+    let sheet = (await screen.findByText('Send this email now?')).parentElement as HTMLElement;
+    const no = within(sheet).getByLabelText('No — just keep the record');
+    fireEvent.click(no);
+    expect(no.getAttribute('aria-checked')).toBe('true'); // announced, not just drawn
+    fireEvent.click(within(sheet).getByLabelText('Go back'));
+    fireEvent.click(screen.getByLabelText('Review and send this letter through your connected Gmail'));
+    sheet = (await screen.findAllByText('Send this email now?')).at(-1)!.parentElement as HTMLElement;
+    expect(within(sheet).getByLabelText('Send now').getAttribute('aria-disabled')).toBe('true');
+    expect(within(sheet).getByText('Answer the question about the request first.')).toBeTruthy();
+  });
+
+  it('a contact saved under the Regional Center goes straight through — and the steps say so', async () => {
+    h.generated = { draft: 'Hi Pat,\n\nI am requesting an IPP review meeting.' };
+    h.contacts = [PAT];
+    h.gmail = { gmail: true, email: 'parent@example.com' };
+    await generate();
+    expect(screen.getByTestId('send-steps').textContent).toMatch(/30-day legal timeline/);
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    await waitFor(() => expect(h.createRequest).toHaveBeenCalledTimes(1));
+    expect(screen.queryByText(QUESTION)).toBeNull();
+  });
+
+  it('a letter launched from a case is filed in its case — no question, and no claims about the agency', async () => {
+    routeParams.requestId = 'req1';
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    await waitFor(() => expect(h.markSent).toHaveBeenCalled());
+    expect(screen.queryByText(QUESTION)).toBeNull();
+    expect(h.createRequest).not.toHaveBeenCalled();
+    expect(h.toast).toHaveBeenCalledWith('Marked as sent — filed in this request’s case.', 'success');
+    expect(screen.queryByText(/legal clock|WHAT HAPPENS NOW/)).toBeNull();
+  });
+
+  it('with nothing to track, it asks nothing — and claims nothing about the agency', async () => {
+    routeParams.template = 'rc_timeline_followup';
+    await generate();
+    fireEvent.click(screen.getByRole('button', { name: /Mark this letter as sent/i }));
+    await waitFor(() => expect(h.markSent).toHaveBeenCalled());
+    expect(screen.queryByText(QUESTION)).toBeNull();
+    expect(h.toast).toHaveBeenCalledWith('Marked as sent — saved to your paper trail', 'success');
+    expect(screen.queryByText(/WHAT HAPPENS NOW/)).toBeNull();
   });
 });

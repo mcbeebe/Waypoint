@@ -42,7 +42,7 @@ const trialDays = appConst('FREE_TRIAL_DAYS');
 const pricing = read('pages/pricing.astro');
 /** The drafts-only comparison quotes a competitor's own price; that cell alone is exempt. */
 const COMPETITOR_CELL = '<td>$19/mo ($149/yr)</td>';
-const PAGES = ['pages/pricing.astro', 'pages/product.astro', 'pages/index.astro'];
+const PAGES = ['pages/pricing.astro', 'pages/product.astro', 'pages/index.astro', 'pages/tools/index.astro'];
 
 describe('site pricing matches the app', () => {
   it('the Premium card shows the app’s monthly and yearly prices', () => {
@@ -97,6 +97,13 @@ describe('site pricing matches the app', () => {
 
   it('the free Navigator allowance on the page is the one the app enforces', () => {
     expect(pricing).toContain(`${appConst('FREE_NAVIGATOR_MONTHLY_LIMIT')} AI Navigator messages a month`);
+  });
+
+  it('the /product/ tour states the same free Navigator allowance', () => {
+    const product = read('pages/product.astro');
+    const stated = [...product.matchAll(/(\d+) (?:AI Navigator )?messages a month/g)].map((m) => Number(m[1]));
+    expect(stated.length).toBeGreaterThan(0);
+    for (const n of stated) expect(n).toBe(appConst('FREE_NAVIGATOR_MONTHLY_LIMIT'));
   });
 
   it('the page discloses that Premium renews until cancelled, at the app’s prices', () => {

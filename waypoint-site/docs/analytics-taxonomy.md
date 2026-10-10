@@ -20,7 +20,18 @@ places. GA4 loads only when `VERCEL_ENV === 'production'`, the same gate as
 Plausible — that gate, not the ID, is what keeps preview/branch QA traffic out
 of the property. Google Signals / ad personalization are left off in both the
 GA4 property config and the per-call `gtag('config', ...)` options, matching
-the privacy posture Plausible was chosen for.
+the privacy posture Plausible was chosen for. Since 2026-10 `public/ga-init.js`
+also declares a Consent Mode default of `denied` for every storage type before
+`config`, so gtag.js sets no `_ga`/`_ga_*` cookies and sends cookieless pings
+(a fresh random id per page load). That is what makes the privacy policy's "no
+cookies" promise true; the cost is that GA4 user and session metrics are
+modeled or unattributed, while page views and the events below still arrive.
+Granting `analytics_storage` is a privacy-policy change, not a config tweak.
+Enhanced Measurement is a GA4 property setting that no code here controls:
+its "outbound clicks" option would send `link_url` — the `/start` href,
+`wp_ctx` payload included — to Google. It must stay OFF in the property
+(Admin → Data streams → Enhanced measurement); the owner checks it, the repo
+cannot.
 
 The Measurement ID is **committed in `BaseLayout.astro`**, not held in an env
 var: gtag.js publishes it in the markup of every page, so it is public by

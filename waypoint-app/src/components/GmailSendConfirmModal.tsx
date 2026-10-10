@@ -50,6 +50,15 @@ export interface GmailSendConfirmModalProps {
   blockedReason: string | null;
   /** A failed send comes back here, so the parent is told why. */
   problem: string | null;
+  /**
+   * Asked when the letter is addressed outside the system its template is
+   * written to (letterSystems.ts): is this really that request? Send now
+   * stays off until it is answered — after the send would be too late, and
+   * an unanswered question must never quietly decide a legal deadline.
+   */
+  clockQuestion?: { question: string; explain: string; yes: string; no: string } | null;
+  clockAnswer?: 'yes' | 'no' | null;
+  onClockAnswer?: (answer: 'yes' | 'no') => void;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -68,6 +77,7 @@ const COPY: Record<
     message: string;
     resend: string;
     needSubject: string;
+    needClockAnswer: string;
     back: string;
     send: string;
   }
@@ -84,6 +94,7 @@ const COPY: Record<
     message: 'Message',
     resend: 'You already sent this letter. Sending it again sends a second email.',
     needSubject: 'Add a subject first.',
+    needClockAnswer: 'Answer the question about the request first.',
     back: 'Go back',
     send: 'Send now',
   },
@@ -99,6 +110,7 @@ const COPY: Record<
     message: 'Mensaje',
     resend: 'Ya envió esta carta. Si la envía de nuevo, saldrá un segundo correo.',
     needSubject: 'Primero escriba un asunto.',
+    needClockAnswer: 'Primero responda la pregunta sobre la solicitud.',
     back: 'Volver',
     send: 'Enviar ahora',
   },
@@ -114,6 +126,7 @@ const COPY: Record<
     message: 'Nội dung',
     resend: 'Quý vị đã gửi thư này. Gửi lại sẽ gửi thêm một email nữa.',
     needSubject: 'Hãy nhập tiêu đề trước.',
+    needClockAnswer: 'Hãy trả lời câu hỏi về yêu cầu trước.',
     back: 'Quay lại',
     send: 'Gửi ngay',
   },
@@ -133,12 +146,16 @@ export default function GmailSendConfirmModal({
   sending,
   blockedReason,
   problem,
+  clockQuestion = null,
+  clockAnswer = null,
+  onClockAnswer,
   onCancel,
   onConfirm,
 }: GmailSendConfirmModalProps) {
   const copy = COPY[locale];
   const needsSubject = !subject.trim();
-  const blocked = sending || needsSubject || !!blockedReason;
+  const needsClockAnswer = !!clockQuestion && !clockAnswer;
+  const blocked = sending || needsSubject || !!blockedReason || needsClockAnswer;
   const addressee =
     primary.name && primary.name !== primary.email
       ? `${primary.name} <${primary.email}>`
@@ -206,10 +223,35 @@ export default function GmailSendConfirmModal({
               />
             </View>
 
+            {clockQuestion ? (
+              <View style={styles.clockBox} accessibilityRole="radiogroup" accessibilityLabel={clockQuestion.question}>
+                <Text style={styles.clockQuestion}>{clockQuestion.question}</Text>
+                <Text style={styles.clockExplain}>{clockQuestion.explain}</Text>
+                {(['yes', 'no'] as const).map((answer) => (
+                  <TouchableOpacity
+                    key={answer}
+                    style={[styles.clockOption, clockAnswer === answer && styles.clockOptionOn]}
+                    onPress={() => onClockAnswer?.(answer)}
+                    disabled={sending}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: clockAnswer === answer, disabled: sending }}
+                    // react-native-web reads aria-checked, not accessibilityState.checked.
+                    aria-checked={clockAnswer === answer}
+                    accessibilityLabel={clockQuestion[answer]}
+                  >
+                    <Text style={[styles.clockOptionText, clockAnswer === answer && styles.clockOptionTextOn]}>
+                      {clockAnswer === answer ? '●' : '○'} {clockQuestion[answer]}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
+
             <Text style={styles.messageLabel}>{copy.message}</Text>
             <ScrollView style={styles.preview} contentContainerStyle={styles.previewInner}>
               <Text style={styles.previewText}>{body}</Text>
             </ScrollView>
+
           </ScrollView>
 
           {/* Announced as they appear: a screen-reader user who taps Send now
@@ -217,6 +259,7 @@ export default function GmailSendConfirmModal({
           <View accessibilityLiveRegion="polite">
             {alreadySent ? <Text style={styles.resend}>{copy.resend}</Text> : null}
             {needsSubject ? <Text style={styles.problem}>{copy.needSubject}</Text> : null}
+            {needsClockAnswer ? <Text style={styles.problem}>{copy.needClockAnswer}</Text> : null}
             {blockedReason ? <Text style={styles.problem}>{blockedReason}</Text> : null}
             {problem ? <Text style={styles.problem}>{problem}</Text> : null}
           </View>
@@ -324,6 +367,31 @@ const styles = StyleSheet.create({
   preview: { backgroundColor: brand.paper, borderRadius: radii.md, maxHeight: 220 },
   previewInner: { padding: spacing.md },
   previewText: { fontSize: fonts.sizes.sm, color: brand.ink, lineHeight: 19 },
+  clockBox: {
+    backgroundColor: semantic.warningBg,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    gap: 6,
+  },
+  clockQuestion: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold as '700',
+    color: brand.ink,
+  },
+  clockExplain: { fontSize: fonts.sizes.xs, color: brand.inkSoft, lineHeight: 17 },
+  clockOption: {
+    borderWidth: 1,
+    borderColor: brand.border,
+    backgroundColor: brand.panel,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  clockOptionOn: { borderColor: brand.pine, backgroundColor: brand.pineTint },
+  clockOptionText: { fontSize: fonts.sizes.sm, color: brand.ink },
+  clockOptionTextOn: { fontWeight: fonts.weights.semibold as '600' },
   resend: {
     fontSize: fonts.sizes.xs,
     color: semantic.warning,
