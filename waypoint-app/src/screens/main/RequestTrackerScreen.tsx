@@ -21,6 +21,7 @@ import { useCommunications } from '@/hooks/useCommunications';
 import { buildRequestCase } from '@/lib/requestCase';
 import { localDayISO } from '@/lib/dateOnly';
 import {
+  clockAnchor,
   deadlineFor,
   REQUEST_LEVERS,
   REQUEST_TYPE_LABELS,
@@ -88,6 +89,11 @@ export default function RequestTrackerScreen() {
   const [newType, setNewType] = useState<RequestType>('service_request');
   const [newTitle, setNewTitle] = useState('');
   const [newAskedOn, setNewAskedOn] = useState(localDayISO());
+  // Only for an RC assessment, whose clock runs from intake (W&I §4643).
+  // Empty means "not had it yet": the app then shows the latest legal date.
+  const [newIntakeOn, setNewIntakeOn] = useState('');
+  const [showIntake, setShowIntake] = useState(false);
+  const intakeAnchored = clockAnchor(newType) === 'intake';
   const [newChannel, setNewChannel] = useState('email');
 
   const casesById = React.useMemo(() => {
@@ -115,18 +121,37 @@ export default function RequestTrackerScreen() {
     }
     const today = localDayISO();
     const askedOn = /^\d{4}-\d{2}-\d{2}$/.test(newAskedOn) ? newAskedOn : today;
+    const intakeOn =
+      intakeAnchored && showIntake && /^\d{4}-\d{2}-\d{2}$/.test(newIntakeOn) ? newIntakeOn : null;
+    if (intakeAnchored && showIntake && !intakeOn) {
+      showToast('Pick your intake date, or remove it if you haven’t had intake yet.', 'info');
+      return;
+    }
+    if (intakeOn && intakeOn > today) {
+      showToast('Pick the day your intake happened — not a future date.', 'info');
+      return;
+    }
     const created = await createRequest({
       request_type: newType,
       title: newTitle.trim(),
       requested_on: askedOn,
+      intake_on: intakeOn,
       channel: newChannel,
     });
     if (created) {
       setNewTitle('');
       setNewAskedOn(today);
+      setNewIntakeOn('');
+      setShowIntake(false);
       setAdding(false);
       showToast(
-        askedOn < today
+        intakeAnchored
+          ? intakeOn && !created.intake_on
+            ? 'Tracking it — the intake date couldn’t be saved yet; add it from the case after the next update.'
+            : intakeOn
+            ? 'Tracking it — the 120 days run from your intake date.'
+            : 'Tracking it — add your intake date once you’ve had it.'
+          : askedOn < today
           ? 'Tracking it — the legal clock runs from the day you asked.'
           : 'Tracking it — we watch the clock from here.',
         'success'
@@ -137,7 +162,7 @@ export default function RequestTrackerScreen() {
   };
 
   const renderItem = ({ item }: { item: FamilyRequest }) => {
-    const deadline = deadlineFor(item.request_type, item.requested_on);
+    const deadline = deadlineFor(item.request_type, item.requested_on, undefined, item.intake_on);
     const lever = REQUEST_LEVERS[item.request_type];
     const s = STATUS_STYLE[item.status];
     const open = item.status === 'requested' || item.status === 'in_progress';
@@ -159,6 +184,7 @@ export default function RequestTrackerScreen() {
             <Text style={styles.cardTitle}>{item.title}</Text>
             <Text style={styles.cardMeta}>
               {REQUEST_TYPE_LABELS[item.request_type]} · asked {item.requested_on}
+              {item.intake_on ? ` · intake ${item.intake_on}` : ''}
             </Text>
           </View>
           <Pressable
@@ -191,8 +217,8 @@ export default function RequestTrackerScreen() {
               ]}
             >
               {deadline.overdue
-                ? `⚠ ${-deadline.daysRemaining} days past the legal deadline (${deadline.dueOn})`
-                : `⏱ Due ${deadline.dueOn} · ${deadline.daysRemaining} days left`}{' '}
+                ? `⚠ ${-deadline.daysRemaining} days past ${deadline.basis === 'latest' ? 'the estimated latest date' : 'the legal deadline'} (${deadline.dueOn})`
+                : `⏱ ${deadline.basis === 'latest' ? 'Latest date, est.' : 'Due'} ${deadline.dueOn} · ${deadline.daysRemaining} days left`}{' '}
               · {deadline.citation}
             </Text>
           </View>
@@ -298,6 +324,47 @@ export default function RequestTrackerScreen() {
                 />
               </View>
             </View>
+            {intakeAnchored &&
+              (showIntake ? (
+                <View style={styles.whenRow}>
+                  <Text style={styles.whenLabel}>Intake date</Text>
+                  <View style={{ flex: 1 }}>
+                    <DateInput
+                      value={newIntakeOn}
+                      onChange={setNewIntakeOn}
+                      accessibilityLabel="The date of your intake"
+                      style={styles.input}
+                    />
+                  </View>
+                  <Pressable
+                    onPress={() => {
+                      setNewIntakeOn('');
+                      setShowIntake(false);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove the intake date"
+                  >
+                    <Text style={styles.intakeLink}>Remove</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    // Start from today so the date shown is the date saved.
+                    setNewIntakeOn(localDayISO());
+                    setShowIntake(true);
+                  }}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.intakeLink}>+ Add your intake date, if you’ve had it</Text>
+                </Pressable>
+              ))}
+            {intakeAnchored && (
+              <Text style={styles.backdateNote}>
+                The 120 days start at intake. Until you add it, Waypoint shows an estimate of the
+                latest date the law allows.
+              </Text>
+            )}
             <View style={styles.typeRow}>
               {CHANNEL_OPTIONS.map((c) => (
                 <Pressable
@@ -318,15 +385,23 @@ export default function RequestTrackerScreen() {
             </View>
             {newAskedOn < localDayISO() && (
               <Text style={styles.backdateNote}>
-                Two clocks, both honest: their legal deadline runs from the day you asked; your
-                record shows it was logged today.
+                {intakeAnchored
+                  ? 'Two dates, both honest: you asked on the day above; your record shows it was logged today.'
+                  : 'Two clocks, both honest: their legal deadline runs from the day you asked; your record shows it was logged today.'}
               </Text>
             )}
             <View style={styles.addActions}>
               <Pressable style={[styles.cta, { flex: 1 }]} onPress={add}>
                 <Text style={styles.ctaText}>Track it</Text>
               </Pressable>
-              <Pressable style={styles.cancel} onPress={() => setAdding(false)}>
+              <Pressable
+                style={styles.cancel}
+                onPress={() => {
+                  setNewIntakeOn('');
+                  setShowIntake(false);
+                  setAdding(false);
+                }}
+              >
                 <Text style={styles.cancelText}>Cancel</Text>
               </Pressable>
             </View>
@@ -389,6 +464,7 @@ const styles = StyleSheet.create({
   whenRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   whenLabel: { fontSize: fonts.sizes.sm, color: colors.mid, fontWeight: fonts.weights.semibold },
   backdateNote: { fontSize: fonts.sizes.sm, color: colors.mid, lineHeight: 18 },
+  intakeLink: { fontSize: fonts.sizes.sm, color: colors.teal, fontWeight: fonts.weights.semibold },
   lever: {
     minHeight: 44,
     borderRadius: radii.md,

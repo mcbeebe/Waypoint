@@ -81,9 +81,9 @@ export function deriveHomeInsight(
             `Early Start phải hoàn tất đánh giá của ${name} VÀ tổ chức buổi họp IFSP đầu tiên trong 45 ngày kể từ khi giới thiệu. Ghi lại ngày và Waypoint cùng quý vị canh thời hạn.`
           )
         : L(
-            `${name}'s assessment must be completed within 120 days of applying. Log the date and Waypoint watches the clock with you.`,
-            `La evaluación de ${name} debe completarse dentro de 120 días de la solicitud. Registre la fecha y Waypoint vigila el plazo con usted.`,
-            `Đánh giá của ${name} phải hoàn tất trong 120 ngày kể từ khi nộp đơn. Ghi lại ngày nộp và Waypoint cùng quý vị canh thời hạn.`
+            `${name}'s assessment must be completed within 120 days of intake. Log the dates and Waypoint watches the clock with you.`,
+            `La evaluación de ${name} debe completarse dentro de 120 días desde la entrevista inicial. Registre las fechas y Waypoint vigila el plazo con usted.`,
+            `Đánh giá của ${name} phải hoàn tất trong 120 ngày kể từ buổi tiếp nhận. Ghi lại các ngày và Waypoint cùng quý vị canh thời hạn.`
           ),
       ctaLabel: L('Track the clock →', 'Seguir el plazo →', 'Theo dõi thời hạn →'),
       target: { screen: 'RequestTracker' },

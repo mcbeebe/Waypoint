@@ -71,6 +71,8 @@ export interface PolicyRequest {
   request_type: RequestType;
   title: string;
   requested_on: string;
+  /** RC intake day (066); the assessment clock runs from it when set. */
+  intake_on?: string | null;
   status: 'requested' | 'in_progress' | 'granted' | 'denied' | 'withdrawn';
 }
 /** The minimal action shape (dueOn already normalized to YYYY-MM-DD | null). */
@@ -168,7 +170,7 @@ export function reminderPlan(input: PolicyInput): ReminderSpec[] {
   if (prefs.deadlines) {
     for (const r of requests) {
       if (!REQUEST_OPEN.has(r.status)) continue;
-      const dl = deadlineFor(r.request_type, r.requested_on, now);
+      const dl = deadlineFor(r.request_type, r.requested_on, now, r.intake_on);
       if (!dl) continue;
       const dateLabel = fmtDate(dl.dueOn, locale);
       // Keys carry dl.dueOn so a moved deadline reschedules (see diffReminders).
