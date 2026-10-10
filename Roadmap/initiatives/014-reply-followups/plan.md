@@ -100,8 +100,12 @@ which the API accepts.
 - Pre-fill comes from the replied-to row's `cc`. For a row stored before PR A,
   it falls back to the newest outgoing row on the thread that has a `cc`.
   Otherwise it starts empty.
-- The send passes `cc` (the server already accepts it since #313). The confirm
-  sheet lists To and Cc.
+- The send passes `cc` (the server already accepts it since #313, and stores
+  it since PR A). The composer sends directly, with no separate confirm
+  sheet, so the To and Cc lines sit right above Send.
+- If the thread had more than MAX_CC other people on it, the first five are
+  kept and the note says how many were left off. Otherwise the server would
+  refuse the whole send.
 - **No migration, but it does touch an Edge Function:** the reply insert path
   stores `cc` from PR A.
 

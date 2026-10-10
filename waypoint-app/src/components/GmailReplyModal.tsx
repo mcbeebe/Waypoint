@@ -20,6 +20,8 @@ import { formatThreadForDraft } from '@/lib/replyInbox';
 import { draftGmailReply, gmailSend } from '@/lib/gmail';
 import { analyzeEmail, type EmailAnalysis } from '@/lib/letters';
 import { TONE_OPTIONS, type DraftTone } from '@/lib/lettersCatalog';
+import { addCc, MAX_CC } from '@/lib/letterAddress';
+import { replyAllCc } from '@/lib/replyCc';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 const SEVERITY_COLOR: Record<'high' | 'medium' | 'low', string> = {
@@ -72,6 +74,43 @@ export default function GmailReplyModal({
   const parsedTo = emailOf(lastIncoming?.contact ?? null);
   const to = (toOverride.trim() || parsedTo).trim();
 
+  // Reply all (014 PR B): start with everyone else who was on the email
+  // being answered. Set once per opening — the parent's edits are theirs.
+  const [cc, setCc] = useState<string[]>([]);
+  const [ccInput, setCcInput] = useState('');
+  const [ccError, setCcError] = useState<string | null>(null);
+  const [ccSeed, setCcSeed] = useState<{ fromThread: boolean; leftOff: number }>({ fromThread: false, leftOff: 0 });
+  const seedKey = visible ? `${anchor?.id ?? ''}|${lastIncoming?.id ?? ''}` : '';
+  useEffect(() => {
+    if (!seedKey) return;
+    const seed = replyAllCc(thread, parsedTo);
+    setCc(seed.cc);
+    setCcSeed({ fromThread: seed.fromThread, leftOff: seed.leftOff });
+    setCcInput('');
+    setCcError(null);
+    // Seeded from the thread as it was when the sheet opened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedKey]);
+  // Never copy the addressee, even after the To line was typed over.
+  const ccList = cc.filter((e) => e.toLowerCase() !== to.toLowerCase());
+  const ccPending = ccInput.trim().length > 0;
+  const addToCc = () => {
+    const result = addCc(ccList, ccInput, to || null);
+    if (!result.added) {
+      setCcError(
+        result.reason === 'invalid'
+          ? 'That doesn’t look like one email address.'
+          : result.reason === 'duplicate'
+            ? 'They’re already on this email.'
+            : `You can copy up to ${MAX_CC} people.`
+      );
+      return;
+    }
+    setCc(result.list);
+    setCcInput('');
+    setCcError(null);
+  };
+
   // Auto-run the Email Analyzer on the incoming message (owner decision #4):
   // red flags and deadlines surface before the parent even reads it.
   useEffect(() => {
@@ -102,10 +141,16 @@ export default function GmailReplyModal({
 
   const send = async () => {
     if (!draft.trim() || !anchor || sending) return;
+    // A typed address the parent never added must not be silently dropped.
+    if (ccPending) {
+      setCcError('Tap Add to copy that address, or clear it — it isn’t on the email yet.');
+      return;
+    }
     setSending(true);
     setError(null);
     const result = await gmailSend({
       to,
+      cc: ccList,
       subject: '',
       body: draft.trim(),
       replyToCommunicationId: anchor.id,
@@ -130,6 +175,58 @@ export default function GmailReplyModal({
           <Text style={styles.meta}>
             To: {to || '(no reply address found — add one below)'}
           </Text>
+          <View style={styles.ccRow} testID="reply-cc">
+            <Text style={styles.meta}>Cc:</Text>
+            {ccList.length === 0 && <Text style={styles.meta}>No one</Text>}
+            {ccList.map((email) => (
+              <View key={email} style={styles.ccChip}>
+                <Text style={styles.ccChipText}>{email}</Text>
+                <Pressable
+                  onPress={() => setCc(cc.filter((e) => e !== email))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${email} from Cc`}
+                  hitSlop={8}
+                >
+                  <Text style={styles.ccChipX}>✕</Text>
+                </Pressable>
+              </View>
+            ))}
+          </View>
+          {ccSeed.fromThread && (
+            <Text style={styles.ccNote}>
+              Kept from the thread, like Reply all. Tap ✕ to leave someone off.
+              {ccSeed.leftOff > 0
+                ? ` ${ccSeed.leftOff} more ${ccSeed.leftOff === 1 ? 'person was' : 'people were'} on the thread — a reply can copy up to ${MAX_CC}.`
+                : ''}
+            </Text>
+          )}
+          <View style={styles.ccAddRow}>
+            <TextInput
+              style={[styles.input, styles.ccInput]}
+              placeholder="Copy someone — type an email"
+              placeholderTextColor={colors.mid}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              value={ccInput}
+              onChangeText={(v) => {
+                setCcInput(v);
+                setCcError(null);
+              }}
+              onSubmitEditing={addToCc}
+              accessibilityLabel="Cc email address"
+            />
+            <Pressable
+              style={[styles.ccAddBtn, !ccPending && styles.dim]}
+              disabled={!ccPending}
+              onPress={addToCc}
+              accessibilityRole="button"
+              accessibilityLabel="Add to Cc"
+            >
+              <Text style={styles.ccAddText}>Add</Text>
+            </Pressable>
+          </View>
+          {ccError && <Text style={styles.error}>{ccError}</Text>}
 
           <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
             {analyzing && (
@@ -307,6 +404,31 @@ const styles = StyleSheet.create({
   cancelText: { color: colors.mid, fontSize: fonts.sizes.md, fontWeight: fonts.weights.semibold },
   error: { color: '#DC2626', fontSize: fonts.sizes.sm, marginTop: spacing.sm },
   dim: { opacity: 0.6 },
+  ccRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.xs },
+  ccChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.light,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.sm,
+    minHeight: 28,
+  },
+  ccChipText: { fontSize: fonts.sizes.sm, color: colors.dark },
+  ccChipX: { fontSize: fonts.sizes.sm, color: colors.mid, fontWeight: fonts.weights.bold },
+  ccNote: { fontSize: fonts.sizes.xs, color: colors.mid },
+  ccAddRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  ccInput: { flex: 1, marginTop: 0, paddingVertical: spacing.sm },
+  ccAddBtn: {
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    backgroundColor: colors.teal,
+    justifyContent: 'center',
+  },
+  ccAddText: { color: colors.white, fontWeight: fonts.weights.bold, fontSize: fonts.sizes.sm },
   readBox: {
     marginTop: spacing.sm,
     backgroundColor: semantic.infoBg,
