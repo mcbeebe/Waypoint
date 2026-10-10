@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Early Start Clock</title>
+<!--
+  Design mockup (Roadmap/mockups/early-start-clock). Five frames for tracking
+  the Early Start 45-day clock. Colors are the app's tokens from
+  waypoint-app/src/lib/theme.ts: `colors`/`semantic` for the tracker and case
+  screens, `brand` for Home. The family is fictional (Ana, age 2). The sample
+  "today" is Wed, Oct 28, 2026; frame 4b is Mon, Nov 9.
+-->
+<style>
+  :root {
+    --navy: #1B2A4A; --teal: #0891B2; --dark: #334155; --mid: #64748B;
+    --light: #F8FAFC; --white: #FFFFFF; --border: #E2E8F0;
+    --warn: #B45309; --warn-bg: #FDF3E3; --danger: #DC2626; --danger-bg: #FEE2E2;
+    --paper: #F5F1E9; --ink: #22303A; --ink-soft: #55606B; --ink-faint: #6D6555;
+    --b-border: #EAE3D5; --pine: #0F766E; --pine-tint: #E6F1EF; --urgent: #C2410C; --urgent-tint: #FBEADD;
+    --page: #EEF2F6; --page-ink: #1E293B;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --page: #0F172A; --page-ink: #E2E8F0; }
+  }
+  :root[data-theme="dark"] { --page: #0F172A; --page-ink: #E2E8F0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--page-ink);
+    font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif; }
+  header.top { max-width: 1240px; margin: 0 auto; padding: 28px 16px 8px; }
+  header.top h1 { margin: 0 0 6px; font-size: 24px; }
+  header.top p { margin: 0 0 6px; max-width: 760px; line-height: 1.5; font-size: 14px; }
+  .grid { max-width: 1240px; margin: 0 auto; padding: 16px; display: flex; flex-wrap: wrap; gap: 28px; }
+  figure { margin: 0; width: 360px; max-width: 100%; }
+  figcaption { font-size: 13px; line-height: 1.45; margin-bottom: 10px; }
+  figcaption b { display: block; font-size: 14px; margin-bottom: 2px; }
+  .phone { background: var(--light); border-radius: 26px; border: 8px solid #0F172A; padding: 18px 14px 20px;
+    color: var(--dark); font-size: 15px; display: flex; flex-direction: column; gap: 12px; min-height: 560px; }
+  .phone.home { background: var(--paper); color: var(--ink); }
+  .h-title { font-size: 22px; font-weight: 800; color: var(--navy); }
+  .sub { font-size: 13px; color: var(--mid); line-height: 1.45; }
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .card-title { font-size: 16px; font-weight: 700; color: var(--navy); }
+  .meta { font-size: 13px; color: var(--mid); }
+  .chip { border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .clock { border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 600; }
+  .clock.run { background: var(--warn-bg); color: var(--warn); }
+  .clock.over { background: var(--danger-bg); color: var(--danger); }
+  .link { font-size: 13px; font-weight: 600; color: var(--teal); }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { border: 1px solid var(--border); background: var(--white); border-radius: 999px; padding: 8px 12px; font-size: 13px; font-weight: 600; color: var(--dark); }
+  .pill.on { background: var(--navy); border-color: var(--navy); color: var(--white); }
+  .input { border: 1px solid var(--border); border-radius: 12px; background: var(--white); padding: 11px 12px; font-size: 15px; color: var(--dark); }
+  .input.ph { color: var(--mid); }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .label { font-size: 13px; font-weight: 600; color: var(--mid); }
+  .note { font-size: 13px; color: var(--mid); line-height: 1.4; }
+  .helper { background: var(--pine-tint); color: #115E56; border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.45; }
+  .hint { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.45; }
+  .cta { background: var(--teal); color: var(--white); border-radius: 12px; text-align: center; padding: 13px; font-size: 16px; font-weight: 700; }
+  .btn2 { border: 1px solid var(--border); background: var(--white); border-radius: 12px; text-align: center; padding: 12px; font-weight: 600; color: var(--dark); }
+  .new { outline: 2px dashed var(--coral, #F97316); outline-offset: 3px; border-radius: 8px; }
+  .hcard { background: var(--white); border: 1px solid var(--b-border); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .kicker { font-size: 11.5px; font-weight: 800; letter-spacing: .8px; color: var(--urgent); }
+  .htitle { font-size: 18px; font-weight: 700; color: var(--ink); line-height: 1.3; font-family: Georgia, 'Times New Roman', serif; }
+  .hbody { font-size: 14px; color: var(--ink-soft); line-height: 1.45; }
+  .cite { font-size: 12px; color: var(--ink-faint); }
+  .pine { background: var(--pine); color: var(--white); border-radius: 12px; text-align: center; padding: 12px; font-weight: 700; }
+  .section { font-size: 12px; font-weight: 800; letter-spacing: .8px; color: #475569; }
+  .letter { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px; font-size: 13px; line-height: 1.5; color: var(--dark); }
+  .legend { max-width: 1240px; margin: 0 auto; padding: 4px 16px 40px; font-size: 13px; line-height: 1.55; }
+  .legend h2 { font-size: 16px; margin: 18px 0 6px; }
+  .legend ul { margin: 0; padding-left: 18px; }
+  @media (max-width: 420px) { .phone { min-height: 0; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Track the Early Start 45-day clock: mockups</h1>
+  <p>Ana is 2. The regional center got her Early Start referral on <b>Mon, Sep 21</b>. The law gives the regional center 45 calendar days from the referral to finish the evaluation and assessments <i>and</i> hold the first IFSP meeting, so the due date is <b>Thu, Nov 5</b>. Frames 1–4a use "today" = Wed, Oct 28 (8 days left). Frame 4b uses Mon, Nov 9 (4 days past).</p>
+  <p>Dashed outlines mark what's new. Everything else is the screen as it ships today.</p>
+</header>
+
+<div class="grid">
+
+  <!-- 1. Tracker form -->
+  <figure>
+    <figcaption><b>1 · Tracker: adding the request</b>A new type pill. When it's picked, the date question and the helper text change to match.</figcaption>
+    <div class="phone">
+      <div class="h-title">Requests &amp; clocks</div>
+      <div class="pills">
+        <span class="pill">Service request</span><span class="pill">RC assessment</span><span class="pill">IPP meeting</span>
+        <span class="pill on new">Early Start referral</span><span class="pill">IEP evaluation</span><span class="pill">Other</span>
+      </div>
+      <div class="input">Early Start evaluation</div>
+      <div class="row new"><span class="label">When did the regional center get the referral?</span></div>
+      <div class="input">Sep 21, 2026</div>
+      <div class="helper new">Early Start has <b>45 days</b> from the day the regional center gets the referral to finish Ana's evaluation and hold the first IFSP meeting. If you're not sure of the date, use the day you called or sent it. You can change it later.</div>
+      <div class="pills"><span class="pill on">Phone</span><span class="pill">Email</span><span class="pill">Letter</span><span class="pill">In person</span></div>
+      <div class="row"><div class="cta" style="flex:1">Track it</div><div class="btn2">Cancel</div></div>
+    </div>
+  </figure>
+
+  <!-- 2. Tracker card -->
+  <figure>
+    <figcaption><b>2 · Tracker: the request card</b>The same card as every other clock. Only the wording of the date and the citation change.</figcaption>
+    <div class="phone">
+      <div class="h-title">Requests &amp; clocks</div>
+      <div class="sub">Track every ask — the app watches the legal deadlines and hands you the letter when one slips. Tap a status to update it.</div>
+      <div class="card">
+        <div class="row" style="align-items:flex-start">
+          <div style="flex:1">
+            <div class="card-title">Early Start evaluation</div>
+            <div class="meta new">Early Start referral · referred 2026-09-21</div>
+          </div>
+          <span class="chip" style="background:var(--warn-bg);color:var(--warn)">Requested</span>
+        </div>
+        <div class="clock run new">⏱ Due 2026-11-05 · 8 days left · 34 CFR §303.310 · Early Start</div>
+        <div class="link">🗂 Open the case file — thread, clock &amp; next move ›</div>
+      </div>
+      <div class="card">
+        <div class="row" style="align-items:flex-start">
+          <div style="flex:1"><div class="card-title">Speech therapy</div><div class="meta">Service request · asked 2026-09-02</div></div>
+          <span class="chip" style="background:#E6F7F1;color:#0E7A52">In progress</span>
+        </div>
+        <div class="note">No legal deadline on this one — the lever below creates the pressure.</div>
+      </div>
+    </div>
+  </figure>
+
+  <!-- 3. Home card -->
+  <figure>
+    <figcaption><b>3 · Home: the clock card</b>It appears when 10 days or fewer are left, like every other clock. It states the status of the answer and never blames anyone.</figcaption>
+    <div class="phone home">
+      <div style="font-size:13px;color:var(--ink-faint)">Wednesday, October 28</div>
+      <div style="font-family:Georgia,serif;font-size:24px;color:var(--ink)">Good morning</div>
+      <div class="hcard">
+        <div class="kicker">CLOCK RUNNING — 8 DAYS LEFT</div>
+        <div class="htitle">An answer on Early Start evaluation (Ana) is due Nov 5</div>
+        <div class="hbody new">Because the regional center got the referral on Sep 21 and the law gives them a fixed window.</div>
+        <div class="cite new">34 CFR §303.310 · Early Start</div>
+        <div class="pine">Draft the follow-up</div>
+      </div>
+    </div>
+  </figure>
+
+  <!-- 4a. Case screen, clock running -->
+  <figure>
+    <figcaption><b>4a · Case file, clock running</b>The next step is a friendly written check-in. A short note explains when the clock can pause.</figcaption>
+    <div class="phone">
+      <div class="card">
+        <div class="row"><div class="card-title" style="flex:1;font-size:19px">Early Start evaluation</div><span class="chip" style="background:var(--warn-bg);color:var(--warn)">WAITING</span></div>
+        <div class="meta">Early Start referral · Regional Center</div>
+        <div class="meta new">Referral received <b>Sep 21</b> · logged in Waypoint <b>Oct 28</b></div>
+      </div>
+      <div class="card" style="background:var(--warn-bg);border-color:#F59E0B">
+        <div class="section" style="color:var(--warn)">THE CLOCK</div>
+        <div style="font-weight:700;color:#7C2D12" class="new">Evaluation and first IFSP meeting due Nov 5 · 8 days left</div>
+        <div class="meta" style="color:#92400E">34 CFR §303.310 · counted from the referral date you entered</div>
+      </div>
+      <div class="card new">
+        <div class="section">NEXT MOVE</div>
+        <div style="font-weight:700;color:var(--navy)">Ask in writing when the IFSP meeting is scheduled</div>
+        <div class="note">A short, friendly note puts the date on the record. If you've already had the evaluation, ask for the meeting date and a copy of the report.</div>
+        <div class="cta" style="font-size:15px">✉️ Draft the check-in</div>
+      </div>
+      <div class="note new"><b>When the clock can pause:</b> the 45 days stop only while Ana or your family can't be reached for exceptional reasons the regional center writes down, or while it waits on your consent. If they mention a pause, ask them to put it in writing.</div>
+    </div>
+  </figure>
+
+  <!-- 4b. Case + Home, past due -->
+  <figure>
+    <figcaption><b>4b · Past the date (Nov 9)</b>Home says the answer is past due, without blaming anyone. The next step becomes a follow-up letter that asks, and never demands.</figcaption>
+    <div class="phone home">
+      <div class="hcard">
+        <div class="kicker">DEADLINE PASSED — 4 DAYS AGO</div>
+        <div class="htitle">An answer on Early Start evaluation (Ana) is past due</div>
+        <div class="hbody new">Because the regional center got the referral on Sep 21 and the law gives them a fixed window.</div>
+        <div class="pine">Draft the follow-up</div>
+      </div>
+      <div class="section" style="color:var(--ink-soft)">THE DRAFT (FIRST LINES)</div>
+      <div class="letter new">Dear Service Coordinator,<br><br>I'm writing to follow up on Ana's Early Start referral, which your office received on September 21, 2026. Under 34 CFR §303.310 and Government Code §95020, the evaluation and the first IFSP meeting are due within 45 days of the referral, which was November 5. Could you please let me know the date of Ana's IFSP meeting, or if a delay was recorded, send me a copy of that note?…</div>
+    </div>
+  </figure>
+
+  <!-- 5. Age hint -->
+  <figure>
+    <figcaption><b>5 · Age check</b>Early Start ends at 3. When the child's birthdate shows they're 3 or older, the form points to the right clock. Picking the type is still allowed, so it never blocks. If the age is unknown, no hint shows.</figcaption>
+    <div class="phone">
+      <div class="h-title">Requests &amp; clocks</div>
+      <div class="pills">
+        <span class="pill">Service request</span><span class="pill">RC assessment</span><span class="pill">IPP meeting</span>
+        <span class="pill on">Early Start referral</span><span class="pill">IEP evaluation</span><span class="pill">Other</span>
+      </div>
+      <div class="hint new">Early Start is for children under 3, and Leo is 4. For a Regional Center evaluation at 3 or older, pick <b>RC assessment</b>. That clock is 120 days from intake.</div>
+      <div class="input ph">What did you ask for?</div>
+      <div class="row"><span class="label">When did the regional center get the referral?</span></div>
+      <div class="input">Oct 28, 2026</div>
+    </div>
+  </figure>
+</div>
+
+<section class="legend">
+  <h2>What the wording rests on</h2>
+  <ul>
+    <li><b>45 calendar days from when the regional center receives the referral</b> covers the evaluation, the assessments and the initial IFSP meeting. Sources: <a href="https://www.law.cornell.edu/cfr/text/34/303.310">34 CFR §303.310</a> and <a href="https://california.public.law/codes/government_code_section_95020">Gov. Code §95020(b)</a>. The app already registers §303.310 (verified 2026-08-29).</li>
+    <li><b>The pause</b> applies only for documented exceptional family circumstances, or while consent is outstanding despite repeated documented attempts (§303.310(b)). DDS does not grant formal extensions.</li>
+    <li><b>Tone:</b> the first step is a check-in ("ask"). Once past due, the next step is a follow-up that still asks. Home states the status of the answer and never names an actor who failed (CLAUDE.md tone rule).</li>
+  </ul>
+  <h2>Open questions for you</h2>
+  <ul>
+    <li>Use the date the regional center <i>got</i> the referral (the legal start, frame 1)? The family may only know when they called; the helper text says to use that.</li>
+    <li>Should the age check in frame 5 only warn, as shown, or hide the pill for children 3 and older?</li>
+    <li>Frame 4b's draft cites Government Code §95020. OK to add it to the app's sources registry?</li>
+  </ul>
+</section>
+</body>
+</html>
