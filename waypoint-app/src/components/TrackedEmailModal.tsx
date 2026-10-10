@@ -420,6 +420,8 @@ export default function TrackedEmailModal({
                 placeholderTextColor={brand.inkFaint}
                 value={subject}
                 onChangeText={setSubject}
+                // The gmail function refuses a longer subject (mime.ts MAX_SUBJECT_CHARS).
+                maxLength={250}
                 accessibilityLabel="Email subject"
               />
 

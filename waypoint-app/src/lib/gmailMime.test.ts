@@ -19,6 +19,8 @@ import {
   isEmailAddress,
   MAX_CC,
   encodeHeader,
+  oneHeaderLine,
+  MAX_SUBJECT_CHARS,
   b64,
   b64url,
 } from '../../supabase/functions/_shared/mime';
@@ -28,12 +30,30 @@ function readMessage(raw: string): { headers: Record<string, string>; body: stri
   const split = raw.indexOf('\r\n\r\n');
   if (split === -1) throw new Error('no header/body separator — the body is not a body');
   const headers: Record<string, string> = {};
-  for (const line of raw.slice(0, split).split('\r\n')) {
+  // Unfold first (RFC 5322 \2.2.3): a folded header is one header.
+  for (const line of raw.slice(0, split).replace(/\r\n[ \t]/g, ' ').split('\r\n')) {
     const at = line.indexOf(': ');
     if (at > 0) headers[line.slice(0, at)] = line.slice(at + 2);
   }
   const encoded = raw.slice(split + 4).replace(/\r\n/g, '');
   return { headers, body: Buffer.from(encoded, 'base64').toString('utf8') };
+}
+
+/** The Subject header as sent: its first line and any folded continuations. */
+function subjectLines(raw: string): string[] {
+  const head = raw.slice(0, raw.indexOf('\r\n\r\n')).split('\r\n');
+  const start = head.findIndex((l) => l.startsWith('Subject: '));
+  const out = [head[start]];
+  for (let i = start + 1; i < head.length && /^[ \t]/.test(head[i]); i++) out.push(head[i]);
+  return out;
+}
+
+/** What a mail client shows: unfold, then decode adjacent encoded-words as one run (RFC 2047 §6.2). */
+function decodeHeader(value: string): string {
+  return value
+    .replace(/\r\n[ \t]/g, ' ')
+    .replace(/(=\?UTF-8\?B\?[^?]*\?=)\s+(?==\?UTF-8\?B\?)/gi, '$1')
+    .replace(/=\?UTF-8\?B\?([^?]*)\?=/gi, (_, b64: string) => Buffer.from(b64, 'base64').toString('utf8'));
 }
 
 const BODY = "Hi Lilia,\n\nThank you again for your ongoing support with Teddy's respite services.";
@@ -102,17 +122,93 @@ describe('encodeHeader', () => {
     expect(encodeHeader('IPP Addendum Request')).toBe('IPP Addendum Request');
   });
 
-  it('produces a PADDED encoded-word for the em-dash this app loves', () => {
+  it('produces PADDED encoded-words for the em-dash this app loves', () => {
     // The old version reused the unpadded base64url helper, so any subject
     // with an em-dash — which is most subjects the AI proposes — became a
     // malformed RFC 2047 word.
     const subject = 'IPP Addendum Request — Home-Based Life Skills OT';
-    const encoded = encodeHeader(subject);
-    expect(encoded.startsWith('=?UTF-8?B?')).toBe(true);
-    const payload = encoded.slice('=?UTF-8?B?'.length, -'?='.length);
-    expect(payload.length % 4).toBe(0);
-    expect(payload).not.toMatch(/[-_]/); // standard base64, not base64url
-    expect(Buffer.from(payload, 'base64').toString('utf8')).toBe(subject);
+    const words = encodeHeader(subject).split('\r\n ');
+    for (const word of words) {
+      expect(word.startsWith('=?UTF-8?B?')).toBe(true);
+      const payload = word.slice('=?UTF-8?B?'.length, -'?='.length);
+      expect(payload.length % 4).toBe(0);
+      expect(payload).not.toMatch(/[-_]/); // standard base64, not base64url
+    }
+    expect(decodeHeader(encodeHeader(subject))).toBe(subject);
+  });
+});
+
+/**
+ * RFC 2047 caps an encoded-word at 75 characters, and a line holding them at
+ * 76. One word of any length was sent: Gmail shrugs, but a stricter server — a
+ * Regional Center's, a district's — may show "=?UTF-8?B?…" raw, or garble it.
+ * The subjects this app writes (an em-dash, a child's name, Spanish or
+ * Vietnamese) routinely run past the ~45 bytes one word can hold.
+ */
+describe('a long non-ASCII subject, folded', () => {
+  const SUBJECTS = [
+    'Written recommendation for 1:1 support — Maya Lopez',
+    'Solicitud de reunión del IPP para María José Hernández — evaluación de servicios',
+    'Yêu cầu họp IPP cho con của chúng tôi — đánh giá lại dịch vụ hỗ trợ',
+    `IPP review ${String.fromCodePoint(0x1f389)} ${String.fromCodePoint(0x1f600).repeat(30)}`,
+    `${'x'.repeat(200)} — ${'é'.repeat(100)}`,
+  ];
+
+  for (const subject of SUBJECTS) {
+    it(JSON.stringify(subject.slice(0, 32)), () => {
+      const raw = buildRawMessage({ to: 'a@b.com', subject, body: BODY });
+      const lines = subjectLines(raw);
+      // Every line within 76, every word within 75…
+      for (const line of lines) expect(line.length).toBeLessThanOrEqual(76);
+      const words = lines.join(' ').match(/=\?UTF-8\?B\?[^?]*\?=/g) ?? [];
+      expect(words.length).toBeGreaterThan(1);
+      for (const word of words) {
+        expect(word.length).toBeLessThanOrEqual(75);
+        // …each holding whole characters: it decodes on its own, strictly.
+        const payload = word.slice('=?UTF-8?B?'.length, -'?='.length);
+        expect(() => new TextDecoder('utf-8', { fatal: true }).decode(Buffer.from(payload, 'base64'))).not.toThrow();
+      }
+      // …and a mail client reassembles exactly what was written.
+      expect(decodeHeader(lines.join('\r\n').replace(/^Subject: /, ''))).toBe(subject);
+      expect(readMessage(raw).body).toBe(BODY);
+    });
+  }
+
+  it('leaves a short or plain-ASCII subject on one line', () => {
+    expect(subjectLines(buildRawMessage({ to: 'a@b.com', subject: 'IPP review — Maya', body: BODY }))).toHaveLength(1);
+    const ascii = 'x'.repeat(120);
+    expect(subjectLines(buildRawMessage({ to: 'a@b.com', subject: ascii, body: BODY }))).toEqual([`Subject: ${ascii}`]);
+  });
+
+  it('never lets a line break in the subject start a header of its own', () => {
+    // Plain-ASCII subjects go into the header as written, so this is the path
+    // that could inject — with CRLF, a bare LF or a bare CR alike.
+    for (const subject of ['Hello\r\nBcc: spy@example.com', 'Hello\nBcc: spy@example.com', 'Hello\rBcc: spy@example.com', 'Hé\nBcc: spy@example.com']) {
+      const head = buildRawMessage({ to: 'a@b.com', subject, body: BODY }).split('\r\n\r\n')[0];
+      expect(head.split(/\r\n|\r|\n/).some((line) => /^bcc:/i.test(line))).toBe(false);
+    }
+  });
+
+  it('turns every control or line-separator character into a space, so the header is one line', () => {
+    const controls = [0, 7, 9, 11, 12, 27, 0x7f, 0x85, 0x2028, 0x2029].map((c) => String.fromCharCode(c));
+    for (const c of controls) {
+      expect(oneHeaderLine(`IPP${c}review`)).toBe('IPP review');
+      expect(decodeHeader(encodeHeader(`IPP${c}revisión`))).toBe('IPP revisión');
+    }
+  });
+
+  it('ends a folded word just after a space where it can — never mid-word when a space fits', () => {
+    const subject = 'Solicitud de reunión del IPP para María José Hernández — evaluación de servicios';
+    const words = encodeHeader(subject).split('\r\n ');
+    const texts = words.map((w) => Buffer.from(w.slice(10, -2), 'base64').toString('utf8'));
+    for (const text of texts.slice(0, -1)) expect(text.endsWith(' ')).toBe(true);
+    expect(texts.join('')).toBe(subject);
+  });
+
+  it('keeps even the longest allowed plain subject inside RFC 5322’s 998-character line', () => {
+    const longest = 'x'.repeat(MAX_SUBJECT_CHARS);
+    const [line] = subjectLines(buildRawMessage({ to: 'a@b.com', subject: longest, body: BODY }));
+    expect(line.length).toBeLessThanOrEqual(998);
   });
 });
 

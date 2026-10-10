@@ -57,12 +57,76 @@ function wrap76(value: string): string {
 }
 
 /**
+ * Longest subject the gmail function accepts. Well under RFC 5322's 998-char
+ * line limit (a plain-ASCII subject is sent unfolded), and it bounds how many
+ * encoded-words a non-ASCII one becomes.
+ */
+export const MAX_SUBJECT_CHARS = 250;
+
+/**
+ * A header value as ONE line: every control character (tab, CR, LF, NUL…),
+ * DEL, C1 control, and Unicode line or paragraph separator becomes a space. A
+ * line break in a header value would start a header of the sender's choosing;
+ * the rest have no business in a subject either. The gmail function applies
+ * this on the way IN, so the subject it stores is the subject it sends.
+ */
+export function oneHeaderLine(value: string): string {
+  // eslint-disable-next-line no-control-regex
+  return value.replace(/[\x00-\x1F\x7F-\x9F\u2028\u2029]+/g, ' ').trim();
+}
+
+/**
+ * UTF-8 bytes per encoded-word: 39 bytes is 52 base64 characters, so a word
+ * ("=?UTF-8?B?" + 52 + "?=") is 64 characters — inside RFC 2047's 75 — and
+ * even the first line, "Subject: " + a word, is 73: inside its 76.
+ */
+const WORD_BYTES = 39;
+
+const encodedWord = (text: string) => `=?UTF-8?B?${b64(text)}?=`;
+
+/**
  * A header value, RFC 2047 encoded only when it needs to be. Padded, because
  * an encoded-word is standard base64, not base64url.
+ *
+ * A long non-ASCII value is split into several encoded-words, folded onto
+ * continuation lines (CRLF + space). One word of any length used to be sent:
+ * Gmail is lenient, but a stricter server (a Regional Center's, a district's)
+ * may show the raw "=?UTF-8?B?…" or mangle it — and the subjects this app
+ * writes, with an em-dash and a child's name, routinely run past one word.
+ *
+ * Each word holds whole characters (never half a UTF-8 sequence) and, where
+ * it can, ends just after a space. A conforming decoder drops the whitespace
+ * BETWEEN adjacent words (RFC 2047 §6.2) and shows the original text; one that
+ * wrongly keeps it then shows a double space, not a word broken in two.
  */
 export function encodeHeader(value: string): string {
+  const flat = oneHeaderLine(value);
   // eslint-disable-next-line no-control-regex
-  return /[^\x00-\x7F]/.test(value) ? `=?UTF-8?B?${b64(value)}?=` : value;
+  if (!/[^\x00-\x7F]/.test(flat)) return flat;
+
+  const encoder = new TextEncoder();
+  const bytes = (text: string) => encoder.encode(text).length;
+  const words: string[] = [];
+  let chunk = '';
+  for (const char of flat) {
+    // Iterating a string yields whole code points.
+    if (chunk && bytes(chunk) + bytes(char) > WORD_BYTES) {
+      const cut = chunk.lastIndexOf(' ') + 1;
+      const tail = cut > 0 ? chunk.slice(cut) : '';
+      // Break after the last space — unless what follows it would not fit
+      // the next word either; then break between characters.
+      if (cut > 0 && bytes(tail) + bytes(char) <= WORD_BYTES) {
+        words.push(encodedWord(chunk.slice(0, cut)));
+        chunk = tail;
+      } else {
+        words.push(encodedWord(chunk));
+        chunk = '';
+      }
+    }
+    chunk += char;
+  }
+  if (chunk) words.push(encodedWord(chunk));
+  return words.join('\r\n ');
 }
 
 export interface RawMessageInput {
