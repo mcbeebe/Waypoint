@@ -43,9 +43,15 @@ beforeEach(() => {
   h.send.mockClear();
 });
 
+function write(text = 'Any afternoon works.') {
+  fireEvent.change(screen.getByPlaceholderText(/Your reply/), { target: { value: text } });
+}
+
+/** Write, review, and confirm — the two-step send. */
 async function writeAndSend() {
-  fireEvent.change(screen.getByPlaceholderText(/Your reply/), { target: { value: 'Any afternoon works.' } });
-  fireEvent.click(screen.getByLabelText('Send the reply with Gmail'));
+  write();
+  fireEvent.click(screen.getByLabelText('Review and send the reply with Gmail'));
+  fireEvent.click(await screen.findByLabelText('Send now'));
 }
 
 describe('GmailReplyModal — reply all (014 PR B)', () => {
@@ -53,8 +59,15 @@ describe('GmailReplyModal — reply all (014 PR B)', () => {
     render(<GmailReplyModal {...props} />);
     expect(screen.getByText('sam@home.net')).toBeTruthy();
     expect(screen.getByText('advocate@example.org')).toBeTruthy();
-    expect(screen.getByText(/Kept from the thread, like Reply all/)).toBeTruthy();
-    await writeAndSend();
+    expect(screen.getByText(/Copied as on the email you’re answering, like Reply all/)).toBeTruthy();
+    write();
+    fireEvent.click(screen.getByLabelText('Review and send the reply with Gmail'));
+    // The last look names who it goes to and who is copied, before anything is sent.
+    const review = screen.getByTestId('reply-review');
+    expect(review.textContent).toContain('To: ana@rc.org');
+    expect(review.textContent).toContain('Cc: sam@home.net, advocate@example.org');
+    expect(h.send).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByLabelText('Send now'));
     await waitFor(() => expect(h.send).toHaveBeenCalledTimes(1));
     expect(h.send.mock.calls[0][0]).toMatchObject({
       to: 'ana@rc.org',
@@ -67,12 +80,14 @@ describe('GmailReplyModal — reply all (014 PR B)', () => {
     render(<GmailReplyModal {...props} />);
     fireEvent.click(screen.getByLabelText('Remove advocate@example.org from Cc'));
     fireEvent.change(screen.getByLabelText('Cc email address'), { target: { value: 'grandma@example.org' } });
-    await writeAndSend();
+    write();
+    fireEvent.click(screen.getByLabelText('Review and send the reply with Gmail'));
     expect(screen.getByText(/Tap Add to copy that address/)).toBeTruthy();
-    expect(h.send).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('reply-review')).toBeNull();
 
     fireEvent.click(screen.getByLabelText('Add to Cc'));
-    fireEvent.click(screen.getByLabelText('Send the reply with Gmail'));
+    fireEvent.click(screen.getByLabelText('Review and send the reply with Gmail'));
+    fireEvent.click(await screen.findByLabelText('Send now'));
     await waitFor(() => expect(h.send).toHaveBeenCalledTimes(1));
     expect(h.send.mock.calls[0][0]).toMatchObject({ cc: ['sam@home.net', 'grandma@example.org'] });
   });
@@ -87,9 +102,47 @@ describe('GmailReplyModal — reply all (014 PR B)', () => {
     expect(screen.getByText('They’re already on this email.')).toBeTruthy();
   });
 
-  it('a thread with nobody recorded starts with no one copied and no "kept" note', () => {
-    render(<GmailReplyModal {...props} thread={[comm({ id: 'o1' }), comm({ id: 'r1', direction: 'incoming', gmail_message_id: 'm2', sent_at: '2026-10-08T10:00:00Z' })]} />);
+  it('a sender who wrote to the family alone is answered alone, even if the thread once had others', () => {
+    const t = [
+      comm({ id: 'o1', cc: ['sam@home.net'] }),
+      comm({ id: 'r0', direction: 'incoming', gmail_message_id: 'm2', sent_at: '2026-10-05T10:00:00Z', cc: ['supervisor@rc.org'] }),
+      comm({ id: 'r1', direction: 'incoming', gmail_message_id: 'm3', sent_at: '2026-10-08T10:00:00Z', cc: null }),
+    ];
+    render(<GmailReplyModal {...props} thread={t} />);
     expect(screen.getByText('No one')).toBeTruthy();
-    expect(screen.queryByText(/Kept from the thread/)).toBeNull();
+    expect(screen.queryByText(/like Reply all/)).toBeNull();
+  });
+
+  it('past five, everyone else is named and can be swapped in (adversarial review)', () => {
+    const many = Array.from({ length: 7 }, (_, i) => `staff${i}@rc.org`);
+    const t = [comm({ id: 'o1' }), comm({ id: 'r1', direction: 'incoming', gmail_message_id: 'm2', sent_at: '2026-10-08T10:00:00Z', cc: many })];
+    render(<GmailReplyModal {...props} thread={t} />);
+    expect(screen.getByText(/Also on that email, not copied/)).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Copy staff6@rc.org too'));
+    expect(screen.getByText('You can copy up to 5 people — remove someone first.')).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Remove staff0@rc.org from Cc'));
+    fireEvent.click(screen.getByLabelText('Copy staff6@rc.org too'));
+    expect(screen.getByLabelText('Remove staff6@rc.org from Cc')).toBeTruthy();
+  });
+
+  it('an address the send cannot carry is named, and Enter on an empty Cc box says nothing', () => {
+    const t = [comm({ id: 'o1' }), comm({ id: 'r1', direction: 'incoming', gmail_message_id: 'm2', sent_at: '2026-10-08T10:00:00Z', cc: ['josé@escuela.org'] })];
+    render(<GmailReplyModal {...props} thread={t} />);
+    expect(screen.getByText(/josé@escuela\.org\. Waypoint can’t send to that address/)).toBeTruthy();
+    fireEvent.keyDown(screen.getByLabelText('Cc email address'), { key: 'Enter', code: 'Enter' });
+    expect(screen.queryByText('That doesn’t look like one email address.')).toBeNull();
+  });
+
+  it('a different thread starts clean — no chips or draft carried over', () => {
+    const { rerender } = render(<GmailReplyModal {...props} />);
+    write('Reply for thread one');
+    rerender(<GmailReplyModal {...props} visible={false} />);
+    const other = [
+      comm({ id: 'o9', gmail_thread_id: 't9', gmail_message_id: 'm9' }),
+      comm({ id: 'r9', direction: 'incoming', gmail_thread_id: 't9', gmail_message_id: 'm10', sent_at: '2026-10-08T10:00:00Z' }),
+    ];
+    rerender(<GmailReplyModal {...props} thread={other} visible />);
+    expect(screen.queryByText('sam@home.net')).toBeNull();
+    expect((screen.getByPlaceholderText(/Your reply/) as HTMLTextAreaElement).value).toBe('');
   });
 });

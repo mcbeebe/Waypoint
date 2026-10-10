@@ -21,7 +21,7 @@ import { draftGmailReply, gmailSend } from '@/lib/gmail';
 import { analyzeEmail, type EmailAnalysis } from '@/lib/letters';
 import { TONE_OPTIONS, type DraftTone } from '@/lib/lettersCatalog';
 import { addCc, MAX_CC } from '@/lib/letterAddress';
-import { replyAllCc } from '@/lib/replyCc';
+import { replyAllCc, type ReplyAllCc } from '@/lib/replyCc';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
 
 const SEVERITY_COLOR: Record<'high' | 'medium' | 'low', string> = {
@@ -75,40 +75,61 @@ export default function GmailReplyModal({
   const to = (toOverride.trim() || parsedTo).trim();
 
   // Reply all (014 PR B): start with everyone else who was on the email
-  // being answered. Set once per opening — the parent's edits are theirs.
+  // being answered. Seeded once per opening — the parent's edits are theirs.
   const [cc, setCc] = useState<string[]>([]);
   const [ccInput, setCcInput] = useState('');
   const [ccError, setCcError] = useState<string | null>(null);
-  const [ccSeed, setCcSeed] = useState<{ fromThread: boolean; leftOff: number }>({ fromThread: false, leftOff: 0 });
+  const [seed, setSeed] = useState<ReplyAllCc>({ cc: [], more: [], unsendable: [] });
+  const [reviewing, setReviewing] = useState(false);
+  const lastAnchorId = React.useRef<string | null>(null);
   const seedKey = visible ? `${anchor?.id ?? ''}|${lastIncoming?.id ?? ''}` : '';
   useEffect(() => {
-    if (!seedKey) return;
-    const seed = replyAllCc(thread, parsedTo);
-    setCc(seed.cc);
-    setCcSeed({ fromThread: seed.fromThread, leftOff: seed.leftOff });
+    if (!seedKey) {
+      // Closed: nothing from this thread may flash on the next one.
+      setCc([]);
+      setSeed({ cc: [], more: [], unsendable: [] });
+      setReviewing(false);
+      return;
+    }
+    const next = replyAllCc(lastIncoming, thread, parsedTo);
+    setCc(next.cc);
+    setSeed(next);
     setCcInput('');
     setCcError(null);
+    setReviewing(false);
+    // A different thread starts a fresh reply; reopening the same one keeps the draft.
+    if (lastAnchorId.current !== (anchor?.id ?? null)) {
+      setDraft('');
+      setGuidance('');
+      setToOverride('');
+      lastAnchorId.current = anchor?.id ?? null;
+    }
     // Seeded from the thread as it was when the sheet opened.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedKey]);
   // Never copy the addressee, even after the To line was typed over.
   const ccList = cc.filter((e) => e.toLowerCase() !== to.toLowerCase());
   const ccPending = ccInput.trim().length > 0;
-  const addToCc = () => {
-    const result = addCc(ccList, ccInput, to || null);
+  const notCopied = seed.more.filter((e) => !ccList.some((c) => c.toLowerCase() === e.toLowerCase()));
+  const tryAdd = (value: string): boolean => {
+    const result = addCc(ccList, value, to || null);
     if (!result.added) {
       setCcError(
         result.reason === 'invalid'
           ? 'That doesn’t look like one email address.'
           : result.reason === 'duplicate'
             ? 'They’re already on this email.'
-            : `You can copy up to ${MAX_CC} people.`
+            : `You can copy up to ${MAX_CC} people — remove someone first.`
       );
-      return;
+      return false;
     }
     setCc(result.list);
-    setCcInput('');
     setCcError(null);
+    return true;
+  };
+  const addTyped = () => {
+    if (!ccPending) return;
+    if (tryAdd(ccInput)) setCcInput('');
   };
 
   // Auto-run the Email Analyzer on the incoming message (owner decision #4):
@@ -139,13 +160,21 @@ export default function GmailReplyModal({
     else setError(result.error ?? "Couldn't draft the reply — please try again.");
   };
 
-  const send = async () => {
-    if (!draft.trim() || !anchor || sending) return;
+  // The last look before anything goes out (the plan's confirm step): who it
+  // goes to, who is copied, and the words — then Send now.
+  const review = () => {
+    if (!draft.trim() || !anchor || !to || sending) return;
     // A typed address the parent never added must not be silently dropped.
     if (ccPending) {
       setCcError('Tap Add to copy that address, or clear it — it isn’t on the email yet.');
       return;
     }
+    setError(null);
+    setReviewing(true);
+  };
+
+  const send = async () => {
+    if (!draft.trim() || !anchor || sending) return;
     setSending(true);
     setError(null);
     const result = await gmailSend({
@@ -159,9 +188,11 @@ export default function GmailReplyModal({
     if (result.ok) {
       setDraft('');
       setGuidance('');
+      setReviewing(false);
       onSent();
       onClose();
     } else {
+      setReviewing(false);
       setError(result.error ?? "Couldn't send — please try again.");
     }
   };
@@ -182,22 +213,44 @@ export default function GmailReplyModal({
               <View key={email} style={styles.ccChip}>
                 <Text style={styles.ccChipText}>{email}</Text>
                 <Pressable
+                  style={styles.ccChipRemove}
                   onPress={() => setCc(cc.filter((e) => e !== email))}
                   accessibilityRole="button"
                   accessibilityLabel={`Remove ${email} from Cc`}
-                  hitSlop={8}
                 >
                   <Text style={styles.ccChipX}>✕</Text>
                 </Pressable>
               </View>
             ))}
           </View>
-          {ccSeed.fromThread && (
+          {seed.cc.length > 0 && ccList.length > 0 && (
             <Text style={styles.ccNote}>
-              Kept from the thread, like Reply all. Tap ✕ to leave someone off.
-              {ccSeed.leftOff > 0
-                ? ` ${ccSeed.leftOff} more ${ccSeed.leftOff === 1 ? 'person was' : 'people were'} on the thread — a reply can copy up to ${MAX_CC}.`
-                : ''}
+              Copied as on the email you’re answering, like Reply all. Remove anyone you don’t want on it.
+            </Text>
+          )}
+          {notCopied.length > 0 && (
+            <View style={styles.ccRow}>
+              <Text style={styles.ccNote}>
+                {`Also on that email, not copied (a reply can copy up to ${MAX_CC}):`}
+              </Text>
+              {notCopied.map((email) => (
+                <Pressable
+                  key={email}
+                  style={styles.ccSuggest}
+                  onPress={() => tryAdd(email)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Copy ${email} too`}
+                >
+                  <Text style={styles.ccChipText}>{`+ ${email}`}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+          {seed.unsendable.length > 0 && (
+            <Text style={styles.ccNote}>
+              {`Also on that email: ${seed.unsendable.join(', ')}. Waypoint can’t send to ${
+                seed.unsendable.length === 1 ? 'that address' : 'those addresses'
+              } — copy them from Gmail if they should be on it.`}
             </Text>
           )}
           <View style={styles.ccAddRow}>
@@ -213,20 +266,24 @@ export default function GmailReplyModal({
                 setCcInput(v);
                 setCcError(null);
               }}
-              onSubmitEditing={addToCc}
+              onSubmitEditing={addTyped}
               accessibilityLabel="Cc email address"
             />
             <Pressable
               style={[styles.ccAddBtn, !ccPending && styles.dim]}
               disabled={!ccPending}
-              onPress={addToCc}
+              onPress={addTyped}
               accessibilityRole="button"
               accessibilityLabel="Add to Cc"
             >
               <Text style={styles.ccAddText}>Add</Text>
             </Pressable>
           </View>
-          {ccError && <Text style={styles.error}>{ccError}</Text>}
+          {ccError && (
+            <Text style={styles.error} accessibilityLiveRegion="polite" accessibilityRole="alert">
+              {ccError}
+            </Text>
+          )}
 
           <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
             {analyzing && (
@@ -319,23 +376,52 @@ export default function GmailReplyModal({
             {error && <Text style={styles.error}>{error}</Text>}
           </ScrollView>
 
-          <Pressable
-            style={({ pressed }) => [
-              styles.sendBtn,
-              (!draft.trim() || !to || sending) && styles.sendBtnDisabled,
-              pressed && styles.dim,
-            ]}
-            disabled={!draft.trim() || !to || sending}
-            onPress={send}
-            accessibilityRole="button"
-            accessibilityLabel="Send the reply with Gmail"
-          >
-            {sending ? (
-              <ActivityIndicator size="small" color={colors.white} />
-            ) : (
-              <Text style={styles.sendBtnText}>Send with Gmail →</Text>
-            )}
-          </Pressable>
+          {reviewing ? (
+            <View style={styles.reviewBox} testID="reply-review">
+              <Text style={styles.reviewTitle}>Send this reply now?</Text>
+              <Text style={styles.reviewLine}>{`To: ${to}`}</Text>
+              <Text style={styles.reviewLine}>{`Cc: ${ccList.length > 0 ? ccList.join(', ') : 'No one'}`}</Text>
+              <Text style={styles.reviewBody} numberOfLines={4}>
+                {draft.trim()}
+              </Text>
+              <Pressable
+                style={({ pressed }) => [styles.sendBtn, sending && styles.sendBtnDisabled, pressed && styles.dim]}
+                disabled={sending}
+                onPress={send}
+                accessibilityRole="button"
+                accessibilityLabel="Send now"
+              >
+                {sending ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <Text style={styles.sendBtnText}>Send now</Text>
+                )}
+              </Pressable>
+              <Pressable
+                style={styles.cancel}
+                onPress={() => setReviewing(false)}
+                disabled={sending}
+                accessibilityRole="button"
+                accessibilityLabel="Back to edit the reply"
+              >
+                <Text style={styles.cancelText}>← Back to edit</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              style={({ pressed }) => [
+                styles.sendBtn,
+                (!draft.trim() || !to || sending) && styles.sendBtnDisabled,
+                pressed && styles.dim,
+              ]}
+              disabled={!draft.trim() || !to || sending}
+              onPress={review}
+              accessibilityRole="button"
+              accessibilityLabel="Review and send the reply with Gmail"
+            >
+              <Text style={styles.sendBtnText}>Review and send →</Text>
+            </Pressable>
+          )}
           <Pressable style={styles.cancel} onPress={onClose}>
             <Text style={styles.cancelText}>Cancel</Text>
           </Pressable>
@@ -408,17 +494,35 @@ const styles = StyleSheet.create({
   ccChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
     backgroundColor: colors.light,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radii.full,
-    paddingHorizontal: spacing.sm,
-    minHeight: 28,
+    paddingLeft: spacing.sm,
   },
+  // 44pt: the platform minimum for a tap target.
+  ccChipRemove: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
   ccChipText: { fontSize: fonts.sizes.sm, color: colors.dark },
-  ccChipX: { fontSize: fonts.sizes.sm, color: colors.mid, fontWeight: fonts.weights.bold },
-  ccNote: { fontSize: fonts.sizes.xs, color: colors.mid },
+  ccChipX: { fontSize: fonts.sizes.md, color: colors.mid, fontWeight: fonts.weights.bold },
+  ccNote: { fontSize: fonts.sizes.sm, color: colors.dark, lineHeight: 19 },
+  ccSuggest: {
+    borderWidth: 1,
+    borderColor: colors.teal,
+    borderRadius: radii.full,
+    paddingHorizontal: spacing.md,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  reviewBox: {
+    borderWidth: 1.5,
+    borderColor: colors.teal,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    gap: spacing.xs,
+  },
+  reviewTitle: { fontSize: fonts.sizes.lg, fontWeight: fonts.weights.bold, color: colors.navy },
+  reviewLine: { fontSize: fonts.sizes.md, color: colors.dark },
+  reviewBody: { fontSize: fonts.sizes.sm, color: colors.mid, marginBottom: spacing.xs },
   ccAddRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   ccInput: { flex: 1, marginTop: 0, paddingVertical: spacing.sm },
   ccAddBtn: {

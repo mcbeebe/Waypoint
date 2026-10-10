@@ -28,37 +28,45 @@ function comm(over: Partial<Communication>): Communication {
 }
 
 describe('replyAllCc', () => {
-  it('keeps everyone else who was on the newest reply, never the addressee', () => {
-    const r = replyAllCc(
-      [
-        comm({ direction: 'outgoing', cc: ['old@x.org'], sent_at: '2026-10-01T10:00:00Z' }),
-        comm({ cc: ['sam@home.net', 'ana@rc.org', 'supervisor@rc.org'] }),
-      ],
-      'Ana@RC.org'
-    );
-    expect(r).toEqual({ cc: ['sam@home.net', 'supervisor@rc.org'], leftOff: 0, fromThread: true });
+  it('keeps everyone else who was on the email being answered, never the addressee', () => {
+    const answering = comm({ cc: ['sam@home.net', 'ana@rc.org', 'supervisor@rc.org'] });
+    expect(replyAllCc(answering, [answering], 'Ana@RC.org')).toEqual({
+      cc: ['sam@home.net', 'supervisor@rc.org'],
+      more: [],
+      unsendable: [],
+    });
   });
 
-  it('a thread recorded before 064 falls back to the family’s newest letter’s Cc', () => {
-    const r = replyAllCc(
-      [
-        comm({ direction: 'outgoing', cc: ['first@x.org'], sent_at: '2026-10-01T10:00:00Z' }),
-        comm({ direction: 'outgoing', cc: ['sam@home.net'], sent_at: '2026-10-05T10:00:00Z' }),
-        comm({}),
-      ],
-      'ana@rc.org'
-    );
-    expect(r.cc).toEqual(['sam@home.net']);
+  it('a sender who answered the family alone is answered alone — earlier lists never come back (adversarial review)', () => {
+    const earlier = comm({ cc: ['advocate@x.org', 'supervisor@rc.org'], sent_at: '2026-10-01T10:00:00Z' });
+    const ourLetter = comm({ direction: 'outgoing', cc: ['ex-advocate@x.org'], sent_at: '2026-10-02T10:00:00Z' });
+    const privateReply = comm({ cc: null });
+    expect(replyAllCc(privateReply, [earlier, ourLetter, privateReply], 'ana@rc.org').cc).toEqual([]);
+    expect(replyAllCc(undefined, [earlier], 'ana@rc.org').cc).toEqual([]);
   });
 
-  it('starts empty when nobody was copied or nothing was recorded', () => {
-    expect(replyAllCc([comm({})], 'ana@rc.org')).toEqual({ cc: [], leftOff: 0, fromThread: false });
+  it('past five, the family’s own earlier Cc comes first and everyone else is named, not lost', () => {
+    const colleagues = Array.from({ length: 6 }, (_, i) => `staff${i}@rc.org`);
+    const ourLetter = comm({ direction: 'outgoing', cc: ['advocate@example.org'] });
+    const answering = comm({ cc: [...colleagues, 'advocate@example.org'] });
+    const r = replyAllCc(answering, [ourLetter, answering], 'ana@rc.org');
+    expect(r.cc[0]).toBe('advocate@example.org');
+    expect(r.cc).toHaveLength(5);
+    expect(r.more).toEqual(['staff4@rc.org', 'staff5@rc.org']);
   });
 
-  it('copies at most five and says how many were left off; drops what the server would refuse', () => {
-    const many = Array.from({ length: 7 }, (_, i) => `p${i}@list.org`);
-    const r = replyAllCc([comm({ cc: ['not an address', ...many] })], 'ana@rc.org');
-    expect(r.cc).toEqual(many.slice(0, 5));
-    expect(r.leftOff).toBe(2);
+  it('a draft that never went out does not count as someone the family copied', () => {
+    const draft = comm({ direction: 'outgoing', status: 'draft', cc: ['p6@x.org'] });
+    const answering = comm({ cc: ['p1@x.org', 'p2@x.org', 'p3@x.org', 'p4@x.org', 'p5@x.org', 'p6@x.org'] });
+    expect(replyAllCc(answering, [draft, answering], 'ana@rc.org').more).toEqual(['p6@x.org']);
+  });
+
+  it('an address the send cannot carry is named, never dropped silently', () => {
+    const answering = comm({ cc: ['josé@escuela.org', 'sam@home.net'] });
+    expect(replyAllCc(answering, [answering], 'ana@rc.org')).toEqual({
+      cc: ['sam@home.net'],
+      more: [],
+      unsendable: ['josé@escuela.org'],
+    });
   });
 });
