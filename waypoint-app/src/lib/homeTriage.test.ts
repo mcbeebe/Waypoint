@@ -780,7 +780,15 @@ describe('"✓ Nothing to answer" on the reply card (065, initiative 014 PR C)',
     }
     const en = triageHome(base({ communications: [inbound({ settled_at: null })] })).queue.find((i) => i.cls === 'reply');
     expect(en?.settle?.label).toBe('✓ Nothing to answer');
-    expect(en?.settle?.note).toMatch(/deadline on the request keeps running/);
+    // No request owns this reply, so no deadline is promised (PR C review).
+    expect(en?.settle?.note).toBe('Takes this reply off Home. It stays in your Paper Trail.');
+  });
+
+  it('promises the deadline keeps running only when a request owns the reply', () => {
+    const owned = req({ request_type: 'ipp_meeting', requested_on: '2026-08-20' });
+    const reply = inbound({ settled_at: null, request_id: owned.id });
+    const item = triageHome(base({ requests: [owned], communications: [reply] })).queue.find((i) => i.cls === 'reply');
+    expect(item?.settle?.note).toBe('Takes this reply off Home. Any deadline on the request keeps running.');
   });
 
   it('is not offered on a database without 065 (no settled_at key)', () => {

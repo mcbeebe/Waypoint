@@ -349,16 +349,19 @@ export function SettledNotice({
   onUndo: () => void;
 }) {
   const labels = cardLabels(locale);
+  const { scale } = useTextScale();
   return (
     <View style={styles.settledRow} accessibilityLiveRegion="polite" testID="settled-notice">
-      <Text style={styles.settledRowText}>{labels.settled(title)}</Text>
+      <Text style={[styles.settledRowText, { fontSize: Math.round(14 * scale), lineHeight: Math.round(19 * scale) }]}>
+        {labels.settled(title)}
+      </Text>
       <Pressable
         style={({ pressed }) => [styles.settledUndo, pressed && styles.dim]}
         onPress={onUndo}
         accessibilityRole="button"
         accessibilityLabel={`${labels.undo}: ${title}`}
       >
-        <Text style={styles.undoText}>{labels.undo}</Text>
+        <Text style={[styles.undoText, { fontSize: Math.round(14 * scale) }]}>{labels.undo}</Text>
       </Pressable>
     </View>
   );
@@ -474,7 +477,7 @@ const styles = StyleSheet.create({
     paddingLeft: spacing.md,
     marginTop: spacing.sm,
   },
-  settledRowText: { flex: 1, fontSize: fonts.sizes.sm, color: brand.ink, lineHeight: 19, paddingVertical: spacing.sm },
+  settledRowText: { flex: 1, color: brand.ink, paddingVertical: spacing.sm },
   settledUndo: { minHeight: 44, minWidth: 44, paddingHorizontal: spacing.md, justifyContent: 'center' },
   answers: { gap: spacing.sm },
   answer: {

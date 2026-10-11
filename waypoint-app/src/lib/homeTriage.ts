@@ -713,11 +713,18 @@ function replyItem(
           settle: {
             replyId: reply.id,
             label: L('✓ Nothing to answer', '✓ No necesita respuesta', '✓ Không cần trả lời'),
-            note: L(
-              'Takes this reply off Home. Any deadline on the request keeps running.',
-              'Quita esta respuesta de Inicio. Cualquier plazo de la solicitud sigue corriendo.',
-              'Gỡ thư trả lời này khỏi Trang chủ. Mọi thời hạn của yêu cầu vẫn tiếp tục.'
-            ),
+            // The deadline promise only where there is a request to keep it.
+            note: owner
+              ? L(
+                  'Takes this reply off Home. Any deadline on the request keeps running.',
+                  'Quita esta respuesta de Inicio. Cualquier plazo de la solicitud sigue corriendo.',
+                  'Gỡ thư trả lời này khỏi Trang chủ. Mọi thời hạn của yêu cầu vẫn tiếp tục.'
+                )
+              : L(
+                  'Takes this reply off Home. It stays in your Paper Trail.',
+                  'Quita esta respuesta de Inicio. Sigue en su registro de comunicaciones.',
+                  'Gỡ thư trả lời này khỏi Trang chủ. Thư vẫn nằm trong nhật ký liên lạc của quý vị.'
+                ),
           },
         }
       : {}),

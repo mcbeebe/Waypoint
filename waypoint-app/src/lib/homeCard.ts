@@ -242,6 +242,8 @@ export interface CardLabels {
   settled: (title: string) => string;
   /** The write did not land — the reply stays. */
   settleFailed: string;
+  /** Undo did not land — the reply stays settled, and Undo stays offered. */
+  undoFailed: string;
 }
 
 export function cardLabels(locale: FunnelLocale = 'en'): CardLabels {
@@ -264,13 +266,18 @@ export function cardLabels(locale: FunnelLocale = 'en'): CardLabels {
     settled: (title) =>
       L(
         `✓ Marked as needing no answer: ${title}. It stays in your Paper Trail.`,
-        `✓ Marcada como sin necesidad de respuesta: ${title}. Sigue en su registro.`,
-        `✓ Đã đánh dấu không cần trả lời: ${title}. Thư vẫn nằm trong hồ sơ của quý vị.`
+        `✓ Marcada como sin necesidad de respuesta: ${title}. Sigue en su registro de comunicaciones.`,
+        `✓ Đã đánh dấu không cần trả lời: ${title}. Thư vẫn nằm trong nhật ký liên lạc của quý vị.`
       ),
     settleFailed: L(
       'Couldn’t save that — the reply is still here. Please try again.',
       'No se pudo guardar — la respuesta sigue aquí. Inténtelo de nuevo.',
       'Không lưu được — thư trả lời vẫn ở đây. Vui lòng thử lại.'
+    ),
+    undoFailed: L(
+      'Couldn’t undo that just now — tap Undo again, or open the reply in your Paper Trail.',
+      'No se pudo deshacer ahora — toque Deshacer otra vez, o abra la respuesta en su registro de comunicaciones.',
+      'Chưa hoàn tác được — bấm Hoàn tác lần nữa, hoặc mở thư trả lời trong nhật ký liên lạc của quý vị.'
     ),
   };
 }

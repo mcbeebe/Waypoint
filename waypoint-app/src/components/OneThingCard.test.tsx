@@ -123,7 +123,7 @@ describe('"✓ Nothing to answer" on a reply card (065, initiative 014 PR C)', (
     card({ communications: [reply as any] }, { onSettle });
     const btn = screen.getByRole('button', { name: /^Nothing to answer\. Takes this reply off Home/ });
     expect(screen.getByText('✓ Nothing to answer')).toBeInTheDocument();
-    expect(screen.getByText(/Any deadline on the request keeps running/)).toBeInTheDocument();
+    expect(screen.getByText('Takes this reply off Home. It stays in your Paper Trail.')).toBeInTheDocument();
     fireEvent.click(btn);
     expect(onSettle).toHaveBeenCalledWith(expect.objectContaining({ settle: expect.objectContaining({ replyId: 'rep1' }) }));
   });

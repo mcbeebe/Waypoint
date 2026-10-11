@@ -416,7 +416,8 @@ export default function CommunicationLogScreen() {
                     style={styles.settleBtn}
                     onPress={async () => {
                       const ok = await markSettled(item.id, !item.settled_at);
-                      if (!ok) showToast("Couldn't save — please try again.", 'error');
+                      // null: a save for this reply is still in flight — the tap is ignored.
+                      if (ok === false) showToast("Couldn't save — please try again.", 'error');
                     }}
                     accessibilityRole="button"
                     accessibilityLabel={
@@ -425,7 +426,7 @@ export default function CommunicationLogScreen() {
                         : 'Mark this reply as needing no answer — it leaves Home; any request deadline keeps running'
                     }
                   >
-                    <Text style={styles.settleBtnText}>
+                    <Text style={[styles.settleBtnText, { fontSize: Math.round(14 * scale) }]}>
                       {item.settled_at ? 'Needs an answer after all' : '✓ Nothing to answer'}
                     </Text>
                   </TouchableOpacity>

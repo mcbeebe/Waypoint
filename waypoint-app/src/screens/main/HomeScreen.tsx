@@ -51,7 +51,7 @@ import { useDraftFlow } from '@/hooks/useDraftFlow';
 import { searchLearn, type LearnHit } from '@/lib/learnLibrary';
 import { searchToolsForHome, type ToolEntry } from '@/lib/toolsCatalog';
 import { getHomeStarters } from '@/lib/homeStarters';
-import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { MIN_TOUCH_TARGET, announce } from '@/lib/accessibility';
 import { looksLikePlanQuery } from '@/lib/planQuery';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
 import { FLAGS } from '@/lib/flags';
@@ -549,12 +549,30 @@ function HomeScreenInner({
     void markActed(item.id);
   };
 
+  // The card is replaced the instant a reply settles, so a double tap would
+  // land on whatever card comes next. Taps inside this window are ignored.
+  const lastSettleAt = useRef(0);
   const settleItem = async (item: TriageItem) => {
     if (!item.settle) return;
+    const t = Date.now();
+    if (t - lastSettleAt.current < 1000) return;
+    lastSettleAt.current = t;
+    const labels = cardLabels(funnelLocale);
     const ok = await markSettled(item.settle.replyId, true);
-    if (ok) setSettledUndo({ id: item.settle.replyId, title: item.title });
-    else setNotice(cardLabels(funnelLocale).settleFailed);
+    if (ok === null) return;
+    if (ok) {
+      setNotice(null);
+      setSettledUndo({ id: item.settle.replyId, title: item.title });
+      // The pressed button is gone with its card; say what happened.
+      announce(labels.settled(item.title));
+    } else {
+      setNotice(labels.settleFailed);
+    }
   };
+  // Undo is offered only while the reply is still settled — a change from
+  // Paper Trail, or a later load, retires the notice rather than contradict it.
+  const settledShown =
+    settledUndo && communications.find((c) => c.id === settledUndo.id)?.settled_at ? settledUndo : null;
 
   const deferItem = async (item: TriageItem) => {
     const ok = await defer(item);
@@ -698,15 +716,21 @@ function HomeScreenInner({
               onAnswer={(item, value) => { void answerItem(item, value); }}
               onSettle={(item) => { void settleItem(item); }}
             />
-            {!!settledUndo && (
+            {!!settledShown && (
               <SettledNotice
-                title={settledUndo.title}
+                title={settledShown.title}
                 locale={funnelLocale}
                 onUndo={() => {
-                  const { id } = settledUndo;
-                  setSettledUndo(null);
+                  const { id } = settledShown;
                   void markSettled(id, false).then((ok) => {
-                    if (!ok) setNotice(cardLabels(funnelLocale).settleFailed);
+                    if (ok === null) return;
+                    if (ok) {
+                      setSettledUndo(null);
+                      setNotice(null);
+                    } else {
+                      // Still settled, so the notice — and its Undo — stay.
+                      setNotice(cardLabels(funnelLocale).undoFailed);
+                    }
                   });
                 }}
               />

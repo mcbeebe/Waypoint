@@ -14,6 +14,22 @@
 import type { Communication } from '@/hooks/useCommunications';
 
 const opened = new Map<string, string>();
+/**
+ * "Nothing to answer" choices made THIS session, id → settled_at (or null for
+ * "needs an answer after all"), 065. Same race as opens: a refetch that reads
+ * the row before the UPDATE lands must not put a settled reply back on Home.
+ */
+const settles = new Map<string, string | null>();
+
+/** Remember a settle or unsettle, before its write lands. */
+export function noteSessionSettle(id: string, at: string | null): void {
+  settles.set(id, at);
+}
+
+/** Forget a settle whose write failed. */
+export function forgetSessionSettle(id: string): void {
+  settles.delete(id);
+}
 
 /** Remember an open, before its write lands. */
 export function noteSessionRead(id: string, at: string): void {
@@ -31,14 +47,18 @@ export function hasSessionRead(id: string): boolean {
 
 /** Overlay this session's opens onto fetched rows (pre-062 rows have no key and are left alone). */
 export function withSessionReads(rows: Communication[]): Communication[] {
-  if (opened.size === 0) return rows;
+  if (opened.size === 0 && settles.size === 0) return rows;
   return rows.map((c) => {
+    let row = c;
     const at = opened.get(c.id);
-    return at && 'read_at' in c && c.read_at == null ? { ...c, read_at: at } : c;
+    if (at && 'read_at' in row && row.read_at == null) row = { ...row, read_at: at };
+    if (settles.has(c.id) && 'settled_at' in row) row = { ...row, settled_at: settles.get(c.id) ?? null };
+    return row;
   });
 }
 
 /** Clear on sign-out (and between tests). */
 export function resetSessionReads(): void {
   opened.clear();
+  settles.clear();
 }
