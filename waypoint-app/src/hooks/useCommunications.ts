@@ -3,10 +3,17 @@
  * Letters auto-log on copy/open; calls, meetings, and notes are manual.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyErrorMessage } from '@/lib/netRetry';
-import { forgetSessionRead, hasSessionRead, noteSessionRead, withSessionReads } from '@/lib/sessionReads';
+import {
+  forgetSessionRead,
+  forgetSessionSettle,
+  hasSessionRead,
+  noteSessionRead,
+  noteSessionSettle,
+  withSessionReads,
+} from '@/lib/sessionReads';
 
 export { resetSessionReads } from '@/lib/sessionReads';
 
@@ -233,6 +240,48 @@ export async function recordCommunicationCc(id: string, cc: readonly string[]): 
 }
 
 /**
+ * Mark an incoming message as needing no answer (065, initiative 014 PR C) —
+ * or, with `settled: false`, as needing one after all. Returns true when the
+ * row is now in the asked-for state; false for a failed request, an outgoing
+ * row, a row RLS hides, or a database without 065. Settling never moves an
+ * existing settled_at (a thread import's, say): only an unsettled row is
+ * stamped, and a row already settled counts as done.
+ */
+export async function setReplySettled(id: string, settled: boolean): Promise<boolean> {
+  try {
+    if (settled) {
+      const { data, error } = await supabase
+        .from('communications')
+        .update({ settled_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('direction', 'incoming')
+        .is('settled_at', null)
+        .select('id');
+      if (error) return false;
+      if ((data?.length ?? 0) > 0) return true;
+      // Nothing stamped: already settled (fine) — or not ours to see (not fine).
+      const { data: row, error: readErr } = await supabase
+        .from('communications')
+        .select('id')
+        .eq('id', id)
+        .eq('direction', 'incoming')
+        .not('settled_at', 'is', null)
+        .maybeSingle();
+      return !readErr && !!row;
+    }
+    const { data, error } = await supabase
+      .from('communications')
+      .update({ settled_at: null })
+      .eq('id', id)
+      .eq('direction', 'incoming')
+      .select('id');
+    return !error && (data?.length ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Stamp a synced reply as opened (062). Only the first open counts, so a
  * re-open never moves the time. Returns true only when a row was actually
  * stamped — false for a failed request, a row already read, a row RLS hides,
@@ -256,6 +305,8 @@ export async function markReplyRead(id: string): Promise<boolean> {
 
 export function useCommunications(familyId: string) {
   const [communications, setCommunications] = useState<Communication[]>([]);
+  // Rows with a "Nothing to answer" write in flight (see markSettled).
+  const settlingRef = useRef(new Set<string>());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -372,11 +423,41 @@ export function useCommunications(familyId: string) {
     return ok;
   }, [communications]);
 
+  /**
+   * "Nothing to answer" (065) — optimistic, so Home's reply card leaves at
+   * once, and held in the session record (lib/sessionReads.ts) so a refetch
+   * racing the write cannot put it back. A write that did not land restores
+   * the row and is forgotten. Resolves null — and does nothing — while a
+   * write for the same row is still in flight: a toggle is not idempotent,
+   * so two quick taps must not race each other to the server.
+   */
+  const markSettled = useCallback(async (id: string, settled: boolean): Promise<boolean | null> => {
+    if (settlingRef.current.has(id)) return null;
+    const before = communications.find((c) => c.id === id);
+    if (!before || before.direction !== 'incoming' || !('settled_at' in before)) return false;
+    const previous = before.settled_at ?? null;
+    const next = settled ? new Date().toISOString() : null;
+    settlingRef.current.add(id);
+    noteSessionSettle(id, next);
+    setCommunications((prev) => prev.map((c) => (c.id === id ? { ...c, settled_at: next } : c)));
+    try {
+      const ok = await setReplySettled(id, settled);
+      if (!ok) {
+        forgetSessionSettle(id);
+        setCommunications((prev) => prev.map((c) => (c.id === id ? { ...c, settled_at: previous } : c)));
+      }
+      return ok;
+    } finally {
+      settlingRef.current.delete(id);
+    }
+  }, [communications]);
+
   return {
     communications,
     loading,
     error,
     refetch,
+    markSettled,
     addCommunication,
     deleteCommunication,
     markSent,

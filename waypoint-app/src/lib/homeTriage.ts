@@ -108,6 +108,12 @@ export interface TriageItem {
   /** How long "Not today" sets it aside, and what the app promises. */
   deferDays: number;
   deferLabel: string;
+  /**
+   * A reply that may need no answer at all (065, initiative 014 PR C): "✓
+   * Nothing to answer" settles it for good instead of setting it aside for a
+   * day. Absent on a database without 065.
+   */
+  settle?: { replyId: string; label: string; note: string };
 }
 
 export interface LaterItem {
@@ -700,6 +706,28 @@ function replyItem(
     },
     deferDays: 1,
     deferLabel: L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai'),
+    // "I'll get back to you" needs no answer; without this it came back every
+    // morning. It settles only the message — the request's clock runs on.
+    ...('settled_at' in reply
+      ? {
+          settle: {
+            replyId: reply.id,
+            label: L('✓ Nothing to answer', '✓ No necesita respuesta', '✓ Không cần trả lời'),
+            // The deadline promise only where there is a request to keep it.
+            note: owner
+              ? L(
+                  'Takes this reply off Home. Any deadline on the request keeps running.',
+                  'Quita esta respuesta de Inicio. Cualquier plazo de la solicitud sigue corriendo.',
+                  'Gỡ thư trả lời này khỏi Trang chủ. Mọi thời hạn của yêu cầu vẫn tiếp tục.'
+                )
+              : L(
+                  'Takes this reply off Home. It stays in your Paper Trail.',
+                  'Quita esta respuesta de Inicio. Sigue en su registro de comunicaciones.',
+                  'Gỡ thư trả lời này khỏi Trang chủ. Thư vẫn nằm trong nhật ký liên lạc của quý vị.'
+                ),
+          },
+        }
+      : {}),
   };
 }
 

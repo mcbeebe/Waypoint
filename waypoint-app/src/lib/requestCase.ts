@@ -257,14 +257,16 @@ function lastOutgoingSent(events: CaseEvent[]): CaseEvent | null {
  * private note or an unsent draft never "answers" the agency — only
  * something that actually went to them (letter, email, call, meeting) does.
  * A settled message (065 — history from an added thread, or "Nothing to
- * answer") is not waiting on anyone, the same rule Home's reply card keeps.
+ * answer") is not waiting on anyone — nor is anything older it follows —
+ * the same rule Home's reply card keeps.
  */
 function unansweredReplyOf(events: CaseEvent[]): Communication | null {
   let reply: Communication | null = null;
   for (const e of events) {
     const c = e.communication;
     if (c.direction === 'incoming') {
-      if (!isSettled(c)) reply = c;
+      // A settled message covers the older ones before it (replyInbox).
+      reply = isSettled(c) ? null : c;
     } else if (reply && c.status === 'sent' && c.kind !== 'note') {
       reply = null;
     }

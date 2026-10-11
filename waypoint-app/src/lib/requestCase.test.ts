@@ -372,3 +372,13 @@ describe('an RC assessment runs from intake (W&I §4643)', () => {
     expect(c.deadline?.basis).toBe('request');
   });
 });
+
+describe('the case agrees with Home: a settled newest reply covers older ones (PR C review)', () => {
+  it('no unanswered reply remains on the case', () => {
+    const r = req({ communication_id: 'o' });
+    const o = comm({ id: 'o', gmail_thread_id: 't', gmail_message_id: 'm1' });
+    const r0 = comm({ direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm2', sent_at: '2026-08-27T09:00:00Z', occurred_at: '2026-08-27T09:00:00Z' });
+    const r1 = comm({ direction: 'incoming', gmail_thread_id: 't', gmail_message_id: 'm3', sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z', settled_at: '2026-08-28T10:00:00Z' });
+    expect(buildRequestCase(r, [o, r0, r1], 'en', NOW).unansweredReply).toBeNull();
+  });
+});
