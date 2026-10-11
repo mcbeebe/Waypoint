@@ -238,6 +238,10 @@ export interface CardLabels {
   collapse: string;
   undo: string;
   laterHeading: string;
+  /** After "✓ Nothing to answer" (065): what was settled, with an Undo beside it. */
+  settled: (title: string) => string;
+  /** The write did not land — the reply stays. */
+  settleFailed: string;
 }
 
 export function cardLabels(locale: FunnelLocale = 'en'): CardLabels {
@@ -257,6 +261,17 @@ export function cardLabels(locale: FunnelLocale = 'en'): CardLabels {
     collapse: L('Collapse this card', 'Contraer esta tarjeta', 'Thu gọn thẻ này'),
     undo: L('Undo', 'Deshacer', 'Hoàn tác'),
     laterHeading: L('Later', 'Más tarde', 'Để sau'),
+    settled: (title) =>
+      L(
+        `✓ Marked as needing no answer: ${title}. It stays in your Paper Trail.`,
+        `✓ Marcada como sin necesidad de respuesta: ${title}. Sigue en su registro.`,
+        `✓ Đã đánh dấu không cần trả lời: ${title}. Thư vẫn nằm trong hồ sơ của quý vị.`
+      ),
+    settleFailed: L(
+      'Couldn’t save that — the reply is still here. Please try again.',
+      'No se pudo guardar — la respuesta sigue aquí. Inténtelo de nuevo.',
+      'Không lưu được — thư trả lời vẫn ở đây. Vui lòng thử lại.'
+    ),
   };
 }
 

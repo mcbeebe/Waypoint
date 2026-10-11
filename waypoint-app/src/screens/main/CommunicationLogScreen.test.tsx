@@ -10,6 +10,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 const h = vi.hoisted(() => ({
   rows: [] as any[],
   markRead: null as any,
+  markSettled: null as any,
 }));
 
 function comm(over: Record<string, unknown>) {
@@ -45,6 +46,7 @@ vi.mock('@/hooks/useCommunications', () => ({
     deleteCommunication: vi.fn(),
     markSent: vi.fn(),
     markRead: h.markRead,
+    markSettled: h.markSettled,
     refetch: vi.fn(),
   }),
 }));
@@ -67,6 +69,7 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date('2026-10-08T18:42:00Z'));
   h.markRead = vi.fn(async () => true);
+  h.markSettled = vi.fn(async () => true);
   h.rows = [comm({ id: 'o1' }), reply()];
   for (const k of Object.keys(routeParams)) delete routeParams[k];
 });
@@ -155,5 +158,33 @@ describe('Add an email thread (014 PR D)', () => {
     render(<CommunicationLogScreen />);
     fireEvent.click(screen.getByRole('button', { name: 'Add an email thread from Gmail' }));
     expect(screen.getByText(/Connect Gmail to add threads/)).toBeTruthy();
+  });
+});
+
+describe('"✓ Nothing to answer" in Paper Trail (065, initiative 014 PR C)', () => {
+  it('an opened reply can be marked as needing no answer; a letter cannot', async () => {
+    h.rows = [comm({ id: 'o1' }), reply({ settled_at: null })];
+    render(<CommunicationLogScreen />);
+    fireEvent.click(screen.getByRole('button', { name: /Email: IPP Meeting Request/ }));
+    expect(screen.queryByRole('button', { name: /Mark this reply as needing no answer/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Email: Re: IPP Meeting/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Mark this reply as needing no answer/ }));
+    await waitFor(() => expect(h.markSettled).toHaveBeenCalledWith('r1', true));
+  });
+
+  it('a settled reply says so, and can be put back', async () => {
+    h.rows = [comm({ id: 'o1' }), reply({ settled_at: '2026-10-08T19:00:00Z' })];
+    render(<CommunicationLogScreen />);
+    expect(screen.getByTestId('settled-r1')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Email: Re: IPP Meeting/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'This reply needs an answer after all' }));
+    await waitFor(() => expect(h.markSettled).toHaveBeenCalledWith('r1', false));
+  });
+
+  it('before 065 there is no settle control at all', () => {
+    h.rows = [comm({ id: 'o1' }), reply()];
+    render(<CommunicationLogScreen />);
+    fireEvent.click(screen.getByRole('button', { name: /Email: Re: IPP Meeting/ }));
+    expect(screen.queryByRole('button', { name: /needing no answer/ })).toBeNull();
   });
 });

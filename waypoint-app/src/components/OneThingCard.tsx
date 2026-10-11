@@ -63,6 +63,8 @@ interface OneThingCardProps {
   onAct: (item: TriageItem) => void;
   onDefer: (item: TriageItem) => void;
   onAnswer: (item: TriageItem, value: string) => void;
+  /** "✓ Nothing to answer" on a reply (065) — shown only when the item offers it. */
+  onSettle?: (item: TriageItem) => void;
 }
 
 export default function OneThingCard({
@@ -73,6 +75,7 @@ export default function OneThingCard({
   onAct,
   onDefer,
   onAnswer,
+  onSettle,
 }: OneThingCardProps) {
   const { scale } = useTextScale();
   const sz = (n: number) => Math.round(n * scale);
@@ -182,6 +185,21 @@ export default function OneThingCard({
             </Pressable>
           )}
 
+          {item.settle && onSettle && (
+            <Pressable
+              style={({ pressed }) => [styles.settle, pressed && styles.dim]}
+              onPress={() => onSettle(item)}
+              accessibilityRole="button"
+              accessibilityLabel={`${item.settle.label.replace(/^✓\s*/, '')}. ${item.settle.note}`}
+            >
+              <Text style={[styles.settleText, { fontSize: sz(14.5), lineHeight: sz(19) }]}>
+                {item.settle.label}
+              </Text>
+              <Text style={[styles.ghostNote, { fontSize: sz(11.5), lineHeight: sz(16) }]}>
+                {item.settle.note}
+              </Text>
+            </Pressable>
+          )}
           <Pressable
             style={({ pressed }) => [styles.ghost, pressed && styles.dim]}
             onPress={() => onDefer(item)}
@@ -317,6 +335,36 @@ function LadderSheet({
 }
 
 /**
+ * After "✓ Nothing to answer" (065): what was settled, said plainly, with an
+ * Undo beside it — the reply left Home at once, so the way back must be one
+ * tap away, not hidden in Paper Trail.
+ */
+export function SettledNotice({
+  title,
+  locale,
+  onUndo,
+}: {
+  title: string;
+  locale: FunnelLocale;
+  onUndo: () => void;
+}) {
+  const labels = cardLabels(locale);
+  return (
+    <View style={styles.settledRow} accessibilityLiveRegion="polite" testID="settled-notice">
+      <Text style={styles.settledRowText}>{labels.settled(title)}</Text>
+      <Pressable
+        style={({ pressed }) => [styles.settledUndo, pressed && styles.dim]}
+        onPress={onUndo}
+        accessibilityRole="button"
+        accessibilityLabel={`${labels.undo}: ${title}`}
+      >
+        <Text style={styles.undoText}>{labels.undo}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+/**
  * Set aside, not gone. Every deferred item stays listed with the day it comes
  * back and an Undo — the permanent dismiss was the audit's #6 failure.
  */
@@ -404,6 +452,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   ctaText: { color: colors.white, fontWeight: fonts.weights.bold, textAlign: 'center' },
+  settle: {
+    minHeight: 46,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    borderColor: brand.pine,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  settleText: { color: brand.pine, fontWeight: fonts.weights.bold, textAlign: 'center' },
+  settledRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: brand.paper,
+    borderWidth: 1,
+    borderColor: brand.border,
+    borderRadius: radii.md,
+    paddingLeft: spacing.md,
+    marginTop: spacing.sm,
+  },
+  settledRowText: { flex: 1, fontSize: fonts.sizes.sm, color: brand.ink, lineHeight: 19, paddingVertical: spacing.sm },
+  settledUndo: { minHeight: 44, minWidth: 44, paddingHorizontal: spacing.md, justifyContent: 'center' },
   answers: { gap: spacing.sm },
   answer: {
     minHeight: 44,

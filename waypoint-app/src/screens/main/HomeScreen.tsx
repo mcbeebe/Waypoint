@@ -41,9 +41,10 @@ import { reminderPlan, fmtDate } from '@/lib/notificationPolicy';
 import { registerPushToken, unregisterPushToken } from '@/lib/pushTokens';
 import NotificationPrimingSheet from '@/components/NotificationPrimingSheet';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
-import OneThingCard, { LaterList } from '@/components/OneThingCard';
+import OneThingCard, { LaterList, SettledNotice } from '@/components/OneThingCard';
 import ReplyStrip from '@/components/ReplyStrip';
 import { replyStrip } from '@/lib/replyStrip';
+import { cardLabels } from '@/lib/homeCard';
 import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { useDraftFlow } from '@/hooks/useDraftFlow';
@@ -208,7 +209,10 @@ function HomeScreenInner({
     error: commsError,
     refetch: refetchComms,
     markRead: markReplyRead,
+    markSettled,
   } = useCommunications(family?.id ?? '');
+  // The reply last marked "Nothing to answer", kept for its Undo (065).
+  const [settledUndo, setSettledUndo] = useState<{ id: string; title: string } | null>(null);
   // Home stays mounted under the screens it opens, so a reply read in the
   // paper trail would otherwise keep its "New reply" strip here until the
   // next cold start. Re-read the trail whenever Home regains focus (the
@@ -545,6 +549,13 @@ function HomeScreenInner({
     void markActed(item.id);
   };
 
+  const settleItem = async (item: TriageItem) => {
+    if (!item.settle) return;
+    const ok = await markSettled(item.settle.replyId, true);
+    if (ok) setSettledUndo({ id: item.settle.replyId, title: item.title });
+    else setNotice(cardLabels(funnelLocale).settleFailed);
+  };
+
   const deferItem = async (item: TriageItem) => {
     const ok = await defer(item);
     if (!ok) setNotice("Couldn't set that aside — it will be here next time.");
@@ -685,7 +696,21 @@ function HomeScreenInner({
               onAct={actOnItem}
               onDefer={(item) => { void deferItem(item); }}
               onAnswer={(item, value) => { void answerItem(item, value); }}
+              onSettle={(item) => { void settleItem(item); }}
             />
+            {!!settledUndo && (
+              <SettledNotice
+                title={settledUndo.title}
+                locale={funnelLocale}
+                onUndo={() => {
+                  const { id } = settledUndo;
+                  setSettledUndo(null);
+                  void markSettled(id, false).then((ok) => {
+                    if (!ok) setNotice(cardLabels(funnelLocale).settleFailed);
+                  });
+                }}
+              />
+            )}
             {!!notice && (
               <Text style={styles.notice} accessibilityRole="alert">
                 {notice}

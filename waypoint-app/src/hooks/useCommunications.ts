@@ -233,6 +233,26 @@ export async function recordCommunicationCc(id: string, cc: readonly string[]): 
 }
 
 /**
+ * Mark an incoming message as needing no answer (065, initiative 014 PR C) —
+ * or, with `settled: false`, as needing one after all. Returns true only when
+ * a row actually changed: false for a failed request, an outgoing row, a row
+ * RLS hides, or a database without 065.
+ */
+export async function setReplySettled(id: string, settled: boolean): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('communications')
+      .update({ settled_at: settled ? new Date().toISOString() : null })
+      .eq('id', id)
+      .eq('direction', 'incoming')
+      .select('id');
+    return !error && (data?.length ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Stamp a synced reply as opened (062). Only the first open counts, so a
  * re-open never moves the time. Returns true only when a row was actually
  * stamped — false for a failed request, a row already read, a row RLS hides,
@@ -372,11 +392,29 @@ export function useCommunications(familyId: string) {
     return ok;
   }, [communications]);
 
+  /**
+   * "Nothing to answer" (065) — optimistic, so Home's reply card leaves at
+   * once; a write that did not land puts the row back as it was.
+   */
+  const markSettled = useCallback(async (id: string, settled: boolean): Promise<boolean> => {
+    const before = communications.find((c) => c.id === id);
+    if (!before || before.direction !== 'incoming' || !('settled_at' in before)) return false;
+    const previous = before.settled_at ?? null;
+    const next = settled ? new Date().toISOString() : null;
+    setCommunications((prev) => prev.map((c) => (c.id === id ? { ...c, settled_at: next } : c)));
+    const ok = await setReplySettled(id, settled);
+    if (!ok) {
+      setCommunications((prev) => prev.map((c) => (c.id === id ? { ...c, settled_at: previous } : c)));
+    }
+    return ok;
+  }, [communications]);
+
   return {
     communications,
     loading,
     error,
     refetch,
+    markSettled,
     addCommunication,
     deleteCommunication,
     markSent,

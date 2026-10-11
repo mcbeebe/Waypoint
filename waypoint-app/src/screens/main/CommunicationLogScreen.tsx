@@ -55,7 +55,7 @@ export default function CommunicationLogScreen() {
   const { family } = useFamily();
   const { showToast } = useToast();
   const {
-    communications, loading, addCommunication, deleteCommunication, markSent, markRead, refetch,
+    communications, loading, addCommunication, deleteCommunication, markSent, markRead, markSettled, refetch,
   } = useCommunications(family?.id ?? '');
   // Case-file chips: an entry that serves a tracked request links to its case.
   const { requests } = useRequests(family?.id);
@@ -355,6 +355,13 @@ export default function CommunicationLogScreen() {
                       <Text style={styles.replyBadgeText}>REPLY</Text>
                     </View>
                   )}
+                  {item.direction === 'incoming' && item.settled_at && (
+                    <View style={styles.settledBadge} testID={`settled-${item.id}`}>
+                      <Text style={[styles.settledBadgeText, { fontSize: Math.round(11 * scale) }]}>
+                        ✓ Nothing to answer
+                      </Text>
+                    </View>
+                  )}
                   {isUnreadReply(item, new Date()) && (
                     <View style={styles.unreadBadge} testID={`unread-${item.id}`}>
                       <Text style={[styles.unreadBadgeText, { fontSize: Math.round(10 * scale) }]}>NEW</Text>
@@ -404,6 +411,25 @@ export default function CommunicationLogScreen() {
                     </TouchableOpacity>
                   ) : null;
                 })()}
+                {item.direction === 'incoming' && 'settled_at' in item && (
+                  <TouchableOpacity
+                    style={styles.settleBtn}
+                    onPress={async () => {
+                      const ok = await markSettled(item.id, !item.settled_at);
+                      if (!ok) showToast("Couldn't save — please try again.", 'error');
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      item.settled_at
+                        ? 'This reply needs an answer after all'
+                        : 'Mark this reply as needing no answer — it leaves Home; any request deadline keeps running'
+                    }
+                  >
+                    <Text style={styles.settleBtnText}>
+                      {item.settled_at ? 'Needs an answer after all' : '✓ Nothing to answer'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 {gmail.gmail && item.gmail_thread_id && (
                   <TouchableOpacity
                     style={styles.replyBtn}
@@ -623,6 +649,26 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
     letterSpacing: 0.5,
   },
+  settledBadge: {
+    backgroundColor: brand.paper,
+    borderWidth: 1,
+    borderColor: brand.border,
+    borderRadius: radii.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  settledBadgeText: { color: brand.ink, fontWeight: fonts.weights.bold as '700' },
+  settleBtn: {
+    marginTop: spacing.sm,
+    minHeight: 44,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    borderColor: brand.pine,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  settleBtnText: { color: brand.pine, fontSize: fonts.sizes.sm, fontWeight: fonts.weights.bold as '700' },
   // Unread reply (062). pine, not urgent — urgent is reserved for a blown
   // legal clock (theme.ts); white on pine clears AA.
   unreadBadge: {

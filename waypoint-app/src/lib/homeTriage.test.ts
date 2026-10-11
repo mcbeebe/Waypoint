@@ -761,3 +761,39 @@ describe('what an RC assessment clock runs from (W&I §4643)', () => {
     expect(card!.why).toBe('Because you asked on Aug 20 and the law gives them a fixed window.');
   });
 });
+
+describe('"✓ Nothing to answer" on the reply card (065, initiative 014 PR C)', () => {
+  const inbound = (over: Partial<Communication> = {}) =>
+    comm({
+      direction: 'incoming', kind: 'email', gmail_thread_id: 't9', gmail_message_id: 'mx',
+      contact: 'Ana <ana@rc.org>', sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
+      ...over,
+    });
+
+  it('the reply card offers it, in every locale, without blaming anyone', () => {
+    for (const locale of ['en', 'es', 'vi'] as const) {
+      const reply = inbound({ settled_at: null });
+      const item = triageHome(base({ communications: [reply], locale })).queue.find((i) => i.cls === 'reply');
+      expect(item?.settle?.replyId).toBe(reply.id);
+      expect(item?.settle?.label.length).toBeGreaterThan(3);
+      expect(item?.settle?.note).not.toMatch(/owe|missed|failed|ignored/i);
+    }
+    const en = triageHome(base({ communications: [inbound({ settled_at: null })] })).queue.find((i) => i.cls === 'reply');
+    expect(en?.settle?.label).toBe('✓ Nothing to answer');
+    expect(en?.settle?.note).toMatch(/deadline on the request keeps running/);
+  });
+
+  it('is not offered on a database without 065 (no settled_at key)', () => {
+    const item = triageHome(base({ communications: [inbound()] })).queue.find((i) => i.cls === 'reply');
+    expect(item).toBeTruthy();
+    expect(item?.settle).toBeUndefined();
+  });
+
+  it('a settled reply leaves the ladder; an overdue request does not', () => {
+    const overdue = req({ request_type: 'ipp_meeting', requested_on: '2026-07-01' });
+    const reply = inbound({ settled_at: '2026-08-29T08:00:00Z', request_id: overdue.id });
+    const r = triageHome(base({ requests: [overdue], communications: [reply] }));
+    expect(r.queue.some((i) => i.cls === 'reply')).toBe(false);
+    expect(r.queue.some((i) => i.cls === 'overdue')).toBe(true);
+  });
+});
