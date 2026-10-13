@@ -42,6 +42,14 @@
     ad_personalization: 'denied',
     analytics_storage: 'denied',
   });
+  // Only the live site configures GA4. A build without VERCEL_ENV counts as
+  // production (BaseLayout.astro), so CI's axe, keyboard and Lighthouse runs
+  // serve the tag from 127.0.0.1; without this check every one of those page
+  // loads reached GA4 as a new cookieless user. gtag stays defined above, so
+  // the Plausible mirror and the keyboard pass's dataLayer leak check still
+  // see every event — gtag.js just has no property to send them to.
+  var LIVE_HOSTS = ['waypointchild.com', 'www.waypointchild.com'];
+  if (LIVE_HOSTS.indexOf(location.hostname) === -1) return;
   window.gtag('js', new Date());
   window.gtag('config', id, {
     allow_google_signals: false,
