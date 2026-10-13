@@ -112,7 +112,7 @@ elsewhere. The description below is historical.
 
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
-npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
+npm run lint        # eslint — CI gate (0 errors, 31 warnings today, ratcheted by --max-warnings)
 npm test            # vitest, FOUR projects, 166 files (180 runs) — CI gate
 npm run build:web   # expo export + postbuild — CI gate (prod bundle)
 npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
