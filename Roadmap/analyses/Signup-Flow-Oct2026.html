@@ -1,0 +1,312 @@
+<title>Waypoint Sign-Up Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one vertical "route" down the page — stations joined by a pine line, branches set beside the line. Tokens mirror waypoint-app/src/lib/theme.ts (brand). */
+:root {
+  --paper: #F5F1E9;
+  --panel: #FFFFFF;
+  --ink: #22303A;
+  --ink-soft: #55606B;
+  --ink-faint: #6D6555;
+  --border: #EAE3D5;
+  --border-strong: #E2D8C4;
+  --pine: #0F766E;
+  --pine-tint: #E6F1EF;
+  --sage-ink: #047857;
+  --sage-tint: #E7F5EE;
+  --urgent: #C2410C;
+  --urgent-tint: #FBEADD;
+  --amber: #8A5A00;
+  --amber-tint: #FBF1DC;
+  --on-pine: #FFFFFF;
+  --f-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --f-body: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #151B1F; --panel: #1E262B; --ink: #E8E4DB; --ink-soft: #B6BCC0; --ink-faint: #A39C8E;
+    --border: #2C363C; --border-strong: #3A464D; --pine: #3FB8AC; --pine-tint: #16302D;
+    --sage-ink: #5DD3A3; --sage-tint: #15302A; --urgent: #F08A5D; --urgent-tint: #3A2219;
+    --amber: #E6B65C; --amber-tint: #33290F; --on-pine: #0B1A18; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #151B1F; --panel: #1E262B; --ink: #E8E4DB; --ink-soft: #B6BCC0; --ink-faint: #A39C8E;
+  --border: #2C363C; --border-strong: #3A464D; --pine: #3FB8AC; --pine-tint: #16302D;
+  --sage-ink: #5DD3A3; --sage-tint: #15302A; --urgent: #F08A5D; --urgent-tint: #3A2219;
+  --amber: #E6B65C; --amber-tint: #33290F; --on-pine: #0B1A18; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-inline: 16px; padding-block: 32px 56px;
+}
+.wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+header { display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(30px, 5vw, 42px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { color: var(--ink-soft); max-width: 65ch; margin: 0; }
+.meta { font-family: var(--f-mono); font-size: 12px; color: var(--ink-faint); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--ink-soft); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+/* The route */
+.route { display: flex; flex-direction: column; gap: 0; }
+.station { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 16px; }
+.rail { display: flex; flex-direction: column; align-items: center; }
+.pin {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--pine); color: var(--on-pine);
+  display: grid; place-items: center; font-weight: 700; font-size: 14px; flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.pin.end { background: var(--sage-ink); }
+.line { width: 3px; flex: 1; background: var(--pine); opacity: .35; min-height: 24px; }
+.body { padding-bottom: 32px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.station:last-child .body { padding-bottom: 0; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 24px; line-height: 1.2; margin: 2px 0 0; text-wrap: balance; }
+.sub { color: var(--ink-soft); margin: 0; max-width: 65ch; }
+code, .path { font-family: var(--f-mono); font-size: 12.5px; }
+.path { color: var(--ink-faint); }
+
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.card {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0;
+}
+.card h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.card p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+.chip {
+  align-self: flex-start; font-size: 11.5px; font-weight: 600; letter-spacing: .03em;
+  padding: 2px 8px; border-radius: 999px; background: var(--pine-tint); color: var(--pine);
+}
+.chip.warn { background: var(--amber-tint); color: var(--amber); }
+.chip.risk { background: var(--urgent-tint); color: var(--urgent); }
+.chip.ok { background: var(--sage-tint); color: var(--sage-ink); }
+
+.quote {
+  border-left: 3px solid var(--border-strong); padding: 2px 0 2px 12px;
+  color: var(--ink-soft); font-size: 14px; margin: 0;
+}
+
+/* Routing decision list */
+.decide { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.decide ol { list-style: none; margin: 0; padding: 0; }
+.decide li {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: center;
+  padding: 12px 16px; border-top: 1px solid var(--border);
+}
+.decide li:first-child { border-top: 0; }
+.decide .if { font-size: 14px; }
+.decide .if b { font-weight: 600; }
+.decide .arrow { color: var(--pine); font-weight: 700; }
+.decide .then { font-weight: 600; font-size: 14px; }
+.decide .then small { display: block; font-weight: 400; color: var(--ink-soft); font-size: 13px; }
+.decide li.main { background: var(--pine-tint); }
+
+/* Onboarding stepper */
+.steps { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); counter-reset: s; }
+.step {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px;
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.step .n { font-family: var(--f-mono); font-size: 12px; color: var(--pine); font-weight: 500; }
+.step b { font-size: 14px; }
+.step span { font-size: 13px; color: var(--ink-soft); }
+
+.saves { display: flex; flex-wrap: wrap; gap: 8px; }
+.saves code {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; color: var(--ink);
+}
+
+/* Bottom panels */
+.panels { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.panel {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+}
+.panel h2 { font-size: 20px; margin: 0; }
+.panel ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.panel li { color: var(--ink-soft); }
+.panel li b { color: var(--ink); font-weight: 600; }
+
+footer { font-size: 13px; color: var(--ink-faint); border-top: 1px solid var(--border); padding-top: 16px; }
+footer p { margin: 0 0 6px; max-width: 75ch; }
+
+@media (max-width: 560px) {
+  .decide li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .decide .arrow { display: none; }
+  .station { grid-template-columns: 32px minmax(0, 1fr); column-gap: 12px; }
+  .pin { width: 28px; height: 28px; font-size: 13px; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Waypoint app · how it works today</div>
+    <h1>How a visitor creates an account</h1>
+    <p class="lede">The path from a visitor arriving to a family landing on Home, traced from the code. A visitor signs in first, then completes a six-step setup. The family's records aren't saved until the last step.</p>
+    <div class="meta">Read from commit 44a0475 (Oct 11, 2026) · code only, live settings not checked</div>
+    <div class="legend" aria-label="Legend">
+      <span><i class="dot" style="background:var(--pine)"></i>Step in the flow</span>
+      <span><i class="dot" style="background:var(--amber)"></i>Depends on a setting I haven't checked</span>
+      <span><i class="dot" style="background:var(--urgent)"></i>Friction or risk</span>
+    </div>
+  </header>
+
+  <div class="route">
+
+    <section class="station">
+      <div class="rail"><div class="pin">1</div><div class="line"></div></div>
+      <div class="body">
+        <h2>The visitor arrives</h2>
+        <div class="grid">
+          <div class="card">
+            <span class="chip">From waypointchild.com</span>
+            <h3>"Get started free"</h3>
+            <p>Header and page buttons link to <code>app.waypointchild.com/start?…</code> with tracking tags: page, button, language and UTM.</p>
+            <span class="path">waypoint-site/src/lib/appLinks.ts:84</span>
+          </div>
+          <div class="card">
+            <span class="chip">From waypointchild.com</span>
+            <h3>"Log in"</h3>
+            <p>Links to the bare app address with no tracking tags.</p>
+            <span class="path">waypoint-site/src/components/SiteHeader.astro</span>
+          </div>
+          <div class="card">
+            <span class="chip">Inside the app</span>
+            <h3>Tags saved first</h3>
+            <p>There's no separate <code>/start</code> screen. Every address loads the app. The tracking tags are stored before any sign-in redirect can drop them.</p>
+            <span class="path">App.tsx:107 · src/lib/attribution.ts:105</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="station">
+      <div class="rail"><div class="pin">2</div><div class="line"></div></div>
+      <div class="body">
+        <h2>Welcome screen: choose how to sign in</h2>
+        <p class="sub">A tagline and three benefit lines, in English, Spanish or Vietnamese. The language comes from the device, not the link.</p>
+        <div class="grid">
+          <div class="card">
+            <span class="chip warn">iPhone / iPad only</span>
+            <h3>Continue with Apple</h3>
+            <p>Apple sign-in, then the account is created through Supabase. Not offered on web.</p>
+          </div>
+          <div class="card">
+            <span class="chip warn">Only if configured</span>
+            <h3>Continue with Google</h3>
+            <p>Shown only when <code>EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID</code> is set. Web uses a Google redirect. The phone apps also ask for Calendar and Gmail access.</p>
+          </div>
+          <div class="card">
+            <span class="chip ok">Always shown</span>
+            <h3>Sign up with Email</h3>
+            <p>Email and password, at least 6 characters. If "Confirm email" is on, the parent gets a link to click before they can sign in.</p>
+          </div>
+        </div>
+        <p class="quote">"Almost there! We sent a confirmation link to …. Open it to activate your account, then come back and sign in."</p>
+        <p class="sub">No Terms checkbox. A line under the buttons says that continuing means agreeing to the Terms and Privacy Policy. <span class="path">src/screens/auth/WelcomeScreen.tsx · src/lib/auth.ts:152</span></p>
+      </div>
+    </section>
+
+    <section class="station">
+      <div class="rail"><div class="pin">3</div><div class="line"></div></div>
+      <div class="body">
+        <h2>Behind the scenes when the account is created</h2>
+        <div class="grid">
+          <div class="card">
+            <span class="chip">Always</span>
+            <h3>Profile row added</h3>
+            <p>A database trigger inserts a <code>profiles</code> row for the new user.</p>
+            <span class="path">migration 035</span>
+          </div>
+          <div class="card">
+            <span class="chip warn">Needs secrets set</span>
+            <h3>Owner gets an email</h3>
+            <p>A second trigger emails the owner about the sign-up, capped at 10 per hour. It never blocks a sign-up. It needs Vault and Resend secrets.</p>
+            <span class="path">migration 061</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="station">
+      <div class="rail"><div class="pin">4</div><div class="line"></div></div>
+      <div class="body">
+        <h2>The app decides where they go</h2>
+        <p class="sub">Checked from top to bottom. The first match wins. <span class="path">App.tsx:232–260</span></p>
+        <div class="decide">
+          <ol>
+            <li><div class="if">Came from a <b>reset-password email</b></div><div class="arrow" aria-hidden="true">→</div><div class="then">Set new password</div></li>
+            <li><div class="if">Account is <b>staff</b> (facilitator, supervisor, admin)</div><div class="arrow" aria-hidden="true">→</div><div class="then">Staff workspace<small>Never goes through parent setup</small></div></li>
+            <li><div class="if">Opened a <b>family invite link</b></div><div class="arrow" aria-hidden="true">→</div><div class="then">Join Family<small>Co-parent joins an existing family</small></div></li>
+            <li class="main"><div class="if"><b>New parent</b>, setup not finished</div><div class="arrow" aria-hidden="true">→</div><div class="then">6-step setup<small>The usual path for a new visitor</small></div></li>
+            <li><div class="if">Setup already finished</div><div class="arrow" aria-hidden="true">→</div><div class="then">Main app</div></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="station">
+      <div class="rail"><div class="pin">5</div><div class="line"></div></div>
+      <div class="body">
+        <h2>Six-step setup</h2>
+        <p class="sub">Each step needs an answer before Next works. <span class="path">src/screens/onboarding/OnboardingFlow.tsx</span></p>
+        <div class="steps">
+          <div class="step"><span class="n">Step 1</span><b>Basic info</b><span>Parent and child first names required. ZIP or county and email optional.</span></div>
+          <div class="step"><span class="n">Step 2</span><b>Diagnosis</b><span>At least one</span></div>
+          <div class="step"><span class="n">Step 3</span><b>Birthday</b><span>Sets the age group</span></div>
+          <div class="step"><span class="n">Step 4</span><b>Regional Center</b><span>Current status</span></div>
+          <div class="step"><span class="n">Step 5</span><b>IEP</b><span>Current status</span></div>
+          <div class="step"><span class="n">Step 6</span><b>Insurance</b><span>Then "Let's go"</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="station">
+      <div class="rail"><div class="pin end">✓</div></div>
+      <div class="body">
+        <h2>"Let's go" saves the family and opens Home</h2>
+        <div class="saves" aria-label="Records written">
+          <code>families</code><code>children</code><code>diagnoses</code><code>actions (starter plan)</code><code>"registered" funnel event</code><code>tracking tags</code>
+        </div>
+        <p class="sub">The ZIP or county picks the Regional Center. If the starter plan fails, setup still finishes. Home then shows a one-time Journey Map. <span class="path">OnboardingFlow.tsx:150–270</span></p>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="panels">
+    <section class="panel">
+      <span class="chip risk">Friction and risk</span>
+      <h2>Things worth knowing</h2>
+      <ul>
+        <li><b>Quitting partway loses the setup answers.</b> They're held in memory until step 6. The account itself still exists.</li>
+        <li><b>Web visitors can't use Apple sign-in.</b> If the Google setting isn't configured, email is their only option.</li>
+        <li><b>Google asks for Calendar and Gmail on the phone apps.</b> That's a lot to ask on the first screen, before any value is shown.</li>
+        <li><b>Confirm-email sends the parent away.</b> If it's on, they have to leave the app, click the link, and come back to sign in.</li>
+      </ul>
+    </section>
+    <section class="panel">
+      <span class="chip warn">Not checked in production</span>
+      <h2>To confirm what visitors really see</h2>
+      <ul>
+        <li><b>Supabase Auth:</b> whether "Confirm email" is on</li>
+        <li><b>Supabase Auth:</b> whether the Apple and Google providers are turned on</li>
+        <li><b>Vercel:</b> whether <code>EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID</code> is set for production</li>
+        <li><b>Supabase Vault and secrets:</b> whether sign-up alerts are configured</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>
+    <p>Source: the <code>mcbeebe/waypoint</code> repository at commit 44a0475. File paths are given at each step. This page describes the code's behavior. Live settings may change what a visitor actually sees.</p>
+  </footer>
+</div>
