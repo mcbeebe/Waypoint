@@ -10,7 +10,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, getPathFromState } from '@react-navigation/native';
 import type { LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as ExpoLinking from 'expo-linking';
@@ -39,6 +39,7 @@ import { TextScaleProvider } from './src/lib/textSize';
 import { colors } from './src/lib/theme';
 import type { RootStackParamList } from './src/types/navigation';
 import { MAIN_LINKING } from './src/navigation/linking';
+import { withoutPrivateParams } from './src/navigation/urlPrivacy';
 import JoinFamilyScreen from './src/screens/auth/JoinFamilyScreen';
 import {
   extractJoinToken,
@@ -56,6 +57,9 @@ import {
 // nested initialRouteName/screen names — they're checked at runtime instead.
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [ExpoLinking.createURL('/')],
+  // A letter's text, the parent's ask and the Navigator's guidance travel as
+  // route params — in memory, never in the address bar (urlPrivacy.ts).
+  getPathFromState: (state, options) => withoutPrivateParams(getPathFromState(state, options)),
   config: {
     screens: {
       Welcome: 'welcome',

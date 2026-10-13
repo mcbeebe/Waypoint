@@ -12,6 +12,7 @@
 
 import * as Sentry from '@sentry/react-native';
 import Constants from 'expo-constants';
+import { stripQuery } from '@/navigation/urlPrivacy';
 
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? '';
 
@@ -44,9 +45,15 @@ export function initSentry(): void {
 
     // Redact PII from breadcrumbs (we handle user context manually)
     beforeBreadcrumb(breadcrumb) {
-      // Strip potential PII from navigation breadcrumbs
+      // Strip potential PII from navigation breadcrumbs — the state, and the
+      // query string of the from/to URLs, which on web carried the text of
+      // a letter (urlPrivacy.ts) and may still carry an old link's.
       if (breadcrumb.category === 'navigation' && breadcrumb.data) {
         delete breadcrumb.data.state;
+        for (const key of ['from', 'to']) {
+          const url = breadcrumb.data[key];
+          if (typeof url === 'string') breadcrumb.data[key] = stripQuery(url);
+        }
       }
       return breadcrumb;
     },
@@ -57,6 +64,11 @@ export function initSentry(): void {
       if (event.user) {
         delete event.user.email;
         delete event.user.ip_address;
+      }
+      // The page URL an error happened on, without its query string.
+      if (event.request) {
+        if (event.request.url) event.request.url = stripQuery(event.request.url);
+        delete event.request.query_string;
       }
       return event;
     },

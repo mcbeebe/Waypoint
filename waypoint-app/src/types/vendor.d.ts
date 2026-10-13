@@ -110,6 +110,8 @@ declare module '@sentry/react-native' {
 
   interface SentryEvent {
     user?: SentryUser;
+    /** The page an error happened on (web). */
+    request?: { url?: string; query_string?: unknown };
   }
 
   interface SentryScope {
