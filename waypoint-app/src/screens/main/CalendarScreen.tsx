@@ -18,7 +18,6 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  ScrollView,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
@@ -44,7 +43,6 @@ import type {
   AppointmentType,
   Deadline,
   DeadlineType,
-  DeadlineStatus,
 } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 

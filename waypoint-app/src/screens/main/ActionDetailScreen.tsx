@@ -23,7 +23,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type {
   Action,
   ActionStatus,
-  ActionStep,
   ActionCategory,
   ActionPriority,
 } from '@/types/database';
