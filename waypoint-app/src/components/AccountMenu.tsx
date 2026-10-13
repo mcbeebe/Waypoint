@@ -7,7 +7,7 @@
  * one tap away — settings, family sharing, documents, and the subscription.
  */
 import React from 'react';
-import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { Text, Pressable, Modal, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { accountMenuItems } from '@/lib/accountMenu';

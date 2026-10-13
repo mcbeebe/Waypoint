@@ -8,10 +8,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
-import { fetchCalendarEvents, createCalendarEvent, updateCalendarEvent } from '@/lib/googleCalendar';
+import { fetchCalendarEvents, createCalendarEvent } from '@/lib/googleCalendar';
 import { getGoogleAccessToken } from '@/lib/auth';
 import { calendarUrl, withWaypointLink, stripWaypointLink } from '@/lib/appLinks';
-import type { Appointment, GoogleCalendarEvent } from '@/types/database';
+import type { Appointment } from '@/types/database';
 
 const LAST_SYNC_KEY = 'waypoint_calendar_last_sync';
 const SYNC_RANGE_DAYS = 90;

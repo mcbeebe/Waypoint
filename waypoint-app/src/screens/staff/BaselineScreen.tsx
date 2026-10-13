@@ -14,7 +14,7 @@ import { useSdpCase } from '@/hooks/useFacilitation';
 import { useToast } from '@/components/Toast';
 import type { BaselineKind } from '@/types/database';
 import type { StaffStackParamList } from '@/types/navigation';
-import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 type Nav = NativeStackNavigationProp<StaffStackParamList, 'Baseline'>;
 type Route = RouteProp<StaffStackParamList, 'Baseline'>;

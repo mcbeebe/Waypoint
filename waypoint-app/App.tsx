@@ -14,7 +14,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import type { LinkingOptions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as ExpoLinking from 'expo-linking';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { useAuth } from './src/hooks/useAuth';
 import { useProfile } from './src/hooks/useProfile';
