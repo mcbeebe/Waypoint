@@ -13,10 +13,8 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
   Platform,
   KeyboardAvoidingView,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';

@@ -13,7 +13,7 @@
  * prose. `KNOWN_GAPS` is now empty, so this is a plain gate: the build fails on
  * the first statute asserted to a family with nothing behind it.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,8 +57,15 @@ function currentGaps(): string[] {
 }
 
 describe('statute audit ratchet', () => {
+  // The scan reads every file under src/; run it once, not once per test, so a
+  // loaded full-suite run cannot push a single `it` past vitest's 5s default.
+  let gaps: string[] = [];
+  beforeAll(() => {
+    gaps = currentGaps();
+  }, 30_000);
+
   it('no NEW statute is asserted in prose without a registry entry', () => {
-    const unexpected = currentGaps().filter((id) => !KNOWN_GAPS.includes(id));
+    const unexpected = gaps.filter((id) => !KNOWN_GAPS.includes(id));
     // A failure here means a legal claim shipped with nothing behind it.
     // Register the authority in contentSources.ts, or name the code in the
     // prose. Adding it to KNOWN_GAPS is not a fix.
@@ -66,13 +73,12 @@ describe('statute audit ratchet', () => {
   });
 
   it('KNOWN_GAPS has no stale entries — fixed debt is deleted, not left behind', () => {
-    const current = currentGaps();
-    const fixed = KNOWN_GAPS.filter((id) => !current.includes(id));
+    const fixed = KNOWN_GAPS.filter((id) => !gaps.includes(id));
     // A failure here is good news: that gap is closed. Delete its line.
     expect(fixed).toEqual([]);
   });
 
   it('the debt is visible as a number, so it can be watched going down', () => {
-    expect(currentGaps()).toHaveLength(KNOWN_GAPS.length);
+    expect(gaps).toHaveLength(KNOWN_GAPS.length);
   });
 });

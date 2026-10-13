@@ -25,7 +25,7 @@ import { useFamily, useChildren } from '@/hooks/useFamily';
 import { useServices, type ServiceWithMeta } from '@/hooks/useServices';
 import { useProviders } from '@/hooks/useProviders';
 import { useToast } from '@/components/Toast';
-import type { Service, ServiceType, ServiceStatus, FundingSource } from '@/types/database';
+import type { ServiceType, ServiceStatus, FundingSource } from '@/types/database';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 
 // ─── Config ─────────────────────────────────────────────────────────────────

@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   VERIFIER_BYTES,
   base64UrlFromBase64,
-  base64UrlFromBytes,
   isValidVerifier,
   verifierFromBytes,
   challengeFromVerifier,

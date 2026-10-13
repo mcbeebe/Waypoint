@@ -8,7 +8,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
+import { Text, Animated, StyleSheet } from 'react-native';
 import { announce } from '@/lib/accessibility';
 import { colors, fonts, spacing, radii } from '@/lib/theme';
 

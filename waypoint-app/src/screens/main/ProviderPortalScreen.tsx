@@ -3,7 +3,7 @@
  * Phase 7: Sprints S54-S58
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  Modal,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
