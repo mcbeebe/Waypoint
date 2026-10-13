@@ -215,6 +215,9 @@ try {
   }
 
   const context = await browser.newContext();
+  // Never let a CI or local scan reach GA4 as a visitor (ga-init.js also
+  // skips config off the live host; this is the second layer).
+  await context.route(/^https:\/\/([^/]+\.)?(googletagmanager|google-analytics)\.com\//, (r) => r.abort());
   const page = await context.newPage();
   const pages = allPages();
 
