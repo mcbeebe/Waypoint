@@ -12,6 +12,7 @@
  * field waiting on it, and now isn't). noindex/draft removed accordingly.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { webApplicationJsonLd } from '../../lib/jsonld';
 import PageHero from '../../components/PageHero.astro';
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
@@ -23,11 +24,21 @@ const routes = await countyRoutes();
 const records = await regionalCenterRecords();
 const counties = [...new Set(routes.map((r) => r.county))];
 const covered = records.length;
+
+const description =
+  'California has 21 Regional Centers, each serving specific counties. Pick your county to find the center that serves your family and how the intake clock works.';
+const jsonLd = webApplicationJsonLd({
+  path: '/tools/regional-center-finder/',
+  name: 'Regional Center finder',
+  description,
+  applicationCategory: 'UtilitiesApplication',
+});
 ---
 
 <BaseLayout
   title="Find your California Regional Center — Waypoint"
-  description="California has 21 Regional Centers, each serving specific counties. Pick your county to find the center that serves your family and how the intake clock works."
+  description={description}
+  jsonLd={jsonLd}
   pillar="regional-centers"
 >
   <PageHero

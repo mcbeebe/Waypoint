@@ -14,6 +14,7 @@
  * tool ever goes back behind review.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { webApplicationJsonLd } from '../../lib/jsonld';
 import PageHero from '../../components/PageHero.astro';
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
@@ -32,11 +33,21 @@ const saveProps = JSON.stringify({
   cta_id: 'tool-result',
   tool_id: 'ssi-deeming-calculator',
 });
+
+const description =
+  'Estimate whether your child could qualify for SSI while living at home: a quick parent-to-child deeming estimate, free, private, and stored nowhere.';
+const jsonLd = webApplicationJsonLd({
+  path: '/tools/ssi-deeming-calculator/',
+  name: 'SSI deeming calculator',
+  description,
+  applicationCategory: 'FinanceApplication',
+});
 ---
 
 <BaseLayout
   title="SSI deeming calculator for California families — Waypoint"
-  description="Estimate whether your child could qualify for SSI while living at home: a quick parent-to-child deeming estimate, free, private, and stored nowhere."
+  description={description}
+  jsonLd={jsonLd}
   pillar="benefits"
 >
   <PageHero
