@@ -2,7 +2,8 @@
 /** Answer pages — short, direct, answer-first (answers collection). */
 import { render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
-import { visibleEntries } from '../../lib/content';
+import { visibleContentUrls, visibleEntries } from '../../lib/content';
+import { hubCrumb } from '../../lib/jsonld';
 
 export async function getStaticPaths() {
   const answers = await visibleEntries('answers');
@@ -16,13 +17,18 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const d = entry.data;
 const id = entry.id.replace(/\.mdx?$/, '');
+const urls = await visibleContentUrls();
 ---
 
 <ArticleLayout
   title={d.seoTitle ?? d.title}
   description={d.description}
   heading={d.title}
-  crumbs={[{ name: 'Guides', href: '/guides/' }, { name: d.title }]}
+  crumbs={[
+    { name: 'Guides', href: '/guides/' },
+    hubCrumb('Answers', '/answers/', urls),
+    { name: d.title },
+  ]}
   locale={d.locale}
   status={d.status}
   author={d.author}
