@@ -1,0 +1,56 @@
+---
+/**
+ * Answers hub (/answers/). Modeled on the guides hub: lists every
+ * Answers entry that renders in this build via the publish gate
+ * (visibleEntries) — published only in production, plus drafts under
+ * WAYPOINT_SHOW_DRAFTS=1. It is the parent page the Answers breadcrumbs link
+ * to (hubCrumb → visibleContentUrls registers /answers/ only when an entry is
+ * visible). With zero visible entries the page is not a real hub: it renders
+ * noindex with an honest empty state, and astro.config.mjs keeps it out of
+ * the sitemap.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { isDraft, visibleEntries } from '../../lib/content';
+
+const entries = (await visibleEntries('answers')).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title),
+);
+const empty = entries.length === 0;
+---
+
+<BaseLayout
+  title="Answers for California families — Waypoint"
+  description="Short, direct answers to common questions about California disability services, with the sources each one cites. Free, no email."
+  noindex={empty}
+>
+  <PageHero
+    eyebrow="Answers"
+    title="Short answers to common questions"
+    lede="Each answer gives the short version first and links the sources it cites. Free, with no email gate."
+  />
+  <div class="section">
+    <div class="container">
+      <Breadcrumbs crumbs={[{ name: 'Guides', href: '/guides/' }, { name: 'Answers' }]} />
+      {
+        empty ? (
+          <p class="sub">None of these are published yet. Check back soon, or browse the <a href="/guides/">guides</a>.</p>
+        ) : (
+          <div class="grid-3">
+            {entries.map((e) => (
+              <div class="card">
+                <h2>{e.data.title}</h2>
+                <p>{e.data.description}</p>
+                {isDraft(e) && <p class="sub">Draft — not yet published.</p>}
+                <a class="link" href={`/answers/${e.id.replace(/\.mdx?$/, '')}/`}>
+                  Read the answer →
+                </a>
+              </div>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>

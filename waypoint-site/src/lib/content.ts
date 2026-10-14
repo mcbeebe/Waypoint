@@ -58,12 +58,17 @@ export async function visibleContentUrls(): Promise<Set<string>> {
   for (const entry of await visibleEntries('guides')) {
     urls.add(guideUrl(entry));
   }
-  for (const entry of await visibleEntries('answers')) {
+  const answers = await visibleEntries('answers');
+  for (const entry of answers) {
     urls.add(`/answers/${entry.id.replace(/\.mdx?$/, '')}/`);
   }
-  for (const entry of await visibleEntries('letters')) {
+  // Hub pages (/answers/, /letters/) exist as links only while they list something.
+  if (answers.length > 0) urls.add('/answers/');
+  const letters = await visibleEntries('letters');
+  for (const entry of letters) {
     urls.add(`/letters/${entry.id.replace(/\.mdx?$/, '')}/`);
   }
+  if (letters.length > 0) urls.add('/letters/');
   for (const entry of await visibleEntries('regionalCenters')) {
     urls.add(`/regional-centers/${entry.data.rcId}/`);
   }
@@ -81,12 +86,16 @@ export async function allContentUrls(): Promise<Set<string>> {
   for (const entry of await getCollection('guides')) {
     urls.add(guideUrl(entry));
   }
-  for (const entry of await getCollection('answers')) {
+  const answers = await getCollection('answers');
+  for (const entry of answers) {
     urls.add(`/answers/${entry.id.replace(/\.mdx?$/, '')}/`);
   }
-  for (const entry of await getCollection('letters')) {
+  if (answers.length > 0) urls.add('/answers/');
+  const letters = await getCollection('letters');
+  for (const entry of letters) {
     urls.add(`/letters/${entry.id.replace(/\.mdx?$/, '')}/`);
   }
+  if (letters.length > 0) urls.add('/letters/');
   for (const entry of await getCollection('regionalCenters')) {
     urls.add(`/regional-centers/${entry.data.rcId}/`);
   }

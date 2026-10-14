@@ -1,0 +1,56 @@
+---
+/**
+ * Letters hub (/letters/). Modeled on the guides hub: lists every
+ * Letters entry that renders in this build via the publish gate
+ * (visibleEntries) — published only in production, plus drafts under
+ * WAYPOINT_SHOW_DRAFTS=1. It is the parent page the Letters breadcrumbs link
+ * to (hubCrumb → visibleContentUrls registers /letters/ only when an entry is
+ * visible). With zero visible entries the page is not a real hub: it renders
+ * noindex with an honest empty state, and astro.config.mjs keeps it out of
+ * the sitemap.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { isDraft, visibleEntries } from '../../lib/content';
+
+const entries = (await visibleEntries('letters')).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title),
+);
+const empty = entries.length === 0;
+---
+
+<BaseLayout
+  title="Template letters for California families — Waypoint"
+  description="Template letters for California families to adapt and send, with the sources each one cites. Free, no email."
+  noindex={empty}
+>
+  <PageHero
+    eyebrow="Template letters"
+    title="Template letters you can adapt and send"
+    lede="Each letter is a starting point you can edit, with the sources it cites. Free, with no email gate."
+  />
+  <div class="section">
+    <div class="container">
+      <Breadcrumbs crumbs={[{ name: 'Guides', href: '/guides/' }, { name: 'Letters' }]} />
+      {
+        empty ? (
+          <p class="sub">None of these are published yet. Check back soon, or browse the <a href="/guides/">guides</a>.</p>
+        ) : (
+          <div class="grid-3">
+            {entries.map((e) => (
+              <div class="card">
+                <h2>{e.data.title}</h2>
+                <p>{e.data.description}</p>
+                {isDraft(e) && <p class="sub">Draft — not yet published.</p>}
+                <a class="link" href={`/letters/${e.id.replace(/\.mdx?$/, '')}/`}>
+                  Get the letter →
+                </a>
+              </div>
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</BaseLayout>
