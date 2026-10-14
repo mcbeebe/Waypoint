@@ -16,8 +16,11 @@ interface Props {
   /** Content URL, so Seo can pick this page's build-time OG card. */
   ogSlug?: string;
   ogType?: 'website' | 'article';
+  /** Optional JSON-LD node(s), emitted in <head> as ld+json. */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
-const { title, description, locale = 'en', noindex = false, pillar, ogSlug, ogType } = Astro.props;
+const { title, description, locale = 'en', noindex = false, pillar, ogSlug, ogType, jsonLd } = Astro.props;
+const jsonLdNodes = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 const isProd = (process.env.VERCEL_ENV ?? 'production') === 'production';
 // GA4: second, additional tracker alongside Plausible (D3 "Providers"). The
 // Measurement ID is committed, not a secret — gtag.js publishes it in the
@@ -47,6 +50,11 @@ const gaMeasurementId = process.env.GA_MEASUREMENT_ID ?? 'G-VEB7T9ZVH5';
       crossorigin
     />
     <Seo title={title} description={description} noindex={noindex} ogSlug={ogSlug} ogType={ogType} />
+    {
+      jsonLdNodes.map((node) => (
+        <script type="application/ld+json" set:html={JSON.stringify(node)} />
+      ))
+    }
     {/* Plausible: cookieless analytics — events per docs/analytics-taxonomy.md
         (D3). Loaded only on production deploys so preview/branch QA traffic
         never pollutes the production data-domain (local non-Vercel builds

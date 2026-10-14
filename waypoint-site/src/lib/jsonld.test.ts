@@ -5,7 +5,15 @@
  * any crumb short of the last one either carries a link or is dropped.
  */
 import { describe, expect, it } from 'vitest';
-import { breadcrumbsJsonLd, hubCrumb, type Crumb } from './jsonld';
+import {
+  articleJsonLd,
+  breadcrumbsJsonLd,
+  hubCrumb,
+  regionalCenterOrgJsonLd,
+  toolsIndexJsonLd,
+  webApplicationJsonLd,
+  type Crumb,
+} from './jsonld';
 
 describe('hubCrumb', () => {
   it('links when the hub URL exists in the build', () => {
@@ -89,5 +97,84 @@ describe('breadcrumbsJsonLd', () => {
   it('keeps a lone current-page crumb as a single valid ListItem', () => {
     const ld = breadcrumbsJsonLd([{ name: 'Home' }]);
     expect(ld.itemListElement).toEqual([{ '@type': 'ListItem', position: 1, name: 'Home' }]);
+  });
+});
+
+describe('webApplicationJsonLd', () => {
+  const ld = webApplicationJsonLd({
+    path: '/tools/iep-goal-check/',
+    name: 'Free IEP goal check',
+    description: 'The page description.',
+    applicationCategory: 'EducationalApplication',
+  });
+
+  it('describes a free, ungated web app published by the site Organization', () => {
+    expect(ld).toMatchObject({
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      url: 'https://waypointchild.com/tools/iep-goal-check/',
+      description: 'The page description.',
+      applicationCategory: 'EducationalApplication',
+      operatingSystem: 'Any',
+      isAccessibleForFree: true,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+      publisher: { '@type': 'Organization', name: 'Waypoint', url: 'https://waypointchild.com/' },
+    });
+  });
+
+  it('never claims ratings or reviews', () => {
+    expect(ld).not.toHaveProperty('aggregateRating');
+    expect(ld).not.toHaveProperty('review');
+  });
+});
+
+describe('toolsIndexJsonLd', () => {
+  it('lists tools in order with absolute URLs', () => {
+    const ld = toolsIndexJsonLd([
+      { name: 'A', path: '/tools/a/' },
+      { name: 'B', path: '/tools/b/' },
+    ]);
+    expect(ld['@type']).toBe('ItemList');
+    expect(ld.itemListElement).toEqual([
+      { '@type': 'ListItem', position: 1, name: 'A', url: 'https://waypointchild.com/tools/a/' },
+      { '@type': 'ListItem', position: 2, name: 'B', url: 'https://waypointchild.com/tools/b/' },
+    ]);
+  });
+});
+
+describe('regionalCenterOrgJsonLd', () => {
+  it('is a plain Organization (not GovernmentOrganization) with county areas', () => {
+    const org = regionalCenterOrgJsonLd({ rcName: 'Alta California Regional Center', counties: ['Alpine', 'Yolo'] });
+    expect(org['@type']).toBe('Organization');
+    expect(org.areaServed).toEqual([
+      { '@type': 'AdministrativeArea', name: 'Alpine County, California' },
+      { '@type': 'AdministrativeArea', name: 'Yolo County, California' },
+    ]);
+    expect(org).not.toHaveProperty('url');
+    expect(org).not.toHaveProperty('telephone');
+  });
+
+  it('adds url only when given one', () => {
+    const org = regionalCenterOrgJsonLd({ rcName: 'X', counties: ['Kern'], url: 'https://example.org/apply' });
+    expect(org.url).toBe('https://example.org/apply');
+    expect(regionalCenterOrgJsonLd({ rcName: 'X', counties: ['Kern'], url: null })).not.toHaveProperty('url');
+  });
+});
+
+describe('articleJsonLd about', () => {
+  const base = {
+    url: 'https://waypointchild.com/x/',
+    title: 'T',
+    description: 'D',
+    locale: 'en' as const,
+    author: 'A',
+    datePublished: new Date('2026-09-09'),
+    dateModified: new Date('2026-09-10'),
+    review: null,
+  };
+  it('attaches about only when provided', () => {
+    expect(articleJsonLd(base)).not.toHaveProperty('about');
+    const about = regionalCenterOrgJsonLd({ rcName: 'X', counties: ['Kern'] });
+    expect(articleJsonLd({ ...base, about }).about).toEqual(about);
   });
 });

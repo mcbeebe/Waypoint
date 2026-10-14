@@ -20,6 +20,87 @@ export function organizationJsonLd() {
   };
 }
 
+/** The site Organization as a nested node (no @context) — publisher on tools. */
+function publisherNode() {
+  return { '@type': 'Organization', name: 'Waypoint', url: `${SITE}/` };
+}
+
+export interface WebApplicationJsonLdInput {
+  /** Site-relative path with trailing slash, e.g. "/tools/iep-goal-check/". */
+  path: string;
+  name: string;
+  /** Must be the page's own meta description. */
+  description: string;
+  /** schema.org applicationCategory, e.g. "EducationalApplication". */
+  applicationCategory: string;
+}
+
+/**
+ * WebApplication schema for a free in-browser tool. Facts only: every tool is
+ * free with no email gate (site rule), so the zero-price offer is true by
+ * construction. No ratings, user counts or outcome claims.
+ */
+export function webApplicationJsonLd(input: WebApplicationJsonLdInput) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: input.name,
+    url: `${SITE}${input.path}`,
+    description: input.description,
+    applicationCategory: input.applicationCategory,
+    operatingSystem: 'Any',
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    publisher: publisherNode(),
+  };
+}
+
+export interface ToolsIndexItem {
+  name: string;
+  path: string;
+}
+
+/** ItemList for the free-tools hub: the tools it links to, in page order. */
+export function toolsIndexJsonLd(items: ToolsIndexItem[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Free tools for California families',
+    url: `${SITE}/tools/`,
+    itemListElement: items.map((t, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: t.name,
+      url: `${SITE}${t.path}`,
+    })),
+  };
+}
+
+export interface RegionalCenterOrgInput {
+  rcName: string;
+  /** County names as in frontmatter ("Alameda"), without "County". */
+  counties: string[];
+  /** Only when the content already carries one of the center's own URLs. */
+  url?: string | null;
+}
+
+/**
+ * The Regional Center itself, as a nested `about` node. Plain Organization:
+ * centers are private nonprofits under DDS contract, and we make no claim
+ * about legal status. Facts come only from frontmatter.
+ */
+export function regionalCenterOrgJsonLd(input: RegionalCenterOrgInput) {
+  return {
+    '@type': 'Organization',
+    name: input.rcName,
+    ...(input.url ? { url: input.url } : {}),
+    areaServed: input.counties.map((c) => ({
+      '@type': 'AdministrativeArea',
+      name: `${c} County, California`,
+    })),
+  };
+}
+
 export interface ArticleJsonLdInput {
   url: string;
   title: string;
@@ -29,6 +110,8 @@ export interface ArticleJsonLdInput {
   datePublished: Date | null;
   dateModified: Date;
   review: { reviewedBy: string; credential: string } | null;
+  /** Optional entity the article is about (e.g. a Regional Center). */
+  about?: Record<string, unknown>;
 }
 
 /** Article schema for a PUBLISHED entry only — callers gate on status. */
@@ -45,6 +128,7 @@ export function articleJsonLd(input: ArticleJsonLdInput) {
     dateModified: input.dateModified.toISOString(),
   };
   if (input.datePublished) data.datePublished = input.datePublished.toISOString();
+  if (input.about) data.about = input.about;
   if (input.review) {
     data.reviewedBy = {
       '@type': 'Person',

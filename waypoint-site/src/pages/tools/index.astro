@@ -13,6 +13,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PageHero from '../../components/PageHero.astro';
 import HandoffCTA from '../../components/HandoffCTA.astro';
 import { visibleContentUrls } from '../../lib/content';
+import { toolsIndexJsonLd } from '../../lib/jsonld';
 
 const urls = await visibleContentUrls();
 const lettersHref = '/letters/iep-evaluation-request/';
@@ -44,9 +45,11 @@ const tools = [
     action: 'Find your Regional Center',
   },
 ];
+const jsonLd = toolsIndexJsonLd(tools.map((t) => ({ name: t.title, path: t.href })));
 ---
 
 <BaseLayout
+  jsonLd={jsonLd}
   title="Free tools for California families — Waypoint"
   description="Free tools for California families of children with disabilities: an IEP goal check, an SSI deeming calculator, and a Regional Center finder. No sign-up, no email."
 >
