@@ -1,0 +1,57 @@
+{
+  "artboards": [
+    {
+      "file": "Detail.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 1080,
+      "title": "1 · Action detail — the new block",
+      "is_interactive": false
+    },
+    {
+      "file": "Chat.dc.html",
+      "x": 490,
+      "y": 0,
+      "w": 390,
+      "h": 1180,
+      "title": "2 · The handoff — chat, already anchored",
+      "is_interactive": false
+    },
+    {
+      "file": "States.dc.html",
+      "x": 980,
+      "y": 0,
+      "w": 390,
+      "h": 1180,
+      "title": "3 · What the composer opens with",
+      "is_interactive": false
+    }
+  ],
+  "annotations": [
+    {
+      "id": "note-where",
+      "x": 0,
+      "y": -170,
+      "w": 450,
+      "text": "WHERE IT SITS — directly under the meta chips, above \"Your time\" and the apply buttons. A parent who has just marked something done is at the TOP of this screen, not scrolled to the bottom where the email and calendar sections live. The block is one card: a line saying what Waypoint already knows, and one button."
+    },
+    {
+      "id": "note-context",
+      "x": 490,
+      "y": -170,
+      "w": 450,
+      "text": "HOW THE CONTEXT TRAVELS — the chat's system prompt is built SERVER-SIDE in ai-proxy from DB family context; the client only sends messages. So the action's state rides in the seeded first message itself, as a readable sentence the parent can see and edit-by-reply. No Edge Function change, no new payload field — the same mechanism JourneyScreen's \"Ask Waypoint about this step\" already ships.\n\nThe context pill above the thread is the one genuinely new bit of chat surface: it names what the conversation is anchored to and taps back to the action, because the handoff switches TABS and Back would otherwise land on the chat's own stack."
+    },
+    {
+      "id": "note-tone",
+      "x": 980,
+      "y": -170,
+      "w": 450,
+      "text": "ONE BUTTON, NOT CHIPS (owner call, Oct 14) — the status-awareness lives in the sentence, and the question after it is the parent's own. A chip is a question Waypoint put in their mouth; a prefilled composer is a statement of what Waypoint already knows, with the cursor waiting.\n\nTONE IS THE RISK — this copy is family-facing AND it steers the answer. Every sentence states the status of the answer, never an actor who failed. Panel 4 is the one to read closely: it is the exact place a \"they blew the deadline\" framing would creep in, and it is now pinned by a banned-phrase test across all 48 state×locale combinations."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}

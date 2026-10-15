@@ -124,7 +124,24 @@ export type HomeStackParamList = {
 };
 
 export type NavigatorStackParamList = {
-  NavigatorMain: { ask?: string } | undefined;
+  NavigatorMain:
+    | {
+        /** Seed a question and SEND it — the proactive-prompt handoff. */
+        ask?: string;
+        /**
+         * Seed the composer and focus it, sending NOTHING. The action bridge
+         * uses this: the parent's own question goes after the context
+         * sentence, so the ask stays theirs to write (owner call, Oct 14 2026).
+         */
+        prefill?: string;
+        /**
+         * What this conversation is anchored to, for the context pill above
+         * the thread. The handoff switches TABS, so without a way back the
+         * parent has to remember which tab they came from.
+         */
+        anchor?: { actionId: string; title: string };
+      }
+    | undefined;
   Resources: undefined;
   Blog: undefined;
   Article: { articleKey: string };

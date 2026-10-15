@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,600;6..72,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #F5F1E9; font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #22303A; -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+
+<div style="width: 390px; background: #F5F1E9; display: flex; flex-direction: column;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #FBF6EC; border-bottom: 1px solid #EAE3D5;">
+    <span style="font-family: 'Newsreader', Georgia, serif; font-size: 18px; font-weight: 700; color: #22303A;">&#129517; Navigator</span>
+    <span style="font-size: 12px; font-weight: 600; color: #0F766E;">History</span>
+  </div>
+
+  <!-- ═══ NEW: the context pill — says what the chat is anchored to, and taps back ═══ -->
+  <div style="padding: 10px 12px 2px;">
+    <div style="display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 12px; border-radius: 20px; background: #E6F1EF; border: 1px solid #0F766E;">
+      <span style="font-size: 13px;">&#128203;</span>
+      <span style="font-size: 12px; font-weight: 600; color: #0F766E; flex: 1;">About: Apply for Medi-Cal &#183; done</span>
+      <span style="font-size: 12px; font-weight: 700; color: #0F766E;">Open &#8250;</span>
+    </div>
+  </div>
+
+  <div style="padding: 10px 12px 16px;">
+
+    <!-- the seeded first message, as the parent sees it -->
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 14px;">
+      <div style="max-width: 300px; background: #0F766E; border-radius: 16px 16px 4px 16px; padding: 11px 13px;">
+        <div style="font-size: 14px; line-height: 20px; color: #FFFFFF;">
+          I&#8217;ve finished &#8220;Apply for Medi-Cal&#8221; &#8212; I submitted the application. What happens next, how long should it take, and what should I be watching for?
+        </div>
+      </div>
+    </div>
+
+    <!-- the answer -->
+    <div style="background: #FFFFFF; border: 1px solid #EAE3D5; border-radius: 16px 16px 16px 4px; padding: 13px; margin-bottom: 10px;">
+      <div style="font-size: 14px; line-height: 21px; color: #22303A;">
+        Nice work getting it in. Here&#8217;s the shape of what comes next.
+        <br><br>
+        The county has <strong>45 days</strong> to decide a Medi-Cal application (20 days if it&#8217;s on disability). You&#8217;ll usually get a letter asking for proof &#8212; income, residency, your child&#8217;s Social Security number &#8212; before anything else happens. That request is normal, not a problem, but it has its own clock: miss it and the application can be denied for paperwork rather than on the merits.
+      </div>
+
+      <div style="margin-top: 12px; background: #FDF3E3; border-left: 3px solid #B45309; border-radius: 6px; padding: 10px;">
+        <div style="font-size: 11px; font-weight: 700; color: #B45309; letter-spacing: 0.4px; margin-bottom: 3px;">WATCH FOR</div>
+        <div style="font-size: 13px; line-height: 19px; color: #22303A;">A &#8220;Request for Information&#8221; envelope from your county office. Photograph it and send it back the same week.</div>
+      </div>
+
+      <div style="margin-top: 10px; background: #E6F1EF; border-radius: 8px; padding: 10px;">
+        <div style="font-size: 11px; font-weight: 700; color: #0F766E; letter-spacing: 0.4px; margin-bottom: 6px;">NEXT STEPS</div>
+        <div style="font-size: 13px; line-height: 19px; color: #22303A;">1. Save your confirmation number somewhere you can find it.<br>2. Around day 30, call to check the file is complete.<br>3. When the card arrives, ask about EPSDT &#8212; it covers all medically necessary care under 21.</div>
+      </div>
+    </div>
+
+    <!-- the loop back to the plan -->
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
+      <div style="min-height: 40px; display: flex; align-items: center; padding: 0 13px; border-radius: 20px; background: #0F766E;"><span style="font-size: 13px; font-weight: 600; color: #FFFFFF;">&#10133; Add these to my plan</span></div>
+      <div style="min-height: 40px; display: flex; align-items: center; padding: 0 13px; border-radius: 20px; border: 1px solid #0F766E; background: #FFFFFF;"><span style="font-size: 13px; font-weight: 600; color: #0F766E;">Set a day-30 reminder</span></div>
+    </div>
+
+    <!-- follow-up chips, from the answer's own trailer -->
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <div style="min-height: 40px; display: flex; align-items: center; padding: 0 13px; border-radius: 20px; border: 1px solid #EAE3D5; background: #FFFFFF;"><span style="font-size: 13px; color: #55606B;">What&#8217;s EPSDT?</span></div>
+      <div style="min-height: 40px; display: flex; align-items: center; padding: 0 13px; border-radius: 20px; border: 1px solid #EAE3D5; background: #FFFFFF;"><span style="font-size: 13px; color: #55606B;">What if it&#8217;s denied?</span></div>
+    </div>
+  </div>
+
+  <div style="padding: 10px 12px; background: #FBF6EC; border-top: 1px solid #EAE3D5; display: flex; gap: 8px; align-items: center;">
+    <div style="flex: 1; min-height: 44px; display: flex; align-items: center; padding: 0 14px; border-radius: 22px; background: #FFFFFF; border: 1px solid #EAE3D5;"><span style="font-size: 14px; color: #6D6555;">Ask anything&#8230;</span></div>
+    <div style="width: 44px; height: 44px; border-radius: 22px; background: #0F766E; display: flex; align-items: center; justify-content: center;"><span style="font-size: 16px; color: #FFFFFF;">&#8593;</span></div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
