@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -22,7 +22,7 @@ import CalendarScreen from '@/screens/main/CalendarScreen';
 import ProfileScreen from '@/screens/main/ProfileScreen';
 import NotificationSettingsScreen from '@/screens/main/NotificationSettingsScreen';
 import { NotificationPrefsProvider } from '@/hooks/useNotificationPrefs';
-import ActionDetailScreen from '@/screens/main/ActionDetailScreen';
+import ActionDetailRoute from '@/screens/main/ActionDetailRoute';
 import InsightsScreen from '@/screens/main/InsightsScreen';
 import DocumentsScreen from '@/screens/main/DocumentsScreen';
 import DocumentAnalysisScreen from '@/screens/main/DocumentAnalysisScreen';
@@ -65,13 +65,9 @@ import PremiumGate from '@/components/PremiumGate';
 import { useIEPGoals } from '@/hooks/useIEPGoals';
 import { useToast } from '@/components/Toast';
 
-import { useFamily, useDiagnoses } from '@/hooks/useFamily';
+import { useFamily } from '@/hooks/useFamily';
 import { useIsDesktopWeb } from '@/components/WebFrame';
 import { useActions } from '@/hooks/useActions';
-import CompletionCheckIn from '@/components/CompletionCheckIn';
-import { FOLLOWUPS } from '@/lib/adaptiveEngine';
-import { trackActionOutcome } from '@/lib/analytics';
-import type { Action } from '@/types/database';
 import { useI18n } from '@/i18n';
 import { FLAGS } from '@/lib/flags';
 import { COMMUNITY_DESTINATIONS, HOME_DESTINATIONS } from './routeGraph';
@@ -126,80 +122,6 @@ const detailHeaderOptions: NativeStackNavigationOptions = {
 };
 
 // ─── Route wrappers for prop-based screens ──────────────────────────────────
-
-/** Loads an action by id and binds useActions mutations to ActionDetailScreen. */
-function ActionDetailRoute({ route, navigation }: any) {
-  const { actionId } = route.params as { actionId: string };
-  const { family } = useFamily();
-  const { showToast } = useToast();
-  const { actions, loading, updateStatus, toggleStep, updateAction, refetch } = useActions({
-    familyId: family?.id ?? '',
-  });
-  const [checkInAction, setCheckInAction] = React.useState<Action | null>(null);
-
-  const action = actions.find(a => a.id === actionId);
-  const dependency = action?.depends_on ? actions.find(a => a.id === action.depends_on) : undefined;
-  const { diagnoses } = useDiagnoses(action?.child_id ?? undefined);
-
-  if (loading && !action) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.teal} />
-      </View>
-    );
-  }
-  if (!action) {
-    return (
-      <View style={styles.centered}>
-        <Text style={styles.notFound}>This action is no longer available.</Text>
-      </View>
-    );
-  }
-
-  return (
-    <>
-      <ActionDetailScreen
-        action={action}
-        onUpdateStatus={(status, reason) => {
-          // Dependency lock: this step builds on another that isn't done yet
-          if (
-            (status === 'completed' || status === 'in_progress') &&
-            dependency &&
-            dependency.status !== 'completed'
-          ) {
-            showToast(`Complete "${dependency.title}" first — this step builds on it.`, 'info');
-            return;
-          }
-          updateStatus(action.id, status, reason);
-          if (status === 'completed' && family?.id) {
-            trackActionOutcome(family.id, action.category, 'completed', family.regional_center ?? undefined);
-          }
-          if (status === 'completed' && action.follow_up_key && FOLLOWUPS[action.follow_up_key]) {
-            setCheckInAction(action);
-          }
-        }}
-        onToggleStep={stepIndex => toggleStep(action.id, stepIndex)}
-        onUpdate={data => updateAction(action.id, data)}
-        // Deep links (waypointchild.com/actions/:id) can open this screen as
-        // the stack root — fall back to the list so Back always works.
-        onBack={() =>
-          navigation.canGoBack() ? navigation.goBack() : navigation.navigate('TrackerList')
-        }
-      />
-      <CompletionCheckIn
-        action={checkInAction}
-        familyId={family?.id ?? ''}
-        ctx={{
-          parentName: family?.parent_first_name,
-          regionalCenterName: family?.regional_center,
-          diagnoses: diagnoses.map(d => d.name),
-        }}
-        onClose={() => setCheckInAction(null)}
-        onActionsAdded={refetch}
-      />
-    </>
-  );
-}
 
 function DocumentAnalysisRoute({ route, navigation }: any) {
   const { family } = useFamily();
@@ -499,6 +421,23 @@ export default function MainTabs() {
   return (
     <NotificationPrefsProvider>
     <Tab.Navigator
+      /**
+       * Back means "the tab I came from", not "Home".
+       *
+       * The default is 'firstRoute': any back that reaches this navigator —
+       * Android's hardware button, an iOS swipe with nothing beneath, a
+       * `goBack()` bubbling out of a stack that cannot pop — switches to the
+       * FIRST tab. So a parent who crossed tabs to read one action (the
+       * Navigator's "Ask about this" pill, a Plan row, a Home triage card)
+       * was put on Home, which is neither where they were nor anything they
+       * asked for. 'history' returns them to the tab they actually came from.
+       *
+       * The in-screen Back on ActionDetail does not rely on this — it names
+       * its return target (`lib/actionReturn.ts`) so it lands on the exact
+       * screen, conversation state included. This is the floor under every
+       * other back control on the way.
+       */
+      backBehavior="history"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.teal,
@@ -608,15 +547,5 @@ const styles = StyleSheet.create({
     color: brand.ink,
     fontWeight: fonts.weights.bold as '700',
     fontSize: 17,
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.light,
-  },
-  notFound: {
-    color: colors.mid,
-    fontSize: fonts.sizes.md,
   },
 });

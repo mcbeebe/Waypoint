@@ -40,6 +40,8 @@ vi.mock('@/hooks/useActions', () => ({
 
 import ActionsScreen, { ActionPlanTracker } from './ActionsScreen';
 import { navigateCalls } from '../../../vitest.setup.ui';
+import { resolvesFrom } from '@/navigation/routeGraph';
+import { actionReturnNavigation, ACTION_DETAIL_TAB } from '@/lib/actionReturn';
 
 /**
  * A fixed local noon, so "2 hours ago" is always the SAME calendar day.
@@ -640,6 +642,32 @@ describe('an in-progress step says so on the card', () => {
     fireEvent.click(screen.getByText(/Show everything/));
     // filter pill + the ONE in-progress card — the completed card adds nothing.
     expect(screen.getAllByText('In Progress')).toHaveLength(2);
+  });
+});
+
+describe('opening one action from the Plan tab', () => {
+  it('names the tab AND the way back', () => {
+    // Embedded means this tracker is the Plan tab's Action Plan segment, so
+    // the hop to ActionDetail crosses tabs — and ActionDetail's own Back
+    // cannot find the Calendar tab again on its own.
+    h.actions = [action()];
+    render(<ActionPlanTracker />);
+    fireEvent.click(screen.getByLabelText(/^Open details for /));
+
+    const [tab, options] = navigateCalls[0].args as [
+      string,
+      { screen: string; params: { actionId: string; returnTo?: unknown } },
+    ];
+    expect(resolvesFrom('Calendar', { screen: options.screen, tab })).toBe(true);
+    expect(options.params.actionId).toBe('a1');
+
+    const back = actionReturnNavigation(options.params.returnTo);
+    expect(back).not.toBeNull();
+    expect(back!.tab).toBe('Calendar');
+    expect(back!.options.screen).toBe('PlanMain');
+    expect(
+      resolvesFrom(ACTION_DETAIL_TAB, { screen: back!.options.screen, tab: back!.tab })
+    ).toBe(true);
   });
 });
 

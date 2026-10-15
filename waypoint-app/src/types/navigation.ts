@@ -1,6 +1,7 @@
 // Navigation type definitions
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { ForumThread, IEPAnalysisResult } from '@/types/database';
+import type { ActionReturnTo } from '@/lib/actionReturn';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -149,7 +150,17 @@ export type NavigatorStackParamList = {
 
 export type TrackerStackParamList = {
   TrackerList: undefined;
-  ActionDetail: { actionId: string };
+  ActionDetail: {
+    actionId: string;
+    /**
+     * Where Back goes, for a caller in another tab. ActionDetail lives in the
+     * hidden Tracker stack, so from here `goBack()` can only pop to that
+     * stack's list or bubble to the tab navigator — never to the screen the
+     * parent left. The caller names it instead; `lib/actionReturn.ts` checks
+     * it against the declared route graph before trusting it.
+     */
+    returnTo?: ActionReturnTo;
+  };
 };
 
 export type CalendarStackParamList = {

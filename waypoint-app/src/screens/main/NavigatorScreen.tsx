@@ -691,10 +691,13 @@ export default function NavigatorScreen() {
           The bridge from an action switches TABS, so without this the parent
           has to remember which tab they came from.
 
-          Honest limit: this is a way there, not a round trip. Tapping it
-          lands on ActionDetail in the hidden Tracker tab, whose own "← Back"
-          goes to the Home tab (the tab navigator's `firstRoute` behaviour),
-          not to this conversation. Plan's own rows have the same shape. */}
+          It is a round TRIP: the tap carries `returnTo`, so ActionDetail's
+          own "← Back" comes back to this tab and this conversation — with the
+          thread, the pill and a half-written question all still here, because
+          the return navigate carries no params and nothing remounts. (Before
+          that param it was a way there only: Back popped to the hidden
+          Tracker tab's list, or bubbled to the tab navigator and landed on
+          Home. See `lib/actionReturn.ts`.) */}
       {anchor && (
         <TouchableOpacity
           style={styles.anchorPill}
@@ -704,7 +707,13 @@ export default function NavigatorScreen() {
             // Plan's own rows use to open one action (ActionsScreen.openDetail).
             (navigation as any).navigate('Tracker', {
               screen: 'ActionDetail',
-              params: { actionId: anchor.actionId },
+              params: {
+                actionId: anchor.actionId,
+                // The way home. 'NavigatorMain', not just the tab: this stack
+                // also holds the Learn reader, and the parent is owed the
+                // conversation, not whatever was last on top of it.
+                returnTo: { tab: 'Navigator', screen: 'NavigatorMain' },
+              },
               initial: false,
             })
           }

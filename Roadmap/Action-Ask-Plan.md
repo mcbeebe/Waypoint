@@ -192,15 +192,52 @@ surface, no locked decision changed), so the PR description is the record.
    should be an opt-in toggle, not a default.
 2. **Entry point** — built on `ActionDetail` only. Whether the same affordance
    belongs on the action cards in the Plan list is untested and unanswered.
-3. **The pill is a way THERE, not a round trip.** It opens the action; it does
-   not come back. ActionDetail's own "← Back" goes to the Home tab (the tab
-   navigator's `firstRoute` behaviour), and if the action was dismissed or
-   deleted since the chat was opened, the route renders a bare "no longer
-   available" with no back control at all. Plan's own rows have exactly the
-   same shape, so this is a pre-existing weakness the pill inherits rather than
-   one it introduces — but the first build's comments claimed a round trip, and
-   they now say what it actually does. Worth a decision: leave it, or give the
-   pill a real return path.
+3. ~~**The pill is a way THERE, not a round trip.**~~ **Closed Oct 15 2026 —
+   the pill is a round trip.** The caller now says where Back goes, in a
+   `returnTo` param that travels with the action id, and `ActionDetailRoute`
+   honours it: from a chat opened by "Ask about this", tapping the pill opens
+   the action and Back returns to **that conversation**, thread, pill and a
+   half-written question included (the return navigate carries no params, so
+   nothing remounts and the prefill effect does not re-fire).
+
+   **Scope — fixed for more than the pill, deliberately.** The weakness was
+   never pill-specific: four surfaces in three tabs open `ActionDetail`, which
+   lives in the hidden Tracker stack. The two whose Back actually left the tab
+   the parent was standing in are now wired — the pill, and **Plan's own two
+   surfaces** (the Action Plan segment's rows and the Plan list's rows). Home's
+   triage card and the process map were left alone on purpose: their `goBack()`
+   already lands on the Home tab they came from, so a `returnTo` there would
+   churn pinned lib tests to change nothing a family sees.
+
+   Three parts, so that none of them rests on what a comment believes:
+
+   - `src/lib/actionReturn.ts` — pure. It validates a return target against
+     the DECLARED graph (`routeGraph.ts`) before trusting it, because a return
+     target is a cross-stack navigate like any other and can be a dead tap;
+     `ActionDetail` is deep-linkable, so `returnTo` is untrusted input. A
+     target that would not land is discarded in favour of the old `goBack`,
+     never silently tapped into nothing.
+   - **The missing action is no longer a dead end.** Dismissed or deleted
+     while a chat anchored to it is still open, it used to render one grey
+     sentence — no back control of any kind, on a tab bar with nothing lit.
+     It now states what happened, states that nothing else moved, and offers
+     the way back it was given (trilingual, and blaming neither the agency nor
+     the parent). The route wrapper moved out of `MainTabs.tsx` into
+     `src/screens/main/ActionDetailRoute.tsx` to make exactly this testable:
+     in `MainTabs` it could not be reached by a test, which is why both
+     defects shipped green.
+   - `backBehavior="history"` on the tab navigator, as the floor under every
+     OTHER back control on the way — Android's hardware button, an iOS swipe
+     with nothing beneath. The default ('firstRoute') sent all of them to
+     Home. This is the one app-wide change in the PR, and **no test covers a
+     navigator option**; it is called out in the review memo for that reason.
+
+   Mutation-checked, all nine: Back ignoring `returnTo`, the missing-action
+   back control deleted, the pill dropping `returnTo`, the pill returning to
+   the wrong screen in the right tab, the helper trusting any target, a return
+   that stacks a landing screen on itself, each of Plan's two surfaces dropping
+   `returnTo`, and a return trip that carries params back (which would
+   overwrite a question the parent had already started).
 4. **The context is editable text with no marker.** A parent can delete half of
    it and send something incoherent, and the model cannot tell generated
    framing from the parent's own words. The alternative — a non-editable

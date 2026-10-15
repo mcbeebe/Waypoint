@@ -324,14 +324,32 @@ describe('arriving from an action', () => {
 
     const [tab, options] = navigateCalls[0].args as [string, { screen: string; params: any }];
     expect(resolvesFrom('Navigator', { screen: options.screen, tab })).toBe(true);
-    expect(options.params).toEqual({ actionId: 'a1' });
+    expect(options.params.actionId).toBe('a1');
     // Deliberately the hidden Tracker tab, unlike the Plan button above: that
     // one lands on a LIST, where an unlit tab bar strands the parent, and this
     // one lands on one specific action — the same route Plan's own rows use
-    // (ActionsScreen.openDetail). Note what this does NOT claim: ActionDetail's
-    // own "← Back" goes to the Home tab, not back to this chat, so the pill is
-    // a way THERE, not a round trip.
+    // (ActionsScreen.openDetail).
     expect(tab).toBe('Tracker');
+  });
+
+  it('asks to be brought back HERE, which is what makes it a round trip', () => {
+    routeParams.anchor = { actionId: 'a1', title: 'Apply for Medi-Cal' };
+    render(<NavigatorScreen />);
+    fireEvent.click(screen.getByLabelText(/This chat is about/));
+
+    const [, options] = navigateCalls[0].args as [string, { params: { returnTo?: any } }];
+    const returnTo = options.params.returnTo;
+    // Without this the pill was a way THERE only: ActionDetail's own Back
+    // popped to the hidden Tracker tab's list, or bubbled to the tab
+    // navigator and landed on Home — never on this conversation.
+    expect(returnTo).toEqual({ tab: 'Navigator', screen: 'NavigatorMain' });
+    // The navigate ActionDetail will make with it, checked from the tab that
+    // registers ActionDetail — a return target can be a dead tap too.
+    expect(resolvesFrom('Tracker', { screen: returnTo.screen, tab: returnTo.tab })).toBe(true);
+    // The conversation, not merely the tab: this stack also holds the Learn
+    // reader, and landing on whatever was last on top of the chat is not
+    // coming back.
+    expect(returnTo.screen).toBe('NavigatorMain');
   });
 
   it('no pill when the chat was not opened from an action', () => {
