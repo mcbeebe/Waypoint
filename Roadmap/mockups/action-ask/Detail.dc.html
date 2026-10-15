@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,600;6..72,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #F8FAFC; font-family: 'Hanken Grotesk', system-ui, sans-serif; color: #1B2A4A; -webkit-font-smoothing: antialiased; }
+    * { box-sizing: border-box; }
+    .chip { min-height: 44px; display: flex; align-items: center; padding: 0 14px; border-radius: 22px; border: 1px solid #0F766E; background: #E6F1EF; }
+    .chiptext { font-size: 13px; font-weight: 600; color: #0F766E; }
+  </style>
+</helmet>
+
+<div style="width: 390px; background: #F8FAFC; display: flex; flex-direction: column;">
+
+  <!-- header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #FFFFFF; border-bottom: 1px solid #E2E8F0;">
+    <span style="font-size: 13px; font-weight: 600; color: #0891B2;">&#8592; Back</span>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div style="min-height: 34px; display: flex; align-items: center; padding: 0 14px; border-radius: 17px; border: 1.5px solid #0891B2;"><span style="font-size: 13px; font-weight: 700; color: #0891B2;">Edit</span></div>
+      <div style="min-height: 34px; display: flex; align-items: center; padding: 0 12px; border-radius: 17px; border: 1px solid #E2E8F0;"><span style="font-size: 12px; font-weight: 600; color: #334155;">Aa 100%</span></div>
+    </div>
+  </div>
+
+  <div style="padding: 16px 12px;">
+    <div style="font-family: 'Newsreader', Georgia, serif; font-size: 24px; line-height: 30px; font-weight: 700; color: #1B2A4A;">Apply for Medi-Cal</div>
+    <div style="display: flex; gap: 12px; margin: 10px 0 12px;"><span style="font-size: 10px; color: #64748B;">&#128176; Benefits</span></div>
+
+    <!-- status card (unchanged, abbreviated) -->
+    <div style="border: 1px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 12px; margin-bottom: 12px;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px;">STATUS</span>
+        <span style="font-size: 13px; font-weight: 700; color: #047857;">Done</span>
+      </div>
+      <div style="min-height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #EAE3D5; background: #F5F1E9;">
+        <span style="font-size: 14px; font-weight: 600; color: #55606B;">&#8634; Reopen</span>
+      </div>
+      <div style="height: 1px; background: #E2E8F0; margin: 12px 0;"></div>
+      <div style="font-size: 11px; font-weight: 700; color: #64748B; letter-spacing: 0.5px; margin-bottom: 8px;">PRIORITY</div>
+      <div style="display: flex; gap: 6px;">
+        <div style="flex: 1; min-height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #EAE3D5; background: #F5F1E9;"><span style="font-size: 13px; color: #55606B;">Urgent</span></div>
+        <div style="flex: 1; min-height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #C2410C; background: #FFF7ED;"><span style="font-size: 13px; font-weight: 700; color: #C2410C;">High</span></div>
+        <div style="flex: 1; min-height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #EAE3D5; background: #F5F1E9;"><span style="font-size: 13px; color: #55606B;">Medium</span></div>
+        <div style="flex: 1; min-height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #EAE3D5; background: #F5F1E9;"><span style="font-size: 13px; color: #55606B;">Low</span></div>
+      </div>
+    </div>
+
+    <!-- meta chips (unchanged) -->
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
+      <div style="min-height: 34px; display: flex; align-items: center; padding: 0 12px; border-radius: 17px; border: 1px solid #F97316; background: #FFF7ED;"><span style="font-size: 12px; color: #334155;">&#128197; Due Aug 24, 2026</span></div>
+      <div style="min-height: 34px; display: flex; align-items: center; padding: 0 12px; border-radius: 17px; background: #0891B2;"><span style="font-size: 12px; color: #FFFFFF; font-weight: 600;">&#128198; On calendar</span></div>
+      <div style="min-height: 34px; display: flex; align-items: center; padding: 0 12px; border-radius: 17px; border: 1px solid #E2E8F0; background: #FFFFFF;"><span style="font-size: 12px; color: #334155;">&#9989; 6 of 8 steps</span></div>
+    </div>
+
+    <!-- ═══ NEW: ASK ABOUT THIS ═══ -->
+    <div style="border: 1px solid #0F766E; border-radius: 12px; background: #FFFFFF; padding: 14px 12px; margin-bottom: 14px;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+        <span style="font-size: 15px;">&#129517;</span>
+        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 17px; font-weight: 700; color: #22303A;">Ask about this</span>
+      </div>
+      <div style="font-size: 13px; line-height: 19px; color: #55606B; margin-bottom: 12px;">
+        Opens the Navigator with where this stands already filled in &#8212; marked done, 6 of 8 steps, due Aug&nbsp;24. Your question goes after it.
+      </div>
+
+      <div style="min-height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: #0F766E;">
+        <span style="font-size: 15px; font-weight: 700; color: #FFFFFF;">&#129517; Ask about this &#8250;</span>
+      </div>
+    </div>
+    <!-- ═══ END NEW ═══ -->
+
+    <div style="background: #EFF6FF; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+      <div style="font-size: 11px; font-weight: 700; color: #2563EB; letter-spacing: 0.4px; margin-bottom: 4px;">&#128336; YOUR TIME</div>
+      <div style="font-size: 14px; color: #334155;">~45&#8211;60 min online application at BenefitsCal.com</div>
+    </div>
+
+    <div style="min-height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: #0891B2; margin-bottom: 8px;">
+      <span style="font-size: 15px; font-weight: 700; color: #FFFFFF;">&#127760; Apply at BenefitsCal.com</span>
+    </div>
+    <div style="min-height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #0891B2; background: #FFFFFF;">
+      <span style="font-size: 15px; font-weight: 700; color: #0891B2;">&#128222; Call 1-800-300-1506</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

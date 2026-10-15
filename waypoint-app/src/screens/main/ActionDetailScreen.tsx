@@ -23,11 +23,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type {
   Action,
   ActionStatus,
-  ActionStep,
   ActionCategory,
   ActionPriority,
 } from '@/types/database';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
 import { useTextScale } from '@/lib/textSize';
 import { parseActionDescription, extractLinks, formatActionForSharing } from '@/lib/actionContent';
 import LearnMoreSheet, { LEARN_MORE_BY_ACTION_TITLE } from '@/components/LearnMoreSheet';
@@ -49,6 +48,7 @@ import { useI18n } from '@/i18n';
 import { formatAddedOn } from '@/lib/actionFreshness';
 import { parseDateLocal } from '@/lib/dateOnly';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { actionAskPrefill, actionAskLabel, actionAskHint } from '@/lib/actionAsk';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -138,6 +138,35 @@ export default function ActionDetailScreen({
   const uiLocale: ActionLocale = locale === 'es' ? 'es' : locale === 'vi' ? 'vi' : 'en';
   /** Scaled font size — applied to all reading-heavy text */
   const sz = (n: number) => Math.round(n * scale);
+
+  /**
+   * Hand this action to the Navigator with where it stands already written
+   * into the composer — and send nothing. The owner's call (Oct 14 2026) was
+   * one button, not starter chips: the question stays the parent's to write,
+   * and they can see and correct Waypoint's read of the situation first.
+   *
+   * ROUTING: ActionDetail lives in the Tracker stack, which registers neither
+   * NavigatorMain nor anything else in the Navigator stack — a navigate
+   * resolves to PARENTS, never siblings, so the tab has to be named. This is
+   * the shape that has shipped a dead tap twice in this repo; the test asserts
+   * it against `routeGraph`, not against what this comment believes.
+   */
+  const handleAskAboutThis = () => {
+    (navigation as any).navigate('Navigator', {
+      screen: 'NavigatorMain',
+      params: {
+        prefill: actionAskPrefill(action, {
+          locale: uiLocale,
+          // The child this action is attached to (or the only child, in a
+          // one-child family, where there is nothing to get wrong) — never
+          // the primary child of several. That exact fallback put "Ana's
+          // plan" on an email about Ben.
+          childFirstName: emailChild?.first_name ?? null,
+        }),
+        anchor: { actionId: action.id, title: action.title },
+      },
+    });
+  };
 
   const stepsDone = action.steps?.filter((s) => s.done).length ?? 0;
   const stepsTotal = action.steps?.length ?? 0;
@@ -555,6 +584,31 @@ export default function ActionDetailScreen({
             </View>
           </View>
         )}
+
+        {/* ── Ask about this (owner request, Oct 14 2026) ──────────────────
+            A parent who has just marked something done has a WAITING
+            question — what happens next, how long, what to watch for — and
+            until now the only way to ask it was to switch tabs and retype
+            what the app already knew.
+
+            It sits here, under the chips, rather than down with the email and
+            calendar sections: the parent who has just changed the status is at
+            the TOP of this screen, not scrolled twenty sections past it. */}
+        <View style={styles.askSection}>
+          <TouchableOpacity
+            style={styles.askButton}
+            onPress={handleAskAboutThis}
+            accessibilityRole="button"
+            // No accessibilityHint: the same sentence is visible text
+            // directly below, so a hint would read it out twice.
+            accessibilityLabel={`${actionAskLabel(uiLocale)}: ${action.title}`}
+          >
+            <Text style={[styles.askButtonText, { fontSize: sz(15) }]}>
+              🧭 {actionAskLabel(uiLocale)} ›
+            </Text>
+          </TouchableOpacity>
+          <Text style={[styles.askHint, { fontSize: sz(12) }]}>{actionAskHint(uiLocale)}</Text>
+        </View>
 
         {/* Effort — the honest "how big is this lift" */}
         {content.effort && (
@@ -1027,6 +1081,26 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.semibold as '600',
     color: colors.teal,
+  },
+  askSection: {
+    marginBottom: spacing.base,
+  },
+  askButton: {
+    minHeight: MIN_TOUCH_TARGET,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.base,
+    borderRadius: radii.md,
+    backgroundColor: brand.pine,
+  },
+  askButtonText: {
+    color: colors.white,
+    fontWeight: fonts.weights.bold,
+  },
+  askHint: {
+    marginTop: spacing.xs,
+    color: brand.inkSoft,
+    lineHeight: 18,
   },
   chipRow: {
     flexDirection: 'row',

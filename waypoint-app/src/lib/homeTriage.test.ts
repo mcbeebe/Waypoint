@@ -721,3 +721,87 @@ describe('isResumableDraft', () => {
     expect(TRIAGE_RANK.resume).toBeLessThan(TRIAGE_RANK.crisis);
   });
 });
+
+describe('what an RC assessment clock runs from (W&I §4643)', () => {
+  it('a logged intake is named as intake, in every locale', () => {
+    // Intake May 6 + 120 = Sep 3, five days after NOW (Aug 29).
+    const r = req({ request_type: 'rc_assessment', requested_on: '2026-04-20', intake_on: '2026-05-06' });
+    const want = { en: /^Because your intake was on May 6 and the law gives them a fixed window\.$/, es: /^Porque su entrevista inicial fue el 6 may/, vi: /^Vì buổi tiếp nhận của quý vị là ngày 6/ };
+    for (const locale of ['en', 'es', 'vi'] as const) {
+      const card = triageHome(base({ requests: [r], locale })).queue.find((i) => i.cls === 'clock');
+      expect(card, locale).toBeDefined();
+      expect(card!.why, locale).toMatch(want[locale]);
+    }
+  });
+
+  it('with no intake logged, the card says the date is the latest the law allows', () => {
+    // Fri Apr 17 + 15 working days = Fri May 8 (latest lawful intake),
+    // + 120 days = Sep 5, inside Home's 10-day window from NOW (Aug 29).
+    const r = req({ request_type: 'rc_assessment', requested_on: '2026-04-17' });
+    const card = triageHome(base({ requests: [r] })).queue.find((i) => i.cls === 'clock');
+    expect(card!.title).toMatch(/is due Sep 5$/);
+    expect(card!.why).toBe('Because you asked on Apr 17, and counting the 15 working days the law allows for intake, this is our estimate of the latest date the law gives them.');
+  });
+
+  it('an overdue assessment with intake logged cites intake and the date', () => {
+    const r = req({ request_type: 'rc_assessment', requested_on: '2026-03-20', intake_on: '2026-04-01' });
+    const card = triageHome(base({ requests: [r] })).queue.find((i) => i.cls === 'overdue');
+    expect(card!.why).toMatch(/^Because your intake was on Apr 1 and the law gave them until Jul 30\./);
+  });
+
+  it('an estimated date that has passed asks for the dates, never cites the estimate as law', () => {
+    const r = req({ request_type: 'rc_assessment', requested_on: '2026-02-02' });
+    const card = triageHome(base({ requests: [r] })).queue.find((i) => i.cls === 'overdue');
+    expect(card!.why).toMatch(/our estimate of the latest date was .+ A friendly follow-up asking for the intake and assessment dates/);
+    expect(card!.why).not.toMatch(/the law gave them until/);
+  });
+
+  it('request-anchored clocks are unchanged', () => {
+    const card = triageHome(base({ requests: [req({ request_type: 'iep_evaluation', requested_on: '2026-08-20' })] })).queue.find((i) => i.cls === 'clock');
+    expect(card!.why).toBe('Because you asked on Aug 20 and the law gives them a fixed window.');
+  });
+});
+
+describe('"✓ Nothing to answer" on the reply card (065, initiative 014 PR C)', () => {
+  const inbound = (over: Partial<Communication> = {}) =>
+    comm({
+      direction: 'incoming', kind: 'email', gmail_thread_id: 't9', gmail_message_id: 'mx',
+      contact: 'Ana <ana@rc.org>', sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z',
+      ...over,
+    });
+
+  it('the reply card offers it, in every locale, without blaming anyone', () => {
+    for (const locale of ['en', 'es', 'vi'] as const) {
+      const reply = inbound({ settled_at: null });
+      const item = triageHome(base({ communications: [reply], locale })).queue.find((i) => i.cls === 'reply');
+      expect(item?.settle?.replyId).toBe(reply.id);
+      expect(item?.settle?.label.length).toBeGreaterThan(3);
+      expect(item?.settle?.note).not.toMatch(/owe|missed|failed|ignored/i);
+    }
+    const en = triageHome(base({ communications: [inbound({ settled_at: null })] })).queue.find((i) => i.cls === 'reply');
+    expect(en?.settle?.label).toBe('✓ Nothing to answer');
+    // No request owns this reply, so no deadline is promised (PR C review).
+    expect(en?.settle?.note).toBe('Takes this reply off Home. It stays in your Paper Trail.');
+  });
+
+  it('promises the deadline keeps running only when a request owns the reply', () => {
+    const owned = req({ request_type: 'ipp_meeting', requested_on: '2026-08-20' });
+    const reply = inbound({ settled_at: null, request_id: owned.id });
+    const item = triageHome(base({ requests: [owned], communications: [reply] })).queue.find((i) => i.cls === 'reply');
+    expect(item?.settle?.note).toBe('Takes this reply off Home. Any deadline on the request keeps running.');
+  });
+
+  it('is not offered on a database without 065 (no settled_at key)', () => {
+    const item = triageHome(base({ communications: [inbound()] })).queue.find((i) => i.cls === 'reply');
+    expect(item).toBeTruthy();
+    expect(item?.settle).toBeUndefined();
+  });
+
+  it('a settled reply leaves the ladder; an overdue request does not', () => {
+    const overdue = req({ request_type: 'ipp_meeting', requested_on: '2026-07-01' });
+    const reply = inbound({ settled_at: '2026-08-29T08:00:00Z', request_id: overdue.id });
+    const r = triageHome(base({ requests: [overdue], communications: [reply] }));
+    expect(r.queue.some((i) => i.cls === 'reply')).toBe(false);
+    expect(r.queue.some((i) => i.cls === 'overdue')).toBe(true);
+  });
+});

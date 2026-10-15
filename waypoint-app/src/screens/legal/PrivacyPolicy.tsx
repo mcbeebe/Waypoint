@@ -6,7 +6,7 @@
 import React from 'react';
 import { ScrollView, Text, View, StyleSheet, Linking, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, fonts, spacing, radii } from '@/lib/theme';
+import { colors, fonts, spacing } from '@/lib/theme';
 
 const EFFECTIVE_DATE = 'March 13, 2026';
 const CONTACT_EMAIL = 'privacy@waypointfamilies.com';

@@ -106,3 +106,26 @@ describe('a settled message needs no answer (065, initiative 014)', () => {
     expect(r).not.toBeNull();
   });
 });
+
+describe('settling the newest reply settles the conversation up to it (PR C review)', () => {
+  const thread = () => [
+    comm({ id: 'o', direction: 'outgoing', sent_at: '2026-10-01T10:00:00Z' }),
+    comm({ id: 'r0', direction: 'incoming', sent_at: '2026-10-05T10:00:00Z', read_at: null }),
+    comm({ id: 'r1', direction: 'incoming', sent_at: '2026-10-06T10:00:00Z', read_at: null, settled_at: '2026-10-07T10:00:00Z' }),
+  ];
+
+  it('an older unanswered reply on the same thread does not come back to the card or the strip', () => {
+    expect(findUnansweredReply(thread())).toBeNull();
+    expect(unreadReplies(thread(), new Date('2026-10-07T12:00:00Z'))).toEqual([]);
+  });
+
+  it('a newer reply after the settled one still surfaces', () => {
+    const t = [...thread(), comm({ id: 'r2', direction: 'incoming', sent_at: '2026-10-08T10:00:00Z' })];
+    expect(findUnansweredReply(t)?.reply.id).toBe('r2');
+  });
+
+  it('another thread is untouched', () => {
+    const t = [...thread(), comm({ id: 'x', direction: 'incoming', gmail_thread_id: 't2', sent_at: '2026-10-04T10:00:00Z' })];
+    expect(findUnansweredReply(t)?.reply.id).toBe('x');
+  });
+});

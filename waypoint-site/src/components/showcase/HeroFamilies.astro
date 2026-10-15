@@ -7,7 +7,8 @@
  *
  * Every card is one the app's Home triage can actually produce, worded the
  * way `waypoint-app/src/lib/homeTriage.ts` words it: a request clock
- * (`clockItems`: rc_assessment W&I §4643, iep_evaluation Ed Code §56321), a
+ * (`clockItems`: rc_assessment W&I §4643, counted from intake; iep_evaluation
+ * Ed Code §56321, counted from the ask), a
  * date the family added (`deadlineItems`), or a plan step due today
  * (`actionItems`). Status-first per the CLAUDE.md tone rule.
  *
@@ -25,7 +26,7 @@ const families = [
       "Sample Home screen for Leo, age 3: the Regional Center's answer on his assessment is due in 9 days, with a follow-up one tap away.",
     pill: 'CLOCK RUNNING — 9 DAYS LEFT',
     title: "An answer on Leo's Regional Center assessment is due Oct 21",
-    body: 'Because you asked on Jun 23 and the law gives them a fixed window.',
+    body: 'Because your intake was on Jun 23 and the law gives them a fixed window.',
     cite: 'W&I §4643',
     button: 'Draft the follow-up',
     next: 'Write down what you see at home',

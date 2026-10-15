@@ -3,7 +3,7 @@
  * Manages the family's care team (therapists, doctors, attorneys, etc.)
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyErrorMessage } from '@/lib/netRetry';
 import type { Provider, ProviderType } from '@/types/database';

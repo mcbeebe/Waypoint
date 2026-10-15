@@ -18,7 +18,7 @@
  */
 import type { FamilyRequest } from '@/hooks/useRequests';
 import type { Communication } from '@/hooks/useCommunications';
-import { deadlineFor } from '@/lib/requestClocks';
+import { clockAnchor, deadlineFor } from '@/lib/requestClocks';
 import type { RequestDeadline, RequestType } from '@/lib/requestClocks';
 import { sentNextFor } from '@/lib/sentNext';
 import { isSettled } from '@/lib/replyInbox';
@@ -257,14 +257,16 @@ function lastOutgoingSent(events: CaseEvent[]): CaseEvent | null {
  * private note or an unsent draft never "answers" the agency — only
  * something that actually went to them (letter, email, call, meeting) does.
  * A settled message (065 — history from an added thread, or "Nothing to
- * answer") is not waiting on anyone, the same rule Home's reply card keeps.
+ * answer") is not waiting on anyone — nor is anything older it follows —
+ * the same rule Home's reply card keeps.
  */
 function unansweredReplyOf(events: CaseEvent[]): Communication | null {
   let reply: Communication | null = null;
   for (const e of events) {
     const c = e.communication;
     if (c.direction === 'incoming') {
-      if (!isSettled(c)) reply = c;
+      // A settled message covers the older ones before it (replyInbox).
+      reply = isSettled(c) ? null : c;
     } else if (reply && c.status === 'sent' && c.kind !== 'note') {
       reply = null;
     }
@@ -310,6 +312,40 @@ function nextLeverFor(
         'A verbal no is not a decision — the written Notice of Action starts your appeal rights.',
         'Un "no" verbal no es una decisión — la Notificación de Acción escrita inicia sus derechos de apelación.',
         'Từ chối miệng không phải là quyết định — Thông báo Hành động bằng văn bản khởi động quyền kháng cáo của quý vị.'
+      ),
+      reAskInstead: false,
+    };
+  }
+
+  // An RC assessment runs from intake (W&I §4643), not from the ask: a fresh
+  // written ask restarts nothing, and the clock is real without one. Nothing
+  // to send until the date passes; then the friendly follow-up.
+  if (!outgoing && clockAnchor(request.request_type) === 'intake') {
+    if (deadline?.overdue !== true) {
+      // Intake logged: the clock is running and there is nothing to send yet.
+      if (request.intake_on) return null;
+      // No intake yet and nothing in writing: a dated written ask is the
+      // family's proof of when they asked — the day intake counts from.
+      return {
+        template: FIRST_ASK_TEMPLATE[request.request_type],
+        label: L('Put the ask in writing — warmly', 'Ponga la petición por escrito — con calidez', 'Viết lời đề nghị ra văn bản — thân thiện'),
+        rung: 1,
+        reason: L(
+          'A dated written ask is your proof of when you asked — intake is due within 15 working days of it, and the 120 days run from intake.',
+          'Una petición escrita y fechada es su prueba de cuándo pidió — la entrevista inicial debe ocurrir dentro de 15 días hábiles, y los 120 días corren desde ella.',
+          'Đề nghị bằng văn bản có ghi ngày là bằng chứng quý vị đã đề nghị khi nào — buổi tiếp nhận phải diễn ra trong 15 ngày làm việc, và 120 ngày được tính từ buổi tiếp nhận.'
+        ),
+        reAskInstead: false,
+      };
+    }
+    return {
+      template: FOLLOW_UP_TEMPLATE[request.request_type],
+      label: L('Send the friendly follow-up', 'Enviar el seguimiento amistoso', 'Gửi thư nhắc thân thiện'),
+      rung: 2,
+      reason: L(
+        'Their legal deadline has passed — a follow-up citing the date usually moves things in days.',
+        'Su plazo legal ya pasó — un seguimiento citando la fecha suele mover las cosas en días.',
+        'Thời hạn pháp lý của họ đã qua — thư nhắc nêu ngày thường làm mọi việc chuyển động trong vài ngày.'
       ),
       reAskInstead: false,
     };
@@ -401,7 +437,7 @@ export function buildRequestCase(
 ): RequestCase {
   const L = picker(locale);
   const events = threadFor(request, communications);
-  const deadline = deadlineFor(request.request_type, request.requested_on, now);
+  const deadline = deadlineFor(request.request_type, request.requested_on, now, request.intake_on);
   const stage = deriveStage(events);
   const unanswered = unansweredReplyOf(events);
 
@@ -437,6 +473,15 @@ export function buildRequestCase(
         `Đã đề nghị ${channelWord} ${fmt(asked)} · ghi vào Waypoint ${fmt(recorded)}`
       ).replace(/\s+/g, ' ').trim()
     : L(`Asked ${fmt(asked)}`, `Pedido ${fmt(asked)}`, `Đã đề nghị ${fmt(asked)}`);
+  // Intake is its own fact, logged beside the ask — never in place of it.
+  const intakeLine =
+    clockAnchor(request.request_type) === 'intake' && request.intake_on
+      ? L(
+          `Intake ${fmt(new Date(`${request.intake_on}T00:00:00`))}`,
+          `Entrevista inicial ${fmt(new Date(`${request.intake_on}T00:00:00`))}`,
+          `Tiếp nhận ${fmt(new Date(`${request.intake_on}T00:00:00`))}`
+        )
+      : null;
 
   return {
     request,
@@ -447,7 +492,7 @@ export function buildRequestCase(
     daysSilent,
     nextLever: nextLeverFor(request, events, stage, deadline, daysSilent, locale, now),
     backdated,
-    provenanceLine,
+    provenanceLine: intakeLine ? `${provenanceLine} · ${intakeLine}` : provenanceLine,
   };
 }
 

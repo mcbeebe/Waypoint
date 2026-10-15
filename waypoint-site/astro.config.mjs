@@ -1,4 +1,5 @@
 // @ts-check
+import { readdirSync, readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
@@ -12,6 +13,17 @@ import citeLinks from './src/plugins/satteri-cite-links.mjs';
 
 const SITE = 'https://waypointchild.com';
 const isDraftsBuild = process.env.WAYPOINT_SHOW_DRAFTS === '1';
+
+// /answers/ and /letters/ are hubs only while at least one entry is published;
+// an empty hub renders noindex (see the pages), so keep it out of the sitemap too.
+/** @param {string} dir */
+const hasPublished = (dir) => {
+  const root = new URL(`./src/content/${dir}/`, import.meta.url);
+  return readdirSync(root).some((f) =>
+    /^status:\s*published\s*$/m.test(readFileSync(new URL(f, root), 'utf8')),
+  );
+};
+const emptyHubs = ['answers', 'letters'].filter((d) => !hasPublished(d)).map((d) => `${SITE}/${d}/`);
 
 export default defineConfig({
   site: SITE,
@@ -40,7 +52,7 @@ export default defineConfig({
             // filter must keep tracking each tool's noindex state.
             // /accessibility/ is out until its review is signed off (see the page).
             filter: (page) =>
-              ![`${SITE}/404/`, `${SITE}/search/`, `${SITE}/accessibility/`].includes(page),
+              ![`${SITE}/404/`, `${SITE}/search/`, `${SITE}/accessibility/`, ...emptyHubs].includes(page),
           }),
         ]),
   ],

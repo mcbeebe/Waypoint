@@ -9,7 +9,7 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import OneThingCard from './OneThingCard';
+import OneThingCard, { SettledNotice } from './OneThingCard';
 import { triageHome } from '@/lib/homeTriage';
 import type { TriageInput } from '@/lib/homeTriage';
 import type { FamilyRequest } from '@/hooks/useRequests';
@@ -105,5 +105,55 @@ describe('a question card offers only answers the column accepts', () => {
     fireEvent.click(screen.getByLabelText(/Yes, we have a case/i));
     expect(onAnswer).toHaveBeenCalled();
     expect(onAnswer.mock.calls[0][1]).toBe('active');
+  });
+});
+
+describe('"✓ Nothing to answer" on a reply card (065, initiative 014 PR C)', () => {
+  const reply = {
+    id: 'rep1', family_id: 'fam', child_id: null, kind: 'email', direction: 'incoming',
+    contact: 'Ana <ana@rc.org>', organization: 'regional_center', subject: 'Re: IPP',
+    body: "Thanks — I'll check the calendar and get back to you.", template_key: null, status: 'sent',
+    sent_at: '2026-08-28T09:00:00Z', occurred_at: '2026-08-28T09:00:00Z', gmail_thread_id: 't1',
+    gmail_message_id: 'm2', request_id: null, created_at: '2026-08-28T09:00:00Z', settled_at: null,
+  };
+
+  it('is a real button with its consequence in view, and it reports which reply', () => {
+    const onSettle = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    card({ communications: [reply as any] }, { onSettle });
+    const btn = screen.getByRole('button', { name: /^Nothing to answer\. Takes this reply off Home/ });
+    expect(screen.getByText('✓ Nothing to answer')).toBeInTheDocument();
+    expect(screen.getByText('Takes this reply off Home. It stays in your Paper Trail.')).toBeInTheDocument();
+    fireEvent.click(btn);
+    expect(onSettle).toHaveBeenCalledWith(expect.objectContaining({ settle: expect.objectContaining({ replyId: 'rep1' }) }));
+  });
+
+  it('is absent when the screen cannot settle, or the database cannot (no settled_at)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { unmount } = card({ communications: [reply as any] });
+    expect(screen.queryByText('✓ Nothing to answer')).toBeNull();
+    unmount();
+    const { settled_at: _s, ...pre065 } = reply;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    card({ communications: [pre065 as any] }, { onSettle: vi.fn() });
+    expect(screen.queryByText('✓ Nothing to answer')).toBeNull();
+  });
+});
+
+describe('SettledNotice — the way back after "Nothing to answer"', () => {
+  it('says what was settled and that it is kept, with a reachable Undo', () => {
+    const onUndo = vi.fn();
+    render(<SettledNotice title="Ana replied about IPP meeting" locale="en" onUndo={onUndo} />);
+    expect(screen.getByText(/Marked as needing no answer: Ana replied about IPP meeting\. It stays in your Paper Trail\./)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Undo: Ana replied about IPP meeting' }));
+    expect(onUndo).toHaveBeenCalledTimes(1);
+  });
+
+  it('speaks Spanish and Vietnamese too', () => {
+    const { unmount } = render(<SettledNotice title="X" locale="es" onUndo={() => {}} />);
+    expect(screen.getByRole('button', { name: 'Deshacer: X' })).toBeInTheDocument();
+    unmount();
+    render(<SettledNotice title="X" locale="vi" onUndo={() => {}} />);
+    expect(screen.getByRole('button', { name: 'Hoàn tác: X' })).toBeInTheDocument();
   });
 });

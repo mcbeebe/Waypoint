@@ -7,7 +7,8 @@
  * the shipped `ToolsArea` content, promoted to a screen and given a star on
  * every row so a family can build its own top shelf from wherever it is.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFamily, useChildren } from '@/hooks/useFamily';
@@ -71,7 +72,19 @@ function ToolsScreenInner({ family }: { family: ReturnType<typeof useFamily>['fa
   const pins = useToolPins(family?.id, validKeys, funnelLocale);
 
   const { requests } = useRequests(family?.id);
-  const { communications } = useCommunications(family?.id ?? '');
+  const { communications, refetch: refetchComms } = useCommunications(family?.id ?? '');
+  // A reply settled or answered on another screen must not keep its badge
+  // here until a remount: re-read the trail when Tools regains focus (the
+  // mount itself already loaded it). Stable callback, as on Home.
+  const refetchRef = useRef(refetchComms);
+  refetchRef.current = refetchComms;
+  const focusedOnce = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (focusedOnce.current) void refetchRef.current();
+      focusedOnce.current = true;
+    }, [])
+  );
   const unanswered = useMemo(() => findUnansweredReply(communications), [communications]);
   const replyRequest = useMemo(
     () =>

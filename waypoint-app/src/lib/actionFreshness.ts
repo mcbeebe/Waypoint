@@ -26,7 +26,13 @@ const ADDED_LABEL: Record<Locale, { today: string; yesterday: string; on: string
 
 const NEW_LABEL: Record<Locale, string> = { en: 'New', es: 'Nuevo', vi: 'Mới' };
 
-const INTL_TAG: Record<Locale, string> = { en: 'en-US', es: 'es-ES', vi: 'vi-VN' };
+/**
+ * Month and date names per locale. Exported because `actionAsk` renders dates
+ * into the same screen's prose and must not drift from this chip: an English
+ * month inside a Spanish sentence is the drift, and so is a bare "Aug 24" next
+ * to a chip that says "Aug 24, 2025".
+ */
+export const INTL_TAG: Record<Locale, string> = { en: 'en-US', es: 'es-ES', vi: 'vi-VN' };
 
 /** The badge word, so the three locales stay in one place. */
 export function newBadgeLabel(locale: Locale = 'en'): string {

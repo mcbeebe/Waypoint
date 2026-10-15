@@ -138,7 +138,7 @@ export function buildRequestDossierText(kase: RequestCase, opts: DossierOptions)
   lines.push(kase.provenanceLine);
   if (kase.deadline) {
     lines.push(
-      `Legal deadline: ${fmtDateOnly(kase.deadline.dueOn)} (${kase.deadline.citation})` +
+      `${kase.deadline.basis === 'latest' ? 'Latest legal date, estimated (intake date not logged)' : 'Legal deadline'}: ${fmtDateOnly(kase.deadline.dueOn)} (${kase.deadline.citation})` +
         (kase.deadline.overdue ? ` — passed ${-kase.deadline.daysRemaining} days ago` : '')
     );
   } else {
@@ -207,7 +207,7 @@ export function renderRequestDossierHtml(kase: RequestCase, opts: DossierOptions
   const r = kase.request;
   const { core, thread } = splitDossierEvents(kase);
   const deadlineLine = kase.deadline
-    ? `Legal deadline: <b>${esc(fmtDateOnly(kase.deadline.dueOn))}</b> (${esc(kase.deadline.citation)})` +
+    ? `${kase.deadline.basis === 'latest' ? 'Latest legal date, estimated (intake date not logged)' : 'Legal deadline'}: <b>${esc(fmtDateOnly(kase.deadline.dueOn))}</b> (${esc(kase.deadline.citation)})` +
       (kase.deadline.overdue
         ? ` — <span class="overdue">passed ${-kase.deadline.daysRemaining} days ago</span>`
         : '')

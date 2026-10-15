@@ -41,16 +41,17 @@ import { reminderPlan, fmtDate } from '@/lib/notificationPolicy';
 import { registerPushToken, unregisterPushToken } from '@/lib/pushTokens';
 import NotificationPrimingSheet from '@/components/NotificationPrimingSheet';
 import { OnboardingTutorial } from '@/components/OnboardingTutorial';
-import OneThingCard, { LaterList } from '@/components/OneThingCard';
+import OneThingCard, { LaterList, SettledNotice } from '@/components/OneThingCard';
 import ReplyStrip from '@/components/ReplyStrip';
 import { replyStrip } from '@/lib/replyStrip';
+import { cardLabels } from '@/lib/homeCard';
 import SensorLine from '@/components/SensorLine';
 import DraftQuestionsSheet from '@/components/DraftQuestionsSheet';
 import { useDraftFlow } from '@/hooks/useDraftFlow';
 import { searchLearn, type LearnHit } from '@/lib/learnLibrary';
 import { searchToolsForHome, type ToolEntry } from '@/lib/toolsCatalog';
 import { getHomeStarters } from '@/lib/homeStarters';
-import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { MIN_TOUCH_TARGET, announce } from '@/lib/accessibility';
 import { looksLikePlanQuery } from '@/lib/planQuery';
 import type { TriageAction, TriageItem } from '@/lib/homeTriage';
 import { FLAGS } from '@/lib/flags';
@@ -208,7 +209,10 @@ function HomeScreenInner({
     error: commsError,
     refetch: refetchComms,
     markRead: markReplyRead,
+    markSettled,
   } = useCommunications(family?.id ?? '');
+  // The reply last marked "Nothing to answer", kept for its Undo (065).
+  const [settledUndo, setSettledUndo] = useState<{ id: string; title: string } | null>(null);
   // Home stays mounted under the screens it opens, so a reply read in the
   // paper trail would otherwise keep its "New reply" strip here until the
   // next cold start. Re-read the trail whenever Home regains focus (the
@@ -545,6 +549,31 @@ function HomeScreenInner({
     void markActed(item.id);
   };
 
+  // The card is replaced the instant a reply settles, so a double tap would
+  // land on whatever card comes next. Taps inside this window are ignored.
+  const lastSettleAt = useRef(0);
+  const settleItem = async (item: TriageItem) => {
+    if (!item.settle) return;
+    const t = Date.now();
+    if (t - lastSettleAt.current < 1000) return;
+    lastSettleAt.current = t;
+    const labels = cardLabels(funnelLocale);
+    const ok = await markSettled(item.settle.replyId, true);
+    if (ok === null) return;
+    if (ok) {
+      setNotice(null);
+      setSettledUndo({ id: item.settle.replyId, title: item.title });
+      // The pressed button is gone with its card; say what happened.
+      announce(labels.settled(item.title));
+    } else {
+      setNotice(labels.settleFailed);
+    }
+  };
+  // Undo is offered only while the reply is still settled — a change from
+  // Paper Trail, or a later load, retires the notice rather than contradict it.
+  const settledShown =
+    settledUndo && communications.find((c) => c.id === settledUndo.id)?.settled_at ? settledUndo : null;
+
   const deferItem = async (item: TriageItem) => {
     const ok = await defer(item);
     if (!ok) setNotice("Couldn't set that aside — it will be here next time.");
@@ -685,7 +714,27 @@ function HomeScreenInner({
               onAct={actOnItem}
               onDefer={(item) => { void deferItem(item); }}
               onAnswer={(item, value) => { void answerItem(item, value); }}
+              onSettle={(item) => { void settleItem(item); }}
             />
+            {!!settledShown && (
+              <SettledNotice
+                title={settledShown.title}
+                locale={funnelLocale}
+                onUndo={() => {
+                  const { id } = settledShown;
+                  void markSettled(id, false).then((ok) => {
+                    if (ok === null) return;
+                    if (ok) {
+                      setSettledUndo(null);
+                      setNotice(null);
+                    } else {
+                      // Still settled, so the notice — and its Undo — stay.
+                      setNotice(cardLabels(funnelLocale).undoFailed);
+                    }
+                  });
+                }}
+              />
+            )}
             {!!notice && (
               <Text style={styles.notice} accessibilityRole="alert">
                 {notice}

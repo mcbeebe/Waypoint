@@ -96,12 +96,19 @@ export const navigateCalls: { args: unknown[] }[] = [];
 export const pushCalls: { args: unknown[] }[] = [];
 /** Route params a screen under test reads via useRoute — set before render. */
 export const routeParams: Record<string, unknown> = {};
+/**
+ * setParams() calls. Screens that consume a one-shot param (a seeded question,
+ * a prefilled composer) clear it this way so a remount cannot replay it, so a
+ * test needs to see that the clear actually happened.
+ */
+export const setParamsCalls: { args: unknown[] }[] = [];
 vi.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: (...args: unknown[]) => void navigateCalls.push({ args }),
     push: (...args: unknown[]) => void pushCalls.push({ args }),
     goBack: () => {},
     setOptions: () => {},
+    setParams: (...args: unknown[]) => void setParamsCalls.push({ args }),
     addListener: () => () => {},
   }),
   useFocusEffect: () => {},
@@ -112,6 +119,7 @@ vi.mock('@react-navigation/native', () => ({
 beforeEach(() => {
   navigateCalls.length = 0;
   pushCalls.length = 0;
+  setParamsCalls.length = 0;
   for (const k of Object.keys(routeParams)) delete routeParams[k];
   store.clear();
   clipboard.text = null;

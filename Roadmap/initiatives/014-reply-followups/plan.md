@@ -97,32 +97,46 @@ which the API accepts.
 
 - `GmailReplyModal` gains the Letters Cc control: chips with ✕, "+ Add", and
   the `addCc` and `MAX_CC` rules. A pending address blocks Send.
-- Pre-fill comes from the replied-to row's `cc`. For a row stored before PR A,
-  it falls back to the newest outgoing row on the thread that has a `cc`.
-  Otherwise it starts empty.
-- The send passes `cc` (the server already accepts it since #313). The confirm
-  sheet lists To and Cc.
-- **No migration, but it does touch an Edge Function:** the reply insert path
-  stores `cc` from PR A.
+- Pre-fill comes **only** from the replied-to message's `cc` (everyone else on
+  it), as Gmail's Reply all does. A sender who answered the family alone is
+  answered alone. A message recorded before 064 starts with no one copied.
+  (The first build also fell back to earlier messages; the review showed that
+  re-copies people a sender deliberately left off.)
+- People the family copied earlier in the thread rank first. Past MAX_CC, the
+  rest are **named** as tap-to-add chips, never just counted. An address the
+  send cannot carry (for example, non-ASCII) is named too, never dropped.
+- The send passes `cc` (the server has accepted it since #313 and stored it
+  since PR A). **Review and send** opens an in-sheet last look (To, Cc, the
+  words) before **Send now**. It is the plan's confirm step, kept inside the
+  sheet because a reply's subject must not be edited, or Gmail would break
+  the thread.
+- **No migration and no Edge Function change:** the reply insert path already
+  stores `cc` (PR A).
 
-## PR C: "Nothing to answer" (`feat/reply-settled`)
+## PR C: "Nothing to answer" (`feat/nothing-to-answer`)
 
-- **Migration 065** (`communications.settled_at`) ships in PR D; this PR
-  adds the action on it.
-- **`replyInbox.ts`:** a settled reply counts as answered for
-  `findUnansweredReply` and `unreadReplies`, and its unread state clears too.
-  A **new** reply on the same thread is a different row, so it still
-  surfaces.
-- **Home:** the reply rung gains a secondary "✓ Nothing to answer" action next
-  to "Draft your answer". It shows a toast with Undo (the session overlay,
-  like `sessionReads`, so the card leaves at once) and stamps `settled_at`
-  through `.select('id')`, so a missing column reports failure rather than
-  faking success.
-- **Paper Trail:** a "✓ Nothing to answer" badge, and a toggle between
-  "✓ Nothing to answer" and "Needs an answer after all".
-- **Request clocks are untouched.** Overdue still fires if the promised answer
-  never comes, and a test pins that.
-- **Copy** in en/es/vi, following the neutral-tone rule.
+- **Migration 065** (`communications.settled_at`) shipped in PR D and is
+  applied. This PR adds the action on it, with no schema change.
+- **Already in place from PR D:** every surface that asks for an answer skips
+  a settled message. That covers Home's reply card, the reply strip, the case
+  screen, and the tracker badges (`replyInbox.isSettled`,
+  `requestCase.unansweredReplyOf`). A **new** reply on the same thread is a
+  different row, so it still surfaces.
+- **Home:** the reply rung carries `settle` (label plus a one-line note:
+  "Takes this reply off Home. Any deadline on the request keeps running.").
+  The card shows a pine-outline **✓ Nothing to answer** button between the
+  CTA and "Not today".
+  - The write is optimistic (`useCommunications.markSettled`) and goes through
+    `.select('id')`. A failed write puts the row back and says so.
+  - Afterwards `SettledNotice` names what was settled ("It stays in your
+    Paper Trail") with a one-tap **Undo**.
+- **Paper Trail:** a "✓ Nothing to answer" badge on settled replies. An opened
+  reply toggles between "✓ Nothing to answer" and "Needs an answer after all".
+- **Pre-065** (no `settled_at` key on the row): no button anywhere.
+- **Request clocks are untouched.** A test pins that an overdue request still
+  leads Home after its reply is settled.
+- **Copy:** en/es/vi on Home (neutral, no actor blamed); English on Paper
+  Trail, like the rest of that screen.
 
 ## Verification (every PR)
 

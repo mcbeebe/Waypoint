@@ -8,7 +8,7 @@ import { render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
 import NoticeBox from '../../components/NoticeBox.astro';
 import { visibleContentUrls, visibleEntries } from '../../lib/content';
-import { hubCrumb } from '../../lib/jsonld';
+import { hubCrumb, regionalCenterOrgJsonLd } from '../../lib/jsonld';
 
 export async function getStaticPaths() {
   const centers = await visibleEntries('regionalCenters');
@@ -32,6 +32,7 @@ const pillarCrumb = hubCrumb('Regional Centers', '/guides/regional-centers/', ur
 ---
 
 <ArticleLayout
+  about={regionalCenterOrgJsonLd({ rcName: d.rcName, counties: d.counties })}
   title={d.seoTitle ?? d.title}
   description={d.description}
   heading={d.title}

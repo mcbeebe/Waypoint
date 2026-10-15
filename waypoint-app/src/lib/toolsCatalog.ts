@@ -451,7 +451,7 @@ const OPEN_STATUSES = new Set(['requested', 'in_progress']);
  * nothing is open (stress test: no demo data, no bare zero).
  */
 export function requestsBadge(
-  requests: Pick<FamilyRequest, 'status' | 'request_type' | 'requested_on'>[],
+  requests: Pick<FamilyRequest, 'status' | 'request_type' | 'requested_on' | 'intake_on'>[],
   locale: FunnelLocale = 'en',
   now = new Date()
 ): ToolBadge | null {
@@ -459,7 +459,7 @@ export function requestsBadge(
   const open = requests.filter((r) => OPEN_STATUSES.has(r.status));
   if (open.length === 0) return null;
   const deadlines = open
-    .map((r) => deadlineFor(r.request_type, r.requested_on, now))
+    .map((r) => deadlineFor(r.request_type, r.requested_on, now, r.intake_on))
     .filter((d): d is NonNullable<typeof d> => d != null)
     .sort((a, b) => a.daysRemaining - b.daysRemaining);
   const worst = deadlines[0];

@@ -219,6 +219,8 @@ export default function GmailSendConfirmModal({
                 value={subject}
                 onChangeText={onChangeSubject}
                 editable={!sending}
+                // The gmail function refuses a longer subject (mime.ts MAX_SUBJECT_CHARS).
+                maxLength={250}
                 accessibilityLabel={copy.subjectA11y}
               />
             </View>

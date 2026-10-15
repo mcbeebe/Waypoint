@@ -8,7 +8,7 @@
  * - Minimum touch target sizes (44x44 per Apple HIG)
  */
 
-import { AccessibilityInfo, Platform } from 'react-native';
+import { AccessibilityInfo } from 'react-native';
 
 /** Minimum touch target size per Apple HIG / WCAG 2.5.5 */
 export const MIN_TOUCH_TARGET = 44;

@@ -99,14 +99,36 @@ export function isSettled(c: Pick<Communication, 'settled_at'>): boolean {
 }
 
 /**
+ * Whether a newer message from them on the same thread was marked as needing
+ * no answer. Settling "I'll get back to you" settles the conversation up to
+ * it: the parent judged the thread, not one line of it, so an older
+ * unanswered reply must not take the card back under the same title.
+ */
+function settledByNewer(reply: Communication, communications: Communication[]): boolean {
+  return communications.some(
+    (c) =>
+      c.direction === 'incoming' &&
+      c.gmail_thread_id === reply.gmail_thread_id &&
+      isSettled(c) &&
+      when(c) > when(reply)
+  );
+}
+
+/** Settled itself, or settled by a newer message on its thread. */
+function needsNoAnswer(reply: Communication, communications: Communication[]): boolean {
+  return isSettled(reply) || settledByNewer(reply, communications);
+}
+
+/**
  * The newest incoming reply not yet answered on its thread, if any. A
- * settled message never takes the Home card.
+ * settled message — or one a newer settled message on its thread covers —
+ * never takes the Home card.
  */
 export function findUnansweredReply(
   communications: Communication[]
 ): UnansweredReply | null {
   for (const reply of trackedReplies(communications)) {
-    if (isSettled(reply)) continue;
+    if (needsNoAnswer(reply, communications)) continue;
     if (!isAnswered(reply, communications)) return toUnanswered(reply);
   }
   return null;
@@ -141,6 +163,6 @@ export function isUnreadReply(c: Communication, now: Date): boolean {
  */
 export function unreadReplies(communications: Communication[], now: Date): UnansweredReply[] {
   return trackedReplies(communications)
-    .filter((c) => isUnreadReply(c, now) && !isSettled(c) && !isAnswered(c, communications))
+    .filter((c) => isUnreadReply(c, now) && !needsNoAnswer(c, communications) && !isAnswered(c, communications))
     .map(toUnanswered);
 }

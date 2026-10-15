@@ -351,3 +351,80 @@ describe('the deadline chip names the stored day in any timezone', () => {
     expect(screen.queryByText(/Invalid Date/)).toBeNull();
   });
 });
+
+/**
+ * "Ask about this" (owner request, Oct 14 2026) — the bridge to the Navigator.
+ *
+ * Two things only a rendered test can see: that the button EXISTS where a
+ * parent can reach it, and that its navigate actually resolves from the
+ * Tracker stack. The second is the shape that has shipped a dead tap twice in
+ * this repo, so it is asserted against `routeGraph`, not against a hand-copied
+ * list of route names.
+ */
+describe('asking the Navigator about this action', () => {
+  it('offers the button, with a hint that says nothing is sent yet', () => {
+    detail();
+    const button = screen.getByLabelText(/^Ask about this:/);
+    expect(button).toBeTruthy();
+    expect(screen.getByText(/your question goes after it/i)).toBeTruthy();
+  });
+
+  it('lands somewhere that actually RESOLVES from the Tracker stack', () => {
+    detail();
+    fireEvent.click(screen.getByLabelText(/^Ask about this:/));
+
+    expect(navigateCalls).toHaveLength(1);
+    const [tab, options] = navigateCalls[0].args as [string, { screen: string; params: any }];
+    expect(tab).toBe('Navigator');
+    expect(options.screen).toBe('NavigatorMain');
+    expect(resolvesFrom('Tracker', { screen: options.screen, tab })).toBe(true);
+  });
+
+  it('prefills the composer and sends NOTHING — `ask` would auto-send', () => {
+    detail({ status: 'completed', completed_at: '2026-10-02' });
+    fireEvent.click(screen.getByLabelText(/^Ask about this:/));
+
+    const [, options] = navigateCalls[0].args as [string, { params: any }];
+    expect(options.params.prefill).toContain('marked it done');
+    // The param that SENDS must not be set, or the parent's half-written
+    // question becomes a message they never chose to send.
+    expect(options.params.ask).toBeUndefined();
+    // Ends with a space: the caret sits ready for the question itself.
+    expect(options.params.prefill.endsWith(' ')).toBe(true);
+  });
+
+  it('carries the action back, so the chat has a way home across the tab switch', () => {
+    detail();
+    fireEvent.click(screen.getByLabelText(/^Ask about this:/));
+
+    const [, options] = navigateCalls[0].args as [string, { params: any }];
+    expect(options.params.anchor).toEqual({ actionId: ACTION.id, title: ACTION.title });
+    expect(resolvesFrom('Navigator', { screen: 'ActionDetail', tab: 'Tracker' })).toBe(true);
+  });
+
+  it('names the child the action is attached to, never the primary child', () => {
+    h.children = [
+      { id: 'c1', first_name: 'Ana', is_primary: true },
+      { id: 'c2', first_name: 'Ben', is_primary: false },
+    ];
+    detail({ child_id: 'c2' });
+    fireEvent.click(screen.getByLabelText(/^Ask about this:/));
+
+    const [, options] = navigateCalls[0].args as [string, { params: any }];
+    expect(options.params.prefill).toContain('for Ben');
+    expect(options.params.prefill).not.toContain('Ana');
+  });
+
+  it('names nobody rather than the wrong child when the action has none', () => {
+    h.children = [
+      { id: 'c1', first_name: 'Ana', is_primary: true },
+      { id: 'c2', first_name: 'Ben', is_primary: false },
+    ];
+    detail({ child_id: null });
+    fireEvent.click(screen.getByLabelText(/^Ask about this:/));
+
+    const [, options] = navigateCalls[0].args as [string, { params: any }];
+    expect(options.params.prefill).not.toContain('Ana');
+    expect(options.params.prefill).not.toContain('Ben');
+  });
+});

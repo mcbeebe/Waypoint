@@ -11,6 +11,7 @@
  * merges.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { webApplicationJsonLd } from '../../lib/jsonld';
 import PageHero from '../../components/PageHero.astro';
 import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
@@ -44,11 +45,21 @@ const parts = [
   ['How well — a number', 'The target — "4 of 5", "80% accuracy", "for 10 minutes".'],
   ['How it will be measured', 'Who tracks it and how — "teacher-charted data", "work samples", "observation".'],
 ];
+
+const description =
+  "Paste one goal from your child's IEP and see whether it names a timeframe, conditions, an observable skill, a target, and how it's measured. Free, private, nothing uploaded.";
+const jsonLd = webApplicationJsonLd({
+  path: '/tools/iep-goal-check/',
+  name: 'Free IEP goal check',
+  description,
+  applicationCategory: 'EducationalApplication',
+});
 ---
 
 <BaseLayout
   title="Free IEP goal check — is this goal measurable? — Waypoint"
-  description="Paste one goal from your child's IEP and see whether it names a timeframe, conditions, an observable skill, a target, and how it's measured. Free, private, nothing uploaded."
+  description={description}
+  jsonLd={jsonLd}
   pillar="iep"
 >
   <PageHero

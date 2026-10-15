@@ -48,7 +48,9 @@ const REQUIRED = [
   '/guides/regional-centers/',
   '/guides/benefits/ihss-protective-supervision/',
   '/start/',
+  '/answers/',
   '/answers/does-my-child-need-ssi-to-get-ihss/',
+  '/letters/',
   '/letters/iep-evaluation-request/',
   '/regional-centers/east-bay/',
   '/tools/',
@@ -215,6 +217,9 @@ try {
   }
 
   const context = await browser.newContext();
+  // Never let a CI or local scan reach GA4 as a visitor (ga-init.js also
+  // skips config off the live host; this is the second layer).
+  await context.route(/^https:\/\/([^/]+\.)?(googletagmanager|google-analytics)\.com\//, (r) => r.abort());
   const page = await context.newPage();
   const pages = allPages();
 

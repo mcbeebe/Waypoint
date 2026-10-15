@@ -660,6 +660,16 @@ describe('sending through Gmail', () => {
     });
   });
 
+  it('fills a blank the profile already knows in the model’s subject, as in the body', async () => {
+    h.generated = { draft: DRAFT, subject: "IPP review request — [Child's Name]" };
+    await draftReadyToSend();
+    expect((screen.getByLabelText('Email subject') as HTMLInputElement).value).toBe(
+      'IPP review request — Teddy'
+    );
+    // Nothing left to fill, so the send is not held for a blank the app knew.
+    expect(screen.getByLabelText(BUTTON).getAttribute('aria-disabled')).toBeNull();
+  });
+
   it('uses the subject the model wrote for this letter, on one line', async () => {
     h.generated = {
       draft: DRAFT,

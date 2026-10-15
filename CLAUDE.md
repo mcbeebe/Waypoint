@@ -28,7 +28,7 @@ WayPoint/
 │   │   ├── hooks/              # useAuth.ts (Supabase session management)
 │   │   └── types/              # database.ts (schema types), navigation.ts
 │   ├── supabase/
-│   │   ├── migrations/         # 66 sequential SQL files — APPLIED BY HAND
+│   │   ├── migrations/         # 67 sequential SQL files — APPLIED BY HAND
 │   │   └── functions/          # 9 Edge Functions: ai-proxy, gmail, google-auth,
 │   │                           #   delete-account, stripe-webhook, push-send,
 │   │                           #   poll-replies, family-invite, notify-signup
@@ -102,9 +102,9 @@ elsewhere. The description below is historical.
   - Auto-updating `updated_at` triggers
 - **Navigation:** React Navigation (native-stack)
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
-- **Current state (2026-09-21):** the flagship product. 66 migrations, nine
+- **Current state (2026-10-15):** the flagship product. 67 migrations, nine
   Edge Functions in production, 45 screens under `main/` plus auth /
-  onboarding / staff / legal, and a 160-file / 2083-test vitest suite across
+  onboarding / staff / legal, and a 170-file / 2240-test vitest suite across
   four projects. (This line previously read "Auth scaffolding… no screens
   beyond onboarding exist yet.")
 
@@ -112,8 +112,8 @@ elsewhere. The description below is historical.
 
 ```bash
 npx tsc --noEmit    # typecheck — CI gate
-npm run lint        # eslint — CI gate (0 errors, ~50 warnings today)
-npm test            # vitest, FOUR projects, 160 files (174 runs) — CI gate
+npm run lint        # eslint — CI gate (0 errors, 30 warnings today, ratcheted by --max-warnings)
+npm test            # vitest, FOUR projects, 170 files (185 runs) — CI gate
 npm run build:web   # expo export + postbuild — CI gate (prod bundle)
 npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
 ```
@@ -139,7 +139,7 @@ npx expo export -p web --dev --output-dir dist-dev   # CI gate (dev bundle)
   tests, yet `deploy-edge-functions.yml` ships them to the production project
   on merge to `main`. Treat every change there as unverified by CI.
 - **`npm test` runs FOUR projects, and the count of files is not the count of
-  runs** — the fourteen `.tz.test.ts` files execute twice, once per timezone.
+  runs** — the fifteen `.tz.test.ts` files execute twice, once per timezone.
   - `logic` (`*.test.ts`, node) — the pure modules.
   - `ui` (`*.test.tsx`, jsdom + react-native-web) renders components. It exists
     because three adversarial reviews in a row found defects the logic suite
@@ -294,7 +294,7 @@ deployed Pages site.)
 ## waypoint-site (marketing site — waypointchild.com)
 
 - **Lives in `waypoint-site/`** (Astro, static output, hosted on Vercel — same account as the app; deploys via Vercel git integration, per D14). The design source of truth for its templates is `Waypoint-Marketing-Site-Prototype.html` at repo root — port, don't redesign. Brand tokens mirror `waypoint-app/src/lib/theme.ts` (`brand`/`brandType`, initiative 006).
-- **Site gates** (run from `waypoint-site/`): `npm run gates` — `astro check` + `vitest run` + a drafts build (`WAYPOINT_SHOW_DRAFTS=1`, with Pagefind postbuild) + internal-link check + an axe-core accessibility scan (fails on serious/critical, 15 template pages, Playwright chromium) + a plain production build (Zod frontmatter failures fail the build by design) + link check again + `node scripts/validate-keyword-map.mjs`. Same auto-PR-and-merge-on-green convention as waypoint-app. **Exception:** content PRs labeled `content-review` wait for the credentialed reviewer's sign-off — never auto-merged.
+- **Site gates** (run from `waypoint-site/`): `npm run gates` runs, in order: `astro check`, `vitest run`, `check-tbc`, `check-language`, a drafts build (`build:drafts`), internal-link check, axe-core scan, `keyboard-pass`, a production build (Zod frontmatter failures fail the build by design), `check-citations`, internal-link check, axe scan and `keyboard-pass` again (`--production`), `validate-jsonld`, `check-sitemap-noindex`, and `validate-keyword-map`. The `gates` script in `waypoint-site/package.json` is authoritative. Same auto-PR-and-merge-on-green convention as waypoint-app. **Exception:** content PRs labeled `content-review` wait for the credentialed reviewer's sign-off — never auto-merged.
 - **The publish gate:** collection content renders only at `status: published` unless the build sets `WAYPOINT_SHOW_DRAFTS=1` (dev + Vercel Preview env); drafts render with a red banner + noindex, and hub/nav links gate on what exists in the build. See `waypoint-site/README.md`.
 - **Frozen contracts:** the content schema is `waypoint-site/src/content.config.ts` (documented in `content-ops/SCHEMA.md`); events + deep-link params are `waypoint-site/docs/analytics-taxonomy.md`. Change those docs first, in their own PR, before changing any consumer.
 - **Content rules:** nothing YMYL publishes without a completed `review` block (schema-enforced); benefit figures come only from `src/data/benefit-constants.json`; zero email gates; no HIPAA claims; statutes cited to primary sources.

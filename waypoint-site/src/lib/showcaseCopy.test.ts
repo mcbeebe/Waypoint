@@ -108,6 +108,24 @@ describe('showcase copy guard', () => {
     const cites = [...hero.matchAll(/cite:\s*'([^']*)'/g)].map((m) => m[1]).filter(Boolean);
     expect(cites.length).toBeGreaterThan(0);
     for (const c of cites) expect(appCitations.has(c), `hero cites ${c}, which no app clock uses`).toBe(true);
+    // W&I §4643 runs the assessment clock from intake, not from the ask: a
+    // card citing it says when intake was, never when the family asked.
+    const assessmentCards = [...hero.matchAll(/body:\s*'([^']*)',\s*cite:\s*'W&I §4643'/g)];
+    expect(assessmentCards.length).toBeGreaterThan(0);
+    for (const [, body] of assessmentCards) {
+      expect(body).toMatch(/^Because your intake was on /);
+      expect(body).not.toMatch(/\basked\b/);
+    }
+    // And every hero clock card's dates add up: anchor + the clock it cites =
+    // the due date in its title, and due − today (Mon Oct 12) = its pill.
+    const heroDays = new Map([...clocks.matchAll(/days:\s*(\d+),\s*(?:anchor:\s*'[^']*',\s*)?citation:\s*'([^']+)'/g)].map((m) => [m[2], Number(m[1])]));
+    const heroDay = (d: string) => new Date(`${d} 2026 12:00 UTC`).getTime();
+    const heroCards = [...hero.matchAll(/pill:\s*'CLOCK RUNNING [^\d]*(\d+) DAYS LEFT',\s*title:\s*"[^"]*is due (\w{3} \d{1,2})",\s*body:\s*'Because (?:your intake was|you asked) on (\w{3} \d{1,2}) [^']*',\s*cite:\s*'([^']+)'/g)];
+    expect(heroCards.length).toBe((hero.match(/pill:\s*'CLOCK RUNNING/g) ?? []).length);
+    for (const [, left, due, start, cite] of heroCards) {
+      expect((heroDay(due) - heroDay(start)) / 86_400_000, cite).toBe(heroDays.get(cite));
+      expect((heroDay(due) - heroDay('Oct 12')) / 86_400_000, due).toBe(Number(left));
+    }
     // The /product/ tour's Home card too: its citation sits in a <b> after the reason.
     const tour = read(path.join(src, 'pages', 'product.astro'));
     const tourCites = [...tour.matchAll(/fixed window\. <b>([^<]+)<\/b>/g)].map((m) => m[1]);
@@ -115,7 +133,7 @@ describe('showcase copy guard', () => {
     for (const c of tourCites) expect(appCitations.has(c), `/product/ cites ${c}, which no app clock uses`).toBe(true);
     // The tour's Home card is a request clock: the app's own kicker, with its
     // em dash (homeTriage.ts), and dates that add up to the clock it cites.
-    const clockDays = new Map([...clocks.matchAll(/days:\s*(\d+),\s*citation:\s*'([^']+)'/g)].map((m) => [m[2], Number(m[1])]));
+    const clockDays = new Map([...clocks.matchAll(/days:\s*(\d+),\s*(?:anchor:\s*'[^']*',\s*)?citation:\s*'([^']+)'/g)].map((m) => [m[2], Number(m[1])]));
     const cards = [...tour.matchAll(/<span class="ms-pill[^"]*">([^<]+)<\/span>\s*<div class="ms-title">An answer on .+? is due (\w{3} \d{1,2})<\/div>\s*<div class="ms-muted">Because you asked on (\w{3} \d{1,2}) and the law gives them a fixed window\. <b>([^<]+)<\/b>/g)];
     expect(cards.length).toBe((tour.match(/class="ms-pill/g) ?? []).length);
     expect(cards.length).toBeGreaterThan(0);

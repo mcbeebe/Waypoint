@@ -41,8 +41,14 @@ describe('a statutory due date is the family’s calendar date', () => {
     expect(deadlineFor('iep_evaluation', '2026-08-20', NOW)?.dueOn).toBe('2026-09-04');
   });
 
-  it('holds for the 120-day assessment clock', () => {
-    expect(deadlineFor('rc_assessment', '2026-01-05', NOW)?.dueOn).toBe('2026-05-05');
+  it('holds for the 120-day assessment clock, from a logged intake', () => {
+    expect(deadlineFor('rc_assessment', '2025-12-20', NOW, '2026-01-05')?.dueOn).toBe('2026-05-05');
+  });
+
+  it('holds for the latest legal date when intake is not logged', () => {
+    // Mon Jan 5 + 15 working days, skipping MLK Day (Jan 19) = Tue Jan 27
+    // (counted on the local calendar, never the UTC one), + 120 days = May 27.
+    expect(deadlineFor('rc_assessment', '2026-01-05', NOW)?.dueOn).toBe('2026-05-27');
   });
 
   it('counts days remaining from the local day, not the UTC one', () => {

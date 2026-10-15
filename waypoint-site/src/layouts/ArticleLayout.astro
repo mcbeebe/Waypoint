@@ -51,6 +51,8 @@ interface Props {
   narrow?: boolean;
   /** Crisis surface emphasis for emotionally heavy topics. */
   crisis?: boolean;
+  /** Entity the article is about, merged into Article JSON-LD (published only). */
+  about?: Record<string, unknown>;
 }
 const {
   title,
@@ -70,6 +72,7 @@ const {
   sources = [],
   narrow = false,
   crisis = false,
+  about,
 } = Astro.props;
 
 const isDraft = status !== 'published';
@@ -84,6 +87,7 @@ const jsonLd = !isDraft
       datePublished,
       dateModified,
       review: review ? { reviewedBy: review.reviewedBy, credential: review.credential } : null,
+      about,
     })
   : null;
 ---
