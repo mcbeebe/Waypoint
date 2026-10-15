@@ -49,6 +49,9 @@ import { parseDateLocal } from '@/lib/dateOnly';
 import type { FunnelLocale } from '@/lib/eligibility';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
+import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { actionAnchorLabel, actionAnchorOpen, actionAnchorA11y } from '@/lib/actionAsk';
+import type { ActionLocale } from '@/lib/actionMeta';
 import { Brandmark } from '@/components/Brandmark';
 
 /**
@@ -198,10 +201,58 @@ export default function NavigatorScreen() {
   const { showToast } = useToast();
   const { t, locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
+  const askLocale: ActionLocale = locale === 'es' ? 'es' : locale === 'vi' ? 'vi' : 'en';
 
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<NavigatorStackParamList, 'NavigatorMain'>>();
   const [inputText, setInputText] = useState('');
+  const inputRef = useRef<TextInput>(null);
+  /**
+   * The action this conversation was opened from, if any (the "Ask about
+   * this" bridge). Held in STATE rather than read from params: the param is
+   * cleared the moment it is consumed, and the pill has to outlive that for
+   * the whole conversation.
+   */
+  const [anchor, setAnchor] = useState<{ actionId: string; title: string } | null>(null);
+
+  /**
+   * Action bridge (owner request, Oct 14 2026): prefill the composer with
+   * where the action stands and focus it — send NOTHING.
+   *
+   * Unlike `ask` below, this needs no consent gate and no isLoading hold:
+   * nothing leaves the device until the parent taps send, and the existing
+   * gate in `handleSend` covers that.
+   *
+   * PREPEND, never overwrite. Tabs are never unmounted, so `inputText`
+   * survives a tab switch — a parent who had typed "Do I need a lawyer for"
+   * and then went to look up an action would have lost it to a bare
+   * `setInputText(prefill)`, with no warning and no undo.
+   */
+  useEffect(() => {
+    const prefill = route.params?.prefill;
+    const nextAnchor = route.params?.anchor;
+    if (!prefill && !nextAnchor) return;
+    navigation.setParams({ prefill: undefined, anchor: undefined });
+    // `?? null`, not `if (nextAnchor)`: arriving with a prefill and no anchor
+    // (the /ask deep link does exactly that) must not leave the previous
+    // action's pill sitting over a conversation it has nothing to do with.
+    setAnchor(nextAnchor ?? null);
+    if (prefill) {
+      setInputText((current) => {
+        const draft = current.trim();
+        if (!draft) return prefill;
+        // Tapped twice, or returned to: don't stack a second copy.
+        if (current.startsWith(prefill)) return current;
+        return `${prefill}${draft}`;
+      });
+      // Focus after the param round-trip so the keyboard opens on the screen
+      // the parent is actually looking at. While a response is streaming the
+      // composer is `editable={false}`, which on native is not focusable — the
+      // text still lands, the keyboard just doesn't open until the stream ends.
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route.params?.prefill, route.params?.anchor]);
 
   // Proactive prompt handoff (P3): a "Waypoint noticed" card passes its
   // question here; send it once, gated by consent like any other message.
@@ -257,6 +308,12 @@ export default function NavigatorScreen() {
 
   const handleResumeSession = useCallback((sid: string) => {
     setShowHistory(false);
+    // The pill belongs to the conversation that was opened from an action, not
+    // to the screen. Resuming "IEP meeting prep" from history while it stayed
+    // put left "About: Apply for Medi-Cal" sitting over an unrelated thread,
+    // still routing to that action. Same reason the New-conversation button
+    // clears it.
+    setAnchor(null);
     loadSession(sid);
   }, [loadSession]);
 
@@ -584,7 +641,13 @@ export default function NavigatorScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.newChatButton}
-            onPress={startNewSession}
+            onPress={() => {
+              // A fresh conversation is no longer about that action, so the
+              // pill goes with it — otherwise it would keep offering a way
+              // back to something this chat has nothing to do with.
+              setAnchor(null);
+              startNewSession();
+            }}
             accessibilityRole="button"
             accessibilityLabel="New conversation"
           >
@@ -623,6 +686,38 @@ export default function NavigatorScreen() {
           );
         })}
       </View>
+
+      {/* What this conversation is anchored to, and a way to OPEN it.
+          The bridge from an action switches TABS, so without this the parent
+          has to remember which tab they came from.
+
+          Honest limit: this is a way there, not a round trip. Tapping it
+          lands on ActionDetail in the hidden Tracker tab, whose own "← Back"
+          goes to the Home tab (the tab navigator's `firstRoute` behaviour),
+          not to this conversation. Plan's own rows have the same shape. */}
+      {anchor && (
+        <TouchableOpacity
+          style={styles.anchorPill}
+          onPress={() =>
+            // ActionDetail lives in the Tracker stack; a navigate resolves to
+            // PARENTS, never siblings, so the tab has to be named. Same route
+            // Plan's own rows use to open one action (ActionsScreen.openDetail).
+            (navigation as any).navigate('Tracker', {
+              screen: 'ActionDetail',
+              params: { actionId: anchor.actionId },
+              initial: false,
+            })
+          }
+          accessibilityRole="button"
+          accessibilityLabel={actionAnchorA11y(anchor.title, askLocale)}
+        >
+          <Ionicons name="clipboard-outline" size={14} color={brand.pine} />
+          <Text style={styles.anchorPillText} numberOfLines={1}>
+            {actionAnchorLabel(anchor.title, askLocale)}
+          </Text>
+          <Text style={styles.anchorPillOpen}>{actionAnchorOpen(askLocale)} ›</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Messages */}
       <KeyboardAvoidingView
@@ -737,6 +832,7 @@ export default function NavigatorScreen() {
             )}
           </TouchableOpacity>
           <TextInput
+            ref={inputRef}
             style={styles.input}
             value={inputText}
             onChangeText={setInputText}
@@ -1355,6 +1451,31 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: brand.border,
     gap: 6,
+  },
+  anchorPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    // Full 44pt target: this is the only way back to the action.
+    minHeight: MIN_TOUCH_TARGET,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.full,
+    backgroundColor: brand.pineTint,
+    borderWidth: 1,
+    borderColor: brand.pine,
+  },
+  anchorPillText: {
+    flex: 1,
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.semibold,
+    color: brand.pine,
+  },
+  anchorPillOpen: {
+    fontSize: fonts.sizes.sm,
+    fontWeight: fonts.weights.bold,
+    color: brand.pine,
   },
   toneLabel: {
     fontSize: fonts.sizes.xs,

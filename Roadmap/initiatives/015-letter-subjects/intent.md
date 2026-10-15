@@ -1,6 +1,6 @@
 # 015 — Letter subjects: written for the letter, not the template
 
-**Date:** 2026-10-09 · **Status:** adopted — owner-approved plan 2026-10-07; PR 1 merged (#305); PR 2 merged as #322 (Oct 9). The owner-approval record for #322 (an `ai-proxy` Edge Function change) is not in the repo.
+**Date:** 2026-10-09 · **Status:** adopted — owner-approved plan 2026-10-07; PR 1 merged (#305); PR 2 merged as #322 (Oct 9). The owner confirmed approval of #322 (an `ai-proxy` Edge Function change) on 2026-10-14, after it merged; no earlier approval record exists in the repo.
 **Supersedes:** — · **Superseded-by:** —
 **Artifacts:** intent.md (this) → PR bodies, each carrying its own `/adversary` memo
 

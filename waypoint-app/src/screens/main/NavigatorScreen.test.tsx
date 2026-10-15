@@ -16,7 +16,7 @@
  */
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 vi.mock('@/hooks/useFamily', () => ({
   useFamily: () => ({ family: { id: 'fam1', ai_consent_at: '2026-01-01' }, updateFamily: vi.fn() }),
@@ -27,6 +27,8 @@ vi.mock('@/hooks/useFamily', () => ({
 const h = vi.hoisted(() => ({
   messages: [] as any[],
   actions: [] as any[],
+  sendMessage: null as any,
+  sessions: [] as any[],
 }));
 
 vi.mock('@/hooks/useChat', () => ({
@@ -34,7 +36,7 @@ vi.mock('@/hooks/useChat', () => ({
     messages: h.messages,
     isLoading: false,
     error: null,
-    sendMessage: vi.fn(),
+    sendMessage: h.sendMessage,
     sessionId: 'sess1',
     startNewSession: vi.fn(),
     loadSession: vi.fn(),
@@ -50,7 +52,9 @@ vi.mock('@/hooks/useActions', () => ({
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     from: () => ({
-      select: () => ({ eq: () => ({ order: () => ({ limit: async () => ({ data: [] }) }) }) }),
+      select: () => ({
+        eq: () => ({ order: () => ({ limit: async () => ({ data: h.sessions }) }) }),
+      }),
     }),
   },
 }));
@@ -68,7 +72,7 @@ vi.mock('@/lib/gmail', () => ({
 }));
 
 import NavigatorScreen from './NavigatorScreen';
-import { navigateCalls } from '../../../vitest.setup.ui';
+import { navigateCalls, routeParams, setParamsCalls } from '../../../vitest.setup.ui';
 import { resolvesFrom } from '@/navigation/routeGraph';
 
 function answer(over: Record<string, unknown> = {}) {
@@ -84,6 +88,8 @@ function answer(over: Record<string, unknown> = {}) {
 beforeEach(() => {
   h.messages = [];
   h.actions = [];
+  h.sendMessage = vi.fn();
+  h.sessions = [];
 });
 
 describe('reaching the action plan from the Navigator', () => {
@@ -264,5 +270,160 @@ describe('emailing an answer', () => {
     // paper-trail row (true for its other two callers) — without this flag
     // the first Save/Send on a chat answer silently writes nothing.
     expect(options.params.draftBodyUnlogged).toBe(true);
+  });
+});
+
+/**
+ * The action bridge (owner request, Oct 14 2026), from the receiving end.
+ *
+ * The composer is prefilled and focused; NOTHING is sent. That distinction is
+ * the whole of the owner's Oct 14 call, and it is invisible to a logic test:
+ * `ask` (the older param) calls sendMessage, `prefill` must not, or a parent
+ * who tapped "Ask about this" to read what Waypoint knows has instead sent a
+ * half-written message to the model.
+ */
+describe('arriving from an action', () => {
+  it('prefills the composer with where the action stands', () => {
+    routeParams.prefill = 'About "Apply for Medi-Cal" — I\'ve marked it done (Oct 2). ';
+    render(<NavigatorScreen />);
+    const input = screen.getByLabelText('Message input') as HTMLTextAreaElement;
+    expect(input.value).toContain('Apply for Medi-Cal');
+    expect(input.value.endsWith(' ')).toBe(true);
+  });
+
+  it('sends nothing — the question is still the parent\'s to write', () => {
+    routeParams.prefill = 'About "Apply for Medi-Cal" — I\'ve marked it done. ';
+    render(<NavigatorScreen />);
+    // The text is on screen — in the BOX. What must not have happened is the
+    // send. (`ask`, the older param, calls sendMessage from its own effect.)
+    expect(h.sendMessage).not.toHaveBeenCalled();
+    expect((screen.getByLabelText('Message input') as HTMLTextAreaElement).value).toContain(
+      'marked it done'
+    );
+  });
+
+  it('clears the param so a remount cannot replay it', () => {
+    routeParams.prefill = 'About "Apply for Medi-Cal". ';
+    render(<NavigatorScreen />);
+    expect(setParamsCalls.length).toBeGreaterThan(0);
+    const [cleared] = setParamsCalls[0].args as [Record<string, unknown>];
+    expect(cleared.prefill).toBeUndefined();
+    expect(cleared.anchor).toBeUndefined();
+  });
+
+  it('shows what the conversation is anchored to', () => {
+    routeParams.anchor = { actionId: 'a1', title: 'Apply for Medi-Cal' };
+    render(<NavigatorScreen />);
+    expect(screen.getByLabelText(/This chat is about Apply for Medi-Cal/)).toBeTruthy();
+  });
+
+  it('the way back RESOLVES from this stack — the handoff crossed tabs', () => {
+    routeParams.anchor = { actionId: 'a1', title: 'Apply for Medi-Cal' };
+    render(<NavigatorScreen />);
+    fireEvent.click(screen.getByLabelText(/This chat is about/));
+
+    const [tab, options] = navigateCalls[0].args as [string, { screen: string; params: any }];
+    expect(resolvesFrom('Navigator', { screen: options.screen, tab })).toBe(true);
+    expect(options.params).toEqual({ actionId: 'a1' });
+    // Deliberately the hidden Tracker tab, unlike the Plan button above: that
+    // one lands on a LIST, where an unlit tab bar strands the parent, and this
+    // one lands on one specific action — the same route Plan's own rows use
+    // (ActionsScreen.openDetail). Note what this does NOT claim: ActionDetail's
+    // own "← Back" goes to the Home tab, not back to this chat, so the pill is
+    // a way THERE, not a round trip.
+    expect(tab).toBe('Tracker');
+  });
+
+  it('no pill when the chat was not opened from an action', () => {
+    render(<NavigatorScreen />);
+    expect(screen.queryByLabelText(/This chat is about/)).toBeNull();
+  });
+});
+
+/**
+ * The paths an adversary pass (Oct 14 2026) found live but unpinned. Each of
+ * these passed BEFORE the behaviour existed, which is the only real test of a
+ * test: deleting the line it guards must turn it red.
+ */
+describe('arriving from an action, at a screen that is already open', () => {
+  /** The production shape: the tab was already mounted; params arrive after. */
+  function arrive(params: Record<string, unknown>) {
+    const view = render(<NavigatorScreen />);
+    Object.assign(routeParams, params);
+    view.rerender(<NavigatorScreen />);
+    return view;
+  }
+  const composer = () => screen.getByLabelText('Message input') as HTMLTextAreaElement;
+
+  it('prefills an empty composer outright', () => {
+    arrive({ prefill: 'About "Apply for Medi-Cal". ' });
+    expect(composer().value).toBe('About "Apply for Medi-Cal". ');
+  });
+
+  it('keeps the draft when one is already there, context first', () => {
+    const view = render(<NavigatorScreen />);
+    fireEvent.change(composer(), { target: { value: 'Do I need a lawyer for this?' } });
+    Object.assign(routeParams, { prefill: 'About "Apply for Medi-Cal". ' });
+    view.rerender(<NavigatorScreen />);
+
+    expect(composer().value).toBe('About "Apply for Medi-Cal". Do I need a lawyer for this?');
+  });
+
+  it('does not stack a second copy when the same action is tapped twice', () => {
+    const view = render(<NavigatorScreen />);
+    Object.assign(routeParams, { prefill: 'About "Apply for Medi-Cal". ' });
+    view.rerender(<NavigatorScreen />);
+    Object.assign(routeParams, { prefill: 'About "Apply for Medi-Cal". ' });
+    view.rerender(<NavigatorScreen />);
+
+    expect(composer().value.match(/Apply for Medi-Cal/g) ?? []).toHaveLength(1);
+  });
+
+  it('puts the cursor in the composer, which is what the hint promises', async () => {
+    arrive({ prefill: 'About "Apply for Medi-Cal". ' });
+    // The focus happens inside a requestAnimationFrame, so this waits rather
+    // than asserting synchronously — and waits longer than the 1s default,
+    // because a loaded full-suite run is exactly when a rAF gets starved.
+    await waitFor(() => expect(document.activeElement).toBe(composer()), { timeout: 5000 });
+  });
+});
+
+describe('the pill belongs to the conversation, not to the screen', () => {
+  const pill = () => screen.queryByLabelText(/This chat is about/);
+
+  it('goes away when the parent starts a new conversation', () => {
+    routeParams.anchor = { actionId: 'a1', title: 'Apply for Medi-Cal' };
+    render(<NavigatorScreen />);
+    expect(pill()).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText('New conversation'));
+    expect(pill()).toBeNull();
+  });
+
+  it('goes away when an unrelated conversation is resumed from history', async () => {
+    h.sessions = [{ id: 'sess2', title: 'IEP meeting prep', created_at: '2026-10-01' }];
+    routeParams.anchor = { actionId: 'a1', title: 'Apply for Medi-Cal' };
+    render(<NavigatorScreen />);
+    expect(pill()).toBeTruthy();
+
+    fireEvent.click(screen.getByLabelText('Chat history'));
+    fireEvent.click(await screen.findByLabelText('Resume conversation: IEP meeting prep'));
+
+    // Otherwise it sits over an unrelated thread still offering to open an
+    // action that thread has nothing to do with.
+    expect(pill()).toBeNull();
+  });
+
+  it('is replaced, not retained, when a prefill arrives with no action', () => {
+    routeParams.anchor = { actionId: 'a1', title: 'Apply for Medi-Cal' };
+    const view = render(<NavigatorScreen />);
+    expect(pill()).toBeTruthy();
+
+    // What the /ask deep link produces: a seed with no anchor.
+    delete routeParams.anchor;
+    routeParams.prefill = 'Something else entirely. ';
+    view.rerender(<NavigatorScreen />);
+
+    expect(pill()).toBeNull();
   });
 });
