@@ -218,7 +218,7 @@ export default function CommunicationLogScreen() {
     } catch {
       // share sheet dismissed
     }
-  }, [filtered, family, showToast]);
+  }, [guard, filtered, family, showToast]);
 
   const handleDelete = useCallback(async (c: Communication) => {
     const confirmed = await showConfirm(
