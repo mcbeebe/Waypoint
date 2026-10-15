@@ -104,7 +104,7 @@ elsewhere. The description below is historical.
 - **Design system:** Custom tokens in `src/lib/theme.ts` (colors: navy, teal, coral, sage; spacing scale; radii)
 - **Current state (2026-10-15):** the flagship product. 67 migrations, nine
   Edge Functions in production, 45 screens under `main/` plus auth /
-  onboarding / staff / legal, and a 170-file / 2207-test vitest suite across
+  onboarding / staff / legal, and a 170-file / 2209-test vitest suite across
   four projects. (This line previously read "Auth scaffolding… no screens
   beyond onboarding exist yet.")
 
