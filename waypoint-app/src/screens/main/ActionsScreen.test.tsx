@@ -40,8 +40,8 @@ vi.mock('@/hooks/useActions', () => ({
 
 import ActionsScreen, { ActionPlanTracker } from './ActionsScreen';
 import { navigateCalls } from '../../../vitest.setup.ui';
-import { resolvesFrom } from '@/navigation/routeGraph';
-import { actionReturnNavigation, ACTION_DETAIL_TAB } from '@/lib/actionReturn';
+import { resolvesFrom, ROUTE_GRAPH } from '@/navigation/routeGraph';
+import { actionReturnNavigation } from '@/lib/actionReturn';
 
 /**
  * A fixed local noon, so "2 hours ago" is always the SAME calendar day.
@@ -662,12 +662,10 @@ describe('opening one action from the Plan tab', () => {
     expect(options.params.actionId).toBe('a1');
 
     const back = actionReturnNavigation(options.params.returnTo);
-    expect(back).not.toBeNull();
+    expect(back, 'the row offers no way back').not.toBeNull();
     expect(back!.tab).toBe('Calendar');
     expect(back!.options.screen).toBe('PlanMain');
-    expect(
-      resolvesFrom(ACTION_DETAIL_TAB, { screen: back!.options.screen, tab: back!.tab })
-    ).toBe(true);
+    expect(ROUTE_GRAPH.Calendar.screens).toContain(back!.options.screen);
   });
 });
 

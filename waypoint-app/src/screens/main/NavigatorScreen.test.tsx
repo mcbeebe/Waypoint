@@ -73,7 +73,8 @@ vi.mock('@/lib/gmail', () => ({
 
 import NavigatorScreen from './NavigatorScreen';
 import { navigateCalls, routeParams, setParamsCalls } from '../../../vitest.setup.ui';
-import { resolvesFrom } from '@/navigation/routeGraph';
+import { resolvesFrom, ROUTE_GRAPH } from '@/navigation/routeGraph';
+import { actionReturnNavigation } from '@/lib/actionReturn';
 
 function answer(over: Record<string, unknown> = {}) {
   return {
@@ -337,19 +338,21 @@ describe('arriving from an action', () => {
     render(<NavigatorScreen />);
     fireEvent.click(screen.getByLabelText(/This chat is about/));
 
-    const [, options] = navigateCalls[0].args as [string, { params: { returnTo?: any } }];
-    const returnTo = options.params.returnTo;
+    const [, options] = navigateCalls[0].args as [string, { params: { returnTo?: unknown } }];
     // Without this the pill was a way THERE only: ActionDetail's own Back
     // popped to the hidden Tracker tab's list, or bubbled to the tab
     // navigator and landed on Home — never on this conversation.
-    expect(returnTo).toEqual({ tab: 'Navigator', screen: 'NavigatorMain' });
-    // The navigate ActionDetail will make with it, checked from the tab that
-    // registers ActionDetail — a return target can be a dead tap too.
-    expect(resolvesFrom('Tracker', { screen: returnTo.screen, tab: returnTo.tab })).toBe(true);
+    const back = actionReturnNavigation(options.params.returnTo);
+    expect(back, 'the pill offers no way back').not.toBeNull();
+    expect(back!.tab).toBe('Navigator');
     // The conversation, not merely the tab: this stack also holds the Learn
     // reader, and landing on whatever was last on top of the chat is not
     // coming back.
-    expect(returnTo.screen).toBe('NavigatorMain');
+    expect(back!.options.screen).toBe('NavigatorMain');
+    expect(ROUTE_GRAPH.Navigator.screens).toContain(back!.options.screen);
+    // A string, not an object: this route is deep-linkable, and an object
+    // param reached the web address bar as `returnTo=[object Object]`.
+    expect(typeof options.params.returnTo).toBe('string');
   });
 
   it('no pill when the chat was not opened from an action', () => {

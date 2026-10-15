@@ -71,6 +71,7 @@ import { useActions } from '@/hooks/useActions';
 import { useI18n } from '@/i18n';
 import { FLAGS } from '@/lib/flags';
 import { COMMUNITY_DESTINATIONS, HOME_DESTINATIONS } from './routeGraph';
+import { actionDetailBackOptions } from '@/lib/actionReturn';
 import { colors, brand, fonts } from '@/lib/theme';
 import { Brandmark } from '@/components/Brandmark';
 import type {
@@ -378,7 +379,19 @@ function TrackerStack() {
   return (
     <TrackerStackNav.Navigator screenOptions={detailHeaderOptions}>
       <TrackerStackNav.Screen name="TrackerList" component={ActionsScreen} options={{ headerShown: false }} />
-      <TrackerStackNav.Screen name="ActionDetail" component={ActionDetailRoute} options={{ title: 'Action' }} />
+      {/* `actionDetailBackOptions`: when another tab opened this action, the
+          native chevron and the iOS edge-swipe are turned off, because both
+          POP — to this hidden tab's list — and the screen's own "← Back" is
+          the control that honours `returnTo`. From the Tracker list itself
+          they stay: there, popping is right. */}
+      <TrackerStackNav.Screen
+        name="ActionDetail"
+        component={ActionDetailRoute}
+        options={({ route }) => ({
+          title: 'Action',
+          ...actionDetailBackOptions((route.params as { returnTo?: unknown } | undefined)?.returnTo),
+        })}
+      />
     </TrackerStackNav.Navigator>
   );
 }
@@ -422,22 +435,18 @@ export default function MainTabs() {
     <NotificationPrefsProvider>
     <Tab.Navigator
       /**
-       * Back means "the tab I came from", not "Home".
+       * `backBehavior` is deliberately left at its default ('firstRoute').
        *
-       * The default is 'firstRoute': any back that reaches this navigator —
-       * Android's hardware button, an iOS swipe with nothing beneath, a
-       * `goBack()` bubbling out of a stack that cannot pop — switches to the
-       * FIRST tab. So a parent who crossed tabs to read one action (the
-       * Navigator's "Ask about this" pill, a Plan row, a Home triage card)
-       * was put on Home, which is neither where they were nor anything they
-       * asked for. 'history' returns them to the tab they actually came from.
-       *
-       * The in-screen Back on ActionDetail does not rely on this — it names
-       * its return target (`lib/actionReturn.ts`) so it lands on the exact
-       * screen, conversation state included. This is the floor under every
-       * other back control on the way.
+       * An earlier draft of the action round trip set it to 'history', on the
+       * reasoning that back should mean "the tab I came from". Driving the
+       * real TabRouter through this flow showed the opposite: because the
+       * return is a `navigate` and the Tracker tab stays mounted on
+       * ActionDetail, 'history' sent Android's hardware back FROM the
+       * conversation straight onto the action the parent had just left.
+       * 'firstRoute' leaves Home. Neither is the conversation — which is why
+       * the fix is the explicit return target (`lib/actionReturn.ts`) and not
+       * a navigator option no test can see.
        */
-      backBehavior="history"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.teal,

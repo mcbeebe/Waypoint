@@ -18,6 +18,7 @@ import { dayKey } from '@/lib/agenda';
 import { deadlineFor } from '@/lib/requestClocks';
 import type { RequestType } from '@/lib/requestClocks';
 import type { FunnelLocale } from '@/lib/eligibility';
+import { RETURN_TO_PLAN } from '@/lib/actionReturn';
 
 function picker(locale: FunnelLocale) {
   return (en: string, es: string, vi: string) =>
@@ -213,7 +214,7 @@ function collectEntries(input: PlanInput): PlanEntry[] {
       target: {
         screen: 'ActionDetail',
         tab: 'Tracker',
-        params: { actionId: a.id, returnTo: { tab: 'Calendar', screen: 'PlanMain' } },
+        params: { actionId: a.id, returnTo: RETURN_TO_PLAN },
       },
     });
   }

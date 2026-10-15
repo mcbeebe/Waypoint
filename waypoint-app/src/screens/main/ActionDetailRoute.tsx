@@ -26,6 +26,10 @@ import {
   actionUnavailableTitle,
   actionUnavailableBody,
   actionUnavailableBack,
+  actionUnavailableBackA11y,
+  actionLoadFailedTitle,
+  actionLoadFailedBody,
+  actionLoadRetry,
 } from '@/lib/actionReturn';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import type { ActionLocale } from '@/lib/actionMeta';
@@ -43,7 +47,7 @@ export default function ActionDetailRoute({ route, navigation }: any) {
   const { showToast } = useToast();
   const { locale } = useI18n();
   const uiLocale: ActionLocale = locale === 'es' ? 'es' : locale === 'vi' ? 'vi' : 'en';
-  const { actions, loading, updateStatus, toggleStep, updateAction, refetch } = useActions({
+  const { actions, loading, error, updateStatus, toggleStep, updateAction, refetch } = useActions({
     familyId: family?.id ?? '',
   });
   const [checkInAction, setCheckInAction] = React.useState<Action | null>(null);
@@ -81,6 +85,18 @@ export default function ActionDetailRoute({ route, navigation }: any) {
     navigation.navigate('TrackerList');
   }, [navigation, returnTo]);
 
+  /** The one way off either of the two states below. */
+  const backControl = (
+    <TouchableOpacity
+      onPress={goBack}
+      style={styles.goneBack}
+      accessibilityRole="button"
+      accessibilityLabel={actionUnavailableBackA11y(uiLocale)}
+    >
+      <Text style={styles.goneBackText}>{actionUnavailableBack(uiLocale)}</Text>
+    </TouchableOpacity>
+  );
+
   if (loading && !action) {
     return (
       <View style={styles.centered}>
@@ -94,19 +110,35 @@ export default function ActionDetailRoute({ route, navigation }: any) {
    * conversation, so this is reachable in normal use, and it used to be a dead
    * end: one grey sentence, no back control, on a tab bar with nothing lit.
    */
+  /**
+   * The fetch failed — which is NOT the same as the action being gone, and
+   * `useActions` reports them the same way: an empty list either way. Saying
+   * "removed from your plan" to a parent whose connection dropped is a false
+   * statement about their plan, made by the app that keeps it.
+   */
+  if (!action && error) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.goneTitle}>{actionLoadFailedTitle(uiLocale)}</Text>
+        <Text style={styles.goneBody}>{actionLoadFailedBody(uiLocale)}</Text>
+        <TouchableOpacity
+          onPress={() => refetch()}
+          style={styles.goneBack}
+          accessibilityRole="button"
+          accessibilityLabel={actionLoadRetry(uiLocale)}
+        >
+          <Text style={styles.goneBackText}>{actionLoadRetry(uiLocale)}</Text>
+        </TouchableOpacity>
+        {backControl}
+      </View>
+    );
+  }
   if (!action) {
     return (
       <View style={styles.centered}>
         <Text style={styles.goneTitle}>{actionUnavailableTitle(uiLocale)}</Text>
         <Text style={styles.goneBody}>{actionUnavailableBody(uiLocale)}</Text>
-        <TouchableOpacity
-          onPress={goBack}
-          style={styles.goneBack}
-          accessibilityRole="button"
-          accessibilityLabel={actionUnavailableBack(uiLocale)}
-        >
-          <Text style={styles.goneBackText}>{actionUnavailableBack(uiLocale)}</Text>
-        </TouchableOpacity>
+        {backControl}
       </View>
     );
   }
@@ -114,6 +146,18 @@ export default function ActionDetailRoute({ route, navigation }: any) {
   return (
     <>
       <ActionDetailScreen
+        /**
+         * Keyed, so a different action gets a FRESH screen.
+         *
+         * Back is now a `navigate` to another tab, not a `pop`, so this screen
+         * stays mounted after the parent leaves it — and it holds nine pieces
+         * of draft state (a half-typed next step, a note, a due date, a
+         * dismissal reason, three modals). Without this, the step a parent
+         * started typing about "Apply for Medi-Cal" was still in the box when
+         * they opened "Request an IEP assessment", and tapping Add wrote it
+         * onto that action's checklist.
+         */
+        key={action.id}
         action={action}
         onUpdateStatus={(status, reason) => {
           // Dependency lock: this step builds on another that isn't done yet

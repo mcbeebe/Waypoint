@@ -1,7 +1,6 @@
 // Navigation type definitions
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { ForumThread, IEPAnalysisResult } from '@/types/database';
-import type { ActionReturnTo } from '@/lib/actionReturn';
 
 export type RootStackParamList = {
   Welcome: undefined;
@@ -153,13 +152,16 @@ export type TrackerStackParamList = {
   ActionDetail: {
     actionId: string;
     /**
-     * Where Back goes, for a caller in another tab. ActionDetail lives in the
-     * hidden Tracker stack, so from here `goBack()` can only pop to that
-     * stack's list or bubble to the tab navigator — never to the screen the
-     * parent left. The caller names it instead; `lib/actionReturn.ts` checks
-     * it against the declared route graph before trusting it.
+     * Where Back goes, for a caller in another tab, as `"Tab/Screen"`.
+     * ActionDetail lives in the hidden Tracker stack, so from here `goBack()`
+     * can only pop to that stack's list or bubble to the tab navigator —
+     * never to the screen the parent left. The caller names it instead
+     * (`RETURN_TO_CHAT` and friends in `lib/actionReturn.ts`, which checks it
+     * against the declared route graph before trusting it). A string, not an
+     * object: this route is deep-linkable and the param is serialised into
+     * the URL.
      */
-    returnTo?: ActionReturnTo;
+    returnTo?: string;
   };
 };
 

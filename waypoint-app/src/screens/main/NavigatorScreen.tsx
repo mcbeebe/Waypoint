@@ -51,6 +51,7 @@ import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/dat
 import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import { actionAnchorLabel, actionAnchorOpen, actionAnchorA11y } from '@/lib/actionAsk';
+import { RETURN_TO_CHAT } from '@/lib/actionReturn';
 import type { ActionLocale } from '@/lib/actionMeta';
 import { Brandmark } from '@/components/Brandmark';
 
@@ -709,10 +710,10 @@ export default function NavigatorScreen() {
               screen: 'ActionDetail',
               params: {
                 actionId: anchor.actionId,
-                // The way home. 'NavigatorMain', not just the tab: this stack
-                // also holds the Learn reader, and the parent is owed the
-                // conversation, not whatever was last on top of it.
-                returnTo: { tab: 'Navigator', screen: 'NavigatorMain' },
+                // The way home — the conversation, not merely the tab: this
+                // stack also holds the Learn reader, and the parent is owed
+                // the chat, not whatever was last on top of it.
+                returnTo: RETURN_TO_CHAT,
               },
               initial: false,
             })

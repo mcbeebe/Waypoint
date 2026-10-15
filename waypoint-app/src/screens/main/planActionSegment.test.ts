@@ -7,9 +7,9 @@
  * (the Calendar stack), never a dead tap.
  */
 import { describe, it, expect } from 'vitest';
-import { resolvesFrom } from '@/navigation/routeGraph';
+import { resolvesFrom, ROUTE_GRAPH } from '@/navigation/routeGraph';
 import { buildPlan } from '@/lib/planView';
-import { actionReturnNavigation, ACTION_DETAIL_TAB } from '@/lib/actionReturn';
+import { actionReturnNavigation } from '@/lib/actionReturn';
 
 describe('the Action Plan segment sends a row somewhere that resolves', () => {
   it('an action row opens ActionDetail — resolves from the Plan tab (Calendar)', () => {
@@ -43,11 +43,9 @@ describe('the Action Plan segment sends a row somewhere that resolves', () => {
     }).sections.flatMap((s) => s.entries);
 
     const back = actionReturnNavigation(entry.target?.params?.returnTo);
-    expect(back).not.toBeNull();
+    expect(back, 'the row offers no way back').not.toBeNull();
     expect(back!.tab).toBe('Calendar');
     expect(back!.options.screen).toBe('PlanMain');
-    expect(
-      resolvesFrom(ACTION_DETAIL_TAB, { screen: back!.options.screen, tab: back!.tab })
-    ).toBe(true);
+    expect(ROUTE_GRAPH.Calendar.screens).toContain(back!.options.screen);
   });
 });
