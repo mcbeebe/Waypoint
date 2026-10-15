@@ -50,6 +50,8 @@ import type { FunnelLocale } from '@/lib/eligibility';
 import type { ChatContext, ToneLevel, ActionCategory, Action } from '@/types/database';
 import { colors, brand, fonts, spacing, radii } from '@/lib/theme';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { actionAnchorLabel, actionAnchorOpen, actionAnchorA11y } from '@/lib/actionAsk';
+import type { ActionLocale } from '@/lib/actionMeta';
 import { Brandmark } from '@/components/Brandmark';
 
 /**
@@ -199,6 +201,7 @@ export default function NavigatorScreen() {
   const { showToast } = useToast();
   const { t, locale } = useI18n();
   const funnelLocale: FunnelLocale = toFunnelLocale(locale);
+  const askLocale: ActionLocale = locale === 'es' ? 'es' : locale === 'vi' ? 'vi' : 'en';
 
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<NavigatorStackParamList, 'NavigatorMain'>>();
@@ -216,21 +219,36 @@ export default function NavigatorScreen() {
    * Action bridge (owner request, Oct 14 2026): prefill the composer with
    * where the action stands and focus it — send NOTHING.
    *
-   * Unlike `ask` below, this needs no consent gate and no isLoading hold,
-   * because nothing leaves the device until the parent taps send, and the
-   * existing gate in `handleSend` covers that. Setting text mid-stream is
-   * harmless, so the seed can never be dropped the way `ask` once was.
+   * Unlike `ask` below, this needs no consent gate and no isLoading hold:
+   * nothing leaves the device until the parent taps send, and the existing
+   * gate in `handleSend` covers that.
+   *
+   * PREPEND, never overwrite. Tabs are never unmounted, so `inputText`
+   * survives a tab switch — a parent who had typed "Do I need a lawyer for"
+   * and then went to look up an action would have lost it to a bare
+   * `setInputText(prefill)`, with no warning and no undo.
    */
   useEffect(() => {
     const prefill = route.params?.prefill;
     const nextAnchor = route.params?.anchor;
     if (!prefill && !nextAnchor) return;
     navigation.setParams({ prefill: undefined, anchor: undefined });
-    if (nextAnchor) setAnchor(nextAnchor);
+    // `?? null`, not `if (nextAnchor)`: arriving with a prefill and no anchor
+    // (the /ask deep link does exactly that) must not leave the previous
+    // action's pill sitting over a conversation it has nothing to do with.
+    setAnchor(nextAnchor ?? null);
     if (prefill) {
-      setInputText(prefill);
+      setInputText((current) => {
+        const draft = current.trim();
+        if (!draft) return prefill;
+        // Tapped twice, or returned to: don't stack a second copy.
+        if (current.startsWith(prefill)) return current;
+        return `${prefill}${draft}`;
+      });
       // Focus after the param round-trip so the keyboard opens on the screen
-      // the parent is actually looking at.
+      // the parent is actually looking at. While a response is streaming the
+      // composer is `editable={false}`, which on native is not focusable — the
+      // text still lands, the keyboard just doesn't open until the stream ends.
       requestAnimationFrame(() => inputRef.current?.focus());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -290,6 +308,12 @@ export default function NavigatorScreen() {
 
   const handleResumeSession = useCallback((sid: string) => {
     setShowHistory(false);
+    // The pill belongs to the conversation that was opened from an action, not
+    // to the screen. Resuming "IEP meeting prep" from history while it stayed
+    // put left "About: Apply for Medi-Cal" sitting over an unrelated thread,
+    // still routing to that action. Same reason the New-conversation button
+    // clears it.
+    setAnchor(null);
     loadSession(sid);
   }, [loadSession]);
 
@@ -663,10 +687,14 @@ export default function NavigatorScreen() {
         })}
       </View>
 
-      {/* What this conversation is anchored to, and the way back to it.
-          The bridge from an action switches TABS, so Back lands on the
-          Navigator's own stack, not on the action — without this the parent
-          has to remember which tab they came from. */}
+      {/* What this conversation is anchored to, and a way to OPEN it.
+          The bridge from an action switches TABS, so without this the parent
+          has to remember which tab they came from.
+
+          Honest limit: this is a way there, not a round trip. Tapping it
+          lands on ActionDetail in the hidden Tracker tab, whose own "← Back"
+          goes to the Home tab (the tab navigator's `firstRoute` behaviour),
+          not to this conversation. Plan's own rows have the same shape. */}
       {anchor && (
         <TouchableOpacity
           style={styles.anchorPill}
@@ -681,13 +709,13 @@ export default function NavigatorScreen() {
             })
           }
           accessibilityRole="button"
-          accessibilityLabel={`This chat is about ${anchor.title}. Open it.`}
+          accessibilityLabel={actionAnchorA11y(anchor.title, askLocale)}
         >
           <Ionicons name="clipboard-outline" size={14} color={brand.pine} />
           <Text style={styles.anchorPillText} numberOfLines={1}>
-            About: {anchor.title}
+            {actionAnchorLabel(anchor.title, askLocale)}
           </Text>
-          <Text style={styles.anchorPillOpen}>Open ›</Text>
+          <Text style={styles.anchorPillOpen}>{actionAnchorOpen(askLocale)} ›</Text>
         </TouchableOpacity>
       )}
 

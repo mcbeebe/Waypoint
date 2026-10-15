@@ -157,9 +157,10 @@ export default function ActionDetailScreen({
       params: {
         prefill: actionAskPrefill(action, {
           locale: uiLocale,
-          // The child this action is actually attached to — never the primary
-          // child as a fallback. The same mistake in the email builder put
-          // "Ana's plan" on an email about Ben.
+          // The child this action is attached to (or the only child, in a
+          // one-child family, where there is nothing to get wrong) — never
+          // the primary child of several. That exact fallback put "Ana's
+          // plan" on an email about Ben.
           childFirstName: emailChild?.first_name ?? null,
         }),
         anchor: { actionId: action.id, title: action.title },
@@ -550,30 +551,6 @@ export default function ActionDetailScreen({
           ) : null}
         </View>
 
-        {/* ── Ask about this (owner request, Oct 14 2026) ──────────────────
-            A parent who has just marked something done has a WAITING
-            question — what happens next, how long, what to watch for — and
-            until now the only way to ask it was to switch tabs and retype
-            what the app already knew.
-
-            It sits here, under the chips, rather than down with the email and
-            calendar sections: the parent who has just changed the status is at
-            the TOP of this screen, not scrolled twenty sections past it. */}
-        <View style={styles.askSection}>
-          <TouchableOpacity
-            style={styles.askButton}
-            onPress={handleAskAboutThis}
-            accessibilityRole="button"
-            accessibilityLabel={`${actionAskLabel(uiLocale)}: ${action.title}`}
-            accessibilityHint={actionAskHint(uiLocale)}
-          >
-            <Text style={[styles.askButtonText, { fontSize: sz(15) }]}>
-              🧭 {actionAskLabel(uiLocale)} ›
-            </Text>
-          </TouchableOpacity>
-          <Text style={[styles.askHint, { fontSize: sz(12) }]}>{actionAskHint(uiLocale)}</Text>
-        </View>
-
         {/* Inline deadline editor — suggested by Waypoint, yours to change */}
         {editingDue && (
           <View style={styles.dueEditor}>
@@ -607,6 +584,31 @@ export default function ActionDetailScreen({
             </View>
           </View>
         )}
+
+        {/* ── Ask about this (owner request, Oct 14 2026) ──────────────────
+            A parent who has just marked something done has a WAITING
+            question — what happens next, how long, what to watch for — and
+            until now the only way to ask it was to switch tabs and retype
+            what the app already knew.
+
+            It sits here, under the chips, rather than down with the email and
+            calendar sections: the parent who has just changed the status is at
+            the TOP of this screen, not scrolled twenty sections past it. */}
+        <View style={styles.askSection}>
+          <TouchableOpacity
+            style={styles.askButton}
+            onPress={handleAskAboutThis}
+            accessibilityRole="button"
+            // No accessibilityHint: the same sentence is visible text
+            // directly below, so a hint would read it out twice.
+            accessibilityLabel={`${actionAskLabel(uiLocale)}: ${action.title}`}
+          >
+            <Text style={[styles.askButtonText, { fontSize: sz(15) }]}>
+              🧭 {actionAskLabel(uiLocale)} ›
+            </Text>
+          </TouchableOpacity>
+          <Text style={[styles.askHint, { fontSize: sz(12) }]}>{actionAskHint(uiLocale)}</Text>
+        </View>
 
         {/* Effort — the honest "how big is this lift" */}
         {content.effort && (

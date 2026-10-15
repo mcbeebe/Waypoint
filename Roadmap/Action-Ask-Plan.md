@@ -158,9 +158,20 @@ prefill carries status, `ask` is never set, the child is the attached one);
 param is cleared, the pill resolves back).
 
 Every one of these was mutation-checked: the naive-UTC parse, a UTC "today", a
-blaming phrasing, a dropped tab name, and an auto-sending prefill each turn a
-test red. The two date mutants were caught by `tz-west` ONLY — the east suite
-passed them both, which is the whole argument for running the file twice.
+blaming phrasing, a dropped tab name, an auto-sending prefill, a dropped year,
+an overwriting prefill, and each of the three pill-lifecycle clears turn a test
+red when removed. The two date mutants were caught by `tz-west` ONLY — the east
+suite passed them both, which is the whole argument for running the file twice.
+
+The `/adversary` pass found ten verified defects in the first build, seven of
+which were fixed before review: a dropped YEAR (a 14-month-old deadline read
+identically to a 7-week-old one), a prefill that destroyed a half-written
+question, a pill that survived into an unrelated resumed conversation, a
+self-contradicting "part-way through, 3 of 3 steps done", an English-only pill
+inside a trilingual flow, a new card that pushed the inline deadline editor
+away from the chip that opens it, and an unbounded title. Three of the fixed
+behaviours had shipped with no test that failed when they were deleted. The
+memo is in the PR.
 
 **Not in scope:** notes in the context, Edge Function changes, any change to how
 the answer itself is generated or rendered.
@@ -181,10 +192,16 @@ surface, no locked decision changed), so the PR description is the record.
    should be an opt-in toggle, not a default.
 2. **Entry point** — built on `ActionDetail` only. Whether the same affordance
    belongs on the action cards in the Plan list is untested and unanswered.
-3. **The pill routes to the hidden Tracker tab.** That matches what
-   `ActionsScreen.openDetail` already ships, and a detail screen has its own
-   back header, so nothing is stranded. But `NavigatorScreen` carries an
-   explicit test saying the Plan button must NOT route to Tracker — for a
-   LIST, where an unlit bar does strand you. The two are reconciled in a
-   comment and a test; if that distinction ever stops holding, this is where
-   it breaks.
+3. **The pill is a way THERE, not a round trip.** It opens the action; it does
+   not come back. ActionDetail's own "← Back" goes to the Home tab (the tab
+   navigator's `firstRoute` behaviour), and if the action was dismissed or
+   deleted since the chat was opened, the route renders a bare "no longer
+   available" with no back control at all. Plan's own rows have exactly the
+   same shape, so this is a pre-existing weakness the pill inherits rather than
+   one it introduces — but the first build's comments claimed a round trip, and
+   they now say what it actually does. Worth a decision: leave it, or give the
+   pill a real return path.
+4. **The context is editable text with no marker.** A parent can delete half of
+   it and send something incoherent, and the model cannot tell generated
+   framing from the parent's own words. The alternative — a non-editable
+   preamble — costs the property that made prefill the right call.
