@@ -114,6 +114,16 @@ export interface ArticleJsonLdInput {
   about?: Record<string, unknown>;
 }
 
+/**
+ * The dateModified to publish: never earlier than datePublished. Pages are
+ * often drafted (dateModified) before they go live (datePublished), and a
+ * modification that precedes publication is a contradiction Google flags.
+ * Publishing is itself the latest change, so the later date wins.
+ */
+export function effectiveDateModified(datePublished: Date | null, dateModified: Date): Date {
+  return datePublished && datePublished > dateModified ? datePublished : dateModified;
+}
+
 /** Article schema for a PUBLISHED entry only — callers gate on status. */
 export function articleJsonLd(input: ArticleJsonLdInput) {
   const data: Record<string, unknown> = {
@@ -125,7 +135,7 @@ export function articleJsonLd(input: ArticleJsonLdInput) {
     inLanguage: input.locale,
     author: { '@type': 'Person', name: input.author },
     publisher: { '@type': 'Organization', name: 'Waypoint', url: `${SITE}/` },
-    dateModified: input.dateModified.toISOString(),
+    dateModified: effectiveDateModified(input.datePublished, input.dateModified).toISOString(),
   };
   if (input.datePublished) data.datePublished = input.datePublished.toISOString();
   if (input.about) data.about = input.about;

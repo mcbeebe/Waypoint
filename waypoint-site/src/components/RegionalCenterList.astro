@@ -1,0 +1,48 @@
+---
+/**
+ * Every Regional Center, linked to its field guide, as plain HTML links.
+ * The finder builds its result link in JavaScript, which search engines
+ * may never follow, so the hub and the finder carry this static list too
+ * (keyword map: the hub "links every RC deep-dive"). A center whose guide
+ * is still in review renders unlinked, never as a dead link.
+ */
+import { regionalCenterRecords } from '../lib/regionalCenters';
+import { rcListItems } from '../lib/rcList';
+
+const items = rcListItems(await regionalCenterRecords());
+---
+
+<ul class="rc-list">
+  {
+    items.map((i) => (
+      <li>
+        {i.url ? <a href={i.url}>{i.rcName}</a> : <span>{i.rcName}</span>}
+        <span class="rc-area">{i.area}</span>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .rc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 10px 24px;
+  }
+  .rc-list li {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .rc-list a {
+    color: var(--color-pine);
+    font-weight: 600;
+  }
+  .rc-area {
+    font-size: 0.86rem;
+    color: var(--color-ink-soft);
+  }
+</style>
