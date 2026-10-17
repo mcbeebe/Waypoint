@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import {
   articleJsonLd,
   breadcrumbsJsonLd,
+  effectiveDateModified,
   hubCrumb,
   regionalCenterOrgJsonLd,
   toolsIndexJsonLd,
@@ -176,5 +177,39 @@ describe('articleJsonLd about', () => {
     expect(articleJsonLd(base)).not.toHaveProperty('about');
     const about = regionalCenterOrgJsonLd({ rcName: 'X', counties: ['Kern'] });
     expect(articleJsonLd({ ...base, about }).about).toEqual(about);
+  });
+});
+
+describe('articleJsonLd dates', () => {
+  const base = {
+    url: 'https://waypointchild.com/x/',
+    title: 'T',
+    description: 'D',
+    locale: 'en' as const,
+    author: 'A',
+    review: null,
+  };
+  it('never publishes a dateModified earlier than datePublished', () => {
+    // The shape all 21 Regional Center pages shipped with: drafted 09-06, live 09-09.
+    const ld = articleJsonLd({ ...base, datePublished: new Date('2026-09-09'), dateModified: new Date('2026-09-06') });
+    expect(ld.datePublished).toBe('2026-09-09T00:00:00.000Z');
+    expect(ld.dateModified).toBe('2026-09-09T00:00:00.000Z');
+  });
+  it('keeps a later dateModified as written', () => {
+    const ld = articleJsonLd({ ...base, datePublished: new Date('2026-09-09'), dateModified: new Date('2026-10-06') });
+    expect(ld.dateModified).toBe('2026-10-06T00:00:00.000Z');
+  });
+  it('leaves dateModified alone when there is no datePublished', () => {
+    const ld = articleJsonLd({ ...base, datePublished: null, dateModified: new Date('2026-09-06') });
+    expect(ld).not.toHaveProperty('datePublished');
+    expect(ld.dateModified).toBe('2026-09-06T00:00:00.000Z');
+  });
+  it('effectiveDateModified returns the later of the two', () => {
+    const a = new Date('2026-09-01');
+    const b = new Date('2026-09-02');
+    expect(effectiveDateModified(b, a)).toBe(b);
+    expect(effectiveDateModified(a, b)).toBe(b);
+    expect(effectiveDateModified(a, a)).toBe(a);
+    expect(effectiveDateModified(null, a)).toBe(a);
   });
 });

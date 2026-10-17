@@ -119,6 +119,9 @@ const jsonLd = !isDraft
       </div>
       {crisis && <CrisisBanner emphasized />}
       <slot name="handoff" />
+      {/* Template-rendered directory data (e.g. the Regional Center list on its
+          hub): outside #article-root, and outside the reviewed MDX body. */}
+      <slot name="directory" />
       {/* Sits outside #article-root on purpose: statute labels in the Pagefind
           index would crowd out the prose a parent is actually searching for. */}
       <Sources sources={sources} />

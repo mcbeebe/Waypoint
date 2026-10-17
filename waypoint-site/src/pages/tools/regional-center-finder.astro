@@ -18,6 +18,7 @@ import AnswerFirst from '../../components/AnswerFirst.astro';
 import Cite from '../../components/Cite.astro';
 import NoticeBox from '../../components/NoticeBox.astro';
 import InlineDisclaimer from '../../components/InlineDisclaimer.astro';
+import RegionalCenterList from '../../components/RegionalCenterList.astro';
 import { countyRoutes, regionalCenterRecords } from '../../lib/regionalCenters';
 
 const routes = await countyRoutes();
@@ -119,6 +120,7 @@ const jsonLd = webApplicationJsonLd({
           are provided regardless of income — eligibility is about your child's disability, not
           your paycheck. <Cite>WIC §4500 et seq.</Cite>
         </AnswerFirst>
+        <RegionalCenterList />
         <InlineDisclaimer variant="legal" />
       </article>
     </div>
