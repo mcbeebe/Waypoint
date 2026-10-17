@@ -32,6 +32,7 @@ import { statusLabel, type ActionLocale } from '@/lib/actionMeta';
 import { useToast } from '@/components/Toast';
 import Citation from '@/components/Citation';
 import { colors, semantic, fonts, spacing, radii } from '@/lib/theme';
+import { RETURN_TO_PROCESS_MAP } from '@/lib/actionReturn';
 
 /** Screen chrome in EN/ES. Vietnamese falls back to English for now. */
 const STRINGS: Record<FunnelLocale, {
@@ -227,7 +228,10 @@ export default function ProcessMapScreen() {
   const openAction = (actionId: string) => {
     (navigation as any).navigate('Tracker', {
       screen: 'ActionDetail',
-      params: { actionId },
+      // `returnTo`: ActionDetail is in the hidden Tracker stack and this call
+      // passes `initial: false`, so its Back popped to that tab's own action
+      // list instead of returning to the map (`lib/actionReturn.ts`).
+      params: { actionId, returnTo: RETURN_TO_PROCESS_MAP },
       initial: false,
     });
   };
