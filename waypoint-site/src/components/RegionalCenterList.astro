@@ -2,28 +2,64 @@
 /**
  * Every Regional Center, linked to its field guide, as plain HTML links.
  * The finder builds its result link in JavaScript, which search engines
- * may never follow, so the hub and the finder carry this static list too
- * (keyword map: the hub "links every RC deep-dive"). A center whose guide
- * is still in review renders unlinked, never as a dead link.
+ * may never follow, so the Regional Centers hub and the finder carry this
+ * static list too (keyword map: the hub "links every RC deep-dive").
+ *
+ * On the hub it renders from the page template, outside the reviewed MDX
+ * body and outside #article-root: it is directory data from the D11 spine,
+ * not reviewed guidance, and keeping it out of the Pagefind body stops 58
+ * county names crowding out the guide's prose in site search.
+ *
+ * A center whose guide is in review renders unlinked, never as a dead link,
+ * and the count and copy follow the data rather than assuming all 21.
  */
 import { regionalCenterRecords } from '../lib/regionalCenters';
 import { rcListItems } from '../lib/rcList';
 
+interface Props {
+  /** Show the link to the finder (off on the finder itself). */
+  finderLink?: boolean;
+}
+const { finderLink = false } = Astro.props;
+
 const items = rcListItems(await regionalCenterRecords());
+const allLinked = items.every((i) => i.url);
+const laCount = items.filter((i) => /Los Angeles/.test(i.area)).length;
 ---
 
-<ul class="rc-list">
-  {
-    items.map((i) => (
-      <li>
-        {i.url ? <a href={i.url}>{i.rcName}</a> : <span>{i.rcName}</span>}
-        <span class="rc-area">{i.area}</span>
-      </li>
-    ))
-  }
-</ul>
+<section class="rc-all" aria-labelledby="all-regional-centers">
+  <h2 id="all-regional-centers">All {items.length} Regional Centers</h2>
+  <p>
+    Each center serves its own counties.{' '}
+    {laCount > 1 && (
+      <>
+        Los Angeles County is split among {laCount} of them by home address, and each of those
+        guides describes the area it covers.{' '}
+      </>
+    )}
+    {allLinked ? 'Each name opens our guide to that center.' : 'Linked names open our guide to that center.'}
+    {finderLink && (
+      <>
+        {' '}Or pick your county in the <a href="/tools/regional-center-finder/">Regional Center finder</a>.
+      </>
+    )}
+  </p>
+  <ul class="rc-list">
+    {
+      items.map((i) => (
+        <li>
+          {i.url ? <a href={i.url}>{i.rcName}</a> : <span>{i.rcName}</span>}
+          <span class="rc-area">{i.area}</span>
+        </li>
+      ))
+    }
+  </ul>
+</section>
 
 <style>
+  .rc-all {
+    margin: 30px 0 10px;
+  }
   .rc-list {
     list-style: none;
     padding: 0;

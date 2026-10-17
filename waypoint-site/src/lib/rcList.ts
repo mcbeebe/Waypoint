@@ -28,7 +28,18 @@ function joinNames(names: string[]): string {
 }
 
 /**
- * One list item per center, sorted by name. A county served by more than one
+ * The part of a center's name a parent scans for: "Regional Center of the
+ * East Bay" files under E and "Frank D. Lanterman" under L, not both under R/F.
+ */
+export function rcSortKey(rcName: string): string {
+  return rcName
+    .replace(/^Regional Center of (the )?/i, '')
+    .replace(/^Frank D\. /, '')
+    .toLowerCase();
+}
+
+/**
+ * One list item per center, sorted by `rcSortKey`, counties alphabetical. A county served by more than one
  * center (Los Angeles has seven) is described as "part of", so no item claims
  * a whole county another center shares.
  */
@@ -37,10 +48,11 @@ export function rcListItems(records: RcListInput[]): RcListItem[] {
   for (const r of records) for (const c of r.counties) servedBy.set(c, (servedBy.get(c) ?? 0) + 1);
 
   return [...records]
-    .sort((a, b) => a.rcName.localeCompare(b.rcName))
+    .sort((a, b) => rcSortKey(a.rcName).localeCompare(rcSortKey(b.rcName)))
     .map((r) => {
-      const whole = r.counties.filter((c) => servedBy.get(c) === 1);
-      const shared = r.counties.filter((c) => (servedBy.get(c) ?? 0) > 1);
+      const counties = [...r.counties].sort((a, b) => a.localeCompare(b));
+      const whole = counties.filter((c) => servedBy.get(c) === 1);
+      const shared = counties.filter((c) => (servedBy.get(c) ?? 0) > 1);
       const parts: string[] = [];
       if (whole.length) parts.push(`${joinNames(whole)} ${whole.length === 1 ? 'County' : 'counties'}`);
       for (const c of shared) parts.push(`part of ${c} County`);
