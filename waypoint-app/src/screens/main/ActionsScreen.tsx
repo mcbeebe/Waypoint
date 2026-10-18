@@ -73,7 +73,7 @@ import {
 } from '@/lib/actionSort';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import { RETURN_TO_PLAN } from '@/lib/actionReturn';
-import { actionLockedBy, actionLockedByUnknown } from '@/lib/actionLock';
+import { actionLockMessage } from '@/lib/actionLock';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -331,12 +331,17 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   const blockedByDependency = useCallback(
     (action: Action, next: ActionStatus): boolean => {
       if (next === 'not_started' || next === 'dismissed') return false;
-      if (!isLocked(action)) return false;
-      const depTitle = action.depends_on ? titleById.get(action.depends_on) : undefined;
-      showToast(
-        depTitle ? actionLockedBy(depTitle, uiLocale) : actionLockedByUnknown(uiLocale),
-        'info'
+      const locked = actionLockMessage(
+        {
+          dependsOn: action.depends_on,
+          dependencyTitle: action.depends_on ? titleById.get(action.depends_on) : undefined,
+          // Same source as `isLocked`, which draws the padlock on the card.
+          dependencyCompleted: !isLocked(action),
+        },
+        uiLocale
       );
+      if (!locked) return false;
+      showToast(locked, 'info');
       return true;
     },
     [isLocked, titleById, showToast, uiLocale]

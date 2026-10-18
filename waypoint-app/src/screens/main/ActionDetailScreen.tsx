@@ -376,21 +376,31 @@ export default function ActionDetailScreen({
           >
             <Text style={styles.editButtonText}>{actionHeaderEdit(uiLocale)}</Text>
           </TouchableOpacity>
+          {/* 44pt target, 34pt circle: the strip is a single non-wrapping row
+              of five controls that already fit a 375pt phone exactly, so a
+              44pt CIRCLE would push the text-size pill off the right edge in
+              Spanish and Vietnamese — the one control a parent who turned
+              text size up is reaching for. The target is the touchable; the
+              circle is what they see. */}
           <TouchableOpacity
             onPress={() => setShowEmail(true)}
-            style={styles.shareButton}
+            style={styles.iconTarget}
             accessibilityRole="button"
             accessibilityLabel={actionHeaderEmailA11y(uiLocale)}
           >
-            <Ionicons name="mail-outline" size={18} color={colors.teal} />
+            <View style={styles.iconCircle}>
+              <Ionicons name="mail-outline" size={18} color={colors.teal} />
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleShare}
-            style={styles.shareButton}
+            style={styles.iconTarget}
             accessibilityRole="button"
             accessibilityLabel={actionHeaderShareA11y(uiLocale)}
           >
-            <Ionicons name="share-outline" size={18} color={colors.teal} />
+            <View style={styles.iconCircle}>
+              <Ionicons name="share-outline" size={18} color={colors.teal} />
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={cycleScale}
@@ -1327,11 +1337,11 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
   },
   backButton: {
-    // 4pt of padding on a 17pt line made a ~25pt target on the control four
-    // other tabs rely on to get a parent home again.
+    // paddingVertical: 4 on a 12pt line made a 23pt target on the control
+    // four other tabs rely on to get a parent home again. Height only: the
+    // row has vertical room and none to spare horizontally.
     minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
-    paddingRight: spacing.sm,
   },
   backText: {
     fontSize: fonts.sizes.sm,
@@ -1642,7 +1652,18 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    /**
+     * 0, not spacing.sm — the two icon targets carry 5pt of their own
+     * padding on each side, so the circles still sit 10pt apart and the
+     * pills 5pt off them. Width budget for the row, which does not wrap and
+     * fit a 375pt phone exactly before any of this:
+     *   was  Edit + 8 + 34 + 8 + 34 + 8 + pill = Edit + 92 + pill
+     *   now  Edit + 0 + 44 + 0 + 44 + 0 + pill = Edit + 88 + pill
+     * — 4pt narrower, plus the 8pt given back by `backButton`, so the 44pt
+     * targets cost no width at all. jsdom does no layout, so the ui suite
+     * cannot see an overflow here; this arithmetic is the guard.
+     */
+    gap: 0,
   },
   editButton: {
     paddingHorizontal: spacing.md,
@@ -1658,10 +1679,18 @@ const styles = StyleSheet.create({
     color: colors.teal,
     fontWeight: fonts.weights.semibold as '600',
   },
-  shareButton: {
+  /** What a finger gets. Transparent: the circle below is what is seen. */
+  iconTarget: {
     width: MIN_TOUCH_TARGET,
     height: MIN_TOUCH_TARGET,
-    borderRadius: MIN_TOUCH_TARGET / 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  /** What a parent sees — unchanged at 34pt. */
+  iconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: '#E6F7F5',
     justifyContent: 'center',
     alignItems: 'center',

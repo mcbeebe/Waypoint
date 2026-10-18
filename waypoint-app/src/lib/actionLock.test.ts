@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import type { ActionLocale } from '@/lib/actionMeta';
-import { actionLockedBy, actionLockedByUnknown } from '@/lib/actionLock';
+import { actionLockedBy, actionLockedByUnknown, actionLockMessage } from '@/lib/actionLock';
 
 const LOCALES: ActionLocale[] = ['en', 'es', 'vi'];
 const DEP = 'Request an IEP assessment';
@@ -43,6 +43,63 @@ describe('the lock is said in all three languages', () => {
       expect(actionLockedByUnknown(locale), locale).not.toContain('""');
       expect(actionLockedByUnknown(locale), locale).not.toBe(actionLockedBy(DEP, locale));
     }
+  });
+});
+
+describe('and they are actually Spanish and Vietnamese', () => {
+  it('says the Spanish words a Spanish reader expects', () => {
+    expect(actionLockedBy(DEP, 'es')).toBe(
+      `Primero complete "${DEP}": este paso se basa en ese.`
+    );
+    expect(actionLockedByUnknown('es')).toMatch(/^Este paso se desbloquea/);
+  });
+
+  it('is written in Vietnamese orthography', () => {
+    const VIETNAMESE_ONLY = /[ăâđêôơưẠ-ỹ]/;
+    expect(actionLockedBy(DEP, 'vi')).toMatch(VIETNAMESE_ONLY);
+    expect(actionLockedByUnknown('vi')).toMatch(VIETNAMESE_ONLY);
+  });
+});
+
+/**
+ * The predicate and the sentence together, because the two screens that lock
+ * a step disagreed about the predicate: the tracker treats a dependency whose
+ * row is not loaded as unfinished, and the detail screen's guard required the
+ * row to be found — so a step whose dependency had been deleted was drawn
+ * with a padlock in the tracker and could be marked Done from the detail
+ * screen one tap later.
+ */
+describe('whether a step is locked at all', () => {
+  const unlocked = { dependsOn: null, dependencyCompleted: false };
+
+  it('is not locked when it builds on nothing', () => {
+    expect(actionLockMessage(unlocked)).toBeNull();
+  });
+
+  it('is not locked once the step it builds on is done', () => {
+    expect(
+      actionLockMessage({ dependsOn: 'gate', dependencyTitle: DEP, dependencyCompleted: true })
+    ).toBeNull();
+  });
+
+  it('is locked, and names the step, while that step is open', () => {
+    expect(
+      actionLockMessage(
+        { dependsOn: 'gate', dependencyTitle: DEP, dependencyCompleted: false },
+        'es'
+      )
+    ).toBe(actionLockedBy(DEP, 'es'));
+  });
+
+  it('stays locked when the step it builds on is not in the loaded list', () => {
+    // Not loaded is not finished. The app cannot see that the step was done,
+    // and saying it was would be a claim about their plan that nothing
+    // supports — so the lock holds and the sentence names nothing.
+    const said = actionLockMessage(
+      { dependsOn: 'deleted', dependencyTitle: undefined, dependencyCompleted: false },
+      'vi'
+    );
+    expect(said).toBe(actionLockedByUnknown('vi'));
   });
 });
 

@@ -31,7 +31,7 @@ import {
   actionLoadFailedBody,
   actionLoadRetry,
 } from '@/lib/actionReturn';
-import { actionLockedBy } from '@/lib/actionLock';
+import { actionLockMessage } from '@/lib/actionLock';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import type { ActionLocale } from '@/lib/actionMeta';
 import { useI18n } from '@/i18n';
@@ -161,14 +161,24 @@ export default function ActionDetailRoute({ route, navigation }: any) {
         key={action.id}
         action={action}
         onUpdateStatus={(status, reason) => {
-          // Dependency lock: this step builds on another that isn't done yet
-          if (
-            (status === 'completed' || status === 'in_progress') &&
-            dependency &&
-            dependency.status !== 'completed'
-          ) {
-            showToast(actionLockedBy(dependency.title, uiLocale), 'info');
-            return;
+          // Dependency lock: this step builds on another that isn't done yet.
+          // The predicate lives in `actionLock` because the tracker has the
+          // same guard and the two disagreed — this one used to require the
+          // dependency ROW to be loaded, so a step whose dependency had been
+          // deleted was padlocked in the tracker and completable here.
+          if (status === 'completed' || status === 'in_progress') {
+            const locked = actionLockMessage(
+              {
+                dependsOn: action.depends_on,
+                dependencyTitle: dependency?.title,
+                dependencyCompleted: dependency?.status === 'completed',
+              },
+              uiLocale
+            );
+            if (locked) {
+              showToast(locked, 'info');
+              return;
+            }
           }
           updateStatus(action.id, status, reason);
           if (status === 'completed' && family?.id) {

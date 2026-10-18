@@ -61,7 +61,7 @@ vi.mock('@/lib/gmail', () => ({
 import ActionDetailRoute from './ActionDetailRoute';
 import { ROUTE_GRAPH } from '@/navigation/routeGraph';
 import { RETURN_TO_CHAT } from '@/lib/actionReturn';
-import { actionLockedBy } from '@/lib/actionLock';
+import { actionLockedBy, actionLockedByUnknown } from '@/lib/actionLock';
 import { statusActionLabel } from '@/lib/actionMeta';
 import { I18nProvider } from '@/i18n';
 import { ToastProvider } from '@/components/Toast';
@@ -333,6 +333,23 @@ describe('a step that builds on an unfinished one', () => {
     fireEvent.click(screen.getByLabelText(`Blocked step: ${statusActionLabel('completed', 'es')}`));
     expect(screen.getByText(actionLockedBy('Gate step', 'es'))).toBeTruthy();
     expect(h.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it('stays locked when the step it waits on is not in the loaded list', () => {
+    /**
+     * The divergence this fix closes: the tracker locks on
+     * `!completedIds.has(depends_on)`, so a dependency whose row is gone
+     * counts as unfinished; this screen's guard used to require the row to be
+     * FOUND, so the same step was padlocked in the tracker and could be
+     * marked Done here one tap later. Not loaded is not finished.
+     */
+    h.actions = [{ ...BLOCKED, depends_on: 'deleted' }];
+    openIn('es');
+    fireEvent.click(screen.getByLabelText(`Blocked step: ${statusActionLabel('completed', 'es')}`));
+
+    expect(h.updateStatus).not.toHaveBeenCalled();
+    // And it names nothing, because there is nothing truthful to name.
+    expect(screen.getByText(actionLockedByUnknown('es'))).toBeTruthy();
   });
 
   it('lets the step through once the one it waits on is done', () => {

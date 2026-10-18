@@ -48,6 +48,48 @@ describe('the header controls are said in all three languages', () => {
   });
 });
 
+/**
+ * "Three distinct strings" is not "three languages": `'Edit' / 'Change' /
+ * 'Modify'` satisfies it. These are the anchors a wrong-language string
+ * breaks — the same idiom `actionReturn.test.ts` uses for the gone screen.
+ */
+describe('and they are actually Spanish and Vietnamese', () => {
+  it('says the Spanish words a Spanish reader expects', () => {
+    expect(actionHeaderEdit('es')).toBe('Editar');
+    expect(actionHeaderEditA11y('es')).toMatch(/^Editar esta acción$/);
+    expect(actionHeaderEmailA11y('es')).toMatch(/correo/);
+    expect(actionHeaderShareA11y('es')).toMatch(/^Compartir/);
+    expect(actionHeaderTextSizeA11y(100, 'es')).toMatch(/Tamaño del texto/);
+  });
+
+  it('says the Vietnamese words a Vietnamese reader expects', () => {
+    expect(actionHeaderEdit('vi')).toBe('Sửa');
+    // The spoken label carries the unambiguous word; `Sửa` alone can read as
+    // "repair this" on a care plan, and the visible pill has no width for it.
+    expect(actionHeaderEditA11y('vi')).toMatch(/^Chỉnh sửa/);
+    expect(actionHeaderEmailA11y('vi')).toMatch(/^Viết/);
+    expect(actionHeaderShareA11y('vi')).toMatch(/^Chia sẻ/);
+    expect(actionHeaderTextSizeA11y(100, 'vi')).toMatch(/Cỡ chữ/);
+  });
+
+  it('is written in Vietnamese orthography throughout', () => {
+    // A property, not a fixture: every one of these carries at least one
+    // letter Vietnamese has and English and Spanish do not, so an English
+    // string pasted into the `vi` slot fails without this file knowing what
+    // the sentence says.
+    const VIETNAMESE_ONLY = /[ăâđêôơưẠ-ỹ]/;
+    for (const said of [
+      actionHeaderEdit('vi'),
+      actionHeaderEditA11y('vi'),
+      actionHeaderEmailA11y('vi'),
+      actionHeaderShareA11y('vi'),
+      actionHeaderTextSizeA11y(100, 'vi'),
+    ]) {
+      expect(said).toMatch(VIETNAMESE_ONLY);
+    }
+  });
+});
+
 describe('what a screen reader is handed', () => {
   it('names what the Edit control edits, in every language', () => {
     // "Edit" alone, announced out of context, does not say edit WHAT — this

@@ -558,30 +558,37 @@ describe('the in-body header', () => {
     }
   });
 
-  it('leaves no English behind in a Spanish or Vietnamese header', () => {
-    // The screen below the header was translated as it grew; the header was
-    // not, so a Spanish-reading parent met a Spanish action under an English
-    // bar. This reads the strip itself, so a literal left in the JSX fails.
+  it('leaves no English behind on any control in the strip', () => {
+    /**
+     * Control by control, found by its own localized name — NOT by walking up
+     * from the back button to a parent element. That anchor was defeated by
+     * wrapping the back control in one extra View: the scan then covered
+     * `Back` alone and an English `Edit` beside it passed.
+     *
+     * Each control's visible text and spoken label are checked against the
+     * English strings of the SAME control, so there is no word list to keep
+     * in step and nothing to exempt — "email" is a loanword in Vietnamese
+     * ("Viết email về việc này") and "Editar" contains "Edit", both of which
+     * a word-list scan gets wrong.
+     */
+    const CONTROLS: Array<{ a11y: (l: ActionLocale) => string; text?: (l: ActionLocale) => string }> = [
+      { a11y: actionBackA11y, text: actionBackLabel },
+      { a11y: actionHeaderEditA11y, text: actionHeaderEdit },
+      { a11y: actionHeaderEmailA11y },
+      { a11y: actionHeaderShareA11y },
+      { a11y: (l) => actionHeaderTextSizeA11y(100, l) },
+    ];
     for (const locale of ['es', 'vi'] as ActionLocale[]) {
       const view = detailIn(locale);
-      const header = screen.getByLabelText(actionBackA11y(locale)).parentElement!;
-      // Leaf by leaf, and SPACE-joined: raw `textContent` runs the controls
-      // together ("← BackEditar"), and a \b-anchored regex cannot see a word
-      // welded to the next one.
-      const texts = Array.from(header.querySelectorAll('*'))
-        .filter((el) => el.children.length === 0)
-        .map((el) => el.textContent ?? '');
-      const labels = Array.from(header.querySelectorAll('[aria-label]')).map(
-        (el) => el.getAttribute('aria-label') ?? ''
-      );
-      const said = [...texts, ...labels].join(' | ');
-      // Whole words, and NOT "email": that is a loanword in Vietnamese
-      // ("Viết email về việc này"), so banning it would fail a correct
-      // translation. "Editar" likewise contains "Edit", which is why this is
-      // \b-anchored rather than a substring scan.
-      expect(said, locale).not.toMatch(
-        /\b(Back|Edit|Share|Write|Text size|percent|this action|someone)\b/i
-      );
+      for (const c of CONTROLS) {
+        const el = screen.getByLabelText(c.a11y(locale));
+        expect(el.getAttribute('aria-label'), `${locale} label`).not.toBe(c.a11y('en'));
+        if (c.text) {
+          expect(el.textContent, `${locale} text`).toContain(c.text(locale));
+          // `not.toBe`, not `not.toContain`: "Editar" contains "Edit".
+          expect(el.textContent?.trim(), `${locale} text`).not.toBe(c.text('en'));
+        }
+      }
       view.unmount();
     }
   });
