@@ -17,8 +17,8 @@ import { gateCopy } from '@/lib/entitlements';
 
 export function usePremiumGuard() {
   const navigation = useNavigation();
-  const { family } = useFamily();
-  const { isPremium, loading } = useEntitlement(family?.id);
+  const { family, loading: familyLoading } = useFamily();
+  const { isPremium, loading } = useEntitlement(family?.id, familyLoading);
   const { showToast } = useToast();
 
   const guard = useCallback(

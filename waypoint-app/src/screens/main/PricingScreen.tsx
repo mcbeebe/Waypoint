@@ -24,8 +24,8 @@ const CHECKOUT_ANNUAL = process.env.EXPO_PUBLIC_STRIPE_CHECKOUT_ANNUAL_URL;
 const CHECKOUT_MONTHLY = process.env.EXPO_PUBLIC_STRIPE_CHECKOUT_MONTHLY_URL;
 
 export default function PricingScreen() {
-  const { family } = useFamily();
-  const { isPremium, sponsorLabel, refetch } = useEntitlement(family?.id);
+  const { family, loading: familyLoading } = useFamily();
+  const { isPremium, sponsorLabel, refetch } = useEntitlement(family?.id, familyLoading);
   const { showToast } = useToast();
   const [claiming, setClaiming] = React.useState(false);
 

@@ -6,6 +6,7 @@
  */
 import { render } from 'astro:content';
 import ArticleLayout from '../../layouts/ArticleLayout.astro';
+import RegionalCenterList from '../../components/RegionalCenterList.astro';
 import { visibleContentUrls, visibleEntries } from '../../lib/content';
 import { hubCrumb, type Crumb } from '../../lib/jsonld';
 
@@ -35,6 +36,8 @@ const { Content } = await render(entry);
 const d = entry.data;
 const id = entry.id.replace(/\.mdx?$/, '');
 const leaf = d.title.split(':')[0];
+// The Regional Centers pillar hub links every center's field guide.
+const isRcHub = id === 'regional-centers';
 
 const crumbs: Crumb[] = [{ name: 'Guides', href: '/guides/' }];
 if (id.includes('/')) {
@@ -62,4 +65,5 @@ crumbs.push({ name: leaf });
   pillar={d.pillar}
 >
   <Content />
+  {isRcHub && <RegionalCenterList slot="directory" finderLink />}
 </ArticleLayout>

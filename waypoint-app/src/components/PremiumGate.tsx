@@ -20,8 +20,8 @@ interface PremiumGateProps {
 
 export default function PremiumGate({ feature, children }: PremiumGateProps) {
   const navigation = useNavigation();
-  const { family } = useFamily();
-  const { isPremium, loading } = useEntitlement(family?.id);
+  const { family, loading: familyLoading } = useFamily();
+  const { isPremium, loading } = useEntitlement(family?.id, familyLoading);
 
   // While resolving, render nothing gated-looking — a flash of paywall on
   // every load would punish paying families.
