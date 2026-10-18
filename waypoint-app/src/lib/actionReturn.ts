@@ -183,8 +183,13 @@ export function actionLoadRetry(locale: ActionLocale = 'en'): string {
   return picker(locale)('Try again', 'Intentar de nuevo', 'Thử lại');
 }
 
-/** The label on the way out of either screen. */
-export function actionUnavailableBack(locale: ActionLocale = 'en'): string {
+/**
+ * The label on the way out — of either state above, and of the action itself:
+ * `ActionDetailScreen`'s own in-body "← Back" is the same control saying the
+ * same word, and had its own English-only copy of it until the `/adversary`
+ * pass on PR #341. One name, one string, so the two cannot drift apart.
+ */
+export function actionBackLabel(locale: ActionLocale = 'en'): string {
   return picker(locale)('← Back', '← Volver', '← Quay lại');
 }
 
@@ -193,6 +198,6 @@ export function actionUnavailableBack(locale: ActionLocale = 'en'): string {
  * announcing "left arrow Back" is reading punctuation to someone who cannot
  * see it (same reason `actionAnchorA11y` exists in `actionAsk.ts`).
  */
-export function actionUnavailableBackA11y(locale: ActionLocale = 'en'): string {
+export function actionBackA11y(locale: ActionLocale = 'en'): string {
   return picker(locale)('Back', 'Volver', 'Quay lại');
 }

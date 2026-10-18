@@ -16,8 +16,8 @@ import {
   actionDetailBackOptions,
   actionUnavailableTitle,
   actionUnavailableBody,
-  actionUnavailableBack,
-  actionUnavailableBackA11y,
+  actionBackLabel,
+  actionBackA11y,
   actionLoadFailedTitle,
   actionLoadFailedBody,
   actionLoadRetry,
@@ -172,8 +172,8 @@ describe('the two states that are not the action', () => {
     actionLoadFailedTitle,
     actionLoadFailedBody,
     actionLoadRetry,
-    actionUnavailableBack,
-    actionUnavailableBackA11y,
+    actionBackLabel,
+    actionBackA11y,
   ];
 
   it('are said in all three languages', () => {
@@ -219,10 +219,10 @@ describe('the two states that are not the action', () => {
 
   it('says the back control aloud without reading the arrow out', () => {
     for (const locale of LOCALES) {
-      expect(actionUnavailableBack(locale)).toContain('←');
+      expect(actionBackLabel(locale)).toContain('←');
       // A screen reader announcing "left arrow Back" is reading punctuation
       // to someone who cannot see it.
-      expect(actionUnavailableBackA11y(locale)).not.toContain('←');
+      expect(actionBackA11y(locale)).not.toContain('←');
     }
   });
 });

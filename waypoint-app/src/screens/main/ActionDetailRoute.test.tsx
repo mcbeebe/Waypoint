@@ -16,7 +16,7 @@
  */
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 
 const h = vi.hoisted(() => ({
   actions: [] as any[],
@@ -24,6 +24,7 @@ const h = vi.hoisted(() => ({
   error: null as string | null,
   refetch: (() => {}) as any,
   updateAction: (() => {}) as any,
+  updateStatus: (() => {}) as any,
 }));
 
 vi.mock('@/hooks/useFamily', () => ({
@@ -37,7 +38,7 @@ vi.mock('@/hooks/useActions', () => ({
     loading: h.loading,
     error: h.error,
     stats: null,
-    updateStatus: vi.fn(),
+    updateStatus: h.updateStatus,
     toggleStep: vi.fn(),
     updateAction: h.updateAction,
     createAction: vi.fn(),
@@ -60,6 +61,10 @@ vi.mock('@/lib/gmail', () => ({
 import ActionDetailRoute from './ActionDetailRoute';
 import { ROUTE_GRAPH } from '@/navigation/routeGraph';
 import { RETURN_TO_CHAT } from '@/lib/actionReturn';
+import { actionLockedBy } from '@/lib/actionLock';
+import { statusActionLabel } from '@/lib/actionMeta';
+import { I18nProvider } from '@/i18n';
+import { ToastProvider } from '@/components/Toast';
 
 const ACTION = {
   id: 'a1',
@@ -109,6 +114,7 @@ beforeEach(() => {
   h.error = null;
   h.refetch = vi.fn();
   h.updateAction = vi.fn();
+  h.updateStatus = vi.fn();
 });
 
 describe('getting back from one action', () => {
@@ -278,5 +284,61 @@ describe('the fetch failed, which is not the same as the action being gone', () 
 
     fireEvent.click(back());
     expect(nav.navigate.mock.calls[0][0]).toBe('Navigator');
+  });
+});
+
+/**
+ * The dependency lock, from the detail screen's own status control.
+ *
+ * `ActionsScreen` has the same guard and said the same English-only sentence;
+ * both now come from `actionLock`. The toast is the only feedback the tap
+ * gives — the status does not move — so for a parent who cannot read it the
+ * control simply appears not to work.
+ */
+describe('a step that builds on an unfinished one', () => {
+  const GATE = { ...ACTION, id: 'gate', title: 'Gate step', status: 'not_started' };
+  const BLOCKED = { ...ACTION, id: 'blocked', title: 'Blocked step', depends_on: 'gate' };
+
+  function openIn(locale: 'en' | 'es' | 'vi') {
+    const navigation = fakeNav(true);
+    render(
+      <I18nProvider initialLocale={locale}>
+        <ToastProvider>
+          <ActionDetailRoute route={{ params: { actionId: 'blocked' } }} navigation={navigation} />
+        </ToastProvider>
+      </I18nProvider>
+    );
+    return navigation;
+  }
+
+  beforeEach(() => {
+    h.actions = [GATE, BLOCKED];
+  });
+
+  it('says why, naming the step it waits on, in the family\'s language', () => {
+    for (const locale of ['es', 'vi'] as const) {
+      openIn(locale);
+      fireEvent.click(
+        screen.getByLabelText(`Blocked step: ${statusActionLabel('completed', locale)}`)
+      );
+      expect(screen.getByText(actionLockedBy('Gate step', locale)), locale).toBeTruthy();
+      cleanup();
+    }
+  });
+
+  it('and still refuses the change', () => {
+    // The copy fix must not have moved the guard: the toast is INSTEAD of the
+    // write, not after it.
+    openIn('es');
+    fireEvent.click(screen.getByLabelText(`Blocked step: ${statusActionLabel('completed', 'es')}`));
+    expect(screen.getByText(actionLockedBy('Gate step', 'es'))).toBeTruthy();
+    expect(h.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it('lets the step through once the one it waits on is done', () => {
+    h.actions = [{ ...GATE, status: 'completed' }, BLOCKED];
+    openIn('es');
+    fireEvent.click(screen.getByLabelText(`Blocked step: ${statusActionLabel('completed', 'es')}`));
+    expect(h.updateStatus).toHaveBeenCalledWith('blocked', 'completed', undefined);
   });
 });

@@ -73,6 +73,7 @@ import {
 } from '@/lib/actionSort';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import { RETURN_TO_PLAN } from '@/lib/actionReturn';
+import { actionLockedBy, actionLockedByUnknown } from '@/lib/actionLock';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -333,14 +334,12 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
       if (!isLocked(action)) return false;
       const depTitle = action.depends_on ? titleById.get(action.depends_on) : undefined;
       showToast(
-        depTitle
-          ? `Complete "${depTitle}" first — this step builds on it.`
-          : 'This step unlocks after its previous step.',
+        depTitle ? actionLockedBy(depTitle, uiLocale) : actionLockedByUnknown(uiLocale),
         'info'
       );
       return true;
     },
-    [isLocked, titleById, showToast]
+    [isLocked, titleById, showToast, uiLocale]
   );
 
   /** Direct status set (card control + swipe buttons), with check-in + analytics */

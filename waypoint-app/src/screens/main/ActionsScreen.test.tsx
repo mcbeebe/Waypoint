@@ -42,6 +42,10 @@ import ActionsScreen, { ActionPlanTracker } from './ActionsScreen';
 import { navigateCalls } from '../../../vitest.setup.ui';
 import { resolvesFrom, ROUTE_GRAPH } from '@/navigation/routeGraph';
 import { actionReturnNavigation } from '@/lib/actionReturn';
+import { actionLockedBy } from '@/lib/actionLock';
+import { statusActionLabel } from '@/lib/actionMeta';
+import { I18nProvider } from '@/i18n';
+import { ToastProvider } from '@/components/Toast';
 
 /**
  * A fixed local noon, so "2 hours ago" is always the SAME calendar day.
@@ -263,6 +267,33 @@ describe('the status buttons on a card', () => {
     fireEvent.click(screen.getByText(/Show everything/));
     fireEvent.click(screen.getByLabelText('Blocked step: Mark as Done'));
     expect(h.updateStatus).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The toast is the ONLY feedback a locked tap gives — the status does not
+   * move — and it was English-only here and in `ActionDetailRoute`. A parent
+   * who cannot read it is left with a control that looks broken, on the very
+   * tap that needs explaining.
+   */
+  it('says WHY in the family\'s own language, not only in English', () => {
+    h.actions = [
+      action({ id: 'gate', title: 'Gate step', status: 'not_started' }),
+      action({ id: 'blocked', title: 'Blocked step', depends_on: 'gate' }),
+    ];
+    render(
+      <I18nProvider initialLocale="es">
+        <ToastProvider>
+          <ActionsScreen />
+        </ToastProvider>
+      </I18nProvider>
+    );
+    fireEvent.click(screen.getByText(/Ver todo/));
+    fireEvent.click(
+      screen.getByLabelText(`Blocked step: ${statusActionLabel('completed', 'es')}`)
+    );
+
+    expect(h.updateStatus).not.toHaveBeenCalled();
+    expect(screen.getByText(actionLockedBy('Gate step', 'es'))).toBeTruthy();
   });
 
   it('still lets an unlocked step through', () => {

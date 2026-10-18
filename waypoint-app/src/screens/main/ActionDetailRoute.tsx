@@ -25,12 +25,13 @@ import {
   actionReturnNavigation,
   actionUnavailableTitle,
   actionUnavailableBody,
-  actionUnavailableBack,
-  actionUnavailableBackA11y,
+  actionBackLabel,
+  actionBackA11y,
   actionLoadFailedTitle,
   actionLoadFailedBody,
   actionLoadRetry,
 } from '@/lib/actionReturn';
+import { actionLockedBy } from '@/lib/actionLock';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import type { ActionLocale } from '@/lib/actionMeta';
 import { useI18n } from '@/i18n';
@@ -91,9 +92,9 @@ export default function ActionDetailRoute({ route, navigation }: any) {
       onPress={goBack}
       style={styles.goneBack}
       accessibilityRole="button"
-      accessibilityLabel={actionUnavailableBackA11y(uiLocale)}
+      accessibilityLabel={actionBackA11y(uiLocale)}
     >
-      <Text style={styles.goneBackText}>{actionUnavailableBack(uiLocale)}</Text>
+      <Text style={styles.goneBackText}>{actionBackLabel(uiLocale)}</Text>
     </TouchableOpacity>
   );
 
@@ -166,7 +167,7 @@ export default function ActionDetailRoute({ route, navigation }: any) {
             dependency &&
             dependency.status !== 'completed'
           ) {
-            showToast(`Complete "${dependency.title}" first — this step builds on it.`, 'info');
+            showToast(actionLockedBy(dependency.title, uiLocale), 'info');
             return;
           }
           updateStatus(action.id, status, reason);

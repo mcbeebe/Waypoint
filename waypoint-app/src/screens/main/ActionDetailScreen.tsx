@@ -49,6 +49,14 @@ import { formatAddedOn } from '@/lib/actionFreshness';
 import { parseDateLocal } from '@/lib/dateOnly';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import { actionAskPrefill, actionAskLabel, actionAskHint } from '@/lib/actionAsk';
+import { actionBackLabel, actionBackA11y } from '@/lib/actionReturn';
+import {
+  actionHeaderEdit,
+  actionHeaderEditA11y,
+  actionHeaderEmailA11y,
+  actionHeaderShareA11y,
+  actionHeaderTextSizeA11y,
+} from '@/lib/actionHeader';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -345,23 +353,34 @@ export default function ActionDetailScreen({
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Text style={styles.backText}>← Back</Text>
+        {/* Every control in this strip is trilingual, named for a screen
+            reader, and at least MIN_TOUCH_TARGET tall. None of the three was
+            true of the back button — the primary way off a screen four other
+            tabs push onto — until the /adversary pass on PR #341. The header
+            is the oldest part of this screen and predates both the i18n
+            provider and `accessibility.ts`. */}
+        <TouchableOpacity
+          onPress={onBack}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel={actionBackA11y(uiLocale)}
+        >
+          <Text style={styles.backText}>{actionBackLabel(uiLocale)}</Text>
         </TouchableOpacity>
         <View style={styles.headerActions}>
           <TouchableOpacity
             onPress={() => setShowEditModal(true)}
             style={styles.editButton}
             accessibilityRole="button"
-            accessibilityLabel="Edit this action"
+            accessibilityLabel={actionHeaderEditA11y(uiLocale)}
           >
-            <Text style={styles.editButtonText}>Edit</Text>
+            <Text style={styles.editButtonText}>{actionHeaderEdit(uiLocale)}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setShowEmail(true)}
             style={styles.shareButton}
             accessibilityRole="button"
-            accessibilityLabel="Write an email about this action"
+            accessibilityLabel={actionHeaderEmailA11y(uiLocale)}
           >
             <Ionicons name="mail-outline" size={18} color={colors.teal} />
           </TouchableOpacity>
@@ -369,7 +388,7 @@ export default function ActionDetailScreen({
             onPress={handleShare}
             style={styles.shareButton}
             accessibilityRole="button"
-            accessibilityLabel="Share this action with someone"
+            accessibilityLabel={actionHeaderShareA11y(uiLocale)}
           >
             <Ionicons name="share-outline" size={18} color={colors.teal} />
           </TouchableOpacity>
@@ -377,8 +396,10 @@ export default function ActionDetailScreen({
             onPress={cycleScale}
             style={styles.textSizeButton}
             accessibilityRole="button"
-            accessibilityLabel={`Text size ${Math.round(scale * 100)} percent. Tap to change.`}
+            accessibilityLabel={actionHeaderTextSizeA11y(Math.round(scale * 100), uiLocale)}
           >
+            {/* "Aa" + digits: the same two letters and the same number in all
+                three languages, so there is nothing here to translate. */}
             <Text style={styles.textSizeButtonText}>Aa {Math.round(scale * 100)}%</Text>
           </TouchableOpacity>
         </View>
@@ -1080,7 +1101,12 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     paddingHorizontal: spacing.md,
     paddingVertical: 5,
-    minHeight: 32,
+    // 32 before. The meta row on ActionsScreen keeps its controls small on
+    // purpose and reaches 44 through hitSlop; that is right for a line of
+    // metadata and wrong here, where this strip IS the screen's button bar —
+    // and hitSlop is a no-op in react-native-web, which is the build a
+    // shared `actions/:id` link opens.
+    minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
   },
   textSizeButtonText: {
@@ -1301,7 +1327,11 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
   },
   backButton: {
-    paddingVertical: 4,
+    // 4pt of padding on a 17pt line made a ~25pt target on the control four
+    // other tabs rely on to get a parent home again.
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
+    paddingRight: spacing.sm,
   },
   backText: {
     fontSize: fonts.sizes.sm,
@@ -1620,7 +1650,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     borderWidth: 1,
     borderColor: colors.teal,
-    minHeight: 32,
+    minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
   },
   editButtonText: {
@@ -1629,9 +1659,9 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.semibold as '600',
   },
   shareButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: MIN_TOUCH_TARGET,
+    height: MIN_TOUCH_TARGET,
+    borderRadius: MIN_TOUCH_TARGET / 2,
     backgroundColor: '#E6F7F5',
     justifyContent: 'center',
     alignItems: 'center',
