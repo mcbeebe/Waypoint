@@ -72,6 +72,8 @@ import {
   type SortDir,
 } from '@/lib/actionSort';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { RETURN_TO_PLAN } from '@/lib/actionReturn';
+import { actionLockMessage } from '@/lib/actionLock';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -299,7 +301,14 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
       if (embedded) {
         (navigation as any).navigate('Tracker', {
           screen: 'ActionDetail',
-          params: { actionId },
+          params: {
+            actionId,
+            // Where Back goes. Embedded means this tracker is the Plan tab's
+            // Action Plan segment, so the parent came from PlanMain — without
+            // this, Back popped to the hidden Tracker tab's own list
+            // (`lib/actionReturn.ts`).
+            returnTo: RETURN_TO_PLAN,
+          },
           initial: false,
         });
       } else {
@@ -322,17 +331,20 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
   const blockedByDependency = useCallback(
     (action: Action, next: ActionStatus): boolean => {
       if (next === 'not_started' || next === 'dismissed') return false;
-      if (!isLocked(action)) return false;
-      const depTitle = action.depends_on ? titleById.get(action.depends_on) : undefined;
-      showToast(
-        depTitle
-          ? `Complete "${depTitle}" first — this step builds on it.`
-          : 'This step unlocks after its previous step.',
-        'info'
+      const locked = actionLockMessage(
+        {
+          dependsOn: action.depends_on,
+          dependencyTitle: action.depends_on ? titleById.get(action.depends_on) : undefined,
+          // Same source as `isLocked`, which draws the padlock on the card.
+          dependencyCompleted: !isLocked(action),
+        },
+        uiLocale
       );
+      if (!locked) return false;
+      showToast(locked, 'info');
       return true;
     },
-    [isLocked, titleById, showToast]
+    [isLocked, titleById, showToast, uiLocale]
   );
 
   /** Direct status set (card control + swipe buttons), with check-in + analytics */

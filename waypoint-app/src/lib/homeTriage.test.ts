@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { actionReturnNavigation, RETURN_TO_HOME } from '@/lib/actionReturn';
+import { ROUTE_GRAPH } from '@/navigation/routeGraph';
 import { buildLadderSheet } from './homeCard';
 import {
   triageHome,
@@ -258,7 +260,18 @@ describe('the ladder can see plan actions (task #34)', () => {
     // action must name the Tracker tab or it resolves nowhere.
     expect(r.item?.action.tab).toBe('Tracker');
     expect(r.item?.action.screen).toBe('ActionDetail');
-    expect(r.item?.action.params).toEqual({ actionId: 'act-123' });
+    expect(r.item?.action.params).toEqual({ actionId: 'act-123', returnTo: RETURN_TO_HOME });
+  });
+
+  it('and says how to get back, because Back there lands on a hidden list', () => {
+    // The caller passes `initial: false`, so ActionDetail's Back popped
+    // within the Tracker stack to that tab's own action list — a tab with no
+    // button on the bar, so nothing is lit and Home is nowhere in sight.
+    const r = triageHome(base({ ...calmBase, actions: [action({ id: 'act-123', dueOn: '2026-08-20' })] }));
+    const back = actionReturnNavigation(r.item?.action.params?.returnTo);
+    expect(back).not.toBeNull();
+    expect(back!.tab).toBe('Home');
+    expect(ROUTE_GRAPH.Home.screens).toContain(back!.options.screen);
   });
 
   it('an action due today lands on the today rung, not overdue', () => {

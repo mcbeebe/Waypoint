@@ -44,6 +44,17 @@ vi.mock('@/lib/gmail', () => ({
 import ActionDetailScreen from './ActionDetailScreen';
 import { navigateCalls } from '../../../vitest.setup.ui';
 import { resolvesFrom } from '@/navigation/routeGraph';
+import { I18nProvider } from '@/i18n';
+import type { ActionLocale } from '@/lib/actionMeta';
+import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { actionBackLabel, actionBackA11y } from '@/lib/actionReturn';
+import {
+  actionHeaderEdit,
+  actionHeaderEditA11y,
+  actionHeaderEmailA11y,
+  actionHeaderShareA11y,
+  actionHeaderTextSizeA11y,
+} from '@/lib/actionHeader';
 
 const ACTION = {
   id: 'a1',
@@ -67,15 +78,30 @@ const ACTION = {
   created_at: new Date().toISOString(),
 };
 
-function detail(action: Record<string, unknown> = {}) {
+function detail(action: Record<string, unknown> = {}, onBack: () => void = () => {}) {
   return render(
     <ActionDetailScreen
       action={{ ...ACTION, ...action } as any}
       onUpdateStatus={() => {}}
       onToggleStep={() => {}}
       onUpdate={() => {}}
-      onBack={() => {}}
+      onBack={onBack}
     />
+  );
+}
+
+/** The same screen, as a family reading Spanish or Vietnamese gets it. */
+function detailIn(locale: ActionLocale, action: Record<string, unknown> = {}) {
+  return render(
+    <I18nProvider initialLocale={locale}>
+      <ActionDetailScreen
+        action={{ ...ACTION, ...action } as any}
+        onUpdateStatus={() => {}}
+        onToggleStep={() => {}}
+        onUpdate={() => {}}
+        onBack={() => {}}
+      />
+    </I18nProvider>
   );
 }
 
@@ -426,5 +452,154 @@ describe('asking the Navigator about this action', () => {
     const [, options] = navigateCalls[0].args as [string, { params: any }];
     expect(options.params.prefill).not.toContain('Ana');
     expect(options.params.prefill).not.toContain('Ben');
+  });
+});
+
+/**
+ * The in-body header strip — the way out, Edit, the two send icons, and the
+ * text-size pill.
+ *
+ * It is the oldest part of this screen (Sprint 3), written before the app had
+ * an `i18n` provider or `accessibility.ts`, and the only strip a parent cannot
+ * scroll past. The `/adversary` pass on PR #341 verified three defects on the
+ * back button alone: English-only, unannounced, and a ~25pt target. The
+ * mockup-and-render gap is exactly why these assertions live here and not
+ * only in `actionHeader.test.ts` — a translated lib module changes nothing if
+ * the JSX still holds the literal.
+ */
+describe('the in-body header', () => {
+  const LOCALES: ActionLocale[] = ['en', 'es', 'vi'];
+
+  /** What a finger actually gets: RNW puts the StyleSheet on a real rule. */
+  function target(el: HTMLElement) {
+    const cs = getComputedStyle(el);
+    return {
+      height: Math.max(parseFloat(cs.height) || 0, parseFloat(cs.minHeight) || 0),
+      width: Math.max(parseFloat(cs.width) || 0, parseFloat(cs.minWidth) || 0),
+    };
+  }
+
+  it('gives every control a button role and a name', () => {
+    detail();
+    const named = [
+      actionBackA11y('en'),
+      actionHeaderEditA11y('en'),
+      actionHeaderEmailA11y('en'),
+      actionHeaderShareA11y('en'),
+      actionHeaderTextSizeA11y(100, 'en'),
+    ];
+    for (const name of named) {
+      const el = screen.getByLabelText(name);
+      // Back had neither: a screen reader reached a control it could not name
+      // and could not say was pressable, on the primary way off the screen.
+      expect(el.getAttribute('role'), name).toBe('button');
+    }
+  });
+
+  it('says Back aloud without reading the arrow out', () => {
+    detail();
+    // The glyph is decoration; "left arrow Back" is punctuation read to
+    // someone who cannot see it.
+    expect(screen.getByText(actionBackLabel('en'))).toBeTruthy();
+    expect(screen.getByLabelText(actionBackA11y('en')).getAttribute('aria-label')).not.toContain(
+      '\u2190'
+    );
+  });
+
+  it('Back still goes back', () => {
+    // The point of all of this is a control that works; the a11y fix must not
+    // have moved the press off it.
+    const onBack = vi.fn();
+    detail({}, onBack);
+    fireEvent.click(screen.getByLabelText(actionBackA11y('en')));
+    expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives every control a target a finger can hit', () => {
+    detail();
+    const controls = [
+      actionBackA11y('en'),
+      actionHeaderEditA11y('en'),
+      actionHeaderTextSizeA11y(100, 'en'),
+    ];
+    for (const name of controls) {
+      // Back was paddingVertical: 4 on a 17pt line — about 25pt. The pills
+      // were 32. hitSlop is not an option here: this strip is the screen's
+      // button bar, and RNW (the build a shared `actions/:id` link opens)
+      // ignores hitSlop entirely.
+      expect(target(screen.getByLabelText(name)).height, name).toBeGreaterThanOrEqual(
+        MIN_TOUCH_TARGET
+      );
+    }
+    // The two icon buttons have no text to widen them, so both dimensions
+    // have to be checked.
+    for (const name of [actionHeaderEmailA11y('en'), actionHeaderShareA11y('en')]) {
+      const t = target(screen.getByLabelText(name));
+      expect(t.height, name).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+      expect(t.width, name).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+    }
+  });
+
+  it('is rendered in the family\'s language, labels included', () => {
+    for (const locale of LOCALES) {
+      const view = detailIn(locale);
+      expect(screen.getByText(actionBackLabel(locale)), locale).toBeTruthy();
+      expect(screen.getByText(actionHeaderEdit(locale)), locale).toBeTruthy();
+      for (const name of [
+        actionBackA11y(locale),
+        actionHeaderEditA11y(locale),
+        actionHeaderEmailA11y(locale),
+        actionHeaderShareA11y(locale),
+        actionHeaderTextSizeA11y(100, locale),
+      ]) {
+        expect(screen.getByLabelText(name), `${locale}: ${name}`).toBeTruthy();
+      }
+      view.unmount();
+    }
+  });
+
+  it('leaves no English behind on any control in the strip', () => {
+    /**
+     * Control by control, found by its own localized name — NOT by walking up
+     * from the back button to a parent element. That anchor was defeated by
+     * wrapping the back control in one extra View: the scan then covered
+     * `Back` alone and an English `Edit` beside it passed.
+     *
+     * Each control's visible text and spoken label are checked against the
+     * English strings of the SAME control, so there is no word list to keep
+     * in step and nothing to exempt — "email" is a loanword in Vietnamese
+     * ("Viết email về việc này") and "Editar" contains "Edit", both of which
+     * a word-list scan gets wrong.
+     */
+    const CONTROLS: Array<{ a11y: (l: ActionLocale) => string; text?: (l: ActionLocale) => string }> = [
+      { a11y: actionBackA11y, text: actionBackLabel },
+      { a11y: actionHeaderEditA11y, text: actionHeaderEdit },
+      { a11y: actionHeaderEmailA11y },
+      { a11y: actionHeaderShareA11y },
+      { a11y: (l) => actionHeaderTextSizeA11y(100, l) },
+    ];
+    for (const locale of ['es', 'vi'] as ActionLocale[]) {
+      const view = detailIn(locale);
+      for (const c of CONTROLS) {
+        const el = screen.getByLabelText(c.a11y(locale));
+        expect(el.getAttribute('aria-label'), `${locale} label`).not.toBe(c.a11y('en'));
+        if (c.text) {
+          expect(el.textContent, `${locale} text`).toContain(c.text(locale));
+          // `not.toBe`, not `not.toContain`: "Editar" contains "Edit".
+          expect(el.textContent?.trim(), `${locale} text`).not.toBe(c.text('en'));
+        }
+      }
+      view.unmount();
+    }
+  });
+
+  it('keeps "Aa" and the percentage untranslated, because they are the same words', () => {
+    // Two letters that mean "letters" everywhere, and the same digits:
+    // translating them would invent a difference that does not exist.
+    for (const locale of LOCALES) {
+      const view = detailIn(locale);
+      expect(screen.getByText(/^Aa 100%$/), locale).toBeTruthy();
+      view.unmount();
+    }
   });
 });

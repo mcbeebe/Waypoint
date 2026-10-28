@@ -49,6 +49,14 @@ import { formatAddedOn } from '@/lib/actionFreshness';
 import { parseDateLocal } from '@/lib/dateOnly';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
 import { actionAskPrefill, actionAskLabel, actionAskHint } from '@/lib/actionAsk';
+import { actionBackLabel, actionBackA11y } from '@/lib/actionReturn';
+import {
+  actionHeaderEdit,
+  actionHeaderEditA11y,
+  actionHeaderEmailA11y,
+  actionHeaderShareA11y,
+  actionHeaderTextSizeA11y,
+} from '@/lib/actionHeader';
 
 interface ActionDetailScreenProps {
   action: Action;
@@ -150,6 +158,12 @@ export default function ActionDetailScreen({
    * resolves to PARENTS, never siblings, so the tab has to be named. This is
    * the shape that has shipped a dead tap twice in this repo; the test asserts
    * it against `routeGraph`, not against what this comment believes.
+   *
+   * The way home from the chat's context pill is the pill's own concern, not
+   * this one's: it passes `returnTo` so ActionDetail's Back lands back on the
+   * conversation (`lib/actionReturn.ts`). Nothing is needed here, because the
+   * parent is LEAVING this screen in the ordinary way — the tab they came
+   * from stays as they left it.
    */
   const handleAskAboutThis = () => {
     (navigation as any).navigate('Navigator', {
@@ -339,40 +353,63 @@ export default function ActionDetailScreen({
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Text style={styles.backText}>← Back</Text>
+        {/* Every control in this strip is trilingual, named for a screen
+            reader, and at least MIN_TOUCH_TARGET tall. None of the three was
+            true of the back button — the primary way off a screen four other
+            tabs push onto — until the /adversary pass on PR #341. The header
+            is the oldest part of this screen and predates both the i18n
+            provider and `accessibility.ts`. */}
+        <TouchableOpacity
+          onPress={onBack}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel={actionBackA11y(uiLocale)}
+        >
+          <Text style={styles.backText}>{actionBackLabel(uiLocale)}</Text>
         </TouchableOpacity>
         <View style={styles.headerActions}>
           <TouchableOpacity
             onPress={() => setShowEditModal(true)}
             style={styles.editButton}
             accessibilityRole="button"
-            accessibilityLabel="Edit this action"
+            accessibilityLabel={actionHeaderEditA11y(uiLocale)}
           >
-            <Text style={styles.editButtonText}>Edit</Text>
+            <Text style={styles.editButtonText}>{actionHeaderEdit(uiLocale)}</Text>
           </TouchableOpacity>
+          {/* 44pt target, 34pt circle: the strip is a single non-wrapping row
+              of five controls that already fit a 375pt phone exactly, so a
+              44pt CIRCLE would push the text-size pill off the right edge in
+              Spanish and Vietnamese — the one control a parent who turned
+              text size up is reaching for. The target is the touchable; the
+              circle is what they see. */}
           <TouchableOpacity
             onPress={() => setShowEmail(true)}
-            style={styles.shareButton}
+            style={styles.iconTarget}
             accessibilityRole="button"
-            accessibilityLabel="Write an email about this action"
+            accessibilityLabel={actionHeaderEmailA11y(uiLocale)}
           >
-            <Ionicons name="mail-outline" size={18} color={colors.teal} />
+            <View style={styles.iconCircle}>
+              <Ionicons name="mail-outline" size={18} color={colors.teal} />
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleShare}
-            style={styles.shareButton}
+            style={styles.iconTarget}
             accessibilityRole="button"
-            accessibilityLabel="Share this action with someone"
+            accessibilityLabel={actionHeaderShareA11y(uiLocale)}
           >
-            <Ionicons name="share-outline" size={18} color={colors.teal} />
+            <View style={styles.iconCircle}>
+              <Ionicons name="share-outline" size={18} color={colors.teal} />
+            </View>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={cycleScale}
             style={styles.textSizeButton}
             accessibilityRole="button"
-            accessibilityLabel={`Text size ${Math.round(scale * 100)} percent. Tap to change.`}
+            accessibilityLabel={actionHeaderTextSizeA11y(Math.round(scale * 100), uiLocale)}
           >
+            {/* "Aa" + digits: the same two letters and the same number in all
+                three languages, so there is nothing here to translate. */}
             <Text style={styles.textSizeButtonText}>Aa {Math.round(scale * 100)}%</Text>
           </TouchableOpacity>
         </View>
@@ -1074,7 +1111,12 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     paddingHorizontal: spacing.md,
     paddingVertical: 5,
-    minHeight: 32,
+    // 32 before. The meta row on ActionsScreen keeps its controls small on
+    // purpose and reaches 44 through hitSlop; that is right for a line of
+    // metadata and wrong here, where this strip IS the screen's button bar —
+    // and hitSlop is a no-op in react-native-web, which is the build a
+    // shared `actions/:id` link opens.
+    minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
   },
   textSizeButtonText: {
@@ -1295,7 +1337,11 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.bold as '700',
   },
   backButton: {
-    paddingVertical: 4,
+    // paddingVertical: 4 on a 12pt line made a 23pt target on the control
+    // four other tabs rely on to get a parent home again. Height only: the
+    // row has vertical room and none to spare horizontally.
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
   },
   backText: {
     fontSize: fonts.sizes.sm,
@@ -1606,7 +1652,18 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    /**
+     * 0, not spacing.sm — the two icon targets carry 5pt of their own
+     * padding on each side, so the circles still sit 10pt apart and the
+     * pills 5pt off them. Width budget for the row, which does not wrap and
+     * fit a 375pt phone exactly before any of this:
+     *   was  Edit + 8 + 34 + 8 + 34 + 8 + pill = Edit + 92 + pill
+     *   now  Edit + 0 + 44 + 0 + 44 + 0 + pill = Edit + 88 + pill
+     * — 4pt narrower, plus the 8pt given back by `backButton`, so the 44pt
+     * targets cost no width at all. jsdom does no layout, so the ui suite
+     * cannot see an overflow here; this arithmetic is the guard.
+     */
+    gap: 0,
   },
   editButton: {
     paddingHorizontal: spacing.md,
@@ -1614,7 +1671,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.full,
     borderWidth: 1,
     borderColor: colors.teal,
-    minHeight: 32,
+    minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
   },
   editButtonText: {
@@ -1622,7 +1679,15 @@ const styles = StyleSheet.create({
     color: colors.teal,
     fontWeight: fonts.weights.semibold as '600',
   },
-  shareButton: {
+  /** What a finger gets. Transparent: the circle below is what is seen. */
+  iconTarget: {
+    width: MIN_TOUCH_TARGET,
+    height: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  /** What a parent sees — unchanged at 34pt. */
+  iconCircle: {
     width: 34,
     height: 34,
     borderRadius: 17,

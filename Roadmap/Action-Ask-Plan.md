@@ -192,15 +192,84 @@ surface, no locked decision changed), so the PR description is the record.
    should be an opt-in toggle, not a default.
 2. **Entry point** — built on `ActionDetail` only. Whether the same affordance
    belongs on the action cards in the Plan list is untested and unanswered.
-3. **The pill is a way THERE, not a round trip.** It opens the action; it does
-   not come back. ActionDetail's own "← Back" goes to the Home tab (the tab
-   navigator's `firstRoute` behaviour), and if the action was dismissed or
-   deleted since the chat was opened, the route renders a bare "no longer
-   available" with no back control at all. Plan's own rows have exactly the
-   same shape, so this is a pre-existing weakness the pill inherits rather than
-   one it introduces — but the first build's comments claimed a round trip, and
-   they now say what it actually does. Worth a decision: leave it, or give the
-   pill a real return path.
+3. ~~**The pill is a way THERE, not a round trip.**~~ **Closed Oct 15 2026 —
+   the pill is a round trip.** The caller now says where Back goes, in a
+   `returnTo` param that travels with the action id, and `ActionDetailRoute`
+   honours it: from a chat opened by "Ask about this", tapping the pill opens
+   the action and Back returns to **that conversation**, thread, pill and a
+   half-written question included (the return navigate carries no params, so
+   nothing remounts and the prefill effect does not re-fire).
+
+   **Scope — all four entry points, not just the pill.** The weakness was
+   never pill-specific: four surfaces in three tabs open `ActionDetail`, which
+   lives in the hidden Tracker stack, and every one of them passes
+   `initial: false`. The first draft of this fix wired two of them and claimed
+   the other two were already fine because their `goBack()` "lands on the Home
+   tab". That was **wrong**, and the `/adversary` pass proved it: with
+   `initial: false` the Tracker stack can pop, so `goBack()` popped to
+   `TrackerList` — the hidden tab's own action list, nothing lit on the bar —
+   from Home's triage card and the process map too. All four now name their
+   way back (`RETURN_TO_CHAT`, `RETURN_TO_PLAN`, `RETURN_TO_HOME`,
+   `RETURN_TO_PROCESS_MAP`), each pinned by a test at its own call site.
+
+   Five parts, so that none of them rests on what a comment believes:
+
+   - `src/lib/actionReturn.ts` — pure. It validates a return target against
+     the DECLARED graph (`routeGraph.ts`) before trusting it, because a return
+     target is a cross-stack navigate like any other and can be a dead tap,
+     and `ActionDetail` is deep-linkable, so `returnTo` is untrusted input. A
+     target that would not land is discarded in favour of the old `goBack`,
+     never silently tapped into nothing. It is a **string** (`"Tab/Screen"`),
+     not an object: React Navigation serialises non-path params into the URL
+     with `String(value)`, and the first draft's object put
+     `?returnTo=[object Object]` in the web address bar and lost the context
+     from any shared link. The four targets are named constants rather than
+     literals at the call sites — a typo in a literal compiles, lints, passes
+     and falls back to the broken `goBack` in silence.
+   - **The in-screen Back is not the only way off the screen.** The native
+     header draws its own chevron, and iOS adds the edge-swipe; both POP, to
+     the hidden tab's list. When a caller has named a way back, both are
+     turned off (`actionDetailBackOptions`), so the screen has exactly one
+     back control and it is the one that honours `returnTo`. A visit from the
+     Tracker list itself keeps both, because there popping is right.
+   - **The missing action is no longer a dead end.** Dismissed or deleted
+     while a chat anchored to it is still open, it used to render one grey
+     sentence with no control of its own. It now states what happened, states
+     that nothing else moved, and offers the way back. A **failed fetch** is a
+     separate state with its own copy and a retry: `useActions` reports a
+     dropped connection and a deleted action identically (an empty list), and
+     telling a parent on a flaky connection that their action was removed from
+     their plan is a false statement about their plan, from the app that keeps
+     it.
+   - **Draft state no longer follows the parent from one action to the next.**
+     Back is a `navigate` to another tab, not a `pop`, so the screen stays
+     mounted — and it holds nine pieces of draft state. A half-typed next step
+     from "Apply for Medi-Cal" was still in the box when "Request an IEP
+     assessment" opened, and tapping Add wrote it onto that action's checklist.
+     The screen is keyed by action id.
+   - The route wrapper moved out of `MainTabs.tsx` into
+     `src/screens/main/ActionDetailRoute.tsx` to make all of this testable: in
+     `MainTabs` — a file that imports every screen in the app — none of it
+     could be reached by a test, which is how both original defects shipped
+     green.
+
+   **`backBehavior` stays at its default.** The first draft set the tab
+   navigator to `'history'` as "the floor" under the other back controls.
+   Driving the real `TabRouter` through this flow showed it made things worse,
+   not better: because the return is a `navigate` and the Tracker tab stays
+   mounted on `ActionDetail`, `'history'` sent Android's hardware back **from
+   the conversation straight onto the action the parent had just left**. The
+   option is reverted; the comment in `MainTabs.tsx` records why, so the next
+   session does not reach for it again.
+
+   Sixteen mutations checked in all — each of the nine behaviours above turned
+   a test red when removed, including every one of the four call sites
+   dropping `returnTo`, the key that isolates draft state, the load-failure
+   branch, `pop: true`, and the chevron suppression. What is **not** covered:
+   `backBehavior` and the two suppressed native affordances are navigator
+   options, and no test in this repo can see one — same class of exposure as
+   the Edge Functions.
+
 4. **The context is editable text with no marker.** A parent can delete half of
    it and send something incoherent, and the model cannot tell generated
    framing from the parent's own words. The alternative — a non-editable
