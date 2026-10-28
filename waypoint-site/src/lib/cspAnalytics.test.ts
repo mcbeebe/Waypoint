@@ -44,6 +44,15 @@ describe('production CSP lets GA4 report', () => {
     expect(allows(directive('img-src'), origin)).toBe(true);
   });
 
+  // gtag.js also reports its own load to https://www.googletagmanager.com/a?t=l
+  // (an <img>, not a collect hit). Blocking it does not lose a page view, but it
+  // is the signal Google's tag diagnostics read, so the GA4 admin keeps warning
+  // that the tag is not detected while the data is in fact arriving. The host is
+  // already trusted in script-src — it serves gtag.js.
+  it.each(['img-src', 'connect-src'])('%s allows the gtag load ping', (name) => {
+    expect(allows(directive(name), 'https://www.googletagmanager.com')).toBe(true);
+  });
+
   it('still blocks unrelated hosts', () => {
     expect(allows(directive('connect-src'), 'https://evil-google-analytics.com')).toBe(false);
     expect(allows(directive('connect-src'), 'https://example.com')).toBe(false);
