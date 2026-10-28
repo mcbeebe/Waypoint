@@ -72,6 +72,7 @@ import {
   type SortDir,
 } from '@/lib/actionSort';
 import { MIN_TOUCH_TARGET } from '@/lib/accessibility';
+import { RETURN_TO_PLAN } from '@/lib/actionReturn';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -299,7 +300,14 @@ function ActionPlanBody({ embedded = false }: { embedded?: boolean }) {
       if (embedded) {
         (navigation as any).navigate('Tracker', {
           screen: 'ActionDetail',
-          params: { actionId },
+          params: {
+            actionId,
+            // Where Back goes. Embedded means this tracker is the Plan tab's
+            // Action Plan segment, so the parent came from PlanMain — without
+            // this, Back popped to the hidden Tracker tab's own list
+            // (`lib/actionReturn.ts`).
+            returnTo: RETURN_TO_PLAN,
+          },
           initial: false,
         });
       } else {

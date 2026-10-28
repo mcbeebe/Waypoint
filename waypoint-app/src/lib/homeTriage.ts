@@ -33,6 +33,7 @@ import { buildRequestCase, activeRequestForReply } from '@/lib/requestCase';
 import { findUnansweredReply } from '@/lib/replyInbox';
 import { deriveHomeInsight } from '@/lib/insights';
 import { localDayISO } from '@/lib/dateOnly';
+import { RETURN_TO_HOME } from '@/lib/actionReturn';
 import { deriveStackInsight } from '@/lib/resourceStack';
 import type { BenefitStatus } from '@/types/database';
 
@@ -627,10 +628,12 @@ function actionItems(
         label: L('Open this action', 'Abrir esta acción', 'Mở việc này'),
         // ActionDetail lives in the Tracker stack, a sibling of Home's — the
         // call must name the tab or the navigate bubbles to Home's parent and
-        // resolves nowhere.
+        // resolves nowhere. `returnTo` is the other half: the caller passes
+        // `initial: false`, so Back there popped to the hidden Tracker tab's
+        // own action list rather than coming back here (`lib/actionReturn.ts`).
         tab: 'Tracker',
         screen: 'ActionDetail',
-        params: { actionId: a.id },
+        params: { actionId: a.id, returnTo: RETURN_TO_HOME },
       },
       deferDays: 1,
       deferLabel: L('Back tomorrow morning', 'Vuelve mañana por la mañana', 'Quay lại sáng mai'),

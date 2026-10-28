@@ -150,6 +150,12 @@ export default function ActionDetailScreen({
    * resolves to PARENTS, never siblings, so the tab has to be named. This is
    * the shape that has shipped a dead tap twice in this repo; the test asserts
    * it against `routeGraph`, not against what this comment believes.
+   *
+   * The way home from the chat's context pill is the pill's own concern, not
+   * this one's: it passes `returnTo` so ActionDetail's Back lands back on the
+   * conversation (`lib/actionReturn.ts`). Nothing is needed here, because the
+   * parent is LEAVING this screen in the ordinary way — the tab they came
+   * from stays as they left it.
    */
   const handleAskAboutThis = () => {
     (navigation as any).navigate('Navigator', {

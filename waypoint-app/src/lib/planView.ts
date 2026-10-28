@@ -18,6 +18,7 @@ import { dayKey } from '@/lib/agenda';
 import { deadlineFor } from '@/lib/requestClocks';
 import type { RequestType } from '@/lib/requestClocks';
 import type { FunnelLocale } from '@/lib/eligibility';
+import { RETURN_TO_PLAN } from '@/lib/actionReturn';
 
 function picker(locale: FunnelLocale) {
   return (en: string, es: string, vi: string) =>
@@ -32,7 +33,12 @@ export type PlanEntryKind = 'appointment' | 'deadline' | 'action' | 'clock' | 'l
 
 export interface PlanTarget {
   screen: string;
-  params?: Record<string, string>;
+  /**
+   * Route params. Mostly ids, plus `returnTo` on a cross-tab target — the
+   * screen Back should come home to (`lib/actionReturn.ts`), which is an
+   * object, so this is not `Record<string, string>` any more.
+   */
+  params?: Record<string, unknown>;
   /** Set when the destination lives in another tab's stack. */
   tab?: string;
 }
@@ -203,7 +209,13 @@ function collectEntries(input: PlanInput): PlanEntry[] {
       dayLabel: key ? formatDay(key, now, locale) : null,
       time: null,
       sortKey: key ? `${key}T23:59` : '9999',
-      target: { screen: 'ActionDetail', tab: 'Tracker', params: { actionId: a.id } },
+      // `returnTo`: ActionDetail is in the hidden Tracker stack, and its Back
+      // cannot find its way back to Plan on its own (`lib/actionReturn.ts`).
+      target: {
+        screen: 'ActionDetail',
+        tab: 'Tracker',
+        params: { actionId: a.id, returnTo: RETURN_TO_PLAN },
+      },
     });
   }
 
